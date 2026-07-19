@@ -1,8 +1,8 @@
 # Products
 
-The seven products serve external users — leadership, engineers, platform
-builders, and agents — empowering teams to have lasting impact on their
-organizations.
+The eight products serve external users — leadership, engineers, platform
+builders, teams using agents, and agents — empowering teams to have lasting
+impact on their organizations.
 
 ## Catalog
 

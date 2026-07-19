@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".claude/skills/fit-*/**"
+      - ".claude/skills/gemba*/**"
       - ".claude/skills/kata-*/**"
       - ".claude/skills/coaligned-*/**"
       - ".claude/skills/monorepo-*/**"
@@ -33,6 +34,11 @@ jobs:
       fail-fast: false
       matrix:
         pack:
+          # The fit leg stays single-prefix while the pinned bootstrap installs
+          # a fit-pack binary that parses only one --prefix (last flag wins):
+          # "fit gemba" would silently stage a fit-skills pack stripped of
+          # every fit-* skill. Flipping it to "fit gemba" requires a bootstrap
+          # pin whose fit-pack accepts repeated --prefix flags.
           - prefix: fit
             repo: fit-skills
             version-file: products/gear/package.json

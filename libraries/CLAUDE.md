@@ -66,6 +66,13 @@ entry point:
 - **CLI `--help`** — `documentation` entries on the libcli definition, one
   per linked guide.
 
+The six runtime commands (`gemba-harness`, `gemba-trace`, `gemba-benchmark`,
+`gemba-selfedit`, `gemba-wiki`, `gemba-xmr`) are the exception: their bins
+and skills belong to the Gemba product (`products/gemba/bin/`,
+`.claude/skills/gemba-*/`), while `libharness`, `libwiki`, and `libxmr`
+remain import-only libraries whose guides still live under
+`/docs/libraries/`.
+
 ### Linking rule
 
 Skill `## Documentation` list and CLI `documentation` array carry the same

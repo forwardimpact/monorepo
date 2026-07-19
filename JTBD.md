@@ -180,8 +180,8 @@ contracts, with no way to prove the next change improves outcomes.
 **Big Hire:** Help me give humans and agents shared capabilities through the
 same interface, with tooling to prove changes improved outcomes. → **Gear**
 
-**Little Hire:** Help me query graphs, run vector search, expose services as MCP
-tools, or chart agent metrics without building infrastructure. → **Gear**
+**Little Hire:** Help me query graphs, run vector search, or expose services as
+MCP tools without building infrastructure. → **Gear**
 
 **Competes With:** hand-rolled retrieval; bespoke wrappers; custom eval
 harnesses; monolithic platforms; shipping without measuring.

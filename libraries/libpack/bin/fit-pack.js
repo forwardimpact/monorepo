@@ -23,7 +23,9 @@ const definition = {
         },
         prefix: {
           type: "string",
-          description: "Skill directory prefix to select (e.g. kata)",
+          multiple: true,
+          description:
+            "Skill directory prefix to select (repeatable; each selects <prefix> and <prefix>-*)",
         },
         all: {
           type: "boolean",

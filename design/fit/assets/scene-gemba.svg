@@ -1,0 +1,118 @@
+<svg width="900" height="620" viewBox="0 0 900 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Scene: Gemba — Walking the Loop. See design/fit/scenes.md. -->
+  <!-- Ground line -->
+  <path d="M28 520 Q 230 512 452 518 T 872 516" stroke="#383838" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Dotted trail loop: leaves the tent, passes the four markers, returns -->
+  <path d="M172 502 Q 300 538 450 534 T 760 508 Q 810 498 792 478 Q 760 452 600 460 Q 380 470 220 466 Q 150 464 172 502 Z"
+        stroke="#616161" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 14"/>
+
+  <!-- Tent (stand up) -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M70 502 L 148 380 L 226 502 Z" fill="#fafafa"/>
+    <path d="M148 380 L 148 502" />
+    <path d="M148 502 L 120 502 L 141 430 Z" fill="#d0d0d0"/>
+    <path d="M70 502 L 52 508" />
+    <path d="M226 502 L 244 508" />
+    <!-- flag on the ridge -->
+    <path d="M148 380 L 148 348" />
+    <path d="M148 348 L 178 356 L 148 366 Z" fill="#d0d0d0"/>
+  </g>
+
+  <!-- Trail markers: four stakes with plaques -->
+  <!-- run: play triangle -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M318 530 L 316 470" />
+    <rect x="298" y="446" width="38" height="28" rx="3" fill="#fafafa"/>
+    <path d="M310 452 L 326 460 L 310 468 Z" fill="#d0d0d0"/>
+  </g>
+  <!-- see: eye -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M462 528 L 460 468" />
+    <rect x="442" y="444" width="38" height="28" rx="3" fill="#fafafa"/>
+    <path d="M448 458 Q 461 448 474 458 Q 461 468 448 458 Z" fill="#fafafa"/>
+    <circle cx="461" cy="458" r="3.5" fill="#383838"/>
+  </g>
+  <!-- remember: notebook -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M600 524 L 598 464" />
+    <rect x="580" y="440" width="38" height="28" rx="3" fill="#fafafa"/>
+    <path d="M599 444 L 599 464" />
+    <path d="M586 450 L 595 450 M586 456 L 595 456 M603 450 L 612 450 M603 456 L 612 456" stroke="#616161"/>
+  </g>
+  <!-- measure: mini bar chart -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M742 520 L 740 460" />
+    <rect x="722" y="436" width="38" height="28" rx="3" fill="#fafafa"/>
+    <path d="M730 458 L 730 450 M740 458 L 740 444 M750 458 L 750 452" stroke="#616161" stroke-width="4"/>
+  </g>
+
+  <!-- Engineer (left): crouched by the run marker, hand on the stake, backpack -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- backpack -->
+    <path d="M232 400 Q 218 402 218 420 L 220 446 Q 232 452 244 446 L 246 414 Q 244 402 232 400 Z" fill="#d0d0d0"/>
+    <!-- body crouched -->
+    <path d="M250 398 Q 268 392 278 408 Q 286 424 278 442 L 262 470 Q 254 482 268 488 L 292 494" fill="#fafafa"/>
+    <path d="M250 398 Q 240 412 246 432 L 252 452 Q 246 470 238 486 L 232 500" fill="#fafafa"/>
+    <!-- reaching arm to the stake -->
+    <path d="M276 420 Q 298 434 314 470" />
+    <!-- legs folded -->
+    <path d="M238 486 Q 250 502 270 502 L 284 502" />
+    <path d="M292 494 Q 296 500 292 504" />
+    <!-- head with hood -->
+    <circle cx="262" cy="380" r="20" fill="#fafafa"/>
+    <path d="M244 374 Q 250 356 268 358 Q 284 360 282 376" fill="#d0d0d0"/>
+    <!-- face -->
+    <circle cx="268" cy="382" r="1.8" fill="#000000"/>
+    <path d="M274 390 Q 278 391 280 388" />
+  </g>
+
+  <!-- AI Agent (center): walking the trail mid-step, open notebook in hand -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- antenna -->
+    <path d="M520 296 L 520 280" />
+    <circle cx="520" cy="276" r="4" fill="#d0d0d0"/>
+    <!-- head: rounded rectangle -->
+    <rect x="498" y="296" width="44" height="38" rx="10" fill="#fafafa"/>
+    <circle cx="512" cy="314" r="3" fill="#383838"/>
+    <circle cx="528" cy="314" r="3" fill="#383838"/>
+    <path d="M512 324 Q 520 328 528 324" />
+    <!-- body -->
+    <path d="M506 336 Q 500 340 500 356 L 500 408 Q 500 420 512 422 L 528 422 Q 540 420 540 408 L 540 356 Q 540 340 534 336" fill="#fafafa"/>
+    <path d="M500 360 L 540 360" stroke="#616161"/>
+    <!-- notebook held open in front -->
+    <path d="M498 372 Q 486 366 476 372 L 476 392 Q 486 386 498 392 Z" fill="#fafafa"/>
+    <path d="M498 372 Q 510 366 520 372 L 520 392 Q 510 386 498 392 Z" fill="#fafafa"/>
+    <path d="M482 378 L 492 378 M482 384 L 492 384 M504 378 L 514 378 M504 384 L 514 384" stroke="#616161"/>
+    <!-- arms to the notebook -->
+    <path d="M500 356 Q 488 360 480 372" />
+    <path d="M540 356 Q 530 362 520 372" />
+    <!-- legs mid-step -->
+    <path d="M510 422 Q 506 448 494 464 L 486 476" />
+    <path d="M486 476 L 500 478" />
+    <path d="M530 422 Q 534 450 544 468 L 548 480" />
+    <path d="M548 480 L 562 478" />
+  </g>
+
+  <!-- Stakeholder (right): at the measure marker, chart card at eye level -->
+  <g stroke="#000000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <!-- head -->
+    <circle cx="796" cy="318" r="20" fill="#fafafa"/>
+    <path d="M780 308 Q 788 296 804 300 Q 812 302 812 312" fill="#616161"/>
+    <circle cx="790" cy="320" r="1.8" fill="#000000"/>
+    <path d="M792 330 Q 796 333 800 330" />
+    <!-- body: jacket -->
+    <path d="M782 338 Q 768 344 768 366 L 768 420 Q 768 432 780 432 L 810 432 Q 822 432 822 420 L 822 366 Q 822 344 808 338" fill="#fafafa"/>
+    <path d="M795 340 L 795 372 M789 340 L 795 350 L 801 340" stroke="#616161"/>
+    <!-- arm raising the chart card to eye level -->
+    <path d="M770 360 Q 754 350 748 334" />
+    <!-- chart card -->
+    <rect x="722" y="308" width="34" height="26" rx="3" fill="#fafafa"/>
+    <path d="M729 328 L 729 322 M737 328 L 737 314 M745 328 L 745 320" stroke="#616161" stroke-width="4"/>
+    <!-- other arm at side -->
+    <path d="M822 366 Q 830 384 826 402" />
+    <!-- legs -->
+    <path d="M782 432 L 780 496 M808 432 L 810 496" />
+    <path d="M780 496 L 768 500 M810 496 L 824 500" />
+  </g>
+</svg>

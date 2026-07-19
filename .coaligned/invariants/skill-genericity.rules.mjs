@@ -50,10 +50,10 @@ const PATTERNS = [
   },
   {
     pattern: "\\bbunx ",
-    reason: "internal runner — invoke fit-* CLIs bare",
+    reason: "internal runner — invoke fit-*/gemba-* CLIs bare",
   },
   {
-    pattern: "\\bnpx (fit-|coaligned|kata-)",
+    pattern: "\\bnpx (fit-|gemba-|coaligned|kata-)",
     reason: "CLIs are invoked bare — drop the npx prefix",
   },
   {
@@ -133,8 +133,9 @@ const PATTERNS = [
     reason: "TRUST.md is not shipped with the pack — use the full GitHub URL",
   },
   {
-    pattern: "\\]\\((\\.\\./)+fit-",
-    reason: "fit-* skills ship in a separate pack — use the full GitHub URL",
+    pattern: "\\]\\((\\.\\./)+(fit|gemba)-",
+    reason:
+      "fit-*/gemba-* skills ship in a separate pack — use the full GitHub URL",
   },
   {
     pattern: "forwardimpact/monorepo/(issues|pull|discussions)/",

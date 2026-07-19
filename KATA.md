@@ -18,6 +18,12 @@ Kata is an implementation of two upstream standards: the repository structure
 in [MONOREPO.md](MONOREPO.md) and the instruction architecture in
 [COALIGNED.md](COALIGNED.md). Everything below assumes both.
 
+Kata runs on [Gemba](https://www.forwardimpact.team/gemba/), the
+agent-runtime platform: the `gemba-*` command family and the
+bootstrap/harness/wiki/benchmark CI actions are the substrate every shift
+executes on. Kata is the platform's reference tenant — the daily proof that
+the substrate is generic and another team could run on it.
+
 ## Architecture
 
 ```mermaid
@@ -37,8 +43,9 @@ surfaces and sessions.
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
 `audit/` and `coaligned-check/`.
 <!-- enum:sibling-composite-actions:count -->
-Six composite actions are co-located here and published to `forwardimpact/`
-siblings:
+Six composite actions are co-located in the monorepo (under
+`products/gemba/actions/` and `products/kata/actions/`) and published to
+`forwardimpact/` siblings:
 <!-- /enum -->
 
 <!-- enum:sibling-composite-actions:list -->
