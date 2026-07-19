@@ -11,8 +11,8 @@ npx fit-benchmark <command> [options]
 | Command  | Purpose                                                       |
 | -------- | ------------------------------------------------------------- |
 | `run`    | Run every task in a family for N runs                         |
-| `invariants` | Check one task's invariants against a post-run workdir (no agent invoked) |
-| `report` | Aggregate results into pass@k via the HumanEval estimator     |
+| `grade`  | Grade one task against a post-run workdir (no agent invoked) — both producers, same derivation as `run` |
+| `report` | Aggregate results into pass@k (plus mean score and score@k for scored tasks) |
 
 ## `run` options
 
@@ -37,18 +37,22 @@ and appends the same record to `<output>/results.jsonl` for the report
 subcommand. Exit code is `0` if every record's combined verdict is
 `pass`, otherwise `1`.
 
-## `invariants` options
+## `grade` options
 
 | Flag         | Required | Purpose                                                                                  |
 | ------------ | -------- | ---------------------------------------------------------------------------------------- |
 | `--family`   | yes      | Path or git URL of the task family                                                       |
 | `--task`     | yes      | Task id (directory name under `tasks/`)                                        |
-| `--run-dir`  | yes      | Post-run directory whose `cwd/` subdir is the agent CWD; invariants run against that cwd (the path hooks see as `$AGENT_CWD`). |
+| `--run-dir`  | yes      | Post-run directory whose `cwd/` subdir is the agent CWD; both producers run against that cwd (the path hooks see as `$AGENT_CWD`). |
 | `--output`   | no       | Output file path (defaults to stdout; one JSONL line)                                    |
 
-`invariants` emits an `InvariantsRecord` (narrower than the full `ResultRecord`
-— it skips agent and judge fields because no agent was invoked). Exit `0` on
-pass, `1` on fail.
+`grade` runs the hidden test suite and the invariants script with the same
+derivation the runner uses (no judge) and emits a grade record (narrower than
+the full `ResultRecord` — it skips agent and judge fields because no agent
+was invoked). Its `grade.score` is the effective value — zeroed by an
+unhealthy grader or a failing gate. The process exit mirrors the graded
+verdict: `0` iff every gate and scored check passes and the graders were
+healthy.
 
 ## `report` options
 
@@ -61,6 +65,13 @@ pass, `1` on fail.
 
 Records that fail schema validation are skipped with a stderr warning
 and counted under `totals.skipped`.
+
+For every task with at least one scored record, the report adds `meanScore`
+(the mean effective score across runs) and `scoreAtK` (the expected best
+score over k of the task's n runs — the continuous analog of pass@k), plus
+matching `score` / `score@k` columns in the text formats. A score-less record
+in a scored group contributes its verdict as the degenerate score (pass = 1,
+fail = 0). Binary tasks render unchanged.
 
 ## Global Options
 

@@ -1,126 +1,123 @@
 # Authoring task families
 
-Guidance for writing and iterating on tasks, beyond the format in the skill.
+Guidance for writing and iterating on tasks.
 
 ## Writing agent.task.md
 
 The prompt triggers the skill under test — it does not do the skill's job.
-State the situation and the outcome a real user would ask for, name the skill,
-and stop. Spelling out the steps, the files to create, or the shape of the
-output turns the benchmark into a test of whether the agent can follow your
-instructions, not whether the skill makes it succeed — and a pass then proves
-nothing about the skill. Push every "how" into the skill, and every "did it
-land" into the invariants and judge.
+State the situation and the outcome a real user would ask for, name the
+skill, and stop. Spelling out the steps or the output shape turns the
+benchmark into a test of prompt-following. Push every "how" into the skill,
+and every "did it land" into the checks and judge.
 
-- **Good** — "This repo is `<project>`. Set up X here, following the `<skill>`
-  skill." The skill decides what to produce; the invariants check it did.
-- **Too prescriptive** — "Create A with sections P and Q, then B holding R…".
-  Now the agent is transcribing the prompt, and the skill goes untested.
-
-Keep steering to what the situation genuinely needs — which inputs to read, the
-one file to touch. If a task only passes when the prompt lists the steps, the
-skill, not the task, is what needs the work.
+- **Good** — "This repo is `<project>`. Set up X here, following the
+  `<skill>` skill."
+- **Too prescriptive** — "Create A with sections P and Q, then B holding
+  R…". Now the agent is transcribing the prompt.
 
 ## Test local, unpublished skills
 
-A benchmark normally `apm install`s the published skill pack named in
-`apm.yml`, so by default it grades the *published* skills. To benchmark skills
-you have changed but not yet published, point `--skills-from` at a directory
-that contains a `.claude/` tree (for example your working tree's root):
+A benchmark normally `apm install`s the published pack named in `apm.yml`.
+To benchmark unpublished changes, point `--skills-from` at a directory
+containing a `.claude/` tree (e.g. your working tree's root):
 
 ```sh
 npx fit-benchmark run --family=./families/coding --skills-from=. --task=todo-api
 ```
 
-The harness stages that `.claude/` instead of running `apm install`, so the
-agent runs against your local skills. Omit `--skills-from` to grade the
-published pack. This is how you prove a skill change before publishing it.
+Omit `--skills-from` to grade the published pack.
 
-## The invariants authoring contract
+## The grading contract
 
-`hooks/invariants.sh` decides the verdict by exit code (`0` = pass) and writes
-optional per-check rows as NDJSON to `$RESULTS_FD`. Grade with the
-`fit-trace assert` harness — make sure it resolves (it ships with the eval
-tooling; invoke it through your package runner if it is not on `PATH`):
+Check rows are the single authoritative grading channel; the score is the
+weighted fraction of passing scored rows. Two producers feed it: when a
+check asks "does the behaviour work", write a **hidden test**; when it asks
+"is the artifact shaped right", write a **structural check**.
+
+## Hidden test suites — the `tests/` layout
+
+A task opts in with a `tests/` directory beside `hooks/`. No manifest — the
+layout is the contract:
+
+- `tests/` is an **overlay mirror** of the agent CWD: a file's path under
+  `tests/` is its staging path (`tests/app/test/filter.test.js` stages at
+  `app/test/filter.test.js`).
+- Every `*.test.js` file is one check, run with `node --test` from the
+  agent CWD; the exit status is the row. `*.gate.test.js` marks a gate; any
+  other `*.test.js` is scored at weight 1, named by its filename stem.
+- Every other file is support material — staged for the whole pass, never
+  graded. Put shared helpers there and import them relatively.
+- One small `*.test.js` per behaviour is what gives a task its gradient.
+- A baseline suite already in `workdir/` can gate without a drift pair:
+  make `<name>.gate.test.js` a symlink to it (resolved at stage time).
+
+The harness stages each file (backing up collisions), runs the checks, and
+removes what it staged, so the judge sees only the agent's work. An invalid
+tree fails the family load before any agent spend.
+
+## Structural checks — `hooks/invariants.sh`
+
+The script emits rows on `$RESULTS_FD`; its exit code is **script health
+only**. No exit-code bookkeeping — one helper and a final `exit 0`:
 
 ```sh
 #!/bin/sh
 set -u
-FAIL=0
-assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
+check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }
+
+check produced  --gate --exists "$AGENT_CWD/out/record.md"
+check has-state --grep 'state:\s*done' "$AGENT_CWD/out/record.md"
+exit 0
 ```
 
-Two things that bite authors:
+- `--gate` marks presence, sanity, and anti-tamper checks — a failing gate
+  fails the run and zeroes the score.
+- Content checks stay default-weight scored rows; `--weight <n>` re-weights
+  one, `--weight 0` emits an ungraded diagnostic.
+- When later checks depend on an earlier gate, early-exit after it — the
+  gate row already carries the failure:
+  `fit-trace assert dep --gate --exists "$F" >&"$RESULTS_FD" || exit 0`.
+- Every `assert` failure (an invalid flag, a file the agent deleted) emits
+  a failing row before its nonzero exit — a typo shrinks the score, never
+  the denominator.
+
+This also grades non-coding tasks: the agent produces files under
+`$AGENT_CWD` and the script asserts on their content.
+
+Make sure `fit-trace` resolves (it ships with the eval tooling). Two things
+that bite authors:
 
 - **`--grep` is JavaScript-regex, not POSIX.** Use `\s` / `\S`, not
-  `[[:space:]]` / `[[:graph:]]` (those silently fail to match).
-- **`assert` takes one file, not a glob.** Resolve the path in shell first,
-  then assert on it:
+  `[[:space:]]` / `[[:graph:]]`.
+- **`assert` takes one file, not a glob.** Resolve the path in shell first:
 
   ```sh
   ITEM=$(ls "$AGENT_CWD"/items/*.md 2>/dev/null | head -1)
-  assert item-present --exists "$ITEM"
+  check item-present --gate --exists "$ITEM"
   ```
 
-Reference the agent's emitted files as `$AGENT_CWD/<path>` — `AGENT_CWD` is the
-agent CWD itself, not a parent containing `cwd/`.
+Reference emitted files as `$AGENT_CWD/<path>` — `AGENT_CWD` is the agent
+CWD itself, not a parent containing `cwd/`.
 
 ## Fast iteration
 
-Two LLM sessions per run (agent + judge) cost real money, so confirm the
-mechanics before paying for full runs:
+Two LLM sessions per run cost real money, so confirm the mechanics first:
 
-- **Validate hooks with no agent.** Hand-author a post-run directory (a
-  `cwd/` holding the files a correct agent would emit) and run the invariants
-  alone:
+- **Validate grading with no agent.** Hand-author a post-run directory (a
+  `cwd/` holding the files a correct agent would emit) and grade it:
 
   ```sh
-  npx fit-benchmark invariants --family=./fam --task=mytask --run-dir=./fixture
+  npx fit-benchmark grade --family=./fam --task=mytask --run-dir=./fixture
   ```
 
-  Confirm it passes on a correct fixture and fails on a broken one before
-  wiring an agent run.
-- **Scope agent runs while authoring.** `--task=<id>` runs one task instead of
-  the whole family; `--runs=1` runs it once.
-
-## Grading emitted files (non-coding tasks)
-
-Tasks need not grade a coding diff. A task can ask the agent to *produce files*
-and grade their content — useful for coordination, document, or data-shaping
-work. The agent writes under `$AGENT_CWD`; `invariants.sh` asserts on the
-result:
-
-```sh
-#!/bin/sh
-set -u
-OUT="$AGENT_CWD/out/record.md"
-FAIL=0
-assert() { fit-trace assert "$@" >&"$RESULTS_FD" || FAIL=1; }
-
-assert produced  --exists "$OUT"
-assert has-state --grep 'state:\s*done' "$OUT" --message "record not marked done"
-[ "$FAIL" = 0 ] && exit 0 || exit 1
-```
-
-Seed any inputs the agent reads under the task's `workdir/` (copied into
-`$AGENT_CWD` before the run); a `hooks/preflight.sh` can confirm the seed and
-that no output exists yet.
+  Confirm it passes on a correct fixture, fails on a broken one, and yields
+  the fractional score you expect on a partial one.
+- **Scope runs while authoring** with `--task=<id>` and `--runs=1`.
 
 ## What to commit
 
-Commit only the files you author. `run` and `apm install` generate `.claude/`,
-`apm.lock.yaml`, `apm_modules/`, and a per-family `.gitignore` — all outputs, so
-ignore them. Put the patterns once, in a `.gitignore` at the directory that
-holds your families, rather than a copy in every family:
-
-```gitignore
-*/.claude/
-*/apm.lock.yaml
-*/.gitignore
-```
-
-Most repos already ignore `apm_modules/` and `node_modules/` globally. For an
-artifact unique to one family, add a `<family>/<path>` line to that same shared
-file rather than a per-family `.gitignore`. `apm.yml` is authored, not generated
-— `apm install` runs in each family root against that family's pack — so it
-stays at the family level.
+Commit only the files you author. `run` and `apm install` generate
+`.claude/`, `apm.lock.yaml`, `apm_modules/`, and a per-family `.gitignore` —
+all outputs, so ignore them once at the directory holding your families
+(`*/.claude/`, `*/apm.lock.yaml`, `*/.gitignore`). `apm.yml` is authored,
+not generated, so it stays at the family level.

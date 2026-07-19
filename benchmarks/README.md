@@ -29,9 +29,10 @@ benchmarks/<family>/
         ├── supervisor.task.md   # reserved for v2
         ├── specs/               # copied into agent CWD (overlays family specs/)
         ├── workdir/             # copied into agent CWD (overlays family workdir/)
+        ├── tests/               # hidden test suite; staged and run by the harness, one row per check
         └── hooks/
             ├── preflight.sh     # smoke probe; exit 0 confirms scaffold
-            └── invariants.sh    # structural rubric; exit code is verdict
+            └── invariants.sh    # structural rubric; rows are the verdict (exit code = script health)
 ```
 
 `fit-benchmark run` calls `apm install --target claude` in the family root
@@ -43,6 +44,16 @@ Use it to maintain one fixture (e.g. an app under test) across many tasks
 rather than duplicating it per task. Hooks receive `$AGENT_CWD`, `$PORT`,
 `$TASK_ID`, `$TASK_DIR`, `$HOOKS_DIR`, `$FAMILY_DIR` (and `invariants.sh` also
 `$RESULTS_FD`).
+
+Grading is row-based. `tests/` is an overlay mirror of the agent CWD that the
+agent never sees: the harness stages each file at its mirrored path, runs
+every `*.test.js` check with `node --test`, emits one row per check, and
+restores the tree — `*.gate.test.js` names a gate, any other `*.test.js` is
+scored at weight 1, other files are staged support. `invariants.sh` emits
+structural rows (`gate: true` for presence/anti-tamper, plain rows scored)
+and always ends `exit 0` — a nonzero exit means the grader itself broke.
+A failing gate, judge, or grader zeroes the score; the scored rows are what
+give a task a capability gradient between 0 and 1.
 
 ## Adding a task
 
