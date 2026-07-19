@@ -198,9 +198,10 @@ stay in their libraries.
 | `libraries/libxmr/test/golden/fit-xmr/` (with its `cases.json`) | `products/gemba/test/golden/gemba-xmr/` |
 
 The libharness and libxmr golden dirs have no in-library runner test — they
-are consumed by `scripts/capture-cli-golden.mjs` (path/CLI conventions) and
-the root `tests/capture-cli-golden*` tests; repoint the paths and CLI names in
-both. Regenerate every moved golden dir from actual output, e.g.:
+are consumed by `scripts/capture-cli-golden.mjs` via its path/CLI
+conventions; repoint any documented paths and CLI names there (the root
+`tests/capture-cli-golden*` tests are stub-based with tmpdir goldens and need
+no repoint). Regenerate every moved golden dir from actual output, e.g.:
 
 ```sh
 node scripts/capture-cli-golden.mjs --bin gemba-harness \
@@ -249,9 +250,11 @@ sites:
 **Verify:**
 `rg --hidden -n 'fit-(harness|trace|benchmark|selfedit|wiki|xmr)\b' --glob '!specs/**' --glob '!wiki/**' --glob '!benchmarks/**' --glob '!**/CHANGELOG.md' --glob '!node_modules/**' --glob '!.git/**' --glob '!products/kata/**'`
 — inspect every returned **line**; the only allowed remainders are (a)
-`.github/workflows/*.yml` lines that are `clis:` values, `uses:`-pin comments,
-or the three bare-PATH invocations held for Part 4, (b) the
-`benchmarks/fit-wiki` path reference in `eval-wiki.yml`, and (c) the
-Part-2-owned action sources. Confirm the keep-listed path references are
-byte-unchanged (`git diff -- .github/workflows/eval-wiki.yml` shows no `family:`
-change). Then `bun run context:fix`, `bun run check`, and `bun run test` green.
+`.github/workflows/*.yml` lines that are `clis:` values or the three bare-PATH
+invocations held for Part 4 (workflow **comments** rename with the family in
+this part — a comment briefly describing the post-Part-4 state is harmless;
+executable names are what the hold protects), (b) the `benchmarks/fit-wiki` path
+reference in `eval-wiki.yml`, and (c) the Part-2-owned action sources. Confirm
+the keep-listed path references are byte-unchanged
+(`git diff -- .github/workflows/eval-wiki.yml` shows no `family:` change). Then
+`bun run context:fix`, `bun run check`, and `bun run test` green.

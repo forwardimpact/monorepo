@@ -71,7 +71,7 @@ sibling pack, would change the distribution model beyond the spec's scope).
 | File | Change |
 | --- | --- |
 | `libraries/libpack/src/skill-pack.js` | Stage selection accepts repeated prefixes and matches `name === prefix \|\| name.startsWith(prefix + "-")` so `gemba` (the product skill) and `gemba-*` both select. |
-| `libraries/libpack/src/builder.js` / CLI definition | `stage --prefix` repeatable (or space-separated value), threaded through. |
+| `libraries/libpack/bin/fit-pack.js` | `stage --prefix` becomes repeatable (its option parsing lives in the bin), threaded through to the stager. |
 | `libraries/libpack/test/**` | Cover multi-prefix and exact-name selection. |
 | `.github/actions/publish-skill-pack/action.yml` | `pack-prefix` documented as space-separated; the run step expands each prefix into a `--prefix` flag (a single-prefix value expands identically to today, so the change is inert until a leg passes two). |
 | `.github/workflows/publish-skills.yml` | `on.push.paths` gains `.claude/skills/gemba*/**`. The fit leg **keeps `prefix: fit`** — the merge-triggered publish runs the SHA-pinned old `fit-pack` binary, which parses only a single `--prefix` (last wins) and would silently stage a fit-skills pack stripped of every `fit-*` skill; Part 4 Step 4.3 flips it to `fit gemba` once the repinned bootstrap installs the multi-prefix `fit-pack`. |

@@ -57,7 +57,7 @@ nothing.
   gear release exists), and the `fit-gear` cask coordinates.
 
 **Verify:** `bash -n products/gemba/actions/bootstrap/fit-install.sh`;
-`rg 'fit-(harness|trace|benchmark|selfedit|wiki|xmr)\b'
+`rg -n 'fit-(harness|trace|benchmark|selfedit|wiki|xmr)\b'
 products/gemba/actions/` returns nothing.
 
 ## Step 2.3 — Repoint `publish-actions.yml`
@@ -90,8 +90,11 @@ Every config or script that names the moved directories by path repoints to
 | `.rumdl.toml`, `biome.json`, `eslint.config.js` | lint/format excludes for the old action dirs → new paths |
 | `.coaligned/invariants/temporal.rules.mjs`, `.coaligned/invariants/model-defaults.rules.mjs` | scoped path lists naming the old action dirs → new paths |
 | `scripts/test-gate.mjs` | action-dir path excludes → new paths |
+| `.github/actions/split-and-push/action.yml` | docstring example `libraries/libwiki/actions/wiki` → `products/gemba/actions/wiki` |
+| `.gitignore` | anchoring comment naming `libraries/libwiki/actions/` → new path |
 
-**Verify:**
+**Verify:** at the end of the part (after Step 2.5's `.github/CLAUDE.md` prose
+repoint, which this gate would otherwise flag):
 `rg -n --hidden '\.github/actions/bootstrap|libraries/libharness/actions|libraries/libwiki/actions' --glob '!specs/**' --glob '!wiki/**' --glob '!.git/**'`
 returns nothing; `bun run test` green (and does not descend into
 `products/gemba/actions/`).
