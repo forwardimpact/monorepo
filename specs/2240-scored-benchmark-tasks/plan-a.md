@@ -3,19 +3,21 @@
 Implements [design-a.md](design-a.md) for [spec 2240](spec.md).
 
 **Approach.** Build bottom-up along the design's data flow: the pure grading
-derivation first, then the invariants integration and schemas that carry its
-output, then the runner and the `invariants` subcommand, then report
-aggregation and rendering, then the authoring surface (`fit-trace assert
---gate/--weight`), then the migration — fixtures and their suites before the
-nine family hooks — and finally documentation. This is a clean break: existing
-suites that assert exit-code-derived verdicts are updated to the row contract,
-not preserved. Benchmark modules live under
+derivation first, then the hidden-test subsystem (manifest discovery, then the
+engine), then the invariants collector and record schemas, then the runner and
+the `grade` subcommand, then report aggregation and rendering, then the
+authoring surface (`fit-trace assert --gate/--weight`), then the migration —
+fixtures and their suites before the family hooks — and finally documentation.
+This is a clean break: existing suites that assert exit-code-derived verdicts
+are updated to the row contract, not preserved. Benchmark modules live under
 `libraries/libharness/src/benchmark/` and CLI handlers under
 `libraries/libharness/src/commands/`; the fit-trace CLI definition is inline
 in `libraries/libharness/bin/fit-trace.js`.
 
 Libraries used: libharness (benchmark runner/report/result/invariants,
-fit-trace assert), zod (record schemas), libmock + libutil (test runtimes).
+fit-trace assert), zod (record and manifest schemas), yaml (manifest parsing —
+new libharness dependency, already a workspace dependency at the root),
+libmock + libutil (test runtimes).
 
 ## Step 1: Grading module
 
@@ -24,15 +26,15 @@ One pure function owning the arithmetic of design § The row contract.
 - Created: `libraries/libharness/src/benchmark/grade.js`,
   `libraries/libharness/test/benchmark-grade.test.js`
 
-`gradeInvariants(details, exitCode)` →
+`gradeChecks(details, healthy)` →
 `{verdict, gatesPass, score, fullMarks, malformed}`:
 
-- Classify each details row per the contract's role order: diagnostic
+- Classify each row per the contract's role order: diagnostic
   (`weight === 0`), gate (`gate === true`, boolean `pass`, no positive
   weight), scored (boolean `pass`, `weight` absent → 1 or finite > 0),
   else malformed. Rows the fd-3 parser marked `parseError` are malformed.
   Non-object rows (a bare `null`, number, or string is valid JSON and reaches
-  `details` verbatim) are malformed.
+  `details` verbatim) are malformed. The `source` stamp is ignored.
 - Malformed → failing scored check: own weight when it carries a valid finite
   weight > 0, else unit weight 1; increments `malformed`.
 - `score = Σ weight(passing scored) / Σ weight(all scored)`; `null` when zero
@@ -41,118 +43,200 @@ One pure function owning the arithmetic of design § The row contract.
 - `fullMarks` = integer count predicate:
   `malformed === 0 && passingCount === scoredCount` — never a float
   comparison against `score === 1`. Vacuously true with zero scored checks.
-- `verdict` = `exitCode === 0 && gatesPass && fullMarks ? "pass" : "fail"`.
+- `verdict` = `healthy && gatesPass && fullMarks ? "pass" : "fail"`.
 
 Test cases: weighted fraction over mixed weights; absent weight defaults to
 1; `weight: 0` rows ignored; gate rows excluded from the score; failing gate
-→ `gatesPass` false with score still derived; exit 1 with all-passing rows →
-verdict fail (crash cannot mint marks); zero scored checks → `score: null`
-and row-less exit-0 → verdict pass (no-op-hook behavior); malformed shapes
-(missing/non-boolean `pass`, non-boolean `gate`, `gate` + positive `weight`,
-negative/Infinity/NaN/string weight, `parseError` row, non-object row) each
-counted failing at the documented weight; `fullMarks` true only when every
-scored check is valid and passing; fractional weights (0.1 × 3) still yield
-`fullMarks: true` when all pass.
+→ `gatesPass` false with score still derived; `healthy: false` with
+all-passing rows → verdict fail (a crashed grader cannot mint marks); zero
+scored checks → `score: null` and row-less healthy → verdict pass
+(no-op-hook behavior); malformed shapes (missing/non-boolean `pass`,
+non-boolean `gate`, `gate` + positive `weight`, negative/Infinity/NaN/string
+weight, `parseError` row, non-object row) each counted failing at the
+documented weight; `fullMarks` true only when every scored check is valid and
+passing; fractional weights (0.1 × 3) still yield `fullMarks: true` when all
+pass.
 
 Verification: `bun test test/benchmark-grade.test.js` in
 `libraries/libharness`.
 
-## Step 2: Invariants integration + record schemas
+## Step 2: Manifest discovery and validation
 
-Row-derived verdict inside `runInvariants`; additive schema fields.
+The task loader learns the `tests/` layout; authoring errors fail before any
+agent spend.
+
+- Modified: `libraries/libharness/src/benchmark/task-family.js`,
+  `libraries/libharness/package.json` (add `yaml`), loader tests
+- Created: `libraries/libharness/src/benchmark/test-manifest.js`
+
+`test-manifest.js` exports `loadTestManifest(testsDir, runtime)`: parse
+`manifest.yaml` with `yaml`, validate with a zod schema per design § hidden
+suite — non-empty `command` (string array) and `checks`; optional `cwd`,
+`target` (default `"."`), `timeout` (positive number, default 120), `support`
+(string array); per check: `file` required, optional `name` (default file
+stem), `gate` xor positive finite `weight`; no `..` segment in `cwd`,
+`target`, `file`, or `support` entries; every `file`/`support` entry resolves
+(symlinks allowed) to a regular file under `tests/`. Throws with the failing
+path in the message.
+
+`task-family.js`: `discoverTasks` sets `paths.tests` and `task.manifest` when
+`<taskDir>/tests/manifest.yaml` exists (both null otherwise), calling
+`loadTestManifest` eagerly so `loadTaskFamily` rejects on a broken manifest.
+
+Tests: task without `tests/` → null paths (existing fixtures unchanged);
+valid manifest → parsed defaults applied; one loader test per validation
+rule (bad YAML, empty checks, missing file, `gate` + `weight` conflict,
+`..` escape, dangling symlink).
+
+Verification: `bun test test/task-family.test.js test/test-manifest.test.js`
+(actual filenames per repo layout).
+
+## Step 3: Hidden-test engine
+
+Stage → run → row → restore, per design § The hidden test suite.
+
+- Created: `libraries/libharness/src/benchmark/hidden-tests.js`,
+  `libraries/libharness/test/hidden-tests.test.js`
+
+`runHiddenTests(task, ctx, runtime)` → `{details}`:
+
+- No manifest → `{details: []}` immediately.
+- Stage `support` files into `<AGENT_CWD>/<cwd>/<target>/`, backing up any
+  collided file's bytes first.
+- Per check in manifest order: back up collision → copy the symlink-resolved
+  `tests/<file>` → spawn `[...command, join(target, file)]` with
+  `cwd: join(ctx.cwd, manifest.cwd)` and `buildHookEnv` (same vars as the
+  hooks) → row `{test: name, pass: exit === 0}` plus the check's `gate` or
+  `weight` field; on failure, `message` carries the exit status and a trimmed
+  stderr tail (cap ~500 chars) → unlink the staged file, restore the backup.
+- Timeout: `runtime.clock` timer SIGKILLs the child at `timeout` seconds; the
+  row fails with a timeout message.
+- Stage/spawn errors (ENOENT on a missing scaffold dir, spawn failure) become
+  a failing row with the error message — never a throw. After the last check,
+  unstage `support` and restore its backups in a `finally`.
+
+Tests (injected `runtime.subprocess` seam plus real `mkdtemp` trees): one row
+per check with roles copied from the manifest; exit 1 → failing row with
+stderr tail; missing scaffold dir → failing row, no throw; collided target
+file restored byte-identical and staged files absent after the run
+(restoration property, spec criterion 7); support files staged during and
+gone after; timeout kills and fails the row; manifest-less task → empty
+details.
+
+Verification: `bun test test/hidden-tests.test.js`.
+
+## Step 4: Invariants collector + record schemas
+
+`runInvariants` stops deriving a verdict; schemas carry the grade.
 
 - Modified: `libraries/libharness/src/benchmark/invariants.js`,
   `libraries/libharness/src/benchmark/result.js`, their tests
 
-`invariants.js`: after parsing the fd-3 buffer, call `gradeInvariants`;
-the result becomes `{verdict, details, exitCode, gatesPass, score?,
-malformed?, stderr?}` — `verdict` no longer `exitCode === 0`, `exitCode`
-kept as the diagnostic mirror, `score`/`malformed` present only when
-non-null/positive. The absent-hook early return keeps
-`{verdict: "pass", details: [], exitCode: 0, gatesPass: true}`.
+`invariants.js`: the result becomes `{details, exitCode, stderr?}` — no
+`verdict` field. The absent-hook early return keeps
+`{details: [], exitCode: 0}`. Unparseable fd-3 lines stay `parseError` rows
+in `details` (they grade as malformed in Step 1).
 
 `result.js`:
 
 | Schema | Change |
 | --- | --- |
-| `HAPPY_RECORD` | `score: z.number().min(0).max(1).optional()`, `malformedChecks: z.number().int().min(1).optional()`; the embedded invariants object accepts the new grade fields |
-| `PREFLIGHT_RECORD` | both as `z.undefined().optional()` (branch stays score-free) |
-| `INVARIANTS_RECORD_SCHEMA` | same two optional fields as `HAPPY_RECORD` |
+| `INVARIANTS_SHAPE` | drops `verdict` |
+| `HAPPY_RECORD` | new `grade: {verdict, gatesPass, score?: 0–1, malformed?: int ≥ 1}` — `.optional()` so pre-break ledgers still validate for rendering (the runner always writes it); optional `hiddenTests: {details: unknown[]}`; optional top-level `score: 0–1` and `malformedChecks: int ≥ 1` |
+| `PREFLIGHT_RECORD` | `grade`, `hiddenTests`, `score`, `malformedChecks` all `z.undefined().optional()` (branch stays grade-free) |
+| `GRADE_RECORD_SCHEMA` | replaces `INVARIANTS_RECORD_SCHEMA`: `{taskId, grade, invariants, hiddenTests?, exitCode}` |
 
-Tests: existing invariants unit tests updated to the row contract (exit 1 +
-passing rows → fail; failing gate row + exit 0 → fail; failing scored row +
-exit 0 → fail with fractional score on the result); schema accept/reject
-cases (`score: 1.5`, `malformedChecks: 0`, preflight with `score` rejected).
+Tests: invariants result carries no verdict; schema accept/reject cases
+(`score: 1.5`, `malformedChecks: 0`, preflight with `grade` rejected, happy
+record without `grade` accepted — pre-break ledger shape).
 
 Verification: `bun test test/invariants.test.js test/benchmark-result.test.js`
 (actual invariants test filename per repo layout).
 
-## Step 3: Runner composition
+## Step 5: Runner composition + judge templating
 
-Cell verdict and effective score in `#executeCell`.
+Merge, grade, and compose in `#executeCell`; the judge sees the grade.
 
-- Modified: `libraries/libharness/src/benchmark/runner.js`
+- Modified: `libraries/libharness/src/benchmark/runner.js`,
+  `libraries/libharness/src/benchmark/judge.js`
 - Created: `libraries/libharness/test/benchmark-runner-score.test.js`
 
-The existing composition `invariants.verdict ∧ judge` already yields the
-spec's verdict now that `invariants.verdict` is row-derived. Add the record
-fields:
+`#executeCell`, after the agent run: invariants collector → hidden-test
+engine (`runHiddenTests` behind a new `runHiddenTests` test seam, defaulted
+like the other hooks; an engine throw is caught and recorded as unhealthy) →
+stamp `source` on each row (`"invariants"` / `"tests"`) → merge (invariants
+rows first) → `gradeChecks(rows, healthy)` where
+`healthy = invariants.exitCode === 0 && !engineThrew` → judge → record:
 
 ```js
 const judgePass = judgeVerdict === null || judgeVerdict.verdict === "pass";
-const scoreValid =
-  invariants.exitCode === 0 && invariants.gatesPass && judgePass;
-...(invariants.score != null && { score: scoreValid ? invariants.score : 0 }),
-...(invariants.malformed > 0 && { malformedChecks: invariants.malformed }),
+const verdict = grade.verdict === "pass" && judgePass ? "pass" : "fail";
+const scoreValid = healthy && grade.gatesPass && judgePass;
+...(task has a suite && { hiddenTests: { details: hiddenRows } }),
+grade,
+...(grade.score != null && { score: scoreValid ? grade.score : 0 }),
+...(grade.malformed > 0 && { malformedChecks: grade.malformed }),
 ```
 
 The preflight branch and `#buildPreflightFailureRecord` are untouched
-(row-less zeros resolve at aggregation).
+(grade-less zeros resolve at aggregation).
+
+`judge.js`: template `{{GRADE_RESULT}}` with
+`JSON.stringify({...grade, rows}, null, 2)` (merged, source-stamped rows);
+drop `{{INVARIANTS_RESULT}}`. The judge runs after the engine's restoration,
+so it sees the workdir as the agent left it.
 
 Tests mirror the `benchmark-runner-concurrency.test.js` setup (fixture
-family, injected `runAgent`/`runJudge`/`runInvariants` seams); each case
-injects an `InvariantsResult` and asserts the yielded record:
+family, injected `runAgent`/`runJudge`/`runInvariants`/`runHiddenTests`
+seams); each case asserts the yielded record:
 
-| Injected invariants / judge | Expected record |
+| Injected collectors / judge | Expected record |
 | --- | --- |
 | healthy, gates pass, scored 2/3, judge pass | `verdict: "fail"`, `score ≈ 2/3` |
 | healthy, gates pass, full marks, judge pass | `verdict: "pass"`, `score: 1` |
-| exit 1, all rows passing | `verdict: "fail"`, `score: 0` |
+| invariants exit 1, all rows passing | `verdict: "fail"`, `score: 0` |
+| engine throws, all rows passing | `verdict: "fail"`, `score: 0` |
 | healthy, failing gate row, scored rows passing | `verdict: "fail"`, `score: 0` |
 | healthy, full marks, judge **fail** | `verdict: "fail"`, `score: 0` |
 | healthy, gate rows only (binary) | no `score` key, verdict from gates |
 | one malformed row | `verdict: "fail"`, `malformedChecks: 1` |
+| rows from both producers | merged `source`-stamped rows reach the judge template |
 
 Every record must pass `validateResultRecord`.
 
 Verification: `bun test test/benchmark-runner-score.test.js`.
 
-## Step 4: `invariants` subcommand
+## Step 6: `grade` subcommand
 
-Process exit mirrors the row-derived verdict.
+The full mechanical grade against a post-run directory; replaces
+`invariants`.
 
-- Modified: `libraries/libharness/src/commands/benchmark-invariants.js`,
-  `libraries/libharness/src/commands/benchmark-definition.js` (the command
-  description stops saying the exit code is authoritative),
-  `libraries/libharness/test/benchmark-invariants.integration.test.js`,
-  `test/golden/fit-benchmark/` help goldens (deliberate refresh — the old
-  description states the old contract)
+- Created: `libraries/libharness/src/commands/benchmark-grade.js`
+- Deleted: `libraries/libharness/src/commands/benchmark-invariants.js`
+- Modified: `libraries/libharness/src/commands/benchmark-definition.js`
+  (subcommand renamed; description states rows are authoritative and both
+  producers run), `test/benchmark-invariants.integration.test.js` (renamed to
+  `benchmark-grade.integration.test.js`), `test/golden/fit-benchmark/` help
+  goldens (deliberate refresh — the old name and description state the old
+  contract)
 
-The command's return is `ok` iff `invariants.verdict === "pass"`. The record
-gains `score` / `malformedChecks` straight off the invariants result (no
-judge runs here; the runner's judge-zeroing does not apply). The record's
-`exitCode` field keeps mirroring the script.
+The command runs the invariants collector and the hidden-test engine exactly
+as the runner does (no judge; judge-zeroing does not apply), grades, emits the
+`GRADE_RECORD_SCHEMA` record, and returns `ok` iff
+`grade.verdict === "pass"`. The record's `exitCode` field keeps mirroring the
+script for diagnosis.
 
-Tests: on-disk family under `mkdtemp` (`agent.task.md` +
-`hooks/invariants.sh`, `chmod 0o755`), `createDefaultRuntime()`, `--output`
-to a temp file: partial scored emission + exit 0 → record `score` fractional,
-`ok: false`; full marks → `ok: true`, `score: 1`; passing rows + exit 1 →
-`score: 0`, `ok: false`; gate rows only → no `score` key.
+Tests: on-disk family under `mkdtemp` (`agent.task.md`, `hooks/invariants.sh`
+`chmod 0o755`, and a `tests/` manifest), `createDefaultRuntime()`, `--output`
+to a temp file: partial scored completion → fractional `score`, `ok: false`;
+full marks → `ok: true`, `score: 1`; passing rows + invariants exit 1 →
+`score: 0`, `ok: false`; gate rows only → no `score` key; manifest checks
+graded without an agent run.
 
-Verification: `bun test test/benchmark-invariants.integration.test.js` and
-the refreshed goldens.
+Verification: `bun test test/benchmark-grade.integration.test.js` and the
+refreshed goldens.
 
-## Step 5: Report aggregation
+## Step 7: Report aggregation
 
 `meanScore` + `scoreAtK` per scored task group.
 
@@ -167,7 +251,7 @@ In `aggregate`, per task group:
 
 - Group is scored iff `group.some((r) => r.score !== undefined)`.
 - Effective per-record score: `r.score ?? (r.verdict === "pass" ? 1 : 0)`
-  (degenerate rule — covers preflight failures that never reached the hook).
+  (degenerate rule — covers preflight failures that never reached grading).
 - `task.meanScore` = mean of effective scores; `task.scoreAtK[k]` per design
   § Estimator: sort effective scores ascending,
   `score@k = Σ_{i=k..n} s₍ᵢ₎ · C(i−1, k−1) / C(n, k)` using the existing
@@ -184,14 +268,15 @@ fractional scores `[0.5, 1]` → `score@1 = 0.75`, `score@2 = 1`; mixed group
 
 Verification: `bun test test/benchmark-report-score.test.js`.
 
-## Step 6: Report rendering
+## Step 8: Report rendering
 
-Score columns and malformed warnings, only when the report contains a scored
-task.
+Score columns, merged checks table, and malformed warnings.
 
 - Modified: `libraries/libharness/src/benchmark/report.js` (rendering half),
   tests in `benchmark-report-score.test.js`
-- `buildRunDetail` copies `score` and `malformedChecks` onto the run detail.
+- `buildRunDetail` copies `grade`, `hiddenTests`, `score`, and
+  `malformedChecks` onto the run detail; the runs-table "Invariants" column
+  becomes "Checks", driven by `grade.verdict`.
 - Compute the report-level condition once — `report.tasks.some((t) =>
   t.meanScore !== undefined)` — and thread it through `renderFullReport` →
   `renderTaskDetail` → `renderRunsTable`.
@@ -199,17 +284,21 @@ task.
   `toFixed(4)`) and one `score@{k}` column per k; binary rows render `—`.
 - `renderRunsTable`: append a `Score` column under the same condition (`—`
   for score-less runs).
+- The per-task checks table (`collectInvariantRows` renamed accordingly)
+  merges both producers' rows and adds a Source column when any row carries
+  `source: "tests"`.
 - Task detail: for each run with `malformedChecks`, an Errors bullet:
   `- **Run N:** ⚠️ M malformed check row(s) — counted as failing`.
 
 Tests: mixed ledger shows the new columns with `—` on the binary row; a
 binary-only ledger renders no score columns and no score keys in JSON;
-malformed warning renders; compact report gains the same pass@k-table columns
-(it shares `renderPassAtKTable`).
+merged checks table with Source column when hidden-test rows exist; malformed
+warning renders; compact report gains the same pass@k-table columns (it
+shares `renderPassAtKTable`).
 
 Verification: `bun test test/benchmark-report-score.test.js`.
 
-## Step 7: `fit-trace assert --gate` and `--weight`
+## Step 9: `fit-trace assert --gate` and `--weight`
 
 Role flags on the standard assertion helper, emit-then-fail on bad input.
 
@@ -224,7 +313,7 @@ Role flags on the standard assertion helper, emit-then-fail on bad input.
   on an invalid combination, `runAssertCommand` still writes
   `{"test": <name>, "pass": false, "message": "assert: <reason>"}` to stdout
   before returning `{ok: false}`, so the row lands in the denominator as a
-  failing check instead of vanishing (spec requirement 10). Assertion-failure
+  failing check instead of vanishing (spec requirement 13). Assertion-failure
   exit semantics are otherwise unchanged (hooks append `|| true`; the exit
   code no longer matters inside `invariants.sh`).
 
@@ -236,7 +325,7 @@ today.
 Verification: `bun test test/assert.test.js`; fit-trace help goldens refresh
 only if the new options surface in pinned output.
 
-## Step 8: Migrate test fixtures and affected suites
+## Step 10: Migrate test fixtures and affected suites
 
 The libharness suites become the first consumers of the new contract.
 
@@ -245,9 +334,14 @@ The libharness suites become the first consumers of the new contract.
   plus every suite asserting exit-code-derived verdicts
   (`benchmark-e2e.integration`, `benchmark-parity`,
   `benchmark-runner-concurrency`, `benchmark-shard`, invariants tests)
+- Created: `test/fixtures/benchmark-family/tasks/scored/` — a fixture task
+  with a two-check `tests/manifest.yaml` (one trivially passing, one
+  trivially failing `node --test` file) so the e2e suite exercises the
+  engine, a fractional score, and the restoration property against a real
+  subprocess.
 
-Fixture rewrites (all end `exit 0`; roles keep the tasks binary so e2e
-verdict expectations and any score-free assertions hold):
+Fixture hook rewrites (all end `exit 0`; roles keep these tasks binary so
+e2e verdict expectations and any score-free assertions hold):
 
 | Fixture | Row |
 | --- | --- |
@@ -256,55 +350,56 @@ verdict expectations and any score-free assertions hold):
 | `repo-state` | `{"test":"file"/"sha", …, "gate":true}` |
 | `preflight-broken` | unchanged (unreachable) |
 
-Sweep the suites for assertions on `invariants.exitCode`-as-verdict and
-update to row-role expectations. Add one e2e-level scored case only if the
-existing fixture family can absorb it cheaply; otherwise Step 3's seam tests
-carry the scored coverage.
+Sweep the suites for assertions on `invariants.verdict` /
+`invariants.exitCode`-as-verdict and update to grade-based expectations.
 
 Verification: full `bun test` in `libraries/libharness` green.
 
-## Step 9: Migrate the nine family hooks
+## Step 11: Migrate the family tasks
 
-Mechanical rewrite per design § Migration: one
-`check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }` helper, `--gate`
-on presence/sanity/anti-tamper checks, content checks left as default-weight
-scored rows, no `FAIL`, final `exit 0`, early `exit 0` after a failing
-dependency gate.
+Structural rows in the eight remaining hooks; the leading example moves to a
+manifest; judge templates rename.
 
-- Modified: all nine `benchmarks/*/tasks/*/hooks/invariants.sh`, the three
-  family READMEs (grading rows per task)
+- Modified: eight `benchmarks/*/tasks/*/hooks/invariants.sh` (mechanical
+  rewrite per design § Migration: one
+  `check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }` helper,
+  `--gate` on presence/sanity/anti-tamper checks, content checks left as
+  default-weight scored rows, no `FAIL`, final `exit 0`, early `exit 0` after
+  a failing dependency gate), all nine `judge.task.md` files
+  (`{{INVARIANTS_RESULT}}` → `{{GRADE_RESULT}}`), the three family READMEs
+  (grading rows per task)
 - `fit-wiki/cli-fix` additionally rewrites its nonstandard
   `{"id","verdict"}` rows to `test`/`pass` shape (they would grade as
   malformed under the row contract).
-- `implement-feature` gets the full leading-example conversion:
-  - Created: `hooks/todo.test.js` (byte-copy of `workdir/app/test/todo.test.js`
-    — an accepted drift pair, named in the family README; `$FAMILY_DIR` is
-    absent under the `invariants` subcommand),
-    `hooks/feature-checks/feature-helpers.js` (no `.test.js` suffix; shared
-    `appDir`/`bin` derivation, store loader, sample todos),
-    `hooks/feature-checks/{filter-selects-matching,filter-case-insensitive,filter-no-match,list-filter-output,list-no-filter}.test.js`
-    (one `node:test` case each, split from today's `feature.test.js`)
-  - Deleted: `hooks/feature.test.js`
-  - `invariants.sh`: `app-present` gate (early `exit 0` when missing);
-    restore the pristine baseline from `$HOOKS_DIR` and run it alone as the
-    `baseline-tests` gate row (the agent-editable copy cannot vouch for
-    itself; agent-added test files cannot flip the gate); then per check
-    file, `cp` + `node --test test/<file>` and emit
-    `{"test": <name>, "pass": <exit==0>}` — a default-weight scored row from
-    the process exit, no reporter parsing; end `exit 0`.
-  - `preflight.sh` and `judge.task.md` unchanged.
+- `implement-feature` gets the manifest conversion:
+  - Created: `tests/manifest.yaml` (`command: ["node", "--test"]`,
+    `cwd: app`, `target: test`, `support: [feature-helpers.js]`;
+    `todo.test.js` as the `baseline-tests` gate; five scored checks),
+    `tests/todo.test.js` (symlink to
+    `../../../workdir/app/test/todo.test.js` — the engine resolves symlinks
+    at stage time, so the pristine baseline has one source and no drift
+    pair), `tests/feature-helpers.js` (shared `appDir`/`bin` derivation,
+    store loader, sample todos), and five check files — each one `node:test`
+    case split from today's `feature.test.js`:
+    `filter-selects-matching`, `filter-case-insensitive`,
+    `filter-no-match`, `list-filter-output`, `list-no-filter`
+    (all `tests/<name>.test.js`)
+  - Deleted: `hooks/invariants.sh`, `hooks/feature.test.js`
+  - `preflight.sh` and `judge.task.md` (beyond the variable rename)
+    unchanged — the engine's restoration means the judge needs no exemption
+    for staged files.
 
-Verification (spec criteria 9–10, run locally, nothing committed):
+Verification (spec criteria 12–13, run locally, nothing committed):
 hand-build three `--run-dir` fixtures under `tmp/` — partial implementation
-→ `fit-benchmark invariants` reports `ok: false` with `0 < score < 1`;
-complete → `ok: true`, `score: 1`; empty `cwd/` → failing gate row, no
-`score` key. `grep -rn 'FAIL' benchmarks/*/tasks/*/hooks/invariants.sh`
+→ `fit-benchmark grade` reports `ok: false` with `0 < score < 1`; complete →
+`ok: true`, `score: 1`; empty `cwd/` → failing baseline gate row, score 0.
+`grep -rn 'FAIL\|cp .*test' benchmarks/*/tasks/*/hooks/invariants.sh`
 returns nothing. Spot-run one task per family end-to-end if budget allows.
 
-## Step 10: Documentation
+## Step 12: Documentation
 
-State the row contract and the exit-code demotion on every surface that
-states the old contract.
+State the row contract, the hidden-suite layout, and the exit-code demotion
+on every surface that states the old contract.
 
 - Modified: `.claude/skills/fit-benchmark/SKILL.md`,
   `.claude/skills/fit-benchmark/references/authoring.md`,
@@ -314,11 +409,11 @@ states the old contract.
 
 | Surface | Content |
 | --- | --- |
-| SKILL.md | Lifecycle step 3 rewritten: rows are authoritative, roles table (gate/scored/diagnostic), exit code = script health; Result Records mentions the optional `score`; Grading Surfaces examples updated to row emission. |
-| references/authoring.md | The invariants authoring contract rewritten around the single `check()` helper (no `FAIL` bookkeeping — both existing snippet sites): the roles table, default weight 1, `--gate` for presence/sanity/anti-tamper checks, `weight: 0` diagnostics, the crash rule (nonzero exit = grader failure, score 0), the early-`exit 0` dependency pattern, the process-exit direct-emission pattern, when a check is a gate versus scored, and validating hooks with `fit-benchmark invariants` before paying for agent runs. |
-| references/cli.md | `invariants`: process exit mirrors the row-derived verdict; `report`: `meanScore`/`scoreAtK` fields, score columns, degenerate rule one-liner. |
-| Run a Benchmark guide | `#### hooks/invariants.sh` rewritten to the row contract with a worked gate + scored example; § Aggregate Into pass@k gains mean score and `score@k` (expected best-of-k, continuous analog of pass@k). |
-| benchmarks/README.md | Layout notes: `invariants.sh — structural rubric; rows are the verdict (exit code = script health)`; one paragraph on gate vs scored rows. |
+| SKILL.md | Lifecycle step 3 rewritten: rows are authoritative, roles table (gate/scored/diagnostic), two producers (hidden `tests/` manifest run by the harness; `invariants.sh` for structural checks), exit code = script health; Result Records mentions `grade` and the optional `score`; Grading Surfaces examples updated. |
+| references/authoring.md | Two authoring paths, clearly split: **hidden test suites** — the `tests/manifest.yaml` reference (fields, defaults, roles, symlinked baseline pattern, restoration guarantee) with the worked `implement-feature` example; **structural checks** — the single `check()` helper (no `FAIL` bookkeeping — both existing snippet sites), the roles table, default weight 1, `--gate` for presence/sanity/anti-tamper, `weight: 0` diagnostics, the crash rule, the early-`exit 0` dependency pattern, when a check belongs in the manifest versus the script, and validating either with `fit-benchmark grade` before paying for agent runs. |
+| references/cli.md | `grade` (replacing `invariants`): runs both producers, process exit mirrors the graded verdict; `report`: `meanScore`/`scoreAtK` fields, score columns, degenerate rule one-liner. |
+| Run a Benchmark guide | Task layout gains `tests/`; `#### hooks/invariants.sh` rewritten to structural checks with a gate + scored example; a new `#### tests/manifest.yaml` section with the manifest example; § Aggregate Into pass@k gains mean score and `score@k` (expected best-of-k, continuous analog of pass@k). |
+| benchmarks/README.md | Layout tree gains `tests/ — hidden test suite; staged and run by the harness, one row per check`; `invariants.sh — structural rubric; rows are the verdict (exit code = script health)`; one paragraph on manifest checks vs gate vs scored rows. |
 
 Skill `## Documentation` lists and CLI `documentation` arrays are unchanged
 (no new guides), so the parity rule needs no edit.
@@ -328,56 +423,59 @@ Verification:
 shows no surviving claim that the exit code is the verdict; `bun run check`
 passes.
 
-## Step 11: Full verification sweep
+## Step 13: Full verification sweep
 
 - Modified: none
 
 `bun run check` at the repo root and `bun test` in `libraries/libharness`.
 Golden diffs under `test/golden/` are expected **only** for the command
-descriptions Steps 4 and 7 deliberately touched; any other golden diff is a
-regression. Paste clean check + test output into the PR.
+rename and descriptions Steps 6 and 9 deliberately touched; any other golden
+diff is a regression. Paste clean check + test output into the PR.
 
 ## Risks
 
 - **Test blast radius.** Every suite that encodes "exit code is the verdict"
-  breaks by design. Step 8 does the sweep in one place, before the family
+  breaks by design. Step 10 does the sweep in one place, before the family
   hooks move, so failures localize to the contract change rather than
   smearing across migration commits.
-- **A crashed hook and a failed gate now look alike at the verdict level**
+- **A crashed grader and a failed gate now look alike at the verdict level**
   (both `fail`, score 0). They differ on the record — nonzero `exitCode` +
   `stderr` versus a failing gate row — and the report's run detail shows
   both; no aggregate distinguishes them, which is acceptable for now.
 - **Semantics break across ledgers.** Pre- and post-migration ledgers must
   not be compared; the PR description and `benchmarks/README.md` say so, and
   the first post-merge scheduled run starts the new baseline.
-- **Baseline-gate scope narrows** (`implement-feature`): the gate runs only
-  the restored pristine baseline, so an agent leaving broken tests of its own
-  no longer fails the gate — intended (junk files are the scope judge's
-  lane), but a behavior change reviewers should know.
-- **The judge now sees seven hook-copied files** in `implement-feature`'s
-  workdir (restored baseline, helpers, five check files). If the
-  scope-discipline judge starts flagging them as agent scope creep, amend
-  `judge.task.md` to exempt hook-restored test files — watch the first real
-  runs.
-- **Filename collisions in `app/test/`.** The hook `cp`s check files into the
-  agent-writable tree; distinctive `filter-*`/`list-*` names make collisions
-  unlikely, and a collision only overwrites in the ephemeral CWD.
-- **`report.js` nearing the file-length lint ceiling.** Steps 5 and 6 both
+- **Restoration fidelity.** The engine's backup/restore is the judge's
+  guarantee that it grades the agent's work; a bug here silently biases the
+  scope judge. Step 3's restoration test asserts byte-identical collided
+  files and absent staged files, and the new `scored` fixture exercises it
+  end-to-end against a real subprocess.
+- **Symlinked baseline.** `tests/todo.test.js` as a symlink removes the
+  drift pair but relies on symlink support (fine on the macOS/Linux dev and
+  CI targets; the canonical-tree hash already resolves symlinks). If a
+  platform constraint appears, fall back to a byte-copy named as an accepted
+  drift pair in the family README.
+- **Hung hidden tests.** A wedged test process would stall the cell inside
+  the grading phase, outside the agent watchdog. The engine's per-check
+  timeout (default 120 s) bounds it; the timeout row keeps the failure
+  visible.
+- **`report.js` nearing the file-length lint ceiling.** Steps 7 and 8 both
   land in it; if the ceiling trips, extract the `scoreAtK` estimator next to
-  `gradeInvariants` in `grade.js` rather than waiving the lint.
+  `gradeChecks` in `grade.js` rather than waiving the lint.
 - **`Number(binomial(...))` overflow for very large n** in `scoreAtK` — the
   same exposure `passAtKValue` already carries; keeping the idiom is
   deliberate (one estimator idiom), not an oversight to fix here.
 
 ## Execution
 
-Single unit, one implementation PR. Steps 1→6 are sequential (each consumes
-the previous step's exports); Step 7 is independent and can interleave;
-Step 8 depends on Steps 2–4; Step 9 depends on Steps 4 and 7 (hooks use the
-new flags and are validated with the scored `invariants` subcommand); Step 10
-last, after the contracts it documents are locked. Route the whole plan to an
-engineering agent via `kata-implement` — the documentation step cites helper
-patterns shipped in the same PR, so splitting it to `technical-writer` would
-only add a handoff.
+Single unit, one implementation PR. Steps 1→8 are sequential along the data
+flow (each consumes the previous step's exports), with two exceptions:
+Step 2 and Step 1 are independent, and Step 9 is independent and can
+interleave anywhere. Step 10 depends on Steps 4–6; Step 11 depends on
+Steps 6 and 9 (hooks use the new flags and are validated with the `grade`
+subcommand); Step 12 last, after the contracts it documents are locked.
+Route the whole plan to an engineering agent via `kata-implement` — the
+documentation step cites helper patterns shipped in the same PR, so splitting
+it to `technical-writer` would only add a handoff.
 
 — Staff Engineer 🛠️
