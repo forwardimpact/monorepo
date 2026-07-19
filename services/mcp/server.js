@@ -28,6 +28,16 @@ if (!handled) {
   const logger = createLogger("mcp", runtime);
   const tracer = await createTracer("mcp");
 
+  if (!config.tools || Object.keys(config.tools).length === 0) {
+    logger.warn(
+      "startup",
+      "No MCP tools configured — the server will expose zero tools and " +
+        "agents cannot query the standard. Define service.mcp.tools in " +
+        "your config.json; see " +
+        "https://www.forwardimpact.team/docs/getting-started/engineers/guide/index.md",
+    );
+  }
+
   const graphClient = await createClient("graph", logger, tracer);
   const vectorClient = await createClient("vector", logger, tracer);
   const pathwayClient = await createClient("pathway", logger, tracer);

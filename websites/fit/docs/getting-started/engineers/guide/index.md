@@ -71,7 +71,8 @@ mcp) in dependency order. Configuration and secrets are read automatically from
 
 ```sh
 npx fit-guide                                        # Start interactive conversation
-echo "What skills should I focus on for J060?" | npx fit-guide  # Pipe a question
+npx fit-guide "What skills should I focus on for J060?"         # One-shot question
+echo "What skills should I focus on for J060?" | npx fit-guide  # Equivalent piped form
 ```
 
 Example pipe-mode output:

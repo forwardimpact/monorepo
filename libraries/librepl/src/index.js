@@ -151,15 +151,22 @@ export class Repl {
   }
 
   /**
-   * Parses command line arguments to override state values and returns whether to exit early
-   * @returns {Promise<boolean>} True if the process should exit after parsing
+   * Parses command line arguments: `--flag` args run their command
+   * handlers (overriding state values), every other arg is collected as
+   * a positional. Positionals are always prompt text, never commands.
+   * @returns {Promise<{shouldExit: boolean, positionals: string[]}>}
+   *   `shouldExit` is true when a flag handler requested an early exit.
    */
   async #parseArgs() {
     const args = this.#process.argv.slice(2);
+    const positionals = [];
 
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
-      if (!arg.startsWith("--")) continue;
+      if (!arg.startsWith("--")) {
+        positionals.push(arg);
+        continue;
+      }
 
       const { flagName, inlineValue } = this.#parseFlag(arg);
       const commandName = flagName.replace(/-/g, "_");
@@ -172,9 +179,9 @@ export class Repl {
       i += resolved.skip;
 
       const result = await command.handler(resolved.handlerArgs, this.state);
-      if (result === false) return true;
+      if (result === false) return { shouldExit: true, positionals };
     }
-    return false;
+    return { shouldExit: false, positionals };
   }
 
   /**
@@ -376,14 +383,25 @@ export class Repl {
     // Load state from storage first
     await this.#loadState();
 
-    // Parse command line arguments (exits early if any command returns false)
-    // These override loaded state values
-    const shouldExit = await this.#parseArgs();
+    // Parse command line arguments (exits early if any command returns
+    // false — flags win over positionals). These override loaded state
+    // values.
+    const { shouldExit, positionals } = await this.#parseArgs();
     if (shouldExit) return;
 
     // Run setup if provided
     if (this.#app.setup) {
       await this.#app.setup(this.state);
+    }
+
+    // One-shot mode - positional args are a single prompt line,
+    // equivalent to piping the same line via stdin
+    if (positionals.length > 0) {
+      const line = positionals.join(" ");
+      this.#process.stdout.write(`${this.#app.prompt}${line}\n`);
+      await this.#handleLine(line);
+      this.#process.exit(0);
+      return;
     }
 
     // Non-interactive mode - process stdin

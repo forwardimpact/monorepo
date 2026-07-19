@@ -147,23 +147,27 @@ export class TerminalFormatter {
   #marked;
   #markedTerminal;
   #terminalMarked;
+  #colors;
 
   /**
    * Creates a terminal formatter with required dependencies
    * @param {object} marked - Marked markdown parser
    * @param {object} markedTerminal - marked-terminal plugin
+   * @param {object} [options]
+   * @param {boolean} [options.colors=true] - Emit ANSI escape codes; pass
+   *   false when the output is not a TTY so pipes receive plain text
    */
-  constructor(marked, markedTerminal) {
+  constructor(marked, markedTerminal, { colors = true } = {}) {
     if (!marked) throw new Error("marked dependency is required");
     if (!markedTerminal)
       throw new Error("markedTerminal dependency is required");
 
     this.#marked = marked;
     this.#markedTerminal = markedTerminal;
+    this.#colors = colors;
 
     // Initialize the terminal marked instance with plugin
     // Pass ignoreIllegals to suppress highlight.js warnings about unknown languages
-    // Disable colors if stdout is not a TTY to prevent broken ANSI codes
     this.#terminalMarked = new this.#marked.Marked({
       silent: true,
     });
@@ -206,7 +210,10 @@ export class TerminalFormatter {
     const processed = this.#formatDetails(markdown);
     const formatted = this.#terminalMarked.parse(processed);
     // Reduce the length of horizontal lines by replacing long sequences of dashes
-    return formatted.replace(/-{73,}/g, "-".repeat(72));
+    const normalized = formatted.replace(/-{73,}/g, "-".repeat(72));
+    if (this.#colors) return normalized;
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI SGR removal is intentional.
+    return normalized.replace(/\[[0-9;]*m/g, "");
   }
 }
 
@@ -315,8 +322,12 @@ export function createHtmlFormatter() {
  * Creates a terminal formatter with automatically injected dependencies
  * @returns {TerminalFormatter} Configured terminal formatter instance
  */
-export function createTerminalFormatter() {
-  return new TerminalFormatter({ Marked: Marked }, markedTerminal);
+export function createTerminalFormatter({
+  isTTY = globalThis.process.stdout.isTTY,
+} = {}) {
+  return new TerminalFormatter({ Marked: Marked }, markedTerminal, {
+    colors: Boolean(isTTY),
+  });
 }
 
 /**

@@ -41,7 +41,7 @@ just env-setup     # Generate every secret in .env (idempotent across runs)
 ```
 
 `ANTHROPIC_API_KEY` is set in the environment (provided by the hosting platform,
-`.env`, or `fit-guide login`). Any code using `libconfig` to access Anthropic
+`.env`, or `fit-guide --login`). Any code using `libconfig` to access Anthropic
 credentials works out of the box.
 
 ---
@@ -72,8 +72,9 @@ bunx fit-rc status             # Show service status
 bunx fit-rc start embedding    # Start a single service
 ```
 
-Services run on localhost in local mode (core ports 3001–3005; optional
-services on additional ports). Port mapping is in `.env.local.example`.
+Services run on localhost in local mode (gRPC services on ports
+3001–3005, mcp on 3011, embedding on 3015; optional services on
+additional ports). Port mapping is in `.env.local.example`.
 
 TEI (Text Embeddings Inference) provides local embeddings:
 

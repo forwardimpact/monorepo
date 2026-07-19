@@ -3,7 +3,9 @@
 ## Conversational Agent
 
 ```sh
-npx fit-guide                              # Send a question (piped or as args)
+npx fit-guide "Tell me about X"            # One-shot positional prompt
+echo "Tell me about X" | npx fit-guide     # Equivalent piped form
+npx fit-guide                              # Interactive session
 npx fit-guide --help                       # Show help
 npx fit-guide --version                    # Print package version
 npx fit-guide --init                       # Bootstrap .env + config/ + .claude/skills/ (idempotent re-runs)
@@ -12,8 +14,11 @@ npx fit-guide --logout                     # Clear stored credentials
 npx fit-guide --resume                     # Resume previous conversation
 npx fit-guide --status                     # Check system readiness
 npx fit-guide --status --json              # Machine-readable status
-echo "Tell me about X" | npx fit-guide     # Piped single prompt
 ```
+
+Positional words are always prompt text, never commands — `npx fit-guide
+status` sends the word "status" to the agent. Operational commands are
+always flags (`--status`, `--login`).
 
 The CLI is built on the Claude Agent SDK. It connects to the MCP endpoint for
 tools and prompts, and streams the response.

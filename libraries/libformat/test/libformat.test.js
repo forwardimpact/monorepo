@@ -6,6 +6,7 @@ import {
   AgentTraceFormatter,
   HtmlFormatter,
   TerminalFormatter,
+  createTerminalFormatter,
 } from "../src/index.js";
 
 describe("libformat", () => {
@@ -176,6 +177,25 @@ describe("libformat", () => {
     test("handles empty input", () => {
       const terminal = terminalFormatter.format("");
       assert.strictEqual(typeof terminal, "string");
+    });
+
+    test("strips ANSI codes when colors are disabled", () => {
+      const plain = new TerminalFormatter(mockMarked, mockMarkedTerminal, {
+        colors: false,
+      });
+      const terminal = plain.format("This is **bold** text.");
+
+      assert(!terminal.includes("\x1b["));
+      assert(terminal.includes("bold"));
+    });
+
+    test("createTerminalFormatter emits no ANSI when stdout is not a TTY", () => {
+      const formatted = createTerminalFormatter({ isTTY: false }).format(
+        "# Heading\n\nThis is **bold** text.",
+      );
+
+      assert(!formatted.includes("\x1b["));
+      assert(formatted.includes("bold"));
     });
   });
 
