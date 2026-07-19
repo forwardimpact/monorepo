@@ -3,11 +3,11 @@
 Implements spec 2240. Check rows are the single authoritative grading
 channel, with two producers kept structurally apart: a **hidden-test engine**
 in libharness executes a per-task `tests/` tree by convention (stage each
-hidden test into the agent CWD, run it, one row per test, restore), and
-the **invariants script** shrinks to structural checks emitted as rows. A
-pure derivation turns the merged rows plus grader health into a verdict and
-a score in [0, 1]; an unhealthy grader can never mint marks. Clean break:
-every hook in `benchmarks/` and the test fixtures migrates in this change.
+hidden test into the agent CWD, run it, one row per test, restore), and the
+**invariants script** shrinks to structural checks emitted as rows. A pure
+derivation turns the merged rows plus grader health into a verdict and a
+score in [0, 1]; an unhealthy grader can never mint marks. Clean break: every
+hook in `benchmarks/` and the test fixtures migrates in this change.
 
 ## Architecture
 
@@ -21,58 +21,60 @@ flowchart LR
   GR --> CMD["grade subcommand<br/>same producers, exit mirrors verdict"]
 ```
 
-Grading is one pure function with two callers (runner, `grade` subcommand);
-records are self-describing — `report` never re-derives scores from details.
+Grading is one pure function with two callers; records are self-describing —
+`report` never re-derives scores from details.
 
 ## The row contract (normative)
 
 Single home for row and grading semantics; components reference, not
 restate. Every row is a check by default. Roles, checked in order:
 
-1. **Diagnostic** — `weight` is exactly `0`. Free-form; never graded.
-2. **Gate** — `gate` is exactly `true` and no positive `weight` is present.
-   Requires a boolean `pass`. Any failing gate → `gatesPass` false.
-3. **Scored** — everything else. `weight` must be absent (defaults to 1) or a
-   finite number > 0; `pass` must be a boolean.
-   `score = Σ weight(passing) / Σ weight(all scored)`.
-4. **Malformed** — a row that fits no role: missing or non-boolean `pass` on
-   a graded row, non-boolean `gate`, invalid `weight`, `gate: true` alongside
-   a positive `weight`, or an fd-3 line that fails to parse as JSON. Counts
-   as a **failing scored check** (own weight when valid and positive, else
-   unit weight 1) and increments `malformed`: dropping a defect could mint
-   full marks; failing the whole run would zero completed work.
+1. **Gate** — `gate` is exactly `true`, `pass` is boolean, and no `weight`
+   key is present. Any failing gate → `gatesPass` false.
+2. **Diagnostic** — no `gate` key and `weight` is exactly `0`. Free-form;
+   never graded.
+3. **Scored** — no `gate` key; `pass` boolean; `weight` absent (defaults to
+   1) or finite > 0. `score = Σ weight(passing) / Σ weight(all scored)`.
+4. **Malformed** — everything else: any `gate`+`weight` co-occurrence (a
+   stray weight must never silently disarm a gate), a non-boolean `gate`,
+   missing or non-boolean `pass` on a graded row, an invalid `weight`, an
+   fd-3 line that fails to parse as JSON, a non-object row. Counts as a
+   **failing scored check** (own weight when valid and positive, else unit
+   weight 1) and increments `malformed`: dropping a defect could mint full
+   marks; failing the whole run would zero completed work.
 
-The runner stamps each row's provenance (`source: "tests" | "invariants"`)
-before grading — display metadata, never a grading input.
+Rows carry provenance (`source: "tests" | "invariants"`), stamped where the
+producers' rows merge — one composition shared by the runner and the `grade`
+subcommand. Display metadata, never a grading input.
 
 Derived predicates:
 
-- `healthy` — the invariants script exited 0 AND the hidden-test engine did
-  not throw. Unhealthy → verdict `fail`, score 0, whatever the rows say.
+- `healthy` — invariants exited 0 AND the engine did not throw. Unhealthy →
+  verdict `fail`, effective score 0 on scored tasks, whatever the rows say.
 - `fullMarks` — integer count predicate: `malformed === 0` and every scored
   check passes. Never a float comparison, so fractional weights carry no
   equality hazard. Zero scored checks → binary task; `score` is `null` and
-  no `score` field appears anywhere.
+  no `score` field appears on the record or report.
 - **Grade verdict** = `healthy ∧ gatesPass ∧ fullMarks` (vacuously true parts
   when no gate or scored rows exist — a row-less healthy cell still passes,
   preserving today's no-op-hook behavior).
 - **Effective record score** (scored tasks only) =
-  `healthy ∧ gatesPass ∧ judgePass ? score : 0`. Full marks does not zero
-  it — a fractional score with verdict `fail` is the point.
+  `healthy ∧ gatesPass ∧ judgePass ? score : 0`. Full marks does not zero it
+  — a fractional score with verdict `fail` is the point.
 - Invariants hooks never manage exit codes for checks; they end `exit 0`
-  unconditionally. Early `exit 0` after a failing gate row is the documented
-  dependency pattern.
+  unconditionally (early `exit 0` after a failing gate row is the documented
+  dependency pattern).
 
 ## The hidden test suite (normative)
 
 A task opts in with `tasks/<task>/tests/` — a sibling of `hooks/`, never
-copied into the agent CWD (only `workdir/` and `specs/` seed the CWD). There
-is no configuration file; the layout is the contract:
+copied into the agent CWD (the workdir manager seeds family/task `workdir/`,
+`specs/`, and staged `.claude/` — never `tests/` or `hooks/`). There is no
+configuration file; the layout is the contract:
 
 - `tests/` is an **overlay mirror** of the agent CWD: a file's path under
   `tests/` is its staging path under `$AGENT_CWD`
-  (`tests/app/test/filter-no-match.test.js` stages to
-  `app/test/filter-no-match.test.js`).
+  (`tests/app/test/filter-no-match.test.js` → `app/test/`).
 - Every `*.test.js` file is one check. A `*.gate.test.js` name marks a gate
   row; any other `*.test.js` is a scored row at weight 1. The check name is
   the basename stem (`todo.gate.test.js` → `todo`).
@@ -85,16 +87,17 @@ Validated eagerly in `loadTaskFamily` (authoring errors fail before agent
 spend): at least one check file, every entry a regular file after symlink
 resolution, check names unique.
 
-Engine execution: stage support files, then per check in sorted path order:
-back up a collided target file → copy the (symlink-resolved) file, creating
-missing parent directories → spawn → emit
-`{test, pass: exit === 0, gate?, message?}` (message carries the exit status
-and a trimmed stderr tail on failure) → unstage, restore the backup, remove
-directories the engine created; support unstages after the last check. A
-stage or spawn failure (e.g. the agent deleted the scaffold) is a *failing*
-row — agent fault, not grader fault; the engine itself throwing is grader
-fault and lands in `healthy`. Restoration means the judge sees the workdir
-exactly as the agent left it.
+Engine execution: stage support files (same backup-on-collision and
+directory tracking as checks), then per check in sorted path order: back up
+a collided target → copy the (symlink-resolved) file, creating missing
+parent directories → spawn → emit `{test, pass: exit === 0, gate?, message?}`
+(message: exit status + trimmed stderr tail on failure) → unstage, restore
+the backup, remove created directories; support unstages and restores after
+the last check. A stage or spawn failure (e.g. the agent deleted the
+scaffold) is a *failing* row — agent fault, not grader fault; the engine
+itself throwing is grader fault: the runner catches it, records the message
+on `hiddenTests.error`, and fails `healthy`. Restoration means the judge
+sees the workdir exactly as the agent left it.
 
 ## Components
 
@@ -104,12 +107,12 @@ exactly as the agent left it.
 | Hidden-test engine | new `benchmark/hidden-tests.js` | `runHiddenTests(task, ctx, runtime)` → `{details}` per § hidden suite; `{details: []}` when the task has no suite. |
 | Invariants collector | `benchmark/invariants.js` | Loses its verdict: returns `{details, exitCode, stderr?}`. Unparseable fd-3 lines stay in `details` as `parseError` rows and grade as malformed. |
 | Grading | new `benchmark/grade.js` | Pure `gradeChecks(details, healthy)` → `{verdict, gatesPass, score, fullMarks, malformed}` (`score` null for binary). Sole home of the arithmetic. |
-| Cell composition | `benchmark/runner.js` `#executeCell` | Order: agent → invariants collector → hidden-test engine → stamp provenance, merge rows, grade → judge. Cell verdict `grade.verdict ∧ judge`; effective score per § contract; `malformedChecks` when > 0. Preflight-failure records never reach grading and stay score-free (zeros realize in aggregation). |
-| Record schema | `benchmark/result.js` | `invariants` shape drops `verdict`; new `grade: {verdict, gatesPass, score?, malformed?}` — schema-optional so pre-break ledgers still render, though the runner always writes it; optional `hiddenTests: {details}` (present iff the task has a suite); optional top-level `score` (0–1) and `malformedChecks` (≥ 1); preflight branch pins them `undefined`. |
+| Cell composition | `benchmark/runner.js` `#executeCell` | Order: agent → invariants collector → hidden-test engine → stamp provenance, merge rows, grade → judge. Cell verdict `grade.verdict ∧ judge`; effective score per § contract. The record's `grade` is the normalized projection of `gradeChecks` — `fullMarks` dropped, `score` omitted when null, `malformed` omitted when 0. Preflight-failure records never reach grading and stay score-free (zeros realize in aggregation). |
+| Record schema | `benchmark/result.js` | `invariants` shape drops `verdict`; new `grade: {verdict, gatesPass, score?, malformed?}` — schema-optional so pre-break ledgers still render, though the runner always writes it; optional `hiddenTests: {details, error?}` (present iff the task has a suite; `error` carries an engine crash); optional top-level `score` (0–1) — the effective judge-zeroed value `report` aggregates; preflight branch pins them `undefined`. |
 | Judge templating | `benchmark/judge.js` | `{{GRADE_RESULT}}` — grade object + merged rows — replaces `{{INVARIANTS_RESULT}}`. |
 | `grade` subcommand | `commands/benchmark-grade.js` (replaces `benchmark-invariants.js`) | Runs both producers against `--run-dir` with the same derivation; process exits 0 iff `grade.verdict === "pass"` (no judge here; judge-zeroing does not apply). |
-| Report | `benchmark/report.js` | Group scored iff ≥ 1 record carries `score`; per scored task `meanScore` + `scoreAtK[k]` (§ Estimator); a score-less record in a scored group contributes its verdict as the degenerate score (pass = 1, fail = 0). Rendering: score and `score@k` columns only when the report has a scored task (binary rows render `—`); the checks table merges both producers with a Source column when any row carries `source: "tests"`; `malformedChecks` renders a warning. |
-| `fit-trace assert --gate/--weight` | `commands/assert.js` + `bin/fit-trace.js` | `--weight` validates finite ≥ 0; `--gate` adds `gate: true`; combining with a positive weight is an error. **Emit-then-fail:** an invalid grading flag emits a failing row before the nonzero exit, so a typo shrinks the score, never the denominator. |
+| Report | `benchmark/report.js` | Group scored iff ≥ 1 record carries `score`; per scored task `meanScore` + `scoreAtK[k]` (§ Estimator); a score-less record in a scored group contributes its verdict as the degenerate score (pass = 1, fail = 0). Rendering: score and `score@k` columns only when the report has a scored task (binary rows render `—`); the checks table merges both producers with a Source column when any row carries `source: "tests"`; a positive `grade.malformed` renders a warning; rows without `grade` (pre-break ledgers, preflight) render `—`. |
+| `fit-trace assert --gate/--weight` | `commands/assert.js` + `bin/fit-trace.js` | `--weight` validates finite ≥ 0; `--gate` adds `gate: true`; `--gate` with any `--weight` is an error. **Emit-then-fail on every failure path:** invalid grading flags *and* errored evaluations (today's catch path returns without writing a row — e.g. `--grep` against a file the agent deleted) emit a failing row before the nonzero exit, so a typo or a vanished target shrinks the score, never the denominator. |
 | Hook migration | `benchmarks/*/tasks/*/hooks/invariants.sh`, libharness fixtures | § Migration. One helper — `check() { fit-trace assert "$@" >&"$RESULTS_FD" \|\| true; }` — structural checks only, `exit 0` at the end. |
 | Leading example | `benchmarks/kata-skills/tasks/implement-feature/tests/` | `tests/app/test/`: `todo.gate.test.js` as the pristine-baseline gate (a symlink to the family workdir suite kills the drift pair), five feature `*.test.js` checks scored at weight 1, `feature-helpers.js` as support. `invariants.sh` and `hooks/feature.test.js` deleted; `preflight.sh` and the scope judge unchanged. |
 | Docs | `fit-benchmark` SKILL.md, `references/{authoring,cli}.md`, Run a Benchmark guide, `benchmarks/README.md` | Rows-authoritative contract, roles table, exit-code demotion, `tests/` layout convention, hidden-test-vs-structural-check guidance. |
@@ -136,18 +139,16 @@ exactly as the agent left it.
 
 ## Estimator
 
-`scoreAtK` generalizes pass@k to values in [0, 1]: the expected **maximum**
-score over k runs drawn without replacement from the task's n runs. With
-scores sorted ascending `s₍₁₎ … s₍ₙ₎`:
+`scoreAtK` generalizes pass@k to [0, 1]: the expected **maximum** score over
+k runs drawn without replacement from n, scores sorted ascending `s₍₁₎…s₍ₙ₎`:
 
 ```text
 score@k = Σ_{i=k..n}  s₍ᵢ₎ · C(i−1, k−1) / C(n, k)
 ```
 
 Each term weights `s₍ᵢ₎` by the probability it is the k-subset's maximum.
-Binary scores reduce exactly to HumanEval pass@k, computed with the same
-BigInt binomial helper; `k > n` yields the same `{error: "k > n"}` value, so
-the two estimators expose one idiom.
+Binary scores reduce exactly to HumanEval pass@k (same BigInt binomial
+helper); `k > n` yields the same `{error: "k > n"}` value — one idiom.
 
 ## Interfaces
 
@@ -156,16 +157,13 @@ the two estimators expose one idiom.
 gradeChecks(details, healthy)
 // → {verdict, gatesPass, score: number|null, fullMarks, malformed}
 
-// benchmark/hidden-tests.js
-runHiddenTests(task, ctx, runtime)  // → {details: object[]}
-
-// InvariantsResult — collector only
-{ details, exitCode, stderr? }
+runHiddenTests(task, ctx, runtime)  // hidden-tests.js → {details: object[]}
+runInvariants(task, ctx, runtime)   // collector → {details, exitCode, stderr?}
 
 // ResultRecord (happy branch); grade-subcommand record is
-// { taskId, grade, invariants, hiddenTests?, exitCode }
+// { taskId, grade, invariants, hiddenTests?, exitCode /* script mirror */ }
 { …existing, grade: {verdict, gatesPass, score?, malformed?},
-  hiddenTests?: {details}, score?: number, malformedChecks?: number }
+  hiddenTests?: {details, error?}, score?: number }  // score = effective
 
 // report JSON — additive, scored tasks only
 task: { …existing, meanScore?: number, scoreAtK?: Record<k, number|{error}> }
@@ -175,8 +173,10 @@ task: { …existing, meanScore?: number, scoreAtK?: Record<k, number|{error}> }
 
 All hooks move in this change: drop `FAIL` bookkeeping, end with `exit 0`,
 mark presence/sanity/anti-tamper checks `--gate`, leave content checks as
-default-weight scored rows, keep early `exit 0` after a failing dependency
-gate. All nine `judge.task.md` files rename the template variable.
+default-weight scored rows. A dependency gate uses `|| exit 0` in place of
+the helper's `|| true`; checks `assert` cannot express echo their row JSON
+directly. All thirteen `judge.task.md` templates (nine families, four
+fixtures) rename the template variable.
 
 | Task | Gate rows | Scored rows |
 | --- | --- | --- |
