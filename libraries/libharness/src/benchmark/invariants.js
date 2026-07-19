@@ -1,7 +1,10 @@
 /**
  * Invariants — runs `<task.paths.hooks>/invariants.sh` from the template path
- * against the post-run agent CWD. The exit code is authoritative for the
- * verdict; structured per-check rows arrive on fd 3 (`$RESULTS_FD=3`) as NDJSON.
+ * against the post-run agent CWD. A pure collector with no verdict of its
+ * own: structured per-check rows arrive on fd 3 (`$RESULTS_FD=3`) as NDJSON
+ * and grading happens downstream over the merged rows. The exit code is
+ * script health only — nonzero means the grader itself failed, never that a
+ * check failed.
  *
  * Subprocess access flows through `runtime.subprocess.spawn`; the fd-3 backing
  * store and the stderr log use the sync filesystem surface (`runtime.fsSync`) —
@@ -14,9 +17,9 @@ import { buildHookEnv } from "./hook-env.js";
 
 /**
  * @typedef {object} InvariantsResult
- * @property {"pass" | "fail"} verdict
  * @property {Array<object>} details
- * @property {number} exitCode
+ * @property {number} exitCode - Script health: nonzero means the hook itself
+ *   failed, never that a check failed.
  * @property {string} [stderr] - Trimmed script stderr, present only when the
  *   script wrote to stderr. Surfaces hook failures (e.g. a missing tool) that
  *   leave `details` empty, so they read distinctly from a real invariant miss.
@@ -32,7 +35,7 @@ import { buildHookEnv } from "./hook-env.js";
 export async function runInvariants(task, ctx, runtime) {
   if (!runtime) throw new Error("runtime is required");
   if (!task.paths.invariants) {
-    return { verdict: "pass", details: [], exitCode: 0 };
+    return { details: [], exitCode: 0 };
   }
   const fsSync = runtime.fsSync;
   const script = task.paths.invariants;
@@ -84,11 +87,7 @@ export async function runInvariants(task, ctx, runtime) {
   const details = [];
   parseFd3Buffer(raw, details);
   const exitCode = typeof code === "number" ? code : -1;
-  const result = {
-    verdict: exitCode === 0 ? "pass" : "fail",
-    details,
-    exitCode,
-  };
+  const result = { details, exitCode };
   const trimmedStderr = stderr.trim();
   if (trimmedStderr) result.stderr = trimmedStderr;
   return result;

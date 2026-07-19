@@ -1,3 +1,2 @@
 ERROR <TS> benchmark main <PID> MSG001 - ENOENT <normalized>
-Error: ENOENT <normalized>
 fit-benchmark: error: ENOENT <normalized>

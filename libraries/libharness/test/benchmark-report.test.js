@@ -1,45 +1,8 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
-import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
-
 import { aggregate, renderTextReport } from "../src/benchmark/report.js";
-
-const INPUT_DIR = "/benchmark-report";
-
-function baseRecord(overrides) {
-  return {
-    taskId: "sample",
-    runIndex: 0,
-    verdict: "pass",
-    invariants: { verdict: "pass", details: [], exitCode: 0 },
-    submission: "x",
-    judgeVerdict: { verdict: "pass", summary: "ok" },
-    costUsd: 0,
-    turns: 1,
-    agentTracePath: "/tmp/agent.ndjson",
-    supervisorTracePath: "/tmp/supervisor.ndjson",
-    judgeTracePath: "/tmp/judge.ndjson",
-    profiles: { agent: null, supervisor: null, judge: null },
-    model: { agent: "a", supervisor: "s", judge: "j" },
-    skillSetHash: "sha256:a",
-    familyRevision: "sha256:b",
-    durationMs: 100,
-    ...overrides,
-  };
-}
-
-/**
- * Seed `results.jsonl` for `records` in an in-memory fs under `INPUT_DIR` and
- * return a runtime; `aggregate` reads `join(inputDir, "results.jsonl")` via
- * `runtime.fs.readFile`.
- */
-function jsonlRuntime(records) {
-  const body = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
-  return createTestRuntime({
-    fs: createMockFs({ [`${INPUT_DIR}/results.jsonl`]: body }),
-  });
-}
+import { INPUT_DIR, baseRecord, jsonlRuntime } from "./report-helpers.js";
 
 describe("aggregate", () => {
   test("pass@1 = 0.4 and pass@3 = 0.9 for verdicts pass/fail/fail/pass/fail", async () => {
@@ -219,7 +182,6 @@ describe("renderTextReport (full report)", () => {
         runIndex: 0,
         verdict: "pass",
         invariants: {
-          verdict: "pass",
           details: [{ test: "check-1", pass: true }],
           exitCode: 0,
         },
@@ -243,19 +205,18 @@ describe("renderTextReport (full report)", () => {
     assert.match(text, /## Task Details/);
     assert.match(text, /### alpha/);
     assert.match(text, /✅ \*\*1\/1 runs passed\*\*/);
-    assert.match(text, /#### Invariant Checks/);
+    assert.match(text, /#### Checks/);
     assert.match(text, /check-1 \| ✅/);
     assert.match(text, /#### Judge Commentary/);
     assert.match(text, /looks good/);
   });
 
-  test("single run omits Run column in invariant checks", async () => {
+  test("single run omits Run column in the checks table", async () => {
     const records = [
       baseRecord({
         taskId: "x",
         runIndex: 0,
         invariants: {
-          verdict: "pass",
           details: [{ test: "t1", pass: true }],
           exitCode: 0,
         },
@@ -269,20 +230,17 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    const checksSection = text
-      .split("#### Invariant Checks")[1]
-      .split("####")[0];
+    const checksSection = text.split("#### Checks")[1].split("####")[0];
     assert.match(checksSection, /\| Check \| Result \| Message \|/);
     assert.doesNotMatch(checksSection, /\| Run \|/);
   });
 
-  test("multi-run includes Run column in invariant checks", async () => {
+  test("multi-run includes Run column in the checks table", async () => {
     const records = [
       baseRecord({
         taskId: "x",
         runIndex: 0,
         invariants: {
-          verdict: "pass",
           details: [{ test: "t1", pass: true }],
           exitCode: 0,
         },
@@ -290,10 +248,11 @@ describe("renderTextReport (full report)", () => {
       baseRecord({
         taskId: "x",
         runIndex: 1,
+        verdict: "fail",
+        grade: { verdict: "fail", gatesPass: true },
         invariants: {
-          verdict: "fail",
           details: [{ test: "t1", pass: false, message: "nope" }],
-          exitCode: 1,
+          exitCode: 0,
         },
       }),
     ];
@@ -305,9 +264,7 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    const checksSection = text
-      .split("#### Invariant Checks")[1]
-      .split("####")[0];
+    const checksSection = text.split("#### Checks")[1].split("####")[0];
     assert.match(checksSection, /\| Run \| Check \| Result \| Message \|/);
   });
 
@@ -365,15 +322,16 @@ describe("renderTextReport (full report)", () => {
     const text = renderTextReport(report, [1]);
     assert.match(text, /#### Errors/);
     assert.match(text, /Preflight error — "script failed"/);
-    assert.match(text, /preflight error/);
+    // The grade-less preflight record renders "—" in the Checks column.
+    assert.match(text, /\| 0 \| ❌ \| — \| — \|/);
   });
 
-  test("omits invariant checks section when details are empty", async () => {
+  test("omits the checks section when details are empty", async () => {
     const records = [
       baseRecord({
         taskId: "x",
         runIndex: 0,
-        invariants: { verdict: "pass", details: [], exitCode: 0 },
+        invariants: { details: [], exitCode: 0 },
       }),
     ];
     const runtime = jsonlRuntime(records);
@@ -384,7 +342,7 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    assert.doesNotMatch(text, /#### Invariant Checks/);
+    assert.doesNotMatch(text, /#### Checks/);
   });
 });
 
@@ -398,10 +356,10 @@ describe("renderTextReport (compact report)", () => {
         taskId: "beta",
         runIndex: 0,
         verdict: "fail",
+        grade: { verdict: "fail", gatesPass: true },
         invariants: {
-          verdict: "fail",
           details: [{ test: "t1", pass: false, message: "nope" }],
-          exitCode: 1,
+          exitCode: 0,
         },
       }),
     ];
@@ -415,6 +373,6 @@ describe("renderTextReport (compact report)", () => {
     assert.match(text, /❌ \*\*1\/2 tasks passing\*\* \| 2 runs/);
     assert.match(text, /\| taskId \| n \| c \| pass@1 \|/);
     assert.doesNotMatch(text, /## Task Details/);
-    assert.doesNotMatch(text, /#### Invariant Checks/);
+    assert.doesNotMatch(text, /#### Checks/);
   });
 });

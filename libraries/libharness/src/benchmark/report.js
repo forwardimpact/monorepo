@@ -15,12 +15,16 @@
 import { join } from "node:path";
 
 import { validateResultRecord } from "./result.js";
+import { mergeRows } from "./grade.js";
 
 /**
  * @typedef {object} RunDetail
  * @property {number} runIndex
  * @property {"pass"|"fail"} verdict
- * @property {{verdict: string, details: unknown[], exitCode: number}} [invariants]
+ * @property {{details: unknown[], exitCode: number}} [invariants]
+ * @property {{verdict: string, gatesPass: boolean, score?: number, malformed?: number}} [grade]
+ * @property {{details: unknown[], error?: string}} [hiddenTests]
+ * @property {number} [score] - Effective judge-zeroed score (scored tasks).
  * @property {{verdict: string, summary: string}} [judgeVerdict]
  * @property {number} costUsd
  * @property {number} turns
@@ -66,6 +70,7 @@ export async function aggregate({
     for (const k of kValues) passAtK[k] = passAtKValue(n, c, k);
 
     const task = { taskId, n, c, passAtK };
+    applyScoreFields(task, group, kValues);
 
     if (includeRuns) {
       if (!firstRecord) firstRecord = group[0];
@@ -103,6 +108,25 @@ export async function aggregate({
 }
 
 /**
+ * Attach `meanScore` and `scoreAtK` to a scored task group. A group is
+ * scored iff any record carries an effective score; a score-less record in
+ * a scored group (a preflight failure never reached grading, or a binary
+ * run) contributes its verdict as the degenerate score — skipping it would
+ * inflate the mean exactly when the agent fails hardest. Binary groups gain
+ * neither field.
+ * @param {object} task - Mutated.
+ * @param {object[]} group
+ * @param {number[]} kValues
+ */
+function applyScoreFields(task, group, kValues) {
+  if (!group.some((r) => r.score !== undefined)) return;
+  const scores = group.map((r) => r.score ?? (r.verdict === "pass" ? 1 : 0));
+  task.meanScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+  task.scoreAtK = {};
+  for (const k of kValues) task.scoreAtK[k] = scoreAtKValue(scores, k);
+}
+
+/**
  * Build a normalized per-run detail object and accumulate duration/turn
  * samples for median calculation. Extracted from `aggregate` to keep its
  * cognitive complexity below the lint ceiling.
@@ -117,6 +141,9 @@ function buildRunDetail(r, acc) {
     runIndex: r.runIndex,
     verdict: r.verdict,
     ...(r.invariants && { invariants: r.invariants }),
+    ...(r.grade && { grade: r.grade }),
+    ...(r.hiddenTests && { hiddenTests: r.hiddenTests }),
+    ...(r.score !== undefined && { score: r.score }),
     ...(r.judgeVerdict && { judgeVerdict: r.judgeVerdict }),
     costUsd: r.costUsd ?? 0,
     turns: r.turns ?? 0,
@@ -156,7 +183,7 @@ function renderCompactReport(report, kValues) {
   const lines = [
     `${icon} **${passing}/${totals.tasks} tasks passing** | ${totals.runs} runs${totals.skipped ? ` | ${totals.skipped} skipped` : ""}`,
     "",
-    renderPassAtKTable(report, kValues),
+    renderPassAtKTable(report, kValues, hasScoredTask(report)),
     "",
     renderTotalsLine(report),
   ];
@@ -167,12 +194,18 @@ function renderCompactReport(report, kValues) {
 // Full report
 // ---------------------------------------------------------------------------
 
+/** Score columns render only when the report has at least one scored task. */
+function hasScoredTask(report) {
+  return report.tasks.some((t) => t.meanScore !== undefined);
+}
+
 function renderFullReport(report, kValues) {
+  const scored = hasScoredTask(report);
   const sections = [
     renderSummary(report),
     "## Pass@k",
     "",
-    renderPassAtKTable(report, kValues),
+    renderPassAtKTable(report, kValues, scored),
     "",
     renderTotalsLine(report),
     "",
@@ -181,7 +214,7 @@ function renderFullReport(report, kValues) {
 
   for (const task of report.tasks) {
     sections.push("");
-    sections.push(renderTaskDetail(task));
+    sections.push(renderTaskDetail(task, scored));
   }
 
   return sections.join("\n");
@@ -239,16 +272,27 @@ function renderSummary(report) {
 // Pass@k table (shared between compact and full)
 // ---------------------------------------------------------------------------
 
-function renderPassAtKTable(report, kValues) {
+function renderPassAtKTable(report, kValues, scored) {
   const header = ["taskId", "n", "c", ...kValues.map((k) => `pass@${k}`)];
+  if (scored) {
+    header.push("score", ...kValues.map((k) => `score@${k}`));
+  }
   const rows = [header, header.map(() => "---")];
   for (const t of report.tasks) {
-    rows.push([
+    const row = [
       t.taskId,
       String(t.n),
       String(t.c),
       ...kValues.map((k) => formatPassAt(t.passAtK[k])),
-    ]);
+    ];
+    if (scored) {
+      // Binary tasks render "—" in every score column.
+      row.push(
+        formatPassAt(t.meanScore ?? null),
+        ...kValues.map((k) => formatPassAt(t.scoreAtK?.[k] ?? null)),
+      );
+    }
+    rows.push(row);
   }
   return rows.map((r) => `| ${r.join(" | ")} |`).join("\n");
 }
@@ -261,7 +305,7 @@ function renderTotalsLine(report) {
 // Per-task detail
 // ---------------------------------------------------------------------------
 
-function renderTaskDetail(task) {
+function renderTaskDetail(task, scored) {
   const runs = task.runs ?? [];
   const icon = statusIcon(task.c === task.n);
   const singleRun = runs.length === 1;
@@ -272,9 +316,9 @@ function renderTaskDetail(task) {
     `${icon} **${task.c}/${task.n} runs passed**`,
   ];
 
-  lines.push("", renderRunsTable(runs));
+  lines.push("", renderRunsTable(runs, scored));
 
-  const checks = renderInvariantChecks(runs, singleRun);
+  const checks = renderChecks(runs, singleRun);
   if (checks) lines.push("", checks);
 
   const commentary = renderJudgeCommentary(runs, singleRun);
@@ -286,33 +330,32 @@ function renderTaskDetail(task) {
   return lines.join("\n");
 }
 
-function renderRunsTable(runs) {
+function renderRunsTable(runs, scored) {
   const header = [
     "Run",
     "Verdict",
-    "Invariants",
+    "Checks",
     "Judge",
+    ...(scored ? ["Score"] : []),
     "Cost",
     "Turns",
     "Duration",
   ];
   const rows = [header, header.map(() => "---")];
   for (const r of runs) {
-    const invariantsCell = r.preflightError
-      ? "preflight error"
-      : r.invariants
-        ? statusIcon(r.invariants.verdict === "pass")
-        : "—";
-    const judgeCell = r.preflightError
-      ? "—"
-      : r.judgeVerdict
-        ? statusIcon(r.judgeVerdict.verdict === "pass")
-        : "—";
+    // A preflight-failure record is the one grade-less branch in the schema.
+    const checksCell = r.grade ? statusIcon(r.grade.verdict === "pass") : "—";
+    const judgeCell = r.judgeVerdict
+      ? statusIcon(r.judgeVerdict.verdict === "pass")
+      : "—";
     rows.push([
       String(r.runIndex),
       statusIcon(r.verdict === "pass"),
-      invariantsCell,
+      checksCell,
       judgeCell,
+      ...(scored
+        ? [r.score !== undefined ? Number(r.score).toFixed(4) : "—"]
+        : []),
       formatCost(r.costUsd),
       String(r.turns),
       formatDuration(r.durationMs),
@@ -321,42 +364,45 @@ function renderRunsTable(runs) {
   return rows.map((r) => `| ${r.join(" | ")} |`).join("\n");
 }
 
-function renderInvariantChecks(runs, singleRun) {
-  const rows = collectInvariantRows(runs);
+function renderChecks(runs, singleRun) {
+  const { rows, hasHidden } = collectCheckRows(runs);
   if (!rows.length) return null;
 
-  const header = singleRun
-    ? ["Check", "Result", "Message"]
-    : ["Run", "Check", "Result", "Message"];
+  const header = singleRun ? ["Check"] : ["Run", "Check"];
+  if (hasHidden) header.push("Source");
+  header.push("Result", "Message");
   const lines = [
-    "#### Invariant Checks",
+    "#### Checks",
     "",
     `| ${header.join(" | ")} |`,
     `| ${header.map(() => "---").join(" | ")} |`,
   ];
   for (const row of rows) {
-    const cells = singleRun
-      ? [row.check, row.result, row.message]
-      : [String(row.run), row.check, row.result, row.message];
+    const cells = singleRun ? [row.check] : [String(row.run), row.check];
+    if (hasHidden) cells.push(row.source);
+    cells.push(row.result, row.message);
     lines.push(`| ${cells.join(" | ")} |`);
   }
   return lines.join("\n");
 }
 
-function collectInvariantRows(runs) {
-  const rows = [];
-  for (const r of runs) {
-    if (!r.invariants?.details?.length) continue;
-    for (const d of r.invariants.details) {
-      rows.push({
+/**
+ * Merge both producers' check rows per run. The Source column appears only
+ * when at least one row came from a hidden test suite.
+ */
+function collectCheckRows(runs) {
+  const rows = runs.flatMap((r) =>
+    mergeRows(r.invariants?.details ?? [], r.hiddenTests?.details ?? [])
+      .filter((d) => d !== null && typeof d === "object")
+      .map((d) => ({
         run: r.runIndex,
         check: escapeCell(String(d.test ?? "(unnamed)")),
+        source: d.source ?? "",
         result: statusIcon(d.pass),
         message: escapeCell(String(d.message ?? "")),
-      });
-    }
-  }
-  return rows;
+      })),
+  );
+  return { rows, hasHidden: rows.some((row) => row.source === "tests") };
 }
 
 function renderJudgeCommentary(runs, singleRun) {
@@ -378,21 +424,34 @@ function renderJudgeCommentary(runs, singleRun) {
 }
 
 function renderErrors(runs) {
-  const lines = [];
-  for (const r of runs) {
-    if (r.agentError) {
-      lines.push(
-        `- **Run ${r.runIndex}:** Agent error — "${escapeCell(r.agentError.message)}" (aborted: ${r.agentError.aborted})`,
-      );
-    }
-    if (r.preflightError) {
-      lines.push(
-        `- **Run ${r.runIndex}:** Preflight error — "${escapeCell(r.preflightError.message)}" (exit ${r.preflightError.exitCode})`,
-      );
-    }
-  }
+  const lines = runs.flatMap(runErrorLines);
   if (!lines.length) return null;
   return ["#### Errors", "", ...lines].join("\n");
+}
+
+function runErrorLines(r) {
+  const lines = [];
+  if (r.grade?.malformed) {
+    lines.push(
+      `- **Run ${r.runIndex}:** ⚠️ ${r.grade.malformed} malformed check row(s) — counted as failing`,
+    );
+  }
+  if (r.hiddenTests?.error) {
+    lines.push(
+      `- **Run ${r.runIndex}:** Hidden-test engine error — "${escapeCell(r.hiddenTests.error)}"`,
+    );
+  }
+  if (r.agentError) {
+    lines.push(
+      `- **Run ${r.runIndex}:** Agent error — "${escapeCell(r.agentError.message)}" (aborted: ${r.agentError.aborted})`,
+    );
+  }
+  if (r.preflightError) {
+    lines.push(
+      `- **Run ${r.runIndex}:** Preflight error — "${escapeCell(r.preflightError.message)}" (exit ${r.preflightError.exitCode})`,
+    );
+  }
+  return lines;
 }
 
 // ---------------------------------------------------------------------------
@@ -597,6 +656,33 @@ function passAtKValue(n, c, k) {
   const fail = binomial(BigInt(n - c), BigInt(k));
   const passing = total - fail;
   return Number(passing) / Number(total);
+}
+
+/**
+ * score@k — the expected **maximum** score over k runs drawn without
+ * replacement from the n recorded scores; the continuous analog of pass@k.
+ * With scores sorted ascending s₍₁₎…s₍ₙ₎:
+ *
+ *   score@k = Σ_{i=k..n} s₍ᵢ₎ · C(i−1, k−1) / C(n, k)
+ *
+ * Each term weights s₍ᵢ₎ by the probability it is the k-subset's maximum.
+ * Binary scores reduce exactly to the pass@k estimator (same BigInt binomial
+ * helper); `k > n` yields the same `{error}` value — one idiom.
+ * @param {number[]} scores - Effective per-record scores.
+ * @param {number} k
+ * @returns {number | {error: string}}
+ */
+function scoreAtKValue(scores, k) {
+  const n = scores.length;
+  if (k > n) return { error: "k > n" };
+  const sorted = [...scores].sort((a, b) => a - b);
+  const total = Number(binomial(BigInt(n), BigInt(k)));
+  let sum = 0;
+  for (let i = k; i <= n; i++) {
+    const weight = Number(binomial(BigInt(i - 1), BigInt(k - 1))) / total;
+    sum += sorted[i - 1] * weight;
+  }
+  return sum;
 }
 
 function binomial(n, k) {

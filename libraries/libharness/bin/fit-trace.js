@@ -398,6 +398,16 @@ const definition = {
           type: "string",
           description: "Custom failure message",
         },
+        gate: {
+          type: "boolean",
+          description:
+            "Mark the row a gate check (any failing gate fails the run)",
+        },
+        weight: {
+          type: "string",
+          description:
+            "Attach a numeric weight to the scored row; 0 marks the row diagnostic",
+        },
       },
     },
   ],

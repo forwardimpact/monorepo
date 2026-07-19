@@ -7,7 +7,7 @@ that an agent can resolve wiki audit findings by editing markdown files.
 
 | Task | Skill exercised | Grading |
 | --- | --- | --- |
-| `cli-fix` | wiki audit fix | Audit passes after fix + judge verdict |
+| `cli-fix` | wiki audit fix | Gates: seeded summary and memory sections intact (anti-tamper). Scored: audit passes after the fix. Judge verdict |
 
 ## Dependencies
 

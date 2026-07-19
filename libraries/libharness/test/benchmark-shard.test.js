@@ -37,10 +37,10 @@ async function passingAgent(_task, workdir) {
   await writeFile(workdir.supervisorTracePath, "");
   return { costUsd: 0, turns: 1, submission: "done" };
 }
-async function mockRunJudge(_task, workdir, invariants) {
+async function mockRunJudge(_task, workdir, grade) {
   await writeFile(workdir.judgeTracePath, "");
   return {
-    verdict: invariants.verdict === "pass" ? "pass" : "fail",
+    verdict: grade.verdict === "pass" ? "pass" : "fail",
     summary: "",
   };
 }
@@ -129,7 +129,7 @@ describe("BenchmarkRunner --shard partial ledger", () => {
     const lines = jsonl.split("\n").filter(Boolean);
     assert.strictEqual(lines.length, records.length);
     // Its cells are a subset of shard 1/3 of the full grid (no foreign cells).
-    assert.ok(records.length > 0 && records.length < 8, "a strict subset");
+    assert.ok(records.length > 0 && records.length < 10, "a strict subset");
   });
 
   test("three shards partition the grid: union equals a single full run", {
@@ -152,7 +152,7 @@ describe("BenchmarkRunner --shard partial ledger", () => {
   test("a deliberately-empty high-index shard writes an empty ledger, yields nothing", {
     timeout: 30_000,
   }, async () => {
-    // 4 tasks × 2 runs = 8 cells; shard 50/50 selects none.
+    // 5 tasks × 2 runs = 10 cells; shard 50/50 selects none.
     const { records, out } = await runShard({ index: 50, total: 50 });
     assert.strictEqual(records.length, 0);
     const names = await readdir(out);

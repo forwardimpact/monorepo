@@ -11,17 +11,14 @@ description: >
 # fit-benchmark
 
 `fit-benchmark` answers one question Platform Builders care about: did our
-skills (the `fit-*` / `kata-*` packs) make agents better at writing code?
-A single agent run is a coin flip; one passing eval doesn't prove anything.
-`fit-benchmark` runs each coding task N times across a skill-set
-manifest, grades each run against tests that never enter the agent's
-working directory, and reports pass@k using the OpenAI HumanEval
-unbiased estimator.
+skills make agents better at writing code? A single agent run is a coin
+flip. `fit-benchmark` runs each coding task N times across a skill-set
+manifest, grades each run against checks that never enter the agent's
+working directory, and reports pass@k (plus a mechanical score in [0, 1]
+for scored tasks).
 
-## Why a Separate Tool
-
-`fit-harness` is the generic agent-evaluation plumbing; `fit-benchmark` adds the
-opinionated layer: task-family format, hidden invariants, judge, and pass@k.
+`fit-harness` is the generic agent-evaluation plumbing; `fit-benchmark` adds
+the opinionated layer: task-family format, hidden checks, judge, and pass@k.
 
 ## Task Family Format
 
@@ -40,49 +37,56 @@ You author these files:
     judge.task.md         # optional — judge prompt (see § Judge Template Variables)
     supervisor.task.md    # optional — supervisor context for the relay
     hooks/preflight.sh    # optional — smoke probe; exit 0 confirms scaffold
-    hooks/invariants.sh   # optional — fd 3 = $RESULTS_FD for structured rows
+    hooks/invariants.sh   # optional — structural checks emitted as rows on fd 3
+    tests/                # optional — hidden test suite, staged + run by the harness
     specs/ workdir/       # optional — copied into agent CWD (overlay family-level)
 ```
 
 `run` generates the rest — `.claude/`, `apm.lock.yaml` (hashed into
-`skillSetHash`), and `apm_modules/`: outputs, not sources. Git-ignore them once
-at the directory holding your families, never per family — see
-[references/authoring.md](references/authoring.md) for what to commit and the
-`agent.task.md` prompt.
-
-Task IDs are directory names under `tasks/`. Local paths and git URLs
-are both accepted.
+`skillSetHash`), and `apm_modules/`: outputs, not sources — see
+[references/authoring.md](references/authoring.md) for what to commit. Task
+IDs are directory names under `tasks/`; local paths and git URLs both work.
 
 **Family-level shared fixtures.** A `<family>/workdir/` or `<family>/specs/`
-is copied into every task's agent CWD as a shared base, then the per-task
-`workdir/`/`specs/` overlay on top (a per-task file wins over a same-named
-family file). Convention over configuration: present means copied, like
-`hooks/`. Use it to maintain one fixture (e.g. an app under test) across many
-tasks instead of duplicating it per task.
+is copied into every task's agent CWD as a shared base; the per-task
+`workdir/`/`specs/` overlay on top. Use it to maintain one fixture (e.g. an
+app under test) across many tasks instead of duplicating it per task.
 
 ## Environment Variables
 
-The harness auto-discovers `.env`/`.env.local` in the family root and each task
-directory, merges them into `process.env` (which wins), renders the result into
-the agent CWD before `preflight.sh`, and adds every discovered name to the
-redaction allowlist. Locally use `.env.local` (gitignored); in CI set secrets
-as env vars.
+The harness auto-discovers `.env`/`.env.local` in the family root and each
+task directory, merges them into `process.env` (which wins), renders the
+result into the agent CWD, and adds every discovered name to the redaction
+allowlist. Locally use `.env.local` (gitignored); in CI set env vars.
 
 ## Lifecycle
 
 For each `(task, runIndex)` the harness drives:
 
-1. **Setup** — copy the family-level `workdir/`/`specs/` (if present), then the
-   per-task `workdir/`/`specs/`, then the staged `.claude/`, into a fresh
-   per-task CWD. Allocate a free TCP port. Run `hooks/preflight.sh`.
+1. **Setup** — copy the family-level `workdir/`/`specs/`, the per-task
+   `workdir/`/`specs/`, and the staged `.claude/` into a fresh per-task
+   CWD. Allocate a free TCP port. Run `hooks/preflight.sh`.
 2. **Agent** — run the coding agent on `agent.task.md` with a default
-   tool allow-list (`Bash`, `Read`, `Glob`, `Grep`, `Write`, `Edit`,
-   `Agent`, `TodoWrite`). Override with `--allowed-tools`.
-3. **Invariants** — run `hooks/invariants.sh` from the template path. The
-   exit code is authoritative for the verdict; fd 3 (`$RESULTS_FD=3`)
-   carries optional NDJSON rows for diagnostic per-check details.
-4. **Judge** — a separate session reads the invariants outcome and the
-   agent trace and calls `Conclude` with `success` or `failure`.
+   tool allow-list (override with `--allowed-tools`).
+3. **Grade** — the check rows are authoritative: `hooks/invariants.sh` emits
+   structural rows on fd 3 (`$RESULTS_FD=3`); the harness runs each hidden test
+   from `tests/`, one row per check. A row's role lives in its fields:
+
+   | Row | Role | Grading effect |
+   | --- | --- | --- |
+   | `{"test": …, "pass": …, "gate": true}` | **Gate** | Any failing gate → verdict `fail`, score 0. |
+   | `{"test": …, "pass": …}` or `"weight": w > 0` | **Scored** | Contributes `w` (default 1) to the weighted score. |
+   | `{"weight": 0, …}` | **Diagnostic** | Never graded; free-form detail. |
+   | Malformed or unparseable | **Malformed** | A failing scored check; surfaced in the report. |
+
+   A task with any scored row is a **scored task**: its record carries
+   `score = Σ weight(passing) / Σ weight(all scored)`. The script's exit code is
+   **script health only** — nonzero means the grader itself failed (verdict
+   `fail`, score 0); a well-formed hook ends `exit 0`.
+4. **Judge** — a separate session reads the grade and the agent trace and
+   calls `Conclude` with `success` or `failure`. The judge is a binary gate
+   protecting the score's validity, never a grade: a failing judge (like a
+   failing gate or an unhealthy grader) zeroes the record's score.
 5. **Teardown** — SIGTERM/SIGKILL the per-task process group, verify
    the port is free, and reap descendants.
 
@@ -97,21 +101,26 @@ paths instead of reconstructing them from `$0`):
 | `PORT` | Allocated free TCP port. |
 | `TASK_ID` | Task name (directory under `tasks/`). |
 | `TASK_DIR` | Task directory on the host. |
-| `HOOKS_DIR` | The task's `hooks/` dir on the host — read hidden fixtures/tests from here. |
+| `HOOKS_DIR` | The task's `hooks/` dir on the host — read hidden fixtures from here. |
 | `FAMILY_DIR` | Family root on the host. |
-| `RESULTS_FD` | `invariants.sh` only — fd for NDJSON per-check rows (`=3`). |
+| `RESULTS_FD` | `invariants.sh` only — fd for NDJSON check rows (`=3`). |
+
+## Hidden Test Suites
+
+A task opts in with a `tests/` directory beside `hooks/` — an overlay mirror
+of the agent CWD: a file's path under `tests/` is its staging path. Every
+`*.test.js` file is one check run with `node --test` (`*.gate.test.js` = a
+gate, others scored at weight 1, named by filename stem); other files are
+support, staged but never graded. The harness restores the workdir
+afterward, so the judge grades the agent's work. An invalid tree fails the
+family load. Layout details in
+[references/authoring.md](references/authoring.md).
 
 ## CLI
 
-Install and run via npm:
-
-```sh
-npx fit-benchmark <command> [options]
-```
-
 The full flag surface lives in [references/cli.md](references/cli.md);
-task-authoring guidance (local skills, invariants, fast iteration, file-grading)
-in [references/authoring.md](references/authoring.md).
+task-authoring guidance in
+[references/authoring.md](references/authoring.md).
 
 ## GitHub Action
 
@@ -129,63 +138,51 @@ uploads `results.jsonl`.
 
 All CLI `run` flags are action inputs, plus CI extras (`summary`,
 `upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and a
-`results-path` output — see the action README. For parallelism the action takes
-`concurrency` (in-process, on by default) and `shard-index`/`shard-total` with
-`mode` (`run` a shard, or `merge` every shard's partial ledger). For
-cross-machine sharding from one `shard-total` input, the action ships a
-`benchmark.yml` reusable workflow that fans shards out and runs an
-agent-scaffold-free merge job — see the CI guide below.
+`results-path` output — see the action README. For parallelism it takes
+`concurrency` and `shard-index`/`shard-total` with `mode` (`run` a shard, or
+`merge` every shard's partial ledger); a `benchmark.yml` reusable workflow
+fans shards out from one `shard-total` input — see the CI guide below.
 
 | Command | Purpose |
 | --- | --- |
 | `run` | Run every task N times against a family; append result records to `<output>/results.jsonl`. |
-| `invariants` | Check a single task's invariants against a post-run workdir without invoking an agent. |
-| `report` | Aggregate `results.jsonl` into pass@k, invariant checks, judge commentary, and operational stats. |
+| `grade` | Grade a single task against a post-run workdir without invoking an agent — both producers, same derivation as `run`; the exit mirrors the verdict. |
+| `report` | Aggregate `results.jsonl` into pass@k (plus mean score and score@k for scored tasks), check rows, judge commentary, and operational stats. |
 
 ## Typical Workflow
 
 ```sh
-npx fit-benchmark run \
-  --family=./families/coding \
-  --agent-profile=coder \
-  --judge-profile=judge   # one ResultRecord per (task, run) to stdout
-
-npx fit-benchmark report --format=text   # aggregate into pass@k
+npx fit-benchmark run --family=./families/coding --judge-profile=judge
+npx fit-benchmark report --format=text   # aggregate into pass@k + score@k
 ```
 
 ## Judge Template Variables
-
-The `judge.task.md` template supports these variables:
 
 | Variable | Source |
 | --- | --- |
 | `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
 | `{{AGENT_TRACE_PATH}}` | Path to `agent.ndjson` |
-| `{{INVARIANTS_RESULT}}` | JSON invariants object (verdict, details, exitCode) |
+| `{{GRADE_RESULT}}` | JSON grade object (verdict, gatesPass, score) plus the merged check rows |
 | `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
 | `{{TASK_ID}}` | Task name (directory under `tasks/`) |
 | `{{TASK_DIR}}` | Agent working directory path |
 
 ## Grading Surfaces
 
-`hooks/invariants.sh` decides pass/fail via any of three surfaces:
-
-| Surface | Example |
-| --- | --- |
-| **Running service** | HTTP-probe `http://127.0.0.1:$PORT/` and assert the response shape. |
-| **Repository state** | Assert the SHA-256 of `$AGENT_CWD/result.txt`. |
-| **Process exit** | Run a command in `$AGENT_CWD` and treat exit-zero as pass. |
+Behavioral checks ("does the code work?") belong in the hidden `tests/`
+suite; `hooks/invariants.sh` covers structural surfaces — a service probe,
+a repository-state digest, artifact content via `fit-trace assert` — with
+gates for presence/anti-tamper and scored rows for content.
 
 ## Result Records
 
 One record per `(taskId, runIndex)`, appended to `<output>/results.jsonl`,
-each validating against a declared schema (see
-[`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libharness/src/benchmark/result.js)).
-Records carry the skill-set hash, family revision, judge verdict, trace paths,
-cost, turn count, and (on pre-flight failure) a `preflightError`.
-
-## Handing Off to `fit-trace`
+each validating against
+[`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libharness/src/benchmark/result.js).
+Records carry the `grade`, the effective `score` (zeroed by a failing gate,
+judge, or grader), skill-set hash, family revision, judge verdict, trace
+paths, cost, turn count, and (on pre-flight failure) a `preflightError`.
 
 Each run produces agent and judge NDJSON traces, both consumable by
 `fit-trace overview --file <trace>`.

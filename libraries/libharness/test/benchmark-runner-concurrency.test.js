@@ -46,10 +46,10 @@ async function passingAgent(_task, workdir) {
   return { costUsd: 0.01, turns: 1, submission };
 }
 
-async function mockRunJudge(_task, workdir, invariants) {
+async function mockRunJudge(_task, workdir, grade) {
   await writeFile(workdir.judgeTracePath, "");
   return {
-    verdict: invariants.verdict === "pass" ? "pass" : "fail",
+    verdict: grade.verdict === "pass" ? "pass" : "fail",
     summary: "ok",
   };
 }
@@ -191,12 +191,12 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
       runAgent: passingAgent,
     });
     const records = await collect(runner);
-    // 4 fixture tasks × 2 runs = 8 cells.
-    assert.strictEqual(records.length, 8);
+    // 5 fixture tasks × 2 runs = 10 cells.
+    assert.strictEqual(records.length, 10);
     for (const r of records) assert.doesNotThrow(() => validateResultRecord(r));
     const jsonl = await readFile(join(out, "results.jsonl"), "utf8");
     const lines = jsonl.split("\n").filter(Boolean);
-    assert.strictEqual(lines.length, 8, "one ledger line per cell");
+    assert.strictEqual(lines.length, 10, "one ledger line per cell");
     for (const line of lines) {
       const parsed = JSON.parse(line); // none truncated/interleaved
       assert.doesNotThrow(() => validateResultRecord(parsed));

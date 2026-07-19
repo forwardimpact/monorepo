@@ -3,10 +3,14 @@
  *
  * Two schemas live here:
  *   - RESULT_RECORD_SCHEMA — one record per (task, runIndex) from a full
- *     benchmark run. Has a happy branch (invariants + judge present) and a
- *     pre-flight-failure branch (invariants/judgeVerdict/submission absent).
- *   - INVARIANTS_RECORD_SCHEMA — narrower output of `benchmark-invariants`:
- *     ad-hoc grading without a full lifecycle.
+ *     benchmark run. Has a happy branch (grade + collectors + judge present)
+ *     and a pre-flight-failure branch (grade/judgeVerdict/submission absent).
+ *   - GRADE_RECORD_SCHEMA — narrower output of `benchmark-grade`: ad-hoc
+ *     grading without a full lifecycle.
+ *
+ * The check rows are the authoritative grading channel: the happy branch
+ * requires a `grade` object, so a pre-break record fails validation rather
+ * than rendering under semantics it never carried.
  *
  * Validation is throw-on-mismatch so the runner can wrap every JSONL append
  * in a guard and reject schema drift at write time.
@@ -17,10 +21,25 @@ import { z } from "zod";
 const VERDICT_ENUM = z.enum(["pass", "fail"]);
 
 const INVARIANTS_SHAPE = z.object({
-  verdict: VERDICT_ENUM,
   details: z.array(z.unknown()),
   exitCode: z.number().int(),
   stderr: z.string().optional(),
+});
+
+/**
+ * The normalized grading projection: `score` appears only on scored tasks,
+ * `malformed` only when at least one row was malformed.
+ */
+const GRADE_SHAPE = z.object({
+  verdict: VERDICT_ENUM,
+  gatesPass: z.boolean(),
+  score: z.number().min(0).max(1).optional(),
+  malformed: z.number().int().min(1).optional(),
+});
+
+const HIDDEN_TESTS_SHAPE = z.object({
+  details: z.array(z.unknown()),
+  error: z.string().optional(),
 });
 
 const JUDGE_VERDICT_SHAPE = z.object({
@@ -77,6 +96,11 @@ const AGENT_ERROR_SHAPE = z.object({
 const HAPPY_RECORD = z.object({
   ...COMMON_FIELDS,
   invariants: INVARIANTS_SHAPE,
+  grade: GRADE_SHAPE,
+  hiddenTests: HIDDEN_TESTS_SHAPE.optional(),
+  // The effective, judge-zeroed score `report` aggregates — present only on
+  // scored tasks.
+  score: z.number().min(0).max(1).optional(),
   submission: z.string(),
   judgeVerdict: JUDGE_VERDICT_SHAPE.optional(),
   agentTracePath: z.string(),
@@ -97,6 +121,9 @@ const PREFLIGHT_RECORD = z.object({
   supervisorTracePath: z.string(),
   judgeTracePath: z.string(),
   invariants: z.undefined().optional(),
+  grade: z.undefined().optional(),
+  hiddenTests: z.undefined().optional(),
+  score: z.undefined().optional(),
   submission: z.undefined().optional(),
   judgeVerdict: z.undefined().optional(),
   agentError: z.undefined().optional(),
@@ -104,9 +131,17 @@ const PREFLIGHT_RECORD = z.object({
 
 export const RESULT_RECORD_SCHEMA = z.union([HAPPY_RECORD, PREFLIGHT_RECORD]);
 
-export const INVARIANTS_RECORD_SCHEMA = z.object({
+export const GRADE_RECORD_SCHEMA = z.object({
   taskId: z.string().min(1),
+  // Unlike the happy result record — where `grade.score` is the raw
+  // weighted fraction and the effective (zeroed) value lives on the
+  // top-level `score` — this record has no second score field, so its
+  // `grade.score` carries the effective health/gate-zeroed value.
+  grade: GRADE_SHAPE,
   invariants: INVARIANTS_SHAPE,
+  hiddenTests: HIDDEN_TESTS_SHAPE.optional(),
+  // Mirrors the invariants script's exit for diagnosis; the graded verdict
+  // is what drives the command's process exit.
   exitCode: z.number().int(),
 });
 
@@ -122,6 +157,6 @@ export function validateResultRecord(record) {
  * Throw on schema mismatch.
  * @param {object} record
  */
-export function validateInvariantsRecord(record) {
-  INVARIANTS_RECORD_SCHEMA.parse(record);
+export function validateGradeRecord(record) {
+  GRADE_RECORD_SCHEMA.parse(record);
 }

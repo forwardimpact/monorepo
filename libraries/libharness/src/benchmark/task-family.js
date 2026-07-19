@@ -10,8 +10,15 @@
  *       hooks/                # harness-only; never copied to agent CWD
  *         preflight.sh
  *         invariants.sh
+ *       tests/                # optional hidden test suite; harness-only overlay
  *       specs/                # copied into agent CWD
  *       workdir/              # copied into agent CWD
+ *
+ * `tests/` is an overlay mirror of the agent CWD: a file's path under
+ * `tests/` is its staging path. Every `*.test.js` file is one check —
+ * `*.gate.test.js` marks a gate, any other `*.test.js` is scored — and every
+ * other file is support material, staged but never graded. The layout is
+ * validated eagerly here so authoring errors fail before any agent spend.
  *
  * Local paths or git URLs are both accepted; git URLs are shallow-cloned into
  * a temp dir and `familyRevision` becomes `git:<sha>` of HEAD at clone time.
@@ -113,34 +120,122 @@ async function discoverTasks(runtime, rootPath) {
   }
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
-    const taskDir = join(tasksRoot, entry.name);
-    const supervisorPath = join(taskDir, "supervisor.task.md");
-    const judgePath = join(taskDir, "judge.task.md");
-    const preflightPath = join(taskDir, "hooks", "preflight.sh");
-    const invariantsPath = join(taskDir, "hooks", "invariants.sh");
-    tasks.push({
-      id: entry.name,
-      paths: {
-        taskDir,
-        instructions: join(taskDir, "agent.task.md"),
-        supervisor: (await fileExists(fs, supervisorPath))
-          ? supervisorPath
-          : null,
-        judge: (await fileExists(fs, judgePath)) ? judgePath : null,
-        hooks: join(taskDir, "hooks"),
-        preflight: (await fileExecutable(fs, preflightPath))
-          ? preflightPath
-          : null,
-        invariants: (await fileExecutable(fs, invariantsPath))
-          ? invariantsPath
-          : null,
-        specs: join(taskDir, "specs"),
-        workdir: join(taskDir, "workdir"),
-      },
-    });
+    tasks.push(await loadTask(fs, join(tasksRoot, entry.name), entry.name));
   }
   tasks.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
   return tasks;
+}
+
+async function loadTask(fs, taskDir, id) {
+  const supervisorPath = join(taskDir, "supervisor.task.md");
+  const judgePath = join(taskDir, "judge.task.md");
+  const preflightPath = join(taskDir, "hooks", "preflight.sh");
+  const invariantsPath = join(taskDir, "hooks", "invariants.sh");
+  const suite = await discoverSuite(fs, taskDir);
+  return {
+    id,
+    paths: {
+      taskDir,
+      instructions: join(taskDir, "agent.task.md"),
+      supervisor: (await fileExists(fs, supervisorPath))
+        ? supervisorPath
+        : null,
+      judge: (await fileExists(fs, judgePath)) ? judgePath : null,
+      hooks: join(taskDir, "hooks"),
+      preflight: (await fileExecutable(fs, preflightPath))
+        ? preflightPath
+        : null,
+      invariants: (await fileExecutable(fs, invariantsPath))
+        ? invariantsPath
+        : null,
+      tests: suite ? join(taskDir, "tests") : null,
+      specs: join(taskDir, "specs"),
+      workdir: join(taskDir, "workdir"),
+    },
+    tests: suite,
+  };
+}
+
+const CHECK_SUFFIX = ".test.js";
+const GATE_SUFFIX = ".gate.test.js";
+
+/**
+ * Discover and validate a task's hidden test suite under `<taskDir>/tests/`.
+ * Returns null when the directory is absent; throws on an invalid layout
+ * (no check files, a dangling symlink, duplicate check names) so
+ * `loadTaskFamily` rejects broken suites before any agent spend.
+ * @param {object} fs - Async filesystem surface (`runtime.fs`).
+ * @param {string} taskDir
+ * @returns {Promise<HiddenSuite | null>}
+ */
+async function discoverSuite(fs, taskDir) {
+  const testsRoot = join(taskDir, "tests");
+  try {
+    const st = await fs.lstat(testsRoot);
+    if (!st.isDirectory()) return null;
+  } catch {
+    return null;
+  }
+  const files = [];
+  await walkSuiteFiles(fs, testsRoot, testsRoot, files);
+  files.sort((a, b) =>
+    a.stagePath < b.stagePath ? -1 : a.stagePath > b.stagePath ? 1 : 0,
+  );
+
+  const checks = [];
+  const support = [];
+  for (const file of files) {
+    const base = file.stagePath.split(sep).at(-1);
+    if (!base.endsWith(CHECK_SUFFIX)) {
+      support.push(file);
+      continue;
+    }
+    const gate = base.endsWith(GATE_SUFFIX);
+    const name = base.slice(0, -(gate ? GATE_SUFFIX : CHECK_SUFFIX).length);
+    checks.push({ name, gate, ...file });
+  }
+
+  if (checks.length === 0) {
+    throw new Error(`hidden test suite has no check files: ${testsRoot}`);
+  }
+  const seen = new Set();
+  for (const check of checks) {
+    if (seen.has(check.name)) {
+      throw new Error(
+        `hidden test suite has duplicate check name '${check.name}': ${check.sourcePath}`,
+      );
+    }
+    seen.add(check.name);
+  }
+  return { checks, support };
+}
+
+/**
+ * Walk a suite tree collecting `{sourcePath, stagePath}` entries. Unlike
+ * `walkFiles` (which silently skips dangling symlinks for hashing), every
+ * entry here must be a regular file after symlink resolution — a dangling
+ * symlink or a link to a non-file target is an authoring error.
+ */
+async function walkSuiteFiles(fs, root, dir, out) {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await walkSuiteFiles(fs, root, full, out);
+    } else if (entry.isFile()) {
+      out.push({ sourcePath: full, stagePath: relative(root, full) });
+    } else if (entry.isSymbolicLink()) {
+      const resolved = await resolveSymlinkToFile(fs, full);
+      if (!resolved) {
+        throw new Error(
+          `hidden test suite entry is not a regular file: ${full}`,
+        );
+      }
+      out.push({ sourcePath: full, stagePath: relative(root, full) });
+    } else {
+      throw new Error(`hidden test suite entry is not a regular file: ${full}`);
+    }
+  }
 }
 
 async function fileExists(fs, path) {
@@ -247,9 +342,27 @@ async function git(runtime, args) {
 }
 
 /**
+ * @typedef {object} HiddenCheck
+ * @property {string} name - Basename stem with the check suffix stripped.
+ * @property {boolean} gate - True iff the filename ends `.gate.test.js`.
+ * @property {string} sourcePath - Absolute path under `tests/`.
+ * @property {string} stagePath - Path relative to `tests/` — the overlay
+ *   mirror of the staging path under the agent CWD.
+ */
+
+/**
+ * @typedef {object} HiddenSuite
+ * @property {HiddenCheck[]} checks - In sorted stage-path order.
+ * @property {{sourcePath: string, stagePath: string}[]} support - Non-check
+ *   files, staged for the whole pass but never graded.
+ */
+
+/**
  * @typedef {object} Task
  * @property {string} id - Task name (directory name under tasks/)
- * @property {{taskDir: string, instructions: string, supervisor: string|null, judge: string|null, hooks: string, preflight: string|null, invariants: string|null, specs: string, workdir: string}} paths
+ * @property {{taskDir: string, instructions: string, supervisor: string|null, judge: string|null, hooks: string, preflight: string|null, invariants: string|null, tests: string|null, specs: string, workdir: string}} paths
+ * @property {HiddenSuite | null} tests - Hidden test suite (null when the
+ *   task ships no `tests/` directory)
  */
 
 /**

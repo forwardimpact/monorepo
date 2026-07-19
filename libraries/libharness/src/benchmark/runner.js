@@ -4,8 +4,10 @@
  * Phases per (task, runIndex):
  *   1. WorkdirManager.start → seed CWD + run pre-flight probe
  *   2. Supervisor session (agent + supervisor) → produce traces + submission
- *   3. Invariants.runInvariants → exit-code-driven verdict via fd-3 NDJSON
- *   4. Judge.runJudge → Conclude-driven verdict mapped to pass/fail
+ *   3. Invariants collector + hidden-test engine → merged check rows,
+ *      graded by `gradeChecks` (rows are authoritative; script exit is
+ *      grader health only)
+ *   4. Judge.runJudge → Conclude-driven binary gate mapped to pass/fail
  *   5. WorkdirManager.teardown → process-group cleanup
  *
  * Cells run with bounded in-process concurrency (`CellScheduler`); `run()`
@@ -17,7 +19,6 @@
  * stream.
  */
 
-import { createInterface } from "node:readline";
 import { join, resolve as resolvePath } from "node:path";
 
 import { DEFAULT_ENV_ALLOWLIST, createRedactor } from "../redaction.js";
@@ -28,7 +29,10 @@ import { installNpm as defaultInstallNpm } from "./npm-installer.js";
 import { runJudge } from "./judge.js";
 import { validateResultRecord } from "./result.js";
 import { runInvariants } from "./invariants.js";
+import { runHiddenTests } from "./hidden-tests.js";
+import { runProducersAndGrade } from "./grade.js";
 import { assertJudgeProfileStaged, loadTaskFamily } from "./task-family.js";
+import { splitAndSummarize } from "./trace-split.js";
 import { createWorkdirManager } from "./workdir.js";
 import { CellScheduler } from "./scheduler.js";
 
@@ -82,9 +86,13 @@ export class BenchmarkRunner {
    *   threaded into the installers, workdir manager, invariants, and judge.
    * @param {Function} [opts.runInvariants] - Test seam: replaces `runInvariants`.
    *   Same contract as `runInvariants(task, ctx, runtime)`. Internal testing only.
+   * @param {Function} [opts.runHiddenTests] - Test seam: replaces
+   *   `runHiddenTests`. Same contract as `runHiddenTests(task, ctx, runtime)`.
+   *   Internal testing only.
    * @param {Function} [opts.runJudge] - Test seam: replaces `runJudge`. Same
-   *   contract as `runJudge(task, workdir, invariants, deps)` (deps carries
-   *   `runtime`). Internal testing only.
+   *   contract as `runJudge(task, workdir, gradeResult, deps)` where
+   *   `gradeResult` is the normalized grade plus the merged, source-stamped
+   *   check `rows` (deps carries `runtime`). Internal testing only.
    * @param {Function} [opts.installApm] - Test seam: replaces `installApm`.
    *   Same contract as `installApm(family, outputDir, runtime)`. Lets tests
    *   inject a fake subprocess (or skip the install entirely) so the suite
@@ -114,6 +122,7 @@ export class BenchmarkRunner {
     // Test seams — default to the real implementations.
     runAgent,
     runInvariants: runInvariantsHook,
+    runHiddenTests: runHiddenTestsHook,
     runJudge: runJudgeHook,
     installApm: installApmHook,
     installNpm: installNpmHook,
@@ -141,6 +150,7 @@ export class BenchmarkRunner {
     this.termGraceMs = termGraceMs;
     this._runAgentHook = runAgent ?? null;
     this._runInvariantsHook = runInvariantsHook ?? runInvariants;
+    this._runHiddenTestsHook = runHiddenTestsHook ?? runHiddenTests;
     this._runJudgeHook = runJudgeHook ?? runJudge;
     this._installApmHook = installApmHook ?? defaultInstallApm;
     this._installNpmHook = installNpmHook ?? defaultInstallNpm;
@@ -291,55 +301,37 @@ export class BenchmarkRunner {
       const agentRun = await this.#runAgentSafe(task, workdir);
       const { costUsd, turns, submission, agentError } = agentRun;
       const breakdown = agentRun.costBreakdown ?? { agent: 0, supervisor: 0 };
-      const invariants = await this._runInvariantsHook(
+      const graded = await this.#gradeCell(family, task, workdir);
+      const { invariants, hiddenRows, engineError, rows, grade } = graded;
+      const { judgeVerdict, judgeCost } = await this.#judgeCell({
         task,
-        {
-          cwd: workdir.cwd,
-          port: workdir.port,
-          runDir: workdir.runDir,
-          familyDir: family.rootPath,
-        },
-        this.runtime,
-      );
-      let judgeVerdict = null;
-      let judgeCost = 0;
-      if (task.paths.judge) {
-        const judgeContext = await this.#buildJudgeContext(
-          task,
-          workdir,
-          skillSetHash,
-        );
-        const judgeResult = await this._runJudgeHook(
-          task,
-          workdir,
-          invariants,
-          {
-            query: this.query,
-            model: this.judgeModel,
-            judgeProfile: this.profiles.judge ?? undefined,
-            profilesDir: judgeProfilesDir,
-            runtime: this.runtime,
-          },
-          judgeContext,
-        );
-        judgeCost = judgeResult.costUsd ?? 0;
-        // The record's judgeVerdict carries only the verdict + summary; the
-        // judge's cost is folded into costUsd / costBreakdown instead.
-        judgeVerdict = {
-          verdict: judgeResult.verdict,
-          summary: judgeResult.summary,
-        };
-      }
-      const verdict =
-        invariants.verdict === "pass" &&
-        (judgeVerdict === null || judgeVerdict.verdict === "pass")
-          ? "pass"
-          : "fail";
+        workdir,
+        gradeResult: { ...grade, rows },
+        skillSetHash,
+        judgeProfilesDir,
+      });
+      const judgePass =
+        judgeVerdict === null || judgeVerdict.verdict === "pass";
+      const verdict = grade.verdict === "pass" && judgePass ? "pass" : "fail";
+      // Gates protect the score: an unhealthy grader, a failing gate row, or
+      // a failing judge zeroes the effective score. Full marks does not — a
+      // fractional score with verdict fail is the point.
+      const scoreValid = graded.healthy && grade.gatesPass && judgePass;
       const record = {
         taskId: task.id,
         runIndex,
         verdict,
         invariants,
+        grade,
+        ...(task.tests && {
+          hiddenTests: {
+            details: hiddenRows,
+            ...(engineError && { error: engineError.message }),
+          },
+        }),
+        ...(grade.score !== undefined && {
+          score: scoreValid ? grade.score : 0,
+        }),
         submission,
         ...(judgeVerdict && { judgeVerdict }),
         costUsd: costUsd + judgeCost,
@@ -369,6 +361,65 @@ export class BenchmarkRunner {
       };
       return this.#validateOrFallback(record, resultsRecordKey(task, runIndex));
     }
+  }
+
+  /**
+   * Run the judge (when the task ships a template) over the grade result.
+   * The record's judgeVerdict carries only the verdict + summary; the
+   * judge's cost is folded into costUsd / costBreakdown instead.
+   */
+  async #judgeCell({
+    task,
+    workdir,
+    gradeResult,
+    skillSetHash,
+    judgeProfilesDir,
+  }) {
+    if (!task.paths.judge) return { judgeVerdict: null, judgeCost: 0 };
+    const judgeContext = await this.#buildJudgeContext(
+      task,
+      workdir,
+      skillSetHash,
+    );
+    const judgeResult = await this._runJudgeHook(
+      task,
+      workdir,
+      gradeResult,
+      {
+        query: this.query,
+        model: this.judgeModel,
+        judgeProfile: this.profiles.judge ?? undefined,
+        profilesDir: judgeProfilesDir,
+        runtime: this.runtime,
+      },
+      judgeContext,
+    );
+    return {
+      judgeVerdict: {
+        verdict: judgeResult.verdict,
+        summary: judgeResult.summary,
+      },
+      judgeCost: judgeResult.costUsd ?? 0,
+    };
+  }
+
+  /**
+   * Run both check-row producers against the post-run CWD and grade the
+   * merged rows via the shared derivation. Restoration happens inside the
+   * engine, so the judge (which runs after) sees the workdir exactly as the
+   * agent left it.
+   */
+  #gradeCell(family, task, workdir) {
+    const ctx = {
+      cwd: workdir.cwd,
+      port: workdir.port,
+      runDir: workdir.runDir,
+      familyDir: family.rootPath,
+    };
+    return runProducersAndGrade(task, ctx, this.runtime, {
+      runInvariants: this._runInvariantsHook,
+      runHiddenTests: this._runHiddenTestsHook,
+    });
   }
 
   /**
@@ -612,67 +663,6 @@ async function writeRecord(stream, record) {
   await new Promise((res, rej) => {
     stream.write(line, (err) => (err ? rej(err) : res()));
   });
-}
-
-/**
- * Split the combined supervisor trace into agent and supervisor files and
- * extract turn count and submission in a single pass. Agent-source events go
- * to `agentPath`; supervisor and orchestrator events go to `supervisorPath`.
- *
- * Cost is deliberately not summed here — the caller derives it from the same
- * combined trace via `sumTraceCost`, so there is one cost path across the
- * benchmark, callback, and `fit-trace cost` consumers.
- */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: stream-splitting state machine
-async function splitAndSummarize(
-  runtime,
-  combinedPath,
-  agentPath,
-  supervisorPath,
-) {
-  const fs = runtime.fs;
-  const agentStream = fs.createWriteStream(agentPath);
-  const supStream = fs.createWriteStream(supervisorPath);
-  const rl = createInterface({
-    input: fs.createReadStream(combinedPath),
-    crlfDelay: Infinity,
-  });
-  let turns = 0;
-  let submission = "";
-  for await (const line of rl) {
-    if (!line.trim()) continue;
-    let event;
-    try {
-      event = JSON.parse(line);
-    } catch {
-      continue;
-    }
-    const target = event.source === "agent" ? agentStream : supStream;
-    target.write(line + "\n");
-    const inner = event.event;
-    if (!inner) continue;
-    if (event.source === "agent" && inner.type === "assistant") {
-      const text = extractText(inner);
-      if (text) submission = text;
-    }
-    if (event.source === "orchestrator" && inner.type === "summary") {
-      turns = inner.turns ?? 0;
-    }
-  }
-  await Promise.all([
-    new Promise((r) => agentStream.end(r)),
-    new Promise((r) => supStream.end(r)),
-  ]);
-  return { turns, submission };
-}
-
-function extractText(inner) {
-  const content = inner.message?.content ?? inner.content;
-  if (!Array.isArray(content)) return null;
-  for (let i = content.length - 1; i >= 0; i--) {
-    if (content[i].type === "text" && content[i].text) return content[i].text;
-  }
-  return null;
 }
 
 /**

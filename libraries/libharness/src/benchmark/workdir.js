@@ -268,7 +268,12 @@ async function runPreflight(runtime, script, cwd, port, vars) {
   };
 }
 
-function probeFreePort() {
+/**
+ * Allocate a free TCP port by binding to 0 and releasing it. Shared with the
+ * `grade` subcommand, which needs a plausible `$PORT` for the hook env.
+ * @returns {Promise<number>}
+ */
+export function probeFreePort() {
   return new Promise((res, rej) => {
     const server = createServer();
     server.unref();

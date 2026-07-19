@@ -44,15 +44,17 @@ my-coding-family/
     supervisor.task.md                   # optional — supervisor context
     hooks/                               # harness-only — never copied to agent CWD
       preflight.sh                       # optional — smoke probe
-      invariants.sh                      # optional — hidden grader; fd 3 = $RESULTS_FD
+      invariants.sh                      # optional — structural checks; fd 3 = $RESULTS_FD
+    tests/                               # optional — hidden test suite, staged + run by the harness
     specs/                               # copied into the agent CWD
     workdir/                             # copied into the agent CWD
 ```
 
 Task IDs are directory names under `tasks/` (e.g. `todo-api`). The directory
 splits into what the agent sees (`workdir/`, `specs/`, `.claude/`) and what the
-harness keeps hidden (`hooks/`). The agent never receives the invariants script
-— that is the structural guarantee it cannot peek at the tests.
+harness keeps hidden (`hooks/` and `tests/`). The agent never receives the
+grading material — that is the structural guarantee it cannot peek at the
+tests.
 
 ### What the agent sees
 
@@ -120,31 +122,76 @@ check completes — background processes do not leak across runs.
 #### `hooks/invariants.sh`
 
 Runs after the agent finishes. In addition to the shared hook env above,
-it receives `$RESULTS_FD=3` — a file descriptor for structured per-check
-rows.
+it receives `$RESULTS_FD=3` — a file descriptor for structured check rows.
 
-The **exit code is authoritative**: `0` is pass, anything else is fail.
-Rows written to fd 3 are stored on the result record's `invariants.details`
-for diagnostics; they cannot override the verdict.
+The **rows are authoritative**: every row is a check, and a row's role lives
+in its own fields. `{"gate": true}` marks a gate (any failing gate fails the
+run and zeroes the score); a plain row — or one with `"weight": w > 0` — is a
+scored check contributing to the task's score; `{"weight": 0}` is an
+ungraded diagnostic. The script's **exit code is script health only**:
+nonzero means the grader itself failed, never that a check failed, so a
+well-formed hook ends with `exit 0` unconditionally.
 
-Three grading surfaces are in scope:
+Use the script for structural checks — presence, shape, anti-tamper — with
+`fit-trace assert` emitting the rows:
 
 ```sh
-# Running-service probe
+#!/bin/sh
+set -u
+check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }
+
+# A gate: the artifact must exist at all.
+check api-present --gate --exists "$AGENT_CWD/src/api.js"
+# Scored content checks — each contributes weight 1 to the score.
+check has-get-route --grep 'GET /todos' "$AGENT_CWD/src/api.js"
+check documents-port --grep 'PORT' "$AGENT_CWD/README.md"
+exit 0
+```
+
+A probe that `assert` cannot express echoes its row JSON directly:
+
+```sh
 RESP="$(curl -sf --max-time 2 "http://127.0.0.1:$PORT/todos")"
-test "$RESP" = '[]' && exit 0 || exit 1
+if [ "$RESP" = '[]' ]; then
+  printf '%s\n' '{"test":"probe","pass":true,"gate":true}' >&"$RESULTS_FD"
+else
+  printf '%s\n' '{"test":"probe","pass":false,"gate":true}' >&"$RESULTS_FD"
+fi
+exit 0
 ```
 
-```sh
-# Repository state
-sha256sum "$AGENT_CWD/dist/build.tar.gz" \
-  | grep -q '^expected-sha256-prefix' && exit 0 || exit 1
+#### `tests/` — the hidden test suite
+
+Behavioral checks — "does the code the agent wrote actually work?" — belong
+in a hidden test suite, not hand-rolled shell. A task opts in with a
+`tests/` directory beside `hooks/`; there is no manifest, the layout is the
+contract:
+
+- `tests/` is an **overlay mirror** of the agent CWD: a file's path under
+  `tests/` is its staging path (`tests/test/filter.test.js` stages at
+  `test/filter.test.js`).
+- Every `*.test.js` file is one check, run with `node --test` from the agent
+  CWD; the exit status becomes one row. `*.gate.test.js` marks a gate
+  (e.g. a baseline regression suite); any other `*.test.js` is scored at
+  weight 1. The check name is the filename stem.
+- Every other file is support material — staged for the whole pass, never
+  graded.
+
+```text
+tasks/todo-api/tests/
+  test/baseline.gate.test.js    # gate — pre-existing behaviour must survive
+  test/get-todos.test.js        # scored — one behaviour per file
+  test/post-todo.test.js        # scored
+  test/helpers.js               # support — staged, never graded
 ```
 
-```sh
-# Process exit
-( cd "$AGENT_CWD" && bun test ) && exit 0 || exit 1
-```
+The harness stages each file (backing up collisions), runs the checks, and
+restores the workdir to the state the agent left it — the judge grades the
+agent's work, not the harness's scaffolding. Per-case files are what give a
+task its capability gradient: an agent that solves three of four behaviours
+scores 0.75 instead of recording the same `fail` as one that produced
+nothing. An invalid tree (no check files, a dangling symlink, duplicate
+check names) fails the family load before any agent spend.
 
 #### Writing to fd 3 from non-bash interpreters
 
@@ -174,16 +221,16 @@ variables before sending the prompt to the judge:
 | `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
 | `{{AGENT_TRACE_PATH}}` | Absolute path to `agent.ndjson` |
-| `{{INVARIANTS_RESULT}}` | JSON invariants object (verdict, details, exitCode) |
+| `{{GRADE_RESULT}}` | JSON grade object (verdict, gatesPass, score) plus the merged check rows |
 | `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
 | `{{TASK_ID}}` | Task name (directory under `tasks/`) |
 | `{{TASK_DIR}}` | Agent working directory path |
 
 ```md
-Invariants outcome:
+Grade outcome:
 
 \`\`\`json
-{{INVARIANTS_RESULT}}
+{{GRADE_RESULT}}
 \`\`\`
 
 The agent's full trace is at `{{AGENT_TRACE_PATH}}` — read it before
@@ -191,16 +238,16 @@ deciding. The agent was given task `{{TASK_ID}}` with these instructions:
 
 {{AGENT_INSTRUCTIONS}}
 
-Call `Conclude` with `verdict='success'` when both:
-
-1. `invariants.verdict === "pass"`, and
-2. the agent did not violate the test contract (e.g. by editing the
-   test file).
+Call `Conclude` with `verdict='success'` when the agent stayed within the
+task's contract (no scope creep, no gaming the checks); `verdict='failure'`
+otherwise.
 ```
 
-The judge is a separate session — not the live supervisor. Mixing the
-"help the agent finish" incentive with the "grade fairly" incentive is
-what the design avoids.
+The judge is a **binary gate protecting the grade's validity, never a
+grade**: a failing judge forces the record's effective score to 0, but the
+judge cannot adjust the mechanical score. It is also a separate session —
+not the live supervisor. Mixing the "help the agent finish" incentive with
+the "grade fairly" incentive is what the design avoids.
 
 ### What identifies the skill set — `.claude/` and `apm.lock.yaml`
 
@@ -289,20 +336,24 @@ cell still lands in `results.jsonl` the moment it settles, so a cancelled
 run keeps every completed cell. One stalled cell now occupies a single slot
 instead of blocking the whole run.
 
-## Check One Task's Invariants at a Time
+## Grade One Task at a Time
 
 For ad-hoc grading without an agent run:
 
 ```sh
-npx fit-benchmark invariants \
+npx fit-benchmark grade \
   --family=./my-coding-family \
   --task=todo-api \
   --run-dir=./runs/2026-05-11/runs/todo-api/0 \
-  --output=invariants.jsonl
+  --output=grade.jsonl
 ```
 
-Useful when iterating on a `hooks/invariants.sh` script: re-grade an existing
-post-run workdir without burning agent cost.
+`grade` runs both producers — the hidden `tests/` suite and
+`hooks/invariants.sh` — with the same derivation the runner uses, and its
+process exit mirrors the graded verdict. Useful when iterating on grading
+material: re-grade an existing post-run workdir (or a hand-authored fixture)
+without burning agent cost, and confirm a partial fixture yields the
+fractional score you expect.
 
 ## Aggregate Into pass@k
 
@@ -318,10 +369,14 @@ With `--format=text`, the report renders a full markdown document:
 - **Summary** — overall pass rate, model, skill-set hash, cost, median
   duration, median turns.
 - **Pass@k table** — one row per task with the unbiased HumanEval
-  estimator: `pass@k = 1 - C(n-c, k) / C(n, k)`.
-- **Task details** — per-task sections with a runs table, invariant check
-  results, judge commentary (blockquoted), and any agent or preflight
-  errors.
+  estimator: `pass@k = 1 - C(n-c, k) / C(n, k)`. When the ledger holds
+  scored tasks, the table gains a `score` column (the mean effective score
+  across runs) and one `score@k` column per k — the expected **best** score
+  over k runs, the continuous analog of pass@k. Binary tasks render `—` in
+  the score columns.
+- **Task details** — per-task sections with a runs table, the merged check
+  rows from both producers, judge commentary (blockquoted), and any agent,
+  preflight, or malformed-row errors.
 
 With `--format=json` (default), the output is the aggregated pass@k
 data only — suitable for machine consumption and before/after diffs.
