@@ -98,8 +98,8 @@ describe("voice --manager", () => {
   });
 });
 
-describe("voice validation", () => {
-  it("throws when neither --email nor --manager is set", async () => {
+describe("voice subject defaulting", () => {
+  it("throws with the sign-in hint when no flags and no identity", async () => {
     await assertRejectsMessage(
       () =>
         runVoiceCommand({
@@ -109,7 +109,33 @@ describe("voice validation", () => {
           format: "text",
           queries: stubQueries(),
         }),
-      /--email.*--manager/,
+      /--email.*fit-landmark login/,
     );
+  });
+
+  it("defaults to the signed-in identity's own voice with no flags", async () => {
+    const result = await runVoiceCommand({
+      options: {},
+      identity: { email: "alice@example.com" },
+      supabase: {},
+      mapData: MAP_DATA,
+      format: "text",
+      queries: stubQueries(),
+    });
+    assert.ok(result.view);
+    assert.equal(result.view.mode, "email");
+  });
+
+  it("stays manager-scoped when --manager is set and an identity exists", async () => {
+    const result = await runVoiceCommand({
+      options: { manager: "alice@example.com" },
+      identity: { email: "someone-else@example.com" },
+      supabase: {},
+      mapData: MAP_DATA,
+      format: "text",
+      queries: stubQueries(),
+    });
+    assert.ok(result.view);
+    assert.equal(result.view.mode, "manager");
   });
 });

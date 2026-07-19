@@ -188,3 +188,21 @@ export async function resolveIdentity({
 
   return { email: creds.email, jwt: creds.access_token };
 }
+
+/**
+ * Resolve the subject email for a subject-scoped command: an explicit
+ * `--email` wins, else the signed-in identity's email. RLS still clamps
+ * everything server-side — this only picks the default subject.
+ *
+ * @param {object} options - Parsed CLI options (may carry `email`).
+ * @param {{email: string}|null} identity - Resolved caller identity, if any.
+ * @returns {string} The subject email.
+ * @throws {Error} When neither an explicit email nor an identity exists.
+ */
+export function resolveSubjectEmail(options, identity) {
+  if (options.email) return options.email;
+  if (identity?.email) return identity.email;
+  throw new Error(
+    "--email <email> is required (sign in with `fit-landmark login` to make it optional)",
+  );
+}

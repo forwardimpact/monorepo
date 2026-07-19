@@ -89,7 +89,7 @@ ahead of the multi-tenant `ghbridge`/`msbridge` that consume them. Only `oidc`
 is public-facing (its `oidctunnel` mirrors `oauthtunnel`); `tenancy` and
 `ghserver` are internal gRPC (loopback) and need no tunnel.
 
-Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
+Oneshots (optional; `just supabase-up` bypasses them) use `up`/`down`:
 
 ```json
 { "name": "supabase", "type": "oneshot",

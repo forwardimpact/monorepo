@@ -16,12 +16,14 @@ import {
   computeCoverageRatio,
   groupEvidenceByProvenance,
 } from "../lib/evidence-helpers.js";
+import { resolveSubjectEmail } from "../lib/identity.js";
 
 export const needsSupabase = true;
 
 /** Fetch artifact counts and compute the ratio of scored-to-total evidence for a person. */
 export async function runCoverageCommand({
   options,
+  identity,
   supabase,
   format,
   queries,
@@ -33,23 +35,21 @@ export async function runCoverageCommand({
     getEvidence,
   };
 
-  if (!options.email) {
-    throw new Error("coverage: --email <email> is required");
-  }
+  const email = resolveSubjectEmail(options, identity);
 
-  const person = await q.getPerson(supabase, options.email);
+  const person = await q.getPerson(supabase, email);
   if (!person) {
     return {
       view: null,
       meta: {
         format,
-        emptyState: EMPTY_STATES.PERSON_NOT_FOUND(options.email),
+        emptyState: EMPTY_STATES.PERSON_NOT_FOUND(email),
       },
     };
   }
 
   const allArtifacts = await q.getArtifacts(supabase, {
-    email: options.email,
+    email,
   });
 
   if (!allArtifacts || allArtifacts.length === 0) {
@@ -57,13 +57,13 @@ export async function runCoverageCommand({
       view: null,
       meta: {
         format,
-        emptyState: EMPTY_STATES.NO_ARTIFACTS_FOR_PERSON(options.email),
+        emptyState: EMPTY_STATES.NO_ARTIFACTS_FOR_PERSON(email),
       },
     };
   }
 
   const unscored = await q.getUnscoredArtifacts(supabase, {
-    email: options.email,
+    email,
   });
 
   const ratio = computeCoverageRatio(allArtifacts, unscored);
@@ -82,12 +82,12 @@ export async function runCoverageCommand({
     allByType[type] = (allByType[type] ?? 0) + 1;
   }
 
-  const evidenceRows = await q.getEvidence(supabase, { email: options.email });
+  const evidenceRows = await q.getEvidence(supabase, { email });
   const byProvenance = groupEvidenceByProvenance(evidenceRows ?? []);
 
   return {
     view: {
-      email: options.email,
+      email,
       name: person.name,
       coverage: ratio,
       byType: allByType,

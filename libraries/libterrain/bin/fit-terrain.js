@@ -191,7 +191,7 @@ const definition = {
     {
       name: "substrate pick",
       description:
-        "Return one invariant-satisfying persona, diversified against --memory when supplied (appending the pick on success; stateless otherwise).",
+        "Return one invariant-satisfying persona, diversified against --memory when supplied (appending the pick on success; stateless otherwise). The output's parent/parent_email is the persona's upward manager — manager-scoped views (e.g. fit-landmark health --manager) take the persona's own email instead.",
       options: {
         format: {
           type: "string",

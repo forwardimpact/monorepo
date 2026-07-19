@@ -13,6 +13,7 @@ import {
 import { isRelationNotFoundError } from "../lib/supabase.js";
 import { EMPTY_STATES } from "../lib/empty-state.js";
 import { groupEvidenceBySkill } from "../lib/evidence-helpers.js";
+import { resolveSubjectEmail } from "../lib/identity.js";
 
 export const needsSupabase = true;
 
@@ -33,6 +34,7 @@ const THEME_KEYWORDS = [
 /** Surface engineer voice from GetDX snapshot comments, dispatching to email-scoped or manager-scoped mode. */
 export async function runVoiceCommand({
   options,
+  identity,
   supabase,
   mapData,
   format,
@@ -63,7 +65,14 @@ export async function runVoiceCommand({
       q,
     });
   }
-  throw new Error("voice: one of --email or --manager is required");
+  // Self mode: no flags — default the subject to the signed-in identity.
+  return runEmailVoice({
+    email: resolveSubjectEmail(options, identity),
+    supabase,
+    mapData,
+    format,
+    q,
+  });
 }
 
 async function runEmailVoice({

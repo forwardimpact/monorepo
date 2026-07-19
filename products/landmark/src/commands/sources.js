@@ -10,6 +10,7 @@
 
 import { readRetention } from "@forwardimpact/map/activity/retention";
 import { EMPTY_STATES } from "../lib/empty-state.js";
+import { resolveSubjectEmail } from "../lib/identity.js";
 
 export const needsSupabase = true;
 
@@ -137,18 +138,24 @@ async function inventoryClass(supabase, cls, email) {
 }
 
 /**
- * Run the sources command — list activity row classes retained about `email`.
+ * Run the sources command — list activity row classes retained about the
+ * subject (explicit `--email`, else the signed-in identity).
  *
  * @param {object} params
  * @param {object} params.options
- * @param {string} params.options.email
+ * @param {string} [params.options.email]
+ * @param {{email: string}|null} [params.identity]
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase
  * @param {string} [params.format]
  * @returns {Promise<{view: {email: string, items: object[]}|null, meta: object}>}
  */
-export async function runSourcesCommand({ options, supabase, format }) {
-  const email = options.email;
-  if (!email) throw new Error("sources: --email <e> is required");
+export async function runSourcesCommand({
+  options,
+  identity,
+  supabase,
+  format,
+}) {
+  const email = resolveSubjectEmail(options, identity);
   const items = [];
   for (const cls of CLASSES) {
     const item = await inventoryClass(supabase, cls, email);
