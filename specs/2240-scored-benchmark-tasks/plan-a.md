@@ -161,7 +161,7 @@ Step 6 lands.
 | Schema | Change |
 | --- | --- |
 | `INVARIANTS_SHAPE` | drops `verdict` |
-| `HAPPY_RECORD` | new **required** `grade: {verdict, gatesPass, score?: 0–1, malformed?: int ≥ 1}` — no optional-for-compat softening; a pre-break record fails validation and `report` skips it via the existing schema-skip path; optional `hiddenTests: {details: unknown[], error?: string}`; optional top-level `score: 0–1` (effective, judge-zeroed — the value `report` aggregates) |
+| `HAPPY_RECORD` | **required** `grade: {verdict, gatesPass, score?: 0–1, malformed?: int ≥ 1}` — a pre-break record fails validation and `report` skips it via the existing schema-skip path; optional `hiddenTests: {details: unknown[], error?: string}`; optional top-level `score: 0–1` (effective, judge-zeroed — the value `report` aggregates) |
 | `PREFLIGHT_RECORD` | `grade`, `hiddenTests`, `score` all `z.undefined().optional()` (branch stays grade-free) |
 | `GRADE_RECORD_SCHEMA` | replaces `INVARIANTS_RECORD_SCHEMA`: `{taskId, grade, invariants, hiddenTests?, exitCode}` (`exitCode` mirrors the script, diagnostic only) |
 
@@ -215,9 +215,9 @@ the template renders `{{GRADE_RESULT}}` as
 `JSON.stringify(gradeResult, null, 2)`, dropping `{{INVARIANTS_RESULT}}`.
 Update the seam-contract JSDoc on `runner.js` (`_runJudgeHook`) and the
 injected judge mocks in `benchmark-e2e.integration`, `benchmark-shard`, and
-`benchmark-runner-concurrency`, which read `invariants.verdict` today. The
-judge runs after the engine's restoration, so it sees the workdir as the
-agent left it.
+`benchmark-runner-concurrency`, which read `invariants.verdict`. The judge
+runs after the engine's restoration, so it sees the workdir as the agent
+left it.
 
 Tests mirror the `benchmark-runner-concurrency.test.js` setup (fixture
 family, injected `runAgent`/`runJudge`/`runInvariants`/`runHiddenTests`
@@ -353,20 +353,20 @@ failure path.
   invalid; `--gate` with any `--weight` (0 included — a stray weight must
   never silently disarm a gate) is invalid.
 - **Emit-then-fail on every failure path:** `runAssertCommand`'s catch
-  branch today returns the error envelope *without writing a row* (an
-  errored evaluation — e.g. `--grep` against a file the agent deleted —
-  vanishes from the denominator once hooks append `|| true`). Rework it so
-  every failure — invalid grading flags and thrown evaluations alike —
-  writes `{"test": <name>, "pass": false, "message": "assert: <reason>"}`
-  to stdout before returning `{ok: false}` (spec requirement 13).
+  branch returns the error envelope *without writing a row* — an errored
+  evaluation (e.g. `--grep` against a file the agent deleted) would vanish
+  from the denominator once hooks append `|| true`. Rework it so every
+  failure — invalid grading flags and thrown evaluations alike — writes
+  `{"test": <name>, "pass": false, "message": "assert: <reason>"}` to
+  stdout before returning `{ok: false}` (spec requirement 13).
   Assertion-failure exit semantics are otherwise unchanged (the exit code
-  no longer matters inside `invariants.sh`).
+  carries no meaning inside `invariants.sh`).
 
 Tests: `--gate` and `--weight` appear on emitted rows; `--weight 0` emits a
 diagnostic row; invalid weights (`-1`, `abc`), `--gate --weight 2`, and
 `--gate --weight 0` emit a failing row *and* return `ok: false`; `--grep`
 against a missing file emits a failing row and returns `ok: false`; no flags
-→ row byte-identical to today.
+→ the emitted row carries no new keys (shape unchanged).
 
 Verification: `bun test test/assert.test.js`; fit-trace help goldens refresh
 only if the new options surface in pinned output.
@@ -431,8 +431,9 @@ the `tests/` overlay; judge templates rename.
     symlinks at stage time, so the baseline has one source and no drift
     pair); `feature-helpers.js` (support: shared `appDir`/`bin` derivation,
     store loader, sample todos — no `.test.js` suffix, so never graded); and
-    five scored check files — each one `node:test` case split from today's
-    `feature.test.js`: `filter-selects-matching`, `filter-case-insensitive`,
+    five scored check files — each one `node:test` case split from the
+    deleted `feature.test.js`: `filter-selects-matching`,
+    `filter-case-insensitive`,
     `filter-no-match`, `list-filter-output`, `list-no-filter`
     (all `<name>.test.js`)
   - Deleted: `hooks/invariants.sh`, `hooks/feature.test.js`
@@ -475,8 +476,8 @@ Verification: `rg -n 'exit code'` over the skill directory, the Run a
 Benchmark guide, and `benchmarks/README.md` shows no surviving claim that
 the exit code is the verdict; `grep -rn 'INVARIANTS_RESULT'` over `.claude`,
 `benchmarks`, `libraries`, and `websites` returns nothing (the variable
-survives today in the skill's template-variable table and twice in the Run
-a Benchmark guide, which Steps 10–12 must all clear); `bun run check`
+appears in the skill's template-variable table and twice in the Run a
+Benchmark guide, which Steps 10–12 must all clear); `bun run check`
 passes.
 
 ## Step 13: Full verification sweep
@@ -494,10 +495,10 @@ diff is a regression. Paste clean check + test output into the PR.
   breaks by design. Step 10 does the sweep in one place, before the family
   hooks move, so failures localize to the contract change rather than
   smearing across migration commits.
-- **A crashed grader and a failed gate now look alike at the verdict level**
+- **A crashed grader and a failed gate look alike at the verdict level**
   (both `fail`, score 0). They differ on the record — nonzero `exitCode` +
   `stderr` versus a failing gate row — and the report's run detail shows
-  both; no aggregate distinguishes them, which is acceptable for now.
+  both; no aggregate distinguishes them, an accepted trade-off.
 - **Semantics break across ledgers.** Pre-break ledgers are abandoned by
   design: their records fail the new schema and `report` skips them with the
   existing per-record warning — no rendering fallback exists. The PR

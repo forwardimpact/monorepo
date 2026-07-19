@@ -126,7 +126,7 @@ Requirements:
 | 9 | **Hidden test suites are convention, not configuration.** A task ships hidden tests as a `tests/` directory beside `hooks/` that mirrors the agent CWD: a file's path under `tests/` is its staging path, every `*.test.js` file is one check — `*.gate.test.js` marks a gate, any other `*.test.js` is scored at weight 1, named by its stem — and every other file is support material, staged but never graded. libharness stages each file, runs it with `node --test` from the agent CWD, converts the exit status into one row, and removes what it staged. There is no manifest or configuration file; hook scripts never copy or run test suites. |
 | 10 | **Staging preserves trust.** Graded test files come only from the harness-owned `tests/` directory — an agent-editable copy never vouches for itself, and agent-added files cannot flip a hidden check. After grading, the harness restores the workdir to the state the agent left it, so the judge grades the agent's work, not the harness's scaffolding. |
 | 11 | **Layout failures are authoring failures.** An invalid `tests/` tree (no check files, a dangling symlink, duplicate check names) fails family load before any agent spend. At run time, a missing scaffold or a crashed/hung test process becomes a *failing* row with a message — never a silent skip, never minted marks. |
-| 12 | **Report shows the gradient.** `report` adds, for scored tasks, a per-task mean score and a best-of-k score — the expected best score over k of the task's n runs, the continuous analog of pass@k — in both JSON and text formats. Binary tasks render exactly as today. A record without a score in a scored group (a preflight failure never reached grading) contributes its verdict as the degenerate score: pass = 1, fail = 0. |
+| 12 | **Report shows the gradient.** `report` adds, for scored tasks, a per-task mean score and a best-of-k score — the expected best score over k of the task's n runs, the continuous analog of pass@k — in both JSON and text formats. Binary tasks render unchanged. A record without a score in a scored group (a preflight failure never reached grading) contributes its verdict as the degenerate score: pass = 1, fail = 0. |
 | 13 | **Authoring surface.** `fit-trace assert` gains `--gate` and `--weight`; invariants hooks need one helper with no exit-code bookkeeping. Every `assert` failure — an invalid grading flag or an errored evaluation (missing target file, bad query) — emits a *failing* row before the nonzero exit, so a typo or a file the agent deleted shrinks the score, never the denominator. |
 | 14 | **Grade subcommand.** The `invariants` subcommand becomes `fit-benchmark grade`: it runs the hidden suite and the invariants script against a post-run directory with the same derivation the runner uses, and its process exit mirrors the graded verdict — so authors validate both producers against fixtures without paying for agent runs. |
 | 15 | **Clean break with full migration.** Every `invariants.sh` in `benchmarks/` and in the libharness test fixtures migrates to the row contract in this change; `implement-feature`'s hand-rolled test logic moves into a `tests/` tree and its hook script is deleted; the judge template variable `{{INVARIANTS_RESULT}}` becomes `{{GRADE_RESULT}}` across all thirteen `judge.task.md` templates (nine families, four libharness fixtures). No compatibility mode, flag, shim, or fallback ships — the new record schema is the only schema. Pre-break ledgers are not carried: their records fail validation and `report` skips them with its existing per-record warning. The first post-break run starts a fresh baseline; no comparison spans the break. |
@@ -193,17 +193,10 @@ Excluded:
 ## Path to approval
 
 Approval is human-only: the spec advances when `wiki/STATUS.md` shows the
-`2240` row approved, written from a trusted human signal. This revision
-supersedes two earlier drafts: the dual-channel draft (weights beside an
-authoritative exit code), retired because the coupling contract between the
-two channels was the design's weakest point; and the rows-authoritative draft
-that still had task authors hand-rolling hidden-test execution inside
-invariants scripts, retired because it tangled structural checking with
-behavioral verification and pushed framework work onto every task author.
-This spec ships with its design in one combined PR (lockstep co-execution);
-the design covers the row contract, the hidden-test layout convention and
+`2240` row approved, written from a trusted human signal. The spec ships
+with its design and plan in one combined PR (lockstep co-execution); the
+design covers the row contract, the hidden-test layout convention and
 engine, the grading and aggregation composition, the best-of-k estimator,
-the authoring surface, and the full hook migration, and `kata-plan` follows
-approval.
+the authoring surface, and the full migration.
 
 — Staff Engineer 🛠️
