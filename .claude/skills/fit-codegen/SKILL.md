@@ -48,6 +48,10 @@ generates types and clients only. `generate` needs the proto-compiler
 toolchain, which ships with a default install; `download` is lean and carries
 none of it.
 
+Generation prunes stale `generated/services/*` dirs whose proto no longer
+exists (the generated tree is machine-owned, so pruning is safe) — after a
+proto rename, re-running codegen alone fixes the tree.
+
 ## Documentation
 
 - [Keep Types Synced with Proto Definitions](https://www.forwardimpact.team/docs/libraries/typed-contracts/index.md)

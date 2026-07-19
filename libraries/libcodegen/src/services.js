@@ -42,6 +42,7 @@ export class CodegenServices {
   async runExports(generatedPath) {
     if (!generatedPath) throw new Error("generatedPath is required");
     const serviceDir = this.#base.path.join(generatedPath, "services");
+    this.#pruneStaleDirs(serviceDir);
     const outputFile = this.#base.path.join(serviceDir, "exports.js");
 
     this.#base.fs.mkdirSync(this.#base.path.dirname(outputFile), {
@@ -90,5 +91,29 @@ export class CodegenServices {
     });
 
     this.#base.fs.writeFileSync(outputFile, content);
+  }
+
+  /**
+   * Remove generated service dirs whose proto no longer exists. The
+   * generated tree is fully machine-owned, so pruning is safe; without
+   * it a proto rename leaves the old dir behind and re-enters it into
+   * exports.js on every regeneration.
+   * @param {string} serviceDir - Path to generated/services
+   */
+  #pruneStaleDirs(serviceDir) {
+    if (!this.#base.fs.existsSync(serviceDir)) return;
+    const expected = new Set(
+      this.#base
+        .collectProtoFiles({ includeTools: true })
+        .filter((file) => !file.endsWith(this.#base.path.sep + "common.proto"))
+        .map((file) => this.#base.path.basename(file, ".proto")),
+    );
+    for (const dir of this.#base.fs.readdirSync(serviceDir)) {
+      const dirPath = this.#base.path.join(serviceDir, dir);
+      if (!this.#base.fs.statSync(dirPath).isDirectory()) continue;
+      if (!expected.has(dir)) {
+        this.#base.fs.rmSync(dirPath, { recursive: true, force: true });
+      }
+    }
   }
 }
