@@ -5,7 +5,7 @@
  * poison exports.js.
  */
 
-import { test, describe } from "node:test";
+import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
@@ -15,9 +15,17 @@ import protoLoader from "@grpc/proto-loader";
 import mustache from "mustache";
 
 import { CodegenBase, CodegenServices } from "@forwardimpact/libcodegen";
+import { resetEmbeddedAssets } from "@forwardimpact/libcli";
 import { createTestRuntime } from "@forwardimpact/libmock";
 
 describe("CodegenServices.runExports pruning", () => {
+  // Earlier test files in the same bun process may leave the module-global
+  // embedded-assets registry active (see base.test.js) — loadTemplate must
+  // resolve the on-disk templates here.
+  beforeEach(() => {
+    resetEmbeddedAssets();
+  });
+
   test("removes stale service dirs and keeps proto-backed ones", async () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "codegen-prune-"));
     const protoDir = path.join(tmp, "proto");
