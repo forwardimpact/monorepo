@@ -54,6 +54,12 @@ export const SELECTOR_PREDICATE = [
   "-not",
   "-path",
   "*/node_modules/*",
+  // The benchmark fixture family ships hidden-suite check files that are
+  // `*.test.js` by convention (one fails by design); they are fixtures the
+  // harness stages at grade time, never suite members.
+  "-not",
+  "-path",
+  "./libraries/libharness/test/fixtures/*",
   "-not",
   "-path",
   "./libraries/libharness/actions/*",
