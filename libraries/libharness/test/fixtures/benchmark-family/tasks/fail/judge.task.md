@@ -1,5 +1,5 @@
 Invariants:
-{{INVARIANTS_RESULT}}
+{{GRADE_RESULT}}
 
 Trace: {{AGENT_TRACE_PATH}}
 

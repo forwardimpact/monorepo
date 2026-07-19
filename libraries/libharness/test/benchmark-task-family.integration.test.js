@@ -36,6 +36,7 @@ describe("loadTaskFamily", () => {
       "pass",
       "preflight-broken",
       "repo-state",
+      "scored",
     ]);
     for (const t of tasks) {
       assert.ok(t.paths.instructions.endsWith("agent.task.md"));
@@ -103,10 +104,12 @@ describe("hidden test suite discovery", () => {
 
   test("task without tests/ carries a null suite", async () => {
     const family = await loadTaskFamily(FIXTURE, RT);
-    for (const t of family.tasks()) {
+    for (const t of family.tasks().filter((x) => x.id !== "scored")) {
       assert.strictEqual(t.tests, null);
       assert.strictEqual(t.paths.tests, null);
     }
+    const scored = family.tasks().find((x) => x.id === "scored");
+    assert.strictEqual(scored.tests.checks.length, 2);
   });
 
   test("nested overlay tree yields sorted checks with stage paths, roles, and names", async () => {

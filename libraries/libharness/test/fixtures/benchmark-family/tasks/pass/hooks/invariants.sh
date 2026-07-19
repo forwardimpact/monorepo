@@ -6,9 +6,9 @@ SENTINEL="$AGENT_CWD/sentinel-pass-file"
 # its content should never appear in the agent trace because hooks/
 # is never copied to the agent CWD.
 if [ "$RESP" = '{"ok":true}' ]; then
-  printf '%s\n' '{"test":"probe","pass":true}' >&"$RESULTS_FD"
+  printf '%s\n' '{"test":"probe","pass":true,"gate":true}' >&"$RESULTS_FD"
   : > "$SENTINEL"
   exit 0
 fi
-printf '%s\n' '{"test":"probe","pass":false,"message":"bad response"}' >&"$RESULTS_FD"
-exit 1
+printf '%s\n' '{"test":"probe","pass":false,"gate":true,"message":"bad response"}' >&"$RESULTS_FD"
+exit 0

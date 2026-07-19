@@ -177,8 +177,8 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   }, async () => {
     const { runner, out } = await setupRunner({ runs: 2 });
     const records = await collectRecords(runner);
-    // 4 tasks × 2 runs = 8 records (preflight-broken records included).
-    assert.strictEqual(records.length, 8);
+    // 5 tasks × 2 runs = 10 records (preflight-broken records included).
+    assert.strictEqual(records.length, 10);
     const keys = records.map((r) => `${r.taskId}#${r.runIndex}`);
     assert.strictEqual(new Set(keys).size, keys.length);
 
@@ -198,7 +198,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     // Read results.jsonl — every line must validate.
     const jsonl = await readFile(join(out, "results.jsonl"), "utf8");
     const lines = jsonl.split("\n").filter(Boolean);
-    assert.strictEqual(lines.length, 8);
+    assert.strictEqual(lines.length, 10);
     for (const line of lines) {
       assert.doesNotThrow(() => validateResultRecord(JSON.parse(line)));
     }
@@ -207,17 +207,40 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   test("pass: running-service grading via HTTP probe yields verdict='pass'", () => {
     const passRec = sharedRecords.find((r) => r.taskId === "pass");
     assert.ok(passRec, "pass record missing");
-    assert.strictEqual(passRec.invariants.verdict, "pass");
+    assert.strictEqual(passRec.grade.verdict, "pass");
+    assert.strictEqual(passRec.grade.gatesPass, true);
     assert.strictEqual(passRec.invariants.exitCode, 0);
     assert.strictEqual(passRec.verdict, "pass");
     assert.strictEqual(passRec.invariants.details[0].test, "probe");
+    // Gate rows only — a binary task carries no score.
+    assert.ok(!("score" in passRec));
   });
 
   test("repo-state: repository-state grading via SHA-256 yields verdict='pass'", () => {
     const rs = sharedRecords.find((r) => r.taskId === "repo-state");
     assert.ok(rs);
-    assert.strictEqual(rs.invariants.verdict, "pass");
+    assert.strictEqual(rs.grade.verdict, "pass");
     assert.strictEqual(rs.verdict, "pass");
+  });
+
+  test("scored: the hidden suite yields a fractional grade against a real subprocess", () => {
+    const rec = sharedRecords.find((r) => r.taskId === "scored");
+    assert.ok(rec, "scored record missing");
+    // One of the two hidden checks fails: grade carries the fraction …
+    assert.strictEqual(rec.grade.verdict, "fail");
+    assert.strictEqual(rec.grade.score, 0.5);
+    assert.strictEqual(rec.verdict, "fail");
+    // … and the judge gate (tracking the graded verdict) zeroes the
+    // effective score.
+    assert.strictEqual(rec.score, 0);
+    const rows = rec.hiddenTests.details;
+    assert.deepStrictEqual(
+      rows.map((d) => ({ test: d.test, pass: d.pass })),
+      [
+        { test: "always-fail", pass: false },
+        { test: "always-pass", pass: true },
+      ],
+    );
   });
 
   test("invariants sentinel filename never appears in the agent trace", async () => {
@@ -231,13 +254,13 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("judge prompt has {{INVARIANTS_RESULT}} substituted (verdict tracks invariants)", () => {
+  test("judge prompt has {{GRADE_RESULT}} substituted (verdict tracks the grade)", () => {
     for (const r of sharedRecords) {
       if (r.preflightError) continue;
       assert.strictEqual(
-        r.invariants.verdict === "pass" ? "pass" : "fail",
+        r.grade.verdict,
         r.judgeVerdict.verdict,
-        `${r.taskId}: judge verdict should track invariants`,
+        `${r.taskId}: judge verdict should track the grade`,
       );
     }
   });

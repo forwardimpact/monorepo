@@ -1,7 +1,7 @@
 Invariants result:
 
 ```json
-{{INVARIANTS_RESULT}}
+{{GRADE_RESULT}}
 ```
 
 Agent trace at `{{AGENT_TRACE_PATH}}`. Call `Conclude` with
