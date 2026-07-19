@@ -11,9 +11,10 @@
 
 import { describe, test, before } from "node:test";
 import assert from "node:assert";
+import { existsSync } from "node:fs";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
@@ -241,6 +242,15 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
         { test: "always-pass", pass: true },
       ],
     );
+    // Restoration held against the real subprocess: no staged check file
+    // survives in the run's agent CWD (the judge saw the agent's work).
+    const cwd = join(dirname(rec.agentTracePath), "cwd");
+    for (const staged of ["always-pass.test.js", "always-fail.test.js"]) {
+      assert.ok(
+        !existsSync(join(cwd, staged)),
+        `${staged} should have been unstaged from ${cwd}`,
+      );
+    }
   });
 
   test("invariants sentinel filename never appears in the agent trace", async () => {

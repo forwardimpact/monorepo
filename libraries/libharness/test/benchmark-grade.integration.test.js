@@ -12,11 +12,11 @@ import { runBenchmarkGradeCommand } from "../src/commands/benchmark-grade.js";
 const RT = createDefaultRuntime();
 
 async function buildStubTask(invariantsShContent) {
-  const root = await mkdtemp(join(tmpdir(), "benchmark-invariants-"));
+  const root = await mkdtemp(join(tmpdir(), "benchmark-grade-stub-"));
   await mkdir(join(root, "hooks"), { recursive: true });
   await writeFile(join(root, "hooks", "invariants.sh"), invariantsShContent);
   await chmod(join(root, "hooks", "invariants.sh"), 0o755);
-  const runDir = await mkdtemp(join(tmpdir(), "benchmark-invariants-run-"));
+  const runDir = await mkdtemp(join(tmpdir(), "benchmark-grade-stub-run-"));
   const cwd = join(runDir, "cwd");
   await mkdir(cwd, { recursive: true });
   return {

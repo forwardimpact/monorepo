@@ -1,4 +1,4 @@
-Invariants:
+Grade:
 {{GRADE_RESULT}}
 
 Trace: {{AGENT_TRACE_PATH}}
