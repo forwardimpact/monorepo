@@ -15,23 +15,23 @@ import {
   computeCoverageRatio,
   highestLevelPerSkillPerQuarter,
 } from "../lib/evidence-helpers.js";
+import { resolveSubjectEmail } from "../lib/identity.js";
 
 export const needsSupabase = true;
 
 /** Query evidence for a person and aggregate the highest proficiency level per skill per quarter. */
 export async function runTimelineCommand({
   options,
+  identity,
   supabase,
   format,
   queries,
 }) {
   const q = queries ?? { getEvidence, getArtifacts, getUnscoredArtifacts };
 
-  if (!options.email) {
-    throw new Error("timeline: --email <email> is required");
-  }
+  const email = resolveSubjectEmail(options, identity);
 
-  const filterOpts = { email: options.email };
+  const filterOpts = { email };
   if (options.skill) filterOpts.skillId = options.skill;
 
   const evidenceRows = await q.getEvidence(supabase, filterOpts);

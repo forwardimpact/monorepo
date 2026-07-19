@@ -24,7 +24,7 @@ pipeline; all Landmark computation is deterministic — no LLM calls.
 - Assessing whether culture investments are working —
   `npx fit-landmark snapshot trend --item <id>`
 - Exploring GetDX snapshot trends and comparisons —
-  `npx fit-landmark snapshot compare`
+  `npx fit-landmark snapshot compare --snapshot <id>`
 
 **Find growth areas backed by evidence:**
 
@@ -89,6 +89,13 @@ Each view applies privacy rules based on the audience:
   `voice --manager`
 - **Director** (planning): `snapshot`, `coverage`, `practiced`,
   `voice --manager`
+
+When signed in, subject-scoped commands (`readiness`, `timeline`,
+`coverage`, `sources`, and `voice` with no flags) default `--email` to
+your own identity. `evidence` stays explicit — omitting `--email` there
+deliberately shows the broadest view your access allows.
+`health --manager` takes a team lead's **own** email, not the email of
+the lead's manager.
 
 ---
 

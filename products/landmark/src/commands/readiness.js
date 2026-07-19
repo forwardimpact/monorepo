@@ -17,12 +17,14 @@ import {
   buildMarkerChecklist,
   computeCoverageRatio,
 } from "../lib/evidence-helpers.js";
+import { resolveSubjectEmail } from "../lib/identity.js";
 
 export const needsSupabase = true;
 
 /** Build a marker checklist for a person's target level and check each marker against existing evidence. */
 export async function runReadinessCommand({
   options,
+  identity,
   mapData,
   supabase,
   format,
@@ -35,16 +37,14 @@ export async function runReadinessCommand({
     getUnscoredArtifacts,
   };
 
-  if (!options.email) {
-    throw new Error("readiness: --email <email> is required");
-  }
+  const email = resolveSubjectEmail(options, identity);
 
-  const person = await q.getPerson(supabase, options.email);
+  const person = await q.getPerson(supabase, email);
   if (!person) {
-    return emptyResult(format, EMPTY_STATES.PERSON_NOT_FOUND(options.email));
+    return emptyResult(format, EMPTY_STATES.PERSON_NOT_FOUND(email));
   }
 
-  const resolved = resolveTargetLevel(person, options, mapData);
+  const resolved = resolveTargetLevel(person, options, mapData, email);
   if (resolved.error) return emptyResult(format, resolved.error);
 
   const { currentLevel, targetLevel, discipline, track } = resolved;
@@ -63,7 +63,7 @@ export async function runReadinessCommand({
     return emptyResult(format, EMPTY_STATES.NO_MARKERS_AT_TARGET);
   }
 
-  const evidenceRows = await q.getEvidence(supabase, { email: options.email });
+  const evidenceRows = await q.getEvidence(supabase, { email });
   const matchedEvidence = (evidenceRows ?? []).filter((e) => e.matched);
 
   const items = buildChecklistItems(checklist, matchedEvidence);
@@ -72,19 +72,16 @@ export async function runReadinessCommand({
   // Zero-artifact short-circuit: a persona with no artifacts is "no
   // signal", not "below floor" — coverage stays null so the formatter
   // renders the checklist as a roadmap instead of the suppression copy.
-  const allArtifacts =
-    (await q.getArtifacts(supabase, { email: options.email })) ?? [];
+  const allArtifacts = (await q.getArtifacts(supabase, { email })) ?? [];
   let coverage = null;
   if (allArtifacts.length > 0) {
-    const unscored = await q.getUnscoredArtifacts(supabase, {
-      email: options.email,
-    });
+    const unscored = await q.getUnscoredArtifacts(supabase, { email });
     coverage = computeCoverageRatio(allArtifacts, unscored);
   }
 
   return {
     view: {
-      email: options.email,
+      email,
       currentLevel: currentLevel.id,
       targetLevel: targetLevel.id,
       checklist: items,
@@ -101,7 +98,7 @@ function emptyResult(format, emptyState) {
 }
 
 /** Format the "unknown discipline" error so the user sees the actionable gap. */
-function unknownDisciplineError(person, options, mapData) {
+function unknownDisciplineError(person, email, mapData) {
   const available = (mapData.disciplines ?? [])
     .map((d) => d.id)
     .sort()
@@ -109,23 +106,23 @@ function unknownDisciplineError(person, options, mapData) {
   const availableSuffix = available
     ? ` Available disciplines: ${available}.`
     : " No disciplines are defined in the pathway.";
-  return `Unknown discipline "${person.discipline}" for ${options.email}. The discipline is not defined in the pathway.${availableSuffix}`;
+  return `Unknown discipline "${person.discipline}" for ${email}. The discipline is not defined in the pathway.${availableSuffix}`;
 }
 
 /** Resolve current level, target level, discipline, and track from the person and options. */
-function resolveTargetLevel(person, options, mapData) {
+function resolveTargetLevel(person, options, mapData, email) {
   const discipline = (mapData.disciplines ?? []).find(
     (d) => d.id === person.discipline,
   );
   if (!discipline) {
-    return { error: unknownDisciplineError(person, options, mapData) };
+    return { error: unknownDisciplineError(person, email, mapData) };
   }
 
   const currentLevel = (mapData.levels ?? []).find(
     (l) => l.id === person.level,
   );
   if (!currentLevel) {
-    return { error: `Unknown level "${person.level}" for ${options.email}.` };
+    return { error: `Unknown level "${person.level}" for ${email}.` };
   }
 
   let targetLevel;

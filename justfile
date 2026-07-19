@@ -337,13 +337,13 @@ supabase-install:
     #!/usr/bin/env bash
     which supabase >/dev/null 2>&1 || brew install supabase/tap/supabase
 
-# Start local Supabase instance
+# Start local Supabase instance (JWT_SECRET comes from .env via dotenv-load)
 supabase-up:
-    bunx fit-rc start supabase
+    cd products/map && supabase start --workdir .
 
 # Stop local Supabase instance
 supabase-down:
-    bunx fit-rc stop supabase
+    cd products/map && supabase stop --workdir .
 
 # Run Map database migrations
 supabase-migrate:

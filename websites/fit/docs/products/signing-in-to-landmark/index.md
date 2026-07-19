@@ -10,8 +10,11 @@ return data it needs to know who is asking.
 `fit-landmark login` walks you through Supabase's magic-link flow, captures
 the session at a localhost callback, and stores it under
 `~/.config/landmark/credentials.json` (0600). Subsequent commands resolve
-identity automatically; you only run `login` again when the session expires
-or you change machines.
+identity automatically — subject-scoped commands (`readiness`, `timeline`,
+`coverage`, `sources`, and `voice` with no flags) default `--email` to your
+signed-in identity, while `evidence` stays explicit so omitting `--email`
+shows the broadest view your access allows. You only run `login` again when
+the session expires or you change machines.
 
 This guide is for **engineers** signing in to read Landmark from the CLI.
 Operators issuing tokens for unattended agents follow a different path — see

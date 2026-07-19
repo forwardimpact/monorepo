@@ -13,7 +13,7 @@ npx fit-landmark org team                     # Team views
 npx fit-landmark snapshot list                # List available snapshots
 npx fit-landmark snapshot show <id>           # Snapshot detail
 npx fit-landmark snapshot trend               # Score trends over time
-npx fit-landmark snapshot compare             # Factor comparison across snapshots
+npx fit-landmark snapshot compare --snapshot <id>  # Factor comparison for a snapshot
 ```
 
 ### Evidence and Markers
@@ -40,3 +40,8 @@ npx fit-landmark health --manager <email>     # Health for a specific manager's 
 npx fit-landmark voice --manager <email>      # Engineer voice from GetDX comments
 npx fit-landmark voice --email <email>        # Individual voice
 ```
+
+`--manager` takes the team lead's own email. When signed in, `readiness`,
+`timeline`, `coverage`, `sources`, and `voice` (with no flags) default
+`--email` to your identity; `evidence` stays explicit — omitting
+`--email` deliberately shows the broadest view your access allows.

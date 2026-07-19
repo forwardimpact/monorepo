@@ -297,6 +297,7 @@ async function main() {
       args,
       options: values,
       config,
+      identity,
       mapData: ctx.mapData,
       supabase: ctx.supabase,
       format: ctx.format,

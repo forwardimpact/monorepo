@@ -166,8 +166,9 @@ capability against the
 — a `substrate` Postgres schema of consumer-defined views (`people`
 required; `evidence` and `discovery` optional with declared
 degradation). The verbs query only contract relations, never your
-vendor tables. Command lines and exit codes:
-[`references/cli.md`](references/cli.md).
+vendor tables. In `pick` output, `parent_email` is the persona's
+*upward* manager; manager-scoped views take the persona's own email.
+Command lines and exit codes: [`references/cli.md`](references/cli.md).
 
 ## Feeding Generated Content to Guide
 
