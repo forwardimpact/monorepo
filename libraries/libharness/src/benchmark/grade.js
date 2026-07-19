@@ -96,9 +96,37 @@ function tallyRow(tally, row) {
 }
 
 /**
+ * Run both check-row producers and grade the merged rows — the one
+ * composition shared by the runner and the `grade` subcommand. An engine
+ * throw is grader fault: its message lands on the returned `engineError`
+ * and health fails, so a crashed grader can never mint marks from rows it
+ * happened to emit first.
+ * @param {import("./task-family.js").Task} task
+ * @param {{cwd: string, port: number, runDir: string, familyDir?: string|null}} ctx
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @param {{runInvariants: Function, runHiddenTests: Function}} producers -
+ *   The two producer functions (real implementations or test seams).
+ * @returns {Promise<{invariants: object, hiddenRows: object[], engineError: Error|null, rows: unknown[], healthy: boolean, grade: object}>}
+ */
+export async function runProducersAndGrade(task, ctx, runtime, producers) {
+  const invariants = await producers.runInvariants(task, ctx, runtime);
+  let hiddenRows = [];
+  let engineError = null;
+  try {
+    const hidden = await producers.runHiddenTests(task, ctx, runtime);
+    hiddenRows = hidden.details;
+  } catch (e) {
+    engineError = e;
+  }
+  const rows = mergeRows(invariants.details, hiddenRows);
+  const healthy = invariants.exitCode === 0 && !engineError;
+  const grade = normalizeGrade(gradeChecks(rows, healthy));
+  return { invariants, hiddenRows, engineError, rows, healthy, grade };
+}
+
+/**
  * Merge the two producers' rows (invariants first) and stamp each row's
- * provenance. One composition shared by the runner and the `grade`
- * subcommand; the stamp is display metadata, never a grading input, and
+ * provenance. The stamp is display metadata, never a grading input, and
  * non-object rows (malformed by contract) pass through verbatim.
  * @param {unknown[]} invariantsDetails
  * @param {unknown[]} hiddenDetails

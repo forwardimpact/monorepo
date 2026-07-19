@@ -8,13 +8,13 @@
  */
 
 import { join, resolve } from "node:path";
-import { createServer } from "node:net";
 
 import { validateGradeRecord } from "../benchmark/result.js";
 import { runInvariants } from "../benchmark/invariants.js";
 import { runHiddenTests } from "../benchmark/hidden-tests.js";
-import { gradeChecks, mergeRows, normalizeGrade } from "../benchmark/grade.js";
+import { runProducersAndGrade } from "../benchmark/grade.js";
 import { loadTaskFamily } from "../benchmark/task-family.js";
+import { probeFreePort } from "../benchmark/workdir.js";
 
 /**
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
@@ -38,23 +38,20 @@ export async function runBenchmarkGradeCommand(ctx) {
 
   const runDir = resolve(runDirArg);
   const cwd = join(runDir, "cwd");
-  const port = await allocatePort();
+  const port = await probeFreePort();
   const cellCtx = { cwd, port, runDir, familyDir: family.rootPath };
 
-  const invariants = await runInvariants(task, cellCtx, runtime);
-  let hidden = { details: [] };
-  let engineError = null;
-  try {
-    hidden = await runHiddenTests(task, cellCtx, runtime);
-  } catch (e) {
-    engineError = e;
-  }
-  const rows = mergeRows(invariants.details, hidden.details);
-  const healthy = invariants.exitCode === 0 && !engineError;
-  const grade = normalizeGrade(gradeChecks(rows, healthy));
+  const { invariants, hiddenRows, engineError, healthy, grade } =
+    await runProducersAndGrade(task, cellCtx, runtime, {
+      runInvariants,
+      runHiddenTests,
+    });
   // Same effective-score rule as the runner, minus the judge (none runs
   // here): an unhealthy grader or a failing gate zeroes the score, so a
   // crashed hook can never mint marks from the rows it emitted before dying.
+  // Unlike a runner record — where `grade.score` stays the raw fraction and
+  // the zeroing lands on the top-level `score` — this record has no second
+  // field, so `grade.score` carries the effective value here.
   if (grade.score !== undefined && !(healthy && grade.gatesPass)) {
     grade.score = 0;
   }
@@ -64,7 +61,7 @@ export async function runBenchmarkGradeCommand(ctx) {
     invariants,
     ...(task.tests && {
       hiddenTests: {
-        details: hidden.details,
+        details: hiddenRows,
         ...(engineError && { error: engineError.message }),
       },
     }),
@@ -82,22 +79,4 @@ export async function runBenchmarkGradeCommand(ctx) {
   return grade.verdict === "pass"
     ? { ok: true }
     : { ok: false, code: 1, error: "" };
-}
-
-function allocatePort() {
-  return new Promise((res, rej) => {
-    const server = createServer();
-    server.unref();
-    server.on("error", rej);
-    server.listen(0, "127.0.0.1", () => {
-      const addr = server.address();
-      if (!addr || typeof addr === "string") {
-        server.close();
-        rej(new Error("failed to allocate port"));
-        return;
-      }
-      const port = addr.port;
-      server.close(() => res(port));
-    });
-  });
 }

@@ -70,20 +70,7 @@ export async function aggregate({
     for (const k of kValues) passAtK[k] = passAtKValue(n, c, k);
 
     const task = { taskId, n, c, passAtK };
-
-    // A group is scored iff any record carries an effective score. A
-    // score-less record in a scored group (a preflight failure never reached
-    // grading, or a binary run) contributes its verdict as the degenerate
-    // score — skipping it would inflate the mean exactly when the agent
-    // fails hardest.
-    if (group.some((r) => r.score !== undefined)) {
-      const scores = group.map(
-        (r) => r.score ?? (r.verdict === "pass" ? 1 : 0),
-      );
-      task.meanScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-      task.scoreAtK = {};
-      for (const k of kValues) task.scoreAtK[k] = scoreAtKValue(scores, k);
-    }
+    applyScoreFields(task, group, kValues);
 
     if (includeRuns) {
       if (!firstRecord) firstRecord = group[0];
@@ -118,6 +105,25 @@ export async function aggregate({
   }
 
   return { tasks, totals };
+}
+
+/**
+ * Attach `meanScore` and `scoreAtK` to a scored task group. A group is
+ * scored iff any record carries an effective score; a score-less record in
+ * a scored group (a preflight failure never reached grading, or a binary
+ * run) contributes its verdict as the degenerate score — skipping it would
+ * inflate the mean exactly when the agent fails hardest. Binary groups gain
+ * neither field.
+ * @param {object} task - Mutated.
+ * @param {object[]} group
+ * @param {number[]} kValues
+ */
+function applyScoreFields(task, group, kValues) {
+  if (!group.some((r) => r.score !== undefined)) return;
+  const scores = group.map((r) => r.score ?? (r.verdict === "pass" ? 1 : 0));
+  task.meanScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+  task.scoreAtK = {};
+  for (const k of kValues) task.scoreAtK[k] = scoreAtKValue(scores, k);
 }
 
 /**
@@ -385,26 +391,18 @@ function renderChecks(runs, singleRun) {
  * when at least one row came from a hidden test suite.
  */
 function collectCheckRows(runs) {
-  const rows = [];
-  let hasHidden = false;
-  for (const r of runs) {
-    const merged = mergeRows(
-      r.invariants?.details ?? [],
-      r.hiddenTests?.details ?? [],
-    );
-    for (const d of merged) {
-      if (d === null || typeof d !== "object") continue;
-      if (d.source === "tests") hasHidden = true;
-      rows.push({
+  const rows = runs.flatMap((r) =>
+    mergeRows(r.invariants?.details ?? [], r.hiddenTests?.details ?? [])
+      .filter((d) => d !== null && typeof d === "object")
+      .map((d) => ({
         run: r.runIndex,
         check: escapeCell(String(d.test ?? "(unnamed)")),
         source: d.source ?? "",
         result: statusIcon(d.pass),
         message: escapeCell(String(d.message ?? "")),
-      });
-    }
-  }
-  return { rows, hasHidden };
+      })),
+  );
+  return { rows, hasHidden: rows.some((row) => row.source === "tests") };
 }
 
 function renderJudgeCommentary(runs, singleRun) {
@@ -426,31 +424,34 @@ function renderJudgeCommentary(runs, singleRun) {
 }
 
 function renderErrors(runs) {
-  const lines = [];
-  for (const r of runs) {
-    if (r.grade?.malformed) {
-      lines.push(
-        `- **Run ${r.runIndex}:** ⚠️ ${r.grade.malformed} malformed check row(s) — counted as failing`,
-      );
-    }
-    if (r.hiddenTests?.error) {
-      lines.push(
-        `- **Run ${r.runIndex}:** Hidden-test engine error — "${escapeCell(r.hiddenTests.error)}"`,
-      );
-    }
-    if (r.agentError) {
-      lines.push(
-        `- **Run ${r.runIndex}:** Agent error — "${escapeCell(r.agentError.message)}" (aborted: ${r.agentError.aborted})`,
-      );
-    }
-    if (r.preflightError) {
-      lines.push(
-        `- **Run ${r.runIndex}:** Preflight error — "${escapeCell(r.preflightError.message)}" (exit ${r.preflightError.exitCode})`,
-      );
-    }
-  }
+  const lines = runs.flatMap(runErrorLines);
   if (!lines.length) return null;
   return ["#### Errors", "", ...lines].join("\n");
+}
+
+function runErrorLines(r) {
+  const lines = [];
+  if (r.grade?.malformed) {
+    lines.push(
+      `- **Run ${r.runIndex}:** ⚠️ ${r.grade.malformed} malformed check row(s) — counted as failing`,
+    );
+  }
+  if (r.hiddenTests?.error) {
+    lines.push(
+      `- **Run ${r.runIndex}:** Hidden-test engine error — "${escapeCell(r.hiddenTests.error)}"`,
+    );
+  }
+  if (r.agentError) {
+    lines.push(
+      `- **Run ${r.runIndex}:** Agent error — "${escapeCell(r.agentError.message)}" (aborted: ${r.agentError.aborted})`,
+    );
+  }
+  if (r.preflightError) {
+    lines.push(
+      `- **Run ${r.runIndex}:** Preflight error — "${escapeCell(r.preflightError.message)}" (exit ${r.preflightError.exitCode})`,
+    );
+  }
+  return lines;
 }
 
 // ---------------------------------------------------------------------------
