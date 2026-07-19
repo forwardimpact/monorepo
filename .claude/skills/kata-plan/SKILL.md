@@ -96,10 +96,11 @@ The plan translates an approved design into concrete implementation steps.
 - **Execution recommendation.** Route parts to the most suitable agent —
   engineering agents for code, `technical-writer` for docs. For decomposed
   plans, state which parts can run in parallel vs sequentially.
-- **Clean break.** Follow [§ Clean breaks](../../../CONTRIBUTING.md#checklists):
-  the plan replaces the old path, never wraps it in shims or fallbacks. Compat
-  belongs in the plan only when the design names it as a requirement; if a clean
-  break can't meet the design, revise the design rather than planning around it.
+- **Clean break.** The plan replaces the old path — no shims, aliases, or
+  fallbacks — and every removal the design names lands in a step's deleted
+  list, not in follow-up work. Compat appears only when the design names it
+  as a requirement; if a clean break can't meet the design, revise the
+  design rather than planning around it.
 
 **Form follows content.** Prefer tables for shared-structure lists, bullets for
 flat facts, prose only for narrative connecting them. If a paragraph could be a
