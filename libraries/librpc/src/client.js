@@ -94,6 +94,15 @@ export class Client extends Rpc {
   }
 
   /**
+   * Close the underlying gRPC channel, releasing its sockets and timers
+   * so short-lived processes (CLIs, tests) can exit promptly.
+   * @returns {void}
+   */
+  close() {
+    this.#client.close();
+  }
+
+  /**
    * Call a gRPC method with automatic CLIENT span tracing and observability.
    * Supports unary calls.
    * @param {string} methodName - The name of the gRPC method to call

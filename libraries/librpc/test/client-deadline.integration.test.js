@@ -18,8 +18,12 @@ import { Client } from "../src/index.js";
 
 describe("Client unary deadline", () => {
   test("hung connection rejects with DEADLINE_EXCEEDED in bounded time", async () => {
-    const server = net.createServer(() => {
-      // Accept the connection and never respond.
+    // Accept connections and never respond; track the sockets so
+    // teardown can destroy them — open handles would otherwise keep the
+    // node test runner alive after the assertions pass.
+    const sockets = [];
+    const server = net.createServer((socket) => {
+      sockets.push(socket);
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const port = server.address().port;
@@ -57,6 +61,8 @@ describe("Client unary deadline", () => {
         "must fail within the deadline, not hang",
       );
     } finally {
+      client.close();
+      for (const socket of sockets) socket.destroy();
       server.close();
     }
   });
