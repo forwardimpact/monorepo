@@ -13,7 +13,7 @@ import { MEMO_INBOX_MARKER } from "../src/constants.js";
 import { runMemoCommand } from "../src/commands/memo.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
-describe("fit-wiki memo CLI (in-process)", () => {
+describe("gemba-wiki memo CLI (in-process)", () => {
   let dir;
   let agentsDir;
   let wikiRoot;

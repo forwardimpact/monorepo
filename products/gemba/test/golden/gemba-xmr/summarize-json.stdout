@@ -1,0 +1,34 @@
+{
+  "source": "test/golden/gemba-xmr/stable.csv",
+  "generated": "YYYY-MM-DD",
+  "event_type": "kata-shift",
+  "metrics": [
+    {
+      "metric": "stable_metric",
+      "unit": "count",
+      "n": 20,
+      "classification": "stable",
+      "latest": {
+        "date": "2026-01-20",
+        "value": 11,
+        "mr": 1
+      },
+      "stats": {
+        "mu": 10.5,
+        "R": 1,
+        "sigmaHat": 0.89,
+        "UPL": 13.2,
+        "LPL": 7.8,
+        "URL": 3.3,
+        "zoneUpper": 11.8,
+        "zoneLower": 9.2
+      },
+      "signals": {
+        "xRule1": [],
+        "xRule2": [],
+        "xRule3": [],
+        "mrRule1": []
+      }
+    }
+  ]
+}

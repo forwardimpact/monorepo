@@ -5,7 +5,7 @@ import { createTraceCollector } from "@forwardimpact/libharness";
  * Output command — process a complete NDJSON trace from stdin and write
  * formatted output to stdout.
  *
- * Usage: fit-harness output [--format=json|text] < trace.ndjson
+ * Usage: gemba-harness output [--format=json|text] < trace.ndjson
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: true}>}

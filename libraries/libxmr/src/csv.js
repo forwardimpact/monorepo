@@ -107,7 +107,7 @@ export function validateCSV(text) {
   const header = lines[0].trim();
   // Accept the current 8-column header or the legacy 7-column header (spec
   // 1910 added the trailing optional `host_run` column). Current-year files
-  // written before the change stay valid for `fit-xmr` and the storyboard.
+  // written before the change stay valid for `gemba-xmr` and the storyboard.
   if (header !== HEADER && header !== LEGACY_HEADER) {
     errors.push({ line: 1, message: headerMismatchMessage(header) });
   }

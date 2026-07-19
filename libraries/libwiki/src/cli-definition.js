@@ -14,7 +14,7 @@ import { runFixCommand } from "./commands/fix.js";
 import { runLedgerCommand } from "./commands/ledger.js";
 
 /**
- * Build the `fit-wiki` libcli definition. Agent identity is never resolved from
+ * Build the `gemba-wiki` libcli definition. Agent identity is never resolved from
  * the environment: agent-scoped subcommands require an explicit `--agent`
  * (`--from` for `memo`) and fail closed without it, so this module carries no
  * ambient agent identity. The version is resolved by libcli's `createCli` from
@@ -47,7 +47,7 @@ export function createDefinition() {
   };
 
   return {
-    name: "fit-wiki",
+    name: "gemba-wiki",
     description: "Wiki lifecycle management for the Kata agent system",
     commands: [
       {
@@ -348,21 +348,21 @@ export function createDefinition() {
       },
     },
     examples: [
-      "fit-wiki boot --agent staff-engineer",
-      'fit-wiki log decision --agent staff-engineer --surveyed "..." --chosen "..." --rationale "..."',
-      "fit-wiki claim --agent staff-engineer --target spec-NNNN --branch claude/...",
-      "fit-wiki release --agent staff-engineer --target spec-NNNN",
-      "fit-wiki inbox list --agent staff-engineer",
-      "fit-wiki rotate --agent staff-engineer",
-      "fit-wiki audit",
-      "fit-wiki curate",
-      "fit-wiki fix",
-      'fit-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"',
-      "fit-wiki refresh",
-      "fit-wiki product-mix",
-      "fit-wiki init",
-      "fit-wiki push",
-      "fit-wiki pull",
+      "gemba-wiki boot --agent staff-engineer",
+      'gemba-wiki log decision --agent staff-engineer --surveyed "..." --chosen "..." --rationale "..."',
+      "gemba-wiki claim --agent staff-engineer --target spec-NNNN --branch claude/...",
+      "gemba-wiki release --agent staff-engineer --target spec-NNNN",
+      "gemba-wiki inbox list --agent staff-engineer",
+      "gemba-wiki rotate --agent staff-engineer",
+      "gemba-wiki audit",
+      "gemba-wiki curate",
+      "gemba-wiki fix",
+      'gemba-wiki memo --from staff-engineer --to security-engineer --message "audit d642ff0c"',
+      "gemba-wiki refresh",
+      "gemba-wiki product-mix",
+      "gemba-wiki init",
+      "gemba-wiki push",
+      "gemba-wiki pull",
     ],
     documentation: [
       {

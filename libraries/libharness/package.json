@@ -40,20 +40,22 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./bin/fit-harness.js": "./bin/fit-harness.js",
-    "./bin/fit-trace.js": "./bin/fit-trace.js",
-    "./bin/fit-benchmark.js": "./bin/fit-benchmark.js",
-    "./bin/fit-selfedit.js": "./bin/fit-selfedit.js"
-  },
-  "bin": {
-    "fit-harness": "./bin/fit-harness.js",
-    "fit-trace": "./bin/fit-trace.js",
-    "fit-benchmark": "./bin/fit-benchmark.js",
-    "fit-selfedit": "./bin/fit-selfedit.js"
+    "./commands/output.js": "./src/commands/output.js",
+    "./commands/tee.js": "./src/commands/tee.js",
+    "./commands/run.js": "./src/commands/run.js",
+    "./commands/supervise.js": "./src/commands/supervise.js",
+    "./commands/facilitate.js": "./src/commands/facilitate.js",
+    "./commands/discuss.js": "./src/commands/discuss.js",
+    "./commands/callback.js": "./src/commands/callback.js",
+    "./commands/scan-logs.js": "./src/commands/scan-logs.js",
+    "./commands/trace.js": "./src/commands/trace.js",
+    "./commands/assert.js": "./src/commands/assert.js",
+    "./commands/by-discussion.js": "./src/commands/by-discussion.js",
+    "./commands/benchmark-definition.js": "./src/commands/benchmark-definition.js",
+    "./commands/selfedit.js": "./src/commands/selfedit.js"
   },
   "files": [
     "src/**/*.js",
-    "bin/**/*.js",
     "README.md"
   ],
   "scripts": {

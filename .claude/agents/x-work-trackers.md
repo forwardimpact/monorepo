@@ -7,10 +7,10 @@ tracker. A skill never branches on the tracker — it names the operation and le
 the active column realize it.
 
 The active tracker is one input: the environment variable
-`LIBHARNESS_WORK_TRACKER`, default `github`. The harness sets it (`fit-harness`
-/ `fit-benchmark` `--work-tracker`); the agent reads it and realizes each
-operation through that column. Production leaves the default `github`; the
-offline coordination benchmark runs `--work-tracker filesystem`.
+`LIBHARNESS_WORK_TRACKER`, default `github`. The harness sets it
+(`gemba-harness` / `gemba-benchmark` `--work-tracker`); the agent reads it and
+realizes each operation through that column. Production leaves the default
+`github`; the offline coordination benchmark runs `--work-tracker filesystem`.
 
 A **work item** is a tracked unit of coordination. It has two **kinds** — an
 **issue** (a tracked unit of work or finding: bug, feature, obstacle,

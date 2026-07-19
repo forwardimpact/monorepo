@@ -94,7 +94,7 @@ export const CARRY_SURFACE_H1_RE = /^# (.+) — Carries$/;
 export const CARRY_CLEARANCE_MARKER_RE = /\*\*Carry-clearance:\*\*/;
 
 // Storyboard marker syntax. An open or close marker tolerates optional trailing
-// text after the tag (typically an inline "Do not edit. Generated from fit-wiki
+// text after the tag (typically an inline "Do not edit. Generated from gemba-wiki
 // refresh." notice). One home so the marker scanner (marker-scanner.js) and the
 // audit's balance check (audit/rules.js) cannot drift on the syntax.
 // Capture groups: 1 metric, 2 csvPath, 3 optional prior-read anchor date. The
@@ -110,7 +110,7 @@ export const ISSUE_CLOSE_RE =
 
 // Materialized per-agent experiments surface. A distinct marker
 // kind from `experiments:open` — it carries attributed, sanitized items plus a
-// last-successful-sync stamp, and is read offline by `fit-wiki boot`. One home
+// last-successful-sync stamp, and is read offline by `gemba-wiki boot`. One home
 // so the scanner (marker-scanner.js), the refresh renderer (commands/refresh.js),
 // the boot parser (boot.js), and the audit balance check (audit/rules.js) cannot
 // drift on the syntax.

@@ -1,0 +1,3 @@
+date,metric,value,unit,run,note,event_type
+2026-01-01,bad_metric,not_a_number,count,,
+2026-01-02,bad_metric,also_bad,count,,

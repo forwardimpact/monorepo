@@ -64,10 +64,10 @@ that touches it, read the local CLAUDE.md and apply every invariant it declares.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 Find the last audit date per area in the coverage map. Canonical area-rotation
-runs write only to the wiki and never open a PR — do **not** `fit-wiki claim`
+runs write only to the wiki and never open a PR — do **not** `gemba-wiki claim`
 for them; the claim contract applies only when this skill opens a PR.
 
 ### Step 1: Select Area

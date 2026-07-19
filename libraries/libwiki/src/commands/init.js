@@ -32,7 +32,7 @@ function scaffoldActiveClaims(runtime, memoryPath) {
     ACTIVE_CLAIMS_HEADING,
     "",
     "In-flight work claimed by an agent. Row present = active; row absent = settled.",
-    "Writers: `fit-wiki claim`, `fit-wiki release`. Reader: `fit-wiki boot`.",
+    "Writers: `gemba-wiki claim`, `gemba-wiki release`. Reader: `gemba-wiki boot`.",
     "",
     ACTIVE_CLAIMS_TABLE_HEADER,
     ACTIVE_CLAIMS_TABLE_SEPARATOR,

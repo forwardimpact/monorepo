@@ -1,0 +1,11 @@
+gemba-wiki init — Bootstrap a wiki working tree and scaffold Active Claims
+
+Usage: gemba-wiki init [options]
+
+Options:
+  --wiki-root=<string>   Override wiki root directory (default: wiki)
+  --skills-dir=<string>  Override skills directory (default: .claude/skills)
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON

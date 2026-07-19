@@ -103,7 +103,7 @@ masked in logs. Hosted needs a `kata-agent` SHA accepting `installation-token`.
 
 For the harness-based dispatch workflow (`workflow-dispatch.md`), which does not
 delegate to `kata-agent`: copy the killswitch below as its first step, and add a
-final `if: always()` step running `fit-trace cost "$TRACE_FILE" --markdown >>
+final `if: always()` step running `gemba-trace cost "$TRACE_FILE" --markdown >>
 "$GITHUB_STEP_SUMMARY"` (`TRACE_FILE` from the trace step's `trace-file`; a
 missing trace is tolerated, no guard).
 

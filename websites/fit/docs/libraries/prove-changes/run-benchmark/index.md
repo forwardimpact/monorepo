@@ -6,7 +6,7 @@ description: Prove a skill-pack change improved coding outcomes — run a task f
 You shipped a skill-pack change — a new `kata-spec` rule, a tweak to a
 `fit-pathway` profile, an updated tool allowlist. The next question is the
 hard one: did agents get better at writing code? A single agent run is a
-coin flip, and a passing eval doesn't generalise. `fit-benchmark` runs each
+coin flip, and a passing eval doesn't generalise. `gemba-benchmark` runs each
 coding task **N times** against a **versioned skill-set manifest**, grades
 each run with tests the agent never sees, and aggregates pass@k using the
 OpenAI HumanEval unbiased estimator.
@@ -15,10 +15,10 @@ OpenAI HumanEval unbiased estimator.
 
 - Node.js 22+
 - `ANTHROPIC_API_KEY` set in the environment
-- `@forwardimpact/libharness` (ships `fit-harness`, `fit-trace`, and
-  `fit-benchmark`). Install globally with
+- `@forwardimpact/libharness` (ships `gemba-harness`, `gemba-trace`, and
+  `gemba-benchmark`). Install globally with
   `npm install -g @forwardimpact/libharness`, or invoke ephemerally in CI
-  with `npx --yes @forwardimpact/libharness fit-benchmark ...`
+  with `npx --yes @forwardimpact/libharness gemba-benchmark ...`
 
 ## Author a Task Family
 
@@ -133,12 +133,12 @@ nonzero means the grader itself failed, never that a check failed, so a
 well-formed hook ends with `exit 0` unconditionally.
 
 Use the script for structural checks — presence, shape, anti-tamper — with
-`fit-trace assert` emitting the rows:
+`gemba-trace assert` emitting the rows:
 
 ```sh
 #!/bin/sh
 set -u
-check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }
+check() { gemba-trace assert "$@" >&"$RESULTS_FD" || true; }
 
 # A gate: the artifact must exist at all.
 check api-present --gate --exists "$AGENT_CWD/src/api.js"
@@ -294,7 +294,7 @@ All discovered var names are added to the trace redaction allowlist.
 ## Run It
 
 ```sh
-npx fit-benchmark run \
+npx gemba-benchmark run \
   --family=./my-coding-family \
   --output=./runs/2026-05-11 \
   --runs=5 \
@@ -327,7 +327,7 @@ Override it with `--concurrency=<n>` or the
 `LIBHARNESS_BENCHMARK_CONCURRENCY` environment variable (the flag wins):
 
 ```sh
-npx fit-benchmark run --family=./my-coding-family --runs=5 --concurrency=4
+npx gemba-benchmark run --family=./my-coding-family --runs=5 --concurrency=4
 ```
 
 Concurrency does not change the pass@k a serial run would have produced —
@@ -341,7 +341,7 @@ instead of blocking the whole run.
 For ad-hoc grading without an agent run:
 
 ```sh
-npx fit-benchmark grade \
+npx gemba-benchmark grade \
   --family=./my-coding-family \
   --task=todo-api \
   --run-dir=./runs/2026-05-11/runs/todo-api/0 \
@@ -358,7 +358,7 @@ fractional score you expect.
 ## Aggregate Into pass@k
 
 ```sh
-npx fit-benchmark report \
+npx gemba-benchmark report \
   --input=./runs/2026-05-11 \
   --k=1,3,5 \
   --format=text
@@ -399,7 +399,7 @@ of `N` runs a deterministic, balanced subset of the cells and writes a partial
 
 ```sh
 # On machine 1 of 3:
-npx fit-benchmark run --family=./my-coding-family --runs=5 \
+npx gemba-benchmark run --family=./my-coding-family --runs=5 \
   --shard=1/3 --output=./runs/shard-1
 # ...machines 2 and 3 run --shard=2/3 and --shard=3/3 into ./runs/shard-2, ./runs/shard-3
 ```
@@ -415,7 +415,7 @@ pass@k — identical to what a non-sharded run over the same cells would
 report — with the recursive `report --input`:
 
 ```sh
-npx fit-benchmark report --input=./runs --k=1,3,5 --format=text
+npx gemba-benchmark report --input=./runs --k=1,3,5 --format=text
 ```
 
 Each shard run also uses in-process concurrency internally, so effective
@@ -429,12 +429,12 @@ compare:
 
 ```sh
 # Before
-npx fit-benchmark run --family=./my-coding-family --output=./runs/before --runs=10
-npx fit-benchmark report --input=./runs/before --format=json > before.json
+npx gemba-benchmark run --family=./my-coding-family --output=./runs/before --runs=10
+npx gemba-benchmark report --input=./runs/before --format=json > before.json
 
 # After (manifest changed)
-npx fit-benchmark run --family=./my-coding-family --output=./runs/after --runs=10
-npx fit-benchmark report --input=./runs/after --format=json > after.json
+npx gemba-benchmark run --family=./my-coding-family --output=./runs/after --runs=10
+npx gemba-benchmark report --input=./runs/after --format=json > after.json
 ```
 
 Each record carries `skillSetHash`, so any cross-comparison script can

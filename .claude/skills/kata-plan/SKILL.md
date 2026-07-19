@@ -138,7 +138,7 @@ When multiple variants exist, note which is recommended (plan-a is the default).
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
 Process.

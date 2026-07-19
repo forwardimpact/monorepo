@@ -120,7 +120,7 @@ jobs:
 
 ## Why the wiki audit is not a check here
 
-`fit-wiki audit` reads the live, shared wiki, so its verdict is a function of
+`gemba-wiki audit` reads the live, shared wiki, so its verdict is a function of
 the current wiki state, not the PR head — it would redden a clean commit
 whenever the shared wiki happens to be dirty, and flip on re-run with no code
 change. Keep it out of the per-PR gate. A scheduled curation run owns live-wiki

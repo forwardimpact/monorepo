@@ -46,7 +46,7 @@ export function runBootCommand(ctx) {
   const options = ctx.options;
   const resolved = requireAgentFlag(options, {
     command: "boot",
-    example: "fit-wiki boot --agent staff-engineer",
+    example: "gemba-wiki boot --agent staff-engineer",
   });
   if (!resolved.ok) return resolved;
   const agent = resolved.agent;

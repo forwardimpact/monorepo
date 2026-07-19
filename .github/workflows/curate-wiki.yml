@@ -34,7 +34,7 @@ jobs:
           path: wiki
       # Audit the shared wiki and, when dirty, route findings to the single
       # wiki-curation issue (create or comment). The label/search/create-or-
-      # comment logic lives in `fit-wiki curate`, not here.
+      # comment logic lives in `gemba-wiki curate`, not here.
       - name: Audit and route findings
         env:
           GH_TOKEN: ${{ github.token }}

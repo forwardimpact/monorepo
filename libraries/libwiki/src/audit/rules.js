@@ -94,7 +94,7 @@ export const RULES = [
     when: (s) => s.h2s.includes("Message Inbox"),
     check: containsLine(MEMO_INBOX_MARKER),
     message: () => `Missing ${MEMO_INBOX_MARKER} marker`,
-    hint: "add the marker directly below the '## Message Inbox' heading so `fit-wiki memo` can find it",
+    hint: "add the marker directly below the '## Message Inbox' heading so `gemba-wiki memo` can find it",
   },
   {
     id: "summary.open-blockers-last",
@@ -148,7 +148,7 @@ export const RULES = [
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
     hint: (s) =>
-      `run \`bunx fit-wiki rotate --agent ${s.agentPrefix}\` to seal this file as a sealed part and start a fresh weekly log`,
+      `run \`bunx gemba-wiki rotate --agent ${s.agentPrefix}\` to seal this file as a sealed part and start a fresh weekly log`,
   },
   {
     id: "weekly-log.word-budget",
@@ -158,7 +158,7 @@ export const RULES = [
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
     hint: (s) =>
-      `run \`bunx fit-wiki rotate --agent ${s.agentPrefix}\` to seal this file as a sealed part and start a fresh weekly log`,
+      `run \`bunx gemba-wiki rotate --agent ${s.agentPrefix}\` to seal this file as a sealed part and start a fresh weekly log`,
   },
   {
     id: "weekly-log.h1-agent-matches-filename",
@@ -176,7 +176,7 @@ export const RULES = [
     check: headingGrammarDrift,
     message: (_s, r) =>
       `Entry heading '${r.observed}' does not match the dated grammar`,
-    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `fit-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
+    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `gemba-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
   },
   {
     id: "decision-block.heading-within-5",
@@ -191,7 +191,7 @@ export const RULES = [
       r.nearMiss
         ? `Entry opens with '${r.nearMiss}'; the heading must be exactly '${DECISION_HEADING}' — move the suffix into the body`
         : `Entry lacks a line that is exactly '${DECISION_HEADING}'`,
-    hint: `open each '## YYYY-MM-DD' entry with \`fit-wiki log decision\`, which emits a line containing exactly '${DECISION_HEADING}' (no suffix — the check is an exact match); put the one-line summary in the body below it, drawn from the entry's own narrative — do not invent rationale the entry does not support`,
+    hint: `open each '## YYYY-MM-DD' entry with \`gemba-wiki log decision\`, which emits a line containing exactly '${DECISION_HEADING}' (no suffix — the check is an exact match); put the one-line summary in the body below it, drawn from the entry's own narrative — do not invent rationale the entry does not support`,
   },
 
   // -- Weekly logs (sealed parts) --
@@ -211,7 +211,7 @@ export const RULES = [
     check: headingGrammarDrift,
     message: (_s, r) =>
       `Entry heading '${r.observed}' does not match the dated grammar`,
-    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `fit-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
+    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `gemba-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
   },
   {
     id: "weekly-log-part.line-budget",
@@ -220,7 +220,7 @@ export const RULES = [
     remediation: "rotate",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
-    hint: "`bunx fit-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
+    hint: "`bunx gemba-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
   },
   {
     id: "weekly-log-part.word-budget",
@@ -229,7 +229,7 @@ export const RULES = [
     remediation: "rotate",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
-    hint: "`bunx fit-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
+    hint: "`bunx gemba-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
   },
   {
     id: "weekly-log-part.h1-agent-matches-filename",
@@ -273,7 +273,7 @@ export const RULES = [
     severity: "fail",
     check: exists,
     message: () => "MEMORY.md not found",
-    hint: "run `bunx fit-wiki init` to scaffold the canonical sections",
+    hint: "run `bunx gemba-wiki init` to scaffold the canonical sections",
   },
   {
     id: "memory.line-budget",
@@ -371,7 +371,7 @@ export const RULES = [
     severity: "warn",
     check: expired,
     message: (s) => `${s.agent}/${s.target} expired ${s.expires_at}`,
-    hint: "run `bunx fit-wiki refresh` (or `release --expired`) to clear expired claims",
+    hint: "run `bunx gemba-wiki refresh` (or `release --expired`) to clear expired claims",
   },
 
   // -- Storyboards --

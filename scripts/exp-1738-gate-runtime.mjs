@@ -32,8 +32,8 @@
 //   node scripts/exp-1738-gate-runtime.mjs --runs 123,456 [--record]
 //
 // Default is dry-run: prints per-run step durations, the event median, the
-// proposed `fit-xmr record` rows, and the trip verdict. Pass --record to also
-// append the rows via `fit-xmr record`.
+// proposed `gemba-xmr record` rows, and the trip verdict. Pass --record to also
+// append the rows via `gemba-xmr record`.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -169,7 +169,7 @@ function priorEventMedians() {
 
 function record(opts, metric, value, run, note) {
   const args = [
-    "fit-xmr",
+    "gemba-xmr",
     "record",
     `--skill=${SERIES_SKILL}`,
     `--metric=${metric}`,

@@ -4,6 +4,18 @@ All notable changes to `@forwardimpact/libharness`'s CLIs are recorded here.
 
 ## Unreleased
 
+### Bins moved to `@forwardimpact/gemba` (breaking)
+
+The four CLI entry points (`fit-harness`, `fit-trace`, `fit-benchmark`,
+`fit-selfedit`) moved to the `@forwardimpact/gemba` product package under
+the gemba names (`gemba-harness`, `gemba-trace`, `gemba-benchmark`,
+`gemba-selfedit`). The `bin` field and `bin/` directory are removed —
+libharness is an import-only library. The command modules the bins
+dispatch to are now package exports (`./commands/*.js`), including the
+new `./commands/selfedit.js` extracted from the former `fit-selfedit`
+bin. **Migration:** install `@forwardimpact/gemba` for the commands;
+import `@forwardimpact/libharness` for the APIs.
+
 ### Renamed: libeval → libharness (breaking, v1.0.0)
 
 The library is renamed to reflect the role it plays — the Kata agent

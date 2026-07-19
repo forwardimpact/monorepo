@@ -122,7 +122,7 @@ jobs:
       # The gear release carries the bootstrap script too, co-versioned with
       # the gear binaries it installs. Any environment — CI, Claude session
       # hooks, a bare shell — bootstraps with one line:
-      #   curl -fsSL <gear-release>/fit-install.sh | bash -s -- fit-trace …
+      #   curl -fsSL <gear-release>/fit-install.sh | bash -s -- gemba-trace …
       # Stamp the live tags in as the pinned defaults so the published copy is
       # self-contained; callers may still override via FIT_*_RELEASE.
       # This gate is intentionally gear-only — fit-install.sh installs the gear

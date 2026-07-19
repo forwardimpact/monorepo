@@ -69,7 +69,7 @@ function writeTrace(records) {
   };
 }
 
-describe("fit-harness callback", () => {
+describe("gemba-harness callback", () => {
   beforeEach(() => {
     globalThis.fetch = REAL_FETCH;
   });

@@ -19,7 +19,7 @@ const TITLE = "Wiki curation: shared-state audit findings";
 // GitHub rejects an issue or comment body over 65536 characters. Keep the whole
 // body under a margin below that so the preamble, JSON fence, and truncation
 // notice always fit. When the findings overflow, the body carries the first N
-// that fit plus a count; the full list stays reproducible via `fit-wiki audit`.
+// that fit plus a count; the full list stays reproducible via `gemba-wiki audit`.
 const MAX_BODY = 65000;
 
 /**
@@ -39,7 +39,7 @@ function buildBody(findingsJson, { shown, total } = {}) {
   ];
   if (total != null && shown != null && shown < total) {
     lines.push(
-      `Showing ${shown} of ${total} findings — the body was truncated to fit GitHub's comment limit. Run \`fit-wiki audit\` for the full list.`,
+      `Showing ${shown} of ${total} findings — the body was truncated to fit GitHub's comment limit. Run \`gemba-wiki audit\` for the full list.`,
       "",
     );
   }

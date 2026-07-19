@@ -7,7 +7,7 @@ import { makeRuntime, ctxFor } from "./helpers.js";
 
 const WIKI_ROOT = "/wiki";
 
-describe("fit-wiki log CLI (in-process)", () => {
+describe("gemba-wiki log CLI (in-process)", () => {
   // One in-memory wiki shared across a test's log subcommands; the command
   // reads and rewrites the weekly-log file via runtime.fsSync.
   function makeWiki() {
@@ -131,7 +131,7 @@ describe("fit-wiki log CLI (in-process)", () => {
   });
 });
 
-describe("fit-wiki log — budget feedback and word-cap rotation", () => {
+describe("gemba-wiki log — budget feedback and word-cap rotation", () => {
   function runOnce(fsSync, subcommand, options) {
     const harness = makeRuntime({ fsSync });
     const r = runLogCommand(

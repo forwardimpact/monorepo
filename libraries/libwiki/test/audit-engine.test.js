@@ -222,7 +222,7 @@ describe("runRules", () => {
     );
     assert.equal(offenders.length, 2);
     assert.match(offenders[0].message, /does not match the dated grammar/);
-    assert.match(offenders[0].hint, /fit-wiki log/);
+    assert.match(offenders[0].hint, /gemba-wiki log/);
   });
 
   test("heading-grammar drift fires on sealed parts too (criterion 7)", () => {

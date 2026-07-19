@@ -1,5 +1,5 @@
 /**
- * Storyboard skeleton — the minimal, valid storyboard file `fit-wiki refresh`
+ * Storyboard skeleton — the minimal, valid storyboard file `gemba-wiki refresh`
  * writes when the current-month board does not yet exist. It carries only the
  * structural surface libwiki owns: the five Toyota Kata sections and the
  * generic `obstacles`/`experiments` issue-list marker blocks that refresh

@@ -65,7 +65,7 @@ async function refreshCreates(cwd, storyboardPath) {
     : join(cwd, "wiki", `storyboard-${yearMonth(FIXED_NOW)}.md`);
 }
 
-describe("fit-wiki refresh CLI (in-process)", () => {
+describe("gemba-wiki refresh CLI (in-process)", () => {
   test("no markers — file unchanged", async () => {
     const dir = createProject();
     const storyboard = join(dir, "storyboard.md");

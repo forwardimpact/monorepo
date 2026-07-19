@@ -41,7 +41,7 @@
     },
     "libraries/libcoaligned": {
       "name": "@forwardimpact/libcoaligned",
-      "version": "0.1.17",
+      "version": "0.1.18",
       "bin": {
         "coaligned": "./bin/coaligned.js",
       },
@@ -59,7 +59,7 @@
     },
     "libraries/libcodegen": {
       "name": "@forwardimpact/libcodegen",
-      "version": "0.1.68",
+      "version": "0.1.69",
       "bin": {
         "fit-codegen": "./bin/fit-codegen.js",
       },
@@ -133,7 +133,7 @@
     },
     "libraries/libgraph": {
       "name": "@forwardimpact/libgraph",
-      "version": "0.1.78",
+      "version": "0.1.79",
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libindex": "^0.1.27",
@@ -151,13 +151,7 @@
     },
     "libraries/libharness": {
       "name": "@forwardimpact/libharness",
-      "version": "1.3.0",
-      "bin": {
-        "fit-harness": "./bin/fit-harness.js",
-        "fit-trace": "./bin/fit-trace.js",
-        "fit-benchmark": "./bin/fit-benchmark.js",
-        "fit-selfedit": "./bin/fit-selfedit.js",
-      },
+      "version": "2.0.0",
       "dependencies": {
         "@anthropic-ai/claude-agent-sdk": "0.3.170",
         "@forwardimpact/libcli": "^0.1.0",
@@ -219,7 +213,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.14",
+      "version": "0.1.15",
       "dependencies": {
         "@grpc/grpc-js": "^1.14.4",
       },
@@ -269,7 +263,7 @@
     },
     "libraries/libproto": {
       "name": "@forwardimpact/libproto",
-      "version": "0.1.3",
+      "version": "0.1.4",
     },
     "libraries/librag": {
       "name": "@forwardimpact/librag",
@@ -297,7 +291,7 @@
     },
     "libraries/librc": {
       "name": "@forwardimpact/librc",
-      "version": "0.1.39",
+      "version": "0.1.40",
       "bin": {
         "fit-rc": "./bin/fit-rc.js",
       },
@@ -325,7 +319,7 @@
     },
     "libraries/libresource": {
       "name": "@forwardimpact/libresource",
-      "version": "0.1.117",
+      "version": "0.1.118",
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
@@ -347,7 +341,7 @@
     },
     "libraries/librpc": {
       "name": "@forwardimpact/librpc",
-      "version": "0.1.110",
+      "version": "0.1.111",
       "bin": {
         "fit-unary": "./bin/fit-unary.js",
       },
@@ -473,7 +467,7 @@
     },
     "libraries/libtelemetry": {
       "name": "@forwardimpact/libtelemetry",
-      "version": "0.1.49",
+      "version": "0.1.50",
       "bin": {
         "fit-visualize": "./bin/fit-visualize.js",
       },
@@ -534,7 +528,7 @@
     },
     "libraries/libtype": {
       "name": "@forwardimpact/libtype",
-      "version": "0.1.84",
+      "version": "0.1.85",
       "dependencies": {
         "@forwardimpact/libsecret": "^0.1.3",
         "@forwardimpact/libutil": "^0.1.60",
@@ -554,9 +548,8 @@
     },
     "libraries/libutil": {
       "name": "@forwardimpact/libutil",
-      "version": "0.1.99",
+      "version": "0.1.100",
       "bin": {
-        "fit-download-bundle": "./bin/fit-download-bundle.js",
         "fit-tiktoken": "./bin/fit-tiktoken.js",
       },
       "dependencies": {
@@ -572,7 +565,7 @@
     },
     "libraries/libvector": {
       "name": "@forwardimpact/libvector",
-      "version": "0.1.98",
+      "version": "0.1.99",
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.79",
@@ -591,14 +584,11 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.2.34",
-      "bin": {
-        "fit-wiki": "./bin/fit-wiki.js",
-      },
+      "version": "0.2.35",
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.77",
-        "@forwardimpact/libharness": "^1.0.0",
+        "@forwardimpact/libharness": "^2.0.0",
         "@forwardimpact/libpreflight": "^0.1.0",
         "@forwardimpact/libtelemetry": "^0.1.47",
         "@forwardimpact/libutil": "^0.1.0",
@@ -611,9 +601,6 @@
     "libraries/libxmr": {
       "name": "@forwardimpact/libxmr",
       "version": "2.2.1",
-      "bin": {
-        "fit-xmr": "./bin/fit-xmr.js",
-      },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libpreflight": "^0.1.0",
@@ -625,7 +612,7 @@
     },
     "products/gear": {
       "name": "@forwardimpact/gear",
-      "version": "0.1.21",
+      "version": "0.1.23",
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",
@@ -649,9 +636,34 @@
         "@forwardimpact/svcvector": "^0.1.120",
       },
     },
+    "products/gemba": {
+      "name": "@forwardimpact/gemba",
+      "version": "0.1.0",
+      "bin": {
+        "gemba-harness": "./bin/gemba-harness.js",
+        "gemba-trace": "./bin/gemba-trace.js",
+        "gemba-benchmark": "./bin/gemba-benchmark.js",
+        "gemba-selfedit": "./bin/gemba-selfedit.js",
+        "gemba-wiki": "./bin/gemba-wiki.js",
+        "gemba-xmr": "./bin/gemba-xmr.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libcli": "^0.1.17",
+        "@forwardimpact/libconfig": "^0.1.85",
+        "@forwardimpact/libharness": "^2.0.0",
+        "@forwardimpact/libpreflight": "^0.1.4",
+        "@forwardimpact/libtelemetry": "^0.1.50",
+        "@forwardimpact/libutil": "^0.1.100",
+        "@forwardimpact/libwiki": "^0.2.35",
+        "@forwardimpact/libxmr": "^2.2.1",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
     "products/guide": {
       "name": "@forwardimpact/guide",
-      "version": "0.1.52",
+      "version": "0.1.53",
       "bin": {
         "fit-guide": "./bin/fit-guide.js",
       },
@@ -707,7 +719,7 @@
     },
     "products/map": {
       "name": "@forwardimpact/map",
-      "version": "0.15.63",
+      "version": "0.15.64",
       "bin": {
         "fit-map": "./bin/fit-map.js",
       },
@@ -739,7 +751,7 @@
     },
     "products/outpost": {
       "name": "@forwardimpact/outpost",
-      "version": "3.11.0",
+      "version": "3.12.0",
       "bin": {
         "fit-outpost": "./bin/fit-outpost.js",
       },
@@ -828,7 +840,7 @@
     },
     "services/embedding": {
       "name": "@forwardimpact/svcembedding",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "bin": {
         "fit-svcembedding": "./server.js",
       },
@@ -1055,7 +1067,7 @@
     },
     "services/span": {
       "name": "@forwardimpact/svcspan",
-      "version": "0.1.49",
+      "version": "0.1.50",
       "bin": {
         "fit-svcspan": "./server.js",
       },
@@ -1290,6 +1302,8 @@
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.7.2", "", { "dependencies": { "@eslint/core": "^1.2.1", "levn": "^0.4.1" } }, "sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A=="],
 
     "@forwardimpact/gear": ["@forwardimpact/gear@workspace:products/gear"],
+
+    "@forwardimpact/gemba": ["@forwardimpact/gemba@workspace:products/gemba"],
 
     "@forwardimpact/guide": ["@forwardimpact/guide@workspace:products/guide"],
 

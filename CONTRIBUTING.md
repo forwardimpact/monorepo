@@ -70,7 +70,7 @@ run by `bun run invariants` (inside `bun run check`); add rules with the
       PR URL captured in output. Exception: release engineer's direct-to-`main`
       CI fixes.
 - [ ] Outputs routed per `coordination-protocol.md`; wiki writes per
-      `memory-protocol.md` — prefer `fit-wiki` subcommands over hand-edits.
+      `memory-protocol.md` — prefer `gemba-wiki` subcommands over hand-edits.
       None of § Common mis-routings apply.
 
 </do_confirm_checklist>
@@ -79,7 +79,7 @@ run by `bun run invariants` (inside `bun run check`); add rules with the
 
 ### Monorepo layout
 
-    .claude/       # agents and skills, edited via `bunx fit-selfedit`
+    .claude/       # agents and skills, edited via `bunx gemba-selfedit`
     products/      # one directory per product — see the products list below
     libraries/
       lib*/        # shared libraries
@@ -106,6 +106,7 @@ The `products/` directory holds one directory per product:
     summit/
     outpost/
     gear/
+    gemba/
     kata/
 
 <!-- /enum -->
@@ -145,7 +146,7 @@ path from `config/config.example.json`), plus `proto/`, `src/`, `test/`,
 ### `.claude/` — agent configuration
 
 `Edit` and `Write` are denied on `.claude/**`. Use
-[`bunx fit-selfedit`](.claude/agents/x-self-improvement.md) instead.
+[`bunx gemba-selfedit`](.claude/agents/x-self-improvement.md) instead.
 
 ## Pull Request Workflow
 

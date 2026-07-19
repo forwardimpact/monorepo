@@ -140,7 +140,7 @@ describe("probeFsGlob", () => {
 
 describe("bareSlug + probeMdTable", () => {
   test("bareSlug strips prefix, backticks, and version", () => {
-    assert.equal(bareSlug("`forwardimpact/fit-wiki@v1.0.2`"), "fit-wiki");
+    assert.equal(bareSlug("`forwardimpact/gemba-wiki@v1.0.2`"), "gemba-wiki");
     assert.equal(bareSlug("forwardimpact/kata-agent"), "kata-agent");
   });
 
@@ -167,7 +167,7 @@ describe("bareSlug + probeMdTable", () => {
         "| Action | Purpose |",
         "| --- | --- |",
         "| `actions/checkout@v4` | upstream |",
-        "| `forwardimpact/fit-wiki@v1.0.2` | memory |",
+        "| `forwardimpact/gemba-wiki@v1.0.2` | memory |",
         "| `forwardimpact/kata-agent@v1.0.9` | full run |",
         "",
         "## Next",
@@ -183,7 +183,7 @@ describe("bareSlug + probeMdTable", () => {
       root,
       fsSync,
     );
-    assert.deepEqual([...set].sort(), ["fit-wiki", "kata-agent"]);
+    assert.deepEqual([...set].sort(), ["gemba-wiki", "kata-agent"]);
     rmSync(root, { recursive: true, force: true });
   });
 
@@ -247,22 +247,22 @@ describe("extractCount / extractCounts", () => {
 describe("extractList grammar", () => {
   test("brace expansion (highest precedence)", () => {
     const set = extractList(
-      "`forwardimpact/{fit-benchmark,fit-harness,kata-agent}`",
+      "`forwardimpact/{gemba-benchmark,gemba-harness,kata-agent}`",
     );
     assert.deepEqual([...set].sort(), [
-      "fit-benchmark",
-      "fit-harness",
+      "gemba-benchmark",
+      "gemba-harness",
       "kata-agent",
     ]);
   });
 
   test("bullets win over a parenthetical aside in the bullet text", () => {
     const span = [
-      "- `forwardimpact/fit-wiki` — memory commands (token, push)",
+      "- `forwardimpact/gemba-wiki` — memory commands (token, push)",
       "- `forwardimpact/kata-agent` — full run (auth, checkout, eval)",
     ].join("\n");
     const set = extractList(span);
-    assert.deepEqual([...set].sort(), ["fit-wiki", "kata-agent"]);
+    assert.deepEqual([...set].sort(), ["gemba-wiki", "kata-agent"]);
   });
 
   test("bare comma-separated code spans are a list", () => {
@@ -327,7 +327,7 @@ describe("parseConsumer", () => {
     const recs = parseConsumer(
       [
         "<!-- enum:sibling-composite-actions:count enum:sibling-composite-actions:list -->",
-        "`forwardimpact/{fit-wiki,kata-agent}` — Two of them.",
+        "`forwardimpact/{gemba-wiki,kata-agent}` — Two of them.",
         "<!-- /enum -->",
       ].join("\n"),
     );
@@ -335,7 +335,7 @@ describe("parseConsumer", () => {
     const count = recs.find((r) => r.property === "count");
     const list = recs.find((r) => r.property === "list");
     assert.equal(count.observed, 2);
-    assert.deepEqual([...list.observed].sort(), ["fit-wiki", "kata-agent"]);
+    assert.deepEqual([...list.observed].sort(), ["gemba-wiki", "kata-agent"]);
   });
 
   test("word-number count in a fenced span", () => {

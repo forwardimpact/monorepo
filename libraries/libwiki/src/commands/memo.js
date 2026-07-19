@@ -72,7 +72,7 @@ export function runMemoCommand(ctx) {
     command: "memo",
     flag: "--from",
     example:
-      'fit-wiki memo --from staff-engineer --to security-engineer --message "..."',
+      'gemba-wiki memo --from staff-engineer --to security-engineer --message "..."',
   });
   if (!resolved.ok) return resolved;
   const sender = resolved.agent;

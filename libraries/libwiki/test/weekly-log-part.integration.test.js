@@ -85,7 +85,7 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
 
   test("a lone over-cap day with ### blocks re-splits at block seams (fix path)", () => {
     // A single day-section (~600 lines, over the line cap) made of 4 `### `
-    // blocks, none of which alone exceeds the cap. `fit-wiki fix` calls this and
+    // blocks, none of which alone exceeds the cap. `gemba-wiki fix` calls this and
     // must now sub-split the day rather than report it irreducible.
     const partPath = join(wikiRoot, SOURCE);
     let day = `${PART_H1}\n## 2026-05-19\n`;

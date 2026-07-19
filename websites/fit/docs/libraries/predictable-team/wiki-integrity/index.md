@@ -5,7 +5,7 @@ description: Keep the wiki valid against a declarative rule catalogue, auto-fix 
 
 A wiki that drifts out of shape stops being reliable memory. A summary grows
 past its budget, an entry heading loses its date, an active claim outlives the
-work it described. `fit-wiki` ships a declarative audit that catches these
+work it described. `gemba-wiki` ships a declarative audit that catches these
 mechanically, and an auto-fixer that resolves most of them without you reading a
 single file.
 
@@ -18,7 +18,7 @@ memory workflow this fits into, see
 ## Prerequisites
 
 - Node.js 22+
-- A wiki already initialized in your project (run `npx fit-wiki init` if not)
+- A wiki already initialized in your project (run `npx gemba-wiki init` if not)
 
 ## Running the audit
 
@@ -27,7 +27,7 @@ of rules — line and word budgets, required headings and markers, decision
 blocks, storyboard structure, claims-table shape, and metric-row uniqueness.
 
 ```sh
-npx fit-wiki audit
+npx gemba-wiki audit
 ```
 
 When everything conforms, the audit prints a single line and exits zero:
@@ -67,7 +67,7 @@ so a clean local run is the bar a change has to clear.
 For tooling and agents, request structured output:
 
 ```sh
-npx fit-wiki audit --format json
+npx gemba-wiki audit --format json
 ```
 
 ```json
@@ -100,7 +100,7 @@ audit, resolves what it can, re-audits, and repeats until the wiki is clean or
 only human-judgment findings remain.
 
 ```sh
-npx fit-wiki fix
+npx gemba-wiki fix
 ```
 
 ```text
@@ -127,7 +127,7 @@ on judgment that a tool cannot supply. When `fix` cannot reach a clean state it
 exits non-zero and names them:
 
 ```text
-fit-wiki fix: 1 finding(s) need human judgment (not auto-fixable):
+gemba-wiki fix: 1 finding(s) need human judgment (not auto-fixable):
 wiki/old-agent-2026-W20.md
     error  wiki/old-agent-2026-W20.md matches no wiki filename grammar class  admission.not-in-grammar
 ```
@@ -148,7 +148,7 @@ Run `fix`, then run `audit` again to confirm the wiki is clean before you push.
 1. **A clean wiki passes.** After `fix`, the audit reports no problems.
 
    ```sh
-   npx fit-wiki audit
+   npx gemba-wiki audit
    ```
 
    Expected: `wiki audit passed` and exit code 0.
@@ -156,7 +156,7 @@ Run `fix`, then run `audit` again to confirm the wiki is clean before you push.
 2. **JSON confirms the pass.** Structured output agrees.
 
    ```sh
-   npx fit-wiki audit --format json
+   npx gemba-wiki audit --format json
    ```
 
    Expected: `"result": "pass"` with empty `failures` and `warnings`.
@@ -164,7 +164,7 @@ Run `fix`, then run `audit` again to confirm the wiki is clean before you push.
 3. **Fix is idempotent.** Running it on a clean wiki changes nothing.
 
    ```sh
-   npx fit-wiki fix
+   npx gemba-wiki fix
    ```
 
    Expected: `nothing to fix`.

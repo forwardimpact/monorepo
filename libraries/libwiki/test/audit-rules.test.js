@@ -78,10 +78,10 @@ describe("RULES catalogue", () => {
   test("structure hints steer to the log commands; part-budget hints drop the by-hand clause", () => {
     const hintOf = (id) => RULES.find((r) => r.id === id).hint;
     // The drift rule and the decision-block rule both name a log command.
-    assert.match(hintOf("weekly-log.heading-grammar"), /fit-wiki log/);
-    assert.match(hintOf("weekly-log-part.heading-grammar"), /fit-wiki log/);
-    assert.match(hintOf("decision-block.heading-within-5"), /fit-wiki log/);
-    // The sealed-part budget hints no longer direct a hand-split; `fit-wiki fix`
+    assert.match(hintOf("weekly-log.heading-grammar"), /gemba-wiki log/);
+    assert.match(hintOf("weekly-log-part.heading-grammar"), /gemba-wiki log/);
+    assert.match(hintOf("decision-block.heading-within-5"), /gemba-wiki log/);
+    // The sealed-part budget hints no longer direct a hand-split; `gemba-wiki fix`
     // now sub-splits at the block seam.
     for (const id of [
       "weekly-log-part.line-budget",
@@ -108,14 +108,14 @@ describe("RULES catalogue", () => {
       const hint = r.hint(subject);
       assert.equal(
         hint,
-        "run `bunx fit-wiki rotate --agent product-manager` to seal this file as a sealed part and start a fresh weekly log",
+        "run `bunx gemba-wiki rotate --agent product-manager` to seal this file as a sealed part and start a fresh weekly log",
       );
       assert.doesNotMatch(hint, /<agent>|<prefix>/);
     }
   });
 
   test("remediation classes match the annotated set", () => {
-    // `fit-wiki fix` dispatches on this field: rotate deterministically,
+    // `gemba-wiki fix` dispatches on this field: rotate deterministically,
     // flag for a human, or (default, absent) hand to the agent.
     const REMEDIATION = {
       "weekly-log.line-budget": "rotate",

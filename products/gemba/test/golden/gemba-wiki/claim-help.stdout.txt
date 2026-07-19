@@ -1,0 +1,16 @@
+gemba-wiki claim — Claim a target in MEMORY.md ## Active Claims (refuses duplicates)
+
+Usage: gemba-wiki claim [options]
+
+Options:
+  --agent=<string>       Agent name (required; no environment fallback)
+  --wiki-root=<string>   Override wiki root directory (default: wiki)
+  --today=<string>       Override today's ISO date (testing)
+  --target=<string>      What is being claimed (spec id, PR id, etc.)
+  --branch=<string>      Branch carrying the work
+  --pr=<string>          Optional PR id
+  --expires-at=<string>  Override expiry ISO date (default claim+1d)
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON

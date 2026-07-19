@@ -33,8 +33,8 @@ about HOW — do not prescribe tactics for ordinary engineering work.
 
 - Do not name this monorepo's packages, services, sites, workflows, scopes, file
   paths, or data directories. Two exceptions: invoking `fit-*` / `kata-*` /
-  `coaligned` CLIs bare (`fit-wiki boot`, `fit-xmr analyze` — never an `npx` or
-  `bunx` prefix), and the surfaces every installation carries — CLAUDE.md,
+  `coaligned` CLIs bare (`gemba-wiki boot`, `gemba-xmr analyze` — never an `npx`
+  or `bunx` prefix), and the surfaces every installation carries — CLAUDE.md,
   CONTRIBUTING.md, JTBD.md, KATA.md, `specs/`, `wiki/`, `websites/`.
 - Write placeholder forms for anything repo-specific: `websites/<site>`,
   `@<scope>/<pkg>`, `<lockfile>`, `{YYYY}`, `repos/{owner}/{repo}`.

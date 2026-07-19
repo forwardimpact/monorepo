@@ -7,7 +7,7 @@
 // sweep surfaces as a violation rather than silently escaping the closed set.
 //
 // Scope is JS/MJS source only — the AST scan cannot parse shell or YAML, so
-// shell commit paths (e.g. a `fit-wiki push` shell wrapper) are governed by the
+// shell commit paths (e.g. a `gemba-wiki push` shell wrapper) are governed by the
 // same allow-listed deferral their JS twin carries, not by this rule. CI sweeps
 // that run in a separate checkout (not the shared session checkout) are out of
 // scope by construction.

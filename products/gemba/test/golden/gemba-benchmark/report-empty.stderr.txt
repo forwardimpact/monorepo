@@ -1,0 +1,2 @@
+ERROR <TS> benchmark main <PID> MSG001 - ENOENT <normalized>
+gemba-benchmark: error: ENOENT <normalized>

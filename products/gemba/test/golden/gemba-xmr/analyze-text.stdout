@@ -1,0 +1,33 @@
+event_type: kata-shift
+XmR Analysis — test/golden/gemba-xmr/stable.csv
+
+stable_metric (count)
+
+20 points from 2026-01-01 to 2026-01-20
+Classification: stable
+
+  UPL 13.2 ┬                                                            
+           │                                                            
++1.5σ 11.8 │     ·     ·     ·     ·     ·     ·     ·     ·     ·     ·
+    μ 10.5 ┼                                                            
+ -1.5σ 9.2 │  ·     ·     ·     ·     ·     ·     ·     ·     ·     ·   
+           │                                                            
+   LPL 7.8 ┴                                                            
+
+   URL 3.3 ┬                                                            
+           │                                                            
+     R 1.0 ┼     ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·
+           │                                                            
+       0.0 ┴                                                            
+              1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20
+
+Statistic  Value
+μ          10.5 
+R          1.0  
+σ̂         0.89 
+UPL        13.2 
+LPL        7.8  
++1.5σ̂     11.8 
+-1.5σ̂     9.2  
+URL        3.3  
+Latest: 11 on 2026-01-20 (mR=1.0)

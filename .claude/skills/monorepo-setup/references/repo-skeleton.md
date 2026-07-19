@@ -81,8 +81,8 @@ if [ -f apm.yml ] || [ -f apm.lock.yaml ]; then
 fi
 
 # Sync agent memory. Non-fatal so a missing or empty wiki never blocks CI.
-fit-wiki init || echo "bootstrap: wiki init skipped" >&2
-fit-wiki pull || echo "bootstrap: wiki pull skipped" >&2
+gemba-wiki init || echo "bootstrap: wiki init skipped" >&2
+gemba-wiki pull || echo "bootstrap: wiki pull skipped" >&2
 ```
 
 Commit it executable (`chmod +x scripts/bootstrap.sh`).

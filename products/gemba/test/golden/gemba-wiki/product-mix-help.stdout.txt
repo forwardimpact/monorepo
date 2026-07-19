@@ -1,0 +1,14 @@
+gemba-wiki product-mix — Emit the product-vs-internal mix of merged PRs as a `product_share` metric row
+
+Usage: gemba-wiki product-mix [options]
+
+Options:
+  --until=<string>      Window end ISO date (default: today)
+  --since=<string>      Window start ISO date (default: until − 7 days)
+  --run=<string>        Run id recorded on the metric row (default: gh-live)
+  --repo=<string>       owner/repo slug (default: origin remote)
+  --wiki-root=<string>  Override wiki root directory (default: wiki)
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON

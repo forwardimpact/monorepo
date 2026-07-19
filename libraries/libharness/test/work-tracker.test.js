@@ -22,7 +22,7 @@ function makeRuntime(env = {}) {
   return { fs: createMockFs(), proc: { env: { ...env } } };
 }
 
-describe("--work-tracker resolution across fit-harness agent commands", () => {
+describe("--work-tracker resolution across gemba-harness agent commands", () => {
   test("run resolves --work-tracker filesystem", () => {
     const opts = parseRunOptionsEval(
       { "task-text": "do a thing", "work-tracker": "filesystem" },
@@ -142,7 +142,7 @@ describe("--work-tracker resolution across fit-harness agent commands", () => {
   });
 });
 
-describe("fit-harness handlers write LIBHARNESS_WORK_TRACKER unconditionally", () => {
+describe("gemba-harness handlers write LIBHARNESS_WORK_TRACKER unconditionally", () => {
   // The handler writes runtime.proc.env.LIBHARNESS_WORK_TRACKER = workTracker
   // immediately after the --agent-profile block. Replay that one-line write
   // against the parsed value to assert the env var lands with the right
@@ -169,7 +169,7 @@ describe("fit-harness handlers write LIBHARNESS_WORK_TRACKER unconditionally", (
   });
 });
 
-describe("fit-benchmark run resolves --work-tracker", () => {
+describe("gemba-benchmark run resolves --work-tracker", () => {
   test("resolves --work-tracker filesystem", () => {
     const opts = parseBenchmarkRunOptions({
       family: "./families/coding",
@@ -205,7 +205,7 @@ describe("fit-benchmark run resolves --work-tracker", () => {
   });
 });
 
-describe("fit-benchmark run resolves --concurrency", () => {
+describe("gemba-benchmark run resolves --concurrency", () => {
   test("defaults to a value > 1 (on by default, no flag)", () => {
     assert.ok(resolveConcurrency({}) > 1);
   });
@@ -247,7 +247,7 @@ describe("fit-benchmark run resolves --concurrency", () => {
   });
 });
 
-describe("fit-benchmark run parses --shard", () => {
+describe("gemba-benchmark run parses --shard", () => {
   test("absent shard is null (whole family)", () => {
     assert.strictEqual(parseShard(undefined), null);
     assert.strictEqual(parseShard(""), null);

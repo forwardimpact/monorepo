@@ -1,7 +1,7 @@
 # Memory Protocol
 
-Governs **agent memory and action routing** via the `fit-wiki` CLI. Each
-contract below maps to a `fit-wiki` subcommand. For non-wiki outputs see
+Governs **agent memory and action routing** via the `gemba-wiki` CLI. Each
+contract below maps to a `gemba-wiki` subcommand. For non-wiki outputs see
 [coordination-protocol.md](x-coordination-protocol.md).
 
 ## On-Boot Read Set
@@ -10,18 +10,18 @@ Tier 1 surfaces, all in `wiki/`:
 
 | Surface | Path | Reader |
 | --- | --- | --- |
-| Own summary | `wiki/{self}.md` | `fit-wiki boot` (digest) |
-| Cross-cutting memory | `wiki/MEMORY.md` | direct `Read` + `fit-wiki boot` |
-| Current storyboard | `wiki/storyboard-YYYY-MNN.md` | `fit-wiki boot` (slice) |
+| Own summary | `wiki/{self}.md` | `gemba-wiki boot` (digest) |
+| Cross-cutting memory | `wiki/MEMORY.md` | direct `Read` + `gemba-wiki boot` |
+| Current storyboard | `wiki/storyboard-YYYY-MNN.md` | `gemba-wiki boot` (slice) |
 | Own Carry surface | `wiki/{self}-carries.md` (when present) | `Read` (§ Carry Surface) |
 
-Every agent-scoped `fit-wiki` call needs `--agent <self>` (`--from <self>` for
+Every agent-scoped `gemba-wiki` call needs `--agent <self>` (`--from <self>` for
 `memo`), no env fallback; `release --expired` is the lone agent-less form.
 
 **Step 0 contract — two tool calls within the first ten:**
 
 1. `Read wiki/MEMORY.md` — the priority surface and `## Active Claims`.
-2. `Bash: fit-wiki boot --agent <self>` — JSON digest of the other Tier 1
+2. `Bash: gemba-wiki boot --agent <self>` — JSON digest of the other Tier 1
    surfaces (`--format markdown` for prose).
 
 **Standing Carries.** An own-summary may carry an optional `## Standing Carries`
@@ -39,7 +39,7 @@ actionable work wins:
    Priorities` rows where you are `Owner`; team work preempts domain work.
 2. **Storyboard items** (`storyboard_items[]`) — per-agent deliverables plus
    open experiment issues labeled `agent:{self}`, reaching the digest via a
-   **materialized** surface: `fit-wiki refresh` renders open `agent:{name}`
+   **materialized** surface: `gemba-wiki refresh` renders open `agent:{name}`
    `experiment` issues into an `agent-experiments` storyboard block (number,
    title, author, label; bodies never cross, crossing fields sanitized). `boot`
    reads it file-only and offline, so items are only as fresh as the **last
@@ -68,21 +68,22 @@ Prefer memory over re-deriving from `gh`/`git`/source; primitives cost less.
 
 ## During Each Run
 
-Append entries to the current weekly log via `fit-wiki log`:
+Append entries to the current weekly log via `gemba-wiki log`:
 
-- `fit-wiki log decision --agent <self> --surveyed ... --chosen ... --rationale
-  ... [--alternatives ...]` — required at each entry's **opening**.
-- `fit-wiki log note --agent <self> --field "Actions taken" --body "..."` —
+- `gemba-wiki log decision --agent <self> --surveyed ... --chosen ... --rationale ... [--alternatives ...]`
+  — required at each entry's **opening**.
+- `gemba-wiki log note --agent <self> --field "Actions taken" --body "..."` —
   in-run field append.
-- `fit-wiki log done --agent <self>` — close the entry.
+- `gemba-wiki log done --agent <self>` — close the entry.
 
 Rotation is implicit: when an append would exceed the 500-line cap, `log` seals
-the file as `…-Www-partN.md` and opens a fresh `…-Www.md` (`fit-wiki rotate` is
-the manual escape).
+the file as `…-Www-partN.md` and opens a fresh `…-Www.md` (`gemba-wiki rotate`
+is the manual escape).
 
-Triage the Message Inbox via `fit-wiki inbox {list|ack|promote|drop}`; `promote
---index N` writes a `## Cross-Cutting Priorities` row. Cross-agent memos use
-`fit-wiki memo`, triaged via `inbox`. Update `wiki/{agent}.md` at run end.
+Triage the Message Inbox via `gemba-wiki inbox {list|ack|promote|drop}`;
+`promote --index N` writes a `## Cross-Cutting Priorities` row. Cross-agent
+memos use `gemba-wiki memo`, triaged via `inbox`. Update `wiki/{agent}.md` at
+run end.
 
 Keep your own summary and weekly log passing `audit` before run end — it gates
 the Stop-hook: trim settled state, `rotate` a full weekly log. Whole-wiki `fix`
@@ -119,9 +120,10 @@ readers: `kata-wiki-curate` (always), `kata-session` (experiments).
 share these under separate `storyboard.*-budget` rules, which may diverge.
 
 Overflow rotates by rename (see § During Each Run); no part is ever rewritten.
-New entries go through `fit-wiki log`, which emits a conforming `## YYYY-MM-DD`
-heading and `### Decision` block (`audit` enforces both). Reserve direct edits
-for **repair**; a hand-composed entry skips append-time checks.
+New entries go through `gemba-wiki log`, which emits a conforming
+`## YYYY-MM-DD` heading and `### Decision` block (`audit` enforces both).
+Reserve direct edits for **repair**; a hand-composed entry skips append-time
+checks.
 
 ## Wiki Filename Grammar
 
@@ -152,8 +154,8 @@ together in one reviewed change — the single admission path.
 
 `wiki/MEMORY.md`'s cross-cutting priority surface, read by every boot via
 `owned_priorities`/`cross_cutting`. Schema
-`| Item | Agents | Owner | Status | Added |`, max 10 active. Writers: `fit-wiki
-inbox promote` (from a memo) and direct `kata-wiki-curate` edits.
+`| Item | Agents | Owner | Status | Added |`, max 10 active. Writers:
+`gemba-wiki inbox promote` (from a memo) and direct `kata-wiki-curate` edits.
 
 ## Active Claims
 
@@ -169,10 +171,10 @@ Schema (header verbatim from `libwiki/constants.js`):
 
 Lifecycle:
 
-- `fit-wiki claim --agent <self> --target <id> --branch <name> [--pr <id>] [--expires-at YYYY-MM-DD]`
+- `gemba-wiki claim --agent <self> --target <id> --branch <name> [--pr <id>] [--expires-at YYYY-MM-DD]`
   — defaults `expires_at = +1 day`; exit 2 on dupes.
-- `fit-wiki release --agent <self> --target <id>` — normal removal.
-- `fit-wiki release --expired` — operator cleanup; removes every expired row.
+- `gemba-wiki release --agent <self> --target <id>` — normal removal.
+- `gemba-wiki release --expired` — operator cleanup; removes every expired row.
 
 Rows settle by deletion; `MEMORY.md`'s git history preserves the prior record.
 
@@ -182,12 +184,12 @@ A claim row MUST exist before the first code write — branch creation or worktr
 entry, whichever first. The claim is atomic with its push, **the serialization
 point**:
 
-1. `fit-wiki pull`
+1. `gemba-wiki pull`
 2. Read `## Active Claims` for foreign rows on the same target. Compare on the
    coordinating artifact (issue/spec number), not slug; then read overlapping
    branch or PR.
-3. `fit-wiki claim --agent <self> --target <id> --branch <name>`
-4. `fit-wiki push`
+3. `gemba-wiki claim --agent <self> --target <id> --branch <name>`
+4. `gemba-wiki push`
 5. If the push rebases in a foreign row for the same deliverable, abort:
    `release` your row, push, and re-route.
 

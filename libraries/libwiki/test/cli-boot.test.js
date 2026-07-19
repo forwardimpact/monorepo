@@ -16,7 +16,7 @@ function seededFs() {
   });
 }
 
-describe("fit-wiki boot CLI (in-process)", () => {
+describe("gemba-wiki boot CLI (in-process)", () => {
   function run(options) {
     const harness = makeRuntime({ fsSync: seededFs() });
     const result = runBootCommand(

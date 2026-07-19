@@ -122,7 +122,7 @@ function sealMainLog(agent, { wikiRoot, today, projectRoot, fs, out, err }) {
       );
     }
   } catch (e) {
-    err(`fit-wiki fix: rotate failed for ${agent}: ${e.message}\n`);
+    err(`gemba-wiki fix: rotate failed for ${agent}: ${e.message}\n`);
   }
 }
 
@@ -164,7 +164,7 @@ function resealPart(partPath, { fs, projectRoot, out, err }) {
     }
   } catch (e) {
     err(
-      `fit-wiki fix: rebisect failed for ` +
+      `gemba-wiki fix: rebisect failed for ` +
         `${path.relative(projectRoot, partPath)}: ${e.message}\n`,
     );
   }
@@ -193,7 +193,7 @@ function rebisectOverBudgetParts(findings, deps) {
 /** Report findings that need human judgment — never auto-fixed. */
 function reportFlags(err, flagFindings, projectRoot) {
   err(
-    `fit-wiki fix: ${flagFindings.length} finding(s) need human judgment ` +
+    `gemba-wiki fix: ${flagFindings.length} finding(s) need human judgment ` +
       `(not auto-fixable):\n` +
       emitFindingsText(flagFindings, { cwd: projectRoot }),
   );
@@ -209,10 +209,10 @@ function reportFlags(err, flagFindings, projectRoot) {
 function isFatalError(result, round, err) {
   if (!result.error) return false;
   if (!result.sessionId) {
-    err(`fit-wiki fix: agent run failed: ${result.error.message}\n`);
+    err(`gemba-wiki fix: agent run failed: ${result.error.message}\n`);
     return true;
   }
-  err(`fit-wiki fix: round ${round} agent error: ${result.error.message}\n`);
+  err(`gemba-wiki fix: round ${round} agent error: ${result.error.message}\n`);
   return false;
 }
 
@@ -265,7 +265,7 @@ async function runAgentRounds(runner, agentFindings, deps) {
   }
 
   err(
-    `fit-wiki fix: ${agentFindings.length} finding(s) remain after ` +
+    `gemba-wiki fix: ${agentFindings.length} finding(s) remain after ` +
       `${MAX_ROUNDS} round(s):\n` +
       emitFindingsText(agentFindings, { cwd: projectRoot }),
   );

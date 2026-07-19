@@ -193,7 +193,7 @@ const SUMMARY_SKIP_PREFIXES = [
   "downstream-",
   "memory-protocol-",
   "kata-interview-",
-  "fit-trace-",
+  "gemba-trace-",
 ];
 
 function isSummaryCandidate(base) {

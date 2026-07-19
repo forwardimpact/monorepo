@@ -1,5 +1,5 @@
 /**
- * Multi-file orchestrator for cross-trace `fit-trace` verbs.
+ * Multi-file orchestrator for cross-trace `gemba-trace` verbs.
  *
  * Two functions centralise the load-tag-concat (`runOver`) and
  * aggregate-and-sort (`aggregate`) policies so every cross-trace verb shares

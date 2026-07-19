@@ -9,7 +9,7 @@ import { createTeeWriter } from "../tee-writer.js";
  * re-delimits each record with a newline so the TeeWriter's line splitter sees
  * the same framing the raw byte stream produced.
  *
- * Usage: fit-harness tee [output.ndjson] < trace.ndjson
+ * Usage: gemba-harness tee [output.ndjson] < trace.ndjson
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>}

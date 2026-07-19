@@ -27,7 +27,7 @@ const NON_SUMMARY_PREFIXES = [
   "downstream-",
   "memory-protocol-",
   "kata-interview-",
-  "fit-trace-",
+  "gemba-trace-",
 ];
 
 function listMdFiles(wikiRoot, fs) {

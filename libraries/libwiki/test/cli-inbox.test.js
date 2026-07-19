@@ -24,7 +24,7 @@ function run(subcommand, options, env = {}) {
   return { result, harness, fsSync };
 }
 
-describe("fit-wiki inbox CLI fail-closed contract", () => {
+describe("gemba-wiki inbox CLI fail-closed contract", () => {
   test("list with --agent succeeds", () => {
     const { result, harness } = run("list", { agent: "staff-engineer" });
     assert.equal(result.ok, true);

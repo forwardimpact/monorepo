@@ -13,7 +13,7 @@ import { createInterface } from "node:readline";
  *
  * Cost is deliberately not summed here — the caller derives it from the same
  * combined trace via `sumTraceCost`, so there is one cost path across the
- * benchmark, callback, and `fit-trace cost` consumers.
+ * benchmark, callback, and `gemba-trace cost` consumers.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} combinedPath
  * @param {string} agentPath

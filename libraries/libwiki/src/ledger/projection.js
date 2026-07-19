@@ -72,7 +72,7 @@ export function renderLedgerPage(
   const lines = [
     "# Parallel-Collision Ledger",
     "",
-    "Derived projection of the allocation-anchor record. Rebuilt by `fit-wiki ledger rebuild`; do not hand-edit identifiers here — allocate at an anchor.",
+    "Derived projection of the allocation-anchor record. Rebuilt by `gemba-wiki ledger rebuild`; do not hand-edit identifiers here — allocate at an anchor.",
     "",
     ...renderKindSections(fold),
     ...renderConflicts(fold, labelMode),

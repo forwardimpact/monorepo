@@ -87,8 +87,8 @@ if [[ -n "$origin_url" && "$origin_url" != *github.com* ]]; then
 fi
 
 wiki_status=synced
-bunx fit-wiki init || { wiki_status=skipped; echo "bootstrap: wiki init skipped (continuing)" >&2; }
-bunx fit-wiki pull || { wiki_status=skipped; echo "bootstrap: wiki pull skipped (continuing)" >&2; }
+bunx gemba-wiki init || { wiki_status=skipped; echo "bootstrap: wiki init skipped (continuing)" >&2; }
+bunx gemba-wiki pull || { wiki_status=skipped; echo "bootstrap: wiki pull skipped (continuing)" >&2; }
 
 # ── Session banner ───────────────────────────────────────────────
 # One compact summary of what is worth knowing at a glance when a session

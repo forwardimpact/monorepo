@@ -230,4 +230,38 @@ prompting; or organizational policy bans autonomous agent execution.
 
 </job>
 
+<job user="Teams Using Agents" goal="Stand Up and Operate an Agent Team">
+
+## Teams Using Agents: Stand Up and Operate an Agent Team
+
+**Trigger:** The team wants to run coding agents continuously, but the runtime —
+bootstrap, session harness, traces, memory, metrics — has no product to hire and
+must be reverse-engineered from CI plumbing.
+
+**Big Hire:** Help me stand up and operate an agent team on one platform:
+bootstrap the environment, run sessions, inspect traces, persist memory, and
+measure outcomes. → **Gemba**
+
+**Little Hire:** Help me run one agent session, read one trace, or chart one
+metric with a single command from the platform's family. → **Gemba**
+
+**Competes With:** hand-rolled CI pipelines around raw agent CLIs;
+reverse-engineering another team's setup; running agents ad hoc with no memory
+or measurement.
+
+**Forces:**
+- **Push:** Every team that wants to run agents rebuilds the same
+  bootstrap-run-remember-measure loop from CI plumbing.
+- **Pull:** One installable platform whose CLIs and CI actions are the same
+  loop, proven daily by a reference tenant.
+- **Habit:** Wiring raw agent CLIs into bespoke pipelines and losing the session
+  evidence.
+- **Anxiety:** Adopting a platform might couple the team to one vendor's agent
+  workflow.
+
+**Fired When:** the platform's loop constrains a team more than the plumbing it
+replaced; or the team stops running agents in CI.
+
+</job>
+
 <!-- END:jobs -->

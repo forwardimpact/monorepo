@@ -1,5 +1,5 @@
 /**
- * Text renderers for `fit-trace` query output.
+ * Text renderers for `gemba-trace` query output.
  *
  * One named export per renderable verb. Each renderer accepts the query result
  * plus `{multi, signatures}` and returns a string. `multi` controls

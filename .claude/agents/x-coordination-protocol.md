@@ -158,7 +158,7 @@ their behalf.
 ## Channels this protocol does NOT cover
 
 - **Wiki reads/writes** — see [memory-protocol.md](x-memory-protocol.md).
-- **Storyboard inputs** — record to metrics CSV; `fit-xmr` reads CSV.
+- **Storyboard inputs** — record to metrics CSV; `gemba-xmr` reads CSV.
 - **Sub-agent invocation** — owned by individual skill procedures.
 
 ## Citation format

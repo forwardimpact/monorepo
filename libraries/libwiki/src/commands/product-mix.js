@@ -76,7 +76,7 @@ function countByLabel(prs) {
  * Emit the product-vs-internal mix of merged PRs as a `product_share` metric
  * row. Counts PRs merged in `[since, until]` by their `product` / `internal`
  * label and appends `product_share = round(product / (product + internal) *
- * 100)` to `wiki/metrics/product-mix/<YYYY>.csv` via the `fit-xmr record` write
+ * 100)` to `wiki/metrics/product-mix/<YYYY>.csv` via the `gemba-xmr record` write
  * path. Deterministic — re-running over the same merged PRs yields the same
  * value. A window with no labeled merged PRs emits no row (avoids a 0/0 ratio).
  */
@@ -117,7 +117,7 @@ export async function runProductMixCommand(ctx) {
 
   const share = Math.round((product / total) * 100);
   const recordArgs = [
-    "fit-xmr",
+    "gemba-xmr",
     "record",
     "--skill",
     "product-mix",
@@ -142,7 +142,7 @@ export async function runProductMixCommand(ctx) {
 
   const recordResult = await runtime.subprocess.run("npx", recordArgs, { cwd });
   if (recordResult.exitCode !== 0) {
-    logger.warn("product-mix", "fit-xmr record failed");
+    logger.warn("product-mix", "gemba-xmr record failed");
   }
   return { ok: true };
 }

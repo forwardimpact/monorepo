@@ -17,7 +17,7 @@ import { makeRuntime, ctxFor } from "./helpers.js";
 
 // rotateIfOverBudget seals via fs.renameSync, which createMockFs does not
 // model — so this drives the real fs under a temp dir, like cli-fix.
-describe("fit-wiki rotate CLI (in-process)", () => {
+describe("gemba-wiki rotate CLI (in-process)", () => {
   let dir;
   let wikiRoot;
 
@@ -179,7 +179,7 @@ describe("fit-wiki rotate CLI (in-process)", () => {
 
   test("force-rotate splits a lone over-cap day at its ### block seams (force path)", () => {
     // One dated entry over the line cap, built from 4 `### ` blocks none of
-    // which alone exceeds the cap. `fit-wiki rotate` must sub-split the day.
+    // which alone exceeds the cap. `gemba-wiki rotate` must sub-split the day.
     let text = "# Staff Engineer — 2026-W21\n## 2026-05-19\n";
     for (let b = 1; b <= 4; b++) {
       text += `### Block ${b}\n`;

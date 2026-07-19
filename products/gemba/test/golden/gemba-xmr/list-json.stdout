@@ -1,0 +1,13 @@
+{
+  "source": "test/golden/gemba-xmr/stable.csv",
+  "event_type": "kata-shift",
+  "metrics": [
+    {
+      "metric": "stable_metric",
+      "unit": "count",
+      "n": 20,
+      "from": "2026-01-01",
+      "to": "2026-01-20"
+    }
+  ]
+}

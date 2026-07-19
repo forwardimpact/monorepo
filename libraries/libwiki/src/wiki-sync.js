@@ -319,7 +319,7 @@ export class WikiSync {
    *
    * The commit is always pathspec-scoped: with `paths` the scope is the
    * caller's declared write-set, and without `paths` it is the session's own
-   * dirty set (`#dirtyPaths`, the `fit-wiki push` contract under per-session
+   * dirty set (`#dirtyPaths`, the `gemba-wiki push` contract under per-session
    * checkout isolation). The whole-tree `add -A` sweep is gone, so foreign
    * content on undeclared paths is never staged and the stale fast-forward
    * eraser it carried no longer exists; the rebase runs with --autostash
@@ -465,7 +465,7 @@ export class WikiSync {
     ).changed;
     // Attribute the commit's write-set. A caller that knows
     // its narrower write-set passes `paths` (the claim/release path, scoped to
-    // MEMORY.md). The session-close `fit-wiki push` passes none and the
+    // MEMORY.md). The session-close `gemba-wiki push` passes none and the
     // write-set is the session's own dirty set, read from the working tree —
     // correct because the canonical mechanism runs it in a per-session isolated
     // checkout where the dirty set holds no foreign content. The whole-tree
@@ -638,7 +638,7 @@ export class WikiSync {
     const files = [...new Set(gate.refusals.map((r) => r.file))].join(", ");
     return new WikiPushFailure(
       PUSH_REASONS.BUDGET,
-      "fit-wiki: refusing to push — it would introduce or deepen a budget " +
+      "gemba-wiki: refusing to push — it would introduce or deepen a budget " +
         `breach in ${files} (${lead.ruleId}: ${lead.value} vs baseline ` +
         `${lead.baseline}). Trim your own content or surface the carried ` +
         "content to its owner, then re-push; your work is committed locally.",
@@ -682,7 +682,7 @@ export class WikiSync {
     });
     throw new WikiPushFailure(
       PUSH_REASONS.RESIDUE_CONFLICT,
-      "fit-wiki: refusing to push — a foreign writer's residue conflicted " +
+      "gemba-wiki: refusing to push — a foreign writer's residue conflicted " +
         "on the autostash pop; your stash is preserved at " +
         `${stashSha || "refs/stash"} (git stash list). Resolve or pop it ` +
         "from the true tip.",
@@ -736,8 +736,8 @@ export class WikiSync {
     // No-intent path: fail loud rather than discard the remote side (D2).
     throw new WikiPushFailure(
       PUSH_REASONS.CONFLICT,
-      "fit-wiki: refusing to push — rebase conflict with the remote. " +
-        "Resolve or retry from the true tip (fit-wiki pull, then push).",
+      "gemba-wiki: refusing to push — rebase conflict with the remote. " +
+        "Resolve or retry from the true tip (gemba-wiki pull, then push).",
     );
   }
 
@@ -923,7 +923,7 @@ export class WikiSync {
     if (this.#rebaseInProgress()) {
       throw new WikiPushFailure(
         PUSH_REASONS.PRECONDITION,
-        "fit-wiki: refusing to act — a rebase is in progress. Resolve or " +
+        "gemba-wiki: refusing to act — a rebase is in progress. Resolve or " +
           "abort it before retrying; your uncommitted edit is preserved.",
       );
     }
@@ -1061,7 +1061,7 @@ export class WikiSync {
       this.#reportConservation("refusal");
       throw new WikiPushFailure(
         PUSH_REASONS.CONSERVATION,
-        "fit-wiki: refusing to push — it would drop another writer's " +
+        "gemba-wiki: refusing to push — it would drop another writer's " +
           `content in ${file} that is present on the remote. Pull and ` +
           "re-apply, or declare the removal if it is deliberate.",
       );
@@ -1176,7 +1176,7 @@ export class WikiSync {
   }
 
   #sidecarPath() {
-    return path.join(this.#wikiDir, ".git", "fit-wiki-removal-intent");
+    return path.join(this.#wikiDir, ".git", "gemba-wiki-removal-intent");
   }
 
   /** Read the clone-local removal-intent sidecar (declared deliberate removals). */
@@ -1226,7 +1226,7 @@ export class WikiSync {
         reason: PUSH_REASONS.TRANSPORT,
         error: new WikiPushFailure(
           PUSH_REASONS.TRANSPORT,
-          "fit-wiki: push failed at transport (network or credentials). " +
+          "gemba-wiki: push failed at transport (network or credentials). " +
             "Your work is committed locally; retry when connectivity returns.",
         ),
       };
@@ -1240,7 +1240,7 @@ export class WikiSync {
         reason: PUSH_REASONS.TRANSPORT,
         error: new WikiPushFailure(
           PUSH_REASONS.TRANSPORT,
-          "fit-wiki: push did not land and the remote could not be observed " +
+          "gemba-wiki: push did not land and the remote could not be observed " +
             "(network or credentials). Your work is committed locally.",
         ),
       };
@@ -1250,8 +1250,8 @@ export class WikiSync {
       reason: PUSH_REASONS.REJECTED,
       error: new WikiPushFailure(
         PUSH_REASONS.REJECTED,
-        "fit-wiki: push rejected — the remote advanced. Rerun from the true " +
-          "tip (fit-wiki pull, then push).",
+        "gemba-wiki: push rejected — the remote advanced. Rerun from the true " +
+          "tip (gemba-wiki pull, then push).",
       ),
     };
   }
@@ -1309,7 +1309,7 @@ export class WikiSync {
     if ((await this.#git.headBranch({ cwd })) !== BRANCH) {
       throw new AncestryRefusal(
         "unverifiable",
-        "fit-wiki: refusing to publish — HEAD is detached, so the configured " +
+        "gemba-wiki: refusing to publish — HEAD is detached, so the configured " +
           "branch would be pushed instead of your work. Re-clone the wiki.",
       );
     }
@@ -1325,7 +1325,7 @@ export class WikiSync {
       } catch {
         throw new AncestryRefusal(
           "unverifiable",
-          "fit-wiki: refusing to publish — could not observe the remote to " +
+          "gemba-wiki: refusing to publish — could not observe the remote to " +
             "verify ancestry; the local change is not published.",
         );
       }
@@ -1345,7 +1345,7 @@ export class WikiSync {
       } catch {
         throw new AncestryRefusal(
           "unverifiable",
-          "fit-wiki: refusing to publish — could not fetch the remote branch " +
+          "gemba-wiki: refusing to publish — could not fetch the remote branch " +
             "to verify ancestry; the local change is not published.",
         );
       }
@@ -1355,7 +1355,7 @@ export class WikiSync {
     if (!(await this.#git.refExists("HEAD", { cwd }))) {
       throw new AncestryRefusal(
         "unrelated",
-        "fit-wiki: refusing to publish — HEAD is unborn but the remote " +
+        "gemba-wiki: refusing to publish — HEAD is unborn but the remote " +
           "branch exists. Re-clone the wiki.",
       );
     }
@@ -1367,7 +1367,7 @@ export class WikiSync {
     if (!this.#isShallow()) {
       throw new AncestryRefusal(
         "unrelated",
-        "fit-wiki: refusing to publish — local history is unrelated to the " +
+        "gemba-wiki: refusing to publish — local history is unrelated to the " +
           "remote branch. Re-clone the wiki.",
       );
     }
@@ -1377,14 +1377,14 @@ export class WikiSync {
     if (deepen.exitCode !== 0) {
       throw new AncestryRefusal(
         "unverifiable",
-        "fit-wiki: refusing to publish — could not deepen history to verify " +
+        "gemba-wiki: refusing to publish — could not deepen history to verify " +
           "ancestry; the local change is not published.",
       );
     }
     if (await this.#git.mergeBaseExists(REMOTE_BRANCH, "HEAD", { cwd })) return;
     throw new AncestryRefusal(
       "unrelated",
-      "fit-wiki: refusing to publish — local history is unrelated to the " +
+      "gemba-wiki: refusing to publish — local history is unrelated to the " +
         "remote branch (confirmed against full history). Re-clone the wiki.",
     );
   }

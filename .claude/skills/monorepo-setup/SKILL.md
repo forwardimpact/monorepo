@@ -131,16 +131,16 @@ steps cannot run from here — record them in an operator runbook (`SETUP.md`).
 
 Then stand up the agent team's memory: add the `.claude/settings.json` session
 hooks (SessionStart curls the pinned `fit-install.sh` release, then runs
-`scripts/bootstrap.sh`; Stop pushes the wiki), `fit-wiki init` the wiki, seed
+`scripts/bootstrap.sh`; Stop pushes the wiki), `gemba-wiki init` the wiki, seed
 the three named ledgers (`Home.md`, `MEMORY.md`, `STATUS.md`)
-empty-but-scaffolded, and `fit-wiki push`. Full sequence in
+empty-but-scaffolded, and `gemba-wiki push`. Full sequence in
 [references/wiki-init.md](references/wiki-init.md).
 
 ### Step 7: Verify the composition
 
 Run the check task: `coaligned` passes clean with the vendored packs and agent
 profiles present. Confirm `gh workflow list` shows the generated workflows, and
-that the wiki clones with its three ledgers via `fit-wiki pull`.
+that the wiki clones with its three ledgers via `gemba-wiki pull`.
 
 ## Documentation
 

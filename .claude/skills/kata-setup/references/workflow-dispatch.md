@@ -75,13 +75,13 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
-      # harness runs fit-harness off PATH and installs nothing; bootstrap
+      # harness runs gemba-harness off PATH and installs nothing; bootstrap
       # installs the CLIs the harness, cost, and wiki-push steps invoke directly.
       - uses: forwardimpact/bootstrap@{{FIT_BOOTSTRAP_REF}}
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-id: ${{ secrets.KATA_APP_ID }}
-          clis: fit-harness fit-trace fit-wiki
+          clis: gemba-harness gemba-trace gemba-wiki
       - name: Assess and Act
         id: assess
         uses: forwardimpact/harness@{{FIT_HARNESS_REF}}

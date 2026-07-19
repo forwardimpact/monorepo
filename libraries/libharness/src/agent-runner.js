@@ -1,7 +1,7 @@
 /**
  * AgentRunner — runs a single Claude Agent SDK session and emits raw
- * NDJSON events to an output stream. Building block for `fit-harness run`,
- * `fit-harness supervise`, `fit-harness facilitate`, and `fit-harness discuss`.
+ * NDJSON events to an output stream. Building block for `gemba-harness run`,
+ * `gemba-harness supervise`, `gemba-harness facilitate`, and `gemba-harness discuss`.
  *
  * Follows OO+DI: constructor injection, factory function, tests bypass factory.
  */
@@ -37,7 +37,7 @@ function modelDidWork(result) {
   return tokens > 0 || (cost ?? 0) > 0;
 }
 
-// fit-harness and kata-action run headless in CI/CD with no human to answer
+// gemba-harness and kata-action run headless in CI/CD with no human to answer
 // permission prompts. The SDK is always launched in bypass mode — not
 // overridable — so a future caller can't accidentally reduce permissions.
 const PERMISSION_MODE = "bypassPermissions";

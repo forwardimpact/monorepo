@@ -73,7 +73,7 @@ const VALID_SUMMARY = summary([
 // Agent/summary orchestration: run-vs-resume, MAX_ROUNDS, launch failure, and
 // the decision-block handoff. The deterministic rotation/re-bisection family
 // lives in cli-fix-rotation.integration.test.js.
-describe("fit-wiki fix CLI (in-process)", () => {
+describe("gemba-wiki fix CLI (in-process)", () => {
   let dir;
   let wikiRoot;
 

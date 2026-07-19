@@ -19,7 +19,7 @@ function commonContext(runtime, options) {
   const resolved = requireAgentFlag(options, {
     command: "log",
     example:
-      'fit-wiki log decision --agent staff-engineer --chosen "..." --rationale "..."',
+      'gemba-wiki log decision --agent staff-engineer --chosen "..." --rationale "..."',
   });
   if (!resolved.ok) return { error: resolved };
   const wikiRoot = resolveWikiRoot(runtime, options);

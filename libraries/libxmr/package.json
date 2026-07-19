@@ -32,14 +32,15 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./bin/fit-xmr.js": "./bin/fit-xmr.js"
-  },
-  "bin": {
-    "fit-xmr": "./bin/fit-xmr.js"
+    "./commands/analyze.js": "./src/commands/analyze.js",
+    "./commands/list.js": "./src/commands/list.js",
+    "./commands/validate.js": "./src/commands/validate.js",
+    "./commands/chart.js": "./src/commands/chart.js",
+    "./commands/summarize.js": "./src/commands/summarize.js",
+    "./commands/record.js": "./src/commands/record.js"
   },
   "files": [
     "src/**/*.js",
-    "bin/**/*.js",
     "README.md"
   ],
   "scripts": {

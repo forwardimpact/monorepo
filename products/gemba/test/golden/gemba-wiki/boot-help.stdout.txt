@@ -1,0 +1,13 @@
+gemba-wiki boot — Print on-boot digest (priorities, claims, storyboard items) as JSON
+
+Usage: gemba-wiki boot [options]
+
+Options:
+  --agent=<string>      Agent name (required; no environment fallback)
+  --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --today=<string>      Override today's ISO date (testing)
+  --format=<string>     Output format: json (default) or markdown
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON

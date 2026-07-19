@@ -32,7 +32,7 @@ function tmpNdjson(lines) {
   );
 }
 
-describe("fit-trace assert", () => {
+describe("gemba-trace assert", () => {
   describe("--exists", () => {
     test("pass when file exists", () => {
       const file = tmpFile("hello");

@@ -1,5 +1,5 @@
 /**
- * `fit-benchmark grade` — run both check-row producers (the hidden test
+ * `gemba-benchmark grade` — run both check-row producers (the hidden test
  * suite and the invariants script) against a post-run workdir directory and
  * grade the merged rows with the same derivation the benchmark runner uses.
  * No agent and no judge run, so authors validate a task's grading material

@@ -58,7 +58,7 @@ function curate(fsSync, { options = {}, responses = {} } = {}) {
   };
 }
 
-describe("fit-wiki curate", () => {
+describe("gemba-wiki curate", () => {
   test("a clean wiki routes nothing and makes no gh call", async () => {
     const { harness, subprocess, run } = curate(cleanWiki());
     const result = await run;

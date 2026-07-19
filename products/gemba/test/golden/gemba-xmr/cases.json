@@ -1,0 +1,111 @@
+[
+  {
+    "name": "help",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout",
+    "stderrFile": "help.stderr"
+  },
+  {
+    "name": "list text",
+    "args": ["list", "test/golden/gemba-xmr/stable.csv"],
+    "exitCode": 0,
+    "stdoutFile": "list-text.stdout",
+    "stderrFile": "list-text.stderr"
+  },
+  {
+    "name": "list json",
+    "args": ["list", "test/golden/gemba-xmr/stable.csv", "--format", "json"],
+    "exitCode": 0,
+    "stdoutFile": "list-json.stdout",
+    "stderrFile": "list-json.stderr"
+  },
+  {
+    "name": "validate valid",
+    "args": ["validate", "test/golden/gemba-xmr/stable.csv"],
+    "exitCode": 0,
+    "stdoutFile": "validate-valid.stdout",
+    "stderrFile": "validate-valid.stderr"
+  },
+  {
+    "name": "validate invalid",
+    "args": ["validate", "test/golden/gemba-xmr/invalid.csv"],
+    "exitCode": 1,
+    "stdoutFile": "validate-invalid.stdout",
+    "stderrFile": "validate-invalid.stderr"
+  },
+  {
+    "name": "chart text",
+    "args": [
+      "chart",
+      "test/golden/gemba-xmr/stable.csv",
+      "--metric",
+      "stable_metric"
+    ],
+    "exitCode": 0,
+    "stdoutFile": "chart-text.stdout",
+    "stderrFile": "chart-text.stderr"
+  },
+  {
+    "name": "summarize text",
+    "args": ["summarize", "test/golden/gemba-xmr/stable.csv"],
+    "exitCode": 0,
+    "stdoutFile": "summarize-text.stdout",
+    "stderrFile": "summarize-text.stderr",
+    "transform": [
+      { "pattern": "\\d{4}-\\d{2}-\\d{2}", "replacement": "YYYY-MM-DD" }
+    ]
+  },
+  {
+    "name": "summarize json",
+    "args": [
+      "summarize",
+      "test/golden/gemba-xmr/stable.csv",
+      "--format",
+      "json"
+    ],
+    "exitCode": 0,
+    "stdoutFile": "summarize-json.stdout",
+    "stderrFile": "summarize-json.stderr",
+    "transform": [
+      {
+        "pattern": "\"generated\": \"\\d{4}-\\d{2}-\\d{2}\"",
+        "replacement": "\"generated\": \"YYYY-MM-DD\""
+      }
+    ]
+  },
+  {
+    "name": "analyze text",
+    "args": ["analyze", "test/golden/gemba-xmr/stable.csv"],
+    "exitCode": 0,
+    "stdoutFile": "analyze-text.stdout",
+    "stderrFile": "analyze-text.stderr",
+    "transform": [
+      {
+        "pattern": "Generated: \\d{4}-\\d{2}-\\d{2}",
+        "replacement": "Generated: YYYY-MM-DD"
+      }
+    ]
+  },
+  {
+    "name": "analyze json",
+    "args": ["analyze", "test/golden/gemba-xmr/stable.csv", "--format", "json"],
+    "exitCode": 0,
+    "stdoutFile": "analyze-json.stdout",
+    "stderrFile": "analyze-json.stderr",
+    "transform": [
+      {
+        "pattern": "\"generated\": \"\\d{4}-\\d{2}-\\d{2}\"",
+        "replacement": "\"generated\": \"YYYY-MM-DD\""
+      }
+    ]
+  },
+  {
+    "name": "record missing skill",
+    "args": ["record", "--metric", "test", "--value", "1"],
+    "env": { "LIBHARNESS_SKILL": "" },
+    "exitCode": 2,
+    "stdoutFile": "record-no-skill.stdout",
+    "stderrFile": "record-no-skill.stderr"
+  }
+]

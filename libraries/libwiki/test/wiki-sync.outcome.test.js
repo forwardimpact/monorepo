@@ -277,7 +277,7 @@ describe("WikiSync honest-outcome contract", () => {
         diffNameStatus: "D\tother-agent-summary.md",
       },
       fsSync: createMockFs({
-        [`${WIKI}/.git/fit-wiki-removal-intent`]: "other-agent-summary.md\n",
+        [`${WIKI}/.git/gemba-wiki-removal-intent`]: "other-agent-summary.md\n",
       }),
     });
     git.showFile = async (ref) =>
