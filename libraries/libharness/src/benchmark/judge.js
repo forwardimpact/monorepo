@@ -9,7 +9,7 @@
  *   {{AGENT_INSTRUCTIONS}}  — contents of agent.task.md
  *   {{AGENT_PROFILE}}       — agent profile body (empty string if none)
  *   {{AGENT_TRACE_PATH}}    — path to agent.ndjson
- *   {{INVARIANTS_RESULT}}   — JSON invariants object
+ *   {{GRADE_RESULT}}        — JSON grade object plus the merged check rows
  *   {{SKILL_SET_HASH}}      — SHA-256 from apm.lock.yaml
  *   {{TASK_ID}}             — task name (directory under tasks/)
  *   {{TASK_DIR}}            — agent working directory path
@@ -40,22 +40,25 @@ import { sumTraceCost } from "../cost.js";
  */
 
 /**
- * Run the judge over a completed task run.
+ * Run the judge over a completed task run. The judge is a binary gate over
+ * the grade's validity, never a grade itself: `gradeResult` reaches the
+ * template as evidence, and the verdict stays pass/fail.
  * @param {import("./task-family.js").Task} task
  * @param {import("./workdir.js").Workdir} workdir
- * @param {import("./invariants.js").InvariantsResult} invariants
+ * @param {{verdict: string, gatesPass: boolean, score?: number, malformed?: number, rows: unknown[]}} gradeResult -
+ *   The normalized grade plus the merged, source-stamped check rows.
  * @param {{query: Function, model: string, judgeProfile?: string, profilesDir?: string, runtime: import("@forwardimpact/libutil/runtime").Runtime}} deps
  * @param {JudgeContext} [context]
  * @returns {Promise<JudgeVerdict>}
  */
-export async function runJudge(task, workdir, invariants, deps, context) {
+export async function runJudge(task, workdir, gradeResult, deps, context) {
   const runtime = deps.runtime;
   if (!runtime) throw new Error("runtime is required");
   const fs = runtime.fs;
   const template = await fs.readFile(task.paths.judge, "utf8");
-  const invariantsJson = JSON.stringify(invariants, null, 2);
+  const gradeJson = JSON.stringify(gradeResult, null, 2);
   const taskText = template
-    .replaceAll("{{INVARIANTS_RESULT}}", invariantsJson)
+    .replaceAll("{{GRADE_RESULT}}", gradeJson)
     .replaceAll("{{AGENT_TRACE_PATH}}", workdir.agentTracePath)
     .replaceAll("{{AGENT_INSTRUCTIONS}}", context?.agentInstructions ?? "")
     .replaceAll("{{AGENT_PROFILE}}", context?.agentProfile ?? "")

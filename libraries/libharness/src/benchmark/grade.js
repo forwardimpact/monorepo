@@ -96,6 +96,45 @@ function tallyRow(tally, row) {
 }
 
 /**
+ * Merge the two producers' rows (invariants first) and stamp each row's
+ * provenance. One composition shared by the runner and the `grade`
+ * subcommand; the stamp is display metadata, never a grading input, and
+ * non-object rows (malformed by contract) pass through verbatim.
+ * @param {unknown[]} invariantsDetails
+ * @param {unknown[]} hiddenDetails
+ * @returns {unknown[]}
+ */
+export function mergeRows(invariantsDetails, hiddenDetails) {
+  return [
+    ...invariantsDetails.map((row) => stampSource(row, "invariants")),
+    ...hiddenDetails.map((row) => stampSource(row, "tests")),
+  ];
+}
+
+function stampSource(row, source) {
+  if (row === null || typeof row !== "object" || Array.isArray(row)) {
+    return row;
+  }
+  return { ...row, source };
+}
+
+/**
+ * Project the raw `gradeChecks` return onto the record schema: `fullMarks`
+ * is derivable and dropped, `score` is omitted on binary tasks (`null`),
+ * `malformed` is omitted when clean.
+ * @param {GradeResult} raw
+ * @returns {{verdict: "pass"|"fail", gatesPass: boolean, score?: number, malformed?: number}}
+ */
+export function normalizeGrade({ verdict, gatesPass, score, malformed }) {
+  return {
+    verdict,
+    gatesPass,
+    ...(score !== null && { score }),
+    ...(malformed > 0 && { malformed }),
+  };
+}
+
+/**
  * Classify one row per the role order in the module contract.
  * @param {unknown} row
  * @returns {"gate" | "diagnostic" | "scored" | "malformed"}

@@ -37,10 +37,10 @@ async function passingAgent(_task, workdir) {
   await writeFile(workdir.supervisorTracePath, "");
   return { costUsd: 0, turns: 1, submission: "done" };
 }
-async function mockRunJudge(_task, workdir, invariants) {
+async function mockRunJudge(_task, workdir, grade) {
   await writeFile(workdir.judgeTracePath, "");
   return {
-    verdict: invariants.verdict === "pass" ? "pass" : "fail",
+    verdict: grade.verdict === "pass" ? "pass" : "fail",
     summary: "",
   };
 }

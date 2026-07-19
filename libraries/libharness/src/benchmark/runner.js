@@ -4,8 +4,10 @@
  * Phases per (task, runIndex):
  *   1. WorkdirManager.start → seed CWD + run pre-flight probe
  *   2. Supervisor session (agent + supervisor) → produce traces + submission
- *   3. Invariants.runInvariants → exit-code-driven verdict via fd-3 NDJSON
- *   4. Judge.runJudge → Conclude-driven verdict mapped to pass/fail
+ *   3. Invariants collector + hidden-test engine → merged check rows,
+ *      graded by `gradeChecks` (rows are authoritative; script exit is
+ *      grader health only)
+ *   4. Judge.runJudge → Conclude-driven binary gate mapped to pass/fail
  *   5. WorkdirManager.teardown → process-group cleanup
  *
  * Cells run with bounded in-process concurrency (`CellScheduler`); `run()`
@@ -28,6 +30,8 @@ import { installNpm as defaultInstallNpm } from "./npm-installer.js";
 import { runJudge } from "./judge.js";
 import { validateResultRecord } from "./result.js";
 import { runInvariants } from "./invariants.js";
+import { runHiddenTests } from "./hidden-tests.js";
+import { gradeChecks, mergeRows, normalizeGrade } from "./grade.js";
 import { assertJudgeProfileStaged, loadTaskFamily } from "./task-family.js";
 import { createWorkdirManager } from "./workdir.js";
 import { CellScheduler } from "./scheduler.js";
@@ -82,9 +86,13 @@ export class BenchmarkRunner {
    *   threaded into the installers, workdir manager, invariants, and judge.
    * @param {Function} [opts.runInvariants] - Test seam: replaces `runInvariants`.
    *   Same contract as `runInvariants(task, ctx, runtime)`. Internal testing only.
+   * @param {Function} [opts.runHiddenTests] - Test seam: replaces
+   *   `runHiddenTests`. Same contract as `runHiddenTests(task, ctx, runtime)`.
+   *   Internal testing only.
    * @param {Function} [opts.runJudge] - Test seam: replaces `runJudge`. Same
-   *   contract as `runJudge(task, workdir, invariants, deps)` (deps carries
-   *   `runtime`). Internal testing only.
+   *   contract as `runJudge(task, workdir, gradeResult, deps)` where
+   *   `gradeResult` is the normalized grade plus the merged, source-stamped
+   *   check `rows` (deps carries `runtime`). Internal testing only.
    * @param {Function} [opts.installApm] - Test seam: replaces `installApm`.
    *   Same contract as `installApm(family, outputDir, runtime)`. Lets tests
    *   inject a fake subprocess (or skip the install entirely) so the suite
@@ -114,6 +122,7 @@ export class BenchmarkRunner {
     // Test seams — default to the real implementations.
     runAgent,
     runInvariants: runInvariantsHook,
+    runHiddenTests: runHiddenTestsHook,
     runJudge: runJudgeHook,
     installApm: installApmHook,
     installNpm: installNpmHook,
@@ -141,6 +150,7 @@ export class BenchmarkRunner {
     this.termGraceMs = termGraceMs;
     this._runAgentHook = runAgent ?? null;
     this._runInvariantsHook = runInvariantsHook ?? runInvariants;
+    this._runHiddenTestsHook = runHiddenTestsHook ?? runHiddenTests;
     this._runJudgeHook = runJudgeHook ?? runJudge;
     this._installApmHook = installApmHook ?? defaultInstallApm;
     this._installNpmHook = installNpmHook ?? defaultInstallNpm;
@@ -291,16 +301,8 @@ export class BenchmarkRunner {
       const agentRun = await this.#runAgentSafe(task, workdir);
       const { costUsd, turns, submission, agentError } = agentRun;
       const breakdown = agentRun.costBreakdown ?? { agent: 0, supervisor: 0 };
-      const invariants = await this._runInvariantsHook(
-        task,
-        {
-          cwd: workdir.cwd,
-          port: workdir.port,
-          runDir: workdir.runDir,
-          familyDir: family.rootPath,
-        },
-        this.runtime,
-      );
+      const graded = await this.#gradeCell(family, task, workdir);
+      const { invariants, hiddenRows, engineError, rows, grade } = graded;
       let judgeVerdict = null;
       let judgeCost = 0;
       if (task.paths.judge) {
@@ -312,7 +314,7 @@ export class BenchmarkRunner {
         const judgeResult = await this._runJudgeHook(
           task,
           workdir,
-          invariants,
+          { ...grade, rows },
           {
             query: this.query,
             model: this.judgeModel,
@@ -330,16 +332,28 @@ export class BenchmarkRunner {
           summary: judgeResult.summary,
         };
       }
-      const verdict =
-        invariants.verdict === "pass" &&
-        (judgeVerdict === null || judgeVerdict.verdict === "pass")
-          ? "pass"
-          : "fail";
+      const judgePass =
+        judgeVerdict === null || judgeVerdict.verdict === "pass";
+      const verdict = grade.verdict === "pass" && judgePass ? "pass" : "fail";
+      // Gates protect the score: an unhealthy grader, a failing gate row, or
+      // a failing judge zeroes the effective score. Full marks does not — a
+      // fractional score with verdict fail is the point.
+      const scoreValid = graded.healthy && grade.gatesPass && judgePass;
       const record = {
         taskId: task.id,
         runIndex,
         verdict,
         invariants,
+        grade,
+        ...(task.tests && {
+          hiddenTests: {
+            details: hiddenRows,
+            ...(engineError && { error: engineError.message }),
+          },
+        }),
+        ...(grade.score !== undefined && {
+          score: scoreValid ? grade.score : 0,
+        }),
         submission,
         ...(judgeVerdict && { judgeVerdict }),
         costUsd: costUsd + judgeCost,
@@ -369,6 +383,36 @@ export class BenchmarkRunner {
       };
       return this.#validateOrFallback(record, resultsRecordKey(task, runIndex));
     }
+  }
+
+  /**
+   * Run both check-row producers against the post-run CWD and grade the
+   * merged rows. An engine throw is grader fault: its message lands on
+   * `hiddenTests.error` and health fails, so a crashed grader can never mint
+   * marks from rows it happened to emit first. Restoration happens inside
+   * the engine, so the judge (which runs after) sees the workdir exactly as
+   * the agent left it.
+   */
+  async #gradeCell(family, task, workdir) {
+    const ctx = {
+      cwd: workdir.cwd,
+      port: workdir.port,
+      runDir: workdir.runDir,
+      familyDir: family.rootPath,
+    };
+    const invariants = await this._runInvariantsHook(task, ctx, this.runtime);
+    let hiddenRows = [];
+    let engineError = null;
+    try {
+      const hidden = await this._runHiddenTestsHook(task, ctx, this.runtime);
+      hiddenRows = hidden.details;
+    } catch (e) {
+      engineError = e;
+    }
+    const rows = mergeRows(invariants.details, hiddenRows);
+    const healthy = invariants.exitCode === 0 && !engineError;
+    const grade = normalizeGrade(gradeChecks(rows, healthy));
+    return { invariants, hiddenRows, engineError, rows, healthy, grade };
   }
 
   /**

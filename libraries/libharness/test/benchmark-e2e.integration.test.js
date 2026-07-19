@@ -82,14 +82,14 @@ async function mockRunAgent(task, workdir) {
 
 /**
  * Mock judge: writes a supervisor-source Conclude tool_use to
- * `workdir.judgeTracePath` matching the invariants verdict.
+ * `workdir.judgeTracePath` matching the graded verdict.
  */
-async function mockRunJudge(_task, workdir, invariants) {
-  const verdict = invariants.verdict === "pass" ? "success" : "failure";
+async function mockRunJudge(_task, workdir, grade) {
+  const verdict = grade.verdict === "pass" ? "success" : "failure";
   const summary =
-    invariants.verdict === "pass"
-      ? "matches invariants; approved"
-      : "invariants failed";
+    grade.verdict === "pass"
+      ? "matches the graded checks; approved"
+      : "graded checks failed";
   const envelopes = [
     {
       source: "supervisor",
