@@ -448,3 +448,50 @@ describe("runAssertCommand emit-then-fail", () => {
     });
   });
 });
+
+describe("emit-then-fail keeps the authored role", () => {
+  function run(options, args) {
+    const out = [];
+    const ctx = {
+      options,
+      args,
+      deps: {
+        runtime: {
+          fsSync: fs,
+          proc: { stdout: { write: (s) => (out.push(s), true) } },
+        },
+      },
+    };
+    return runAssertCommand(ctx).then(() => JSON.parse(out.join("")));
+  }
+
+  test("an errored --gate evaluation still emits a gate row", async () => {
+    const row = await run(
+      { grep: "x", gate: true },
+      { "test-name": "scaffold", file: "/assert/never/deleted.md" },
+    );
+    assert.strictEqual(row.pass, false);
+    assert.strictEqual(row.gate, true);
+    assert.ok(!("weight" in row));
+  });
+
+  test("an errored --weight evaluation keeps its weight", async () => {
+    const row = await run(
+      { grep: "x", weight: "3" },
+      { "test-name": "content", file: "/assert/never/deleted.md" },
+    );
+    assert.strictEqual(row.pass, false);
+    assert.strictEqual(row.weight, 3);
+  });
+
+  test("a blank --weight is invalid and emits a role-less failing row", async () => {
+    const file = tmpFile("hello");
+    const row = await run(
+      { exists: true, weight: "  " },
+      { "test-name": "blank", file },
+    );
+    assert.strictEqual(row.pass, false);
+    assert.match(row.message, /invalid --weight/);
+    assert.ok(!("weight" in row));
+  });
+});

@@ -133,6 +133,10 @@ export const RESULT_RECORD_SCHEMA = z.union([HAPPY_RECORD, PREFLIGHT_RECORD]);
 
 export const GRADE_RECORD_SCHEMA = z.object({
   taskId: z.string().min(1),
+  // Unlike the happy result record — where `grade.score` is the raw
+  // weighted fraction and the effective (zeroed) value lives on the
+  // top-level `score` — this record has no second score field, so its
+  // `grade.score` carries the effective health/gate-zeroed value.
   grade: GRADE_SHAPE,
   invariants: INVARIANTS_SHAPE,
   hiddenTests: HIDDEN_TESTS_SHAPE.optional(),

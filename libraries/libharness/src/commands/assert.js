@@ -81,14 +81,45 @@ function applyGradingFlags(values, output) {
   }
   if (values.gate) output.gate = true;
   if (hasWeight) {
-    const weight = Number(values.weight);
-    if (!Number.isFinite(weight) || weight < 0) {
+    const weight = parseWeight(values.weight);
+    if (weight === null) {
       throw new Error(
         `assert: invalid --weight '${values.weight}' (expected a finite number ≥ 0)`,
       );
     }
     output.weight = weight;
   }
+}
+
+/**
+ * Parse a `--weight` value; null when invalid. A blank string is invalid —
+ * `Number("")` is 0, which would silently demote the check to a diagnostic.
+ * @param {string} raw
+ * @returns {number | null}
+ */
+function parseWeight(raw) {
+  if (typeof raw === "string" && raw.trim() === "") return null;
+  const weight = Number(raw);
+  return Number.isFinite(weight) && weight >= 0 ? weight : null;
+}
+
+/**
+ * The grading role an emit-then-fail row keeps: a failing check must not
+ * lose its authored role — an errored gate that demoted to a scored row
+ * would let a broken scaffold earn partial credit instead of zeroing the
+ * score. Invalid or conflicting flags yield no role (the row fails as a
+ * unit-weight scored check).
+ * @param {object} values
+ * @returns {{gate?: true, weight?: number}}
+ */
+function errorRowRole(values) {
+  const hasWeight = values.weight !== undefined;
+  if (values.gate && !hasWeight) return { gate: true };
+  if (!values.gate && hasWeight) {
+    const weight = parseWeight(values.weight);
+    if (weight !== null) return { weight };
+  }
+  return {};
 }
 
 /**
@@ -115,6 +146,7 @@ export async function runAssertCommand(ctx) {
     const row = {
       test: ctx.args["test-name"] ?? "(missing test name)",
       pass: false,
+      ...errorRowRole(ctx.options),
       message: reason,
     };
     runtime.proc.stdout.write(JSON.stringify(row) + "\n");
