@@ -102,11 +102,11 @@ interfaces connect them — and why this architecture over alternatives.
   flow, state machines, sequence diagrams.
 - **Scope-faithful.** Stay within the spec's scope. If scope should change,
   return the spec to draft rather than expanding silently.
-- **Clean break.** Per [§ Clean breaks](../../../CONTRIBUTING.md#checklists),
-  the design replaces the old path and names the components and interfaces it
-  removes — a replacement that deletes nothing is incomplete. Compat appears
-  only when the spec names it as a requirement; if a clean break can't meet
-  the spec, return the spec to `draft` rather than designing around it.
+- **Clean break.** The design replaces the old path — no shims, aliases, or
+  fallbacks — and names the components and interfaces it removes; a
+  replacement that deletes nothing is incomplete. Compat appears only when
+  the spec names it as a requirement; if a clean break can't meet the spec,
+  return the spec to `draft` rather than designing around it.
 
 **Form follows content.** Prefer tables for lists with shared structure
 (components, decisions). Prefer bullets for flat facts. Use prose only for the
