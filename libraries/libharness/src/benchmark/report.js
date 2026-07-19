@@ -15,12 +15,16 @@
 import { join } from "node:path";
 
 import { validateResultRecord } from "./result.js";
+import { mergeRows } from "./grade.js";
 
 /**
  * @typedef {object} RunDetail
  * @property {number} runIndex
  * @property {"pass"|"fail"} verdict
- * @property {{verdict: string, details: unknown[], exitCode: number}} [invariants]
+ * @property {{details: unknown[], exitCode: number}} [invariants]
+ * @property {{verdict: string, gatesPass: boolean, score?: number, malformed?: number}} [grade]
+ * @property {{details: unknown[], error?: string}} [hiddenTests]
+ * @property {number} [score] - Effective judge-zeroed score (scored tasks).
  * @property {{verdict: string, summary: string}} [judgeVerdict]
  * @property {number} costUsd
  * @property {number} turns
@@ -131,6 +135,9 @@ function buildRunDetail(r, acc) {
     runIndex: r.runIndex,
     verdict: r.verdict,
     ...(r.invariants && { invariants: r.invariants }),
+    ...(r.grade && { grade: r.grade }),
+    ...(r.hiddenTests && { hiddenTests: r.hiddenTests }),
+    ...(r.score !== undefined && { score: r.score }),
     ...(r.judgeVerdict && { judgeVerdict: r.judgeVerdict }),
     costUsd: r.costUsd ?? 0,
     turns: r.turns ?? 0,
@@ -170,7 +177,7 @@ function renderCompactReport(report, kValues) {
   const lines = [
     `${icon} **${passing}/${totals.tasks} tasks passing** | ${totals.runs} runs${totals.skipped ? ` | ${totals.skipped} skipped` : ""}`,
     "",
-    renderPassAtKTable(report, kValues),
+    renderPassAtKTable(report, kValues, hasScoredTask(report)),
     "",
     renderTotalsLine(report),
   ];
@@ -181,12 +188,18 @@ function renderCompactReport(report, kValues) {
 // Full report
 // ---------------------------------------------------------------------------
 
+/** Score columns render only when the report has at least one scored task. */
+function hasScoredTask(report) {
+  return report.tasks.some((t) => t.meanScore !== undefined);
+}
+
 function renderFullReport(report, kValues) {
+  const scored = hasScoredTask(report);
   const sections = [
     renderSummary(report),
     "## Pass@k",
     "",
-    renderPassAtKTable(report, kValues),
+    renderPassAtKTable(report, kValues, scored),
     "",
     renderTotalsLine(report),
     "",
@@ -195,7 +208,7 @@ function renderFullReport(report, kValues) {
 
   for (const task of report.tasks) {
     sections.push("");
-    sections.push(renderTaskDetail(task));
+    sections.push(renderTaskDetail(task, scored));
   }
 
   return sections.join("\n");
@@ -253,16 +266,27 @@ function renderSummary(report) {
 // Pass@k table (shared between compact and full)
 // ---------------------------------------------------------------------------
 
-function renderPassAtKTable(report, kValues) {
+function renderPassAtKTable(report, kValues, scored) {
   const header = ["taskId", "n", "c", ...kValues.map((k) => `pass@${k}`)];
+  if (scored) {
+    header.push("score", ...kValues.map((k) => `score@${k}`));
+  }
   const rows = [header, header.map(() => "---")];
   for (const t of report.tasks) {
-    rows.push([
+    const row = [
       t.taskId,
       String(t.n),
       String(t.c),
       ...kValues.map((k) => formatPassAt(t.passAtK[k])),
-    ]);
+    ];
+    if (scored) {
+      // Binary tasks render "—" in every score column.
+      row.push(
+        formatPassAt(t.meanScore ?? null),
+        ...kValues.map((k) => formatPassAt(t.scoreAtK?.[k] ?? null)),
+      );
+    }
+    rows.push(row);
   }
   return rows.map((r) => `| ${r.join(" | ")} |`).join("\n");
 }
@@ -275,7 +299,7 @@ function renderTotalsLine(report) {
 // Per-task detail
 // ---------------------------------------------------------------------------
 
-function renderTaskDetail(task) {
+function renderTaskDetail(task, scored) {
   const runs = task.runs ?? [];
   const icon = statusIcon(task.c === task.n);
   const singleRun = runs.length === 1;
@@ -286,9 +310,9 @@ function renderTaskDetail(task) {
     `${icon} **${task.c}/${task.n} runs passed**`,
   ];
 
-  lines.push("", renderRunsTable(runs));
+  lines.push("", renderRunsTable(runs, scored));
 
-  const checks = renderInvariantChecks(runs, singleRun);
+  const checks = renderChecks(runs, singleRun);
   if (checks) lines.push("", checks);
 
   const commentary = renderJudgeCommentary(runs, singleRun);
@@ -300,33 +324,32 @@ function renderTaskDetail(task) {
   return lines.join("\n");
 }
 
-function renderRunsTable(runs) {
+function renderRunsTable(runs, scored) {
   const header = [
     "Run",
     "Verdict",
-    "Invariants",
+    "Checks",
     "Judge",
+    ...(scored ? ["Score"] : []),
     "Cost",
     "Turns",
     "Duration",
   ];
   const rows = [header, header.map(() => "---")];
   for (const r of runs) {
-    const invariantsCell = r.preflightError
-      ? "preflight error"
-      : r.invariants
-        ? statusIcon(r.invariants.verdict === "pass")
-        : "—";
-    const judgeCell = r.preflightError
-      ? "—"
-      : r.judgeVerdict
-        ? statusIcon(r.judgeVerdict.verdict === "pass")
-        : "—";
+    // A preflight-failure record is the one grade-less branch in the schema.
+    const checksCell = r.grade ? statusIcon(r.grade.verdict === "pass") : "—";
+    const judgeCell = r.judgeVerdict
+      ? statusIcon(r.judgeVerdict.verdict === "pass")
+      : "—";
     rows.push([
       String(r.runIndex),
       statusIcon(r.verdict === "pass"),
-      invariantsCell,
+      checksCell,
       judgeCell,
+      ...(scored
+        ? [r.score !== undefined ? Number(r.score).toFixed(4) : "—"]
+        : []),
       formatCost(r.costUsd),
       String(r.turns),
       formatDuration(r.durationMs),
@@ -335,42 +358,53 @@ function renderRunsTable(runs) {
   return rows.map((r) => `| ${r.join(" | ")} |`).join("\n");
 }
 
-function renderInvariantChecks(runs, singleRun) {
-  const rows = collectInvariantRows(runs);
+function renderChecks(runs, singleRun) {
+  const { rows, hasHidden } = collectCheckRows(runs);
   if (!rows.length) return null;
 
-  const header = singleRun
-    ? ["Check", "Result", "Message"]
-    : ["Run", "Check", "Result", "Message"];
+  const header = singleRun ? ["Check"] : ["Run", "Check"];
+  if (hasHidden) header.push("Source");
+  header.push("Result", "Message");
   const lines = [
-    "#### Invariant Checks",
+    "#### Checks",
     "",
     `| ${header.join(" | ")} |`,
     `| ${header.map(() => "---").join(" | ")} |`,
   ];
   for (const row of rows) {
-    const cells = singleRun
-      ? [row.check, row.result, row.message]
-      : [String(row.run), row.check, row.result, row.message];
+    const cells = singleRun ? [row.check] : [String(row.run), row.check];
+    if (hasHidden) cells.push(row.source);
+    cells.push(row.result, row.message);
     lines.push(`| ${cells.join(" | ")} |`);
   }
   return lines.join("\n");
 }
 
-function collectInvariantRows(runs) {
+/**
+ * Merge both producers' check rows per run. The Source column appears only
+ * when at least one row came from a hidden test suite.
+ */
+function collectCheckRows(runs) {
   const rows = [];
+  let hasHidden = false;
   for (const r of runs) {
-    if (!r.invariants?.details?.length) continue;
-    for (const d of r.invariants.details) {
+    const merged = mergeRows(
+      r.invariants?.details ?? [],
+      r.hiddenTests?.details ?? [],
+    );
+    for (const d of merged) {
+      if (d === null || typeof d !== "object") continue;
+      if (d.source === "tests") hasHidden = true;
       rows.push({
         run: r.runIndex,
         check: escapeCell(String(d.test ?? "(unnamed)")),
+        source: d.source ?? "",
         result: statusIcon(d.pass),
         message: escapeCell(String(d.message ?? "")),
       });
     }
   }
-  return rows;
+  return { rows, hasHidden };
 }
 
 function renderJudgeCommentary(runs, singleRun) {
@@ -394,6 +428,16 @@ function renderJudgeCommentary(runs, singleRun) {
 function renderErrors(runs) {
   const lines = [];
   for (const r of runs) {
+    if (r.grade?.malformed) {
+      lines.push(
+        `- **Run ${r.runIndex}:** ⚠️ ${r.grade.malformed} malformed check row(s) — counted as failing`,
+      );
+    }
+    if (r.hiddenTests?.error) {
+      lines.push(
+        `- **Run ${r.runIndex}:** Hidden-test engine error — "${escapeCell(r.hiddenTests.error)}"`,
+      );
+    }
     if (r.agentError) {
       lines.push(
         `- **Run ${r.runIndex}:** Agent error — "${escapeCell(r.agentError.message)}" (aborted: ${r.agentError.aborted})`,

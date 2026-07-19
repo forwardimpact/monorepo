@@ -205,13 +205,13 @@ describe("renderTextReport (full report)", () => {
     assert.match(text, /## Task Details/);
     assert.match(text, /### alpha/);
     assert.match(text, /✅ \*\*1\/1 runs passed\*\*/);
-    assert.match(text, /#### Invariant Checks/);
+    assert.match(text, /#### Checks/);
     assert.match(text, /check-1 \| ✅/);
     assert.match(text, /#### Judge Commentary/);
     assert.match(text, /looks good/);
   });
 
-  test("single run omits Run column in invariant checks", async () => {
+  test("single run omits Run column in the checks table", async () => {
     const records = [
       baseRecord({
         taskId: "x",
@@ -230,14 +230,12 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    const checksSection = text
-      .split("#### Invariant Checks")[1]
-      .split("####")[0];
+    const checksSection = text.split("#### Checks")[1].split("####")[0];
     assert.match(checksSection, /\| Check \| Result \| Message \|/);
     assert.doesNotMatch(checksSection, /\| Run \|/);
   });
 
-  test("multi-run includes Run column in invariant checks", async () => {
+  test("multi-run includes Run column in the checks table", async () => {
     const records = [
       baseRecord({
         taskId: "x",
@@ -266,9 +264,7 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    const checksSection = text
-      .split("#### Invariant Checks")[1]
-      .split("####")[0];
+    const checksSection = text.split("#### Checks")[1].split("####")[0];
     assert.match(checksSection, /\| Run \| Check \| Result \| Message \|/);
   });
 
@@ -326,10 +322,11 @@ describe("renderTextReport (full report)", () => {
     const text = renderTextReport(report, [1]);
     assert.match(text, /#### Errors/);
     assert.match(text, /Preflight error — "script failed"/);
-    assert.match(text, /preflight error/);
+    // The grade-less preflight record renders "—" in the Checks column.
+    assert.match(text, /\| 0 \| ❌ \| — \| — \|/);
   });
 
-  test("omits invariant checks section when details are empty", async () => {
+  test("omits the checks section when details are empty", async () => {
     const records = [
       baseRecord({
         taskId: "x",
@@ -345,7 +342,7 @@ describe("renderTextReport (full report)", () => {
       includeRuns: true,
     });
     const text = renderTextReport(report, [1]);
-    assert.doesNotMatch(text, /#### Invariant Checks/);
+    assert.doesNotMatch(text, /#### Checks/);
   });
 });
 
@@ -376,6 +373,6 @@ describe("renderTextReport (compact report)", () => {
     assert.match(text, /❌ \*\*1\/2 tasks passing\*\* \| 2 runs/);
     assert.match(text, /\| taskId \| n \| c \| pass@1 \|/);
     assert.doesNotMatch(text, /## Task Details/);
-    assert.doesNotMatch(text, /#### Invariant Checks/);
+    assert.doesNotMatch(text, /#### Checks/);
   });
 });
