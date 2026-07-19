@@ -86,7 +86,7 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   sync on push to `main`; install with `apm install forwardimpact/<pack>`.
   Internal skills (`libs-*`, product internals) never publish.
 - **Composite actions** — co-located with their owning unit
-  (`libraries/*/actions/`, `products/*/actions/`, `.github/actions/`), published
+  (`products/*/actions/`, `.github/actions/`), published
   to siblings by subtree split. Edit in-repo
   ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 

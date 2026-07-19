@@ -36,7 +36,7 @@
     "format:md:fix": "rumdl fmt .",
     "invariants": "bunx coaligned invariants",
     "capture-cli-golden": "node scripts/capture-cli-golden.mjs",
-    "test": "find ./tests ./libraries ./products ./services -name '*.test.js' -not -path '*/node_modules/*' -not -path './libraries/libharness/test/fixtures/*' -not -path './libraries/libharness/actions/*' -not -path './libraries/libwiki/actions/*' -not -path './products/kata/actions/*' | xargs bun test --timeout=30000",
+    "test": "find ./tests ./libraries ./products ./services -name '*.test.js' -not -path '*/node_modules/*' -not -path './libraries/libharness/test/fixtures/*' -not -path './products/gemba/actions/*' -not -path './products/kata/actions/*' | xargs bun test --timeout=30000",
     "test:gate": "node scripts/test-gate.mjs",
     "test:e2e": "bunx playwright test",
     "generate": "fit-terrain build",

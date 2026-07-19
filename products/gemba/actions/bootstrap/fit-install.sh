@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the FIT environment: external CLI tools and/or pre-compiled fit-*
+# Install the FIT environment: external CLI tools and/or pre-compiled fit-*/gemba-*
 # binaries. One code path for every environment — CI (fit-bootstrap), Claude
 # session hooks, and `just install` all run this.
 #
@@ -8,10 +8,10 @@
 #
 #   Darwin  — Homebrew. Standard homebrew-core formulae (just, gh, ripgrep,
 #             gitleaks) and the forwardimpact/homebrew-tap `fit-gear` cask (which
-#             ships every fit-* CLI and coaligned). Versions track what brew and
+#             ships every fit-*/gemba-* CLI and coaligned). Versions track what brew and
 #             the tap publish. `brew --prefix`/bin is already on PATH.
 #   Linux   — pinned, SHA256-verified upstream archives into $HOME/.local. Every
-#             third-party version + SHA lives here; fit-* binaries are pinned by
+#             third-party version + SHA lives here; fit-*/gemba-* binaries are pinned by
 #             release tag (FIT_GEAR_RELEASE) and verified against a .sha256
 #             sidecar. This is the reproducible, cacheable path.
 #
@@ -33,13 +33,13 @@
 # This file is published verbatim as a GitHub Release asset (fit-install.sh),
 # so any environment can bootstrap with a single line, no repo checkout needed:
 #
-#   curl -fsSL <release-url>/fit-install.sh | bash -s -- fit-trace fit-wiki
+#   curl -fsSL <release-url>/fit-install.sh | bash -s -- gemba-trace gemba-wiki
 #
 # Usage:
 #   fit-install.sh [--paths] [NAME ...]
 #
 #   NAME   An external tool (apm, just, gh, rg, gitleaks, claude) or a gear binary —
-#          any fit-* CLI (fit-trace, fit-harness, fit-wiki, …) or coaligned.
+#          any fit-*/gemba-* CLI (gemba-trace, gemba-harness, gemba-wiki, …) or coaligned.
 #          With no NAME, installs the default dev/CI tool set.
 #   --paths  Print the cache paths the requested names manage, one per line,
 #            and exit. Consumed by fit-bootstrap to scope its actions/cache.
@@ -53,16 +53,16 @@ LIB_DIR="$PREFIX/lib"
 
 # Default dev/CI tool set, in install order — the third-party external tools
 # every job needs (scripts/bootstrap.sh runs `just`), `claude` (the Claude Code
-# native CLI the Agent SDK spawns — fit-harness/fit-benchmark point at it via
+# native CLI the Agent SDK spawns — gemba-harness/gemba-benchmark point at it via
 # pathToClaudeCodeExecutable), plus our own gear binaries: coaligned, which the
-# instruction checks run, and the five fit-* CLIs the kata-* skills invoke.
+# instruction checks run, and the gemba-*/fit-* CLIs the kata-* skills invoke.
 # This set is ALWAYS installed; any named gear CLIs add to it. The same list
 # drives `--paths`.
 DEFAULT_TOOLS=(apm just gh rg gitleaks claude coaligned
-  fit-wiki fit-xmr fit-trace fit-doc fit-terrain)
+  gemba-wiki gemba-xmr gemba-trace fit-doc fit-terrain)
 
 # ── gear binary release coordinates (Linux download path) ────────
-# Every installable gear binary (fit-trace, fit-wiki, fit-harness, …, plus
+# Every installable gear binary (gemba-trace, gemba-wiki, gemba-harness, …, plus
 # coaligned) ships in the gear bundle, so one release tag carries them all. The
 # publish step stamps the live tag into the released copy of this script; any
 # caller may override via the environment to pin a different release. On Darwin
@@ -89,7 +89,7 @@ pkg_token() {
 # above). Everything else is a gear binary, apm, or claude.
 is_system_tool() { pkg_token "$1" >/dev/null 2>&1; }
 
-# The gear cask ships ALL gear CLIs (every fit-* plus coaligned) via `binary`
+# The gear cask ships ALL gear CLIs (every fit-*/gemba-* plus coaligned) via `binary`
 # stanzas that symlink each one onto brew's bin. The fully-qualified name
 # auto-adds the tap, so no separate `brew tap` step is needed.
 GEAR_CASK="forwardimpact/homebrew-tap/fit-gear"
@@ -121,10 +121,10 @@ fit_target() {
   esac
 }
 
-# A "gear binary" is one of our own bun-compiled CLIs: every fit-* CLI plus
+# A "gear binary" is one of our own bun-compiled CLIs: every fit-*/gemba-* CLI plus
 # coaligned. On Darwin they all come from the fit-gear cask; on Linux each is a
 # bare {name}-{target} file in the gear release beside a .sha256 sidecar.
-is_gear_binary() { case "$1" in fit-*|coaligned) return 0 ;; *) return 1 ;; esac; }
+is_gear_binary() { case "$1" in fit-*|gemba-*|coaligned) return 0 ;; *) return 1 ;; esac; }
 
 # ── --paths / argument parsing ───────────────────────────────────
 # The default set is ALWAYS installed; named gear CLIs add to it (deduped). So
@@ -246,7 +246,7 @@ install_tool() {
 
 # install_gear_binary NAME
 #
-# Download a pre-compiled gear binary (any fit-* CLI or coaligned) from its
+# Download a pre-compiled gear binary (any fit-*/gemba-* CLI or coaligned) from its
 # pinned gear release, verify it against the published .sha256 sidecar, and
 # install it straight into BIN_DIR. Returns non-zero on any failure (missing
 # asset, blocked network) so the dispatcher can fall back to the npm channel.
@@ -455,8 +455,8 @@ resolve_gitleaks() {
 resolve_claude() {
   # The Claude Code native CLI the Agent SDK spawns. It ships inside the SDK's
   # platform-specific optional dependency (@anthropic-ai/claude-agent-sdk-<plat>),
-  # which `bun build --compile` does NOT embed — so a compiled fit-harness /
-  # fit-benchmark cannot self-resolve it. We install the version-matched binary
+  # which `bun build --compile` does NOT embed — so a compiled gemba-harness /
+  # gemba-benchmark cannot self-resolve it. We install the version-matched binary
   # here and libharness points the SDK at it via pathToClaudeCodeExecutable.
   #
   # VERSION MUST TRACK @anthropic-ai/claude-agent-sdk in

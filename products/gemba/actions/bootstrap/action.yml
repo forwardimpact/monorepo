@@ -35,7 +35,7 @@ inputs:
   clis:
     description: >
       Space-separated fit-* CLIs to install as pinned, pre-compiled binaries
-      onto PATH (e.g. "fit-wiki fit-harness fit-trace"). Empty installs only
+      onto PATH (e.g. "gemba-wiki gemba-harness gemba-trace"). Empty installs only
       the external tool set. The binaries are fetched and SHA-verified by the
       bundled fit-install.sh; an unsupported platform fails hard.
     required: false

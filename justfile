@@ -33,7 +33,7 @@ install-bun:
 
 # Install CLI dependencies (apm, just, gh, rg, gitleaks)
 install-deps:
-    bash .github/actions/bootstrap/fit-install.sh
+    bash products/gemba/actions/bootstrap/fit-install.sh
 
 # Bootstrap from scratch
 quickstart: env-reset env-setup synthetic data-init codegen process-fast _quickstart-seed

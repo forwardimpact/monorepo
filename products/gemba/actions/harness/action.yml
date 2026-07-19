@@ -1,5 +1,5 @@
 name: FIT Harness
-description: Run agent tasks via the fit-harness CLI using the Claude Agent SDK
+description: Run agent tasks via the gemba-harness CLI using the Claude Agent SDK
 
 inputs:
   task-file:
@@ -32,11 +32,11 @@ inputs:
     required: false
     default: "."
   agent-model:
-    description: Claude model for agents (all modes); empty uses the fit-harness CLI default
+    description: Claude model for agents (all modes); empty uses the gemba-harness CLI default
     required: false
     default: ""
   lead-model:
-    description: Claude model for the lead role (supervisor / facilitator / chair) — used by supervise, facilitate, and discuss modes; empty uses the fit-harness CLI default
+    description: Claude model for the lead role (supervisor / facilitator / chair) — used by supervise, facilitate, and discuss modes; empty uses the gemba-harness CLI default
     required: false
     default: ""
   max-turns:
@@ -119,14 +119,14 @@ runs:
         CASE="${CASE:-default}"
         # Publish the trace dir, effective case, and raw trace file path so
         # downstream steps read them without globbing /tmp. The trace-file path
-        # is kept in sync with the --output passed in "Run fit-harness".
+        # is kept in sync with the --output passed in "Run gemba-harness".
         {
           echo "trace-dir=$TRACE_DIR"
           echo "case=$CASE"
           echo "trace-file=$TRACE_DIR/trace--$CASE.raw.ndjson"
         } >> "$GITHUB_OUTPUT"
 
-    - name: Run fit-harness
+    - name: Run gemba-harness
       shell: bash
       env:
         # The agent runs in bypass-permissions mode
@@ -160,8 +160,8 @@ runs:
         TRACE_CASE: ${{ steps.setup.outputs.case }}
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
-        # fit-harness + fit-trace are pinned gear binaries on PATH, installed by
-        # forwardimpact/bootstrap (clis: fit-harness fit-trace) — assumed present.
+        # gemba-harness + gemba-trace are pinned gear binaries on PATH, installed by
+        # forwardimpact/bootstrap (clis: gemba-harness gemba-trace) — assumed present.
         #
         # Flags accepted by every mode. Empty values are forwarded verbatim: the
         # CLI treats an empty flag as unset and falls back to its own default, so
@@ -186,7 +186,7 @@ runs:
         # the mode that accepts them.
         case "$MODE" in
           supervise)
-            timeout "${TIMEOUT_MINUTES}m" fit-harness supervise \
+            timeout "${TIMEOUT_MINUTES}m" gemba-harness supervise \
               --supervisor-cwd="$SUPERVISOR_CWD" \
               --agent-cwd="$AGENT_CWD" \
               --allowed-tools="$TOOLS" \
@@ -198,7 +198,7 @@ runs:
               "${base[@]}"
             ;;
           facilitate)
-            timeout "${TIMEOUT_MINUTES}m" fit-harness facilitate \
+            timeout "${TIMEOUT_MINUTES}m" gemba-harness facilitate \
               --facilitator-cwd="." \
               --agent-profiles="$AGENT_PROFILES" \
               --agent-cwd="$AGENT_CWD" \
@@ -207,7 +207,7 @@ runs:
               "${base[@]}"
             ;;
           discuss)
-            timeout "${TIMEOUT_MINUTES}m" fit-harness discuss \
+            timeout "${TIMEOUT_MINUTES}m" gemba-harness discuss \
               --agent-cwd="$AGENT_CWD" \
               --agent-profiles="$AGENT_PROFILES" \
               --lead-profile="$LEAD_PROFILE" \
@@ -217,7 +217,7 @@ runs:
               "${base[@]}"
             ;;
           *)
-            timeout "${TIMEOUT_MINUTES}m" fit-harness run \
+            timeout "${TIMEOUT_MINUTES}m" gemba-harness run \
               --cwd="$CWD" \
               --allowed-tools="$TOOLS" \
               --agent-profile="$AGENT_PROFILE" \
@@ -234,10 +234,10 @@ runs:
         MODE: ${{ inputs.mode }}
         TRACE_CASE: ${{ steps.setup.outputs.case }}
       run: |
-        # fit-trace accepts `discuss` directly (it buckets by envelope source,
+        # gemba-trace accepts `discuss` directly (it buckets by envelope source,
         # mapping discuss onto the facilitate shape internally), so the mode is
         # forwarded as-is.
-        fit-trace split "$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson" \
+        gemba-trace split "$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson" \
           --mode="$MODE" \
           --case="$TRACE_CASE" \
           --output-dir="$TRACE_DIR"

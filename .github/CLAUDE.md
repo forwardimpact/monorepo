@@ -6,14 +6,15 @@ actions (`actions/`) they consume.
 ## Third-party actions
 
 <!-- enum:sibling-composite-actions:count -->
-Six composite actions are co-located here and published to `forwardimpact/`
-siblings, SHA-pinned (`# v1`) on `uses:` lines:
+Six composite actions live under `products/gemba/actions/` (agent-run) and
+`products/kata/actions/` (Kata), published to `forwardimpact/` siblings,
+SHA-pinned (`# v1`) on `uses:` lines:
 <!-- /enum -->
 
 | Action (`@v1`) | Purpose |
 |---|---|
 | [bootstrap](https://github.com/forwardimpact/bootstrap) | FIT CI environment: Bun, cached deps/workspace, wiki checkout, `bootstrap.sh` |
-| [wiki](https://github.com/forwardimpact/wiki) | Run a `fit-wiki` agent-memory command (push/pull/audit); mints a fresh App token first |
+| [wiki](https://github.com/forwardimpact/wiki) | Run a `gemba-wiki` agent-memory command (push/pull/audit); mints a fresh App token first |
 | [benchmark](https://github.com/forwardimpact/benchmark) | Coding-agent benchmarks |
 | [harness](https://github.com/forwardimpact/harness) | Agent task execution |
 | [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, bootstrap, harness, wiki) |
@@ -60,11 +61,12 @@ with no output.
 
 ## Environment bootstrap
 
-`.github/actions/bootstrap/fit-install.sh` is the single bootstrap path — it
-installs the external tools and pinned, SHA-verified `fit-*` binaries into
-`$HOME/.local`, beside the `bootstrap` action so it travels with the subtree
-split. `publish-binaries.yml` publishes it on `gear@v*` for `curl | bash`
-bootstrap. A blocked download falls back to `apt`/`npm` registries.
+`products/gemba/actions/bootstrap/fit-install.sh` is the single bootstrap
+path, installing external tools and pinned, SHA-verified `fit-*`/`gemba-*`
+binaries into `$HOME/.local`, beside the `bootstrap` action so it travels with
+the subtree split. `publish-binaries.yml` publishes it on `gear@v*` for
+`curl | bash` bootstrap. A blocked download falls back to `apt`/`npm`
+registries.
 
 ## Local composite actions
 

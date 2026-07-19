@@ -64,7 +64,7 @@ takes this branch.
 | `app-slug`    | No       | `""`       | GitHub App slug for git identity (e.g. `kata-agent-team`).                              |
 | `app-id`      | No       | `""`       | GitHub App ID for the git identity email.                                                |
 | `bun-version` | No       | `"1.3.11"` | Bun version to install.                                                                  |
-| `clis`        | No       | `""`       | Space-separated `fit-*` CLIs to install as pinned, SHA-verified pre-compiled binaries on `PATH` (e.g. `fit-wiki fit-harness fit-trace`). Empty installs only the external tools. |
+| `clis`        | No       | `""`       | Space-separated `fit-*` CLIs to install as pinned, SHA-verified pre-compiled binaries on `PATH` (e.g. `gemba-wiki gemba-harness gemba-trace`). Empty installs only the external tools. |
 
 ## Caching
 

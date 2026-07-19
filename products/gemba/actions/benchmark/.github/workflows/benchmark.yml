@@ -1,6 +1,6 @@
 name: FIT Benchmark (sharded)
 
-# Reusable workflow: fan a fit-benchmark family across N machines and merge the
+# Reusable workflow: fan a gemba-benchmark family across N machines and merge the
 # partial ledgers into one pass@k. A consumer gets cross-machine parallelism
 # from a single `shard-total` input. Each shard runs Layer-1 in-process
 # concurrency internally, so effective parallelism is shard-total × per-machine
@@ -108,7 +108,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       # The benchmark agent coordinates work-tracking through the filesystem
       # tracker in headless CI (no GitHub work-tracker token is minted). The
-      # agent SDK inherits this from the job env; fit-benchmark resolves it
+      # agent SDK inherits this from the job env; gemba-benchmark resolves it
       # (flag > env > github default). Carried as the reusable workflow's env
       # contract rather than a workflow input.
       LIBHARNESS_WORK_TRACKER: filesystem
@@ -116,10 +116,10 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/bootstrap@4e63230e2a638296a6c201c91f724784e1958f5c # v1.0.4
         with:
-          # fit-benchmark runs the benchmark binary straight off PATH — the
+          # gemba-benchmark runs the benchmark binary straight off PATH — the
           # action has no bunx/npx fallback. Requires a gear release that
-          # publishes fit-benchmark (gear@v0.1.8+).
-          clis: fit-benchmark
+          # publishes gemba-benchmark (gear@v0.1.8+).
+          clis: gemba-benchmark
       - uses: forwardimpact/benchmark@v1.0.2
         with:
           mode: run

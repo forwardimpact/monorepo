@@ -1,7 +1,7 @@
 # Kata Harness
 
 Run agent tasks via the
-[fit-harness](https://www.npmjs.com/package/@forwardimpact/libharness) CLI using the
+[gemba-harness](https://www.npmjs.com/package/@forwardimpact/libharness) CLI using the
 Claude Agent SDK. Handles trace capture, splitting, and artifact upload.
 
 ## Usage
@@ -108,7 +108,7 @@ orchestrator summary and POST it to an external caller:
   env:
     TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
   run: |
-    node libraries/libharness/bin/fit-harness.js callback \
+    node products/gemba/bin/gemba-harness.js callback \
       --trace-file="$TRACE_FILE" \
       --callback-url="$CALLBACK_URL" \
       --correlation-id="$CORRELATION_ID"
@@ -135,7 +135,7 @@ When `trace` is enabled, the action uploads one artifact per run named
 
 ## Trace redaction
 
-The underlying `fit-harness` CLI redacts secrets in trace artifacts before they
+The underlying `gemba-harness` CLI redacts secrets in trace artifacts before they
 reach disk. Two layers compose:
 
 - **Env-var allowlist**, defaulting to `ANTHROPIC_API_KEY`, `GH_TOKEN`,

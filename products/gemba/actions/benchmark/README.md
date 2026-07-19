@@ -1,7 +1,7 @@
 # FIT Benchmark
 
 Run coding-agent benchmarks via the
-[fit-benchmark](https://www.npmjs.com/package/@forwardimpact/libharness) CLI.
+[gemba-benchmark](https://www.npmjs.com/package/@forwardimpact/libharness) CLI.
 Handles task-family execution, pass@k reporting, and result artifact upload.
 
 ## Usage
@@ -59,10 +59,10 @@ Handles task-family execution, pass@k reporting, and result artifact upload.
 
 The action executes three steps in sequence:
 
-1. **Run** — invokes `fit-benchmark run` with the configured inputs. The run
+1. **Run** — invokes `gemba-benchmark run` with the configured inputs. The run
    step streams one JSON line per result to stdout and appends to
    `<output>/results.jsonl`.
-2. **Report** — runs `fit-benchmark report` and appends the output to
+2. **Report** — runs `gemba-benchmark report` and appends the output to
    `GITHUB_STEP_SUMMARY`. Fires even when the run step fails (`if: always()`).
    Disable with `summary: "false"`. Set `summary-detail: compact` to emit a short
    status + pass@k summary instead of the full per-task detail.
@@ -70,7 +70,7 @@ The action executes three steps in sequence:
    earlier steps fail. Disable with `upload-results: "false"`.
 
 In `mode: merge` the action skips the run/agent steps, downloads every
-`benchmark-shard-*` artifact, and runs `fit-benchmark report` recursively over
+`benchmark-shard-*` artifact, and runs `gemba-benchmark report` recursively over
 them to emit one combined pass@k summary plus a merged `results.jsonl`.
 
 ## Sharding across machines

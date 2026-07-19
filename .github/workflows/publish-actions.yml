@@ -1,9 +1,11 @@
 name: "Publish: Actions"
 
-# Outbound mirror for the five co-located composite actions. Each leg splits its
-# monorepo prefix with the pinned splitsh-lite and non-force-pushes the
-# projection to its sibling repo's main (see ./.github/actions/split-and-push).
-# Add or retire an action by editing one matrix entry.
+# Outbound mirror for the six co-located composite actions — the four agent-run
+# actions under products/gemba/actions/ and the two Kata actions under
+# products/kata/actions/. Each leg splits its monorepo prefix with the pinned
+# splitsh-lite and non-force-pushes the projection to its sibling repo's main
+# (see ./.github/actions/split-and-push). Add or retire an action by editing
+# one matrix entry.
 #
 # Fires on every push to main that touches an action source (paths-filtered),
 # plus manual dispatch. The lineage was seeded once (the only sanctioned force);
@@ -13,12 +15,12 @@ on:
   push:
     branches: [main]
     paths:
-      - "libraries/libharness/actions/harness/**"
-      - "libraries/libharness/actions/benchmark/**"
-      - "libraries/libwiki/actions/wiki/**"
+      - "products/gemba/actions/harness/**"
+      - "products/gemba/actions/benchmark/**"
+      - "products/gemba/actions/wiki/**"
+      - "products/gemba/actions/bootstrap/**"
       - "products/kata/actions/kata-agent/**"
       - "products/kata/actions/kata-interview/**"
-      - ".github/actions/bootstrap/**"
       - ".github/actions/split-and-push/**"
       - ".github/workflows/publish-actions.yml"
   workflow_dispatch:
@@ -34,17 +36,17 @@ jobs:
       fail-fast: false
       matrix:
         action:
-          - prefix: libraries/libharness/actions/harness
+          - prefix: products/gemba/actions/harness
             repo: harness
-          - prefix: libraries/libharness/actions/benchmark
+          - prefix: products/gemba/actions/benchmark
             repo: benchmark
-          - prefix: libraries/libwiki/actions/wiki
+          - prefix: products/gemba/actions/wiki
             repo: wiki
           - prefix: products/kata/actions/kata-agent
             repo: kata-agent
           - prefix: products/kata/actions/kata-interview
             repo: kata-interview
-          - prefix: .github/actions/bootstrap
+          - prefix: products/gemba/actions/bootstrap
             repo: bootstrap
     steps:
       - name: Generate installation token

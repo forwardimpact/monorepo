@@ -10,7 +10,7 @@ inputs:
   prefix:
     description: >-
       Monorepo path to split — the co-located action home, e.g.
-      libraries/libwiki/actions/wiki.
+      products/gemba/actions/wiki.
     required: true
   sibling-repo:
     description: >-

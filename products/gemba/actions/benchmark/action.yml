@@ -1,5 +1,5 @@
 name: FIT Benchmark
-description: Run coding-agent benchmarks via the fit-benchmark CLI — task-family execution, in-process concurrency, cross-machine sharding, pass@k reporting, and result upload
+description: Run coding-agent benchmarks via the gemba-benchmark CLI — task-family execution, in-process concurrency, cross-machine sharding, pass@k reporting, and result upload
 
 inputs:
   family:
@@ -14,15 +14,15 @@ inputs:
     required: false
     default: "5"
   agent-model:
-    description: Claude model for the agent-under-test; empty uses the fit-benchmark CLI default
+    description: Claude model for the agent-under-test; empty uses the gemba-benchmark CLI default
     required: false
     default: ""
   lead-model:
-    description: Claude model for the lead role; empty uses the fit-benchmark CLI default
+    description: Claude model for the lead role; empty uses the gemba-benchmark CLI default
     required: false
     default: ""
   judge-model:
-    description: Claude model for the judge; empty uses the fit-benchmark CLI default
+    description: Claude model for the judge; empty uses the gemba-benchmark CLI default
     required: false
     default: ""
   agent-profile:
@@ -40,7 +40,7 @@ inputs:
     required: false
     default: "Bash,Read,Glob,Grep,Write,Edit,Agent,TodoWrite"
   concurrency:
-    description: Max cells run concurrently in-process; empty uses the fit-benchmark CLI default (CPU-aware, on by default)
+    description: Max cells run concurrently in-process; empty uses the gemba-benchmark CLI default (CPU-aware, on by default)
     required: false
     default: ""
   shard-index:
@@ -161,8 +161,8 @@ runs:
         SHARD_TOTAL: ${{ inputs.shard-total }}
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
-        # fit-benchmark is a pinned gear binary on PATH, installed by
-        # forwardimpact/bootstrap (clis: fit-benchmark) — assumed present.
+        # gemba-benchmark is a pinned gear binary on PATH, installed by
+        # forwardimpact/bootstrap (clis: gemba-benchmark) — assumed present.
         args=()
         args+=("--family=$FAMILY")
         args+=("--output=$OUTPUT_DIR")
@@ -195,7 +195,7 @@ runs:
           args+=("--judge-profile=$JUDGE_PROFILE")
         fi
 
-        timeout "${TIMEOUT_MINUTES}m" fit-benchmark run "${args[@]}"
+        timeout "${TIMEOUT_MINUTES}m" gemba-benchmark run "${args[@]}"
 
     - name: Report (run)
       if: always() && inputs.mode == 'run' && inputs.summary == 'true'
@@ -214,7 +214,7 @@ runs:
 
         # A sharded run passes summary-detail=compact so each shard emits a
         # short status + pass@k summary; the merge job renders the full report.
-        fit-benchmark report \
+        gemba-benchmark report \
           --input="$OUTPUT_DIR" \
           --k="$K_VALUES" \
           --format="$FORMAT" \
@@ -248,7 +248,7 @@ runs:
         # report --input discovers every results.jsonl under the directory
         # recursively and unions them — one combined pass@k over all shards.
         if [ "$SUMMARY" = "true" ]; then
-          fit-benchmark report \
+          gemba-benchmark report \
             --input="$MERGE_INPUT" \
             --k="$K_VALUES" \
             --format="$FORMAT" >> "$GITHUB_STEP_SUMMARY"

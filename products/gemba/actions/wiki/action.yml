@@ -1,19 +1,19 @@
 name: FIT Wiki
 description: >
-  Run a fit-wiki agent-memory command (push, pull, audit, …) in CI. When app
+  Run a gemba-wiki agent-memory command (push, pull, audit, …) in CI. When app
   credentials are supplied, a fresh GitHub App installation token is minted for
   the command — long agent jobs outlive the one-hour token minted at job start,
   so push/pull need a freshly minted one. Run after
-  forwardimpact/bootstrap@v1 with `clis: fit-wiki`, which provides Bun, the
-  workspace, the checked-out ./wiki working copy, and the fit-wiki gear binary
+  forwardimpact/bootstrap@v1 with `clis: gemba-wiki`, which provides Bun, the
+  workspace, the checked-out ./wiki working copy, and the gemba-wiki gear binary
   on PATH. The binary is required — there is no bunx/npx fallback.
 
 inputs:
   command:
     description: >
-      fit-wiki subcommand and any arguments, e.g. "push", "pull", "audit".
-      Appended to the fit-wiki gear binary, which must be on PATH (installed by
-      fit-bootstrap with `clis: fit-wiki`).
+      gemba-wiki subcommand and any arguments, e.g. "push", "pull", "audit".
+      Appended to the gemba-wiki gear binary, which must be on PATH (installed by
+      fit-bootstrap with `clis: gemba-wiki`).
     required: true
   app-id:
     description: >
@@ -43,13 +43,13 @@ runs:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
 
-    - name: Run fit-wiki command
+    - name: Run gemba-wiki command
       shell: bash
       env:
         COMMAND: ${{ inputs.command }}
         WIKI_PATH: ${{ inputs.wiki-path }}
         GH_TOKEN: ${{ steps.token.outputs.token }}
-        # `fit-wiki fix` spawns a Claude Agent SDK run in bypass-permissions
+        # `gemba-wiki fix` spawns a Claude Agent SDK run in bypass-permissions
         # mode, which Claude Code refuses under uid 0 unless the process is
         # marked sandboxed. CI containers may run as root, so mark the run
         # sandboxed; the SDK forwards this env to the spawned process.
@@ -59,12 +59,12 @@ runs:
         # actions/checkout (in fit-bootstrap) persists the start-of-job token
         # as an http extraheader on the wiki working copy. On long jobs that
         # token is expired, and it would shadow the fresh GH_TOKEN minted
-        # above; drop it so fit-wiki's own credential helper authenticates the
+        # above; drop it so gemba-wiki's own credential helper authenticates the
         # command. Targeted unset — no `git submodule foreach`, so it never
         # touches the parent repo. Harmless for local/no-network commands.
         if [ -d "$WIKI_PATH/.git" ]; then
           git -C "$WIKI_PATH" config --unset-all 'http.https://github.com/.extraheader' 2>/dev/null || true
         fi
-        # fit-wiki is a pinned gear binary on PATH, installed by
-        # forwardimpact/bootstrap (clis: fit-wiki) — assumed present.
-        fit-wiki $COMMAND
+        # gemba-wiki is a pinned gear binary on PATH, installed by
+        # forwardimpact/bootstrap (clis: gemba-wiki) — assumed present.
+        gemba-wiki $COMMAND

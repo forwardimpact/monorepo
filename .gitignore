@@ -53,7 +53,7 @@ id_ecdsa
 
 # Wiki (cloned on demand by `gemba-wiki init`, not tracked). Anchored to the repo
 # root so it does not also swallow a co-located `wiki` action home under
-# libraries/libwiki/actions/.
+# products/gemba/actions/.
 /wiki/
 
 # Development files
