@@ -38,7 +38,7 @@ async function buildStubTask(invariantsShContent) {
 }
 
 describe("runInvariants", () => {
-  test("exit 0 → verdict 'pass' with parsed details", async () => {
+  test("exit 0 with parsed details and no verdict of its own", async () => {
     const { task, ctx } = await buildStubTask(
       `#!/bin/sh
 printf '%s\n' '{"test":"t1","pass":true}' >&"$RESULTS_FD"
@@ -47,20 +47,19 @@ exit 0
 `,
     );
     const out = await runInvariants(task, ctx, RT);
-    assert.strictEqual(out.verdict, "pass");
     assert.strictEqual(out.exitCode, 0);
+    assert.ok(!("verdict" in out), "collector carries no verdict");
     assert.strictEqual(out.details.length, 2);
     assert.deepStrictEqual(out.details[0], { test: "t1", pass: true });
   });
 
-  test("non-zero exit → verdict 'fail' with exit code surfaced", async () => {
+  test("non-zero exit surfaces the exit code (script health)", async () => {
     const { task, ctx } = await buildStubTask(
       `#!/bin/sh
 exit 3
 `,
     );
     const out = await runInvariants(task, ctx, RT);
-    assert.strictEqual(out.verdict, "fail");
     assert.strictEqual(out.exitCode, 3);
     assert.strictEqual(out.details.length, 0);
   });
@@ -76,7 +75,7 @@ exit 1
 `,
     );
     const out = await runInvariants(task, ctx, RT);
-    assert.strictEqual(out.verdict, "fail");
+    assert.strictEqual(out.exitCode, 1);
     assert.strictEqual(out.details.length, 0);
     assert.match(out.stderr, /not found/i);
   });
@@ -89,7 +88,7 @@ exit 0
 `,
     );
     const out = await runInvariants(task, ctx, RT);
-    assert.strictEqual(out.verdict, "pass");
+    assert.strictEqual(out.exitCode, 0);
     assert.ok(!("stderr" in out), "clean run should omit stderr");
   });
 
@@ -102,7 +101,7 @@ exit 0
 `,
     );
     const out = await runInvariants(task, ctx, RT);
-    assert.strictEqual(out.verdict, "pass");
+    assert.strictEqual(out.exitCode, 0);
     assert.strictEqual(out.details.length, 2);
     assert.deepStrictEqual(out.details[0], {
       raw: "not json",
@@ -120,7 +119,6 @@ exit 0
     );
     ctx.port = 12345;
     const out = await runInvariants(task, ctx, RT);
-    assert.strictEqual(out.verdict, "pass");
     assert.strictEqual(out.details[0].cwd, ctx.cwd);
     assert.strictEqual(out.details[0].port, 12345);
     assert.strictEqual(out.details[0].fd, 3);
@@ -135,7 +133,6 @@ exit 0
     );
     ctx.familyDir = "/family/root";
     const out = await runInvariants(task, ctx, RT);
-    assert.strictEqual(out.verdict, "pass");
     assert.strictEqual(out.details[0].taskId, "invariants");
     assert.strictEqual(out.details[0].taskDir, task.paths.taskDir);
     assert.strictEqual(out.details[0].hooksDir, task.paths.hooks);

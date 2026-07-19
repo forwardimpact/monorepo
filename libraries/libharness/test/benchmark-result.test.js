@@ -3,14 +3,15 @@ import assert from "node:assert";
 
 import {
   validateResultRecord,
-  validateInvariantsRecord,
+  validateGradeRecord,
 } from "../src/benchmark/result.js";
 
 const happy = {
   taskId: "pass",
   runIndex: 0,
   verdict: "pass",
-  invariants: { verdict: "pass", details: [], exitCode: 0 },
+  invariants: { details: [], exitCode: 0 },
+  grade: { verdict: "pass", gatesPass: true },
   submission: "all good",
   judgeVerdict: { verdict: "pass", summary: "approved" },
   costUsd: 0.123,
@@ -54,7 +55,8 @@ const agentFailed = {
   ...happy,
   taskId: "agent-died",
   verdict: "fail",
-  invariants: { verdict: "fail", details: [], exitCode: 1 },
+  invariants: { details: [], exitCode: 1 },
+  grade: { verdict: "fail", gatesPass: true },
   judgeVerdict: { verdict: "fail", summary: "agent died" },
   submission: "",
   agentError: { message: "iteration failed", aborted: false },
@@ -73,9 +75,57 @@ describe("validateResultRecord", () => {
     assert.doesNotThrow(() => validateResultRecord(agentFailed));
   });
 
+  test("accepts a scored record with grade.score, malformed, hiddenTests, and score", () => {
+    const scored = {
+      ...happy,
+      verdict: "fail",
+      grade: { verdict: "fail", gatesPass: true, score: 0.6, malformed: 1 },
+      hiddenTests: { details: [{ test: "t", pass: true }] },
+      score: 0.6,
+    };
+    assert.doesNotThrow(() => validateResultRecord(scored));
+  });
+
+  test("accepts an engine-crash record (hiddenTests.error)", () => {
+    const crashed = {
+      ...happy,
+      verdict: "fail",
+      grade: { verdict: "fail", gatesPass: true, score: 0.5 },
+      hiddenTests: { details: [], error: "engine exploded" },
+      score: 0,
+    };
+    assert.doesNotThrow(() => validateResultRecord(crashed));
+  });
+
   test("rejects a malformed record (missing verdict)", () => {
     const broken = { ...happy };
     delete broken.verdict;
+    assert.throws(() => validateResultRecord(broken));
+  });
+
+  test("rejects a happy record without grade (pre-break ledger record)", () => {
+    const preBreak = { ...happy };
+    delete preBreak.grade;
+    assert.throws(() => validateResultRecord(preBreak));
+  });
+
+  test("rejects score outside [0, 1]", () => {
+    assert.throws(() => validateResultRecord({ ...happy, score: 1.5 }));
+  });
+
+  test("rejects grade.malformed: 0 (omitted when clean)", () => {
+    const broken = {
+      ...happy,
+      grade: { verdict: "pass", gatesPass: true, malformed: 0 },
+    };
+    assert.throws(() => validateResultRecord(broken));
+  });
+
+  test("rejects a preflight record carrying a grade", () => {
+    const broken = {
+      ...preflightFail,
+      grade: { verdict: "fail", gatesPass: true },
+    };
     assert.throws(() => validateResultRecord(broken));
   });
 
@@ -104,18 +154,26 @@ describe("validateResultRecord", () => {
   });
 });
 
-describe("validateInvariantsRecord", () => {
-  test("accepts a valid invariants record", () => {
+describe("validateGradeRecord", () => {
+  test("accepts a valid grade record", () => {
     assert.doesNotThrow(() =>
-      validateInvariantsRecord({
+      validateGradeRecord({
         taskId: "pass",
-        invariants: { verdict: "pass", details: [], exitCode: 0 },
+        grade: { verdict: "pass", gatesPass: true, score: 1 },
+        invariants: { details: [], exitCode: 0 },
+        hiddenTests: { details: [] },
         exitCode: 0,
       }),
     );
   });
 
-  test("rejects when invariants is missing", () => {
-    assert.throws(() => validateInvariantsRecord({ taskId: "x", exitCode: 0 }));
+  test("rejects when grade is missing", () => {
+    assert.throws(() =>
+      validateGradeRecord({
+        taskId: "x",
+        invariants: { details: [], exitCode: 0 },
+        exitCode: 0,
+      }),
+    );
   });
 });
