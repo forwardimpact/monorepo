@@ -63,8 +63,10 @@ export async function runStageCommand(
         "map",
         {},
         {
-          cwd: () => stageTarget,
-          env: runtime.proc.env,
+          runtime: {
+            ...runtime,
+            proc: { ...runtime.proc, cwd: () => stageTarget },
+          },
         },
       ),
   } = {},
