@@ -1,14 +1,15 @@
 # Design 2250 — An agent-runtime platform product
 
-Packages the agent-runtime substrate as a Secondary meta-product (`PLATFORM`,
-name deferred) split cleanly out of Gear along one line: **`PLATFORM` ships what
-you run; Gear ships what you import.** The product has three concrete surfaces —
-an npm meta-package that re-exports the three runtime *libraries*, a CLI surface
-(`products/<platform>/bin/`) that owns the thin command wiring renamed to the
+Packages the agent-runtime substrate as a Secondary product (`PLATFORM`, name
+deferred) split cleanly out of Gear along one line: **`PLATFORM` ships what
+you run; Gear ships what you import.** The product consumes the three runtime
+*libraries* and exposes exactly two usage surfaces: a CLI surface
+(`products/<platform>/bin/`) owning the thin command wiring renamed to the
 product's family (`<platform>-harness`, …), and a GitHub Actions surface
-(`products/<platform>/actions/`) that owns the composite actions which execute
-the coding agent in CI. Extracting the actions and the bins leaves `libharness`,
-`libwiki`, and `libxmr` as pure libraries; `svcspan` stays in Gear.
+(`products/<platform>/actions/`) owning the composite actions that execute the
+coding agent in CI. It exports no API — the published libraries are the API
+home. The extraction leaves `libharness`, `libwiki`, and `libxmr` as pure
+libraries; `svcspan` stays in Gear.
 
 ## Restated problem
 
@@ -17,25 +18,21 @@ work and are published, but no product frames them. Their libraries are
 re-exported by Gear (a build-time primitives meta-package), their CLIs are thin
 `bin/` entry points owned by the libraries themselves, the actions that run
 them hang off library directories, and `bootstrap` is filed as CI plumbing under
-`.github/`. The design gives the substrate one product home — an npm axis, a
-CLI axis, and an actions axis — and sharpens Gear to a single audience.
+`.github/`. The design gives the substrate one product home — a CLI axis and
+an actions axis — and sharpens Gear to a single audience.
 
 ## Architecture
 
-Two meta-products, one boundary. `PLATFORM` re-exports the three runtime
-libraries, owns their CLIs, and owns the run actions; Gear keeps the build-time
-set (including `svcspan`). The libraries stay on disk under `libraries/`; only
-their `bin/` entry points and `actions/` subdirectories move into the product.
+Two products, one boundary. `PLATFORM` consumes the three runtime libraries
+and owns their usage surfaces — CLIs and run actions; Gear keeps the
+build-time set (including `svcspan`). The libraries stay on disk under
+`libraries/`, individually published as the API home; only their `bin/` entry
+points and `actions/` subdirectories move into the product.
 
 ```mermaid
 flowchart TD
-  subgraph PLATFORM["products/&lt;platform&gt; (new, meta-package)"]
+  subgraph PLATFORM["products/&lt;platform&gt; (new: usage surfaces only, no API)"]
     direction TB
-    subgraph NPM["npm axis: re-exported libraries"]
-      P1[libharness]
-      P3[libwiki]
-      P4[libxmr]
-    end
     subgraph CLI["cli axis: products/&lt;platform&gt;/bin/"]
       C1["&lt;platform&gt;-harness / -trace / -benchmark / -selfedit"]
       C2["&lt;platform&gt;-wiki · &lt;platform&gt;-xmr"]
@@ -47,7 +44,7 @@ flowchart TD
       A3[benchmark — measure]
     end
   end
-  subgraph LIBS["libraries/ (now pure: no bin/, no actions/)"]
+  subgraph LIBS["libraries/ (pure: no bin/, no actions/; published, API home)"]
     L1[libharness]
     L2[libwiki]
     L3[libxmr]
@@ -60,6 +57,7 @@ flowchart TD
   LIBS -. bins extracted to .-> CLI
   LIBS -. actions extracted to .-> ACT
   CLI -- imports handlers from --> LIBS
+  API[API consumers] -- import directly --> LIBS
   KATA[Kata: reference tenant] -.runs on.-> PLATFORM
 ```
 
@@ -72,7 +70,7 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
 
 | Component | Where | Responsibility |
 | --- | --- | --- |
-| Platform package | `products/<platform>/package.json` (new) | Meta-package: `description`, one Big Hire `jobs` entry (`user` `Teams Using Agents`), `dependencies` = the three runtime libraries, `bin` = the six renamed entry points. No `src/`, and — like Gear — no hand-authored `README.md`. |
+| Platform package | `products/<platform>/package.json` (new) | Consumer package: `description`, one Big Hire `jobs` entry (`user` `Teams Using Agents`), `bin` = the six renamed entry points, `dependencies` = the three runtime libraries plus the wiring foundation the bins import. No `src/`, no `exports`, no `main`, and — like Gear — no hand-authored `README.md`. |
 | Platform bins | `products/<platform>/bin/<platform>-*.js` (moved) | The six thin entry points relocated from `libraries/libharness/bin/` (harness, trace, benchmark, selfedit), `libraries/libwiki/bin/` (wiki), and `libraries/libxmr/bin/` (xmr), renamed to the product family. Each keeps its definition-and-dispatch wiring; its `../src/…` imports become package imports. |
 | Platform actions | `products/<platform>/actions/{bootstrap,harness,wiki,benchmark}/` (moved) | The composite actions that execute the runtime in CI, relocated from `.github/actions/bootstrap/`, `libraries/libharness/actions/{harness,benchmark}/`, and `libraries/libwiki/actions/wiki/`. |
 | Overview page | `websites/fit/<platform>/index.md` (new) | The "stand up and operate an agent team" story by persona; presents the CLIs and the CI actions as one loop; Getting Started names the bring-up layer. `layout: product`. |
@@ -99,10 +97,9 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
   adds export entries for the command modules its former bins imported from
   `../src/`.
 - **The rename flows through the launcher invariant** — the public-CLI set is
-  computed (invoked names in docs/skills/actions ∩ workspace bins), so
-  renaming the bins recomputes the launcher list mechanically: new-name
-  launchers appear, and a left-behind `fit-*` launcher fails CI. No alias
-  survives by construction.
+  computed (invoked names in docs/skills/actions ∩ workspace bins), so the
+  rename recomputes the launcher list mechanically: new-name launchers appear,
+  a left-behind `fit-*` launcher fails CI, and no alias survives.
 - **`svcspan` is import-time, not run-time** — `fit-trace` reads NDJSON emitted
   by `fit-harness`; it has no dependency on `svcspan`. `svcspan` is an OTel
   gRPC ingestion service whose product consumer is Guide. It therefore stays in
@@ -114,11 +111,13 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
   filter only; the `harness` sibling repo and every downstream
   `uses: forwardimpact/harness@v…` pin are untouched. Kata's vendored
   `action.yml` files pin the sibling repos by name, so they are unaffected too.
-- **Package-granular npm split** — library membership is expressed only in each
-  meta-product's `dependencies`, and a whole library moves as a unit. All four
-  `libharness` command surfaces (harness, trace, benchmark, selfedit) become
-  product bins, which is correct — benchmarking and self-edit are part of
-  proving and running an agent team, not build-time primitives.
+- **Consumer, not re-exporter** — installing the product yields commands,
+  never APIs: the package declares `bin` and `dependencies` but no `exports`
+  and no `main`, so nothing under it is importable. The runtime libraries stay
+  individually published as the API home, and the product never appears in an
+  import statement. All four `libharness` command surfaces (harness, trace,
+  benchmark, selfedit) become product bins — benchmarking and self-edit are
+  part of proving and running an agent team, not build-time primitives.
 - **Shared foundation is out of scope** — `libtelemetry`, `libutil`, and similar
   cross-cutting packages are not in the runtime subset. Wherever Gear re-exports
   them today is left as-is; `PLATFORM` does not claim them.
@@ -130,11 +129,12 @@ action) → **run** (harness action / `<platform>-harness`) → **see**
 
 | Decision | Choice | Rejected alternative |
 | --- | --- | --- |
-| Product tier | Secondary meta-package mirroring Gear/Kata (re-export list + JTBD + page + skill) — plus per-capability bins under `bin/` and an actions surface like `products/kata/actions/`. | A Primary product with one umbrella `fit-<platform>` CLI — collapses four distinct command surfaces into subcommands and invents an aggregate with nothing of its own to do. |
+| Product tier | Secondary product shipping usage surfaces only: JTBD + page + skill, per-capability bins under `bin/`, and an actions surface like `products/kata/actions/`. | A Primary product with one umbrella `fit-<platform>` CLI — collapses four distinct command surfaces into subcommands and invents an aggregate with nothing of its own to do. |
+| npm relationship | The product consumes the libraries as ordinary `dependencies` and exposes only bins; APIs are imported from the published libraries directly. | Re-export the libraries Gear-style — makes the product a second import channel and re-creates the meta-package grab-bag one level down, blurring the UI/implementation boundary the split draws. |
 | CLI ownership | The product owns the thin bin wiring; libraries keep handlers and components and drop `bin` entirely. | Leave the bins in the libraries and only re-export them — keeps four freestanding `fit-*` brands and leaves libraries shipping user interface, the same mis-filing the actions move fixes. |
 | Command family | Rename the bins to `<platform>-<capability>`, resolved with the product name. | Keep the `fit-harness`… names under the product — preserves the incoherent freestanding brands and hides the product from the command line, forfeiting the coherence the split buys. |
 | Rename compat | Clean break: no alias bins; launchers recomputed; every internal invoker repointed in the same change. | Alias bins for a transition window — repo policy is clean break (cf. the `svcspan` rename), and aliases would keep the old names alive in the public-CLI invariant. |
-| Split mechanism | Clean break: runtime library deps move out of Gear into `PLATFORM`; run actions move out of the library dirs into `PLATFORM`; no cross-listing. | Cross-list the runtime packages in both products — leaves two products claiming the same capability, the exact blur being removed (spec SC6). |
+| Split mechanism | Clean break: Gear drops the runtime library deps; bins and run actions move into `PLATFORM`; the runtime subset leaves the meta-package layer entirely. | Cross-list the runtime packages in Gear and the product — leaves two import channels for the same capability, the exact blur being removed (spec SC6). |
 | Boundary line | `run` vs `import` (operate a team vs build an agent), applied to both libraries and actions. | Split by layer (libs vs services) or by "agent-ish vs not" — neither yields a clean single-audience cut. |
 | `svcspan` | Excluded from `PLATFORM`; stays a Gear build-time dep (it is Guide's OTel collector, not `fit-trace`'s source). | Include `svcspan` on the strength of its blurb ("prove agent changes") — but `fit-trace` reads local NDJSON and never touches `svcspan`, so it fails the run predicate. |
 | Run-action home | Move `bootstrap`/`harness`/`benchmark`/`wiki` into `products/<platform>/actions/`; repoint the split `prefix:` only. | Leave them under `.github/` and the library dirs and only narrate them — keeps the run surface scattered and leaves `libharness`/`libwiki` shipping CI actions. |
@@ -154,11 +154,10 @@ sequenceDiagram
   participant Gear as products/gear
   participant CI as publish-actions.yml
   participant Ctx as context command + hand edits
-  Author->>Plat: add package.json (deps = 3 runtime libs, bin = 6 CLIs), page, skill
+  Author->>Plat: add package.json (bin = 6 CLIs; deps consume the runtime libs; no exports), page, skill
   Author->>Libs: git mv bin/* into products/<platform>/bin/ as <platform>-*; drop bin fields; export command modules
   Author->>Libs: git mv actions/* into products/<platform>/actions/ (+ .github bootstrap)
-  Author->>CI: repoint matrix prefix + paths (repo names unchanged)
-  Author->>CI: repoint installer bundle + action steps to renamed CLIs; recompute launchers
+  Author->>CI: repoint matrix prefix + paths (repo names unchanged); installer bundle + action steps to renamed CLIs; recompute launchers
   Author->>Gear: remove 3 runtime libs; drop operate-time clause; keep svcspan
   Author->>Plat: name Kata as reference tenant (KATA.md + page)
   Author->>Ctx: run context:fix (regenerates JTBD + catalog blocks)
@@ -170,12 +169,12 @@ sequenceDiagram
 
 | # | Met by |
 | --- | --- |
-| 1 | Platform `package.json` deps = the three runtime libraries, nothing else (no `svcspan`). |
+| 1 | Platform `package.json` deps = the runtime libraries + wiring foundation only, no build-time package, no `svcspan`; no `exports`/`main`. |
 | 2 | Platform `bin` map = the six `<platform>-*` entry points under `products/<platform>/bin/`; no product `src/`. |
 | 3 | Library `bin` fields and `bin/` dirs removed; handlers stay under each library's `src/`, reached via package exports. |
 | 4 | Installer bundle, action steps, skills, and docs invoke the new names; launcher set recomputed by the `public-cli-set` invariant. |
 | 5 | Gear `package.json` edit removes all three runtime libraries. |
-| 6 | Clean-break split (no cross-listing) → each runtime library in exactly one product. |
+| 6 | Gear edit + no product `exports` → no meta-product re-exports the runtime subset; the libraries are the API home. |
 | 7 | `svcspan` stays a Gear dep, absent from the platform deps. |
 | 8 | Gear `jobs.littleHire` edit removes the operate-time clause. |
 | 9 | `git mv` of the four action sources into `products/<platform>/actions/`; `libharness`/`libwiki` `actions/` and `.github/actions/bootstrap/` removed. |
@@ -190,10 +189,11 @@ sequenceDiagram
 
 The change adds one product and edits one, and regroups the run surface — bins
 and actions — under the product. Gear loses the three runtime library deps
-outright — no shim, no deprecation alias — and keeps `svcspan`. The six old
-`fit-*` command names are removed, not aliased; the launcher set follows by
-recomputation. No library component moves on disk (only the `bin/` entry
-points and `actions/` subdirectories do), the sibling action repos keep their
+outright — no shim, no deprecation alias — and keeps `svcspan`; afterward no
+product re-exports the runtime subset, so the published libraries are the API
+home. The six old `fit-*` names are removed, not aliased; the launcher set
+follows by recomputation. No library component moves on disk (only the bins
+and `actions/` subdirectories do), the sibling action repos keep their
 names and pins, and `products/kata/` gains no code. The product name,
 `fit-terrain`'s home, and the `svcpathway` mis-filing stay out of scope per
 the spec, each recorded as a deferred decision rather than resolved.

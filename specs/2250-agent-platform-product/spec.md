@@ -74,20 +74,16 @@ when the substrate is in fact generic and swappable.
 
 ## Proposal
 
-Define a new Secondary meta-product, `PLATFORM`, whose single job is to
+Define a new Secondary product, `PLATFORM`, whose single job is to
 **stand up and operate an agent team**, and split the agent-runtime substrate
 out of Gear (and out of the library directories) into it along one boundary:
 **`PLATFORM` ships what you run; Gear ships what you import.**
 Name Kata as the platform's reference implementation.
 
-`PLATFORM` starts from the meta-package shape Gear and Kata establish — a
-`package.json` with a JTBD and no `src/` of its own — but unlike them it owns
-its user interface. Its concrete surface is three-sided:
+`PLATFORM` is a **consumer** of the runtime libraries, not a re-exporter: it
+depends on them and turns them into usage surfaces. It exposes exactly two —
+the CLIs and the GitHub Actions — and no importable API of its own:
 
-- **An npm axis.** It re-exports the three runtime *libraries* that implement
-  the loop: `@forwardimpact/libharness`, `@forwardimpact/libwiki`, and
-  `@forwardimpact/libxmr`. Components, classes, and command handlers stay in
-  these libraries.
 - **A CLI axis.** It owns the thin CLI wiring. The `bin/` entry points that
   today live inside the libraries move to `products/<platform>/bin/` and are
   renamed to the product's command family: `<platform>-harness`,
@@ -97,13 +93,21 @@ its user interface. Its concrete surface is three-sided:
   parses argv and dispatches to command handlers, now imported from the
   library packages instead of a sibling `src/`. The libraries stop declaring
   `bin` entries: the product owns the interface, the libraries own the
-  implementation.
+  implementation. The npm package `@forwardimpact/<platform>` is the install
+  vehicle for this axis: a `bin` map and `dependencies`, no `exports`, no
+  `main`, nothing importable.
 - **A GitHub Actions axis.** It owns `products/<platform>/actions/` — the
   composite actions that execute the coding-agent runtime in CI: `bootstrap`
   (stand up), `harness` (run), `wiki` (remember), and `benchmark` (measure).
   These move here from `.github/actions/` and the two library directories,
   mirroring the precedent that `products/kata/actions/` already sets for a
   product owning its actions.
+
+APIs stay library-direct. `@forwardimpact/libharness`,
+`@forwardimpact/libwiki`, and `@forwardimpact/libxmr` remain individually
+published; a builder who wants the components imports the library, never the
+product. With Gear shedding the three libraries too, the runtime subset leaves
+the meta-package layer entirely — its API home is the libraries themselves.
 
 Extracting the actions and the bins leaves `libharness`, `libwiki`, and
 `libxmr` as pure import targets on both surfaces. Gear sheds the three runtime
@@ -137,9 +141,9 @@ cross-listed, so each persona-job has exactly one product to hire.
 
 | Item | What it does |
 | --- | --- |
-| New product `products/<platform>/` | A Secondary meta-package (`package.json` with `description` and one Big Hire `jobs` entry, `user` = `Teams Using Agents`) that re-exports the three runtime libraries, owns the run actions under `actions/`, and owns the CLI entry points under `bin/`. No `src/` — the implementation stays in the libraries. |
+| New product `products/<platform>/` | A Secondary product (`package.json` with `description` and one Big Hire `jobs` entry, `user` = `Teams Using Agents`) that owns the CLI entry points under `bin/` and the run actions under `actions/`. No `src/`, no `exports`, no `main` — the product ships usage surfaces only; the implementation stays in the libraries. |
 | New JTBD job | Add a *Teams Using Agents → Stand Up and Operate an Agent Team* job to the new package's `jobs`; leave Kata's existing *Run a Continuously Improving Agent Team* job untouched. |
-| Runtime library subset | `PLATFORM` re-exports exactly the three operate-an-agent-team libraries: `@forwardimpact/libharness`, `@forwardimpact/libwiki`, and `@forwardimpact/libxmr`. `svcspan` is **not** in this subset. |
+| Runtime dependencies | The product's `dependencies` are consumption, not surface: the three operate-an-agent-team libraries (`@forwardimpact/libharness`, `@forwardimpact/libwiki`, `@forwardimpact/libxmr`) plus the wiring-level foundation packages the bins already import today (`libcli`, `libconfig`, `libpreflight`, `libtelemetry`, `libutil`). `svcspan` is **not** among them. |
 | CLI wiring move | The six thin `bin/` entry points move from the libraries into `products/<platform>/bin/`, renamed to the product family: `<platform>-{harness,trace,benchmark,selfedit}` (from `libharness`), `<platform>-wiki` (from `libwiki`), `<platform>-xmr` (from `libxmr`). Command handlers, components, and classes stay in each library's `src/`; the libraries export the modules the bins import and drop their `bin` fields. |
 | CLI consumer repoint | Every internal invoker switches to the new names: the `bootstrap` action's installer bundle list, the `harness`/`wiki`/`benchmark` action steps, the CLI-named skills (which rename with their CLIs) and the docs they link. The launcher set is recomputed by the `public-cli-set` invariant: new-name launchers replace the old `fit-*` ones. |
 | Run-actions relocation | Move the agent-run composite actions into `products/<platform>/actions/`: `bootstrap` (from `.github/actions/bootstrap/`), `harness` and `benchmark` (from `libraries/libharness/actions/`), and `wiki` (from `libraries/libwiki/actions/`). Repoint the `publish-actions.yml` matrix `prefix:` and `paths:` filters; the **sibling repo names** (`bootstrap`, `harness`, `benchmark`, `wiki`) and their consumer SHA pins are unchanged. |
@@ -159,9 +163,10 @@ cross-listed, so each persona-job has exactly one product to hire.
 | Renaming the sibling action repos | Only the monorepo `prefix:` (source path) moves; the published sibling repos (`bootstrap`, `harness`, `benchmark`, `wiki`) keep their names, so downstream `uses:` pins are untouched. |
 | `fit-doc` / `libdoc` placement | Stays in Gear as a general infrastructure primitive; it fails the run-the-team test. Reopen only if the platform later claims a "publish team knowledge" verb. |
 | `fit-rc` / `fit-svscan` placement | They operate a *service stack*, not an agent team; they remain Gear infrastructure. |
-| Shared foundation packages | `libtelemetry`, `libutil` and the like are not part of the runtime subset; wherever Gear re-exports them today is untouched, and `PLATFORM` does not claim them. |
+| Re-exporting the runtime libraries' APIs | The product exposes nothing importable. The three libraries stay individually published as the API home; adding them to another meta-package would re-create the second import channel this spec removes. |
+| Shared foundation packages | `libtelemetry`, `libutil` and the like are not part of the platform's surface; the product's bins consume them as ordinary dependencies exactly as the library bins do today, and wherever Gear re-exports them is untouched. |
 | Generalizing `scripts/bootstrap.sh` → `fit-bootstrap.sh` | Extracting a generic installer is a follow-up; this spec relocates and narrates the bring-up layer, not the installer refactor. |
-| Moving or renaming any runtime *library* on disk | The libraries stay at their `libraries/` paths; only their `bin/` entry points and `actions/` subdirectories move, and only the re-export lists change. |
+| Moving or renaming any runtime *library* on disk | The libraries stay at their `libraries/` paths; only their `bin/` entry points and `actions/` subdirectories move, and only dependency lists change. |
 | An umbrella `fit-<platform>` CLI | The product owns one thin bin per capability, not a new aggregate command; each capability keeps its own command surface, carried under the product's name. |
 | Moving handlers or classes out of the libraries | Only interface wiring moves. Command handlers, session/wiki/XmR components, and their tests stay in `libraries/`; the bins import them through package exports. |
 | Back-compat alias bins for the old `fit-*` names | Clean break per repo policy; consumers and launchers move to the new names in the same change. Deprecating the superseded launcher packages on npm follows the standing release process. |
@@ -195,12 +200,12 @@ product's `package.json`" means the single `package.json` under the new
 
 | # | Claim | Verification |
 | --- | --- | --- |
-| 1 | The new meta-package re-exports exactly the three runtime libraries and nothing from the build-time set. | Static check: the new `package.json` `dependencies` are exactly `@forwardimpact/libharness`, `@forwardimpact/libwiki`, `@forwardimpact/libxmr`; no retrieval/contract/storage package and no `svcspan` appears. |
+| 1 | The product consumes the runtime subset and nothing from the build-time set, and exposes no API. | Static check: the new `package.json` `dependencies` are the three runtime libraries plus only wiring-level foundation packages the bins import; no retrieval/contract/storage package and no `svcspan` appears; the package declares no `exports` and no `main`. |
 | 2 | The product owns the six CLI entry points, and owns only wiring. | Static check: the new `package.json` `bin` maps exactly `<platform>-harness`, `<platform>-trace`, `<platform>-benchmark`, `<platform>-selfedit`, `<platform>-wiki`, `<platform>-xmr` to files under `products/<slug>/bin/`; `products/<slug>/src/` does not exist. |
 | 3 | The libraries ship components, not interfaces. | Static check: none of the three runtime library `package.json`s declares a `bin` field; `libraries/{libharness,libwiki,libxmr}/bin/` no longer exist; the command handlers remain under each library's `src/`. |
 | 4 | No surface invokes the six old command names. | Static check: the installer bundle list, the `harness`/`wiki`/`benchmark` action steps, skills, and docs reference only the new names; `launchers/` carries launchers for the new names and none for `fit-harness`/`fit-trace`/`fit-benchmark`/`fit-selfedit`/`fit-wiki`/`fit-xmr`; the `public-cli-set` invariant passes. |
 | 5 | Gear no longer re-exports any runtime-subset library. | Static check: `products/gear/package.json` `dependencies` contain none of `@forwardimpact/libharness`, `@forwardimpact/libwiki`, `@forwardimpact/libxmr`. |
-| 6 | Each of the three runtime libraries is re-exported by exactly one meta-product. | Static check: no runtime-subset library appears in both `products/gear/package.json` and the new package's `dependencies`. |
+| 6 | API consumption is library-direct: no meta-product re-exports the runtime subset. | Static check: after the Gear edit, no `products/*/package.json` other than the new product's lists the three runtime libraries, and the new product's page and skill document commands and actions only — no `import` guidance for the product package. |
 | 7 | `svcspan` stays a Gear build-time dependency and never enters `PLATFORM`. | Static check: `@forwardimpact/svcspan` appears in `products/gear/package.json` `dependencies` and does not appear in the new package's `dependencies`. |
 | 8 | Gear's job no longer promises any operate-time capability. | Static check: Gear's `jobs` `littleHire` no longer contains the "chart agent metrics" clause or any equivalent metrics/operate-a-team verb. |
 | 9 | The four agent-run actions live under the product and the libraries are pure. | Static check: `products/<platform>/actions/{bootstrap,harness,wiki,benchmark}/action.yml` exist; `libraries/libharness/actions/` and `libraries/libwiki/actions/` no longer exist; `.github/actions/bootstrap/` no longer exists. |
