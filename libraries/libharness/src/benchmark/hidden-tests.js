@@ -74,16 +74,21 @@ async function runOneCheck(task, ctx, runtime, timeoutMs, check) {
  * that outlives the per-check budget; the row fails with a timeout message.
  */
 async function spawnCheck(task, ctx, runtime, timeoutMs, check) {
+  const env = buildHookEnv(runtime.proc.env, {
+    cwd: ctx.cwd,
+    port: ctx.port,
+    taskId: task.id,
+    taskDir: task.paths.taskDir,
+    hooksDir: task.paths.hooks,
+    familyDir: ctx.familyDir,
+  });
+  // An inherited test-runner context makes the child `node --test` report
+  // exit 0 even when its tests fail — a failing check would mint a passing
+  // row whenever the harness itself runs under `node --test`.
+  delete env.NODE_TEST_CONTEXT;
   const child = runtime.subprocess.spawn("node", ["--test", check.stagePath], {
     cwd: ctx.cwd,
-    env: buildHookEnv(runtime.proc.env, {
-      cwd: ctx.cwd,
-      port: ctx.port,
-      taskId: task.id,
-      taskDir: task.paths.taskDir,
-      hooksDir: task.paths.hooks,
-      familyDir: ctx.familyDir,
-    }),
+    env,
     stdio: ["ignore", "pipe", "pipe"],
   });
   let timedOut = false;

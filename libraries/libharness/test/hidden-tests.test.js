@@ -127,6 +127,9 @@ describe("runHiddenTests", () => {
       assert.strictEqual(call.opts.cwd, cwd);
       assert.strictEqual(call.opts.env.AGENT_CWD, cwd);
       assert.strictEqual(call.opts.env.TASK_ID, "t1");
+      // An inherited NODE_TEST_CONTEXT would make a failing child `node
+      // --test` exit 0 — the engine must never pass it through.
+      assert.ok(!("NODE_TEST_CONTEXT" in call.opts.env));
     }
   });
 
