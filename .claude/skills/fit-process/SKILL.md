@@ -30,6 +30,8 @@ fit-process vectors
 
 `resources` accepts `--base` (`-b`) to set the base URI for generated
 identifiers (default `https://example.invalid/`). `resources` and `graphs` run
-offline; `vectors` calls the embedding service. Run `resources` before `graphs`
-and `vectors`, which both read the resource index it writes. Once the indexes
-are built, query them with `fit-rag`.
+offline; `vectors` requires the embedding service to be up — when it is
+unreachable, the command fails fast (within the RPC deadline, 60s by
+default) naming the embedding host and port instead of hanging. Run
+`resources` before `graphs` and `vectors`, which both read the resource
+index it writes. Once the indexes are built, query them with `fit-rag`.

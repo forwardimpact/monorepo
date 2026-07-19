@@ -100,25 +100,21 @@ export class VectorProcessor extends ProcessorBase {
       context,
     });
 
-    try {
-      // Collect all texts and make a single embedding request
-      const texts = batch.map((item) => item.text);
-      const embeddings = await this.#llm.createEmbeddings(texts);
+    // Collect all texts and make a single embedding request. A failure
+    // aborts the run: the client's retry layer already absorbed
+    // transient errors, so what reaches here is systemic (embedding
+    // service down, deadline exceeded) and every later batch would fail
+    // the same slow way.
+    const texts = batch.map((item) => item.text);
+    const embeddings = await this.#llm.createEmbeddings(texts);
 
-      // Store each embedding with its corresponding identifier
-      await Promise.all(
-        batch.map(async (item, index) => {
-          const vector = embeddings.data[index].embedding;
-          await this.#vectorIndex.add(item.identifier, vector);
-        }),
-      );
-    } catch (error) {
-      this.logger.debug("Processor", "Failed to process batch", {
-        items: `${processed + 1}-${processed + batchSize}/${total}`,
-        context,
-        error: error.message,
-      });
-    }
+    // Store each embedding with its corresponding identifier
+    await Promise.all(
+      batch.map(async (item, index) => {
+        const vector = embeddings.data[index].embedding;
+        await this.#vectorIndex.add(item.identifier, vector);
+      }),
+    );
   }
 
   /** @inheritdoc */
