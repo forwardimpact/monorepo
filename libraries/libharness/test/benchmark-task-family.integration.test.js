@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
-import { mkdtemp, cp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, cp, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -91,6 +91,91 @@ describe("loadTaskFamily", () => {
       await mkdtemp(join(tmpdir(), "benchmark-out-crlf-")),
     );
     assert.strictEqual(lfOut.skillSetHash, crlfOut.skillSetHash);
+  });
+});
+
+describe("hidden test suite discovery", () => {
+  async function makeSuiteFamily() {
+    const dir = await mkdtemp(join(tmpdir(), "benchmark-suite-"));
+    await mkdir(join(dir, "tasks/t1/tests"), { recursive: true });
+    return dir;
+  }
+
+  test("task without tests/ carries a null suite", async () => {
+    const family = await loadTaskFamily(FIXTURE, RT);
+    for (const t of family.tasks()) {
+      assert.strictEqual(t.tests, null);
+      assert.strictEqual(t.paths.tests, null);
+    }
+  });
+
+  test("nested overlay tree yields sorted checks with stage paths, roles, and names", async () => {
+    const dir = await makeSuiteFamily();
+    const tests = join(dir, "tasks/t1/tests");
+    await mkdir(join(tests, "app/test"), { recursive: true });
+    await writeFile(join(tests, "app/test/todo.gate.test.js"), "// gate\n");
+    await writeFile(join(tests, "app/test/filter-b.test.js"), "// scored\n");
+    await writeFile(join(tests, "app/test/filter-a.test.js"), "// scored\n");
+    await writeFile(join(tests, "app/test/helpers.js"), "// support\n");
+    await writeFile(join(tests, "notes.md"), "support at the root\n");
+
+    const family = await loadTaskFamily(dir, RT);
+    const task = family.tasks().find((t) => t.id === "t1");
+    assert.strictEqual(task.paths.tests, tests);
+    assert.deepStrictEqual(
+      task.tests.checks.map((c) => ({
+        name: c.name,
+        gate: c.gate,
+        stagePath: c.stagePath,
+      })),
+      [
+        {
+          name: "filter-a",
+          gate: false,
+          stagePath: "app/test/filter-a.test.js",
+        },
+        {
+          name: "filter-b",
+          gate: false,
+          stagePath: "app/test/filter-b.test.js",
+        },
+        { name: "todo", gate: true, stagePath: "app/test/todo.gate.test.js" },
+      ],
+    );
+    for (const c of task.tests.checks) {
+      assert.strictEqual(c.sourcePath, join(tests, c.stagePath));
+    }
+    assert.deepStrictEqual(
+      task.tests.support.map((s) => s.stagePath),
+      ["app/test/helpers.js", "notes.md"],
+    );
+  });
+
+  test("a suite with no check files fails the family load", async () => {
+    const dir = await makeSuiteFamily();
+    await writeFile(
+      join(dir, "tasks/t1/tests/helpers.js"),
+      "// support only\n",
+    );
+    await assert.rejects(loadTaskFamily(dir, RT), /no check files/);
+  });
+
+  test("a dangling symlink fails the family load", async () => {
+    const dir = await makeSuiteFamily();
+    const tests = join(dir, "tasks/t1/tests");
+    await writeFile(join(tests, "ok.test.js"), "// check\n");
+    await symlink(join(tests, "missing.js"), join(tests, "broken.test.js"));
+    await assert.rejects(loadTaskFamily(dir, RT), /not a regular file/);
+  });
+
+  test("duplicate check names fail the family load", async () => {
+    const dir = await makeSuiteFamily();
+    const tests = join(dir, "tasks/t1/tests");
+    await mkdir(join(tests, "a"), { recursive: true });
+    await mkdir(join(tests, "b"), { recursive: true });
+    await writeFile(join(tests, "a/todo.test.js"), "// one\n");
+    await writeFile(join(tests, "b/todo.gate.test.js"), "// two\n");
+    await assert.rejects(loadTaskFamily(dir, RT), /duplicate check name/);
   });
 });
 
