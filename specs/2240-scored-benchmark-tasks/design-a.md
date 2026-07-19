@@ -2,8 +2,8 @@
 
 Implements spec 2240. Check rows are the single authoritative grading
 channel, with two producers kept structurally apart: a **hidden-test engine**
-in libharness executes a declarative per-task manifest (stage each hidden
-test into the agent CWD, run it, one row per test, restore the tree), and
+in libharness executes a per-task `tests/` tree by convention (stage each
+hidden test into the agent CWD, run it, one row per test, restore), and
 the **invariants script** shrinks to structural checks emitted as rows. A
 pure derivation turns the merged rows plus grader health into a verdict and
 a score in [0, 1]; an unhealthy grader can never mint marks. Clean break:
@@ -13,7 +13,7 @@ every hook in `benchmarks/` and the test fixtures migrates in this change.
 
 ```mermaid
 flowchart LR
-  TS["tests/manifest.yaml<br/>+ hidden test files"] --> HT["runHiddenTests<br/>stage → run → restore"]
+  TS["tests/ overlay<br/>hidden test files"] --> HT["runHiddenTests<br/>stage → run → restore"]
   INV["invariants.sh<br/>structural rows on fd 3"] --> RI["runInvariants<br/>rows + exit health"]
   HT & RI --> GR["gradeChecks(rows, healthy)<br/>grade.js (pure)"]
   GR --> RUN["runner #executeCell<br/>grade ∧ judge (binary gate)<br/>→ verdict, record.score"]
@@ -66,34 +66,32 @@ Derived predicates:
 ## The hidden test suite (normative)
 
 A task opts in with `tasks/<task>/tests/` — a sibling of `hooks/`, never
-copied into the agent CWD (only `workdir/` and `specs/` seed the CWD).
+copied into the agent CWD (only `workdir/` and `specs/` seed the CWD). There
+is no configuration file; the layout is the contract:
 
-```yaml
-# tests/manifest.yaml
-command: ["node", "--test"]   # required argv prefix; the staged path is appended
-cwd: app                      # optional (default "."): command CWD, relative to agent CWD
-target: test                  # optional (default "."): staging dir, relative to cwd
-timeout: 120                  # optional per-check seconds; a timeout is a failing row
-support: [feature-helpers.js] # optional: staged for the whole pass, never graded
-checks:                       # required, ≥ 1; fields mirror the row contract
-  - file: todo.test.js        # relative to tests/; symlinks resolved at stage time
-    name: baseline-tests      # optional; defaults to the file stem
-    gate: true
-  - file: filter-case-insensitive.test.js   # default: scored at weight 1
-```
+- `tests/` is an **overlay mirror** of the agent CWD: a file's path under
+  `tests/` is its staging path under `$AGENT_CWD`
+  (`tests/app/test/filter-no-match.test.js` stages to
+  `app/test/filter-no-match.test.js`).
+- Every `*.test.js` file is one check. A `*.gate.test.js` name marks a gate
+  row; any other `*.test.js` is a scored row at weight 1. The check name is
+  the basename stem (`todo.gate.test.js` → `todo`).
+- Every other file under `tests/` is **support material**: staged for the
+  whole pass at its mirrored path, never graded.
+- Each check runs as `node --test <staged path>` from `$AGENT_CWD` under
+  `buildHookEnv`, with a fixed 120 s timeout; a timeout is a failing row.
 
 Validated eagerly in `loadTaskFamily` (authoring errors fail before agent
-spend): parseable YAML, non-empty `command` and `checks`, every `file` and
-`support` entry a regular file under `tests/`, `gate` xor positive `weight`
-per check, no `..` in `cwd`/`target`/`file`.
+spend): at least one check file, every entry a regular file after symlink
+resolution, check names unique.
 
-Engine execution, per check in manifest order: back up a collided target
-file → copy the (symlink-resolved) file to `<cwd>/<target>/<file>` → spawn
-`command + [<target>/<file>]` in `<AGENT_CWD>/<cwd>` under `buildHookEnv` →
-emit `{test, pass: exit === 0, gate?/weight?, message?}` (message carries the
-exit status and a trimmed stderr tail on failure) → unstage and restore.
-`support` files stage before the first check and unstage after the last. A
-stage or spawn failure (e.g. the agent never created `app/`) is a *failing*
+Engine execution: stage support files, then per check in sorted path order:
+back up a collided target file → copy the (symlink-resolved) file, creating
+missing parent directories → spawn → emit
+`{test, pass: exit === 0, gate?, message?}` (message carries the exit status
+and a trimmed stderr tail on failure) → unstage, restore the backup, remove
+directories the engine created; support unstages after the last check. A
+stage or spawn failure (e.g. the agent deleted the scaffold) is a *failing*
 row — agent fault, not grader fault; the engine itself throwing is grader
 fault and lands in `healthy`. Restoration means the judge sees the workdir
 exactly as the agent left it.
@@ -102,7 +100,7 @@ exactly as the agent left it.
 
 | Component | Where | Responsibility |
 | --- | --- | --- |
-| Manifest discovery + validation | `benchmark/task-family.js` | `paths.tests` + parsed manifest on the Task when `tests/manifest.yaml` exists; eager validation per § hidden suite. Adds the `yaml` dependency (zod for the shape). |
+| Suite discovery + validation | `benchmark/task-family.js` | `paths.tests` + the walked check/support lists on the Task when `tests/` exists; eager validation per § hidden suite. No new dependency. |
 | Hidden-test engine | new `benchmark/hidden-tests.js` | `runHiddenTests(task, ctx, runtime)` → `{details}` per § hidden suite; `{details: []}` when the task has no suite. |
 | Invariants collector | `benchmark/invariants.js` | Loses its verdict: returns `{details, exitCode, stderr?}`. Unparseable fd-3 lines stay in `details` as `parseError` rows and grade as malformed. |
 | Grading | new `benchmark/grade.js` | Pure `gradeChecks(details, healthy)` → `{verdict, gatesPass, score, fullMarks, malformed}` (`score` null for binary). Sole home of the arithmetic. |
@@ -113,19 +111,20 @@ exactly as the agent left it.
 | Report | `benchmark/report.js` | Group scored iff ≥ 1 record carries `score`; per scored task `meanScore` + `scoreAtK[k]` (§ Estimator); a score-less record in a scored group contributes its verdict as the degenerate score (pass = 1, fail = 0). Rendering: score and `score@k` columns only when the report has a scored task (binary rows render `—`); the checks table merges both producers with a Source column when any row carries `source: "tests"`; `malformedChecks` renders a warning. |
 | `fit-trace assert --gate/--weight` | `commands/assert.js` + `bin/fit-trace.js` | `--weight` validates finite ≥ 0; `--gate` adds `gate: true`; combining with a positive weight is an error. **Emit-then-fail:** an invalid grading flag emits a failing row before the nonzero exit, so a typo shrinks the score, never the denominator. |
 | Hook migration | `benchmarks/*/tasks/*/hooks/invariants.sh`, libharness fixtures | § Migration. One helper — `check() { fit-trace assert "$@" >&"$RESULTS_FD" \|\| true; }` — structural checks only, `exit 0` at the end. |
-| Leading example | `benchmarks/kata-skills/tasks/implement-feature/tests/` | Manifest: pristine baseline as the gate check (a symlink to the family workdir suite kills the drift pair), five per-file feature checks scored at weight 1, shared helpers as `support`. `invariants.sh` and `hooks/feature.test.js` deleted; `preflight.sh` and the scope judge unchanged. |
-| Docs | `fit-benchmark` SKILL.md, `references/{authoring,cli}.md`, Run a Benchmark guide, `benchmarks/README.md` | Rows-authoritative contract, roles table, exit-code demotion, `tests/` manifest layout, hidden-test-vs-structural-check guidance. |
+| Leading example | `benchmarks/kata-skills/tasks/implement-feature/tests/` | `tests/app/test/`: `todo.gate.test.js` as the pristine-baseline gate (a symlink to the family workdir suite kills the drift pair), five feature `*.test.js` checks scored at weight 1, `feature-helpers.js` as support. `invariants.sh` and `hooks/feature.test.js` deleted; `preflight.sh` and the scope judge unchanged. |
+| Docs | `fit-benchmark` SKILL.md, `references/{authoring,cli}.md`, Run a Benchmark guide, `benchmarks/README.md` | Rows-authoritative contract, roles table, exit-code demotion, `tests/` layout convention, hidden-test-vs-structural-check guidance. |
 
 ## Key Decisions
 
 | Decision | Choice | Rejected alternative |
 | --- | --- | --- |
 | Grading channel | Single: the rows, with roles as row fields | Dual channel (weights beside an authoritative exit code): semantics split across a data and a process channel, coupled by a documentation-only contract where one wrong helper zeroes every partial run. |
-| Hidden-test execution | Harness engine driven by a declarative manifest | Hook-authored shell (status quo and this design's first draft): every coding task re-implements staging, execution, exit-code plumbing, and pristine-baseline restoration; tangles structural and behavioral checking in one script; each copy can silently mis-grade. |
+| Hidden-test execution | Harness engine driven by the `tests/` layout | Hook-authored shell (status quo and this design's first draft): every coding task re-implements staging, execution, exit-code plumbing, and pristine-baseline restoration; tangles structural and behavioral checking in one script; each copy can silently mis-grade. |
+| Suite declaration | Pure filesystem convention: overlay mirror, `.gate.test.js` marker, fixed `node --test` runner at weight 1 | A manifest file — the benchmark system's first configuration surface, when every field it would carry (command, staging path, role, weight, timeout) has a workable opinionated default for the families we own. |
 | Suite location | `tests/` sibling of `hooks/` | Inside `hooks/` — conflates executable hook scripts with data files. Inside `workdir/` — would seed into the agent CWD and leak the suite. |
-| Check granularity | One process per manifest check; the exit status is the row | Parsing one suite's reporter output (TAP) — couples the engine to reporter formats; per-case granularity is expressed as per-case files instead. |
+| Check granularity | One process per check file; the exit status is the row | Parsing one suite's reporter output (TAP) — couples the engine to reporter formats; per-case granularity is expressed as per-case files instead. |
 | Workdir restoration | Engine backs up collisions, unstages after grading | Leaving staged files — the judge sees non-agent files and may flag them as scope creep (the prior draft's open risk, now closed structurally). |
-| Manifest validation timing | Eager, in `loadTaskFamily` | At grade time — an authoring typo burns a full agent run before surfacing. |
+| Layout validation timing | Eager, in `loadTaskFamily` | At grade time — an authoring typo burns a full agent run before surfacing. |
 | Exit code / engine health | Demoted to grader health: unhealthy → fail, score 0 | Ignored entirely — a grader that crashes after one passing row would score 1.0; health is the one completion signal a crash cannot fake. |
 | Default weight | Absent `weight` = scored at 1; diagnostics opt out with `weight: 0` | Opt-in weights — leaves most emitted evidence ungraded and requires the dual-channel contract to gate anything. |
 | Where the score is computed | At record time, one pure function | At report time from `details` — every consumer re-implements weighting; ledgers stop being self-describing. |
@@ -186,12 +185,12 @@ gate. All nine `judge.task.md` files rename the template variable.
 | fit-wiki/cli-fix (also rewrites `{"id","verdict"}` rows to `test`/`pass`) | summary-intact, memory-intact (anti-tamper) | audit-passes |
 | kata/coordinate-finding | issue-present, change-present | 3 linkage checks |
 | kata/design-feature | file-present, under-200-lines (review Blocker) | has-decisions, names-tradeoff |
-| kata/implement-feature (all via `tests/manifest.yaml`; hook deleted) | baseline-tests (pristine suite) | 5 per-file hidden feature checks |
+| kata/implement-feature (all via the `tests/` overlay; hook deleted) | todo (pristine baseline, `.gate.test.js`) | 5 per-file hidden feature checks |
 | kata/plan-feature | file-present | 4 structure checks |
 | kata/product-issue-triage | issue-present | 3 triage-evidence checks |
 | kata/spec-feature | file-present, no-how-leak (constraint) | 3 section checks + cites-jtbd |
 | fixtures pass/fail/repo-state/preflight-broken | role per existing single check | — |
-| fixture `scored` (new) | — | 2-check `tests/` manifest exercising the engine end-to-end |
+| fixture `scored` (new) | — | 2-check `tests/` overlay exercising the engine end-to-end |
 
 Pre-migration ledgers still render — records carry their verdicts — but no
 score comparison may span the semantics break; the first post-break run

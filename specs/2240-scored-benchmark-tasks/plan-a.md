@@ -3,7 +3,7 @@
 Implements [design-a.md](design-a.md) for [spec 2240](spec.md).
 
 **Approach.** Build bottom-up along the design's data flow: the pure grading
-derivation first, then the hidden-test subsystem (manifest discovery, then the
+derivation first, then the hidden-test subsystem (layout discovery, then the
 engine), then the invariants collector and record schemas, then the runner and
 the `grade` subcommand, then report aggregation and rendering, then the
 authoring surface (`fit-trace assert --gate/--weight`), then the migration —
@@ -15,9 +15,9 @@ are updated to the row contract, not preserved. Benchmark modules live under
 in `libraries/libharness/bin/fit-trace.js`.
 
 Libraries used: libharness (benchmark runner/report/result/invariants,
-fit-trace assert), zod (record and manifest schemas), yaml (manifest parsing —
-new libharness dependency, already a workspace dependency at the root),
-libmock + libutil (test runtimes).
+fit-trace assert), zod (record schemas), libmock + libutil (test runtimes).
+No new dependency — the hidden-test suite is declared by filesystem
+convention, not a configuration file.
 
 ## Step 1: Grading module
 
@@ -60,36 +60,37 @@ pass.
 Verification: `bun test test/benchmark-grade.test.js` in
 `libraries/libharness`.
 
-## Step 2: Manifest discovery and validation
+## Step 2: Suite discovery and validation
 
-The task loader learns the `tests/` layout; authoring errors fail before any
-agent spend.
+The task loader learns the `tests/` layout convention; authoring errors fail
+before any agent spend.
 
-- Modified: `libraries/libharness/src/benchmark/task-family.js`,
-  `libraries/libharness/package.json` (add `yaml`), loader tests
-- Created: `libraries/libharness/src/benchmark/test-manifest.js`
+- Modified: `libraries/libharness/src/benchmark/task-family.js`, loader tests
 
-`test-manifest.js` exports `loadTestManifest(testsDir, runtime)`: parse
-`manifest.yaml` with `yaml`, validate with a zod schema per design § hidden
-suite — non-empty `command` (string array) and `checks`; optional `cwd`,
-`target` (default `"."`), `timeout` (positive number, default 120), `support`
-(string array); per check: `file` required, optional `name` (default file
-stem), `gate` xor positive finite `weight`; no `..` segment in `cwd`,
-`target`, `file`, or `support` entries; every `file`/`support` entry resolves
-(symlinks allowed) to a regular file under `tests/`. Throws with the failing
+`discoverTasks` walks `<taskDir>/tests/` when it exists (reusing the loader's
+file-walk helpers) and sets on the Task:
+
+- `paths.tests` — the suite root (null when absent).
+- `task.tests.checks` — one entry per `*.test.js` file, in sorted path
+  order: `{name, sourcePath, stagePath, gate}` where `stagePath` is the path
+  relative to `tests/` (the overlay mirror), `gate` is true iff the name
+  ends `.gate.test.js`, and `name` is the basename stem with the
+  `.gate.test.js`/`.test.js` suffix stripped.
+- `task.tests.support` — every other file, same `{sourcePath, stagePath}`
+  shape.
+
+Validation, eager so `loadTaskFamily` rejects broken suites: at least one
+check file, every entry a regular file after symlink resolution (dangling
+symlinks fail), check names unique across the suite. Throws with the failing
 path in the message.
 
-`task-family.js`: `discoverTasks` sets `paths.tests` and `task.manifest` when
-`<taskDir>/tests/manifest.yaml` exists (both null otherwise), calling
-`loadTestManifest` eagerly so `loadTaskFamily` rejects on a broken manifest.
+Tests: task without `tests/` → null (existing fixtures unchanged); a nested
+overlay tree → checks in sorted order with correct `stagePath`/`gate`/`name`;
+support files separated from checks; one loader test per validation rule
+(empty suite, dangling symlink, duplicate stems).
 
-Tests: task without `tests/` → null paths (existing fixtures unchanged);
-valid manifest → parsed defaults applied; one loader test per validation
-rule (bad YAML, empty checks, missing file, `gate` + `weight` conflict,
-`..` escape, dangling symlink).
-
-Verification: `bun test test/task-family.test.js test/test-manifest.test.js`
-(actual filenames per repo layout).
+Verification: `bun test test/task-family.test.js` (actual filename per repo
+layout).
 
 ## Step 3: Hidden-test engine
 
@@ -100,28 +101,32 @@ Stage → run → row → restore, per design § The hidden test suite.
 
 `runHiddenTests(task, ctx, runtime)` → `{details}`:
 
-- No manifest → `{details: []}` immediately.
-- Stage `support` files into `<AGENT_CWD>/<cwd>/<target>/`, backing up any
-  collided file's bytes first.
-- Per check in manifest order: back up collision → copy the symlink-resolved
-  `tests/<file>` → spawn `[...command, join(target, file)]` with
-  `cwd: join(ctx.cwd, manifest.cwd)` and `buildHookEnv` (same vars as the
-  hooks) → row `{test: name, pass: exit === 0}` plus the check's `gate` or
-  `weight` field; on failure, `message` carries the exit status and a trimmed
-  stderr tail (cap ~500 chars) → unlink the staged file, restore the backup.
-- Timeout: `runtime.clock` timer SIGKILLs the child at `timeout` seconds; the
-  row fails with a timeout message.
-- Stage/spawn errors (ENOENT on a missing scaffold dir, spawn failure) become
-  a failing row with the error message — never a throw. After the last check,
-  unstage `support` and restore its backups in a `finally`.
+- No suite (`task.tests` null) → `{details: []}` immediately.
+- Stage `support` files at their mirrored paths, backing up any collided
+  file's bytes first and creating missing parent directories (tracked, so
+  created directories are removed on cleanup).
+- Per check in sorted path order: back up collision → copy the
+  symlink-resolved source to `<AGENT_CWD>/<stagePath>` → spawn
+  `["node", "--test", <stagePath>]` with `cwd: ctx.cwd` and `buildHookEnv`
+  (same vars as the hooks) → row `{test: name, pass: exit === 0}` plus
+  `gate: true` for gate checks; on failure, `message` carries the exit
+  status and a trimmed stderr tail (cap ~500 chars) → unlink the staged
+  file, restore the backup.
+- Timeout: a fixed 120 s per check (module constant, injectable for tests);
+  `runtime.clock` timer SIGKILLs the child and the row fails with a timeout
+  message.
+- Stage/spawn errors (ENOENT on a deleted scaffold, spawn failure) become a
+  failing row with the error message — never a throw. After the last check,
+  unstage `support`, restore backups, and remove created directories in a
+  `finally`.
 
-Tests (injected `runtime.subprocess` seam plus real `mkdtemp` trees): one row
-per check with roles copied from the manifest; exit 1 → failing row with
-stderr tail; missing scaffold dir → failing row, no throw; collided target
-file restored byte-identical and staged files absent after the run
-(restoration property, spec criterion 7); support files staged during and
-gone after; timeout kills and fails the row; manifest-less task → empty
-details.
+Tests (injected `runtime.subprocess` seam plus real `mkdtemp` trees): one
+row per check with `gate` derived from the filename; exit 1 → failing row
+with stderr tail; deleted scaffold → failing row, no throw; collided target
+file restored byte-identical, staged files absent, created directories
+removed after the run (restoration property, spec criterion 7); support
+files staged during and gone after; timeout kills and fails the row;
+suite-less task → empty details.
 
 Verification: `bun test test/hidden-tests.test.js`.
 
@@ -227,11 +232,11 @@ as the runner does (no judge; judge-zeroing does not apply), grades, emits the
 script for diagnosis.
 
 Tests: on-disk family under `mkdtemp` (`agent.task.md`, `hooks/invariants.sh`
-`chmod 0o755`, and a `tests/` manifest), `createDefaultRuntime()`, `--output`
+`chmod 0o755`, and a `tests/` overlay), `createDefaultRuntime()`, `--output`
 to a temp file: partial scored completion → fractional `score`, `ok: false`;
 full marks → `ok: true`, `score: 1`; passing rows + invariants exit 1 →
-`score: 0`, `ok: false`; gate rows only → no `score` key; manifest checks
-graded without an agent run.
+`score: 0`, `ok: false`; gate rows only → no `score` key; hidden-suite
+checks graded without an agent run.
 
 Verification: `bun test test/benchmark-grade.integration.test.js` and the
 refreshed goldens.
@@ -335,10 +340,9 @@ The libharness suites become the first consumers of the new contract.
   (`benchmark-e2e.integration`, `benchmark-parity`,
   `benchmark-runner-concurrency`, `benchmark-shard`, invariants tests)
 - Created: `test/fixtures/benchmark-family/tasks/scored/` — a fixture task
-  with a two-check `tests/manifest.yaml` (one trivially passing, one
-  trivially failing `node --test` file) so the e2e suite exercises the
-  engine, a fractional score, and the restoration property against a real
-  subprocess.
+  with a two-check `tests/` overlay (one trivially passing, one trivially
+  failing `node --test` file) so the e2e suite exercises the engine, a
+  fractional score, and the restoration property against a real subprocess.
 
 Fixture hook rewrites (all end `exit 0`; roles keep these tasks binary so
 e2e verdict expectations and any score-free assertions hold):
@@ -357,8 +361,8 @@ Verification: full `bun test` in `libraries/libharness` green.
 
 ## Step 11: Migrate the family tasks
 
-Structural rows in the eight remaining hooks; the leading example moves to a
-manifest; judge templates rename.
+Structural rows in the eight remaining hooks; the leading example moves to
+the `tests/` overlay; judge templates rename.
 
 - Modified: eight `benchmarks/*/tasks/*/hooks/invariants.sh` (mechanical
   rewrite per design § Migration: one
@@ -371,19 +375,17 @@ manifest; judge templates rename.
 - `fit-wiki/cli-fix` additionally rewrites its nonstandard
   `{"id","verdict"}` rows to `test`/`pass` shape (they would grade as
   malformed under the row contract).
-- `implement-feature` gets the manifest conversion:
-  - Created: `tests/manifest.yaml` (`command: ["node", "--test"]`,
-    `cwd: app`, `target: test`, `support: [feature-helpers.js]`;
-    `todo.test.js` as the `baseline-tests` gate; five scored checks),
-    `tests/todo.test.js` (symlink to
-    `../../../workdir/app/test/todo.test.js` — the engine resolves symlinks
-    at stage time, so the pristine baseline has one source and no drift
-    pair), `tests/feature-helpers.js` (shared `appDir`/`bin` derivation,
-    store loader, sample todos), and five check files — each one `node:test`
-    case split from today's `feature.test.js`:
-    `filter-selects-matching`, `filter-case-insensitive`,
+- `implement-feature` gets the overlay conversion, all under
+  `tests/app/test/` (the mirror of the app's test directory):
+  - Created: `todo.gate.test.js` — the pristine-baseline gate — as a symlink
+    to `../../../../../workdir/app/test/todo.test.js` (the engine resolves
+    symlinks at stage time, so the baseline has one source and no drift
+    pair); `feature-helpers.js` (support: shared `appDir`/`bin` derivation,
+    store loader, sample todos — no `.test.js` suffix, so never graded); and
+    five scored check files — each one `node:test` case split from today's
+    `feature.test.js`: `filter-selects-matching`, `filter-case-insensitive`,
     `filter-no-match`, `list-filter-output`, `list-no-filter`
-    (all `tests/<name>.test.js`)
+    (all `<name>.test.js`)
   - Deleted: `hooks/invariants.sh`, `hooks/feature.test.js`
   - `preflight.sh` and `judge.task.md` (beyond the variable rename)
     unchanged — the engine's restoration means the judge needs no exemption
@@ -409,11 +411,11 @@ on every surface that states the old contract.
 
 | Surface | Content |
 | --- | --- |
-| SKILL.md | Lifecycle step 3 rewritten: rows are authoritative, roles table (gate/scored/diagnostic), two producers (hidden `tests/` manifest run by the harness; `invariants.sh` for structural checks), exit code = script health; Result Records mentions `grade` and the optional `score`; Grading Surfaces examples updated. |
-| references/authoring.md | Two authoring paths, clearly split: **hidden test suites** — the `tests/manifest.yaml` reference (fields, defaults, roles, symlinked baseline pattern, restoration guarantee) with the worked `implement-feature` example; **structural checks** — the single `check()` helper (no `FAIL` bookkeeping — both existing snippet sites), the roles table, default weight 1, `--gate` for presence/sanity/anti-tamper, `weight: 0` diagnostics, the crash rule, the early-`exit 0` dependency pattern, when a check belongs in the manifest versus the script, and validating either with `fit-benchmark grade` before paying for agent runs. |
+| SKILL.md | Lifecycle step 3 rewritten: rows are authoritative, roles table (gate/scored/diagnostic), two producers (hidden `tests/` overlay run by the harness; `invariants.sh` for structural checks), exit code = script health; Result Records mentions `grade` and the optional `score`; Grading Surfaces examples updated. |
+| references/authoring.md | Two authoring paths, clearly split: **hidden test suites** — the `tests/` layout convention (overlay mirror, `*.test.js` = one scored check, `*.gate.test.js` = gate, other files = support, fixed `node --test` runner, symlinked baseline pattern, restoration guarantee) with the worked `implement-feature` example; **structural checks** — the single `check()` helper (no `FAIL` bookkeeping — both existing snippet sites), the roles table, default weight 1, `--gate` for presence/sanity/anti-tamper, `weight: 0` diagnostics, the crash rule, the early-`exit 0` dependency pattern, when a check belongs in the suite versus the script, and validating either with `fit-benchmark grade` before paying for agent runs. |
 | references/cli.md | `grade` (replacing `invariants`): runs both producers, process exit mirrors the graded verdict; `report`: `meanScore`/`scoreAtK` fields, score columns, degenerate rule one-liner. |
-| Run a Benchmark guide | Task layout gains `tests/`; `#### hooks/invariants.sh` rewritten to structural checks with a gate + scored example; a new `#### tests/manifest.yaml` section with the manifest example; § Aggregate Into pass@k gains mean score and `score@k` (expected best-of-k, continuous analog of pass@k). |
-| benchmarks/README.md | Layout tree gains `tests/ — hidden test suite; staged and run by the harness, one row per check`; `invariants.sh — structural rubric; rows are the verdict (exit code = script health)`; one paragraph on manifest checks vs gate vs scored rows. |
+| Run a Benchmark guide | Task layout gains `tests/`; `#### hooks/invariants.sh` rewritten to structural checks with a gate + scored example; a new `#### tests/` section with a worked overlay example; § Aggregate Into pass@k gains mean score and `score@k` (expected best-of-k, continuous analog of pass@k). |
+| benchmarks/README.md | Layout tree gains `tests/ — hidden test suite; staged and run by the harness, one row per check`; `invariants.sh — structural rubric; rows are the verdict (exit code = script health)`; one paragraph on the layout convention and gate vs scored rows. |
 
 Skill `## Documentation` lists and CLI `documentation` arrays are unchanged
 (no new guides), so the parity rule needs no edit.
@@ -450,15 +452,19 @@ diff is a regression. Paste clean check + test output into the PR.
   scope judge. Step 3's restoration test asserts byte-identical collided
   files and absent staged files, and the new `scored` fixture exercises it
   end-to-end against a real subprocess.
-- **Symlinked baseline.** `tests/todo.test.js` as a symlink removes the
-  drift pair but relies on symlink support (fine on the macOS/Linux dev and
-  CI targets; the canonical-tree hash already resolves symlinks). If a
-  platform constraint appears, fall back to a byte-copy named as an accepted
-  drift pair in the family README.
+- **Symlinked baseline.** `tests/app/test/todo.gate.test.js` as a symlink
+  removes the drift pair but relies on symlink support (fine on the
+  macOS/Linux dev and CI targets; the canonical-tree hash already resolves
+  symlinks). If a platform constraint appears, fall back to a byte-copy
+  named as an accepted drift pair in the family README.
 - **Hung hidden tests.** A wedged test process would stall the cell inside
-  the grading phase, outside the agent watchdog. The engine's per-check
-  timeout (default 120 s) bounds it; the timeout row keeps the failure
-  visible.
+  the grading phase, outside the agent watchdog. The engine's fixed 120 s
+  per-check timeout bounds it; the timeout row keeps the failure visible.
+- **The convention is rigid on purpose.** `node --test`, weight 1, and
+  filename-marked gates cover every current family; a family needing a
+  different runner or weights is a future spec, not a config knob. The risk
+  is a workaround culture (wrapper `.test.js` shims); the authoring docs say
+  to write the spec instead.
 - **`report.js` nearing the file-length lint ceiling.** Steps 7 and 8 both
   land in it; if the ceiling trips, extract the `scoreAtK` estimator next to
   `gradeChecks` in `grade.js` rather than waiving the lint.
