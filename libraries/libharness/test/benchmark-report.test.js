@@ -1,45 +1,8 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
-import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
-
 import { aggregate, renderTextReport } from "../src/benchmark/report.js";
-
-const INPUT_DIR = "/benchmark-report";
-
-function baseRecord(overrides) {
-  return {
-    taskId: "sample",
-    runIndex: 0,
-    verdict: "pass",
-    invariants: { verdict: "pass", details: [], exitCode: 0 },
-    submission: "x",
-    judgeVerdict: { verdict: "pass", summary: "ok" },
-    costUsd: 0,
-    turns: 1,
-    agentTracePath: "/tmp/agent.ndjson",
-    supervisorTracePath: "/tmp/supervisor.ndjson",
-    judgeTracePath: "/tmp/judge.ndjson",
-    profiles: { agent: null, supervisor: null, judge: null },
-    model: { agent: "a", supervisor: "s", judge: "j" },
-    skillSetHash: "sha256:a",
-    familyRevision: "sha256:b",
-    durationMs: 100,
-    ...overrides,
-  };
-}
-
-/**
- * Seed `results.jsonl` for `records` in an in-memory fs under `INPUT_DIR` and
- * return a runtime; `aggregate` reads `join(inputDir, "results.jsonl")` via
- * `runtime.fs.readFile`.
- */
-function jsonlRuntime(records) {
-  const body = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
-  return createTestRuntime({
-    fs: createMockFs({ [`${INPUT_DIR}/results.jsonl`]: body }),
-  });
-}
+import { INPUT_DIR, baseRecord, jsonlRuntime } from "./report-helpers.js";
 
 describe("aggregate", () => {
   test("pass@1 = 0.4 and pass@3 = 0.9 for verdicts pass/fail/fail/pass/fail", async () => {
@@ -219,7 +182,6 @@ describe("renderTextReport (full report)", () => {
         runIndex: 0,
         verdict: "pass",
         invariants: {
-          verdict: "pass",
           details: [{ test: "check-1", pass: true }],
           exitCode: 0,
         },
@@ -255,7 +217,6 @@ describe("renderTextReport (full report)", () => {
         taskId: "x",
         runIndex: 0,
         invariants: {
-          verdict: "pass",
           details: [{ test: "t1", pass: true }],
           exitCode: 0,
         },
@@ -282,7 +243,6 @@ describe("renderTextReport (full report)", () => {
         taskId: "x",
         runIndex: 0,
         invariants: {
-          verdict: "pass",
           details: [{ test: "t1", pass: true }],
           exitCode: 0,
         },
@@ -290,10 +250,11 @@ describe("renderTextReport (full report)", () => {
       baseRecord({
         taskId: "x",
         runIndex: 1,
+        verdict: "fail",
+        grade: { verdict: "fail", gatesPass: true },
         invariants: {
-          verdict: "fail",
           details: [{ test: "t1", pass: false, message: "nope" }],
-          exitCode: 1,
+          exitCode: 0,
         },
       }),
     ];
@@ -373,7 +334,7 @@ describe("renderTextReport (full report)", () => {
       baseRecord({
         taskId: "x",
         runIndex: 0,
-        invariants: { verdict: "pass", details: [], exitCode: 0 },
+        invariants: { details: [], exitCode: 0 },
       }),
     ];
     const runtime = jsonlRuntime(records);
@@ -398,10 +359,10 @@ describe("renderTextReport (compact report)", () => {
         taskId: "beta",
         runIndex: 0,
         verdict: "fail",
+        grade: { verdict: "fail", gatesPass: true },
         invariants: {
-          verdict: "fail",
           details: [{ test: "t1", pass: false, message: "nope" }],
-          exitCode: 1,
+          exitCode: 0,
         },
       }),
     ];

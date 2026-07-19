@@ -67,6 +67,20 @@ export async function aggregate({
 
     const task = { taskId, n, c, passAtK };
 
+    // A group is scored iff any record carries an effective score. A
+    // score-less record in a scored group (a preflight failure never reached
+    // grading, or a binary run) contributes its verdict as the degenerate
+    // score — skipping it would inflate the mean exactly when the agent
+    // fails hardest.
+    if (group.some((r) => r.score !== undefined)) {
+      const scores = group.map(
+        (r) => r.score ?? (r.verdict === "pass" ? 1 : 0),
+      );
+      task.meanScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+      task.scoreAtK = {};
+      for (const k of kValues) task.scoreAtK[k] = scoreAtKValue(scores, k);
+    }
+
     if (includeRuns) {
       if (!firstRecord) firstRecord = group[0];
       const accumulators = { allDurations, allTurns };
@@ -597,6 +611,33 @@ function passAtKValue(n, c, k) {
   const fail = binomial(BigInt(n - c), BigInt(k));
   const passing = total - fail;
   return Number(passing) / Number(total);
+}
+
+/**
+ * score@k — the expected **maximum** score over k runs drawn without
+ * replacement from the n recorded scores; the continuous analog of pass@k.
+ * With scores sorted ascending s₍₁₎…s₍ₙ₎:
+ *
+ *   score@k = Σ_{i=k..n} s₍ᵢ₎ · C(i−1, k−1) / C(n, k)
+ *
+ * Each term weights s₍ᵢ₎ by the probability it is the k-subset's maximum.
+ * Binary scores reduce exactly to the pass@k estimator (same BigInt binomial
+ * helper); `k > n` yields the same `{error}` value — one idiom.
+ * @param {number[]} scores - Effective per-record scores.
+ * @param {number} k
+ * @returns {number | {error: string}}
+ */
+function scoreAtKValue(scores, k) {
+  const n = scores.length;
+  if (k > n) return { error: "k > n" };
+  const sorted = [...scores].sort((a, b) => a - b);
+  const total = Number(binomial(BigInt(n), BigInt(k)));
+  let sum = 0;
+  for (let i = k; i <= n; i++) {
+    const weight = Number(binomial(BigInt(i - 1), BigInt(k - 1))) / total;
+    sum += sorted[i - 1] * weight;
+  }
+  return sum;
 }
 
 function binomial(n, k) {

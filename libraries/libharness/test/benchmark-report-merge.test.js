@@ -12,44 +12,9 @@ import assert from "node:assert";
 import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
 import { aggregate } from "../src/benchmark/report.js";
+import { baseRecord, runtimeWith } from "./report-helpers.js";
 
 const ROOT = "/merge-input";
-
-function baseRecord(overrides) {
-  return {
-    taskId: "sample",
-    runIndex: 0,
-    verdict: "pass",
-    invariants: { verdict: "pass", details: [], exitCode: 0 },
-    submission: "x",
-    judgeVerdict: { verdict: "pass", summary: "ok" },
-    costUsd: 0,
-    turns: 1,
-    agentTracePath: "/tmp/a.ndjson",
-    supervisorTracePath: "/tmp/s.ndjson",
-    judgeTracePath: "/tmp/j.ndjson",
-    profiles: { agent: null, supervisor: null, judge: null },
-    model: { agent: "a", supervisor: "s", judge: "j" },
-    skillSetHash: "sha256:a",
-    familyRevision: "sha256:b",
-    durationMs: 10,
-    ...overrides,
-  };
-}
-
-const jsonl = (records) =>
-  records.map((r) => JSON.stringify(r)).join("\n") + "\n";
-
-/** Build a runtime whose mock fs holds the given `{path: records[]}` map. */
-function runtimeWith(files, { captureStderr } = {}) {
-  const fsMap = {};
-  for (const [path, records] of Object.entries(files))
-    fsMap[path] = jsonl(records);
-  const errs = [];
-  const rt = createTestRuntime({ fs: createMockFs(fsMap) });
-  if (captureStderr) rt.proc.stderr = { write: (s) => (errs.push(s), true) };
-  return { rt, errs };
-}
 
 describe("report recursive merge", () => {
   test("unions results.jsonl across nested shard subdirectories", async () => {
