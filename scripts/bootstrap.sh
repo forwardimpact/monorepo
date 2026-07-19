@@ -37,6 +37,29 @@ else
   for link in libraries/*/src/generated; do
     [ -e "$link" ] || needs_install=1
   done
+  # generated/services must mirror the proto set exactly, keyed by proto
+  # BASENAME (resource/tool ship via libproto's node_modules protos, not a
+  # service dir). A rename otherwise leaves the old dir behind — codegen's
+  # prune removes it — while the renamed service never gets generated, so
+  # "workspace ready" precedes a crash-loop. Skip common.proto (no service).
+  proto_names=$(
+    for p in services/*/proto/*.proto \
+      node_modules/@forwardimpact/libproto/proto/*.proto \
+      tools/*.proto; do
+      [ -e "$p" ] || continue
+      b=$(basename "$p" .proto)
+      [ "$b" = "common" ] || echo "$b"
+    done | sort -u
+  )
+  for name in $proto_names; do
+    [ -d "generated/services/$name" ] || needs_install=1
+  done
+  if [ -d generated/services ]; then
+    for d in generated/services/*/; do
+      [ -e "$d" ] || continue
+      echo "$proto_names" | grep -qx "$(basename "$d")" || needs_install=1
+    done
+  fi
   if [ "$needs_install" = "0" ]; then
     echo "Workspace ready — node_modules and generated resolve; skipping install and codegen"
   elif [ -d node_modules ]; then
