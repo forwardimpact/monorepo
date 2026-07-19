@@ -13,8 +13,8 @@ agent's working directory.
 
 | Task | Skill exercised | Agent produces | Grading |
 | --- | --- | --- | --- |
-| `bootstrap-repo` | `coaligned-setup` | `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.coaligned/invariants/` | Invariants (files exist; `CLAUDE.md` surfaces job **and** checklist discovery; `JTBD.md` carries a `<job>`; starter rule present; `CONTRIBUTING.md` points at the invariant tooling) + judge (orients not governs, faithful to the project) |
-| `author-job` | `coaligned-jtbd` | a `<job>` entry appended to `JTBD.md` | Invariants (`<job>` tag with `user`/`goal`, Trigger, Big Hire, Little Hire) + judge (progress not features, trigger is a moment, includes nonconsumption) |
+| `bootstrap-repo` | `coaligned-setup` | `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.coaligned/invariants/` | Gates: the three root files exist. Scored: `CLAUDE.md` surfaces job **and** checklist discovery; `JTBD.md` carries a `<job>`; starter rule present; `CONTRIBUTING.md` points at the invariant tooling. Judge: orients not governs, faithful to the project |
+| `author-job` | `coaligned-jtbd` | a `<job>` entry appended to `JTBD.md` | Gate: `JTBD.md` exists. Scored: `<job>` tag with `user`/`goal`, Trigger, Big Hire, Little Hire. Judge: progress not features, trigger is a moment, includes nonconsumption |
 
 `bootstrap-repo` is the primary task: it exercises the full setup path and
 verifies the auto-loaded `CLAUDE.md` advertises the discovery conventions for
@@ -45,9 +45,12 @@ step in the benchmark CWD.
 ## Grading surfaces
 
 Both tasks grade against **repository state** via `hooks/invariants.sh`, which
-uses `fit-trace assert` for file-existence and content checks. `hooks/` is never
-copied into the agent CWD, so the agent never sees the assertions. The judge
-then decides the faithfulness question the structural checks cannot.
+uses `fit-trace assert` for file-existence and content checks. The emitted
+check rows are the verdict — presence checks are `--gate` rows, content checks
+are scored rows contributing to the task's score, and the script's exit code
+means only "the grader itself ran". `hooks/` is never copied into the agent
+CWD, so the agent never sees the assertions. The judge then decides the
+faithfulness question the structural checks cannot.
 
 ## Dependencies
 

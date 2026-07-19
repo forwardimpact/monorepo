@@ -1,7 +1,7 @@
-Invariants result:
+Grade result:
 
 ```json
-{{INVARIANTS_RESULT}}
+{{GRADE_RESULT}}
 ```
 
 The agent was given these instructions:

@@ -15,12 +15,12 @@ merge — offline under the filesystem work tracker.
 
 | Task | Skill exercised | Agent produces | Grading |
 | --- | --- | --- | --- |
-| `spec-feature` | `kata-spec` | `spec.md` | Structural rubric (Problem/Scope/Success, no `file:line` leak, JTBD citation) + judge |
-| `design-feature` | `kata-design` | `design-a.md` | Rubric (exists, <200 lines, decisions, named trade-off) + judge |
-| `plan-feature` | `kata-plan` | `plan-a.md` | Rubric (Libraries-used line, Risks, design ref, verification) + judge |
-| `implement-feature` | `kata-implement` | edits under `app/` | Hidden test suite (baseline regression + feature) + judge (scope discipline) |
-| `coordinate-finding` | work-tracker operations | `.tracker/` work items | Invariants (issue filed, change links it, `state: merged`, approval recorded) + judge |
-| `product-issue-triage` | `kata-product-issue` | triaged `.tracker/` issue | Invariants (out-of-scope issue closed, `wontfix`-labelled, rationale comment) + judge |
+| `spec-feature` | `kata-spec` | `spec.md` | Gates: file exists, no `file:line` leak. Scored: Problem/Scope/Success sections, JTBD citation. Judge |
+| `design-feature` | `kata-design` | `design-a.md` | Gates: file exists, <200 lines. Scored: decisions, named trade-off. Judge |
+| `plan-feature` | `kata-plan` | `plan-a.md` | Gate: file exists. Scored: Libraries-used line, Risks, design ref, verification. Judge |
+| `implement-feature` | `kata-implement` | edits under `app/` | Hidden `tests/` suite: baseline regression as a gate, five scored feature checks. Judge: scope discipline |
+| `coordinate-finding` | work-tracker operations | `.tracker/` work items | Gates: issue and change filed. Scored: change links the issue, `state: merged`, approval recorded. Judge |
+| `product-issue-triage` | `kata-product-issue` | triaged `.tracker/` issue | Gate: issue still exists. Scored: closed, `wontfix`-labelled, rationale comment. Judge |
 
 The work-tracking tasks are offline — run them under the filesystem tracker.
 Run a single task with `--task`:
@@ -61,11 +61,16 @@ so a benchmark's inputs never shift when a sibling task changes.
 
 ## Hidden tests
 
-The `implement-feature` feature test lives at
-`tasks/implement-feature/hooks/feature.test.js`. Because `hooks/` is never
-copied into the agent CWD, the agent never sees these assertions;
-`invariants.sh` copies the file (via `$HOOKS_DIR`) into `app/test/` after the
-agent runs and executes the full suite.
+The `implement-feature` hidden suite lives at
+`tasks/implement-feature/tests/` — an overlay mirror of the agent CWD that is
+never copied into it, so the agent never sees the assertions. After the agent
+runs, the harness stages each file at its mirrored path under `app/test/`,
+runs every `*.test.js` check with `node --test`, emits one check row per
+file, and restores the tree. `todo.gate.test.js` (a symlink to the family
+workdir's baseline suite, so the baseline has one source) is the regression
+gate; the five feature checks are scored at weight 1, which is what gives the
+task its capability gradient. `feature-helpers.js` is support material —
+staged, never graded. The task has no `invariants.sh`.
 
 ## Dependencies
 
