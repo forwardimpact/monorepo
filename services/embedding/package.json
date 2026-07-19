@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcembedding",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Text embeddings over gRPC — semantic representation without each product running its own inference.",
   "keywords": [
     "embedding",
