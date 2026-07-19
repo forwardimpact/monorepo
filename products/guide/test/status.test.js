@@ -1,11 +1,12 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
+import { readFile } from "node:fs/promises";
 import {
   createMockClock,
   createMockFs,
   createMockGrpcHealthDefinition,
 } from "@forwardimpact/libmock";
-import { runStatus } from "../src/lib/status.js";
+import { runStatus, SERVICE_NAMES } from "../src/lib/status.js";
 
 /**
  * Creates a mock createServiceConfig that returns configs with predictable URLs.
@@ -19,6 +20,13 @@ function createMockConfigFactory(overrides = {}) {
       host: "localhost",
       port: 3001,
       url: "grpc://localhost:3001",
+      anthropicToken: async () => "test-anthropic-key",
+    },
+    embedding: {
+      name: "embedding",
+      host: "localhost",
+      port: 3015,
+      url: "grpc://localhost:3015",
       anthropicToken: async () => "test-anthropic-key",
     },
     vector: {
@@ -38,6 +46,13 @@ function createMockConfigFactory(overrides = {}) {
     pathway: {
       name: "pathway",
       host: "localhost",
+      port: 3005,
+      url: "grpc://localhost:3005",
+      anthropicToken: async () => "test-anthropic-key",
+    },
+    map: {
+      name: "map",
+      host: "localhost",
       port: 3004,
       url: "grpc://localhost:3004",
       anthropicToken: async () => "test-anthropic-key",
@@ -45,8 +60,8 @@ function createMockConfigFactory(overrides = {}) {
     mcp: {
       name: "mcp",
       host: "localhost",
-      port: 3005,
-      url: "http://localhost:3005",
+      port: 3011,
+      url: "http://localhost:3011",
       anthropicToken: async () => "test-anthropic-key",
     },
   };
@@ -157,6 +172,18 @@ describe("runStatus", () => {
 
     assert.strictEqual(result.verdict, "not ready");
     assert.strictEqual(result.credentials.ANTHROPIC_API_KEY, "missing");
+  });
+
+  test("status service list matches the starter config's declared services", async () => {
+    const starter = JSON.parse(
+      await readFile(
+        new URL("../starter/config.json", import.meta.url),
+        "utf-8",
+      ),
+    );
+    const declared = starter.init.services.map((s) => s.name);
+
+    assert.deepStrictEqual([...SERVICE_NAMES].sort(), [...declared].sort());
   });
 
   test("result serializes to expected JSON shape", async () => {

@@ -105,9 +105,30 @@ async function queryDataInventory(graphConfig, runtime) {
   return { resources, triples };
 }
 
-const SERVICE_NAMES = ["span", "vector", "graph", "pathway", "mcp"];
+/**
+ * The services `--status` reports on — the same set the starter config
+ * declares for supervision (`starter/config.json` `init.services`), the
+ * product contract for a working stack. A test pins the two lists
+ * together; change them in the same commit.
+ */
+export const SERVICE_NAMES = [
+  "span",
+  "embedding",
+  "vector",
+  "graph",
+  "pathway",
+  "map",
+  "mcp",
+];
 
-const GRPC_SERVICES = ["span", "vector", "graph", "pathway"];
+const GRPC_SERVICES = [
+  "span",
+  "embedding",
+  "vector",
+  "graph",
+  "pathway",
+  "map",
+];
 
 const HTTP_SERVICES = {
   mcp: "/health",

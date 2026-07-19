@@ -26,6 +26,7 @@ const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: [
+    'fit-visualize "[]"',
     "echo \"[?name=='ProcessStream']\" | fit-visualize",
     'echo "[]" | fit-visualize --trace 0f53069dbc62d',
   ],

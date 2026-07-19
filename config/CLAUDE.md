@@ -2,9 +2,9 @@
 
 Local runtime configuration. This directory is gitignored — each contributor
 maintains their own `config.json`, read by `libconfig` at startup. A fresh
-clone has none: create one from the structure below before running services. A
-minimal `init.services` block (the services you need, in dependency order) is
-enough for `fit-rc`; `service`/`product` blocks override constructor defaults.
+clone has none: create one from the structure below. A minimal `init.services`
+block (dependency order) is enough for `fit-rc`; `service`/`product` blocks
+override constructor defaults.
 
 ## Audience
 
@@ -55,8 +55,8 @@ Defines which processes `fit-rc` manages.
 }
 ```
 
-Each entry has a `name` and a `command` (the shell command `fit-rc` spawns).
-Non-Node commands needing `.env` variables must source them explicitly.
+Each entry has a `name` and a `command` (the shell command `fit-rc`
+spawns); non-Node commands needing `.env` must source it explicitly.
 
 **Declaration order matters.** `start <name>` starts the target and
 everything before it (bringing up dependencies). `stop <name>` and
@@ -92,12 +92,9 @@ is public-facing (its `oidctunnel` mirrors `oauthtunnel`); `tenancy` and
 Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
 
 ```json
-{
-  "name": "supabase",
-  "type": "oneshot",
+{ "name": "supabase", "type": "oneshot",
   "up": "sh -c '. ./.env && cd products/map && supabase start --workdir .'",
-  "down": "sh -c 'cd products/map && supabase stop --workdir .'"
-}
+  "down": "sh -c 'cd products/map && supabase stop --workdir .'" }
 ```
 
 ### `service.<name>` — service configuration
@@ -105,9 +102,9 @@ Oneshot services use `"type": "oneshot"` with `up`/`down` instead of `command`:
 Values merge with the service's constructor defaults, then overridden by
 `SERVICE_{NAME}_{KEY}` environment variables from `.env` or the shell.
 
-For configuring the platform apps whose credentials feed these blocks and
-`.env` — self-hosted (single-tenant) vs hosted (multi-tenant) — see the
-per-app guides:
+For the platform apps whose credentials feed these blocks and `.env` —
+self-hosted (single-tenant) vs hosted (multi-tenant) — see the per-app
+guides:
 
 - [GitHub server App](../services/ghserver/github-app.md) — installation-token
   App (`ghbridge` / `ghserver`).
@@ -117,8 +114,11 @@ per-app guides:
 
 ### `product.<name>` — product configuration
 
-Same merge/override pattern as services, with `PRODUCT_{NAME}_{KEY}`
-environment variables.
+Same merge/override pattern as services, with `PRODUCT_{NAME}_{KEY}` environment
+variables. Guide's `service.mcp` block and `product.guide.systemPrompt` copy
+from `products/guide/starter/config.json` — the single source of truth
+([products/guide/CLAUDE.md](../products/guide/CLAUDE.md)); with no `tools`, the
+MCP server warns and exposes nothing.
 
 ## `.env`
 

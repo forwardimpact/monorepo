@@ -8,6 +8,10 @@
         "command": "node -e \"import('@forwardimpact/svcspan/server.js')\""
       },
       {
+        "name": "embedding",
+        "command": "node -e \"import('@forwardimpact/svcembedding/server.js')\""
+      },
+      {
         "name": "vector",
         "command": "node -e \"import('@forwardimpact/svcvector/server.js')\""
       },

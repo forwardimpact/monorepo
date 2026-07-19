@@ -16,14 +16,17 @@ flowing.
 
 ## When to Use
 
-- Render every span as a diagram — `echo "[]" | npx fit-visualize`
+- Render every span as a diagram — `npx fit-visualize "[]"`
 - Filter spans by name — `echo "[?name=='ProcessStream']" | npx fit-visualize`
 - Scope to one trace or resource — `--trace <id>` / `--resource <id>`
 
 ## Usage
 
 ```sh
-# All spans, as a Mermaid sequence diagram
+# All spans, as a Mermaid sequence diagram (one-shot positional query)
+npx fit-visualize "[]"
+
+# Equivalent piped form
 echo "[]" | npx fit-visualize
 
 # Filter by span name
@@ -36,7 +39,8 @@ echo "[]" | npx fit-visualize --trace 0f53069dbc62d
 echo "[?kind==\`2\`]" | npx fit-visualize --resource common.Conversation.abc123
 ```
 
-The JMESPath expression is read from stdin and applied to the spans before
+The JMESPath expression arrives as a one-shot positional argument or on
+stdin — the two forms are equivalent — and is applied to the spans before
 rendering. `--trace` and `--resource` narrow the set first. Output is a fenced
 `mermaid` block, ready to paste into Markdown.
 

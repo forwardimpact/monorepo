@@ -43,11 +43,16 @@ Chat.
 
 - Bootstrap a new project — `npx fit-guide --init` (safe to re-run; no-op on
   existing projects)
-- Authenticate — `npx fit-guide login`
+- Authenticate — `npx fit-guide --login`
 - Start the service stack — `npx fit-rc start`
-- Check system readiness — `npx fit-guide status`
+- Check system readiness — `npx fit-guide --status`
 - Process knowledge content — `npx fit-process resources`,
   `npx fit-process graphs`, `npx fit-process vectors`
+
+`npx fit-guide "question"` and `echo "question" | npx fit-guide` are
+equivalent one-shot forms. Positional words are always prompt text, never
+commands — `npx fit-guide status` sends the word "status" to the agent;
+operational commands are always flags (`--status`, `--login`).
 
 ---
 
@@ -63,20 +68,10 @@ compaction and session persistence automatically.
 
 ### Tool Execution
 
-Guide exposes 10 tools via an MCP endpoint, each backed by a gRPC service:
-
-| Tool                             | Backend | Purpose                      |
-| -------------------------------- | ------- | ---------------------------- |
-| `get_ontology`                   | graph   | Schema vocabulary            |
-| `get_subjects`                   | graph   | Entity URIs by type          |
-| `query_by_pattern`               | graph   | Triple-pattern graph queries |
-| `search_content`                 | vector  | Semantic similarity search   |
-| `pathway_list_jobs`              | pathway | Job combinations             |
-| `pathway_describe_job`           | pathway | Full job description         |
-| `pathway_list_agent_profiles`    | pathway | Agent profile definitions    |
-| `pathway_describe_agent_profile` | pathway | Agent profile detail         |
-| `pathway_describe_progression`   | pathway | Level progression deltas     |
-| `pathway_list_job_software`      | pathway | Software toolkit per job     |
+Guide exposes its tools via an MCP endpoint, each backed by a gRPC
+service. The authoritative list is the `service.mcp.tools` block of your
+`config/config.json`; the starter ships fifteen tools spanning graph
+queries, semantic search, pathway lookups, and activity data.
 
 ### Knowledge Pipeline
 
@@ -111,7 +106,7 @@ npx fit-codegen --all       # Generate gRPC stubs and field metadata
 npx fit-guide --login       # OAuth PKCE login (or set ANTHROPIC_API_KEY in .env)
 npx fit-process resources   # Process starter knowledge HTML
 npx fit-process graphs      # Build the RDF index
-npx fit-process vectors     # Build the vector index (skip if no embeddings backend)
+npx fit-process vectors     # Build the vector index (requires the embedding service; skip only if vector search is not needed)
 npx fit-rc start            # Launch the service stack
 npx fit-guide "What skills does a senior engineer need?"
 ```
@@ -129,13 +124,15 @@ See [`references/cli.md`](references/cli.md) for full command listings.
 Guide requires the service stack to be running. Services are supervised by
 `fit-rc` and defined in `config/config.json`.
 
-| Order | Service | Protocol        | Purpose                     | Port |
-| ----- | ------- | --------------- | --------------------------- | ---- |
-| 1     | trace   | gRPC            | Distributed tracing         | 3001 |
-| 2     | vector  | gRPC            | Vector similarity search    | 3002 |
-| 3     | graph   | gRPC            | RDF triple store            | 3003 |
-| 4     | pathway | gRPC            | Standard data service       | 3004 |
-| 5     | mcp     | Streamable HTTP | MCP tool and prompt gateway | 3005 |
+| Order | Service   | Protocol        | Purpose                     | Port |
+| ----- | --------- | --------------- | --------------------------- | ---- |
+| 1     | span      | gRPC            | Distributed tracing         | 3001 |
+| 2     | embedding | gRPC            | Text embeddings             | 3015 |
+| 3     | vector    | gRPC            | Vector similarity search    | 3002 |
+| 4     | graph     | gRPC            | RDF triple store            | 3003 |
+| 5     | pathway   | gRPC            | Standard data service       | 3005 |
+| 6     | map       | gRPC            | Activity data service       | 3004 |
+| 7     | mcp       | Streamable HTTP | MCP tool and prompt gateway | 3011 |
 
 ### MCP Endpoint Configuration
 
@@ -144,7 +141,7 @@ For Claude Code, register the MCP endpoint in your MCP server config:
 ```json
 {
   "guide": {
-    "url": "http://localhost:3005",
+    "url": "http://localhost:3011",
     "headers": { "Authorization": "Bearer <MCP_TOKEN>" }
   }
 }
@@ -165,13 +162,11 @@ For Claude Code, register the MCP endpoint in your MCP server config:
 See [`references/data.md`](references/data.md) for processing steps and
 directory layout.
 
----
-
 ## Verification
 
 ```sh
-npx fit-guide status                    # All services should show "ok"
-echo "hello" | npx fit-guide            # Should return an agent response
+npx fit-guide --status                  # All services should show "ok"
+npx fit-guide "hello"                   # Should return an agent response
 ```
 
 ## Documentation
