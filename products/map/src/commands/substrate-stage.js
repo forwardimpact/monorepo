@@ -1,10 +1,12 @@
 /**
  * `fit-map substrate stage` — workspace-prep terminal phase for the
  * kata-interview workflow targeting Landmark. Runs init against the
- * target dir, brings up the local Supabase stack, discovers its URL/anon
- * key, migrates the schema, seeds the activity data, provisions
- * auth.users for the roster, and runs a self-smoke against every gated
- * Landmark command.
+ * target dir, copies the activity data and pathway standard from the
+ * same data root, brings up the local Supabase stack, discovers its
+ * URL/anon key, migrates the schema, seeds the activity data,
+ * provisions auth.users for the roster, proves the seeded roster's
+ * levels against the staged standard, and runs a self-smoke against
+ * every gated Landmark command.
  *
  * Designed to be invoked once per interview run from CI; not a developer
  * verb (use `fit-map activity start` + manual seed in dev flows).
@@ -44,6 +46,12 @@ export async function runStageCommand(
     loadInit = () => import("./init.js").then((m) => m.runInit),
     loadCopyActivity = () =>
       import("../lib/copy-activity.js").then((m) => m.copyActivity),
+    loadCopyPathway = () =>
+      import("../lib/copy-activity.js").then((m) => m.copyPathway),
+    loadAssertLevels = () =>
+      import("../lib/roster-levels.js").then(
+        (m) => m.assertSeededLevelsCovered,
+      ),
     createSupabaseCli = defaultCreateCli,
     findDataDir = defaultFindDataDir,
     createMapClient = defaultCreateMapClient,
@@ -80,6 +88,17 @@ export async function runStageCommand(
     const dataDir = await findDataDir(undefined, runtime);
     const source = path.join(path.dirname(dataDir), "activity");
     await copyActivity({ source, target: stageTarget, runtime });
+  });
+
+  // Activity and pathway are a matched pair from the same data root: the
+  // roster seeded below carries level ids the standard must define, so
+  // the staged pathway ships from the same source as the activity data
+  // (init's starter copy stays as the fallback when no source pathway
+  // exists).
+  const copyPathway = await loadCopyPathway();
+  await runPhase("copy-pathway", async () => {
+    const source = await findDataDir(undefined, runtime);
+    await copyPathway({ source, target: stageTarget, runtime });
   });
 
   const stageConfig = (await reloadConfig(stageTarget)) ?? config;
@@ -130,6 +149,18 @@ export async function runStageCommand(
     runProvision({ supabase: substrateClient, runtime }),
   );
 
+  // Prove the seeded roster against the standard this workspace actually
+  // ships — the seed phase checked against the source data root; this
+  // one checks the staged copy end-to-end.
+  const assertSeededLevelsCovered = await loadAssertLevels();
+  await runPhase("roster-standard", () =>
+    assertSeededLevelsCovered({
+      supabase,
+      pathwayDir: path.join(stageTarget, "data", "pathway"),
+      runtime,
+    }),
+  );
+
   if (runtime.proc.env.SUBSTRATE_FORCE_EMPTY_CORPUS === "true") {
     throw new Error("[substrate stage: smoke] empty corpus (test injection)");
   }
@@ -146,6 +177,9 @@ async function runPhase(name, fn) {
   try {
     await fn();
   } catch (err) {
-    throw new Error(`[substrate stage: ${name}] ${err.message}`);
+    // Prefix the phase onto the original error rather than wrapping it,
+    // so the stack still points at the failing frame.
+    err.message = `[substrate stage: ${name}] ${err.message}`;
+    throw err;
   }
 }

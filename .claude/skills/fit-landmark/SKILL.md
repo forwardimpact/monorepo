@@ -101,7 +101,11 @@ See [`references/workflows.md`](references/workflows.md) for worked examples.
 ## Prerequisites
 
 - GetDX account with API access
-- Map activity schema migrated and populated (`npx fit-map activity migrate`)
+- Map activity database prepared — one of: `npx fit-map substrate stage`
+  (one-shot CI/interview pipeline), `npx fit-map activity start` +
+  `npx fit-map activity seed` (dev flow), or `npx fit-map activity migrate`
+  plus your own ingest (migrations only); the `fit-map` skill documents all
+  three paths
 - Standard data with drivers and markers authored in capability YAML
 - Summit (optional) for inline growth recommendations in health view
 

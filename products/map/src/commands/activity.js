@@ -8,6 +8,7 @@ import { transformAllGitHub } from "@forwardimpact/map/activity/transform/github
 import { transformEvidence } from "@forwardimpact/map/activity/transform/evidence";
 import { transformEvidenceArtifact } from "@forwardimpact/map/activity/transform/evidence-artifact";
 import { getOrganization } from "@forwardimpact/map/activity/queries/org";
+import { assertSeededLevelsCovered } from "../lib/roster-levels.js";
 import {
   formatHeader,
   formatSubheader,
@@ -303,7 +304,15 @@ export async function seed({ data, supabase, runtime, mapData }) {
     result.evidence.errors.length === 0,
   );
 
-  // 4. Verify
+  // 4. Enforce the seeding invariant: every seeded level exists in the
+  // installed standard (skipped when no standard is installed).
+  await assertSeededLevelsCovered({
+    supabase,
+    pathwayDir: join(data, "pathway"),
+    runtime,
+  });
+
+  // 5. Verify
   return verify(supabase, runtime);
 }
 

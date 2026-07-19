@@ -19,6 +19,8 @@ function stubDeps(statusJson) {
   return {
     loadInit: () => async () => {},
     loadCopyActivity: () => async () => {},
+    loadCopyPathway: () => async () => {},
+    loadAssertLevels: () => async () => {},
     createSupabaseCli: () => ({
       run: async () => {},
       capture: async () => statusJson,
@@ -68,5 +70,33 @@ describe("fit-map substrate stage --emit-env", () => {
     assert.equal(code, 0);
     assert.equal(runtime.proc.env.SUPABASE_URL, "http://u");
     assert.equal(runtime.proc.env.SUPABASE_ANON_KEY, "k");
+  });
+});
+
+describe("fit-map substrate stage phase errors", () => {
+  test("rethrows the original error with the phase prefixed", async () => {
+    const runtime = createTestRuntime();
+    const deps = stubDeps(
+      JSON.stringify({ API_URL: "http://u", ANON_KEY: "k" }),
+    );
+    const original = new Error("seed exploded");
+    original.marker = "original-error";
+    deps.loadSeed = () => async () => {
+      throw original;
+    };
+
+    let caught;
+    try {
+      await runStageCommand(
+        { config: {}, target: "/agent-cwd", runtime },
+        deps,
+      );
+    } catch (err) {
+      caught = err;
+    }
+
+    assert.equal(caught, original);
+    assert.equal(caught.marker, "original-error");
+    assert.equal(caught.message, "[substrate stage: seed] seed exploded");
   });
 });
