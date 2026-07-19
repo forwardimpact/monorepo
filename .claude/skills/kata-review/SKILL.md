@@ -121,6 +121,8 @@ Match
 and CONTRIBUTING.md § Core Rules. Look for:
 
 - Diff implements every spec success criterion
+- Old path deleted in the same change — no shims, aliases, fallbacks, or
+  compat flags unless the spec requires them
 - No scope creep (refactors, features, cleanup beyond the plan)
 - Atomic, conventional-style commits on the branch
 - Plan deviations noted in commit messages where present

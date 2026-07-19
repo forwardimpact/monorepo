@@ -78,6 +78,9 @@ Identify which persona and job from [JTBD.md](../../../JTBD.md) the spec serves.
 - **Problem first.** Evidence before proposal — errors, metrics, examples.
 - **Specific scope.** Name affected files, APIs, entities; state what is
   excluded.
+- **Compatibility stance.** One line: clean break (the default) or a compat
+  requirement with its why. Silence means clean break downstream; when
+  breaking, list old-path removal as a success criterion.
 - **Verifiable success.** Each criterion is a claim plus the command or path
   that verifies it. One sentence each. No rationale, no alternatives considered.
 - **No HOW.** Name what each component does, not which mechanism implements it.
