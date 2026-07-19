@@ -70,6 +70,7 @@ Homebrew, npm, or falls back to `npx supabase`.
 npx fit-map activity start              # Start local Supabase
 npx fit-map activity status             # Report stack health
 npx fit-map activity migrate            # Reset + re-apply migrations (drops data)
+npx fit-map activity seed               # Seed the database from ./data/activity
 npx fit-map people push <file>          # Upsert into organization_people
 npx fit-map getdx sync                  # Sync GetDX (needs GETDX_API_TOKEN)
 npx fit-map activity transform          # Reprocess the raw bucket
@@ -89,6 +90,15 @@ pipeline collapses the activity-layer flow above — when running
 substrate, `init`, `migrate`, `seed`, `people push`, and `provision` are
 all internal phases. Do not invoke them separately.
 
+Three entry points prepare an activity database — pick one:
+
+- `substrate stage` — one-shot pipeline for CI and interview runs;
+  every phase below is internal.
+- `activity start` + `activity seed` — dev flow: bring the stack up,
+  then seed it from `./data/activity`.
+- `activity migrate` — migrations only; resets the schema (drops data)
+  without seeding.
+
 ### One-shot stage
 
 ```sh
@@ -98,19 +108,28 @@ npx fit-map substrate stage --cwd <agent_dir>
 Phases (failures surface as `[substrate stage: <phase>] <reason>` so CI
 identifies the failing step):
 
-| Phase           | What it does                                                     |
-| --------------- | ---------------------------------------------------------------- |
-| `init`          | Bootstrap `data/pathway/` + `config/config.json` into target     |
-| `copy-activity` | Copy synthetic activity data into target                         |
-| `stack`         | `supabase start`                                                 |
-| `url-discovery` | Parse `supabase status` → set `SUPABASE_URL`/`SUPABASE_ANON_KEY` |
-| `migrate`       | `supabase db reset`                                              |
-| `seed`          | Load activity data                                               |
-| `provision`     | Reconcile `auth.users` against the roster (shared `fit-terrain` capability) |
-| `smoke`         | Invoke every gated product command end-to-end                    |
+| Phase             | What it does                                                     |
+| ----------------- | ---------------------------------------------------------------- |
+| `init`            | Bootstrap `data/pathway/` + `config/config.json` into target     |
+| `copy-activity`   | Copy synthetic activity data into target                         |
+| `copy-pathway`    | Replace target's `data/pathway/` with the standard from the same data root (starter stays when none exists) |
+| `stack`           | `supabase start`                                                 |
+| `url-discovery`   | Parse `supabase status` → set `SUPABASE_URL`/`SUPABASE_ANON_KEY` |
+| `migrate`         | `supabase db reset`                                              |
+| `seed`            | Load activity data                                               |
+| `provision`       | Reconcile `auth.users` against the roster (shared `fit-terrain` capability) |
+| `roster-standard` | Fail when the seeded roster uses level ids the staged standard does not define |
+| `smoke`           | Invoke every gated product command end-to-end                    |
+
+Activity data and the pathway standard ship from the same data root, so
+the seeded roster and the installed standard always match. Seeding
+itself enforces the same invariant on every path: `activity seed` fails
+fast when the roster names a level the installed standard does not
+define.
 
 `SUBSTRATE_FORCE_EMPTY_CORPUS=true` forces the smoke phase to fail with
 the empty-corpus diagnostic — used by CI to assert the failure path.
+Set `FIT_DEBUG=1` to print the full stack trace when a command fails.
 
 ### Persona selection
 

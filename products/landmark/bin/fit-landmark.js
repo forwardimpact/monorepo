@@ -319,17 +319,25 @@ async function main() {
       }
     }
   } catch (error) {
-    if (error instanceof IdentityUnresolvedError) {
-      cli.error(error.message);
-      process.exit(4);
-    }
-    if (error instanceof SupabaseUnavailableError) {
-      cli.error(error.message);
-      process.exit(3);
-    }
-    cli.error(error.message);
-    process.exit(1);
+    exitWithError(cli, error);
   }
+}
+
+/** Print the error per its class contract and exit with the matching code. */
+function exitWithError(cli, error) {
+  if (error instanceof IdentityUnresolvedError) {
+    cli.error(error.message);
+    process.exit(4);
+  }
+  if (error instanceof SupabaseUnavailableError) {
+    cli.error(error.message);
+    process.exit(3);
+  }
+  cli.error(error.message);
+  if (process.env.FIT_DEBUG) {
+    process.stderr.write(error.stack + "\n");
+  }
+  process.exit(1);
 }
 
 main();

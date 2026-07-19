@@ -54,6 +54,8 @@ function buildDeps({ failPhase = null, invocations }) {
   return {
     loadInit: async () => recorded("init"),
     loadCopyActivity: async () => recorded("copy-activity"),
+    loadCopyPathway: async () => recorded("copy-pathway"),
+    loadAssertLevels: async () => recorded("roster-standard"),
     createSupabaseCli: () => cliStub,
     createMapClient: () => ({ stub: true }),
     findDataDir: async () => "/tmp/data/pathway",
@@ -135,6 +137,8 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
       {
         loadInit: async () => runInit,
         loadCopyActivity: async () => async () => {},
+        loadCopyPathway: async () => async () => {},
+        loadAssertLevels: async () => async () => {},
         createSupabaseCli: () => ({
           run: recorded("noop"),
           capture: recorded("noop", async () =>
@@ -156,6 +160,63 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
     const treeA = await listTree(tmpA);
     const treeB = await listTree(tmpB);
     assert.deepEqual(treeA, treeB);
+  });
+});
+
+describe("substrate-stage default dependencies", () => {
+  test("stages with the default reloadConfig, init, and copy helpers", async () => {
+    // Only process-external collaborators (supabase, clients, the seeded
+    // phases) are stubbed; loadInit, both copy helpers, and reloadConfig
+    // run their real defaults against a real target — the wiring that a
+    // fully-stubbed deps object never exercises.
+    const sourceRoot = await fs.mkdtemp(
+      path.join(tmpdir(), "substrate-default-src-"),
+    );
+    const target = await fs.mkdtemp(
+      path.join(tmpdir(), "substrate-default-target-"),
+    );
+    await fs.mkdir(path.join(sourceRoot, "data", "activity"), {
+      recursive: true,
+    });
+    await fs.mkdir(path.join(sourceRoot, "data", "pathway"), {
+      recursive: true,
+    });
+    await fs.writeFile(
+      path.join(sourceRoot, "data", "activity", "roster.yaml"),
+      "people: []\n",
+    );
+    await fs.writeFile(
+      path.join(sourceRoot, "data", "pathway", "levels.yaml"),
+      "- id: J080\n",
+    );
+    const runtime = quietRealRuntime();
+    const deps = {
+      createSupabaseCli: () => ({
+        run: async () => {},
+        capture: async () =>
+          JSON.stringify({ API_URL: "http://u", ANON_KEY: "k" }),
+      }),
+      createMapClient: () => ({ stub: true }),
+      findDataDir: async () => path.join(sourceRoot, "data", "pathway"),
+      loadSeed: async () => async () => {},
+      loadProvision: async () => async () => {},
+      loadSmoke: async () => async () => {},
+      loadAssertLevels: async () => async () => {},
+    };
+    try {
+      const code = await runStageCommand({ config: {}, target, runtime }, deps);
+      assert.equal(code, 0);
+      const staged = await fs.readFile(
+        path.join(target, "data", "pathway", "levels.yaml"),
+        "utf-8",
+      );
+      assert.equal(staged, "- id: J080\n");
+      const entries = await fs.readdir(path.join(target, "data", "pathway"));
+      assert.deepEqual(entries, ["levels.yaml"]);
+    } finally {
+      await fs.rm(sourceRoot, { recursive: true, force: true });
+      await fs.rm(target, { recursive: true, force: true });
+    }
   });
 });
 

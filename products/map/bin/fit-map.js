@@ -537,6 +537,9 @@ async function main() {
     runtime.proc.exit(exitCode);
   } catch (error) {
     cli.error(error.message);
+    if (runtime.proc.env.FIT_DEBUG) {
+      runtime.proc.stderr.write(error.stack + "\n");
+    }
     runtime.proc.exit(1);
   }
 }
