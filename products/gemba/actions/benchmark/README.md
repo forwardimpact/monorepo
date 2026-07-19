@@ -1,7 +1,7 @@
 # FIT Benchmark
 
 Run coding-agent benchmarks via the
-[gemba-benchmark](https://www.npmjs.com/package/@forwardimpact/libharness) CLI.
+[gemba-benchmark](https://www.npmjs.com/package/@forwardimpact/gemba) CLI.
 Handles task-family execution, pass@k reporting, and result artifact upload.
 
 ## Usage
@@ -20,7 +20,7 @@ Handles task-family execution, pass@k reporting, and result artifact upload.
 ## Prerequisites
 
 - Node.js 18+ or Bun 1.2+
-- `@forwardimpact/libharness` installed (via `npm install` or in a Bun workspace)
+- `@forwardimpact/gemba` installed (via `npm install` or in a Bun workspace)
 - `ANTHROPIC_API_KEY` set as an environment variable
 
 ## Inputs

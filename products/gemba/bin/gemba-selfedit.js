@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * gemba-selfedit — write stdin to a path that .claude/settings.json
- * permits Edit on, while on a non-main git branch. See
- * libraries/libharness/README.md § gemba-selfedit for the full rationale.
+ * permits Edit on, while on a non-main git branch. Full rationale:
+ * https://github.com/forwardimpact/monorepo/blob/main/libraries/libharness/README.md
  */
 
 import "@forwardimpact/libpreflight/node22";

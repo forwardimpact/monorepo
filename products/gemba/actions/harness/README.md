@@ -1,7 +1,7 @@
 # Kata Harness
 
 Run agent tasks via the
-[gemba-harness](https://www.npmjs.com/package/@forwardimpact/libharness) CLI using the
+[gemba-harness](https://www.npmjs.com/package/@forwardimpact/gemba) CLI using the
 Claude Agent SDK. Handles trace capture, splitting, and artifact upload.
 
 ## Usage
@@ -19,7 +19,7 @@ Claude Agent SDK. Handles trace capture, splitting, and artifact upload.
 ## Prerequisites
 
 - Node.js 18+ or Bun 1.2+
-- `@forwardimpact/libharness` installed (via `npm install` or in a Bun workspace)
+- `@forwardimpact/gemba` installed (via `npm install` or in a Bun workspace)
 - `ANTHROPIC_API_KEY` and `GH_TOKEN` set as environment variables
 
 ## Inputs

@@ -34,7 +34,7 @@ inputs:
     default: "1.3.11"
   clis:
     description: >
-      Space-separated fit-* CLIs to install as pinned, pre-compiled binaries
+      Space-separated fit-*/gemba-* CLIs to install as pinned, pre-compiled binaries
       onto PATH (e.g. "gemba-wiki gemba-harness gemba-trace"). Empty installs only
       the external tool set. The binaries are fetched and SHA-verified by the
       bundled fit-install.sh; an unsupported platform fails hard.
@@ -103,7 +103,7 @@ runs:
     # One environment cache covers both the CLI tools and the workspace
     # (node_modules + generated). This step emits every path as one
     # newline-separated list: the paths the bundled fit-install.sh declares via
-    # --paths (each tool's lib dir + bin symlink, plus any requested fit-*
+    # --paths (each tool's lib dir + bin symlink, plus any requested fit-*/gemba-*
     # binary — keeping unrelated ~/.local tooling like uv/Python out of the
     # cache), plus the workspace dirs. Folding the two former caches into a
     # single restore drops an actions/cache round-trip from the critical path.

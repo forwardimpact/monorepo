@@ -19,10 +19,11 @@
 //
 // Fully-qualified https://github.com/forwardimpact/monorepo/blob/main/...
 // links are sanctioned (canonical-protocol references) and do not match
-// these rules. fit-* and coaligned-* skills are out of scope: they document
-// their own published CLIs and legitimately name @forwardimpact packages and
-// tool integrations. Only kata-* skills (plus the agent references, which now
-// live flat at .claude/agents/x-*.md) are scanned — see the globs in build().
+// these rules. fit-*, gemba/gemba-*, and coaligned-* skills are out of scope:
+// they document their own published CLIs and legitimately name @forwardimpact
+// packages and tool integrations. Only kata-* skills (plus the agent
+// references, which now live flat at .claude/agents/x-*.md) are scanned — see
+// the globs in build().
 // The six agent profiles are deliberately NOT genericity-scanned: they carry
 // internal contributor tooling (bun run check:fix, bunx fit-doc, websites/fit)
 // and making them pack-generic is out of this rule's scope.
@@ -133,7 +134,7 @@ const PATTERNS = [
     reason: "TRUST.md is not shipped with the pack — use the full GitHub URL",
   },
   {
-    pattern: "\\]\\((\\.\\./)+(fit|gemba)-",
+    pattern: "\\]\\((\\.\\./)+(fit-|gemba[-/])",
     reason:
       "fit-*/gemba-* skills ship in a separate pack — use the full GitHub URL",
   },

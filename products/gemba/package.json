@@ -62,7 +62,7 @@
     "@forwardimpact/libutil": "^0.1.100"
   },
   "devDependencies": {
-    "@forwardimpact/libmock": "^0.1.0"
+    "@forwardimpact/libmock": "^0.1.15"
   },
   "engines": {
     "bun": ">=1.2.0",

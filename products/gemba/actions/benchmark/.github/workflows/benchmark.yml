@@ -117,8 +117,8 @@ jobs:
       - uses: forwardimpact/bootstrap@4e63230e2a638296a6c201c91f724784e1958f5c # v1.0.4
         with:
           # gemba-benchmark runs the benchmark binary straight off PATH — the
-          # action has no bunx/npx fallback. Requires a gear release that
-          # publishes gemba-benchmark (gear@v0.1.8+).
+          # action has no bunx/npx fallback. Requires a bootstrap pin whose
+          # gear release publishes the gemba-* binaries.
           clis: gemba-benchmark
       - uses: forwardimpact/benchmark@v1.0.2
         with:

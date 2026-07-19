@@ -100,10 +100,12 @@ The bring-up layer is the `bootstrap` action and its installer. In CI:
     clis: gemba-harness gemba-trace gemba-wiki
 ```
 
-On a workstation, the same installer bootstraps with one line:
+On a workstation, the same installer bootstraps with one line — substitute
+the newest `gear@v*` tag from the
+[releases page](https://github.com/forwardimpact/monorepo/releases):
 
 ```sh
-curl -fsSL https://github.com/forwardimpact/monorepo/releases/latest/download/fit-install.sh | bash
+curl -fsSL https://github.com/forwardimpact/monorepo/releases/download/<gear-release>/fit-install.sh | bash
 ```
 
 Or install the command family from npm:
