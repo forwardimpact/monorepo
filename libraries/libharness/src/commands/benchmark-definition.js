@@ -5,7 +5,7 @@
  */
 
 import { runBenchmarkRunCommand } from "./benchmark-run.js";
-import { runBenchmarkInvariantsCommand } from "./benchmark-invariants.js";
+import { runBenchmarkGradeCommand } from "./benchmark-grade.js";
 import { runBenchmarkReportCommand } from "./benchmark-report.js";
 import {
   BENCHMARK_AGENT_MODEL,
@@ -95,11 +95,11 @@ export const definition = {
       },
     },
     {
-      name: "invariants",
+      name: "grade",
       args: [],
-      handler: runBenchmarkInvariantsCommand,
+      handler: runBenchmarkGradeCommand,
       description:
-        "Check a single task's invariants against a post-run workdir without invoking an agent.",
+        "Grade a single task against a post-run workdir without invoking an agent: run the hidden test suite and the invariants script, then derive the verdict from the check rows (the exit mirrors it).",
       options: {
         family: {
           type: "string",
@@ -112,7 +112,7 @@ export const definition = {
         "run-dir": {
           type: "string",
           description:
-            "Post-run directory whose cwd/ subdir is the agent CWD; invariants run against that cwd — the path hooks receive as $AGENT_CWD",
+            "Post-run directory whose cwd/ subdir is the agent CWD; both producers run against that cwd — the path hooks receive as $AGENT_CWD",
         },
         output: {
           type: "string",
@@ -159,7 +159,7 @@ export const definition = {
     "fit-benchmark run --family=./families/coding --work-tracker=filesystem",
     "fit-benchmark run --family=./families/coding --skills-from=. --task=todo-api",
     `fit-benchmark run --family=./families/coding --runs=10 --agent-model=${BENCHMARK_AGENT_MODEL}`,
-    "fit-benchmark invariants --family=./families/coding --task=todo-api --run-dir=./benchmark-runs/runs/todo-api/0",
+    "fit-benchmark grade --family=./families/coding --task=todo-api --run-dir=./benchmark-runs/runs/todo-api/0",
     "fit-benchmark report --format=text",
     "fit-benchmark report --input=./runs/today --k=1,3,5 --format=text",
   ],

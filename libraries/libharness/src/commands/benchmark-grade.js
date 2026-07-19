@@ -1,21 +1,26 @@
 /**
- * `fit-benchmark invariants` — check a single task's invariants against a
- * post-run workdir directory without invoking an agent. Useful for
- * re-checking an agent's output against revised grading material.
+ * `fit-benchmark grade` — run both check-row producers (the hidden test
+ * suite and the invariants script) against a post-run workdir directory and
+ * grade the merged rows with the same derivation the benchmark runner uses.
+ * No agent and no judge run, so authors validate a task's grading material
+ * against fixtures without paying for agent sessions; the process exit
+ * mirrors the graded verdict.
  */
 
 import { join, resolve } from "node:path";
 import { createServer } from "node:net";
 
-import { validateInvariantsRecord } from "../benchmark/result.js";
+import { validateGradeRecord } from "../benchmark/result.js";
 import { runInvariants } from "../benchmark/invariants.js";
+import { runHiddenTests } from "../benchmark/hidden-tests.js";
+import { gradeChecks, mergeRows, normalizeGrade } from "../benchmark/grade.js";
 import { loadTaskFamily } from "../benchmark/task-family.js";
 
 /**
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
-export async function runBenchmarkInvariantsCommand(ctx) {
+export async function runBenchmarkGradeCommand(ctx) {
   const values = ctx.options;
   const runtime = ctx.deps.runtime;
   const familyInput = values.family;
@@ -34,14 +39,39 @@ export async function runBenchmarkInvariantsCommand(ctx) {
   const runDir = resolve(runDirArg);
   const cwd = join(runDir, "cwd");
   const port = await allocatePort();
+  const cellCtx = { cwd, port, runDir, familyDir: family.rootPath };
 
-  const invariants = await runInvariants(task, { cwd, port, runDir }, runtime);
+  const invariants = await runInvariants(task, cellCtx, runtime);
+  let hidden = { details: [] };
+  let engineError = null;
+  try {
+    hidden = await runHiddenTests(task, cellCtx, runtime);
+  } catch (e) {
+    engineError = e;
+  }
+  const rows = mergeRows(invariants.details, hidden.details);
+  const healthy = invariants.exitCode === 0 && !engineError;
+  const grade = normalizeGrade(gradeChecks(rows, healthy));
+  // Same effective-score rule as the runner, minus the judge (none runs
+  // here): an unhealthy grader or a failing gate zeroes the score, so a
+  // crashed hook can never mint marks from the rows it emitted before dying.
+  if (grade.score !== undefined && !(healthy && grade.gatesPass)) {
+    grade.score = 0;
+  }
   const record = {
     taskId: task.id,
+    grade,
     invariants,
+    ...(task.tests && {
+      hiddenTests: {
+        details: hidden.details,
+        ...(engineError && { error: engineError.message }),
+      },
+    }),
+    // Mirrors the script for diagnosis; the graded verdict drives the exit.
     exitCode: invariants.exitCode,
   };
-  validateInvariantsRecord(record);
+  validateGradeRecord(record);
 
   const line = JSON.stringify(record) + "\n";
   if (values.output) {
@@ -49,7 +79,7 @@ export async function runBenchmarkInvariantsCommand(ctx) {
   } else {
     runtime.proc.stdout.write(line);
   }
-  return invariants.verdict === "pass"
+  return grade.verdict === "pass"
     ? { ok: true }
     : { ok: false, code: 1, error: "" };
 }
