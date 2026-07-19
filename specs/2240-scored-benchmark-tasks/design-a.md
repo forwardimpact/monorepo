@@ -108,10 +108,10 @@ sees the workdir exactly as the agent left it.
 | Invariants collector | `benchmark/invariants.js` | Loses its verdict: returns `{details, exitCode, stderr?}`. Unparseable fd-3 lines stay in `details` as `parseError` rows and grade as malformed. |
 | Grading | new `benchmark/grade.js` | Pure `gradeChecks(details, healthy)` → `{verdict, gatesPass, score, fullMarks, malformed}` (`score` null for binary). Sole home of the arithmetic. |
 | Cell composition | `benchmark/runner.js` `#executeCell` | Order: agent → invariants collector → hidden-test engine → stamp provenance, merge rows, grade → judge. Cell verdict `grade.verdict ∧ judge`; effective score per § contract. The record's `grade` is the normalized projection of `gradeChecks` — `fullMarks` dropped, `score` omitted when null, `malformed` omitted when 0. Preflight-failure records never reach grading and stay score-free (zeros realize in aggregation). |
-| Record schema | `benchmark/result.js` | `invariants` shape drops `verdict`; new `grade: {verdict, gatesPass, score?, malformed?}` — schema-optional so pre-break ledgers still render, though the runner always writes it; optional `hiddenTests: {details, error?}` (present iff the task has a suite; `error` carries an engine crash); optional top-level `score` (0–1) — the effective judge-zeroed value `report` aggregates; preflight branch pins them `undefined`. |
+| Record schema | `benchmark/result.js` | `invariants` shape drops `verdict`; new **required** `grade: {verdict, gatesPass, score?, malformed?}` on the happy record — no optional-for-compat softening; a pre-break record simply fails validation; optional `hiddenTests: {details, error?}` (present iff the task has a suite; `error` carries an engine crash); optional top-level `score` (0–1) — the effective judge-zeroed value `report` aggregates; preflight branch pins them `undefined`. |
 | Judge templating | `benchmark/judge.js` | `{{GRADE_RESULT}}` — grade object + merged rows — replaces `{{INVARIANTS_RESULT}}`. |
 | `grade` subcommand | `commands/benchmark-grade.js` (replaces `benchmark-invariants.js`) | Runs both producers against `--run-dir` with the same derivation; process exits 0 iff `grade.verdict === "pass"` (no judge here; judge-zeroing does not apply). |
-| Report | `benchmark/report.js` | Group scored iff ≥ 1 record carries `score`; per scored task `meanScore` + `scoreAtK[k]` (§ Estimator); a score-less record in a scored group contributes its verdict as the degenerate score (pass = 1, fail = 0). Rendering: score and `score@k` columns only when the report has a scored task (binary rows render `—`); the checks table merges both producers with a Source column when any row carries `source: "tests"`; a positive `grade.malformed` renders a warning; rows without `grade` (pre-break ledgers, preflight) render `—`. |
+| Report | `benchmark/report.js` | Group scored iff ≥ 1 record carries `score`; per scored task `meanScore` + `scoreAtK[k]` (§ Estimator); a score-less record in a scored group contributes its verdict as the degenerate score (pass = 1, fail = 0). Rendering: score and `score@k` columns only when the report has a scored task (binary rows render `—`); the checks table merges both producers with a Source column when any row carries `source: "tests"`; a positive `grade.malformed` renders a warning; preflight rows (the one grade-less branch) render `—`. |
 | `fit-trace assert --gate/--weight` | `commands/assert.js` + `bin/fit-trace.js` | `--weight` validates finite ≥ 0; `--gate` adds `gate: true`; `--gate` with any `--weight` is an error. **Emit-then-fail on every failure path:** invalid grading flags *and* errored evaluations (today's catch path returns without writing a row — e.g. `--grep` against a file the agent deleted) emit a failing row before the nonzero exit, so a typo or a vanished target shrinks the score, never the denominator. |
 | Hook migration | `benchmarks/*/tasks/*/hooks/invariants.sh`, libharness fixtures | § Migration. One helper — `check() { fit-trace assert "$@" >&"$RESULTS_FD" \|\| true; }` — structural checks only, `exit 0` at the end. |
 | Leading example | `benchmarks/kata-skills/tasks/implement-feature/tests/` | `tests/app/test/`: `todo.gate.test.js` as the pristine-baseline gate (a symlink to the family workdir suite kills the drift pair), five feature `*.test.js` checks scored at weight 1, `feature-helpers.js` as support. `invariants.sh` and `hooks/feature.test.js` deleted; `preflight.sh` and the scope judge unchanged. |
@@ -135,7 +135,7 @@ sees the workdir exactly as the agent left it.
 | Score-less records in a scored group | Degenerate verdict score: pass = 1, fail = 0 | Skipping them inflates the mean exactly when the agent fails hardest. |
 | Best-of-k statistic | Exact expected-max via order statistics (§ Estimator) | Mean only hides best-case capability; Monte Carlo is nondeterministic for the same ledger. |
 | Subcommand | `invariants` becomes `grade`, running both producers | Keeping the name — it would either lie about scope or leave the primary grading path (the hidden suite) unvalidatable without an agent run. |
-| Compatibility | None: clean break, all hooks and judge templates migrate in-change | A shim honoring exit-code verdicts — permanent dual semantics for nine hooks and four fixtures we own. |
+| Compatibility | None: clean break — all hooks and judge templates migrate in-change, and pre-break ledgers fail validation rather than render | A shim honoring exit-code verdicts, or a rendering fallback for old records — permanent dual semantics for nine hooks and four fixtures we own. |
 
 ## Estimator
 
@@ -192,8 +192,8 @@ fixtures) rename the template variable.
 | fixtures pass/fail/repo-state/preflight-broken | role per existing single check | — |
 | fixture `scored` (new) | — | 2-check `tests/` overlay exercising the engine end-to-end |
 
-Pre-migration ledgers still render — records carry their verdicts — but no
-score comparison may span the semantics break; the first post-break run
-starts a fresh baseline.
+Pre-break ledgers are abandoned, not accommodated: their records fail the
+new schema and `report` skips them with its existing per-record warning.
+The first post-break run starts a fresh baseline; no comparison spans it.
 
 — Staff Engineer 🛠️

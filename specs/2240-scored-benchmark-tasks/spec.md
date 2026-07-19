@@ -23,10 +23,11 @@ it, converts the outcome into a row, and restores the tree afterward.
 authors stop hand-rolling test staging, execution, and exit-code plumbing in
 shell.
 
-This is a **clean break**: the benchmark has no consumers outside this
-repository, so we take the evergreen contract now and migrate every existing
-hook in the same change instead of carrying a dual-channel compatibility mode
-as tech debt.
+This is a **clean evergreen break**: the benchmark has no consumers outside
+this repository, so we take the new contract whole. Every existing benchmark
+— all nine tasks, the test fixtures, every judge template — migrates in the
+same change; pre-break ledgers are abandoned, not accommodated. No shim,
+fallback, or compatibility mode ships, so no tech debt is carried.
 
 Serves **Platform Builders** — the persona who hires `fit-benchmark` to *prove
 a skill change improved outcomes* (see
@@ -128,7 +129,7 @@ Requirements:
 | 12 | **Report shows the gradient.** `report` adds, for scored tasks, a per-task mean score and a best-of-k score — the expected best score over k of the task's n runs, the continuous analog of pass@k — in both JSON and text formats. Binary tasks render exactly as today. A record without a score in a scored group (a preflight failure never reached grading) contributes its verdict as the degenerate score: pass = 1, fail = 0. |
 | 13 | **Authoring surface.** `fit-trace assert` gains `--gate` and `--weight`; invariants hooks need one helper with no exit-code bookkeeping. Every `assert` failure — an invalid grading flag or an errored evaluation (missing target file, bad query) — emits a *failing* row before the nonzero exit, so a typo or a file the agent deleted shrinks the score, never the denominator. |
 | 14 | **Grade subcommand.** The `invariants` subcommand becomes `fit-benchmark grade`: it runs the hidden suite and the invariants script against a post-run directory with the same derivation the runner uses, and its process exit mirrors the graded verdict — so authors validate both producers against fixtures without paying for agent runs. |
-| 15 | **Clean break with full migration.** Every `invariants.sh` in `benchmarks/` and in the libharness test fixtures migrates to the row contract in this change; `implement-feature`'s hand-rolled test logic moves into a `tests/` tree and its hook script is deleted; the judge template variable `{{INVARIANTS_RESULT}}` becomes `{{GRADE_RESULT}}` across all thirteen `judge.task.md` templates (nine families, four libharness fixtures). No compatibility mode, flag, or dual-channel shim ships. Pre-migration ledgers still render (records carry their verdicts) but are not comparable across the semantics break, and no comparison may span it. |
+| 15 | **Clean break with full migration.** Every `invariants.sh` in `benchmarks/` and in the libharness test fixtures migrates to the row contract in this change; `implement-feature`'s hand-rolled test logic moves into a `tests/` tree and its hook script is deleted; the judge template variable `{{INVARIANTS_RESULT}}` becomes `{{GRADE_RESULT}}` across all thirteen `judge.task.md` templates (nine families, four libharness fixtures). No compatibility mode, flag, shim, or fallback ships — the new record schema is the only schema. Pre-break ledgers are not carried: their records fail validation and `report` skips them with its existing per-record warning. The first post-break run starts a fresh baseline; no comparison spans the break. |
 | 16 | **Leading example.** `implement-feature` (kata-skills family) becomes the worked scored task: a `tests/` tree whose gate check runs the pristine baseline suite and whose five scored checks are the hidden feature tests, with the scope-discipline judge unchanged. One task demonstrates gate + score + judge composing with zero task-authored shell. |
 | 17 | **Documentation.** Every surface that states the old contract ("exit code is authoritative/is the verdict") states the new one: rows authoritative, roles table, exit code = script health, the `tests/` layout convention, and when to author a hidden test versus a structural check. |
 

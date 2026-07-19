@@ -8,8 +8,12 @@ engine), then the invariants collector and record schemas, then the runner and
 the `grade` subcommand, then report aggregation and rendering, then the
 authoring surface (`fit-trace assert --gate/--weight`), then the migration —
 fixtures and their suites before the family hooks — and finally documentation.
-This is a clean break: existing suites that assert exit-code-derived verdicts
-are updated to the row contract, not preserved. Benchmark modules live under
+This is a clean break with no shims or fallbacks: existing suites that
+assert exit-code-derived verdicts are updated to the row contract, not
+preserved; every existing benchmark migrates in this plan — all nine tasks
+across the three families (Step 11), the four libharness fixtures plus a new
+scored fixture (Step 10), and all thirteen judge templates — and pre-break
+ledgers are abandoned rather than accommodated. Benchmark modules live under
 `libraries/libharness/src/benchmark/` and CLI handlers under
 `libraries/libharness/src/commands/`; the fit-trace CLI definition is inline
 in `libraries/libharness/bin/fit-trace.js`.
@@ -157,13 +161,14 @@ Step 6 lands.
 | Schema | Change |
 | --- | --- |
 | `INVARIANTS_SHAPE` | drops `verdict` |
-| `HAPPY_RECORD` | new `grade: {verdict, gatesPass, score?: 0–1, malformed?: int ≥ 1}` — `.optional()` so pre-break ledgers still validate for rendering (the runner always writes it); optional `hiddenTests: {details: unknown[], error?: string}`; optional top-level `score: 0–1` (effective, judge-zeroed — the value `report` aggregates) |
+| `HAPPY_RECORD` | new **required** `grade: {verdict, gatesPass, score?: 0–1, malformed?: int ≥ 1}` — no optional-for-compat softening; a pre-break record fails validation and `report` skips it via the existing schema-skip path; optional `hiddenTests: {details: unknown[], error?: string}`; optional top-level `score: 0–1` (effective, judge-zeroed — the value `report` aggregates) |
 | `PREFLIGHT_RECORD` | `grade`, `hiddenTests`, `score` all `z.undefined().optional()` (branch stays grade-free) |
 | `GRADE_RECORD_SCHEMA` | replaces `INVARIANTS_RECORD_SCHEMA`: `{taskId, grade, invariants, hiddenTests?, exitCode}` (`exitCode` mirrors the script, diagnostic only) |
 
 Tests: invariants result carries no verdict; schema accept/reject cases
 (`score: 1.5`, `grade.malformed: 0` rejected, preflight with `grade`
-rejected, happy record without `grade` accepted — pre-break ledger shape).
+rejected, happy record without `grade` rejected — a pre-break ledger record
+must fail validation, not render).
 
 Verification:
 `bun test test/benchmark-invariants.integration.test.js test/benchmark-result.test.js`.
@@ -308,8 +313,8 @@ Score columns, merged checks table, and malformed warnings.
   tests in `benchmark-report-score.test.js`
 - `buildRunDetail` copies `grade`, `hiddenTests`, and `score` onto the run
   detail; the runs-table "Invariants" column becomes "Checks", driven by
-  `grade.verdict` — rows without `grade` (pre-break ledgers, preflight
-  failures; the schema keeps it optional) render `—`.
+  `grade.verdict` — preflight rows (the one grade-less branch in the schema)
+  render `—`.
 - Compute the report-level condition once — `report.tasks.some((t) =>
   t.meanScore !== undefined)` — and thread it through `renderFullReport` →
   `renderTaskDetail` → `renderRunsTable`.
@@ -326,9 +331,10 @@ Score columns, merged checks table, and malformed warnings.
 Tests: mixed ledger shows the new columns with `—` on the binary row; a
 binary-only ledger renders no score columns and no score keys in JSON;
 merged checks table with Source column when hidden-test rows exist; malformed
-warning renders; a grade-less (pre-break-shaped) record renders `—` in the
-Checks column; compact report gains the same pass@k-table columns (it
-shares `renderPassAtKTable`).
+warning renders; a preflight record renders `—` in the Checks column; a
+pre-break-shaped record (no `grade`) fails validation and lands in
+`totals.skipped` with the existing warning; compact report gains the same
+pass@k-table columns (it shares `renderPassAtKTable`).
 
 Verification: `bun test test/benchmark-report-score.test.js`.
 
@@ -492,9 +498,11 @@ diff is a regression. Paste clean check + test output into the PR.
   (both `fail`, score 0). They differ on the record — nonzero `exitCode` +
   `stderr` versus a failing gate row — and the report's run detail shows
   both; no aggregate distinguishes them, which is acceptable for now.
-- **Semantics break across ledgers.** Pre- and post-migration ledgers must
-  not be compared; the PR description and `benchmarks/README.md` say so, and
-  the first post-merge scheduled run starts the new baseline.
+- **Semantics break across ledgers.** Pre-break ledgers are abandoned by
+  design: their records fail the new schema and `report` skips them with the
+  existing per-record warning — no rendering fallback exists. The PR
+  description and `benchmarks/README.md` say so, and the first post-merge
+  scheduled run starts the new baseline.
 - **Restoration fidelity.** The engine's backup/restore is the judge's
   guarantee that it grades the agent's work; a bug here silently biases the
   scope judge. Step 3's restoration test asserts byte-identical collided
