@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { createMockFs } from "@forwardimpact/libmock";
 
-import { evaluateAssertion } from "../src/commands/assert.js";
+import { evaluateAssertion, runAssertCommand } from "../src/commands/assert.js";
 
 // A single in-memory fs accumulates every seeded input file; `evaluateAssertion`
 // reads inputs via this sync surface (`existsSync` / `readFileSync`). Each
@@ -331,6 +331,120 @@ describe("fit-trace assert", () => {
       );
       assert.strictEqual(result.pass, false);
       assert.strictEqual(typeof result.message, "string");
+    });
+  });
+});
+
+describe("grading flags", () => {
+  test("--gate adds gate: true to the emitted row", () => {
+    const file = tmpFile("hello");
+    const result = evaluateAssertion(
+      { exists: true, gate: true },
+      ["scaffold", file],
+      fs,
+    );
+    assert.deepStrictEqual(result, {
+      test: "scaffold",
+      pass: true,
+      gate: true,
+    });
+  });
+
+  test("--weight attaches the numeric weight", () => {
+    const file = tmpFile("hello");
+    const result = evaluateAssertion(
+      { exists: true, weight: "2.5" },
+      ["content", file],
+      fs,
+    );
+    assert.deepStrictEqual(result, {
+      test: "content",
+      pass: true,
+      weight: 2.5,
+    });
+  });
+
+  test("--weight 0 emits a diagnostic row", () => {
+    const file = tmpFile("hello");
+    const result = evaluateAssertion(
+      { exists: true, weight: "0" },
+      ["detail", file],
+      fs,
+    );
+    assert.deepStrictEqual(result, { test: "detail", pass: true, weight: 0 });
+  });
+
+  test("no flags leave the row shape unchanged", () => {
+    const file = tmpFile("hello");
+    const result = evaluateAssertion({ exists: true }, ["plain", file], fs);
+    assert.deepStrictEqual(result, { test: "plain", pass: true });
+  });
+});
+
+describe("runAssertCommand emit-then-fail", () => {
+  function run(options, args) {
+    const out = [];
+    const ctx = {
+      options,
+      args,
+      deps: {
+        runtime: {
+          fsSync: fs,
+          proc: { stdout: { write: (s) => (out.push(s), true) } },
+        },
+      },
+    };
+    return runAssertCommand(ctx).then((envelope) => ({
+      envelope,
+      row: JSON.parse(out.join("")),
+    }));
+  }
+
+  const invalidFlagCases = [
+    ["--weight -1", { exists: true, weight: "-1" }],
+    ["--weight abc", { exists: true, weight: "abc" }],
+    ["--weight Infinity", { exists: true, weight: "Infinity" }],
+    ["--gate --weight 2", { exists: true, gate: true, weight: "2" }],
+    ["--gate --weight 0", { exists: true, gate: true, weight: "0" }],
+  ];
+
+  for (const [name, options] of invalidFlagCases) {
+    test(`${name} emits a failing row and returns ok: false`, async () => {
+      const file = tmpFile("hello");
+      const { envelope, row } = await run(options, {
+        "test-name": "t",
+        file,
+      });
+      assert.strictEqual(envelope.ok, false);
+      assert.strictEqual(row.test, "t");
+      assert.strictEqual(row.pass, false);
+      assert.match(row.message, /^assert: /);
+      assert.ok(!("gate" in row) && !("weight" in row));
+    });
+  }
+
+  test("--grep against a missing file emits a failing row and returns ok: false", async () => {
+    const { envelope, row } = await run(
+      { grep: "pattern" },
+      { "test-name": "vanished", file: "/assert/never/created.md" },
+    );
+    assert.strictEqual(envelope.ok, false);
+    assert.strictEqual(row.test, "vanished");
+    assert.strictEqual(row.pass, false);
+    assert.match(row.message, /^assert: /);
+  });
+
+  test("a plain assertion failure keeps its grading flags on the row", async () => {
+    const { envelope, row } = await run(
+      { exists: true, gate: true },
+      { "test-name": "gone", file: "/assert/never/there.md" },
+    );
+    assert.strictEqual(envelope.ok, false);
+    assert.deepStrictEqual(row, {
+      test: "gone",
+      pass: false,
+      message: "/assert/never/there.md not found",
+      gate: true,
     });
   });
 });

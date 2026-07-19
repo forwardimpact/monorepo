@@ -62,12 +62,43 @@ export function evaluateAssertion(values, args, fsSync) {
 
   const output = { test: testName, pass: result.pass };
   if (result.message) output.message = result.message;
+  applyGradingFlags(values, output);
   return output;
+}
+
+/**
+ * Attach the check-row grading role: `--gate` marks a gate check, `--weight`
+ * attaches a numeric weight (0 marks the row diagnostic). `--gate` with any
+ * `--weight` — 0 included — is invalid: a stray weight must never silently
+ * disarm a gate.
+ * @param {object} values
+ * @param {{test: string, pass: boolean, message?: string}} output - Mutated.
+ */
+function applyGradingFlags(values, output) {
+  const hasWeight = values.weight !== undefined;
+  if (values.gate && hasWeight) {
+    throw new Error("assert: --gate cannot be combined with --weight");
+  }
+  if (values.gate) output.gate = true;
+  if (hasWeight) {
+    const weight = Number(values.weight);
+    if (!Number.isFinite(weight) || weight < 0) {
+      throw new Error(
+        `assert: invalid --weight '${values.weight}' (expected a finite number ≥ 0)`,
+      );
+    }
+    output.weight = weight;
+  }
 }
 
 /**
  * Run an assertion, write JSON to stdout, and return a failure envelope when
  * the assertion does not pass.
+ *
+ * Emit-then-fail on every failure path: an invalid grading flag or an
+ * errored evaluation (e.g. `--grep` against a file the agent deleted) writes
+ * a failing row before the nonzero exit, so a typo or a vanished target
+ * shrinks the score, never the denominator.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */
@@ -78,6 +109,15 @@ export async function runAssertCommand(ctx) {
   try {
     result = evaluateAssertion(ctx.options, args, runtime.fsSync);
   } catch (err) {
+    const reason = err.message.startsWith("assert: ")
+      ? err.message
+      : `assert: ${err.message}`;
+    const row = {
+      test: ctx.args["test-name"] ?? "(missing test name)",
+      pass: false,
+      message: reason,
+    };
+    runtime.proc.stdout.write(JSON.stringify(row) + "\n");
     return { ok: false, code: 1, error: err.message };
   }
   runtime.proc.stdout.write(JSON.stringify(result) + "\n");

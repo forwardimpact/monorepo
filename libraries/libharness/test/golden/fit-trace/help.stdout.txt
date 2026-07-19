@@ -1,4 +1,4 @@
-fit-trace 1.0.0 — Download, query, and analyze agent execution traces — read NDJSON output from fit-harness as qualitative research
+fit-trace 1.4.0 — Download, query, and analyze agent execution traces — read NDJSON output from fit-harness as qualitative research
 
 Usage: fit-trace <command> [options]
 
