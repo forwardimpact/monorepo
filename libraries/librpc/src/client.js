@@ -9,12 +9,22 @@ import {
   capitalizeFirstLetter,
 } from "./base.js";
 
+// No unary call waits forever: every call carries one absolute gRPC
+// deadline spanning all retry attempts, so both a hung connection and a
+// retryable-error grind (exponential backoff on UNAVAILABLE) fail with
+// DEADLINE_EXCEEDED instead of blocking the caller indefinitely. Sized
+// for the slowest unary in practice (embedding model inference);
+// override per service via the `deadline` config key.
+const DEFAULT_UNARY_DEADLINE_MS = 60_000;
+
 /**
  * Creates a gRPC client with consistent API using pre-compiled definitions
  */
 export class Client extends Rpc {
   #client;
   #retry;
+  #clock;
+  #deadlineMs;
 
   /**
    * Creates a new Client instance
@@ -39,6 +49,8 @@ export class Client extends Rpc {
   ) {
     super(config, runtime, logger, tracer, observerFn, grpcFn, authFn);
     this.#retry = retry || createRetry({ retries: 10, delay: 1000 });
+    this.#clock = runtime.clock;
+    this.#deadlineMs = Number(config.deadline) || DEFAULT_UNARY_DEADLINE_MS;
     this.#setupClient();
   }
 
@@ -199,7 +211,13 @@ export class Client extends Rpc {
   }
 
   /**
-   * Internal unary call handler with retry logic
+   * Internal unary call handler with retry logic. The absolute deadline
+   * is computed once and shared by every retry attempt, so retryable
+   * errors keep cycling only until the call's budget is spent — the
+   * first attempt past the deadline fails immediately with
+   * DEADLINE_EXCEEDED, which is deliberately not retryable. Streaming
+   * calls are exempt (keepalive bounds them, and long-lived streams are
+   * legitimate).
    * @param {string} methodName - The name of the method
    * @param {object} request - Request object
    * @param {object} metadata - gRPC Metadata instance
@@ -207,15 +225,21 @@ export class Client extends Rpc {
    * @private
    */
   async #performUnaryCall(methodName, request, metadata) {
+    const options = { deadline: this.#clock.now() + this.#deadlineMs };
     return await this.#retry.execute(() => {
       return new Promise((resolve, reject) => {
-        this.#client[methodName](request, metadata, (error, response) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(response);
-          }
-        });
+        this.#client[methodName](
+          request,
+          metadata,
+          options,
+          (error, response) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(response);
+            }
+          },
+        );
       });
     });
   }

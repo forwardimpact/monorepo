@@ -31,7 +31,16 @@ export async function run({ runtime }) {
       const req = new embedding.EmbeddingsRequest({
         input: Array.isArray(input) ? input : [input],
       });
-      const res = await embeddingClient.CreateEmbeddings(req);
+      let res;
+      try {
+        res = await embeddingClient.CreateEmbeddings(req);
+      } catch (err) {
+        err.message =
+          `embedding service unreachable at ` +
+          `${embeddingConfig.host}:${embeddingConfig.port} — start it with ` +
+          `fit-rc (${err.message})`;
+        throw err;
+      }
       return {
         data: res.data.map((v) => ({ embedding: Array.from(v.values) })),
       };

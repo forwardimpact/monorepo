@@ -31,7 +31,9 @@ describe("Client", () => {
     };
 
     mockClientInstance = {
-      TestMethod: spy((_req, _meta, cb) => cb(null, { result: "success" })),
+      TestMethod: spy((_req, _meta, _opts, cb) =>
+        cb(null, { result: "success" }),
+      ),
       StreamMethod: spy((_req, _meta) => {
         const stream = new PassThrough({ objectMode: true });
         process.nextTick(() => {
@@ -107,6 +109,8 @@ describe("Client", () => {
     const response = await client.callUnary("TestMethod", { some: "data" });
     assert.deepStrictEqual(response, { result: "success" });
     assert.strictEqual(mockClientInstance.TestMethod.mock.callCount(), 1);
+    const options = mockClientInstance.TestMethod.mock.calls[0].arguments[2];
+    assert.strictEqual(typeof options.deadline, "number");
   });
 
   test("callStream should execute streaming call", async () => {
