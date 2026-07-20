@@ -136,12 +136,13 @@ self-referential tokens inside them — inventory of the non-mechanical edits:
 | `enumeration-drift.topics.yml`, `ambient-deps.{rules.mjs,allow.yml,deny.yml}`, `shared-workspace-staging.rules.mjs`, `subprocess-in-tests.rules.mjs`, `temporal.rules.mjs`, `model-defaults.rules.mjs`, `enumeration-drift.rules.mjs`, `skill-template.rules.mjs` hints | Mechanical: `.coaligned/invariants/…` paths (incl. `temporal.rules.mjs`/`model-defaults.rules.mjs` self-exclude globs and the `model-defaults` `paths` array entry `".coaligned"` → `".jidoka"`), `bunx coaligned invariants --seed …` → `bunx jidoka invariants --seed …`, `libcoaligned` prose → `libinvariant`. |
 
 Update the config-dir consumers that execute or link these paths in the same
-commit: `scripts/audit-service-urls.mjs` (the
-`service-url-drift.url.mjs` import and `REGISTRY` constant),
-`products/CLAUDE.md` L98, `libraries/libmock/README.md` L104,
-`libraries/libutil/src/{calendar,models}.js`, `libraries/libutil/src/findings.js`
-(`libcoaligned` prose), `libraries/libxmr/src/routes.js`,
-`products/outpost/src/scheduler.js` (comments), `CONTRIBUTING.md` L29/223/251.
+commit: `scripts/audit-service-urls.mjs` (the `service-url-drift.url.mjs` import
+and `REGISTRY` constant), `products/CLAUDE.md` L98,
+`libraries/libmock/README.md` L104,
+`libraries/libutil/src/{calendar,models}.js`,
+`libraries/libutil/src/findings.js` (`libcoaligned` prose),
+`libraries/libxmr/src/routes.js`, `products/outpost/src/scheduler.js`
+(comments), `CONTRIBUTING.md` L29/223/251.
 
 **Verify:** `bunx jidoka invariants` green from the repo root (the bin finds
 `.jidoka/invariants` via the finder); `node scripts/audit-service-urls.mjs`
