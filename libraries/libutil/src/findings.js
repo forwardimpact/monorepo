@@ -2,7 +2,7 @@ import path from "node:path";
 
 // Shared ESLint-style emitter for structured Finding objects. A Finding is
 // `{ id, level, path?, lineNo?, message, hint? }` where `level` is "fail" or
-// "warn"; everything else is optional. Both libwiki's audit and libcoaligned's
+// "warn"; everything else is optional. Both libwiki's audit and libinvariant's
 // instruction/JTBD checks emit Finding objects and render through these
 // functions for consistency.
 

@@ -8,17 +8,18 @@ impact on their organizations.
 
 <!-- BEGIN:catalog — Do not edit. Generated from each product's package.json. -->
 
-| Product      | Description                                                                                                                                                                  |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **gear**     | Shared libraries and services for platform builders and agents — CLIs, retrieval, evaluation, and infrastructure published to npm.                                           |
-| **gemba**    | Stand up and operate an agent team — the runtime platform's command family (harness, trace, benchmark, selfedit, wiki, xmr) and CI actions, consuming the runtime libraries. |
-| **guide**    | Conversational agent that grounds career guidance and quality review in your organization's engineering standard.                                                            |
-| **kata**     | Run an autonomous, continuously improving development team via a daily Plan-Do-Study-Act loop, shipped as a skill pack under .claude/skills/kata-\*/.                        |
-| **landmark** | Surface engineering progress from activity evidence — outcomes visible without singling out individuals.                                                                     |
-| **map**      | Validate, store, and publish agent-aligned engineering standards so expectations are operational, not tribal.                                                                |
-| **outpost**  | Personal operations center — context from email, calendar, and knowledge assembled so preparation is continuous, not a morning scramble.                                     |
-| **pathway**  | Explore roles, generate agent profiles, and surface career expectations so progression and team configuration are visible, not guessed.                                      |
-| **summit**   | Model team capability as a system — staffing decisions backed by evidence, not intuition.                                                                                    |
+| Product      | Description                                                                                                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **gear**     | Shared libraries and services for platform builders and agents — CLIs, retrieval, evaluation, and infrastructure published to npm.                                                    |
+| **gemba**    | Stand up and operate an agent team — the runtime platform's command family (harness, trace, benchmark, selfedit, wiki, xmr) and CI actions, consuming the runtime libraries.          |
+| **guide**    | Conversational agent that grounds career guidance and quality review in your organization's engineering standard.                                                                     |
+| **jidoka**   | Build quality into agent instructions — the jidoka CLI and CI action stop the line the moment an instruction layer drifts, a jobs block goes stale, or a repository invariant breaks. |
+| **kata**     | Run an autonomous, continuously improving development team via a daily Plan-Do-Study-Act loop, shipped as a skill pack under .claude/skills/kata-\*/.                                 |
+| **landmark** | Surface engineering progress from activity evidence — outcomes visible without singling out individuals.                                                                              |
+| **map**      | Validate, store, and publish agent-aligned engineering standards so expectations are operational, not tribal.                                                                         |
+| **outpost**  | Personal operations center — context from email, calendar, and knowledge assembled so preparation is continuous, not a morning scramble.                                              |
+| **pathway**  | Explore roles, generate agent profiles, and surface career expectations so progression and team configuration are visible, not guessed.                                               |
+| **summit**   | Model team capability as a system — staffing decisions backed by evidence, not intuition.                                                                                             |
 
 <!-- END:catalog -->
 

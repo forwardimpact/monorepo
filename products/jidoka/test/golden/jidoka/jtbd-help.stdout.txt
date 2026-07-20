@@ -1,0 +1,14 @@
+jidoka jtbd — Validate package.json .jobs entries and generated blocks
+
+Usage: jidoka jtbd [options]
+
+Options:
+  --fix  Regenerate stale catalog and jobs blocks in place
+
+Global options:
+  --help, -h  Show this help
+  --json      Output findings as JSON
+
+Examples:
+  jidoka jtbd
+  jidoka jtbd --fix

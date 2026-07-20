@@ -7,7 +7,7 @@
  * construct further `Date` objects only for deterministic date *arithmetic*
  * over caller-supplied or parsed-from-state inputs (never an ambient no-arg
  * `new Date()`); the AST checker cannot distinguish the two, so this file is
- * allow-listed in .coaligned/invariants/ambient-deps.allow.yml with that reason.
+ * allow-listed in .jidoka/invariants/ambient-deps.allow.yml with that reason.
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";

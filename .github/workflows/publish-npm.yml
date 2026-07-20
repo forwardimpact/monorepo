@@ -53,13 +53,13 @@ jobs:
       - name: Check public-CLI set
         run: |
           node --input-type=module <<'EOF'
-          const { createBuildKit } = await import("@forwardimpact/libcoaligned");
+          const { createBuildKit } = await import("@forwardimpact/libinvariant");
           const { createDefaultRuntime } = await import("@forwardimpact/libutil/runtime");
-          const mod = (await import("./.coaligned/invariants/public-cli-set.rules.mjs")).default;
+          const mod = (await import("./.jidoka/invariants/public-cli-set.rules.mjs")).default;
           const root = process.cwd();
           const kit = createBuildKit({
             root,
-            dir: `${root}/.coaligned/invariants`,
+            dir: `${root}/.jidoka/invariants`,
             runtime: createDefaultRuntime(),
           });
           const { subjects } = await mod.build(kit);

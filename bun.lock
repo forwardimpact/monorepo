@@ -39,24 +39,6 @@
         "@forwardimpact/libmock": "^0.1.0",
       },
     },
-    "libraries/libcoaligned": {
-      "name": "@forwardimpact/libcoaligned",
-      "version": "0.1.18",
-      "bin": {
-        "coaligned": "./bin/coaligned.js",
-      },
-      "dependencies": {
-        "@forwardimpact/libcli": "^0.1.9",
-        "@forwardimpact/libpreflight": "^0.1.0",
-        "@forwardimpact/libutil": "*",
-        "acorn": "^8.17.0",
-        "prettier": "^3.8.4",
-        "yaml": "^2.9.0",
-      },
-      "devDependencies": {
-        "@forwardimpact/libmock": "^0.1.0",
-      },
-    },
     "libraries/libcodegen": {
       "name": "@forwardimpact/libcodegen",
       "version": "0.1.69",
@@ -188,6 +170,21 @@
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
         "@forwardimpact/libstorage": "^0.1.0",
+      },
+    },
+    "libraries/libinvariant": {
+      "name": "@forwardimpact/libinvariant",
+      "version": "0.2.0",
+      "dependencies": {
+        "@forwardimpact/libcli": "^0.1.9",
+        "@forwardimpact/libpreflight": "^0.1.0",
+        "@forwardimpact/libutil": "*",
+        "acorn": "^8.17.0",
+        "prettier": "^3.8.4",
+        "yaml": "^2.9.0",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
       },
     },
     "libraries/libmacos": {
@@ -687,6 +684,19 @@
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
+    "products/jidoka": {
+      "name": "@forwardimpact/jidoka",
+      "version": "0.2.0",
+      "bin": {
+        "jidoka": "./bin/jidoka.js",
+      },
+      "dependencies": {
+        "@forwardimpact/libcli": "^0.1.17",
+        "@forwardimpact/libinvariant": "^0.2.0",
+        "@forwardimpact/libpreflight": "^0.1.4",
+        "@forwardimpact/libutil": "^0.1.100",
       },
     },
     "products/kata": {
@@ -1304,6 +1314,8 @@
 
     "@forwardimpact/guide": ["@forwardimpact/guide@workspace:products/guide"],
 
+    "@forwardimpact/jidoka": ["@forwardimpact/jidoka@workspace:products/jidoka"],
+
     "@forwardimpact/kata": ["@forwardimpact/kata@workspace:products/kata"],
 
     "@forwardimpact/landmark": ["@forwardimpact/landmark@workspace:products/landmark"],
@@ -1311,8 +1323,6 @@
     "@forwardimpact/libbridge": ["@forwardimpact/libbridge@workspace:libraries/libbridge"],
 
     "@forwardimpact/libcli": ["@forwardimpact/libcli@workspace:libraries/libcli"],
-
-    "@forwardimpact/libcoaligned": ["@forwardimpact/libcoaligned@workspace:libraries/libcoaligned"],
 
     "@forwardimpact/libcodegen": ["@forwardimpact/libcodegen@workspace:libraries/libcodegen"],
 
@@ -1329,6 +1339,8 @@
     "@forwardimpact/libhttp": ["@forwardimpact/libhttp@workspace:libraries/libhttp"],
 
     "@forwardimpact/libindex": ["@forwardimpact/libindex@workspace:libraries/libindex"],
+
+    "@forwardimpact/libinvariant": ["@forwardimpact/libinvariant@workspace:libraries/libinvariant"],
 
     "@forwardimpact/libmacos": ["@forwardimpact/libmacos@workspace:libraries/libmacos"],
 

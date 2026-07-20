@@ -1,0 +1,67 @@
+[
+  {
+    "name": "help",
+    "args": ["--help"],
+    "exitCode": 0,
+    "stdoutFile": "help.stdout.txt",
+    "stderrFile": "help.stderr.txt",
+    "transform": [
+      {
+        "pattern": "\\d+\\.\\d+\\.\\d+",
+        "replacement": "X.Y.Z"
+      }
+    ]
+  },
+  {
+    "name": "version",
+    "args": ["--version"],
+    "exitCode": 0,
+    "stdoutFile": "version.stdout.txt",
+    "stderrFile": "version.stderr.txt",
+    "transform": [
+      {
+        "pattern": "\\d+\\.\\d+\\.\\d+",
+        "replacement": "X.Y.Z"
+      }
+    ]
+  },
+  {
+    "name": "instructions-help",
+    "args": ["instructions", "--help"],
+    "exitCode": 0,
+    "stdoutFile": "instructions-help.stdout.txt",
+    "stderrFile": "instructions-help.stderr.txt",
+    "transform": [
+      {
+        "pattern": "\\d+\\.\\d+\\.\\d+",
+        "replacement": "X.Y.Z"
+      }
+    ]
+  },
+  {
+    "name": "invariants-help",
+    "args": ["invariants", "--help"],
+    "exitCode": 0,
+    "stdoutFile": "invariants-help.stdout.txt",
+    "stderrFile": "invariants-help.stderr.txt",
+    "transform": [
+      {
+        "pattern": "\\d+\\.\\d+\\.\\d+",
+        "replacement": "X.Y.Z"
+      }
+    ]
+  },
+  {
+    "name": "jtbd-help",
+    "args": ["jtbd", "--help"],
+    "exitCode": 0,
+    "stdoutFile": "jtbd-help.stdout.txt",
+    "stderrFile": "jtbd-help.stderr.txt",
+    "transform": [
+      {
+        "pattern": "\\d+\\.\\d+\\.\\d+",
+        "replacement": "X.Y.Z"
+      }
+    ]
+  }
+]

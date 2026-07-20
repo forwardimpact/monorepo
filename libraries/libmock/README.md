@@ -101,7 +101,7 @@ Before adding a helper locally in a test file, check `src/index.js`. If the
 helper doesn't exist and would be reused across two or more files, add it to
 libmock in the same PR instead of inlining. See
 [CONTRIBUTING.md](../../CONTRIBUTING.md) READ-DO and DO-CONFIRM checklists for
-the enforced policy and `.coaligned/invariants/libmock.rules.mjs` for the
+the enforced policy and `.jidoka/invariants/libmock.rules.mjs` for the
 pre-commit guard that flags inline reimplementations.
 
 ## `spy` vs `node:test`'s `mock.fn`

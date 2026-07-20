@@ -1,0 +1,14 @@
+jidoka invariants — Run the repository's invariant rule modules from .jidoka/invariants/
+
+Usage: jidoka invariants [options]
+
+Options:
+  --seed=<string>  Print the named module's seed output (e.g. a refreshed deny-list) instead of checking
+
+Global options:
+  --help, -h  Show this help
+  --json      Output findings as JSON
+
+Examples:
+  jidoka invariants
+  jidoka invariants --seed ambient-deps

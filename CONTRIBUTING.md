@@ -26,9 +26,9 @@ Architectural non-negotiables — the shape of the codebase.
   `specs/`, `wiki/`, `benchmarks/`, `generated/` are exempt; rewrite, don't
   port. Enforced by `bun run invariants`.
 
-The mechanically checkable subset lives in `.coaligned/invariants/*.rules.mjs`,
+The mechanically checkable subset lives in `.jidoka/invariants/*.rules.mjs`,
 run by `bun run invariants` (inside `bun run check`); add rules with the
-[coaligned-invariant](.claude/skills/coaligned-invariant/SKILL.md) skill.
+[jidoka-invariant](.claude/skills/jidoka-invariant/SKILL.md) skill.
 
 ## Checklists
 
@@ -107,6 +107,7 @@ The `products/` directory holds one directory per product:
     outpost/
     gear/
     gemba/
+    jidoka/
     kata/
 
 <!-- /enum -->
@@ -220,7 +221,7 @@ Test behavior, not structure guarded elsewhere.
 - **Don't test the shape of declarative artifacts** — asserting a workflow,
   action, `SKILL.md`, or generated file holds a given key, step, or string
   re-encodes the file as a brittle test that proves nothing ran. Enforce
-  structure with an invariant (`.coaligned/invariants/`) or let the consuming
+  structure with an invariant (`.jidoka/invariants/`) or let the consuming
   runtime fail.
 - **Don't duplicate an enforcement** — an invariant that gates CI is the test;
   re-running its rule over the same tree in a unit test is redundant (testing a
@@ -248,7 +249,7 @@ Security policies apply to all contributors — human and agent.
 - **Vendored trace fixtures** — vendor byte-exact only after a security
   reviewer reads the result prose in full; sensitive prose forces documented
   redaction or synthesis. Widening fixture exclusions in
-  `.coaligned/invariants/` or any security scan requires security review.
+  `.jidoka/invariants/` or any security scan requires security review.
 - **Reporting** — See [SECURITY.md](SECURITY.md). Contact
   `hi.security@senzilla.io`.
 

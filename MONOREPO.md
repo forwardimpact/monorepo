@@ -78,7 +78,7 @@ layout) or already have a home under the directories above.
 Every agent session sets up its environment in two layers, in order:
 
 1. **Toolchain — `fit-install.sh`.** Puts the pinned FIT toolchain on `PATH`
-   (`apm`, `just`, `gh`, `rg`, `gitleaks`, `coaligned`, and any requested
+   (`apm`, `just`, `gh`, `rg`, `gitleaks`, `jidoka`, and any requested
    `fit-*` CLIs). It is a released, versioned, repo-agnostic artifact — the same
    bytes for every repository, installing binaries only. It never mutates a
    repository's working tree.
@@ -174,7 +174,7 @@ every test imports them from there.
 ### Enforcement
 
 All of these run as declarative rule modules under
-`.coaligned/invariants/`, executed by `coaligned invariants` via
+`.jidoka/invariants/`, executed by `jidoka invariants` via
 `bun run invariants`.
 
 - `ambient-deps.rules.mjs` flags any new src file that imports

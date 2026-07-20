@@ -200,6 +200,38 @@ overhead exceeds the value of knowing.
 
 </job>
 
+<job user="Teams Using Agents" goal="Build Quality Into Agent Instructions">
+
+## Teams Using Agents: Build Quality Into Agent Instructions
+
+**Trigger:** The team's layered instructions exist, but nothing enforces them —
+layers drift and restate each other, and stale jobs blocks ship unnoticed until
+an agent misbehaves.
+
+**Big Hire:** Help me keep humans and agents on one layered instruction
+architecture, with checks that stop the line the moment a layer drifts. →
+**Jidoka**
+
+**Little Hire:** Help me check one layer's caps, validate the jobs blocks, or
+run the repository's invariant rules with a single command before commit. →
+**Jidoka**
+
+**Competes With:** unenforced conventions; review-time nitpicking; hand-rolled
+lint scripts; letting drift accumulate until a rewrite.
+
+**Forces:**
+- **Push:** Instruction sprawl keeps breaking agent behavior with no layer to
+  blame.
+- **Pull:** One command family and CI action that stop the line at the first
+  drifted layer.
+- **Habit:** Trusting contributors to keep instructions tidy by hand.
+- **Anxiety:** Another gate slowing every commit.
+
+**Fired When:** the checks block more work than the drift they catch, or the
+team stops layering its instructions.
+
+</job>
+
 <job user="Teams Using Agents" goal="Run a Continuously Improving Agent Team">
 
 ## Teams Using Agents: Run a Continuously Improving Agent Team

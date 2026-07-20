@@ -5,8 +5,8 @@
 # node_modules, generated/, dist/, etc. are gitignored and skipped here too.
 respect-gitignore = true
 # wiki/ is a separate git repo (agent memory), not authored source.
-# JTBD.md is a generated artifact rendered by `coaligned jtbd --fix` from the
-# package.json .jobs source; its byte form is owned by coaligned, which emits
+# JTBD.md is a generated artifact rendered by `jidoka jtbd --fix` from the
+# package.json .jobs source; its byte form is owned by jidoka, which emits
 # unwrapped job bodies. Reflowing it fights the generator, so leave it alone.
 # Golden snapshots and test fixtures are byte-exact test data — golden files
 # must match unwrapped tool output, and fixtures are asserted verbatim — so
@@ -33,7 +33,7 @@ exclude = [
 # MD046: code-block style. rumdl's "consistent" detection misclassifies fenced
 #        blocks indented as list children (treating the 4-space indent as an
 #        indented block), so it flags correct fenced blocks. Pinning a single
-#        style would instead churn published skill files (which carry coaligned
+#        style would instead churn published skill files (which carry jidoka
 #        line/word budgets) and tool-generated enum blocks. The repo is already
 #        consistently fenced where it matters.
 # MD001: heading-increment. A strict one-level-at-a-time hierarchy is the wrong
