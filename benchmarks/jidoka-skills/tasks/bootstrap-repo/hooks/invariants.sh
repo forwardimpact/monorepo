@@ -3,7 +3,7 @@ set -u
 CLAUDE="$AGENT_CWD/CLAUDE.md"
 CONTRIBUTING="$AGENT_CWD/CONTRIBUTING.md"
 JTBD="$AGENT_CWD/JTBD.md"
-STARTER="$AGENT_CWD/.coaligned/invariants/no-conflict-markers.rules.mjs"
+STARTER="$AGENT_CWD/.jidoka/invariants/no-conflict-markers.rules.mjs"
 check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }
 
 # The three root files must exist; without them nothing downstream passes.
@@ -31,10 +31,10 @@ check starter-rule-present --exists "$STARTER" \
   --message "no-conflict-markers starter rule not installed"
 
 # CONTRIBUTING.md points at the invariant tooling — the discovery contract for
-# the layer coaligned-setup creates: where machine-checked rules live and the
+# the layer jidoka-setup creates: where machine-checked rules live and the
 # command that runs them.
 check contributing-surfaces-invariants \
-  --grep 'coaligned invariants|\.coaligned/invariants' "$CONTRIBUTING" \
+  --grep 'jidoka invariants|\.jidoka/invariants' "$CONTRIBUTING" \
   --message "CONTRIBUTING.md does not point at the invariant tooling"
 
 exit 0

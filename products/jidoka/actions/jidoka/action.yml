@@ -1,14 +1,15 @@
-name: Coaligned Check
+name: Jidoka
 description: |
-  Run coaligned checks against the repository to enforce the layered
-  instruction architecture defined in COALIGNED.md.
+  Run the jidoka checks against the repository — built-in quality for the
+  layered instruction architecture defined in JIDOKA.md: stop the line at
+  the first drifted layer, stale jobs block, or broken invariant.
 
   When `command` is omitted, every check runs (instructions and jtbd). When
   `command` is set to "instructions", "jtbd", or "invariants", only that
   subcommand runs.
 
   Assumes the workspace has already been bootstrapped by
-  forwardimpact/bootstrap, which installs `coaligned` as a pinned gear
+  forwardimpact/bootstrap, which installs `jidoka` as a pinned gear
   binary on PATH (it is one of the default tools). The binary is required —
   there is no bunx/npx fallback.
 
@@ -29,16 +30,16 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Run coaligned
+    - name: Run jidoka
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       env:
         COMMAND: ${{ inputs.command }}
         FIX: ${{ inputs.fix }}
       run: |
-        # coaligned is a pinned gear binary on PATH (a default bootstrap tool) —
+        # jidoka is a pinned gear binary on PATH (a default bootstrap tool) —
         # assumed present. It validates its own command/flag set.
         args=()
         [ -n "$COMMAND" ] && args+=("$COMMAND")
         [ "$FIX" = "true" ] && args+=("--fix")
-        coaligned "${args[@]}"
+        jidoka "${args[@]}"

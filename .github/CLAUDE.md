@@ -6,9 +6,8 @@ actions (`actions/`) they consume.
 ## Third-party actions
 
 <!-- enum:sibling-composite-actions:count -->
-Six composite actions live under `products/gemba/actions/` (agent-run) and
-`products/kata/actions/` (Kata), published to `forwardimpact/` siblings,
-SHA-pinned (`# v1`) on `uses:` lines:
+Seven composite actions live under `products/{gemba,jidoka,kata}/actions/`,
+published to `forwardimpact/` siblings, SHA-pinned (`# v1`) on `uses:` lines:
 <!-- /enum -->
 
 | Action (`@v1`) | Purpose |
@@ -19,6 +18,7 @@ SHA-pinned (`# v1`) on `uses:` lines:
 | [harness](https://github.com/forwardimpact/harness) | Agent task execution |
 | [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, bootstrap, harness, wiki) |
 | [kata-interview](https://github.com/forwardimpact/kata-interview) | JTBD switching interview run |
+| [jidoka](https://github.com/forwardimpact/jidoka) | Jidoka checks (instructions, jtbd, invariants); stops the line on drift |
 
 Every workflow calls `bootstrap@v1` for the environment; `kata-agent`
 delegates to bootstrap/harness/wiki internally. `bootstrap` only **checks
@@ -82,7 +82,6 @@ Referenced as `./.github/actions/<name>`:
 | Action | Purpose |
 |---|---|
 | `audit` | `npm audit` + gitleaks secret scanning |
-| `coaligned-check` | `coaligned` checks (instructions, jtbd, invariants) |
 | `macos-signing` | Import Developer ID certs into a temp keychain |
 | `notarize` | Notarize + staple a `.app`/`.pkg` via the notary API |
 | `resolve-package` | npm name + workspace dir from a `<pkg>@v*` tag |

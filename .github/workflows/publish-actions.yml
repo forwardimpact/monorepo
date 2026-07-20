@@ -1,8 +1,9 @@
 name: "Publish: Actions"
 
-# Outbound mirror for the six co-located composite actions — the four agent-run
-# actions under products/gemba/actions/ and the two Kata actions under
-# products/kata/actions/. Each leg splits its monorepo prefix with the pinned
+# Outbound mirror for the seven co-located composite actions — the four
+# agent-run actions under products/gemba/actions/, the two Kata actions under
+# products/kata/actions/, and the Jidoka product's check action under
+# products/jidoka/actions/. Each leg splits its monorepo prefix with the pinned
 # splitsh-lite and non-force-pushes the projection to its sibling repo's main
 # (see ./.github/actions/split-and-push). Add or retire an action by editing
 # one matrix entry.
@@ -21,6 +22,7 @@ on:
       - "products/gemba/actions/bootstrap/**"
       - "products/kata/actions/kata-agent/**"
       - "products/kata/actions/kata-interview/**"
+      - "products/jidoka/actions/jidoka/**"
       - ".github/actions/split-and-push/**"
       - ".github/workflows/publish-actions.yml"
   workflow_dispatch:
@@ -48,6 +50,8 @@ jobs:
             repo: kata-interview
           - prefix: products/gemba/actions/bootstrap
             repo: bootstrap
+          - prefix: products/jidoka/actions/jidoka
+            repo: jidoka
     steps:
       - name: Generate installation token
         id: ci-app

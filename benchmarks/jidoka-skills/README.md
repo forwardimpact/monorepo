@@ -1,11 +1,11 @@
-# `coaligned-skills` task family
+# `jidoka-skills` task family
 
-Task family for `fit-benchmark` targeting the `forwardimpact/coaligned-skills`
-skill pack. Runs on manual dispatch via `eval-coaligned.yml`.
+Task family for `fit-benchmark` targeting the `forwardimpact/jidoka-skills`
+skill pack. Runs on manual dispatch via `eval-jidoka.yml`.
 
 Two tasks exercise the two ends of adopting the Co-Aligned standard in a
-repository: **bootstrapping the architecture** with `coaligned-setup`, and
-**authoring a job** with `coaligned-jtbd`. Each task is self-contained — a small
+repository: **bootstrapping the architecture** with `jidoka-setup`, and
+**authoring a job** with `jidoka-jtbd`. Each task is self-contained — a small
 fixture project, a single skill under test, and grading that never enters the
 agent's working directory.
 
@@ -13,8 +13,8 @@ agent's working directory.
 
 | Task | Skill exercised | Agent produces | Grading |
 | --- | --- | --- | --- |
-| `bootstrap-repo` | `coaligned-setup` | `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.coaligned/invariants/` | Gates: the three root files exist. Scored: `CLAUDE.md` surfaces job **and** checklist discovery; `JTBD.md` carries a `<job>`; starter rule present; `CONTRIBUTING.md` points at the invariant tooling. Judge: orients not governs, faithful to the project |
-| `author-job` | `coaligned-jtbd` | a `<job>` entry appended to `JTBD.md` | Gate: `JTBD.md` exists. Scored: `<job>` tag with `user`/`goal`, Trigger, Big Hire, Little Hire. Judge: progress not features, trigger is a moment, includes nonconsumption |
+| `bootstrap-repo` | `jidoka-setup` | `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.jidoka/invariants/` | Gates: the three root files exist. Scored: `CLAUDE.md` surfaces job **and** checklist discovery; `JTBD.md` carries a `<job>`; starter rule present; `CONTRIBUTING.md` points at the invariant tooling. Judge: orients not governs, faithful to the project |
+| `author-job` | `jidoka-jtbd` | a `<job>` entry appended to `JTBD.md` | Gate: `JTBD.md` exists. Scored: `<job>` tag with `user`/`goal`, Trigger, Big Hire, Little Hire. Judge: progress not features, trigger is a moment, includes nonconsumption |
 
 `bootstrap-repo` is the primary task: it exercises the full setup path and
 verifies the auto-loaded `CLAUDE.md` advertises the discovery conventions for
@@ -23,7 +23,7 @@ both jobs and checklists — the L1 property the Co-Aligned standard defines.
 Run a single task with `--task`:
 
 ```text
-fit-benchmark run --family=benchmarks/coaligned-skills --task=bootstrap-repo
+fit-benchmark run --family=benchmarks/jidoka-skills --task=bootstrap-repo
 ```
 
 Omit `--task` to run every task.
@@ -56,5 +56,5 @@ faithfulness question the structural checks cannot.
 
 Declared in `apm.yml`. `fit-benchmark run` calls `apm install --target claude`
 automatically before each run — no manual staging step required. The
-`forwardimpact/coaligned-skills` pack stages every `coaligned-*` skill the tasks
+`forwardimpact/jidoka-skills` pack stages every `jidoka-*` skill the tasks
 reference.

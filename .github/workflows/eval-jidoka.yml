@@ -1,17 +1,17 @@
-name: "Eval: Co-Aligned"
+name: "Eval: Jidoka"
 
 on:
   workflow_dispatch:
 
 concurrency:
-  group: eval-coaligned-${{ github.ref }}
+  group: eval-jidoka-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  # Fan the coaligned-skills family (2 tasks × runs:5 = 10 cells) across
+  # Fan the jidoka-skills family (2 tasks × runs:5 = 10 cells) across
   # machines via the benchmark reusable workflow, then merge the shard ledgers
   # into one pass@k. One shard per task keeps each machine's run small. This
   # caller only picks the family and shard count; the filesystem work-tracker is
@@ -19,7 +19,7 @@ jobs:
   benchmark:
     uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@24c4d1fd309a7a62c2838f26c2389fdd1a7f9031 # v1.0.7
     with:
-      family: ./benchmarks/coaligned-skills
+      family: ./benchmarks/jidoka-skills
       runs: "5"
       max-turns: "30"
       judge-profile: judge

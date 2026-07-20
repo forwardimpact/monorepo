@@ -41,10 +41,10 @@ domain knowledge. **Memory** (`libwiki` + `wiki/`) persists state across
 surfaces and sessions.
 
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
-`audit/` and `coaligned-check/`.
+`audit/`.
 <!-- enum:sibling-composite-actions:count -->
-Six composite actions are co-located in the monorepo (under
-`products/gemba/actions/` and `products/kata/actions/`) and published to
+Seven composite actions are co-located in the monorepo (under
+`products/{gemba,jidoka,kata}/actions/`) and published to
 `forwardimpact/` siblings:
 <!-- /enum -->
 
@@ -54,6 +54,7 @@ Six composite actions are co-located in the monorepo (under
 - `harness` — agent task execution
 - `wiki` — agent-memory commands with fresh App token
 - `kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
+- `jidoka` — Jidoka checks: stop the line on instruction drift
 - `kata-interview` — JTBD switching interview run
 <!-- /enum -->
 

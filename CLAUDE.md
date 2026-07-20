@@ -89,12 +89,11 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   sync on push to `main`; install with `apm install forwardimpact/<pack>`.
   Internal skills (`libs-*`, product internals) never publish.
 - **Composite actions** — co-located with their owning unit
-  (`products/*/actions/`, `.github/actions/`), published
-  to siblings by subtree split. Edit in-repo
-  ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
+  (`products/*/actions/`, `.github/actions/`), published by subtree split. Edit
+  in-repo ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 
   <!-- enum:sibling-composite-actions:list -->
-  `benchmark`, `bootstrap`, `harness`, `kata-agent`, `kata-interview`, `wiki`
+  `benchmark`, `bootstrap`, `harness`, `jidoka`, `kata-agent`, `kata-interview`, `wiki`
   <!-- /enum -->
 
 Published skills teach how products **work** and **use**, not how they're
