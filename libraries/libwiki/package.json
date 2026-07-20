@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libwiki",
-  "version": "0.2.35",
+  "version": "0.3.0",
   "description": "Wiki lifecycle for agent teams — persistent memory, declarative integrity audits, and a collision ledger so coordination survives across sessions and parallel work.",
   "keywords": [
     "wiki",
@@ -45,11 +45,11 @@
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.77",
-    "@forwardimpact/libharness": "^2.0.0",
+    "@forwardimpact/libharness": "^3.0.0",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.47",
     "@forwardimpact/libutil": "^0.1.0",
-    "@forwardimpact/libxmr": "^2.0.0"
+    "@forwardimpact/libxmr": "^3.0.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

@@ -52,9 +52,9 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libharness": "^2.0.0",
-    "@forwardimpact/libwiki": "^0.2.35",
-    "@forwardimpact/libxmr": "^2.2.1",
+    "@forwardimpact/libharness": "^3.0.0",
+    "@forwardimpact/libwiki": "^0.3.0",
+    "@forwardimpact/libxmr": "^3.0.0",
     "@forwardimpact/libcli": "^0.1.17",
     "@forwardimpact/libconfig": "^0.1.85",
     "@forwardimpact/libpreflight": "^0.1.4",
