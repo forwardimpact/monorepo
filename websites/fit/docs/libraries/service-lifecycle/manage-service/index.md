@@ -215,7 +215,7 @@ const config = {
   init: {
     log_dir: "data/logs",
     services: [
-      { name: "trace", command: "npx fit-trace serve" },
+      { name: "trace", command: "npx gemba-trace serve" },
     ],
   },
 };

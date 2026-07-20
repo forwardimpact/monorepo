@@ -13,7 +13,7 @@ A fresh session applies this reference from the profile link alone.
 A block on the Carry surface that encodes a per-Assess obligation plus a future
 clearance trigger: an experiment verdict, a dependent-spec merge, or a
 release-tag publication. A Carry is distinct from an incoming memo (the
-`fit-wiki inbox` `ack`/`drop`/`promote` triage target) and from settled state.
+`gemba-wiki inbox` `ack`/`drop`/`promote` triage target) and from settled state.
 
 ## Surface resolution
 

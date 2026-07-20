@@ -72,7 +72,7 @@ export function findTracesByDiscussion(dir, discussionId, fsSync) {
 }
 
 /**
- * `fit-trace by-discussion <discussion-id> [trace-dir]` — list trace
+ * `gemba-trace by-discussion <discussion-id> [trace-dir]` — list trace
  * files whose meta header carries the given discussion_id, one per
  * line, ordered by first-event timestamp (file mtime ascending). The
  * result is usable with `xargs cat` for a chronological merge.

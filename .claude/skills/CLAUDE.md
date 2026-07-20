@@ -4,8 +4,9 @@ Conventions when working under `.claude/skills/`.
 
 ## Published vs internal
 
-Skills prefixed `fit-*` and `kata-*` are published to external consumers via
-skill packs. Internal skills (used only by the monorepo's own agents) have no
+Skills prefixed `fit-*` and `kata-*`, plus the `gemba` product skill and the
+`gemba-*` capability skills, are published to external consumers via skill
+packs. Internal skills (used only by the monorepo's own agents) have no
 prefix convention.
 
 ## Generic by design
@@ -32,10 +33,11 @@ about HOW — do not prescribe tactics for ordinary engineering work.
 ### No monorepo leakage
 
 - Do not name this monorepo's packages, services, sites, workflows, scopes, file
-  paths, or data directories. Two exceptions: invoking `fit-*` / `kata-*` /
-  `coaligned` CLIs bare (`fit-wiki boot`, `fit-xmr analyze` — never an `npx` or
-  `bunx` prefix), and the surfaces every installation carries — CLAUDE.md,
-  CONTRIBUTING.md, JTBD.md, KATA.md, `specs/`, `wiki/`, `websites/`.
+  paths, or data directories. Two exceptions: invoking `fit-*` / `gemba-*` /
+  `kata-*` / `coaligned` CLIs bare (`gemba-wiki boot`, `gemba-xmr analyze` —
+  never an `npx` or `bunx` prefix), and the surfaces every installation
+  carries — CLAUDE.md, CONTRIBUTING.md, JTBD.md, KATA.md, `specs/`, `wiki/`,
+  `websites/`.
 - Write placeholder forms for anything repo-specific: `websites/<site>`,
   `@<scope>/<pkg>`, `<lockfile>`, `{YYYY}`, `repos/{owner}/{repo}`.
 - Quality commands are repo-specific. Write "the repository's check / test /
@@ -81,7 +83,7 @@ elsewhere or nowhere.
 
 ## `## Documentation` section
 
-Every `fit-*` skill that has a matching CLI (`fit-<name>`) must end with a
+Every `fit-*` or `gemba-*` skill that has a matching CLI must end with a
 `## Documentation` section listing guides as markdown links:
 
 ```markdown
@@ -105,6 +107,7 @@ other in the same commit.
 The CLI lives at:
 
 - Products: `products/<name>/bin/fit-<name>.js`
+- Platform: `products/gemba/bin/gemba-<name>.js`
 - Libraries: `libraries/lib<name>/bin/fit-<name>.js`
 
 See [libraries/CLAUDE.md](../../libraries/CLAUDE.md) and

@@ -17,7 +17,7 @@ and the agent **reports the `#NNN` back via `Answer`** (the facilitator can't
 `list` to find it) for the storyboard headlines and `Conclude` summary.
 
 The storyboard's Active and Concluded lists render from issue state via the
-deterministic `fit-wiki refresh` step — never hand-edit them.
+deterministic `gemba-wiki refresh` step — never hand-edit them.
 
 ## New Obstacle
 

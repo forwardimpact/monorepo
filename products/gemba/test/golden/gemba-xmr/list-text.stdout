@@ -1,0 +1,6 @@
+Metrics — test/golden/gemba-xmr/stable.csv
+event_type: kata-shift
+
+Metric         Unit   Points  From        To        
+────────────────────────────────────────────────────
+stable_metric  count  20      2026-01-01  2026-01-20

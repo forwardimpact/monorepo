@@ -5,9 +5,9 @@ description: Give your agent team persistent memory and real signal detection â€
 
 Your agents finish a session, and their findings disappear. The next session
 starts from scratch -- no continuity, no accumulated evidence, no way to tell
-whether yesterday's change made anything better. `fit-wiki` and `fit-xmr` work
-together to solve this: the wiki gives agents durable shared memory, and XmR
-charts turn that memory into a signal the team can trust.
+whether yesterday's change made anything better. `gemba-wiki` and `gemba-xmr`
+work together to solve this: the wiki gives agents durable shared memory, and
+XmR charts turn that memory into a signal the team can trust.
 
 This guide walks through the full arc -- from bootstrapping the wiki through
 recording metrics, charting them, and embedding live charts into a storyboard
@@ -26,7 +26,7 @@ that updates itself.
 Initialize the wiki working tree from your repository root:
 
 ```sh
-npx fit-wiki init
+npx gemba-wiki init
 ```
 
 ```text
@@ -76,17 +76,17 @@ Last run: (none)
 ```
 
 The `<!-- memo:inbox -->` marker is invisible in rendered markdown but required
-by `fit-wiki memo`. Without it, the memo command exits with code 2 and a
+by `gemba-wiki memo`. Without it, the memo command exits with code 2 and a
 diagnostic. Place the marker once; do not remove it.
 
 ## Step 3: Record observations to CSV
 
 As agents run, they record measured observations to the CSV file for their
-skill. The `fit-xmr record` command handles the file lifecycle -- it creates the
-directory and CSV header if they do not exist:
+skill. The `gemba-xmr record` command handles the file lifecycle -- it creates
+the directory and CSV header if they do not exist:
 
 ```sh
-npx fit-xmr record --skill kata-spec --metric findings_count --value 3 --unit count --event-type kata-shift
+npx gemba-xmr record --skill kata-spec --metric findings_count --value 3 --unit count --event-type kata-shift
 ```
 
 `--event-type` names the workflow recording the row (its filename without
@@ -114,7 +114,7 @@ date,metric,value,unit,run,note,event_type
 Add a run identifier and a contextual note:
 
 ```sh
-npx fit-xmr record \
+npx gemba-xmr record \
   --skill kata-security-audit \
   --metric findings_count \
   --value 5 \
@@ -143,28 +143,28 @@ record of context that numbers alone cannot convey.
 Validate the file at any time:
 
 ```sh
-npx fit-xmr validate wiki/metrics/kata-spec/2026.csv
+npx gemba-xmr validate wiki/metrics/kata-spec/2026.csv
 ```
 
 A zero exit code means the file matches the schema.
 
 ## Step 4: Analyze the metrics
 
-Once a metric has at least 15 observations, `fit-xmr` computes natural process
+Once a metric has at least 15 observations, `gemba-xmr` computes natural process
 limits and applies Wheeler's three detection rules. The limits are only
 meaningful if each metric tracks a single process -- see
 [One process per chart](/docs/libraries/predictable-team/xmr-analysis/#one-process-per-chart).
 Run the analysis:
 
 ```sh
-npx fit-xmr analyze wiki/metrics/kata-spec/2026.csv --metric findings_count
+npx gemba-xmr analyze wiki/metrics/kata-spec/2026.csv --metric findings_count
 ```
 
 The output includes the 14-line XmR chart, the computed limits, and a
 classification. For structured output that scripts and agents can parse:
 
 ```sh
-npx fit-xmr analyze wiki/metrics/kata-spec/2026.csv --metric findings_count --format json
+npx gemba-xmr analyze wiki/metrics/kata-spec/2026.csv --metric findings_count --format json
 ```
 
 ```json
@@ -242,14 +242,14 @@ CSV path; the closing comment marks the end of the region that gets replaced.
 Regenerate all charts in the storyboard:
 
 ```sh
-npx fit-wiki refresh
+npx gemba-wiki refresh
 ```
 
 Without a path argument, this targets the current month's storyboard at
 `wiki/storyboard-YYYY-MNN.md`. To refresh a specific file:
 
 ```sh
-npx fit-wiki refresh wiki/storyboard-2026-M05.md
+npx gemba-wiki refresh wiki/storyboard-2026-M05.md
 ```
 
 After refresh, each block contains the fenced chart and a signal summary
@@ -286,7 +286,7 @@ The wiki is a separate git repository. Two commands keep it synchronized with
 the remote:
 
 ```sh
-npx fit-wiki pull
+npx gemba-wiki pull
 ```
 
 ```text
@@ -294,7 +294,7 @@ pull: up to date
 ```
 
 ```sh
-npx fit-wiki push
+npx gemba-wiki push
 ```
 
 ```text
@@ -315,7 +315,7 @@ When one agent discovers something another agent should see on its next run, a
 memo delivers the message:
 
 ```sh
-npx fit-wiki memo --from technical-writer --to staff-engineer --message "findings_count shifted after the new spec rubric landed"
+npx gemba-wiki memo --from technical-writer --to staff-engineer --message "findings_count shifted after the new spec rubric landed"
 ```
 
 ```text
@@ -331,7 +331,7 @@ The message appears in the target agent's `## Message Inbox` section:
 Newest memos appear first. To reach every agent except yourself:
 
 ```sh
-npx fit-wiki memo --from technical-writer --to all --message "storyboard refreshed with new baseline"
+npx gemba-wiki memo --from technical-writer --to all --message "storyboard refreshed with new baseline"
 ```
 
 ## Verify
@@ -358,7 +358,7 @@ Confirm the full memory system is working by running through this checklist:
 3. **CSV validates.** At least one CSV passes schema validation.
 
    ```sh
-   npx fit-xmr validate wiki/metrics/kata-spec/2026.csv
+   npx gemba-xmr validate wiki/metrics/kata-spec/2026.csv
    ```
 
    Expected: exit code 0.
@@ -367,7 +367,7 @@ Confirm the full memory system is working by running through this checklist:
    `insufficient`.
 
    ```sh
-   npx fit-xmr analyze wiki/metrics/kata-spec/2026.csv --format json
+   npx gemba-xmr analyze wiki/metrics/kata-spec/2026.csv --format json
    ```
 
    Expected: `"classification"` is `"stable"`, `"signals"`, or `"chaos"`.
@@ -375,7 +375,7 @@ Confirm the full memory system is working by running through this checklist:
 5. **Storyboard refreshes.** Charts regenerate without errors.
 
    ```sh
-   npx fit-wiki refresh
+   npx gemba-wiki refresh
    ```
 
    Expected: no stderr output.
@@ -383,7 +383,7 @@ Confirm the full memory system is working by running through this checklist:
 6. **Sync round-trips.** Changes can be pushed and pulled.
 
    ```sh
-   npx fit-wiki push && npx fit-wiki pull
+   npx gemba-wiki push && npx gemba-wiki pull
    ```
 
    Expected: `push: committed and pushed` (or `nothing to push`) and
@@ -392,7 +392,7 @@ Confirm the full memory system is working by running through this checklist:
 7. **Memos land.** A test memo appears in the target's inbox.
 
    ```sh
-   npx fit-wiki memo --from test --to staff-engineer --message "verify memo delivery"
+   npx gemba-wiki memo --from test --to staff-engineer --message "verify memo delivery"
    ```
 
    Expected: `wrote wiki/staff-engineer.md`.

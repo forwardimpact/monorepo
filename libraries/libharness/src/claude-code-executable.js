@@ -9,7 +9,7 @@
  * <platform> not found".
  *
  * In a compiled binary we point the SDK at the standalone `claude` on PATH,
- * installed beside fit-harness by the bootstrap action's `fit-install.sh`.
+ * installed beside gemba-harness by the bootstrap action's `fit-install.sh`.
  * Running from source keeps `node_modules`, where the SDK resolves its own
  * version-matched binary, so there we return undefined and defer to the SDK.
  */

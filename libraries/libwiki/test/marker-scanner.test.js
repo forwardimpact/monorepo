@@ -101,9 +101,9 @@ describe("scanMarkers", () => {
 
   test("tolerates inline notice text after the tag (xmr)", () => {
     const text = [
-      "<!-- xmr:findings_count:wiki/metrics/kata-spec/2026.csv Do not edit. Generated from fit-wiki refresh. -->",
+      "<!-- xmr:findings_count:wiki/metrics/kata-spec/2026.csv Do not edit. Generated from gemba-wiki refresh. -->",
       "**Latest:** 3 · **Status:** predictable",
-      "<!-- /xmr Do not edit. Generated from fit-wiki refresh. -->",
+      "<!-- /xmr Do not edit. Generated from gemba-wiki refresh. -->",
     ].join("\n");
 
     const pairs = scanMarkers(text);
@@ -114,9 +114,9 @@ describe("scanMarkers", () => {
 
   test("tolerates inline notice text after the tag (issue-list)", () => {
     const text = [
-      "<!-- obstacles:open Do not edit. Generated from fit-wiki refresh. -->",
+      "<!-- obstacles:open Do not edit. Generated from gemba-wiki refresh. -->",
       "- **Obs #1 — example**",
-      "<!-- /obstacles Do not edit. Generated from fit-wiki refresh. -->",
+      "<!-- /obstacles Do not edit. Generated from gemba-wiki refresh. -->",
     ].join("\n");
 
     const pairs = scanMarkers(text);
@@ -127,7 +127,7 @@ describe("scanMarkers", () => {
 
   test("tolerates inline notice combined with closed:30d window suffix", () => {
     const text = [
-      "<!-- experiments:closed:30d Do not edit. Generated from fit-wiki refresh. -->",
+      "<!-- experiments:closed:30d Do not edit. Generated from gemba-wiki refresh. -->",
       "- **Exp #2 — older entry**",
       "<!-- /experiments -->",
     ].join("\n");

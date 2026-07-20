@@ -1,0 +1,46 @@
+gemba-harness 0.1.0 — Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration
+
+Usage: gemba-harness <command> [options]
+
+Commands:
+  run                  Run a single agent autonomously on a defined task
+  supervise            Run a supervisor–agent relay — typical shape for agent-as-judge evaluations
+  facilitate           Run a facilitator with N participants — typical shape for multi-agent collaboration
+  discuss              Run an async, suspendable discussion — Chair + N participants + bridge callback
+  output               Read NDJSON from stdin and emit a structured or readable form
+  tee [output.ndjson]  Stream readable text to stdout while saving raw NDJSON to a file
+  callback             Extract the terminal summary from an NDJSON trace and POST it to a callback URL
+  scan-logs            Scan a run's log archive for secret literals; exit non-zero on any hit, fail closed on an unreadable archive
+
+Options:
+  --format=<string>  Output format (json|text)
+  --help, -h         Show this help
+  --version          Show version
+  --json             Output help as JSON
+
+Examples:
+  gemba-harness run --task-file=task.md --output=trace.ndjson
+  gemba-harness run --task-file=task.md --work-tracker=filesystem --output=trace.ndjson
+  gemba-harness supervise --task-file=task.md --lead-profile=judge --agent-profile=coder --output=trace.ndjson
+  gemba-harness facilitate --task-file=task.md --lead-profile=lead --agent-profiles="security-engineer,technical-writer" --output=trace.ndjson
+  gemba-harness discuss --task-file=task.md --lead-profile=release-engineer --agent-profiles="staff-engineer,security-engineer" --discussion-id=GD_kw...
+  gemba-harness output --format=text < trace.ndjson
+
+Documentation:
+  Coordinate an Agent Team
+    https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md
+    Run a lead and N participant agents in one async session — supervise, facilitate, or discuss — with Ask/Answer/Announce and a single NDJSON trace.
+  Run an Eval
+    https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md
+    Author a judge profile, run an eval locally, wire it into CI, and inspect the resulting trace.
+  Prove Agent Changes
+    https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
+    End-to-end workflow from dataset generation through evaluation to trace analysis, including multi-agent collaboration sessions.
+  Analyze Traces
+    https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md
+    Read the NDJSON traces produced by `gemba-harness` with `gemba-trace` — grounded-theory method and worked examples.
+  Agent Teams
+    https://www.forwardimpact.team/docs/products/agent-teams/index.md
+    How to author the profiles consumed by --agent-profile, --lead-profile, and --agent-profiles.
+
+Use gemba-harness <command> --help for command-specific options.

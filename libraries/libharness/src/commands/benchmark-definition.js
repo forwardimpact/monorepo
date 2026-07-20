@@ -1,5 +1,5 @@
 /**
- * `fit-benchmark` CLI definition. Lives in `src/` so the bin stays an
+ * `gemba-benchmark` CLI definition. Lives in `src/` so the bin stays an
  * execute-on-import entry point — launcher packages import the bin to run
  * it — while tests import the definition without running the CLI.
  */
@@ -13,7 +13,7 @@ import {
 } from "@forwardimpact/libutil/models";
 
 export const definition = {
-  name: "fit-benchmark",
+  name: "gemba-benchmark",
   description:
     "Run coding-agent task families, grade hidden tests, and aggregate pass@k across runs.",
   commands: [
@@ -154,14 +154,14 @@ export const definition = {
     json: { type: "boolean", description: "Output help as JSON" },
   },
   examples: [
-    "fit-benchmark run --family=./families/coding",
-    "fit-benchmark run --family=./families/coding --task=todo-api --runs=1",
-    "fit-benchmark run --family=./families/coding --work-tracker=filesystem",
-    "fit-benchmark run --family=./families/coding --skills-from=. --task=todo-api",
-    `fit-benchmark run --family=./families/coding --runs=10 --agent-model=${BENCHMARK_AGENT_MODEL}`,
-    "fit-benchmark grade --family=./families/coding --task=todo-api --run-dir=./benchmark-runs/runs/todo-api/0",
-    "fit-benchmark report --format=text",
-    "fit-benchmark report --input=./runs/today --k=1,3,5 --format=text",
+    "gemba-benchmark run --family=./families/coding",
+    "gemba-benchmark run --family=./families/coding --task=todo-api --runs=1",
+    "gemba-benchmark run --family=./families/coding --work-tracker=filesystem",
+    "gemba-benchmark run --family=./families/coding --skills-from=. --task=todo-api",
+    `gemba-benchmark run --family=./families/coding --runs=10 --agent-model=${BENCHMARK_AGENT_MODEL}`,
+    "gemba-benchmark grade --family=./families/coding --task=todo-api --run-dir=./benchmark-runs/runs/todo-api/0",
+    "gemba-benchmark report --format=text",
+    "gemba-benchmark report --input=./runs/today --k=1,3,5 --format=text",
   ],
   documentation: [
     {

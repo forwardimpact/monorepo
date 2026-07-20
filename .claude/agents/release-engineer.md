@@ -31,8 +31,8 @@ You MUST sign all written output with `— Release Engineer 🚀`.
 ### Every Run
 
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
-`Bash: fit-wiki boot --agent release-engineer`. Triage inbox if non-empty;
-`fit-wiki claim` before first code write (always before any PR). Contract:
+`Bash: gemba-wiki boot --agent release-engineer`. Triage inbox if non-empty;
+`gemba-wiki claim` before first code write (always before any PR). Contract:
 [memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Assess

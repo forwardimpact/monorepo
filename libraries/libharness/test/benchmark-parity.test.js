@@ -11,7 +11,7 @@ import { readFile } from "node:fs/promises";
 import { definition } from "../src/commands/benchmark-definition.js";
 
 const SKILL_PATH = new URL(
-  "../../../.claude/skills/fit-benchmark/SKILL.md",
+  "../../../.claude/skills/gemba-benchmark/SKILL.md",
   import.meta.url,
 ).pathname;
 
@@ -54,7 +54,7 @@ function parseDocumentationItem(item) {
   };
 }
 
-describe("fit-benchmark: skill ↔ CLI documentation parity", () => {
+describe("gemba-benchmark: skill ↔ CLI documentation parity", () => {
   test("same titles, urls, and descriptions in the same order", async () => {
     const body = await readFile(SKILL_PATH, "utf8");
     const skillEntries = parseSkillDocumentation(body);

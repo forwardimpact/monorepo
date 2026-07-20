@@ -18,6 +18,12 @@ Kata is an implementation of two upstream standards: the repository structure
 in [MONOREPO.md](MONOREPO.md) and the instruction architecture in
 [COALIGNED.md](COALIGNED.md). Everything below assumes both.
 
+Kata runs on [Gemba](https://www.forwardimpact.team/gemba/), the
+agent-runtime platform: the `gemba-*` command family and the
+bootstrap/harness/wiki/benchmark CI actions are the substrate every shift
+executes on. Kata is the platform's reference tenant — the daily proof that
+the substrate is generic and another team could run on it.
+
 ## Architecture
 
 ```mermaid
@@ -37,8 +43,9 @@ surfaces and sessions.
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
 `audit/` and `coaligned-check/`.
 <!-- enum:sibling-composite-actions:count -->
-Six composite actions are co-located here and published to `forwardimpact/`
-siblings:
+Six composite actions are co-located in the monorepo (under
+`products/gemba/actions/` and `products/kata/actions/`) and published to
+`forwardimpact/` siblings:
 <!-- /enum -->
 
 <!-- enum:sibling-composite-actions:list -->
@@ -212,7 +219,7 @@ for utilities).
 ## Shared Memory
 
 Agents share persistent state via the **GitHub wiki** at `wiki/`, managed by
-`libwiki` and the `fit-wiki` CLI. The wiki is a separate checkout (not a
+`libwiki` and the `gemba-wiki` CLI. The wiki is a separate checkout (not a
 submodule) — `wiki/` is gitignored, cloned on demand, synced by `just
 wiki-pull` on session start and `just wiki-push` on stop.
 
@@ -239,7 +246,7 @@ read and write the same wiki files.
 
 The canonical read-summary, append-log, update-summary cadence is defined in
 [memory-protocol.md](.claude/agents/x-memory-protocol.md). Read
-contract: `Read wiki/MEMORY.md` + `Bash: fit-wiki boot --agent <self>`.
+contract: `Read wiki/MEMORY.md` + `Bash: gemba-wiki boot --agent <self>`.
 
 ## Coordination
 
@@ -316,13 +323,13 @@ a STATUS row. See
 ## Metrics
 
 End-to-end skills record per-run counts as CSV rows in
-`wiki/metrics/{skill}/{YYYY}.csv`. The storyboard reads these via `fit-xmr`
+`wiki/metrics/{skill}/{YYYY}.csv`. The storyboard reads these via `gemba-xmr`
 for control limits.
 
 Every metrics CSV row carries a `host_run` field — `$GITHUB_RUN_ID` when the
 row is written in CI, the literal `local` otherwise — so a row resolves to the
 workflow run that produced it by keyed lookup, not a forensic time-window
-sweep. `fit-xmr record` fills it automatically. Narrative log entries are
+sweep. `gemba-xmr record` fills it automatically. Narrative log entries are
 exempt; they are prose memory, recoverable through the keyed rows they
 accompany.
 
@@ -335,7 +342,7 @@ accompany.
   share a PR.
 - **Explicit scope constraints.** Each agent knows what it must _not_ do.
 - **Trace-driven accountability.** Every run captures a trace; the improvement
-  coach quotes specific evidence. Use `fit-trace` to query.
+  coach quotes specific evidence. Use `gemba-trace` to query.
 - **Least privilege.** The workflow-level `permissions:` block restricts only
   `GITHUB_TOKEN`. The App token carries coordination-channel permissions via
   installation settings.

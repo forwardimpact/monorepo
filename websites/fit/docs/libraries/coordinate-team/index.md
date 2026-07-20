@@ -28,12 +28,12 @@ npm install -g @forwardimpact/libharness
 ```
 
 ```sh
-npx --yes @forwardimpact/libharness fit-harness --help
+npx --yes @forwardimpact/libharness gemba-harness --help
 ```
 
 ## Pick a coordination shape
 
-Three subcommands of `fit-harness` share one orchestration loop and one tool
+Three subcommands of `gemba-harness` share one orchestration loop and one tool
 surface. They differ in who leads, how many participants there are, and how the
 session ends.
 
@@ -158,7 +158,7 @@ the caller stays in control of its own loop.
 Two flags enable it, on `run`, `supervise`, `facilitate`, and `discuss`:
 
 ```sh
-npx fit-harness facilitate \
+npx gemba-harness facilitate \
   --task-file=sessions/release-review/task.md \
   --lead-profile=release-facilitator \
   --agent-profiles=security-engineer,release-engineer \
@@ -187,7 +187,7 @@ profile only needs to describe its specialism — the runtime appends the
 coordination tools automatically. Then run:
 
 ```sh
-npx fit-harness facilitate \
+npx gemba-harness facilitate \
   --task-file=sessions/release-review/task.md \
   --lead-profile=release-facilitator \
   --facilitator-cwd=. \
@@ -216,7 +216,7 @@ agent at each `Ask` boundary, plans the next step, and eventually calls
 `Conclude`:
 
 ```sh
-npx fit-harness supervise \
+npx gemba-harness supervise \
   --task-file=task.md \
   --lead-profile=reviewer \
   --agent-profile=coder \
@@ -240,7 +240,7 @@ lead is streamed to the thread as a separate reply as it is produced, not
 batched at the end.
 
 ```sh
-npx fit-harness discuss \
+npx gemba-harness discuss \
   --task-file=task.md \
   --lead-profile=release-engineer \
   --agent-profiles=staff-engineer,security-engineer \
@@ -255,13 +255,13 @@ the suspend/resume lifecycle — see
 ## Inspect the trace
 
 Every coordinated run produces one NDJSON file. Read it as text for a quick
-sanity check, then hand it to `fit-trace` for structured analysis:
+sanity check, then hand it to `gemba-trace` for structured analysis:
 
 ```sh
-npx fit-harness output --format=text < trace--review.ndjson
-npx fit-trace overview --file trace--review.ndjson
-npx fit-trace tool trace--review.ndjson Ask
-npx fit-trace tool trace--review.ndjson Announce
+npx gemba-harness output --format=text < trace--review.ndjson
+npx gemba-trace overview --file trace--review.ndjson
+npx gemba-trace tool trace--review.ndjson Ask
+npx gemba-trace tool trace--review.ndjson Announce
 ```
 
 `Ask`/`Answer` show the targeted exchanges and `Announce` shows the broadcasts,

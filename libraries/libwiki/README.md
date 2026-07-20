@@ -14,15 +14,15 @@ storyboards. `libwiki` keeps that wiki coherent across sessions — agents boot
 from it, write decisions back, send memos to each other, and audit the
 result against a declarative rule set.
 
-The primary interface is the `fit-wiki` CLI. The library also exposes a few
+The primary interface is the `gemba-wiki` CLI. The library also exposes a few
 helpers for programmatic use.
 
 ## Getting started
 
 ```sh
-npx fit-wiki init
-npx fit-wiki boot --agent staff-engineer
-npx fit-wiki audit
+npx gemba-wiki init
+npx gemba-wiki boot --agent staff-engineer
+npx gemba-wiki audit
 ```
 
 ## CLI
@@ -36,7 +36,7 @@ sweep that runs without `--agent`.
 ### `boot` — start a session
 
 ```sh
-npx fit-wiki boot --agent staff-engineer [--format json|markdown]
+npx gemba-wiki boot --agent staff-engineer [--format json|markdown]
 ```
 
 Print the on-boot digest for the agent: own priorities, cross-cutting
@@ -45,9 +45,9 @@ priorities, active claims, storyboard items, inbox count.
 ### `log` — record decisions, notes, done
 
 ```sh
-npx fit-wiki log decision --agent X --surveyed "..." --chosen "..." --rationale "..."
-npx fit-wiki log note     --agent X --field "PR Status" --body "merged"
-npx fit-wiki log done     --agent X
+npx gemba-wiki log decision --agent X --surveyed "..." --chosen "..." --rationale "..."
+npx gemba-wiki log note     --agent X --field "PR Status" --body "merged"
+npx gemba-wiki log done     --agent X
 ```
 
 Appends to `wiki/<agent>-YYYY-WVV.md`. Auto-rotates to `*-partN.md` when the
@@ -56,9 +56,9 @@ line budget would be exceeded.
 ### `claim` / `release` — coordinate work
 
 ```sh
-npx fit-wiki claim   --agent X --target spec-NNNN --branch claude/spec-NNNN
-npx fit-wiki release --agent X --target spec-NNNN
-npx fit-wiki release --expired
+npx gemba-wiki claim   --agent X --target spec-NNNN --branch claude/spec-NNNN
+npx gemba-wiki release --agent X --target spec-NNNN
+npx gemba-wiki release --expired
 ```
 
 Maintains the `## Active Claims` table in `MEMORY.md`. Duplicates refused;
@@ -68,10 +68,10 @@ claim is a short-lived "shipping this now" assertion, not a lease.
 ### `inbox` — triage memos
 
 ```sh
-npx fit-wiki inbox list    --agent X
-npx fit-wiki inbox ack     --agent X --index 0
-npx fit-wiki inbox promote --agent X --index 0 [--owner X]
-npx fit-wiki inbox drop    --agent X --index 0
+npx gemba-wiki inbox list    --agent X
+npx gemba-wiki inbox ack     --agent X --index 0
+npx gemba-wiki inbox promote --agent X --index 0 [--owner X]
+npx gemba-wiki inbox drop    --agent X --index 0
 ```
 
 Reads bullets under the `<!-- memo:inbox -->` marker in the agent's summary.
@@ -80,8 +80,8 @@ Reads bullets under the `<!-- memo:inbox -->` marker in the agent's summary.
 ### `memo` — cross-team coordination
 
 ```sh
-npx fit-wiki memo --from X --to Y   --message "audit d642ff0c"
-npx fit-wiki memo --from X --to all --message "new XmR baseline"
+npx gemba-wiki memo --from X --to Y   --message "audit d642ff0c"
+npx gemba-wiki memo --from X --to all --message "new XmR baseline"
 ```
 
 Inserts a bullet `- YYYY-MM-DD from **X**: ...` after the recipient's
@@ -90,7 +90,7 @@ Inserts a bullet `- YYYY-MM-DD from **X**: ...` after the recipient's
 ### `audit` — verify wiki state
 
 ```sh
-npx fit-wiki audit [--format text|json]
+npx gemba-wiki audit [--format text|json]
 ```
 
 Runs a declarative catalogue of rules across the wiki. Exits 0 on pass, 1
@@ -107,7 +107,7 @@ Each finding carries a stable `id` for filtering. The catalogue lives in
 ### `rotate` — force a part split
 
 ```sh
-npx fit-wiki rotate --agent X
+npx gemba-wiki rotate --agent X
 ```
 
 Renames the current weekly log to the next `-partN.md` and starts a fresh
@@ -116,7 +116,7 @@ main file.
 ### `refresh` — re-render storyboard blocks
 
 ```sh
-npx fit-wiki refresh [storyboard-path]
+npx gemba-wiki refresh [storyboard-path]
 ```
 
 Re-renders `<!-- xmr:metric:csv-path -->` and `<!-- obstacles:open[:Nd] -->`
@@ -128,9 +128,9 @@ deterministic refresh.
 ### `init` / `push` / `pull` — wiki working tree
 
 ```sh
-npx fit-wiki init [--wiki-root wiki] [--skills-dir .claude/skills]
-npx fit-wiki push
-npx fit-wiki pull
+npx gemba-wiki init [--wiki-root wiki] [--skills-dir .claude/skills]
+npx gemba-wiki push
+npx gemba-wiki pull
 ```
 
 `init` clones the wiki repo if missing, scaffolds Active Claims in

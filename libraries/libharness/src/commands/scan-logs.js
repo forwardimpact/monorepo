@@ -1,9 +1,9 @@
 /**
- * `fit-harness scan-logs` — scan a run's log archive for secret literals and
+ * `gemba-harness scan-logs` — scan a run's log archive for secret literals and
  * fail closed.
  *
  * A run-lifecycle concern (not an NDJSON trace, so it lives here rather than
- * in `fit-trace`): after a CI run that handled secrets, download or accept the
+ * in `gemba-trace`): after a CI run that handled secrets, download or accept the
  * run's own log archive and assert none of a supplied set of literals leaked
  * into it. Any hit exits non-zero; any download/extract failure also exits
  * non-zero — the gate must never silently disarm.

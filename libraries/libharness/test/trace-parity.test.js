@@ -9,8 +9,8 @@ import {
   createTraceQuery,
 } from "@forwardimpact/libharness";
 
-// Exercises fit-trace stats result-event parity against repro-derived and
-// synthetic fixtures, loaded via the same exported path the `fit-trace` CLI's
+// Exercises gemba-trace stats result-event parity against repro-derived and
+// synthetic fixtures, loaded via the same exported path the `gemba-trace` CLI's
 // loadTrace uses: createTraceCollector for NDJSON, createTraceQuery for
 // structured JSON. Totals must agree with the trace's own result events.
 
@@ -67,7 +67,7 @@ function lastResultCost(file) {
   return cost;
 }
 
-describe("fit-trace stats result-event parity", () => {
+describe("gemba-trace stats result-event parity", () => {
   test("single-result parity", () => {
     const s = load("single-result.ndjson").stats();
     assert.strictEqual(s.totals.inputTokens, 6301);

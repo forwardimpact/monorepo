@@ -63,8 +63,8 @@ _Note:_ {one line, only when `status` is `signals_present` or a fired rule needs
 cross-referencing to a specific event; stable metrics get no prose}.
 
 (Repeat one `#### metric_name` block per metric, grouped under `### {agent}`.
-The deterministic `fit-wiki refresh` step regenerates all marker blocks from CSV
-data. The chart is the visualization — never duplicate its values in prose.
+The deterministic `gemba-wiki refresh` step regenerates all marker blocks from
+CSV data. The chart is the visualization — never duplicate its values in prose.
 Agents add the cross-reference layer only where there is something to say.)
 
 ### Notes
@@ -122,7 +122,7 @@ still ahead._
 ## Retention rule
 
 When concluding an obstacle or experiment, post the verdict as a closing comment
-on the issue and close the issue. `fit-wiki refresh` rerenders both
+on the issue and close the issue. `gemba-wiki refresh` rerenders both
 `Active` and `Concluded (last 7 days)` from GitHub state, and items aged out of
 the 7-day window drop off automatically. The closed issue is the permanent
 record.

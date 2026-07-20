@@ -16,8 +16,9 @@ description: >
 inputs:
   pack-prefix:
     description: >
-      Skill directory prefix under the source dir's skills/ (e.g. fit,
-      coaligned, kata). Leave empty and set `all` when the source dir is itself
+      Space-separated skill directory prefixes under the source dir's skills/
+      (e.g. "fit", "kata", "fit gemba"). Each prefix selects the <prefix> and
+      <prefix>-* dirs. Leave empty and set `all` when the source dir is itself
       the pack boundary and its skills share no common prefix.
     required: false
     default: ""
@@ -92,7 +93,13 @@ runs:
         # as the input defaults, so coalesce to the repo-root prefix pack shape.
         source_dir="${SOURCE_DIR:-.claude}"
 
-        select_flag="--prefix $PACK_PREFIX"
+        # Expand each space-separated prefix into its own --prefix flag; a
+        # single-prefix value expands identically to the previous single-flag
+        # form.
+        select_flag=""
+        for prefix in $PACK_PREFIX; do
+          select_flag="$select_flag --prefix $prefix"
+        done
         if [ "$STAGE_ALL" = "true" ]; then
           select_flag="--all"
         fi

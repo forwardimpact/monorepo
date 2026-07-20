@@ -41,7 +41,7 @@ function cleanWiki(extra = {}) {
   });
 }
 
-describe("fit-wiki audit CLI (in-process)", () => {
+describe("gemba-wiki audit CLI (in-process)", () => {
   function run(fsSync, options) {
     const harness = makeRuntime({ fsSync, finder: FINDER });
     const result = runAuditCommand(

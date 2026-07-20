@@ -62,7 +62,7 @@ export async function loadTaskFamily(rootPathOrGitUrl, runtime) {
   let familyRevision;
   if (isGit) {
     const dir = await runtime.fs.mkdtemp(
-      join(tmpdir(runtime), "fit-benchmark-family-"),
+      join(tmpdir(runtime), "gemba-benchmark-family-"),
     );
     await gitClone(runtime, rootPathOrGitUrl, dir);
     rootPath = dir;

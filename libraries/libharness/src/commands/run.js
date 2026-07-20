@@ -197,7 +197,7 @@ export async function wireRunSession({
 /**
  * Run command — execute a single agent via the Claude Agent SDK.
  *
- * Usage: fit-harness run [options]
+ * Usage: gemba-harness run [options]
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>}

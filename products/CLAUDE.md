@@ -2,10 +2,15 @@
 
 Conventions when working under `products/`. The catalog and jobs live in
 [README.md](README.md); this file documents the metadata, rules, and
-conventions a product must follow. Products are the seven end-user
-applications (Map, Pathway, Guide, Landmark, Summit, Outpost, Gear)
-consumed via `npm install` and `npx fit-<product>`. Gear is a meta-package
-re-exporting all service and library CLIs.
+conventions a product must follow. Products are the eight end-user
+applications (Map, Pathway, Guide, Landmark, Summit, Outpost, Gear, Gemba)
+consumed via `npm install` and `npx` (`fit-<product>`, or `gemba-<name>` for
+the platform's family). Gear is a meta-package
+re-exporting the build-time service and library CLIs; Gemba is the
+agent-runtime platform, owning the `gemba-*` command family
+(`products/gemba/bin/gemba-<name>.js`) and the agent-run composite actions
+(`products/gemba/actions/`) while the implementation stays in the runtime
+libraries.
 
 ## Audience
 
@@ -58,7 +63,9 @@ from any entry point:
 - **User guides** under `websites/fit/docs/products/<task-slug>/index.md`.
   A product may carry multiple task guides (e.g. `fit-pathway` links to
   `authoring-standards`, `agent-teams`, `career-paths`).
-- **Skill** at `.claude/skills/fit-<product>/SKILL.md`.
+- **Skill** at `.claude/skills/fit-<product>/SKILL.md` (Gemba's command
+  family: `.claude/skills/gemba-<name>/SKILL.md`, whose guides live under
+  `/docs/libraries/` with their implementing libraries).
 - **CLI `--help`** — `documentation` entries on the libcli definition, one
   per linked guide.
 

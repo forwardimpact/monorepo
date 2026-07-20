@@ -1,0 +1,30 @@
+{
+  "name": "gemba-trace",
+  "version": "0.0.0",
+  "description": "Run gemba-trace from the npm registry — launcher for @forwardimpact/gemba",
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "launchers/gemba-trace"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "bin": {
+    "gemba-trace": "./bin/gemba-trace.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "dependencies": {
+    "@forwardimpact/gemba": "0.0.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

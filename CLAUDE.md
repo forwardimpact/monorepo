@@ -64,6 +64,9 @@ agent-capable systems. See [JTBD.md](JTBD.md) for their jobs.
   [Overview](websites/fit/gear/index.md) ·
   [Libraries](libraries/README.md#catalog) ·
   [Services](services/README.md#catalog)
+- **Gemba — `fit-skills`** — The agent-runtime platform Kata runs on:
+  `gemba-*` CLIs and agent-run actions.
+  [Overview](websites/fit/gemba/index.md)
 - **Kata — `kata-skills`** — A self-improving agent team running a daily
   Plan-Do-Study-Act cycle: write specs, ship features, study traces, act on
   findings. [KATA.md](KATA.md)
@@ -77,7 +80,7 @@ agent-capable systems. See [JTBD.md](JTBD.md) for their jobs.
 The monorepo is open source but internal-only; external users consume via
 npm. It is the source of truth for `forwardimpact/*` sibling repos:
 
-- **npm packages** — `fit-*` and `kata-*` CLIs and libraries via `npx fit-*`;
+- **npm packages** — `fit-*`/`gemba-*`/`kata-*` CLIs and libraries via `npx`;
   bare names are launchers ([launchers/README.md](launchers/README.md)). CLIs
   use `#!/usr/bin/env node`, no Bun. gRPC products need
   `npx fit-codegen generate --all`
@@ -86,7 +89,7 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   sync on push to `main`; install with `apm install forwardimpact/<pack>`.
   Internal skills (`libs-*`, product internals) never publish.
 - **Composite actions** — co-located with their owning unit
-  (`libraries/*/actions/`, `products/*/actions/`, `.github/actions/`), published
+  (`products/*/actions/`, `.github/actions/`), published
   to siblings by subtree split. Edit in-repo
   ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 
@@ -131,8 +134,8 @@ rg '<do_confirm_checklist'  # Exit gates — do from memory, then confirm
 `.claude/skills/kata-*/SKILL.md`; shared libraries in
 [libraries/README.md](libraries/README.md).
 
-When `.claude/**` writes are blocked, use `echo … | bunx fit-selfedit <path>` —
-gated to `.claude/settings.json` Edit() rules + non-`main` branch.
+When `.claude/**` writes are blocked, use `echo … | bunx gemba-selfedit <path>`
+— gated to `.claude/settings.json` Edit() rules + non-`main` branch.
 
 ## Writing Style
 

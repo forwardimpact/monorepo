@@ -1,0 +1,12 @@
+gemba-wiki audit — Audit the wiki against the declarative rule catalogue (line and word budgets, headings, decision blocks, storyboards, claims)
+
+Usage: gemba-wiki audit [options]
+
+Options:
+  --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --today=<string>      Override today's ISO date (testing)
+  --format=<string>     Output format: text (default) or json
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON

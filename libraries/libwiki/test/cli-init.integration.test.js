@@ -37,7 +37,7 @@ describe("init command (real git)", () => {
     mkdirSync(skillsDir, { recursive: true });
     mkdirSync(join(skillsDir, "kata-spec"));
     mkdirSync(join(skillsDir, "kata-plan"));
-    mkdirSync(join(skillsDir, "fit-wiki"));
+    mkdirSync(join(skillsDir, "gemba-wiki"));
     git(projectDir, "init");
     git(projectDir, "config", "user.name", "Project User");
     git(projectDir, "config", "user.email", "project@example.com");
@@ -67,7 +67,7 @@ describe("init command (real git)", () => {
     assert.ok(existsSync(join(wikiDir, ".git")));
     assert.ok(existsSync(join(wikiDir, "metrics", "kata-spec")));
     assert.ok(existsSync(join(wikiDir, "metrics", "kata-plan")));
-    assert.ok(!existsSync(join(wikiDir, "metrics", "fit-wiki")));
+    assert.ok(!existsSync(join(wikiDir, "metrics", "gemba-wiki")));
   });
 
   test("idempotent — a second init produces no error", async () => {

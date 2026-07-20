@@ -23,7 +23,7 @@ describe("listSkills", () => {
 
   test("returns only kata-* directories", () => {
     const fs = skillsFs(
-      ["kata-spec", "kata-plan", "fit-wiki", "kata-session"],
+      ["kata-spec", "kata-plan", "gemba-wiki", "kata-session"],
       {
         [`${SKILLS_DIR}/kata-file.txt`]: "not a dir",
       },

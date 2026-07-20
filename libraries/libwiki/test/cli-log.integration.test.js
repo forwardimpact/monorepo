@@ -25,7 +25,7 @@ import {
 import { makeRuntime, ctxFor } from "./helpers.js";
 
 // Run the real audit engine over `wikiRoot` and return only the weekly-log
-// fail findings — what "fit-wiki audit passes on the result" means for the
+// fail findings — what "gemba-wiki audit passes on the result" means for the
 // rotated file under test (criterion 1), without seeding MEMORY/STATUS/storyboard.
 function weeklyLogAuditFails(wikiRoot, today, fs) {
   const ctx = buildContext({ wikiRoot, today, fs });
@@ -37,7 +37,7 @@ function weeklyLogAuditFails(wikiRoot, today, fs) {
 // The append path seals via fs.renameSync (no createMockFs renameSync), so the
 // rotate-then-append behaviour is exercised against the real fs here; the
 // mock-backed cli-log.test.js covers the under-budget (no-seal) cases.
-describe("fit-wiki log CLI seal-on-append (in-process)", () => {
+describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
   let dir;
   let wikiRoot;
 
@@ -178,7 +178,7 @@ describe("fit-wiki log CLI seal-on-append (in-process)", () => {
     assert.deepEqual(
       weeklyLogAuditFails(wikiRoot, today, nodeFs),
       [],
-      "fit-wiki audit passes on the word-cap-rotated result",
+      "gemba-wiki audit passes on the word-cap-rotated result",
     );
   });
 
@@ -219,7 +219,7 @@ describe("fit-wiki log CLI seal-on-append (in-process)", () => {
     assert.deepEqual(
       weeklyLogAuditFails(wikiRoot, today, nodeFs),
       [],
-      "fit-wiki audit passes after sub-entry rotation on the append path",
+      "gemba-wiki audit passes after sub-entry rotation on the append path",
     );
   });
 });

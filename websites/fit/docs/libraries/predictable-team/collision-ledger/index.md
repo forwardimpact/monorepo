@@ -56,7 +56,7 @@ Each anchor has one of four kinds:
 Mint the next free id of a kind, keyed to a durable event:
 
 ```sh
-npx fit-wiki ledger allocate --kind occ --event 7d0f8bca --note "dual-execution episode"
+npx gemba-wiki ledger allocate --kind occ --event 7d0f8bca --note "dual-execution episode"
 ```
 
 ```text
@@ -66,7 +66,7 @@ npx fit-wiki ledger allocate --kind occ --event 7d0f8bca --note "dual-execution 
 The command prints the provisional id it minted. To allocate several at once:
 
 ```sh
-npx fit-wiki ledger allocate --kind occ --count 2 --event 7d0f8bca
+npx gemba-wiki ledger allocate --kind occ --count 2 --event 7d0f8bca
 ```
 
 ```text
@@ -83,7 +83,7 @@ For ids that already exist in history but were never anchored, register them
 explicitly instead of minting new ones:
 
 ```sh
-npx fit-wiki ledger allocate --kind occ --ids "#42,#43" --event a1b2c3d4
+npx gemba-wiki ledger allocate --kind occ --ids "#42,#43" --event a1b2c3d4
 ```
 
 If any named id already has an anchor, the command refuses rather than
@@ -106,7 +106,7 @@ The ledger page and the memory row are projections of the anchor record. After
 new anchors are published, rebuild them from the authoritative thread:
 
 ```sh
-npx fit-wiki ledger rebuild
+npx gemba-wiki ledger rebuild
 ```
 
 ```text
@@ -130,7 +130,7 @@ instead — keeping the original numbering visible — pass `--gapped`.
 Confirm the projection matches the anchor record without writing anything:
 
 ```sh
-npx fit-wiki ledger verify
+npx gemba-wiki ledger verify
 ```
 
 ```text

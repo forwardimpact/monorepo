@@ -1,5 +1,5 @@
 /**
- * `fit-benchmark run` — run every task in a family for N runs, stream each
+ * `gemba-benchmark run` — run every task in a family for N runs, stream each
  * ResultRecord to stdout (one JSON line per record), and append to the
  * canonical `<output>/results.jsonl` for the report subcommand.
  */

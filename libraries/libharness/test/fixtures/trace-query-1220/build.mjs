@@ -1,7 +1,7 @@
 /**
- * Retained baseline-fixture builder for the `fit-trace` query verbs.
+ * Retained baseline-fixture builder for the `gemba-trace` query verbs.
  *
- * Captures the JSON output of each affected `fit-trace` verb's current query
+ * Captures the JSON output of each affected `gemba-trace` verb's current query
  * code path over `test/fixtures/trace-1220.ndjson`, so the structural-
  * equivalence test (`test/trace-1220-equivalence.test.js`) binds the
  * `--format json` output against a frozen reference rather than re-deriving it

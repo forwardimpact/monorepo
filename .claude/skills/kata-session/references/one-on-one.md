@@ -6,14 +6,14 @@ session with one domain agent.
 ## Session Shape
 
 The participant reflects on its most recent workflow trace. Under Q2 the
-participant runs `fit-trace` on that trace; the five questions scope to the
+participant runs `gemba-trace` on that trace; the five questions scope to the
 trace's run-level findings. One facilitator, one participant, turn-taking via
 `Ask` / `Answer`.
 
 ## Question Wording (1-on-1)
 
 1. **What were you trying to achieve in this run?** (Q1)
-2. **What actually happened?** (Q2 — the participant runs `fit-trace` on its
+2. **What actually happened?** (Q2 — the participant runs `gemba-trace` on its
    own most recent workflow trace and reports the numeric findings.)
 3. **What obstacles prevented better outcomes?** (Q3 — drawn from the trace
    findings. Record the obstacle as a labeled issue per
@@ -27,7 +27,7 @@ trace's run-level findings. One facilitator, one participant, turn-taking via
 
 ## Trace Access
 
-The participant runs `fit-trace` against its own agent's trace artifact. The
+The participant runs `gemba-trace` against its own agent's trace artifact. The
 coach does not pre-load the trace content into the participant's context; the
 participant fetches it under Q2.
 
@@ -35,7 +35,7 @@ participant fetches it under Q2.
 
 ```markdown
 You are in a 1-on-1 coaching session. I will Ask you five questions; reply to
-each with Answer. Under Q2, run `fit-trace` on your most recent workflow
+each with Answer. Under Q2, run `gemba-trace` on your most recent workflow
 trace and include the numeric findings in your Answer. Under Q3 and Q4, record
 your obstacle and experiment as labeled GitHub issues (see issue-lifecycle.md)
 and report each issue number back in your Answer. Any comment you write that

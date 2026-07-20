@@ -31,14 +31,12 @@
   "main": "./src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./bin/fit-wiki.js": "./bin/fit-wiki.js"
-  },
-  "bin": {
-    "fit-wiki": "./bin/fit-wiki.js"
+    "./wiki-sync.js": "./src/wiki-sync.js",
+    "./util/wiki-dir.js": "./src/util/wiki-dir.js",
+    "./cli-definition.js": "./src/cli-definition.js"
   },
   "files": [
     "src/**/*.js",
-    "bin/**/*.js",
     "README.md"
   ],
   "scripts": {

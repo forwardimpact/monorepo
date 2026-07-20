@@ -5,9 +5,9 @@ when studying product-manager behavior from dispatch runs.
 
 ## Why This Runbook Exists
 
-`fit-trace runs <pattern>` filters on **workflow name**, not participant name.
+`gemba-trace runs <pattern>` filters on **workflow name**, not participant name.
 PM activations run under workflow `Kata: Dispatch`, so
-`fit-trace runs product-manager` returns `[]` correctly — there is no workflow
+`gemba-trace runs product-manager` returns `[]` correctly — there is no workflow
 named `product-manager`. The PM trace slice is emitted as a per-participant
 artifact inside the dispatch run's artifact set, under the canonical
 `trace--<case>--product-manager.agent.ndjson` filename. No other
@@ -24,7 +24,7 @@ gh run list --workflow "Kata: Dispatch" \
   --json databaseId,createdAt,displayTitle
 
 # 2. Download each candidate's artifacts.
-fit-trace download <run-id> --dir /tmp/<run-id>
+gemba-trace download <run-id> --dir /tmp/<run-id>
 
 # 3. Filter for PM slices.
 ls /tmp/<run-id>/ | grep -- '--product-manager.'
@@ -34,6 +34,6 @@ ls /tmp/<run-id>/ | grep -- '--product-manager.'
 ```
 
 The `grep -- '--product-manager.'` step is participant filtering, which the
-`fit-trace` CLI does not provide directly. Each download directory contains
+`gemba-trace` CLI does not provide directly. Each download directory contains
 both an `.agent.ndjson` slice (the participant's turn-level trace) and a
 `.raw.ndjson` slice per participant.

@@ -36,12 +36,12 @@ artifact pinned to a gear release. **Stop** pushes agent memory back;
     ],
     "WorktreeCreate": [
       {
-        "hooks": [{ "type": "command", "command": "fit-wiki init" }]
+        "hooks": [{ "type": "command", "command": "gemba-wiki init" }]
       }
     ],
     "Stop": [
       {
-        "hooks": [{ "type": "command", "command": "fit-wiki push" }]
+        "hooks": [{ "type": "command", "command": "gemba-wiki push" }]
       }
     ]
   }
@@ -56,8 +56,8 @@ fixes the whole toolchain.
 
 If `coaligned-setup` or `kata-setup` already wrote `.claude/settings.json`,
 merge these hook arrays into it rather than overwriting — do not drop their
-keys. `fit-wiki init` may install the `Stop` push hook itself; if it is already
-present, leave the single copy in place.
+keys. `gemba-wiki init` may install the `Stop` push hook itself; if it is
+already present, leave the single copy in place.
 
 ## Seed the named ledgers
 
@@ -66,16 +66,16 @@ them under `wiki/`, then let `init` finish the scaffold and `push` publish it:
 
 1. Enable the wiki on the remote and create its first page (any content) so the
    `<repo>.wiki.git` repository exists — an empty wiki has no git repo to clone.
-2. `fit-wiki init` — clones the wiki into `wiki/`, creates
+2. `gemba-wiki init` — clones the wiki into `wiki/`, creates
    `wiki/metrics/<skill>/` directories for each installed skill, and appends the
    `## Active Claims` table to `MEMORY.md`.
 3. Write the three files below into `wiki/` (Step 2 leaves `MEMORY.md` with only
    the Active Claims block if it did not exist; write the full template, then
    re-run `init` to re-append Active Claims if needed).
-4. `fit-wiki push` — publishes the seeded ledgers.
+4. `gemba-wiki push` — publishes the seeded ledgers.
 
 Each file is empty apart from scaffolding: a heading, a one-line description of
-what the surface is for, and an empty table or fence. Agents and `fit-wiki`
+what the surface is for, and an empty table or fence. Agents and `gemba-wiki`
 fill them; do not hand-write state.
 
 ### wiki/Home.md
@@ -85,7 +85,7 @@ The wiki landing page. Names the surfaces an agent will read.
 ```markdown
 # <repo> — Wiki
 
-Persistent memory for the agent team. Managed by `fit-wiki`; do not hand-edit a
+Persistent memory for the agent team. Managed by `gemba-wiki`; do not hand-edit a
 ledger a command owns.
 
 - **MEMORY.md** — cross-cutting priorities and active claims.
@@ -97,7 +97,7 @@ ledger a command owns.
 
 ### wiki/MEMORY.md
 
-Cross-cutting priorities the whole team reads on boot. `fit-wiki init` appends
+Cross-cutting priorities the whole team reads on boot. `gemba-wiki init` appends
 the `## Active Claims` table after this block; leave room for it.
 
 ```markdown

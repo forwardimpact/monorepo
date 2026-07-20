@@ -150,7 +150,7 @@ export async function runClaimCommand(ctx) {
   const resolved = requireAgentFlag(options, {
     command: "claim",
     example:
-      "fit-wiki claim --agent staff-engineer --target spec-NNNN --branch claude/...",
+      "gemba-wiki claim --agent staff-engineer --target spec-NNNN --branch claude/...",
   });
   if (!resolved.ok) return resolved;
   const agent = resolved.agent;
@@ -245,7 +245,7 @@ export async function runReleaseCommand(ctx) {
 
   const resolved = requireAgentFlag(options, {
     command: "release",
-    example: "fit-wiki release --agent staff-engineer --target spec-NNNN",
+    example: "gemba-wiki release --agent staff-engineer --target spec-NNNN",
   });
   if (!resolved.ok) return resolved;
   const agent = resolved.agent;

@@ -3,11 +3,11 @@
 Claude Code's permission guard blocks `Write`, `Edit`, and sandboxed `Bash`
 calls targeting `.claude/**`. Until upstream regression
 [claude-code#38806](https://github.com/anthropics/claude-code/issues/38806) is
-resolved, agents use the `fit-selfedit` CLI described below.
+resolved, agents use the `gemba-selfedit` CLI described below.
 
 ## Rule
 
-Every agent edit under `.claude/**` goes through `fit-selfedit`. No other
+Every agent edit under `.claude/**` goes through `gemba-selfedit`. No other
 mechanism is supported. Do not use `Edit`, `Write`, or sandboxed `Bash` on
 `.claude/**` paths — they will be denied.
 
@@ -16,11 +16,11 @@ mechanism is supported. Do not use `Edit`, `Write`, or sandboxed `Bash` on
 Use the `Bash` tool. Pipe content on stdin; the target path is the only
 positional argument:
 
-    echo "<content>" | fit-selfedit <path>
+    echo "<content>" | gemba-selfedit <path>
 
 For multi-line content, use a heredoc:
 
-    fit-selfedit .claude/path/to/file <<'FIT_SELFEDIT_EOF'
+    gemba-selfedit .claude/path/to/file <<'FIT_SELFEDIT_EOF'
     file content here
     FIT_SELFEDIT_EOF
 
@@ -62,7 +62,7 @@ re-run. If a parent directory is missing, create it with `mkdir -p` first.
 ## Trace invariant
 
 The cross-cutting invariant table (KATA.md § Invariants) enforces that every
-write under `.claude/**` is performed via `fit-selfedit`. Any other
+write under `.claude/**` is performed via `gemba-selfedit`. Any other
 mechanism — direct `Edit`/`Write` on `.claude/**`, or a sandbox-disabled
 `Bash` call writing to those paths — is a **high-severity** trace finding.
 

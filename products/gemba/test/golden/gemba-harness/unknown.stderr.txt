@@ -1,0 +1,1 @@
+gemba-harness: error: unknown command "frobnicate"

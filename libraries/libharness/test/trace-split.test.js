@@ -49,7 +49,7 @@ function readNdjson(fsSync, filePath) {
     .map((line) => JSON.parse(line));
 }
 
-describe("fit-trace split", () => {
+describe("gemba-trace split", () => {
   describe("supervise mode", () => {
     test("emits agent and supervisor files keyed by case and source", () => {
       const agentEvent = {

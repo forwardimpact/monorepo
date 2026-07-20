@@ -38,7 +38,7 @@ function runWith(stdout, { options, gitClient, clock } = {}) {
   return { ctx, subprocess, runtime, run: runProductMixCommand(ctx) };
 }
 
-describe("fit-wiki product-mix", () => {
+describe("gemba-wiki product-mix", () => {
   test("records product_share from labeled merged PRs", async () => {
     // 3 product + 1 internal of 4 classified → round(3/4*100) = 75.
     const { subprocess, run } = runWith(
@@ -48,8 +48,8 @@ describe("fit-wiki product-mix", () => {
     assert.equal(result.ok, true);
 
     const recordCall = subprocess.calls.find((c) => c.cmd === "npx");
-    assert.ok(recordCall, "fit-xmr record must be invoked");
-    assert.equal(recordCall.args[0], "fit-xmr");
+    assert.ok(recordCall, "gemba-xmr record must be invoked");
+    assert.equal(recordCall.args[0], "gemba-xmr");
     assert.ok(recordCall.args.includes("record"));
     const pair = (flag) => recordCall.args[recordCall.args.indexOf(flag) + 1];
     assert.equal(pair("--skill"), "product-mix");
@@ -65,7 +65,7 @@ describe("fit-wiki product-mix", () => {
     assert.equal(result.ok, true);
     assert.ok(
       !subprocess.calls.some((c) => c.cmd === "npx"),
-      "no fit-xmr record call for a 0/0 window",
+      "no gemba-xmr record call for a 0/0 window",
     );
   });
 

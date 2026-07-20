@@ -275,7 +275,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("traces are consumable by fit-trace overview", async () => {
+  test("traces are consumable by gemba-trace overview", async () => {
     for (const r of sharedRecords) {
       if (!r.agentTracePath) continue;
       const ndjson = await readFile(r.agentTracePath, "utf8").catch(() => "");

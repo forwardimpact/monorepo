@@ -25,7 +25,7 @@
       "goal": "Build Agent-Capable Systems",
       "trigger": "Building an agent that needs structured knowledge or typed contracts, with no way to prove the next change improves outcomes.",
       "bigHire": "give humans and agents shared capabilities through the same interface, with tooling to prove changes improved outcomes.",
-      "littleHire": "query graphs, run vector search, expose services as MCP tools, or chart agent metrics without building infrastructure.",
+      "littleHire": "query graphs, run vector search, or expose services as MCP tools without building infrastructure.",
       "competesWith": "hand-rolled retrieval; bespoke wrappers; custom eval harnesses; monolithic platforms; shipping without measuring",
       "forces": {
         "push": "Every agent project rebuilds plumbing, and improvements are claimed but never measured.",
@@ -44,7 +44,6 @@
     "@forwardimpact/svcvector": "^0.1.120",
     "@forwardimpact/libcodegen": "^0.1.49",
     "@forwardimpact/libdoc": "^0.2.24",
-    "@forwardimpact/libharness": "^2.0.0",
     "@forwardimpact/libgraph": "^0.1.69",
     "@forwardimpact/librc": "^0.1.27",
     "@forwardimpact/libresource": "^0.1.109",
@@ -54,9 +53,7 @@
     "@forwardimpact/libtelemetry": "^0.1.39",
     "@forwardimpact/libterrain": "^0.1.41",
     "@forwardimpact/libutil": "^0.1.78",
-    "@forwardimpact/libvector": "^0.1.88",
-    "@forwardimpact/libwiki": "^0.2.0",
-    "@forwardimpact/libxmr": "^2.0.0"
+    "@forwardimpact/libvector": "^0.1.88"
   },
   "engines": {
     "bun": ">=1.2.0",

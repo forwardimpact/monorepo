@@ -6,7 +6,7 @@ description:
 ---
 
 You need to chart a metric and see whether the latest point is within expected
-variation. `fit-xmr` reads a time-series CSV, computes natural process limits
+variation. `gemba-xmr` reads a time-series CSV, computes natural process limits
 from the data itself, and tells you whether the newest observation is routine
 noise or worth investigating.
 
@@ -21,7 +21,7 @@ behaves.
 
 ## Prepare the CSV
 
-`fit-xmr` expects the header `date,metric,value,unit,run,note,event_type` with
+`gemba-xmr` expects the header `date,metric,value,unit,run,note,event_type` with
 one row per observation:
 
 ```csv
@@ -52,7 +52,7 @@ unfiltered series.
 Validate the file before analysis:
 
 ```sh
-npx fit-xmr validate observations.csv
+npx gemba-xmr validate observations.csv
 ```
 
 A non-zero exit code means the file does not match the schema.
@@ -62,7 +62,7 @@ A non-zero exit code means the file does not match the schema.
 Render the chart to see where every point falls relative to the limits:
 
 ```sh
-npx fit-xmr chart observations.csv --metric cycle_time
+npx gemba-xmr chart observations.csv --metric cycle_time
 ```
 
 When the CSV carries exactly one metric, `--metric` is optional.
@@ -95,7 +95,7 @@ The output is a 14-line X+mR chart:
 If your terminal mishandles Unicode, add `--ascii`:
 
 ```sh
-npx fit-xmr chart observations.csv --metric cycle_time --ascii
+npx gemba-xmr chart observations.csv --metric cycle_time --ascii
 ```
 
 ## Check whether the latest point is a signal
@@ -104,13 +104,13 @@ The `analyze` command combines the chart with limits, signals, and a
 classification:
 
 ```sh
-npx fit-xmr analyze observations.csv --metric cycle_time
+npx gemba-xmr analyze observations.csv --metric cycle_time
 ```
 
 For structured output that agents and scripts can parse:
 
 ```sh
-npx fit-xmr analyze observations.csv --metric cycle_time --format json
+npx gemba-xmr analyze observations.csv --metric cycle_time --format json
 ```
 
 The JSON report for each metric carries:
@@ -189,7 +189,7 @@ Any free text follows the trailing semicolon:
 Two `analyze` options read the grammar:
 
 ```sh
-npx fit-xmr analyze observations.csv --metric implementations_shipped --route 2
+npx gemba-xmr analyze observations.csv --metric implementations_shipped --route 2
 ```
 
 `--route 2` keeps only rows whose `route_taken` is `2`. The chart, limits, and
@@ -197,7 +197,7 @@ signals are then computed over that subset alone, so a path with its own process
 behavior gets its own baseline.
 
 ```sh
-npx fit-xmr analyze observations.csv --metric implementations_shipped \
+npx gemba-xmr analyze observations.csv --metric implementations_shipped \
   --routes-eligible-includes 4
 ```
 
@@ -212,12 +212,12 @@ narrow partition often falls under the 15-point floor and reports
 
 ### Record a path
 
-`fit-xmr record` writes the grammar for you. Pass `--route` (and optionally
+`gemba-xmr record` writes the grammar for you. Pass `--route` (and optionally
 `--routes-eligible`) and it prepends the tokens to the `note`, quoting the
 field automatically:
 
 ```sh
-npx fit-xmr record --skill kata-implement --metric implementations_shipped \
+npx gemba-xmr record --skill kata-implement --metric implementations_shipped \
   --value 2 --route 2 --routes-eligible 2,3
 ```
 
@@ -226,7 +226,7 @@ ids must be drawn from the metric's known path set, or `record` rejects the row.
 
 ## The three detection rules
 
-`fit-xmr` applies the three rules from Wheeler's _Understanding Variation_:
+`gemba-xmr` applies the three rules from Wheeler's _Understanding Variation_:
 
 | Rule          | What it catches                                                        | Applied to |
 | ------------- | ---------------------------------------------------------------------- | ---------- |
@@ -256,7 +256,7 @@ When you track multiple metrics in one CSV, `summarize` produces a markdown
 table:
 
 ```sh
-npx fit-xmr summarize observations.csv
+npx gemba-xmr summarize observations.csv
 ```
 
 Each row shows the metric, sample count, latest value, centerline, limits,
@@ -269,7 +269,7 @@ signals.
 List what is in the file before charting:
 
 ```sh
-npx fit-xmr list observations.csv
+npx gemba-xmr list observations.csv
 ```
 
 Prints one row per metric with the observation count and date range.

@@ -109,8 +109,8 @@ jobs:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
-          # fit-harness (the eval run) needs fit-harness + fit-trace on PATH;
-          # the fit-wiki push step needs fit-wiki. All resolve as binaries.
+          # gemba-harness (the eval run) needs gemba-harness + gemba-trace on PATH;
+          # the gemba-wiki push step needs gemba-wiki. All resolve as binaries.
           clis: fit-harness fit-trace fit-wiki
 
       - name: Build data pipeline

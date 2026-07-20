@@ -114,10 +114,8 @@ const BASE_GLOBS = [
   // repos, mirrored here verbatim; their READMEs cross-reference the siblings'
   // own history and cannot be reworded without diverging the projection, so
   // they are out of scope like specs/ and benchmarks/.
-  "!libraries/libharness/actions/**",
-  "!libraries/libwiki/actions/**",
+  "!products/gemba/actions/**",
   "!products/kata/actions/**",
-  "!.github/actions/bootstrap/**",
 ];
 
 export default {

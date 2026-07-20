@@ -36,7 +36,7 @@ const COMBINED = [
   },
 ];
 
-describe("fit-trace cost", () => {
+describe("gemba-trace cost", () => {
   test("default JSON output reports total and per-source breakdown", async () => {
     const out = await cost({}, COMBINED);
     const parsed = JSON.parse(out);

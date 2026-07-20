@@ -29,8 +29,10 @@ export class SkillPackPublisher {
    * @param {object} opts
    * @param {string} opts.sourceDir - Directory holding `skills/` and `agents/`
    *   (the monorepo's `.claude` directory).
-   * @param {string} opts.prefix - Skill directory prefix to select (e.g. `kata`
-   *   selects `skills/kata-*`). Ignored when `all` is set.
+   * @param {string|string[]} opts.prefix - Skill directory prefix(es) to
+   *   select. Each prefix selects `skills/<prefix>-*` plus the exact-name
+   *   `skills/<prefix>` (e.g. `gemba` selects both `gemba` and `gemba-*`).
+   *   Ignored when `all` is set.
    * @param {boolean} [opts.all] - Stage every skill in `sourceDir` regardless of
    *   prefix. Use when the source directory is itself the pack boundary (e.g. a
    *   product-local `.claude` whose skills share no common prefix).
@@ -68,7 +70,8 @@ export class SkillPackPublisher {
 
   /**
    * Copy skills into `.apm/skills/`, injecting frontmatter. Selects
-   * `skills/<prefix>-*` by default, or every skill when `all` is set.
+   * `skills/<prefix>` and `skills/<prefix>-*` for each prefix by default, or
+   * every skill when `all` is set.
    */
   async #stageSkills({ sourceDir, prefix, all, targetDir, version }) {
     const { mkdir, readdir, cp, readFile, writeFile } = this.#fs;
@@ -76,10 +79,11 @@ export class SkillPackPublisher {
     const destDir = join(targetDir, APM_SKILLS_DIR);
     await mkdir(destDir, { recursive: true });
 
+    const prefixes = [prefix ?? []].flat();
+    const selected = (name) =>
+      prefixes.some((p) => name === p || name.startsWith(`${p}-`));
     const dirs = (await readdir(srcDir, { withFileTypes: true }))
-      .filter(
-        (e) => e.isDirectory() && (all || e.name.startsWith(`${prefix}-`)),
-      )
+      .filter((e) => e.isDirectory() && (all || selected(e.name)))
       .map((e) => e.name)
       .sort();
 

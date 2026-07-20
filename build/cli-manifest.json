@@ -87,7 +87,7 @@
       ]
     },
     {
-      "name": "fit-harness",
+      "name": "gemba-harness",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
@@ -102,7 +102,7 @@
       "bundle": "gear"
     },
     {
-      "name": "fit-xmr",
+      "name": "gemba-xmr",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
@@ -122,7 +122,7 @@
       "bundle": "gear"
     },
     {
-      "name": "fit-trace",
+      "name": "gemba-trace",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
@@ -152,12 +152,12 @@
       "bundle": "gear"
     },
     {
-      "name": "fit-wiki",
+      "name": "gemba-wiki",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },
     {
-      "name": "fit-benchmark",
+      "name": "gemba-benchmark",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     },

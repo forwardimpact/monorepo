@@ -13,7 +13,7 @@ import { makeRuntime, ctxFor } from "./helpers.js";
 const DIR = "/xmr";
 const WIKI_ROOT = join(DIR, "wiki");
 
-describe("fit-xmr record", () => {
+describe("gemba-xmr record", () => {
   function run(options, { env = {}, seed = {} } = {}) {
     const fs = createMockFs(seed);
     const rt = makeRuntime({ cwd: process.cwd(), env, fs, fsSync: fs });
@@ -278,7 +278,7 @@ describe("fit-xmr record", () => {
   });
 });
 
-describe("fit-xmr record — route-decision context", () => {
+describe("gemba-xmr record — route-decision context", () => {
   function run(options) {
     const fs = createMockFs({});
     const rt = makeRuntime({ cwd: process.cwd(), env: {}, fs, fsSync: fs });

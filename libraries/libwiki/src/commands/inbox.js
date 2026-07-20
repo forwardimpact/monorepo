@@ -13,7 +13,7 @@ function paths(runtime, options) {
   const wikiRoot = resolveWikiRoot(runtime, options);
   const resolved = requireAgentFlag(options, {
     command: "inbox",
-    example: "fit-wiki inbox list --agent staff-engineer",
+    example: "gemba-wiki inbox list --agent staff-engineer",
   });
   if (!resolved.ok) return { error: resolved };
   const agent = resolved.agent;

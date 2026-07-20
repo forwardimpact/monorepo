@@ -11,7 +11,7 @@ const MEMORY_PATH = `${WIKI_ROOT}/MEMORY.md`;
 const EMPTY_CLAIMS =
   "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| *None* | — | — | — | — | — |\n";
 
-describe("fit-wiki claim/release CLI (in-process)", () => {
+describe("gemba-wiki claim/release CLI (in-process)", () => {
   // One in-memory wiki shared across a test's commands so claim → release see
   // the same MEMORY.md; the command reads and rewrites it via runtime.fsSync.
   function makeWiki(memory = EMPTY_CLAIMS) {
@@ -279,7 +279,7 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
       async commitAndPush() {
         throw new WikiPushFailure(
           PUSH_REASONS.REJECTED,
-          "fit-wiki: push rejected — the remote advanced.",
+          "gemba-wiki: push rejected — the remote advanced.",
         );
       },
     };
@@ -314,7 +314,7 @@ describe("fit-wiki claim/release CLI (in-process)", () => {
       async commitAndPush() {
         throw new WikiPushFailure(
           PUSH_REASONS.CONSERVATION,
-          "fit-wiki: refusing to push — it would drop another writer's content.",
+          "gemba-wiki: refusing to push — it would drop another writer's content.",
         );
       },
     };

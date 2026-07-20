@@ -6,8 +6,8 @@ description: Communicate across your agent team and keep storyboards current —
 Your agent team uses a wiki for persistent memory -- summaries, metrics, memos,
 storyboards. You need to send a message to a teammate, update the charts in a
 storyboard, or make sure the wiki is in sync before a session starts. You do not
-need to understand how the wiki is structured internally. `fit-wiki` handles the
-plumbing.
+need to understand how the wiki is structured internally. `gemba-wiki` handles
+the plumbing.
 
 This guide covers the two most common wiki operations: sending memos and
 refreshing storyboard charts. It also covers syncing and bootstrapping the wiki
@@ -27,7 +27,7 @@ You need to notify a teammate about something they should see on their next run.
 The `memo` command appends a timestamped message to the teammate's inbox.
 
 ```sh
-npx fit-wiki memo --from technical-writer --to staff-engineer --message "check baseline"
+npx gemba-wiki memo --from technical-writer --to staff-engineer --message "check baseline"
 ```
 
 ```text
@@ -48,7 +48,7 @@ Newest memos appear first. Multi-line messages are collapsed to a single line.
 To reach every agent except yourself:
 
 ```sh
-npx fit-wiki memo --from technical-writer --to all --message "new XmR baseline"
+npx gemba-wiki memo --from technical-writer --to all --message "new XmR baseline"
 ```
 
 ```text
@@ -94,14 +94,14 @@ new metric rows land in the CSV files, the charts need regenerating. The
 `refresh` command does that in place.
 
 ```sh
-npx fit-wiki refresh
+npx gemba-wiki refresh
 ```
 
 Without a path argument, this targets the current month's storyboard at
 `wiki/storyboard-YYYY-MNN.md`. To refresh a specific file:
 
 ```sh
-npx fit-wiki refresh wiki/storyboard-2026-M05.md
+npx gemba-wiki refresh wiki/storyboard-2026-M05.md
 ```
 
 The command scans the file for marker pairs like this:
@@ -130,7 +130,7 @@ The `product-mix` command computes that share directly from merged pull
 requests and records it as a metric the XmR pipeline can chart.
 
 ```sh
-npx fit-wiki product-mix
+npx gemba-wiki product-mix
 ```
 
 It looks at pull requests merged into `main` in a rolling window — by default
@@ -146,7 +146,7 @@ product_share = round(product / (product + internal) * 100)
 To analyze a specific window, pass the bounds:
 
 ```sh
-npx fit-wiki product-mix --since 2026-06-01 --until 2026-06-27
+npx gemba-wiki product-mix --since 2026-06-01 --until 2026-06-27
 ```
 
 The command is deterministic — re-running it over the same merged PRs produces
@@ -169,7 +169,7 @@ The wiki is a separate git repository cloned into `wiki/` within your project.
 Two commands keep it synchronized:
 
 ```sh
-npx fit-wiki pull
+npx gemba-wiki pull
 ```
 
 ```text
@@ -177,7 +177,7 @@ pull: up to date
 ```
 
 ```sh
-npx fit-wiki push
+npx gemba-wiki push
 ```
 
 ```text
@@ -211,7 +211,7 @@ Because the file is tracked, the rule governs every clone. Fresh wikis get it at
 after the line lands.
 
 Keeping both sides can leave an identical row twice. The sync never removes a
-duplicate on its own. Instead, `fit-wiki audit` reports a
+duplicate on its own. Instead, `gemba-wiki audit` reports a
 `metrics-csv.duplicate-row` finding that names the file and the line. The row's
 owner then resolves it one of two ways:
 
@@ -241,8 +241,8 @@ a detected secret or a missing scanner blocks the command.
 ### Provisioning the scanner
 
 The scan uses [gitleaks](https://github.com/gitleaks/gitleaks). Install it on
-the machine that runs `fit-wiki` and make it resolvable on `PATH`. Pin the same
-version the repository's CI standardises on:
+the machine that runs `gemba-wiki` and make it resolvable on `PATH`. Pin the
+same version the repository's CI standardises on:
 
 ```sh
 gitleaks version   # expect 8.24.3
@@ -272,7 +272,7 @@ writes a durable audit line.
 | `FIT_WIKI_SCANNER_ABSENT_OK` | A missing scanner | The reason for overriding |
 
 ```sh
-FIT_WIKI_SECRET_OVERRIDE="example token in MEMORY.md is a documented sample" npx fit-wiki push
+FIT_WIKI_SECRET_OVERRIDE="example token in MEMORY.md is a documented sample" npx gemba-wiki push
 ```
 
 Each override appends one line to `secret-overrides.log` in the wiki tree and
@@ -289,7 +289,7 @@ log as a record of who claimed responsibility, not cryptographic proof.
 If your project does not have a wiki yet, `init` sets one up:
 
 ```sh
-npx fit-wiki init
+npx gemba-wiki init
 ```
 
 ```text

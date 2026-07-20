@@ -133,6 +133,65 @@ describe("SkillPackPublisher", () => {
     ]);
   });
 
+  test("repeated prefixes select each family plus the exact-name dir", async () => {
+    const source = await makeSource();
+    // A product skill whose dir IS the prefix (no dash), plus a capability
+    // skill under the same family.
+    await mkdir(join(source, "skills", "gemba"), { recursive: true });
+    await writeFile(
+      join(source, "skills", "gemba", "SKILL.md"),
+      "---\nname: gemba\ndescription: Platform\n---\n# Platform\n",
+    );
+    await mkdir(join(source, "skills", "gemba-wiki"), { recursive: true });
+    await writeFile(
+      join(source, "skills", "gemba-wiki", "SKILL.md"),
+      "---\nname: gemba-wiki\ndescription: Memory\n---\n# Memory\n",
+    );
+    const target = await makeTempDir();
+
+    const result = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: ["fit", "gemba"],
+      targetDir: target,
+      name: "fit-skills",
+      version: "1.0.0",
+    });
+
+    expect(result.skills.map((s) => s.name).sort()).toEqual([
+      "fit-map",
+      "gemba",
+      "gemba-wiki",
+    ]);
+    // The other family stays out.
+    expect(existsSync(join(target, ".apm", "skills", "kata-review"))).toBe(
+      false,
+    );
+  });
+
+  test("a single-prefix string keeps selecting exactly its family", async () => {
+    const source = await makeSource();
+    // An exact-name dir for the prefix must also select in string form.
+    await mkdir(join(source, "skills", "kata"), { recursive: true });
+    await writeFile(
+      join(source, "skills", "kata", "SKILL.md"),
+      "---\nname: kata\ndescription: Team\n---\n# Team\n",
+    );
+    const target = await makeTempDir();
+
+    const result = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: "kata",
+      targetDir: target,
+      name: "kata-skills",
+      version: "1.0.0",
+    });
+
+    expect(result.skills.map((s) => s.name).sort()).toEqual([
+      "kata",
+      "kata-review",
+    ]);
+  });
+
   test("injects version metadata into staged SKILL.md", async () => {
     const source = await makeSource();
     const target = await makeTempDir();

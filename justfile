@@ -9,7 +9,7 @@ ARGS := ""
 
 # Pull latest agent memory from wiki
 wiki-pull:
-    bunx fit-wiki pull
+    bunx gemba-wiki pull
 
 # Commit and push agent memory to wiki. Run as the session-end Stop hook: a
 # push failure (non-zero CLI exit) is translated to exit 2 so Claude Code
@@ -17,11 +17,11 @@ wiki-pull:
 # (D4 hook fidelity). The CLI status is read directly — a single command, no
 # pipeline that could mask it with another process's status.
 wiki-push:
-    bunx fit-wiki push || exit 2
+    bunx gemba-wiki push || exit 2
 
 # Audit agent memory against the wiki contract
 wiki-audit:
-    bunx fit-wiki audit
+    bunx gemba-wiki audit
 
 # Install dependencies and tooling
 install: install-bun install-deps
@@ -33,7 +33,7 @@ install-bun:
 
 # Install CLI dependencies (apm, just, gh, rg, gitleaks)
 install-deps:
-    bash .github/actions/bootstrap/fit-install.sh
+    bash products/gemba/actions/bootstrap/fit-install.sh
 
 # Bootstrap from scratch
 quickstart: env-reset env-setup synthetic data-init codegen process-fast _quickstart-seed
@@ -188,7 +188,7 @@ cli-unary:
 
 # XmR control chart analysis
 cli-xmr:
-    bunx --workspace=@forwardimpact/libxmr fit-xmr {{ARGS}}
+    bunx --workspace=@forwardimpact/gemba gemba-xmr {{ARGS}}
 
 # ── Bundles ───────────────────────────────────────────────────────
 

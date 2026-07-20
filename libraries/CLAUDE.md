@@ -60,11 +60,18 @@ must exist together so an external reader lands on the same docs from any
 entry point:
 
 - **User guides** under `websites/fit/docs/libraries/<task-slug>/index.md`.
-  A CLI may carry multiple task guides (e.g. `fit-harness` links to
+  A CLI may carry multiple task guides (e.g. `gemba-harness` links to
   `agent-evaluations`, `agent-collaboration`, `trace-analysis`).
 - **Skill** at `.claude/skills/fit-<name>/SKILL.md`.
 - **CLI `--help`** — `documentation` entries on the libcli definition, one
   per linked guide.
+
+The six runtime commands (`gemba-harness`, `gemba-trace`, `gemba-benchmark`,
+`gemba-selfedit`, `gemba-wiki`, `gemba-xmr`) are the exception: their bins
+and skills belong to the Gemba product (`products/gemba/bin/`,
+`.claude/skills/gemba-*/`), while `libharness`, `libwiki`, and `libxmr`
+remain import-only libraries whose guides still live under
+`/docs/libraries/`.
 
 ### Linking rule
 

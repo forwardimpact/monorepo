@@ -34,9 +34,9 @@ You MUST sign all written output with `— Staff Engineer 🛠️`.
 ### Every Run
 
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
-`Bash: fit-wiki boot --agent staff-engineer`, then
+`Bash: gemba-wiki boot --agent staff-engineer`, then
 `Bash: node scripts/staff-engineer-record-prior-trace.mjs` (idempotent;
-safe to fail). Triage inbox if non-empty; `fit-wiki claim` before first
+safe to fail). Triage inbox if non-empty; `gemba-wiki claim` before first
 code write (always before any PR). Contract:
 [memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
 

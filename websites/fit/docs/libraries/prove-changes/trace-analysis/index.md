@@ -4,14 +4,14 @@ description: See exactly what an agent did and why — download traces, query tu
 ---
 
 You need to see exactly what the agent did so you can debug failures and verify
-improvements. `fit-trace` reads the NDJSON traces produced by `fit-harness` and
-gives you structured queries over every turn, tool call, and result.
+improvements. `gemba-trace` reads the NDJSON traces produced by `gemba-harness`
+and gives you structured queries over every turn, tool call, and result.
 
 ## Prerequisites
 
 - Node.js 22+
-- A trace file -- either `--output` from a `fit-harness` run, or downloaded from
-  CI with `fit-trace download`
+- A trace file -- either `--output` from a `gemba-harness` run, or downloaded
+  from CI with `gemba-trace download`
 
 ## Get the trace
 
@@ -19,8 +19,8 @@ Local runs already produce a trace at the `--output` path. For CI runs, list
 recent workflow runs and download:
 
 ```sh
-npx fit-trace runs                        # list recent workflow runs
-npx fit-trace download 24497273755        # downloads to /tmp/trace-24497273755/
+npx gemba-trace runs                        # list recent workflow runs
+npx gemba-trace download 24497273755        # downloads to /tmp/trace-24497273755/
 ```
 
 The download extracts the artifact zip
@@ -36,7 +36,7 @@ verbs take their trace files through `--file`, and print human-readable text by
 default; add `--format json` for the machine-parseable envelope:
 
 ```sh
-npx fit-trace overview --file /tmp/trace-24497273755/structured.json --format json
+npx gemba-trace overview --file /tmp/trace-24497273755/structured.json --format json
 ```
 
 ```json
@@ -52,7 +52,7 @@ The `timeline` command shows the shape of the session at a glance -- one line
 per assistant turn with tools used and token counts:
 
 ```sh
-npx fit-trace timeline --file /tmp/trace-24497273755/structured.json
+npx gemba-trace timeline --file /tmp/trace-24497273755/structured.json
 ```
 
 ```text
@@ -67,7 +67,7 @@ npx fit-trace timeline --file /tmp/trace-24497273755/structured.json
 List every tool result where the agent's tool call failed:
 
 ```sh
-npx fit-trace errors --file /tmp/trace-24497273755/structured.json
+npx gemba-trace errors --file /tmp/trace-24497273755/structured.json
 ```
 
 Each result includes the turn index, the `toolUseId` that links it back to the
@@ -79,7 +79,7 @@ See every turn where the agent used a specific tool, including both the
 `tool_use` request and its `tool_result` response:
 
 ```sh
-npx fit-trace tool /tmp/trace-24497273755/structured.json Bash
+npx gemba-trace tool /tmp/trace-24497273755/structured.json Bash
 ```
 
 `tool` takes the trace file as a positional (it pins a single trace plus a
@@ -87,9 +87,9 @@ tool name). Or use `filter` for structural queries -- by role, tool name, or
 error status:
 
 ```sh
-npx fit-trace filter --file /tmp/trace-24497273755/structured.json --tool Edit
-npx fit-trace filter --file /tmp/trace-24497273755/structured.json --error
-npx fit-trace filter --file /tmp/trace-24497273755/structured.json --role user
+npx gemba-trace filter --file /tmp/trace-24497273755/structured.json --tool Edit
+npx gemba-trace filter --file /tmp/trace-24497273755/structured.json --error
+npx gemba-trace filter --file /tmp/trace-24497273755/structured.json --role user
 ```
 
 ## Search across the trace
@@ -98,7 +98,7 @@ Search all turn content with a regex pattern (`search` is single-file, so the
 file is a positional):
 
 ```sh
-npx fit-trace search /tmp/trace-24497273755/structured.json 'permission denied' --context 1
+npx gemba-trace search /tmp/trace-24497273755/structured.json 'permission denied' --context 1
 ```
 
 `--context 1` includes one surrounding turn on each side of every match.
@@ -111,7 +111,7 @@ Extract just the text blocks from assistant turns to see what the agent said it
 would do (as distinct from what its tool calls actually did):
 
 ```sh
-npx fit-trace reasoning --file /tmp/trace-24497273755/structured.json --from 5 --to 15
+npx gemba-trace reasoning --file /tmp/trace-24497273755/structured.json --from 5 --to 15
 ```
 
 ```json
@@ -127,7 +127,7 @@ intent and execution.
 ## Measure token usage and cost
 
 ```sh
-npx fit-trace stats --file /tmp/trace-24497273755/structured.json --format json
+npx gemba-trace stats --file /tmp/trace-24497273755/structured.json --format json
 ```
 
 ```json
@@ -165,7 +165,7 @@ For supervised or facilitated runs, split the combined trace into per-source
 files so you can see what each agent saw independently:
 
 ```sh
-npx fit-trace split /tmp/trace-24497273755/structured.json --mode=facilitate --case=demo
+npx gemba-trace split /tmp/trace-24497273755/structured.json --mode=facilitate --case=demo
 ```
 
 This produces files in the same directory following the
@@ -184,10 +184,10 @@ matrix workflows pass the case id so per-shard artifacts stay isolated.
 When you need to inspect a specific moment in the trace:
 
 ```sh
-npx fit-trace turn /tmp/trace-24497273755/structured.json 8
-npx fit-trace batch /tmp/trace-24497273755/structured.json 5 10
-npx fit-trace head --file /tmp/trace-24497273755/structured.json --lines 5
-npx fit-trace tail --file /tmp/trace-24497273755/structured.json --lines 5
+npx gemba-trace turn /tmp/trace-24497273755/structured.json 8
+npx gemba-trace batch /tmp/trace-24497273755/structured.json 5 10
+npx gemba-trace head --file /tmp/trace-24497273755/structured.json --lines 5
+npx gemba-trace tail --file /tmp/trace-24497273755/structured.json --lines 5
 ```
 
 `turn` and `batch` are single-file (positional). `batch` returns turns in the
@@ -201,7 +201,7 @@ emits one record per `tool_use` block, each paired with its `tool_result` by
 `toolUseId` (orphaned calls show `(no result)` and are never dropped):
 
 ```sh
-npx fit-trace tool-calls --file /tmp/trace-24497273755/structured.json
+npx gemba-trace tool-calls --file /tmp/trace-24497273755/structured.json
 ```
 
 `commands` lists every Bash command (filter with `--match <regex>`); `paths`
@@ -209,8 +209,8 @@ gives a frequency-sorted list of the distinct `Read`/`Edit`/`Write` file paths
 (filter with `--prefix`):
 
 ```sh
-npx fit-trace commands --file /tmp/trace-24497273755/structured.json --match '^git'
-npx fit-trace paths --file /tmp/trace-24497273755/structured.json --prefix /app
+npx gemba-trace commands --file /tmp/trace-24497273755/structured.json --match '^git'
+npx gemba-trace paths --file /tmp/trace-24497273755/structured.json --prefix /app
 ```
 
 These sit next to `tool` (every turn for one tool) and `tools` (frequency
@@ -224,7 +224,7 @@ touched, cost, and a per-tool delta -- with each side's case name and
 participant in the header:
 
 ```sh
-npx fit-trace compare trace--demo--agent.agent.ndjson trace--demo--supervisor.supervisor.ndjson
+npx gemba-trace compare trace--demo--agent.agent.ndjson trace--demo--supervisor.supervisor.ndjson
 ```
 
 Identical traces emit zero deltas; an empty trace emits zeroed counters with an
@@ -237,8 +237,8 @@ Cross-trace verbs accept more than one trace. Repeat `--file`, or pass a quoted
 glob the verb expands itself:
 
 ```sh
-npx fit-trace paths --file 'traces/*.ndjson' --prefix /app
-npx fit-trace tool-calls --file run-a.ndjson --file run-b.ndjson
+npx gemba-trace paths --file 'traces/*.ndjson' --prefix /app
+npx gemba-trace tool-calls --file run-a.ndjson --file run-b.ndjson
 ```
 
 With more than one resolved file, every record carries its source so you can

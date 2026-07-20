@@ -81,7 +81,7 @@ command that runs once during startup or shutdown):
       },
       {
         "name": "trace",
-        "command": "npx fit-trace serve"
+        "command": "npx gemba-trace serve"
       },
       {
         "name": "vector",
@@ -341,7 +341,7 @@ const config = {
   init: {
     log_dir: "data/logs",
     services: [
-      { name: "trace", command: "npx fit-trace serve" },
+      { name: "trace", command: "npx gemba-trace serve" },
       { name: "vector", command: "npx fit-vector serve" },
     ],
   },

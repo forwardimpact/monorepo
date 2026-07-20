@@ -181,7 +181,7 @@ async function verify(env, options) {
 const SUBS = { allocate, rebuild, verify };
 
 /**
- * `fit-wiki ledger <allocate|rebuild|verify>` — the allocation procedure that
+ * `gemba-wiki ledger <allocate|rebuild|verify>` — the allocation procedure that
  * keeps identity off the merge-contested page. Allocation publishes an anchor
  * comment to the obstacle issue with no projection write at allocation time;
  * rebuild and verify project the anchor record onto the ledger page and MEMORY

@@ -1,12 +1,17 @@
 // Public-CLI launcher alignment. A CLI is "public" when an external doc, a
 // published skill pack, or a published composite action invokes it as
-// `npx`/`bunx fit-<name>` AND that name is a real `bin` in a non-private
-// workspace package. Every public CLI must have a matching launcher package
-// under `launchers/` (npm name = invoked name), and nothing else may live
-// there — the launcher set is computed from the rule, never hand-maintained.
-// Nearly all public CLIs are `fit-*`; the rare non-fit public CLI (coaligned,
-// invoked as `npx coaligned …` in the published setup skills) is named in
-// PUBLISHED_NON_FIT_CLIS, since the fit-only invocation scan cannot see it.
+// `npx`/`bunx fit-<name>` or `npx`/`bunx gemba-<name>` AND that name is a
+// real `bin` in a non-private workspace package. Every public CLI must have
+// a matching launcher package under `launchers/` (npm name = invoked name),
+// and nothing else may live there — the launcher set is computed from the
+// rule, never hand-maintained. Nearly all public CLIs are `fit-*` or
+// `gemba-*`; the rare public CLI outside both families (coaligned, invoked
+// as `npx coaligned …` in the published setup skills) is named in
+// PUBLISHED_NON_FIT_CLIS, since the family-scoped invocation scan cannot
+// see it. A source package satisfies the launcher import either by
+// declaring the `./bin/<cli>.js` subpath in `exports`, or by declaring no
+// `exports` field at all (Node's legacy resolution then serves every
+// subpath — the shape the bin-only gemba product package uses).
 // See launchers/README.md for the published contract.
 //
 // Checks, each failing CI with a message naming the offending dir/file:
@@ -30,23 +35,25 @@ const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
 // Known forward-drift gap: forms like `npx --package=…/fit-x` or `bunx --bun
 // fit-x` are not matched and would silently under-count if docs ever adopt
 // them; today's tree uses none.
-const INVOKE_RE = /\b(?:npx|bunx)\s+(?:-y\s+|--yes\s+)?(fit-[a-z][a-z-]*)/g;
+const INVOKE_RE =
+  /\b(?:npx|bunx)\s+(?:-y\s+|--yes\s+)?((?:fit|gemba)-[a-z][a-z-]*)/g;
 
 // CLIs the published sibling composite actions invoke. Their sources live
 // outside this checkout — see .github/CLAUDE.md § the sibling-repo table.
 // Subsumed by docs/skills today; kept so an action-only CLI stays public.
 export const SIBLING_ACTION_CLIS = [
-  "fit-benchmark",
-  "fit-harness",
-  "fit-trace",
-  "fit-wiki",
+  "gemba-benchmark",
+  "gemba-harness",
+  "gemba-trace",
+  "gemba-wiki",
 ];
 
-// Public CLIs the fit-only invocation scan cannot capture. coaligned ships to
-// external users via `apm` and is invoked as `npx coaligned …` in the published
-// setup skills, but INVOKE_RE matches only fit-* names and the skill scan only
-// walks fit-*/kata-* dirs — so it is named here to stay public, the same escape
-// hatch SIBLING_ACTION_CLIS gives action-only CLIs.
+// Public CLIs the family-scoped invocation scan cannot capture. coaligned
+// ships to external users via `apm` and is invoked as `npx coaligned …` in the
+// published setup skills, but INVOKE_RE matches only fit-*/gemba-* names and
+// the skill scan only walks fit-*/gemba-*/kata-* dirs — so it is named here to
+// stay public, the same escape hatch SIBLING_ACTION_CLIS gives action-only
+// CLIs.
 export const PUBLISHED_NON_FIT_CLIS = ["coaligned"];
 
 const REQUIRED_KEYS = [
@@ -71,8 +78,8 @@ const ALLOWED_KEYS = new Set([
 /**
  * The canonical launcher bin file — byte-exact, LF, single trailing newline.
  *
- * @param {string} cli - Invoked name, e.g. "fit-trace".
- * @param {string} srcName - Scoped source package, e.g. "@forwardimpact/libharness".
+ * @param {string} cli - Invoked name, e.g. "gemba-trace".
+ * @param {string} srcName - Scoped source package, e.g. "@forwardimpact/gemba".
  * @returns {string}
  */
 export function canonicalBinContent(cli, srcName) {
@@ -92,10 +99,12 @@ export function computePublicCliSet({ invokedNames, packages }) {
     if (pkg.private) continue;
     for (const cli of Object.keys(pkg.bin ?? {})) {
       if (!invokedNames.has(cli)) continue;
+      // No `exports` field → Node's legacy rules resolve every subpath, so
+      // the launcher import works; with `exports`, the subpath must be listed.
       set.set(cli, {
         srcName: pkg.name,
         srcDir: pkg.dir,
-        exportsOk: `./bin/${cli}.js` in (pkg.exports ?? {}),
+        exportsOk: !pkg.exports || `./bin/${cli}.js` in pkg.exports,
       });
     }
   }
@@ -129,7 +138,7 @@ function checkLauncherShape(launcher, src, problems) {
     problems.push({
       kind: "shape",
       path: `${src.srcDir}/package.json`,
-      message: `exports lacks the "./bin/${cli}.js" subpath the ${cli} launcher imports`,
+      message: `exports lacks the "./bin/${cli}.js" subpath the ${cli} launcher imports (either list the subpath or declare no exports field at all)`,
     });
   }
 }
@@ -242,7 +251,8 @@ function collectInvokedNames({ listDir, scan }) {
   const names = new Set([...SIBLING_ACTION_CLIS, ...PUBLISHED_NON_FIT_CLIS]);
   const dirs = ["websites/fit/docs"];
   for (const entry of listDir(".claude/skills")) {
-    if (/^(fit|kata)-/.test(entry)) dirs.push(`.claude/skills/${entry}`);
+    if (/^(fit|kata|gemba)(-|$)/.test(entry))
+      dirs.push(`.claude/skills/${entry}`);
   }
   for (const { text } of scan({
     dirs,

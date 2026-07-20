@@ -1,0 +1,74 @@
+{
+  "name": "@forwardimpact/gemba",
+  "version": "0.1.0",
+  "description": "Stand up and operate an agent team — the runtime platform's command family (harness, trace, benchmark, selfedit, wiki, xmr) and CI actions, consuming the runtime libraries.",
+  "keywords": [
+    "agent",
+    "harness",
+    "trace",
+    "wiki",
+    "xmr",
+    "runtime",
+    "platform"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "products/gemba"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Teams Using Agents",
+      "goal": "Stand Up and Operate an Agent Team",
+      "trigger": "The team wants to run coding agents continuously, but the runtime — bootstrap, session harness, traces, memory, metrics — has no product to hire and must be reverse-engineered from CI plumbing.",
+      "bigHire": "stand up and operate an agent team on one platform: bootstrap the environment, run sessions, inspect traces, persist memory, and measure outcomes.",
+      "littleHire": "run one agent session, read one trace, or chart one metric with a single command from the platform's family.",
+      "competesWith": "hand-rolled CI pipelines around raw agent CLIs; reverse-engineering another team's setup; running agents ad hoc with no memory or measurement",
+      "forces": {
+        "push": "Every team that wants to run agents rebuilds the same bootstrap-run-remember-measure loop from CI plumbing.",
+        "pull": "One installable platform whose CLIs and CI actions are the same loop, proven daily by a reference tenant.",
+        "habit": "Wiring raw agent CLIs into bespoke pipelines and losing the session evidence.",
+        "anxiety": "Adopting a platform might couple the team to one vendor's agent workflow."
+      },
+      "firedWhen": "the platform's loop constrains a team more than the plumbing it replaced; or the team stops running agents in CI."
+    }
+  ],
+  "type": "module",
+  "bin": {
+    "gemba-harness": "./bin/gemba-harness.js",
+    "gemba-trace": "./bin/gemba-trace.js",
+    "gemba-benchmark": "./bin/gemba-benchmark.js",
+    "gemba-selfedit": "./bin/gemba-selfedit.js",
+    "gemba-wiki": "./bin/gemba-wiki.js",
+    "gemba-xmr": "./bin/gemba-xmr.js"
+  },
+  "files": [
+    "bin/**/*.js"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libharness": "^2.0.0",
+    "@forwardimpact/libwiki": "^0.2.35",
+    "@forwardimpact/libxmr": "^2.2.1",
+    "@forwardimpact/libcli": "^0.1.17",
+    "@forwardimpact/libconfig": "^0.1.85",
+    "@forwardimpact/libpreflight": "^0.1.4",
+    "@forwardimpact/libtelemetry": "^0.1.50",
+    "@forwardimpact/libutil": "^0.1.100"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.15"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

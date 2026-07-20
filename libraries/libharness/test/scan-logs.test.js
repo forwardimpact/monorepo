@@ -1,5 +1,5 @@
 /**
- * Unit tests for `fit-harness scan-logs`.
+ * Unit tests for `gemba-harness scan-logs`.
  *
  * `scanDirectory` and `parseSecrets` are pure and tested directly against a
  * libmock fs; `runScanLogsCommand` is tested for the fail-closed path when the

@@ -13,7 +13,7 @@
  *
  * This mirrors `TraceCollector.handleResult`, which accumulates the same
  * figure for its summary footer — kept as a standalone pure helper so the
- * benchmark runner, the callback command, and `fit-trace cost` share one
+ * benchmark runner, the callback command, and `gemba-trace cost` share one
  * implementation rather than each re-deriving it (and drifting).
  */
 

@@ -36,8 +36,8 @@ You MUST sign all written output with `— Product Manager 🌱`.
 ### Every Run
 
 Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
-`Bash: fit-wiki boot --agent product-manager`. Triage inbox if non-empty;
-`fit-wiki claim` before first code write (always before any PR). Contract:
+`Bash: gemba-wiki boot --agent product-manager`. Triage inbox if non-empty;
+`gemba-wiki claim` before first code write (always before any PR). Contract:
 [memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
@@ -45,8 +45,8 @@ Before any task — handed or self-picked — `Read wiki/MEMORY.md`, then
 _Skip when handed a specific task._ Survey all open work items, then act on
 the highest-priority bucket:
 
-Emit the product mix: `npx fit-wiki product-mix` (the next `fit-wiki refresh`
-renders its storyboard block).
+Emit the product mix: `npx gemba-wiki product-mix` (the next
+`gemba-wiki refresh` renders its storyboard block).
 
 1. **Survey.** `gh pr list --search 'spec( OR retention(' --state open` +
    `gh issue list --search "-label:experiment -label:obstacle"` +

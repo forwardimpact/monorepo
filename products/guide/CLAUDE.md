@@ -98,7 +98,7 @@ supervisor–agent session: the supervisor asks a question, the agent answers
 using only MCP tools (it runs in a temp dir with no local files), and the
 supervisor grades against `data/synthetic/story.dsl`.
 
-When an eval fails, download the trace with `fit-trace` and check whether the
+When an eval fails, download the trace with `gemba-trace` and check whether the
 agent called the right tools. Common failure modes:
 
 - Agent answered from general knowledge instead of calling tools.

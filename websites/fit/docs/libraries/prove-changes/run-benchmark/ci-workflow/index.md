@@ -1,6 +1,6 @@
 ---
 title: Automate with GitHub Actions
-description: Run fit-benchmark in CI with the forwardimpact/benchmark composite action — step summaries, artifact upload, and PR-triggered benchmarks.
+description: Run gemba-benchmark in CI with the forwardimpact/benchmark composite action — step summaries, artifact upload, and PR-triggered benchmarks.
 ---
 
 You have a task family that works locally. Now you want benchmarks to run
@@ -50,9 +50,9 @@ task N times, append the pass@k report to the GitHub step summary, and upload
 ## What the Action Does
 
 1. **Install apm** — downloads and caches the apm binary if not already present.
-2. **Resolve CLI** — uses a local `fit-benchmark` if available, falls back to
+2. **Resolve CLI** — uses a local `gemba-benchmark` if available, falls back to
    `bunx`, then `npx`.
-3. **Run** — executes `fit-benchmark run` with the provided inputs.
+3. **Run** — executes `gemba-benchmark run` with the provided inputs.
 4. **Report** — appends the text report to `GITHUB_STEP_SUMMARY` (when
    `summary` is `"true"`). Set `summary-detail` to `"compact"` for a short
    status + pass@k summary instead of the full per-task detail.
@@ -61,17 +61,17 @@ task N times, append the pass@k report to the GitHub step summary, and upload
 
 ## Inputs
 
-All `fit-benchmark run` CLI flags are exposed as action inputs. The action adds
-CI-specific inputs that have no CLI equivalent:
+All `gemba-benchmark run` CLI flags are exposed as action inputs. The action
+adds CI-specific inputs that have no CLI equivalent:
 
 | Input | Default | Description |
 | --- | --- | --- |
 | `family` | *(required)* | Path or git URL to a task family |
 | `output` | `"benchmark-runs"` | Run-output directory |
 | `runs` | `"5"` | Runs per task |
-| `agent-model` | *(CLI default)* | Claude model for the agent-under-test; empty falls through to the `fit-benchmark` CLI default |
-| `lead-model` | *(CLI default)* | Claude model for the lead role; empty falls through to the `fit-benchmark` CLI default |
-| `judge-model` | *(CLI default)* | Claude model for the judge; empty falls through to the `fit-benchmark` CLI default |
+| `agent-model` | *(CLI default)* | Claude model for the agent-under-test; empty falls through to the `gemba-benchmark` CLI default |
+| `lead-model` | *(CLI default)* | Claude model for the lead role; empty falls through to the `gemba-benchmark` CLI default |
+| `judge-model` | *(CLI default)* | Claude model for the judge; empty falls through to the `gemba-benchmark` CLI default |
 | `agent-profile` | | Agent-under-test profile name |
 | `judge-profile` | | Judge profile name |
 | `max-turns` | `"50"` | Agent turn budget (`0` = unlimited) |

@@ -19,10 +19,8 @@ exclude = [
   "JTBD.md",
   "**/test/golden/**",
   "**/test/fixtures/**",
-  "libraries/libharness/actions/**",
-  "libraries/libwiki/actions/**",
+  "products/gemba/actions/**",
   "products/kata/actions/**",
-  ".github/actions/bootstrap/**",
 ]
 # MD033: repo uses intentional inline HTML (<br> in tables, <job>/
 #        <read_do_checklist> tag conventions).

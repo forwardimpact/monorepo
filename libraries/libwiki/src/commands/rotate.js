@@ -15,7 +15,7 @@ export function runRotateCommand(ctx) {
   const options = ctx.options;
   const resolved = requireAgentFlag(options, {
     command: "rotate",
-    example: "fit-wiki rotate --agent staff-engineer",
+    example: "gemba-wiki rotate --agent staff-engineer",
   });
   if (!resolved.ok) return resolved;
   const agent = resolved.agent;

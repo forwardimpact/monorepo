@@ -178,7 +178,7 @@ function listDispatchRuns(sinceIso, excludeRunId) {
 }
 
 function fitTrace(args, { maxBuffer = 200 * 1024 * 1024 } = {}) {
-  const r = spawnSync("fit-trace", args, { encoding: "utf8", maxBuffer });
+  const r = spawnSync("gemba-trace", args, { encoding: "utf8", maxBuffer });
   return { status: r.status, stdout: r.stdout, stderr: r.stderr };
 }
 
@@ -240,7 +240,7 @@ function parseTraceEvent(line) {
 }
 
 // Cost, duration, and output_tokens must be summed over ALL "type":"result"
-// events, never read from `fit-trace stats` totals: stats keeps only the
+// events, never read from `gemba-trace stats` totals: stats keeps only the
 // last result event (handleResult last-wins in libharness's trace-collector),
 // which understates multi-result lanes 11x-55x, and its output-token figure
 // carries a dedup defect on single-result traces too.

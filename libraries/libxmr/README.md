@@ -10,9 +10,9 @@ teams act on real changes, not fluctuations.
 ## Getting Started
 
 ```sh
-npx fit-xmr --help
-npx fit-xmr chart observations.csv --metric latency
-npx fit-xmr record --skill kata-product-issue --metric issues_triaged --value 3
+npx gemba-xmr --help
+npx gemba-xmr chart observations.csv --metric latency
+npx gemba-xmr record --skill kata-product-issue --metric issues_triaged --value 3
 ```
 
 ```js
@@ -120,7 +120,7 @@ Pass a **prior-read anchor** — the metric's series-end date as of the prior re
 - `new-point` — at least one participating slot postdates the anchor.
 
 ```sh
-npx fit-xmr analyze corrections.csv --prior-read 2026-06-04
+npx gemba-xmr analyze corrections.csv --prior-read 2026-06-04
 ```
 
 The value records anchor-relative **data membership**, not novelty: a signal

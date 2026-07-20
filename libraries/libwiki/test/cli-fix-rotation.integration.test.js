@@ -20,10 +20,10 @@ import {
   scriptedQuery,
 } from "./helpers.js";
 
-// The deterministic layer of `fit-wiki fix`: main-log rotation and sealed-part
+// The deterministic layer of `gemba-wiki fix`: main-log rotation and sealed-part
 // re-bisection. Both are content-preserving and never invoke the agent. The
 // agent/summary orchestration tests live in cli-fix.integration.test.js.
-describe("fit-wiki fix CLI — deterministic rotation layer", () => {
+describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
   let dir;
   let wikiRoot;
 

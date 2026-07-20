@@ -79,14 +79,14 @@ declares.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Find
-last audit dates per topic in the coverage map. Canonical topic-rotation runs
-(audit topics under § Audit Areas) write only to the wiki and never open a PR —
-do **not** `fit-wiki claim` for them; the claim contract applies only when this
-skill is invoked from `kata-security-update` or otherwise opens a PR (see
+Process. Find last audit dates per topic in the coverage map. Canonical
+topic-rotation runs (audit topics under § Audit Areas) write only to the wiki
+and never open a PR — do **not** `gemba-wiki claim` for them; the claim contract
+applies only when this skill is invoked from `kata-security-update` or otherwise
+opens a PR (see
 [memory-protocol § Active Claims](../../agents/x-memory-protocol.md#active-claims)).
 
 ### Step 1: Select Topic

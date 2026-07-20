@@ -130,8 +130,8 @@ jobs:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
-          # fit-harness (the Assess and Act step), the cost/callback steps, and
-          # the fit-wiki push step all run their binaries straight off PATH —
+          # gemba-harness (the Assess and Act step), the cost/callback steps, and
+          # the gemba-wiki push step all run their binaries straight off PATH —
           # no bunx fallback.
           clis: fit-harness fit-trace fit-wiki
 
@@ -172,7 +172,7 @@ jobs:
           discussion-id: ${{ inputs.discussion_id }}
           resume-context: ${{ inputs.resume_context }}
 
-      # fit-trace cost tolerates a missing trace, so no file guard is needed.
+      # gemba-trace cost tolerates a missing trace, so no file guard is needed.
       - name: Report run cost
         if: always()
         shell: bash

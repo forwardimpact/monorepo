@@ -104,6 +104,14 @@ specs, ships features, studies its own traces, and acts on what it finds.
 
 <a href="https://www.kata.team" class="btn btn-ghost">Visit kata.team</a>
 
+### Gemba
+
+For teams using agents: the runtime platform. Stand up the environment, run
+sessions, inspect traces, persist memory, and measure outcomes — one command
+family and the same loop as CI actions.
+
+<a href="/gemba/" class="btn btn-ghost">Learn more</a>
+
 ### Gear
 
 For platform builders: the libraries and services the suite is built from,

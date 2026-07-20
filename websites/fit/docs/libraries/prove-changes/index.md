@@ -8,13 +8,14 @@ prompt. The question is whether the change actually helped. Answering that
 question requires a dataset you can regenerate when the schema changes, a
 session that captures every turn, and an analysis method that connects observed
 behavior to actionable findings. This guide walks the full arc with
-`fit-terrain` and `fit-harness`, then hands off to `fit-trace` for the reading.
+`fit-terrain` and `gemba-harness`, then hands off to `gemba-trace` for the
+reading.
 
 ## Prerequisites
 
 - Node.js 22+
 - `ANTHROPIC_API_KEY` set in the shell (used by both `fit-terrain generate` and
-  `fit-harness`)
+  `gemba-harness`)
 - A repository where agents will work
 - The three CLIs ship in two packages -- install once:
 
@@ -26,8 +27,8 @@ Or invoke ephemerally with `npx`:
 
 ```sh
 npx --yes @forwardimpact/libterrain fit-terrain --help
-npx --yes @forwardimpact/libharness fit-harness --help
-npx --yes @forwardimpact/libharness fit-trace --help
+npx --yes @forwardimpact/libharness gemba-harness --help
+npx --yes @forwardimpact/libharness gemba-trace --help
 ```
 
 ## 1. Define the dataset in a DSL file
@@ -249,7 +250,7 @@ You are facilitating a release-readiness review. The participants are
 For a **supervised evaluation** (one agent, one judge):
 
 ```sh
-npx fit-harness supervise \
+npx gemba-harness supervise \
   --task-file=evals/refactor-utils/task.md \
   --lead-profile=refactor-judge \
   --supervisor-cwd=. \
@@ -269,7 +270,7 @@ cap. Exit code `0` means the judge concluded with `success: true`; exit code
 For a **facilitated session** (one facilitator, N participants):
 
 ```sh
-npx fit-harness facilitate \
+npx gemba-harness facilitate \
   --task-file=sessions/release-review/task.md \
   --lead-profile=release-facilitator \
   --facilitator-cwd=. \
@@ -287,7 +288,7 @@ the session indefinitely. The CLI default is `20`; raise it for sessions that
 do real implementation work.
 
 For a **threaded discussion** (Chair + N participants, suspendable across a
-bridged channel), use `fit-harness discuss`. It accepts the same lead and
+bridged channel), use `gemba-harness discuss`. It accepts the same lead and
 agent flags plus `--discussion-id` (the stable thread identifier carried
 through traces) and `--resume-context` (JSON-serialized prior state for a
 resumed run). The bridge service relays the workflow callback when the
@@ -306,9 +307,9 @@ After the run, confirm the trace file exists and contains the expected structure
 before investing time in analysis:
 
 ```sh
-npx fit-trace overview --file trace--demo.raw.ndjson
-npx fit-trace timeline --file trace--demo.raw.ndjson
-npx fit-trace stats --file trace--demo.raw.ndjson
+npx gemba-trace overview --file trace--demo.raw.ndjson
+npx gemba-trace timeline --file trace--demo.raw.ndjson
+npx gemba-trace stats --file trace--demo.raw.ndjson
 ```
 
 `overview` reports metadata, turn count, and tool usage frequency. `timeline`
@@ -321,8 +322,8 @@ For supervised and facilitated runs, split the combined trace into per-source
 files:
 
 ```sh
-npx fit-trace split trace--demo.raw.ndjson --mode=supervise --case=demo
-npx fit-trace split trace--demo.raw.ndjson --mode=facilitate --case=demo
+npx gemba-trace split trace--demo.raw.ndjson --mode=supervise --case=demo
+npx gemba-trace split trace--demo.raw.ndjson --mode=facilitate --case=demo
 ```
 
 This produces files following the
@@ -342,12 +343,12 @@ like a researcher, not running a checklist. Drill into specific tools and
 message exchanges:
 
 ```sh
-npx fit-trace tool trace--demo.raw.ndjson Conclude
-npx fit-trace tool trace--demo.raw.ndjson Ask
-npx fit-trace tool trace--demo.raw.ndjson Announce
-npx fit-trace filter --file trace--demo.raw.ndjson --tool Edit
-npx fit-trace search trace--demo.raw.ndjson 'error|fail' --context 1
-npx fit-trace reasoning --file trace--demo.raw.ndjson
+npx gemba-trace tool trace--demo.raw.ndjson Conclude
+npx gemba-trace tool trace--demo.raw.ndjson Ask
+npx gemba-trace tool trace--demo.raw.ndjson Announce
+npx gemba-trace filter --file trace--demo.raw.ndjson --tool Edit
+npx gemba-trace search trace--demo.raw.ndjson 'error|fail' --context 1
+npx gemba-trace reasoning --file trace--demo.raw.ndjson
 ```
 
 `tool` and `search` pin a single trace, so they take the file as a positional;

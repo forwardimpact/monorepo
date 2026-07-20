@@ -1,0 +1,11 @@
+gemba-wiki fix — Auto-fix wiki audit findings: rotate weekly logs, fix the rest with an AI agent (technical-writer, Haiku), flag the unresolvable
+
+Usage: gemba-wiki fix [options]
+
+Options:
+  --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --today=<string>      Override today's ISO date (testing)
+
+Global options:
+  --help, -h  Show this help
+  --json      Render --help output as JSON

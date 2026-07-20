@@ -1,0 +1,1 @@
+gemba-wiki: error: unknown command "bogus"

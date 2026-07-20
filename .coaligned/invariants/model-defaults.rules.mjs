@@ -40,10 +40,8 @@ const BASE_GLOBS = [
   // repos (their canonical home is the sibling, mirrored here verbatim); a
   // model ID in their READMEs cannot be reworded without diverging the
   // projection, so they are out of scope like specs/ and benchmarks/.
-  "!libraries/libharness/actions/**",
-  "!libraries/libwiki/actions/**",
+  "!products/gemba/actions/**",
   "!products/kata/actions/**",
-  "!.github/actions/bootstrap/**",
 ];
 
 export default {

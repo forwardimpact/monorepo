@@ -578,7 +578,7 @@ function parseBuckets(content) {
 
 /**
  * Compute total + per-source cost from raw file content. A structured JSON
- * trace (from `fit-trace download`) carries its total in `summary.totalCostUsd`
+ * trace (from `gemba-trace download`) carries its total in `summary.totalCostUsd`
  * but no per-source split; raw NDJSON is summed via `sumTraceCost`.
  * @param {string} content - Raw file content (structured JSON or NDJSON).
  * @returns {{totalCostUsd: number, bySource: Record<string, number>}}

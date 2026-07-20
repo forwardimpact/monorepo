@@ -17,12 +17,12 @@ traces they produce, and edits skill files under controlled conditions.
 
 | CLI             | Purpose                                                                |
 | --------------- | ---------------------------------------------------------------------- |
-| `fit-harness`      | Run agents in `run`/`supervise`/`facilitate`/`discuss` subcommands.    |
-| `fit-trace`     | Download, query, and analyze NDJSON traces produced by `fit-harness`.     |
-| `fit-benchmark` | Run task families for N runs each and aggregate pass@k.                |
-| `fit-selfedit`  | Write stdin to `.claude/**` paths, gated by settings.json + branch.    |
+| `gemba-harness`      | Run agents in `run`/`supervise`/`facilitate`/`discuss` subcommands.    |
+| `gemba-trace`     | Download, query, and analyze NDJSON traces produced by `gemba-harness`.     |
+| `gemba-benchmark` | Run task families for N runs each and aggregate pass@k.                |
+| `gemba-selfedit`  | Write stdin to `.claude/**` paths, gated by settings.json + branch.    |
 
-`fit-harness`'s subcommands share one orchestration loop and one async tool
+`gemba-harness`'s subcommands share one orchestration loop and one async tool
 surface, below. The `judge` role is a profile passed to `supervise`.
 
 ## Modes
@@ -147,9 +147,9 @@ Each line is `{ "source": "<participant|orchestrator>", "seq": N, "event":
 {…} }`. `seq` is monotonic across the whole trace; `orchestrator` emits
 `session_start`, `agent_start`, `protocol_violation`, `lead_turn_limit`,
 and `summary`. `event` is the SDK event verbatim or the orchestrator
-payload. `fit-trace` consumes this format.
+payload. `gemba-trace` consumes this format.
 
-Redaction is on by default for `fit-harness run`/`supervise`/`facilitate`
+Redaction is on by default for `gemba-harness run`/`supervise`/`facilitate`
 and composes two layers:
 
 - **Env-var allowlist** — `ANTHROPIC_API_KEY`, `GH_TOKEN`, `GITHUB_TOKEN`
@@ -178,7 +178,7 @@ downloadable through retention.
 | `trace-collector.js` / `trace-query.js` / `trace-github.js` | Trace ingestion / querying / GitHub-attachment helpers.              |
 | `redaction.js`                                              | Env-var allowlist + credential-shape pattern redaction.              |
 
-## fit-selfedit
+## gemba-selfedit
 
 A narrow, audited bypass for sessions where `Edit`/`Write` (and bash
 writes) are blocked against paths the project's own allowlist permits.
@@ -186,7 +186,7 @@ Reads stdin, writes the target, exits 0 / 2 (safeguard violation) / 1
 (I/O error).
 
 ```sh
-echo "<content>" | bunx fit-selfedit <path>
+echo "<content>" | bunx gemba-selfedit <path>
 ```
 
 Two safeguards, checked in order:
@@ -221,7 +221,7 @@ lists the `Edit()` rules that were tried.
   — end-to-end workflow from dataset generation through evaluation to trace
   analysis, including multi-agent collaboration sessions.
 - [Analyze Traces](https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md)
-  — read the NDJSON traces produced by `fit-harness` with `fit-trace`.
+  — read the NDJSON traces produced by `gemba-harness` with `gemba-trace`.
 - [Agent Teams](https://www.forwardimpact.team/docs/products/agent-teams/index.md)
   — author the profiles consumed by `--agent-profile`, `--lead-profile`, and
   `--agent-profiles`.

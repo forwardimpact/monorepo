@@ -53,7 +53,7 @@ modes of operation:
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
 Process. Find last review dates per topic in the coverage map.
@@ -181,8 +181,8 @@ Append to the current week's log (see agent profile for the file path):
   (fixed/spec'd/deferred)
 - **Deferred work** — Issues needing follow-up with enough context to resume
 - **Accuracy errors** — Specific docs that diverged from source code
-- **Memos sent** — Callouts dispatched via `fit-wiki memo` to agents whose work
-  affects docs
+- **Memos sent** — Callouts dispatched via `gemba-wiki memo` to agents whose
+  work affects docs
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
   recording-eligibility rule.

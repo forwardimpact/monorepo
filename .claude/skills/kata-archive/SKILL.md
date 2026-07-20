@@ -66,7 +66,7 @@ still-linked log is never retired at any age.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 
 ### Step 1: Detect Terminal Stale Specs

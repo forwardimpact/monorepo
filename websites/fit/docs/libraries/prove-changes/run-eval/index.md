@@ -4,20 +4,20 @@ description: Know whether agent changes improved outcomes — an agent-as-judge 
 ---
 
 You changed an agent profile, a tool allowlist, or a system prompt -- and now
-you need to know whether things got better or worse. `fit-harness supervise`
+you need to know whether things got better or worse. `gemba-harness supervise`
 runs a **judge agent** alongside a **target agent** on a shared orchestration
 loop: the judge sends `Ask` questions, the target replies with `Answer`, and the
 judge calls `Conclude` with a verdict when satisfied. The exit code (`0` pass,
 `1` fail) drops into GitHub Actions like any other check. The NDJSON trace
-captures every turn so you can inspect what happened with `fit-trace`.
+captures every turn so you can inspect what happened with `gemba-trace`.
 
 ## Prerequisites
 
 - Node.js 22+
 - `ANTHROPIC_API_KEY` set in the environment
-- `@forwardimpact/libharness` (ships both `fit-harness` and `fit-trace`).
+- `@forwardimpact/libharness` (ships both `gemba-harness` and `gemba-trace`).
   Install globally with `npm install -g @forwardimpact/libharness`, or invoke
-  ephemerally in CI with `npx --yes @forwardimpact/libharness fit-harness ...`
+  ephemerally in CI with `npx --yes @forwardimpact/libharness gemba-harness ...`
 
 ## Write the task
 
@@ -69,7 +69,7 @@ mask failures.
 ## Run the eval locally
 
 ```sh
-npx fit-harness supervise \
+npx gemba-harness supervise \
   --task-file=evals/refactor-utils/task.md \
   --lead-profile=refactor-judge \
   --supervisor-cwd=. \
@@ -80,7 +80,7 @@ npx fit-harness supervise \
 ```
 
 `--agent-cwd` should be a sandbox copy of your repo since the target agent edits
-files there. When omitted, `fit-harness` creates a temporary directory. The
+files there. When omitted, `gemba-harness` creates a temporary directory. The
 judge stays in `--supervisor-cwd` to inspect the target's work without writing
 to it. `--max-turns` is the per-runner invocation budget (default `200`); the
 orchestration loop that drives the judge↔agent exchange is bounded separately by
@@ -119,7 +119,7 @@ jobs:
         run: |
           mkdir -p /tmp/sandbox /tmp/trace
           cp -r . /tmp/sandbox
-          npx --yes @forwardimpact/libharness fit-harness supervise \
+          npx --yes @forwardimpact/libharness gemba-harness supervise \
             --task-file=evals/refactor-utils/task.md \
             --lead-profile=refactor-judge \
             --supervisor-cwd=. \
@@ -131,7 +131,7 @@ jobs:
       - name: Split trace
         if: always()
         run: |
-          npx --yes @forwardimpact/libharness fit-trace split \
+          npx --yes @forwardimpact/libharness gemba-trace split \
             /tmp/trace/trace--default.raw.ndjson \
             --mode=supervise \
             --case=default \
@@ -158,11 +158,11 @@ When an eval fails, download the artifact and start with `overview` and
 `timeline` to orient, then drill into the verdict.
 
 ```sh
-npx fit-trace runs                              # find the failed run
-npx fit-trace download <run-id>                 # downloads and auto-converts
-npx fit-trace overview --file structured.json
-npx fit-trace timeline --file structured.json
-npx fit-trace tool structured.json Conclude
+npx gemba-trace runs                              # find the failed run
+npx gemba-trace download <run-id>                 # downloads and auto-converts
+npx gemba-trace overview --file structured.json
+npx gemba-trace timeline --file structured.json
+npx gemba-trace tool structured.json Conclude
 ```
 
 Cross-trace verbs (`overview`, `timeline`, …) take their file through `--file`
@@ -172,7 +172,7 @@ positional. Add `--format json` to any verb for the machine-parseable shape.
 The `Conclude` tool call carries the judge's verdict and summary. From there,
 follow the timeline backwards to find the turn where the agent went wrong.
 
-Run `npx fit-trace --help` for the full command surface.
+Run `npx gemba-trace --help` for the full command surface.
 
 ## Scale to a suite
 

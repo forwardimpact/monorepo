@@ -1,7 +1,7 @@
 ---
 name: kata-wiki-curate
 description: >
-  Curate the wiki (agent memory) for cross-team collaboration. Run `fit-wiki
+  Curate the wiki (agent memory) for cross-team collaboration. Run `gemba-wiki
   audit` to fix every contract violation, clear expired claims, verify summary
   accuracy against weekly logs, follow up on stale teammate observations, and
   keep MEMORY.md current. Use when running scheduled wiki curation, auditing
@@ -16,20 +16,20 @@ on, and MEMORY.md falls out of sync.
 
 ## Curation areas
 
-`fit-wiki audit` is the spine — it mechanically enforces every contract rule the
-memory protocol defines (budgets, section order, decision blocks, MEMORY.md
+`gemba-wiki audit` is the spine — it mechanically enforces every contract rule
+the memory protocol defines (budgets, section order, decision blocks, MEMORY.md
 structure, Active Claims schema, storyboard markers), and the same rules gate
-CI. Files that do not match a summary or weekly-log shape are intentionally
-left unclassified rather than flagged, so per-deliverable agent files coexist
-with audited surfaces. `fit-wiki fix` auto-clears findings; run it first, then
+CI. Files that do not match a summary or weekly-log shape are intentionally left
+unclassified rather than flagged, so per-deliverable agent files coexist with
+audited surfaces. `gemba-wiki fix` auto-clears findings; run it first, then
 `audit` to confirm. The remaining areas are the _meaning_ audit cannot read.
 
 | Area               | What to check                                            | Tool                         |
 | ------------------ | -------------------------------------------------------- | ---------------------------- |
-| `contract-audit`   | Every mechanical contract rule passes                    | `fit-wiki fix`, then `audit` |
-| `claims-hygiene`   | Expired or settled claims cleared                        | `fit-wiki refresh` |
+| `contract-audit`   | Every mechanical contract rule passes                    | `gemba-wiki fix`, then `audit` |
+| `claims-hygiene`   | Expired or settled claims cleared                        | `gemba-wiki refresh` |
 | `summary-accuracy` | Each summary _means_ what the agent's latest logs say    | manual (audit can't read it) |
-| `inbox-follow-up`  | `## Message Inbox` entries are acknowledged and acted on | `fit-wiki inbox`             |
+| `inbox-follow-up`  | `## Message Inbox` entries are acknowledged and acted on | `gemba-wiki inbox`             |
 | `memory-index`     | MEMORY.md / Home.md agent descriptions and links current | manual                       |
 
 If time-constrained, run `contract-audit` to completion, then prioritize
@@ -49,7 +49,7 @@ corrections: re-verify the named artifact rather than transcribing it verbatim.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `fit-wiki boot --agent <self>` per
+Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
 Process. Then read every file in `wiki/`: agent summaries
@@ -62,22 +62,22 @@ Process. Then read every file in `wiki/`: agent summaries
 
 ### Step 1: Contract audit
 
-Run `fit-wiki fix` first — it rotates over-budget weekly logs, re-bisects
+Run `gemba-wiki fix` first — it rotates over-budget weekly logs, re-bisects
 over-budget sealed parts, hands prose-judgment findings (including a missing
 `### Decision`) to a Haiku technical-writer (re-auditing each round), and exits
 non-zero flagging anything irreducible (a lone over-budget day-section) for a
 human rather than inventing content. Then run
-`fit-wiki audit --format json` to confirm — it checks every wiki file
+`gemba-wiki audit --format json` to confirm — it checks every wiki file
 (summaries, weekly logs and sealed parts, MEMORY.md, priority and claims rows,
 the current storyboard) against the rule catalogue. The same audit gates
 pre-merge CI, so a clean local run is the bar. Hand-resolve each flagged
 `fail` in the named file:
 
 - **Budgets** (line/word) — trim settled state, or
-  `fit-wiki rotate --agent <agent>` to seal an overflowing weekly log.
+  `gemba-wiki rotate --agent <agent>` to seal an overflowing weekly log.
 - **Section order / markers** — reorder the summary. The curator is the only
   agent that rewrites summaries; others propose edits via observations.
-- **Decision blocks** — `fit-wiki fix` now inserts a missing `### Decision`
+- **Decision blocks** — `gemba-wiki fix` now inserts a missing `### Decision`
   summarizing the entry's narrative; verify it matches what the entry records,
   not invented rationale.
 - **MEMORY.md structure / row shape** — repair headings, separators, and column
@@ -89,10 +89,10 @@ invariant above.
 ### Step 2: Claims hygiene
 
 Audit warns (`expired-claim`) on every `## Active Claims` row past its
-`expires_at`; clear them with `fit-wiki refresh` — a stale claim
+`expires_at`; clear them with `gemba-wiki refresh` — a stale claim
 falsely signals work in flight. For rows not yet expired but naming a PR/Issue
 that has since merged or closed, verify state per the write-time invariant and
-release each via `fit-wiki release --agent <agent> --target <id>`.
+release each via `gemba-wiki release --agent <agent> --target <id>`.
 
 ### Step 3: Summary accuracy
 
@@ -110,17 +110,17 @@ must satisfy the write-time invariant above.
 
 ### Step 4: Inbox follow-up
 
-List each agent's inbox via `fit-wiki inbox list --agent <agent>`. For each
+List each agent's inbox via `gemba-wiki inbox list --agent <agent>`. For each
 memo:
 
 1. The recipient owns the inbox; the sender is the bold name on the bullet
    (`- [date] **<sender>**: <text>`).
 2. Check the recipient's weekly logs after the memo date for acknowledgement.
 3. A team-level item belongs in Cross-Cutting Priorities —
-   `fit-wiki inbox promote --agent <recipient> --index N` writes the
+   `gemba-wiki inbox promote --agent <recipient> --index N` writes the
    priority row and removes the bullet in one step.
 4. Flag memos >2 weeks old with no response: re-send a nudge via
-   `fit-wiki memo --from technical-writer --to <recipient> --message "<flag text>"`.
+   `gemba-wiki memo --from technical-writer --to <recipient> --message "<flag text>"`.
 
 ### Step 5: Memory index & storyboard
 
@@ -132,7 +132,7 @@ checks the content it cannot read.
 - **`wiki/Home.md`** — agent count matches; summary links work; quick links
   current.
 - **`wiki/storyboard-YYYY-MNN.md`** — marker blocks are auto-generated; don't
-  hand-edit them, run `fit-wiki refresh` if stale. Surrounding prose should
+  hand-edit them, run `gemba-wiki refresh` if stale. Surrounding prose should
   reflect the live condition.
 
 Update MEMORY.md and Home.md if they've drifted.
@@ -181,7 +181,7 @@ Append to the current week's log (see agent profile for the file path):
 - **Summary corrections** — Which agent summaries were updated and why
 - **Stale memos** — Inbox entries >2 weeks old with no response
 - **MEMORY.md changes** — What was added/updated
-- **Memos sent** — Callouts dispatched via `fit-wiki memo`
+- **Memos sent** — Callouts dispatched via `gemba-wiki memo`
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/` per
   `references/metrics.md`. See KATA.md § Metrics for the recording-eligibility
   rule.
