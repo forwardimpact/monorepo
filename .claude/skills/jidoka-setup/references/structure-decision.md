@@ -17,7 +17,7 @@ generated blocks back into a static file — is rarely worth it.
 ## Single static JTBD.md
 
 Author Big Hire entries directly in `JTBD.md`. Nothing generates them; the file
-is the source of truth. `coaligned jtbd` validates entry structure but has
+is the source of truth. `jidoka jtbd` validates entry structure but has
 nothing to regenerate.
 
 Best for a repository that ships as one unit: a single library, one service,
@@ -42,7 +42,7 @@ Each package declares its jobs in `package.json`:
 }
 ```
 
-`coaligned jtbd --fix` reads every package's `jobs`, validates them against
+`jidoka jtbd --fix` reads every package's `jobs`, validates them against
 the JTBD schema, and regenerates the marker-delimited catalog and job blocks in
 the directory READMEs and the root `JTBD.md`. Run it whenever a manifest's
 `jobs` change; CI fails if a generated block is stale.
@@ -53,4 +53,4 @@ Best for a repository that is genuinely many packages with distinct personas.
 
 Entry quality is the same problem in both shapes — Big Hire vs Little Hire,
 trigger as a moment not a role, competing hires that include nonconsumption.
-Author entries with [coaligned-jtbd](../../coaligned-jtbd/SKILL.md).
+Author entries with [jidoka-jtbd](../../jidoka-jtbd/SKILL.md).

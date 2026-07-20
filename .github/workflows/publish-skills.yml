@@ -7,14 +7,14 @@ on:
       - ".claude/skills/fit-*/**"
       - ".claude/skills/gemba*/**"
       - ".claude/skills/kata-*/**"
-      - ".claude/skills/coaligned-*/**"
+      - ".claude/skills/jidoka-*/**"
       - ".claude/skills/monorepo-*/**"
       - ".claude/agents/*.md"
       - "products/outpost/templates/.claude/skills/**"
       - "products/outpost/templates/.claude/agents/*.md"
       - "products/gear/package.json"
       - "products/outpost/package.json"
-      - "libraries/libcoaligned/package.json"
+      - "products/jidoka/package.json"
       - ".github/actions/publish-skill-pack/**"
       - ".github/workflows/publish-skills.yml"
   workflow_dispatch:
@@ -48,18 +48,22 @@ jobs:
               engineering standard.
             apm-description: >-
               Agent skills for the Forward Impact engineering standard.
-          - prefix: coaligned
-            repo: coaligned-skills
-            version-file: libraries/libcoaligned/package.json
+          - prefix: jidoka
+            repo: jidoka-skills
+            version-file: products/jidoka/package.json
             sync-agents: "false"
-            readme-title: Co-Aligned Skills
+            readme-title: Jidoka Skills
             readme-intro: >-
               Skills for maintaining the
-              [Co-Aligned](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
-              instruction architecture with the `coaligned` CLI.
+              [Jidoka](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md)
+              instruction architecture with the `jidoka` CLI (installed via
+              `npx @forwardimpact/jidoka` or the platform bootstrap). Renamed
+              from `coaligned-skills` — migrate with `git mv .coaligned
+              .jidoka`, reinstall this pack, and swap the CLI name.
             apm-description: >-
-              Skills for maintaining the Co-Aligned instruction architecture —
-              setup, instruction layers, jobs, invariants, and the check suite.
+              Skills for maintaining the Jidoka instruction architecture —
+              setup, instruction layers, jobs, invariants, and the check suite
+              that stops the line the moment a layer drifts.
           - prefix: kata
             repo: kata-skills
             version-file: products/gear/package.json

@@ -9,7 +9,7 @@
 This standard defines the _shape_ of a repository shared by humans and coding
 agents — the top-level directories and how the universal root files and jobs map
 onto them. It builds on the
-[Co-Aligned Instruction Architecture](COALIGNED.md), which defines the
+[Jidoka Instruction Architecture](JIDOKA.md), which defines the
 instruction layers and the universal root files every co-aligned repository
 carries (`CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and the JTBD conventions).
 This standard adds the directory shape those files live in.
@@ -106,7 +106,7 @@ separate concerns owned by whoever needs them, not folded into this entrypoint.
 
 `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md` orient every contributor. Their
 universal properties, the JTBD entry structure, and the `<job>` tagging
-convention are defined by the [Co-Aligned standard](COALIGNED.md) (L1/L2). This
+convention are defined by the [Jidoka standard](JIDOKA.md) (L1/L2). This
 standard adds only the monorepo-specific placement: how jobs distribute across
 the directory shape (below), and the tooling split `CLAUDE.md` spells out
 (§ Internal Contributors vs External Users).
@@ -118,13 +118,13 @@ Jobs distribute across the codebase so they live near the code that serves them
 
 - **Big Hires** — the adoption decision per persona-outcome pair. Live in
   [JTBD.md](JTBD.md), using the full entry structure from the
-  [Co-Aligned standard](COALIGNED.md).
+  [Jidoka standard](JIDOKA.md).
 - **Little Hires** — narrower, repeated daily jobs. Live in the `products/`,
   `services/`, and `libraries/` READMEs, in design docs, or near the code.
 
 Each top-level directory's `README.md` captures the jobs that directory exists
 to serve. Every job — Big or Little — is wrapped in a `<job>` tag and found with
-`rg '<job '`, per [COALIGNED.md](COALIGNED.md).
+`rg '<job '`, per [JIDOKA.md](JIDOKA.md).
 
 ## Internal Contributors vs External Users
 

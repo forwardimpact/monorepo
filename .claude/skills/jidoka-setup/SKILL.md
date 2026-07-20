@@ -1,30 +1,32 @@
 ---
-name: coaligned-setup
+name: jidoka-setup
 description: >
-  Bootstrap the Co-Aligned instruction architecture in a repository. Use
-  when a repo has no layered agent instructions yet, when adopting the
-  Co-Aligned standard, or when wiring the `coaligned` checks into the
-  repository so instruction layers, jobs, and invariants stay enforced.
+  Bootstrap the Jidoka instruction architecture in a repository. Use when a
+  repo has no layered agent instructions yet, when adopting the Jidoka
+  standard, or when wiring the `jidoka` checks into the repository so the
+  line stops the moment a layer drifts, a job goes stale, or an invariant
+  breaks.
 ---
 
-# Set Up the Co-Aligned Architecture
+# Set Up the Jidoka Architecture
 
 Stand up the
-[Co-Aligned](https://www.coaligned.team/)
+[Jidoka](https://www.jidoka.team/)
 instruction architecture in a repository: the root identity and jobs files, the
-invariant directory, and the `coaligned` checks that keep them honest.
+invariant directory, and the `jidoka` checks that stop the line the moment any
+of them drifts.
 
 Run this once per repository. For ongoing work use the sibling skills:
-[coaligned-layer](../coaligned-layer/SKILL.md) for instruction layers,
-[coaligned-jtbd](../coaligned-jtbd/SKILL.md) for jobs,
-[coaligned-invariant](../coaligned-invariant/SKILL.md) for custom rules, and
-[coaligned-audit](../coaligned-audit/SKILL.md) for the maintenance loop.
+[jidoka-layer](../jidoka-layer/SKILL.md) for instruction layers,
+[jidoka-jtbd](../jidoka-jtbd/SKILL.md) for jobs,
+[jidoka-invariant](../jidoka-invariant/SKILL.md) for custom rules, and
+[jidoka-audit](../jidoka-audit/SKILL.md) for the maintenance loop.
 
 ## When to Use
 
 - A repository has no layered agent instructions yet
-- Adopting the Co-Aligned standard in an existing repository
-- Wiring the `coaligned` checks into a repository's check command and CI
+- Adopting the Jidoka standard in an existing repository
+- Wiring the `jidoka` checks into a repository's check command and CI
 
 ## Checklists
 
@@ -32,7 +34,7 @@ Run this once per repository. For ongoing work use the sibling skills:
 
 - [ ] Confirm the eight layers and their one-job-each separation are clear.
 - [ ] Confirm no instruction layers exist yet; if some do, repair them with
-      coaligned-layer instead of overwriting.
+      jidoka-layer instead of overwriting.
 - [ ] Decide the jobs structure (see Step 1) before creating JTBD.md.
 
 </read_do_checklist>
@@ -43,7 +45,7 @@ Run this once per repository. For ongoing work use the sibling skills:
       their caps.
 - [ ] `CLAUDE.md` carries a Jobs and Checklists section pointing at JTBD.md and
       the tagged pause-point checklists.
-- [ ] `.coaligned/invariants/` holds the `no-conflict-markers` starter rule, and
+- [ ] `.jidoka/invariants/` holds the `no-conflict-markers` starter rule, and
       CONTRIBUTING.md points at the invariants tooling for finding and adding
       rules.
 - [ ] The check is wired into the repository's check command and CI through an
@@ -66,7 +68,7 @@ preference.
   generation.
 - **Generated `.jobs` blocks** — the repo is genuinely many packages, each
   with its own `package.json`. Each package declares `jobs` in its manifest;
-  `coaligned jtbd --fix` generates the catalog and job blocks into the
+  `jidoka jtbd --fix` generates the catalog and job blocks into the
   README and root `JTBD.md`.
 
 When in doubt, choose the static file — fewer moving parts. See
@@ -85,23 +87,23 @@ its cap (L1 ≤ 192 lines; L2 ≤ 320 lines).
   the jobs shape from Step 1:
 
   ```sh
-  cat .claude/skills/coaligned-setup/assets/jobs-and-checklists.md
+  cat .claude/skills/jidoka-setup/assets/jobs-and-checklists.md
   ```
 
   Keep the tag names verbatim — they are the discovery contract contributors
-  and the `coaligned` checks rely on.
+  and the `jidoka` checks rely on.
 - **`CONTRIBUTING.md`** (L2) — contribution standards: the architectural
   invariants, the quality commands, security policy, and the universal
   checklists.
-- **`JTBD.md`** (L2) — the jobs, per Step 1. Use coaligned-jtbd to author
+- **`JTBD.md`** (L2) — the jobs, per Step 1. Use jidoka-jtbd to author
   entries to spec.
 
 Do not restate one file in another. CLAUDE.md orients; CONTRIBUTING.md governs.
 
 ### Step 3: Create the invariant directory
 
-Create `.coaligned/invariants/` and seed it with the starter rule. The
-directory is where the repo's own declarative checks live; `coaligned
+Create `.jidoka/invariants/` and seed it with the starter rule. The
+directory is where the repo's own declarative checks live; `jidoka
 invariants` discovers every `*.rules.mjs` under it, so an empty directory
 enforces nothing and the wired check has nothing to prove.
 
@@ -109,8 +111,8 @@ Copy the bundled starter rule verbatim so every new repo begins with one live
 invariant:
 
 ```sh
-cp .claude/skills/coaligned-setup/assets/no-conflict-markers.rules.mjs \
-   .coaligned/invariants/
+cp .claude/skills/jidoka-setup/assets/no-conflict-markers.rules.mjs \
+   .jidoka/invariants/
 ```
 
 [`no-conflict-markers`](assets/no-conflict-markers.rules.mjs) fails any tracked
@@ -121,13 +123,13 @@ commit. It also proves the pipeline end to end: the directory is discovered, a
 module loads, and a planted marker fails the check.
 
 Add repo-specific rules on top with
-[coaligned-invariant](../coaligned-invariant/SKILL.md); keep or remove the
+[jidoka-invariant](../jidoka-invariant/SKILL.md); keep or remove the
 starter once the repo has invariants of its own.
 
 Point CONTRIBUTING.md at this layer so contributors can find and extend it:
-where the rules live (`.coaligned/invariants/*.rules.mjs`), the `coaligned
+where the rules live (`.jidoka/invariants/*.rules.mjs`), the `jidoka
 invariants` command that runs them, and
-[coaligned-invariant](../coaligned-invariant/SKILL.md) for authoring a rule.
+[jidoka-invariant](../jidoka-invariant/SKILL.md) for authoring a rule.
 This is the invariant *tooling* — distinct from the architectural
 non-negotiables CONTRIBUTING.md already states in prose.
 
@@ -137,31 +139,32 @@ Wire the check into the repository's check command and CI so every layer, job,
 and invariant is enforced before merge. The CLI exposes four entry points:
 
 ```text
-coaligned                # instructions + jtbd (and invariants if present)
-coaligned instructions   # layer length and checklist caps only
-coaligned jtbd --fix     # regenerate stale catalog and job blocks
-coaligned invariants     # the repo's own rule modules
+jidoka                # instructions + jtbd (and invariants if present)
+jidoka instructions   # layer length and checklist caps only
+jidoka jtbd --fix     # regenerate stale catalog and job blocks
+jidoka invariants     # the repo's own rule modules
 ```
 
 Invoke it through an entry point the run environment can resolve. A clean CI
-runner has nothing on `PATH` and no workspace to resolve a bare `coaligned`
-against, so wire the registry-resolvable form — the published CLI package run
-through the repository's package manager — and record that concrete command in
-CONTRIBUTING.md. Use the same command in the lint/check task and the CI job;
-never one that only resolves on a contributor's pre-provisioned machine.
+runner has nothing on `PATH` and no workspace to resolve a bare `jidoka`
+against, so wire the registry-resolvable form — the published CLI package
+`@forwardimpact/jidoka`, run through the repository's package manager — and
+record that concrete command in CONTRIBUTING.md. Use the same command in the
+lint/check task and the CI job; never one that only resolves on a contributor's
+pre-provisioned machine.
 
 ### Step 5: Verify the bootstrap
 
 Verify the wired check the way CI runs it, from a clean dependency resolution. A
-`coaligned` already on your `PATH` masks an invocation that cannot resolve on a
+`jidoka` already on your `PATH` masks an invocation that cannot resolve on a
 fresh runner — so confirm the repository's check command passes on a clean
 checkout, not just in your shell. A clean run means the layers fit their caps
 and the jobs validate; fix any finding before committing, routing by subcommand
-the same way [coaligned-audit](../coaligned-audit/SKILL.md) does.
+the same way [jidoka-audit](../jidoka-audit/SKILL.md) does.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+- [Jidoka Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md)
   — the eight layers, their caps, and the rules that separate them.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
-  — what each `coaligned` subcommand checks.
+- [Jidoka website](https://www.jidoka.team/)
+  — the standard's story: built-in quality, stop the line.

@@ -16,7 +16,7 @@ specs, ship features, study their own traces, and act on findings.
 
 Kata is an implementation of two upstream standards: the repository structure
 in [MONOREPO.md](MONOREPO.md) and the instruction architecture in
-[COALIGNED.md](COALIGNED.md). Everything below assumes both.
+[JIDOKA.md](JIDOKA.md). Everything below assumes both.
 
 Kata runs on [Gemba](https://www.forwardimpact.team/gemba/), the
 agent-runtime platform: the `gemba-*` command family and the
@@ -355,4 +355,4 @@ accompany.
 - **Main branch CI repair.** See CONTRIBUTING.md for the release engineer's
   direct-to-`main` exception.
 - **Authoring.** Instruction architecture, length limits, skill structure, and
-  the seven-layer model live in [COALIGNED.md](COALIGNED.md).
+  the seven-layer model live in [JIDOKA.md](JIDOKA.md).

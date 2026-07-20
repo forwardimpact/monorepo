@@ -120,7 +120,7 @@ when the bundle set changes.
 | `fit-landmark` | `fit-landmark` | 1 |
 | `fit-summit` | `fit-summit` | 1 |
 | `fit-outpost` | `fit-outpost` | 1 |
-| `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svcspan`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `gemba-harness`, `fit-doc`, `fit-rc`, `gemba-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `gemba-trace`, `fit-visualize`, `fit-process`, `fit-rag`, `fit-unary`, `fit-tiktoken`, `gemba-wiki`, `gemba-benchmark`, `fit-pack`, `coaligned` | 24 |
+| `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svcspan`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `gemba-harness`, `fit-doc`, `fit-rc`, `gemba-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `gemba-trace`, `fit-visualize`, `fit-process`, `fit-rag`, `fit-unary`, `fit-tiktoken`, `gemba-wiki`, `gemba-benchmark`, `fit-pack`, `jidoka` | 24 |
 
 Both the `.app` assembly and the cask `binary` block derive from
 `build/cli-manifest.json` for **every** bundle — one code path, no gear

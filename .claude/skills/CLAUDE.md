@@ -22,7 +22,7 @@ approval gates, checklists, and the invariants that keep the loop safe.
 Everything a capable model already knows how to do — write code, read a diff,
 search a codebase, phrase a comment — gets no instruction at all. Brevity is the
 goal, not just a budget: a shorter skill leaves more room for the model's
-pre-trained knowledge and judgment. Length caps are in COALIGNED.md § Length and
+pre-trained knowledge and judgment. Length caps are in JIDOKA.md § Length and
 Loading.
 
 ### Strong opinions on structure only
@@ -34,7 +34,7 @@ about HOW — do not prescribe tactics for ordinary engineering work.
 
 - Do not name this monorepo's packages, services, sites, workflows, scopes, file
   paths, or data directories. Two exceptions: invoking `fit-*` / `gemba-*` /
-  `kata-*` / `coaligned` CLIs bare (`gemba-wiki boot`, `gemba-xmr analyze` —
+  `kata-*` / `jidoka` CLIs bare (`gemba-wiki boot`, `gemba-xmr analyze` —
   never an `npx` or `bunx` prefix), and the surfaces every installation
   carries — CLAUDE.md, CONTRIBUTING.md, JTBD.md, KATA.md, `specs/`, `wiki/`,
   `websites/`.
@@ -51,7 +51,7 @@ about HOW — do not prescribe tactics for ordinary engineering work.
   (`../../agents/*.md`), and the guaranteed surfaces above. `fit-*` skills ship
   in a separate pack — full URL. Never link this monorepo's issues or PRs:
   provenance rots, and the skill must stand on its own.
-- `.coaligned/invariants/skill-genericity.rules.mjs` gates the mechanical
+- `.jidoka/invariants/skill-genericity.rules.mjs` gates the mechanical
   subset of these rules in CI (`bun run invariants`). On a false positive,
   narrow the rule there — do not leave the flagged content in place.
 
@@ -72,7 +72,7 @@ One template across every pack: descriptive Title Case H1, `## When to Use`,
 `labeled`); `behaviour` stays — it is the domain term. Point at shared
 protocols, do not restate them: the Read Memory step and citation-integrity
 mentions are one-sentence pointers to the owning agent reference.
-`.coaligned/invariants/skill-template.rules.mjs` gates the mechanical subset
+`.jidoka/invariants/skill-template.rules.mjs` gates the mechanical subset
 in CI; on a false positive, narrow the rule there.
 
 ### The litmus test

@@ -8,7 +8,7 @@ on:
   workflow_call:
     inputs:
       site:
-        description: "Site directory under websites/ (fit, monorepo, kata, coaligned)"
+        description: "Site directory under websites/ (fit, monorepo, kata, jidoka)"
         required: true
         type: string
       copy-schema:

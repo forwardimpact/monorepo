@@ -376,8 +376,8 @@ await manager.stop();          // Stop all services and daemon
 | libtelemetry     | `@forwardimpact/libtelemetry`        | Structured logging (`Logger`), trace spans (`Tracer`), unified observer (`Observer`), trace query and rendering (`fit-visualize`). |
 
 Keeping instruction files and architecture honest is the fifth concern in this
-job. That check is `coaligned`, documented with the
-[Co-Aligned standard](https://www.coaligned.team/) rather than here, because it
+job. That check is `jidoka`, documented with the
+[Jidoka standard](https://www.jidoka.team/) rather than here, because it
 runs at authoring time against the repository -- not at service runtime against
 a process. See [Distribute Skill Packs](/docs/libraries/distribute-skill-packs/)
 for the publishing side of keeping shared instructions current.

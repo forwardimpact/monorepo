@@ -34,7 +34,7 @@ success criteria.
 
 **Repository scaffolding is not hand-rolled.** Part 01 stands up the
 Monorepo-standard skeleton by invoking the **monorepo-setup skill** (which runs
-`coaligned-setup` and `kata-setup` in turn), then layers the Polaris product and
+`jidoka-setup` and `kata-setup` in turn), then layers the Polaris product and
 its infrastructure onto it. The skill is authoritative for the skeleton —
 `git`, the base `package.json`, `.gitignore`, the directory tree,
 `scripts/bootstrap.sh`, the skill packs and agent profiles, the root instruction

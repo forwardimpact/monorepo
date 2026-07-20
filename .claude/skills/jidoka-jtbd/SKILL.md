@@ -1,9 +1,9 @@
 ---
-name: coaligned-jtbd
+name: jidoka-jtbd
 description: >
-  Author and maintain Jobs To Be Done entries for the Co-Aligned standard.
+  Author and maintain Jobs To Be Done entries for the Jidoka standard.
   Use when writing a Big Hire or Little Hire, when adding a `<job>` tag, when
-  `package.json .jobs` blocks are stale, or when `coaligned jtbd` reports a
+  `package.json .jobs` blocks are stale, or when `jidoka jtbd` reports a
   schema or freshness failure.
 ---
 
@@ -13,15 +13,15 @@ Jobs To Be Done is what agents align to: the progress each persona seeks in a
 specific circumstance, not a feature list. This skill authors job entries to
 spec and keeps the generated blocks fresh.
 
-`coaligned jtbd` validates entries against the schema and checks that
-generated blocks are current. `coaligned jtbd --fix` regenerates them.
+`jidoka jtbd` validates entries against the schema and checks that
+generated blocks are current. `jidoka jtbd --fix` regenerates them.
 
 ## When to Use
 
 - Writing a Big Hire or Little Hire entry
 - Adding a `<job>` tag to an existing document
 - `package.json .jobs` blocks are stale
-- `coaligned jtbd` reports a schema or freshness failure
+- `jidoka jtbd` reports a schema or freshness failure
 
 ## Checklists
 
@@ -31,7 +31,7 @@ generated blocks are current. `coaligned jtbd --fix` regenerates them.
 - [ ] Every trigger is a moment, and every Competes With names nonconsumption.
 - [ ] Every job is wrapped in a `<job>` tag on a single ≤74-char opening line.
 - [ ] Generated blocks were regenerated from manifests, not hand-edited.
-- [ ] `coaligned jtbd` passes with no schema or freshness findings.
+- [ ] `jidoka jtbd` passes with no schema or freshness findings.
 
 </do_confirm_checklist>
 
@@ -91,14 +91,14 @@ Keep the full opening tag on one line within 74 characters. Discover jobs with
 
 ### Step 4: Regenerate or validate
 
-- **Static `JTBD.md`** — run `coaligned jtbd` to validate entry structure.
+- **Static `JTBD.md`** — run `jidoka jtbd` to validate entry structure.
 - **Generated `.jobs` blocks** — edit the `jobs` array in the owning
-  `package.json`, then run `coaligned jtbd --fix` to regenerate the catalog
+  `package.json`, then run `jidoka jtbd --fix` to regenerate the catalog
   and job blocks. Commit the regenerated files.
 
 ```sh
-coaligned jtbd          # validate entries and check freshness
-coaligned jtbd --fix    # regenerate stale catalog and job blocks
+jidoka jtbd          # validate entries and check freshness
+jidoka jtbd --fix    # regenerate stale catalog and job blocks
 ```
 
 A stale generated block fails the check; never hand-edit generated blocks —
@@ -106,7 +106,7 @@ edit the manifest and regenerate.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+- [Jidoka Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md)
   — where jobs sit in the layered architecture.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
-  — what `coaligned jtbd` validates and regenerates.
+- [Jidoka website](https://www.jidoka.team/)
+  — the standard's story: built-in quality, stop the line.

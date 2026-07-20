@@ -23,7 +23,7 @@ layers and made them their own thing.
 **[Monorepo](https://www.monorepo.team/)** — Repository structure standard for
 humans and coding agents. Top-level directories, root files, a jobs catalogue.
 
-**[Co-Aligned](https://www.coaligned.team/)** — Instruction architecture
+**[Jidoka](https://www.jidoka.team/)** — Instruction architecture
 standard grounded in Jobs-To-Be-Done (JTBD) and The Checklist Manifesto. Builds
 on the Monorepo standard.
 

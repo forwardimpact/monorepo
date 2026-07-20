@@ -133,7 +133,7 @@ libmcp, librpc, libhttp)
 | Little | `typed-contracts/ship-http-endpoint/` | Ship an HTTP Service Endpoint |
 
 **Run a Predictable Platform** (Builders → libpreflight, librc, libsupervise,
-libtelemetry, libcoaligned)
+libtelemetry, libinvariant)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |

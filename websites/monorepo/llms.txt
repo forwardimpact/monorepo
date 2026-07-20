@@ -23,11 +23,11 @@ those three root files and the `<job>` convention — and adds the directory
 shape they live in. The Kata Agent Team implements the whole standard as a
 daily loop.
 
-Stand up a new one with `apm install forwardimpact/coaligned-skills
+Stand up a new one with `apm install forwardimpact/jidoka-skills
 forwardimpact/kata-skills`, then ask Claude to set up the repository.
 
 ## Optional
 
 - [The full standard (MONOREPO.md)](https://github.com/forwardimpact/monorepo/blob/main/MONOREPO.md)
-- [Co-Aligned instruction architecture](https://www.coaligned.team/)
+- [Jidoka instruction architecture](https://www.jidoka.team/)
 - [Kata Agent Team](https://www.kata.team/)

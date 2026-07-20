@@ -2,7 +2,7 @@
 // a line that begins with seven `<` or seven `>` characters followed by a label
 // (`<{7} HEAD`, `>{7} branch`). Git writes these when a merge or rebase
 // conflicts; committing them ships a broken, often unparseable file. This is
-// the generic starter rule coaligned-setup drops into every new repository: it
+// the generic starter rule jidoka-setup drops into every new repository: it
 // applies to any language, needs no configuration, and fires only on a real,
 // unambiguous problem. Delete it once the repo has invariants of its own, or
 // keep it — an unresolved conflict is never intended.

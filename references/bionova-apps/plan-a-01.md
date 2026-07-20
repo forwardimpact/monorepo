@@ -12,7 +12,7 @@ All paths below are relative to the `bionova-apps/` repo root.
 `bionova-apps` is a Monorepo-standard repository, so its scaffolding is **not
 hand-rolled here**. Invoke the **monorepo-setup skill**, which owns the full
 skeleton end to end and is authoritative for it, and let it run its upstream
-skills (`coaligned-setup`, then `kata-setup`) to completion. Configuration to
+skills (`jidoka-setup`, then `kata-setup`) to completion. Configuration to
 hand it:
 
 | Prompt | Value |
@@ -23,10 +23,10 @@ hand it:
 
 Do not restate or re-implement what the skill produces. When it finishes the
 repo already carries: `git` + `main`, `scripts/bootstrap.sh`, the base root
-`package.json` (with `coaligned` wired into `check`), `.gitignore`, the
-Monorepo directory tree, the installed `coaligned-skills` + `kata-skills` packs
+`package.json` (with `jidoka` wired into `check`), `.gitignore`, the
+Monorepo directory tree, the installed `jidoka-skills` + `kata-skills` packs
 and kata agent profiles under `.claude/`, `CLAUDE.md` / `CONTRIBUTING.md` /
-`JTBD.md` / `.coaligned/`, the per-concern check workflows, the created remote
+`JTBD.md` / `.jidoka/`, the per-concern check workflows, the created remote
 with the wiki enabled and `KATA_KILLSWITCH` engaged, `.claude/settings.json`
 session hooks, the seeded wiki, and the `SETUP.md` operator runbook.
 
@@ -36,7 +36,7 @@ that skeleton. Where a skill-owned file needs bionova content (root
 re-creates or overwrites a file the skill owns.
 
 Verify: the skill's own Done-When checklist passes (skeleton present, both
-upstream skills ran, `coaligned` clean, remote + wiki exist).
+upstream skills ran, `jidoka` clean, remote + wiki exist).
 
 ## Step 2 — Layer the Polaris workspace onto the skeleton
 
@@ -49,7 +49,7 @@ Created / extended:
 | `LICENSE` | Apache-2.0 |
 | `.nvmrc` | `20` (Node major) |
 | `.tool-versions` | `bun 1.2.0`, `nodejs 20.11.1` (`supabase` added in part 02, `deno` in part 04) |
-| `package.json` | **extend** the skeleton manifest — add `"type": "module"`, `engines`, the Polaris workspaces, the bionova scripts, and app devDependencies (below); keep the skeleton's `check`/`coaligned` entries |
+| `package.json` | **extend** the skeleton manifest — add `"type": "module"`, `engines`, the Polaris workspaces, the bionova scripts, and app devDependencies (below); keep the skeleton's `check`/`jidoka` entries |
 | `.gitignore` | **append** the bionova ignores (below) to the skeleton's |
 | `justfile` | Recipes: `up` (`docker compose up -d`), `down`, `setup`, `seed` (`bash scripts/build-seed.sh`), `cli`, `dev:site`, `test`, `lint` |
 | `eslint.config.mjs` | Flat config; `eslint-config-prettier`; no unused vars, no console in `src/` |
@@ -57,8 +57,8 @@ Created / extended:
 | `tsconfig.json` | Strict, ES2022 target, `moduleResolution: bundler`, paths to workspaces |
 
 `package.json` — the skeleton already carries `name`, `private`, and the
-`coaligned` check wiring. Layer on the Polaris workspaces, scripts, and app
-devDependencies (do **not** drop the skeleton's `check` / `coaligned` entries):
+`jidoka` check wiring. Layer on the Polaris workspaces, scripts, and app
+devDependencies (do **not** drop the skeleton's `check` / `jidoka` entries):
 
 ```json
 {
@@ -119,7 +119,7 @@ output: the skeleton's `scripts/bootstrap.sh` rebuilds them from `apm.yml` on
 every environment (CI and native), so they are gitignored rather than committed.
 
 Verify: `bun install` exits 0; `just --list` shows recipes; `bun run check`
-(coaligned + lint + tsc) passes.
+(jidoka + lint + tsc) passes.
 
 ## Step 3 — Scaffold the Polaris directory tree
 
@@ -358,7 +358,7 @@ service unhealthy within 120s.
 
 `monorepo-setup` already generated the base per-concern check workflows
 (`check-quality`, `check-test`, `check-context`) and wired the repo's Bun/Deno
-lint, test, and `coaligned` scripts into them. This part adds only the concerns
+lint, test, and `jidoka` scripts into them. This part adds only the concerns
 those do not cover — **one workflow per concern, never folded into a single
 `ci.yml`**, matching the skill's rule. SHA-pin every third-party action.
 
@@ -402,9 +402,9 @@ Verify: PR opens with green CI (base checks + compose validation pass).
 ## Verification (end of part 01)
 
 - [ ] The monorepo-setup skeleton is in place: `scripts/bootstrap.sh`,
-      `CLAUDE.md`/`CONTRIBUTING.md`/`JTBD.md`/`.coaligned/`, the base check
+      `CLAUDE.md`/`CONTRIBUTING.md`/`JTBD.md`/`.jidoka/`, the base check
       workflows, `.claude/settings.json`, the seeded wiki, and `SETUP.md` all
-      exist; `bun run check` (coaligned) passes clean.
+      exist; `bun run check` (jidoka) passes clean.
 - [ ] `gh repo view forwardimpact/bionova-apps` returns the repo URL.
 - [ ] `docker compose up -d` brings all 12 services to `healthy` within 180s.
 - [ ] `curl -s http://localhost:8000/rest/v1/` returns PostgREST root JSON.

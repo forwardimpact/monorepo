@@ -1,29 +1,42 @@
-# Co-Aligned Instruction Architecture Standard
+# Jidoka Instruction Architecture
 
 > "The volume and complexity of what we know has exceeded our individual ability
 > to deliver its benefits correctly, safely, or reliably."
 >
 > — Atul Gawande, _The Checklist Manifesto_
 
-This standard defines the layered instruction architecture for creating aligned
-coding agents, together with the universal root files every co-aligned
-repository carries — `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md`. It stands on
-its own: any well-structured repository can adopt it, whatever its directory
-shape. A repository's structure standard extends it — for a monorepo, see
-[MONOREPO.md](MONOREPO.md) for the top-level directories and how jobs map onto
-them.
+This standard defines the layered instruction architecture that keeps humans
+and coding agents on one set of honest instructions, together with the
+universal root files every adopting repository carries — `CLAUDE.md`,
+`CONTRIBUTING.md`, and `JTBD.md`. It stands on its own: any well-structured
+repository can adopt it, whatever its directory shape. A repository's
+structure standard extends it — for a monorepo, see [MONOREPO.md](MONOREPO.md)
+for the top-level directories and how jobs map onto them.
 
-It draws on two well-publicized ideas:
+The name is _jidoka_ — the Toyota principle of building quality into the
+process itself, so the line stops at the first defect and never passes one
+downstream. Instruction files are the process here: layers drift, restate
+each other, and go stale long before anyone notices an agent misbehaving.
+The `jidoka` checks are the andon cord — they halt the moment a layer
+breaches its budget, a jobs block goes stale, or a repository invariant
+breaks, so a defect is fixed where it appears instead of shipping to every
+downstream run.
 
-1. **Jobs To Be Done** (Christensen, Moesta) — agents align to the progress each
-   persona seeks in specific circumstances, not to feature lists. See
+The architecture draws on three well-publicized ideas:
+
+1. **Jidoka** (Toyota) — quality is built into the process, not inspected in
+   afterward. Every layer has a machine-checkable budget, and the checks stop
+   the line at the first breach.
+2. **Jobs To Be Done** (Christensen, Moesta) — agents align to the progress
+   each persona seeks in specific circumstances, not to feature lists. See
    [JTBD.md](JTBD.md).
-2. **The Checklist Manifesto** (Gawande) — complex work fails not from ignorance
-   but from inattention under load. Structured instructions ensure existing
-   knowledge is consistently applied — by humans and agents alike.
+3. **The Checklist Manifesto** (Gawande) — complex work fails not from
+   ignorance but from inattention under load. Structured instructions ensure
+   existing knowledge is consistently applied — by humans and agents alike.
 
-Together they answer _what_ agents align to (the jobs) and _how_ alignment holds
-under load (the layered instruction architecture). The more expert the
+Together they answer _what_ agents align to (the jobs), _how_ alignment holds
+under load (the layered instruction architecture), and _how it stays held_
+(checks that never pass a defect downstream). The more expert the
 contributor, the more this matters: beginners follow procedures because they
 must; experts skip them because they think they don't need to.
 
@@ -374,7 +387,8 @@ coherent.
 ## Length and Loading
 
 Auto-loaded layers consume context on every run; keep them tight. Limits
-enforced by `coaligned instructions` (see `libraries/libcoaligned/`):
+enforced by `jidoka instructions` (the Jidoka product, `products/jidoka/`,
+implemented by `libraries/libinvariant/`):
 
 | Layer                        | Target      | Loaded           |
 | ---------------------------- | ----------- | ---------------- |
@@ -393,3 +407,14 @@ directory — they extend the root with directory-local conventions and must sta
 tight so they layer cleanly. L1 subdir is capped at 128 lines and 768 words; L7
 is gated by item count, not lines — wrapped-line length is a formatting
 artifact, not cognitive load.
+
+## Migrating from Co-Aligned
+
+This standard was previously published as Co-Aligned. A repository on the old
+tooling migrates in three moves: rename the rules directory with
+`git mv .coaligned .jidoka`, reinstall the skill pack
+(`apm install forwardimpact/jidoka-skills`), and swap the CLI — the old
+`coaligned` command (from `@forwardimpact/libcoaligned`) becomes `jidoka`,
+installed via `npx @forwardimpact/jidoka` or the platform bootstrap. An
+unmigrated repository fails loudly: the loader stops with a
+`rules directory not found` error naming the expected location.

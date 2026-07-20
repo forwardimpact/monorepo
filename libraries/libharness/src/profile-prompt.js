@@ -2,7 +2,7 @@
  * System prompt composition for agent runners.
  *
  * libharness assembles every agent system prompt from up to two parallel,
- * sibling-tagged sections (see COALIGNED.md § L0):
+ * sibling-tagged sections (see JIDOKA.md § L0):
  *
  *     <agent_profile>
  *     …persona body…

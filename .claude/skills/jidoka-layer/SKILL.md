@@ -1,24 +1,24 @@
 ---
-name: coaligned-layer
+name: jidoka-layer
 description: >
-  Author or repair an instruction layer to the Co-Aligned standard — an agent
+  Author or repair an instruction layer to the Jidoka standard — an agent
   profile, agent reference, SKILL.md, skill reference, or checklist. Use when
-  adding an agent or skill, when `coaligned instructions` flags a length
+  adding an agent or skill, when `jidoka instructions` flags a length
   breach, or when one layer has started restating another.
 ---
 
 # Author Instruction Layers
 
-The Co-Aligned architecture splits instructions across eight layers, each with
-one job. A defect in one layer is a different class of problem from a defect in
-another, and that separation is what makes a failed run attributable. This
-skill authors and repairs the layers a contributor edits: L3–L7. The root
+The Jidoka instruction architecture splits instructions across eight layers,
+each with one job. A defect in one layer is a different class of problem from a
+defect in another, and that separation is what makes a failed run attributable.
+This skill authors and repairs the layers a contributor edits: L3–L7. The root
 identity and jobs files (L1/L2) have their properties set by the standard and
-are bootstrapped once by [coaligned-setup](../coaligned-setup/SKILL.md) —
-including the `CLAUDE.md` section that surfaces how jobs and checklists are
-discovered. Repair those there, not here.
+are bootstrapped once by [jidoka-setup](../jidoka-setup/SKILL.md) — including
+the `CLAUDE.md` section that surfaces how jobs and checklists are discovered.
+Repair those there, not here.
 
-`coaligned instructions` enforces a line cap and a word cap on every layer.
+`jidoka instructions` enforces a line cap and a word cap on every layer.
 Either breach fails. See
 [references/layer-reference.md](references/layer-reference.md) for the layers,
 their properties, and their caps.
@@ -27,7 +27,7 @@ their properties, and their caps.
 
 - Adding an agent profile, agent reference, skill, skill reference, or
   checklist
-- `coaligned instructions` flags a length breach
+- `jidoka instructions` flags a length breach
 - One layer has started restating another
 
 ## Checklists
@@ -37,7 +37,7 @@ their properties, and their caps.
 - [ ] The layer carries only its own job — no content another layer owns.
 - [ ] Shared tools are separated by voice, not duplicated.
 - [ ] Every checklist is tagged and uses the correct READ-DO / DO-CONFIRM type.
-- [ ] `coaligned instructions` passes with no length findings.
+- [ ] `jidoka instructions` passes with no length findings.
 
 </do_confirm_checklist>
 
@@ -90,7 +90,7 @@ and the seven properties of a good checklist.
 
 ### Step 4: Fit the cap
 
-Run `coaligned instructions`. On a length breach, do not just delete words —
+Run `jidoka instructions`. On a length breach, do not just delete words —
 move them to the layer that owns them:
 
 - L5 over cap → push templates, examples, and tables down to an L6 reference.
@@ -102,13 +102,13 @@ is too long.
 
 ### Step 5: Verify
 
-`coaligned instructions` passes. Re-read the edited layer against its
+`jidoka instructions` passes. Re-read the edited layer against its
 single job: a reader following only this layer should get exactly what the layer
 promises and nothing another layer owns.
 
 ## Documentation
 
-- [Co-Aligned Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md)
+- [Jidoka Instruction Architecture Standard](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md)
   — every layer, its properties, and the rules that separate them.
-- [libcoaligned README](https://github.com/forwardimpact/monorepo/blob/main/libraries/libcoaligned/README.md)
-  — what `coaligned instructions` enforces.
+- [Jidoka website](https://www.jidoka.team/)
+  — the standard's story: built-in quality, stop the line.

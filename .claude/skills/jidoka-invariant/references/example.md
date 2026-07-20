@@ -4,13 +4,13 @@ A complete module enforcing one invariant: source files must not import a
 forbidden package. It shows the three required parts (top comment, `build`,
 `rules`) and the optional `seed` for grandfathering.
 
-`.coaligned/invariants/no-legacy-client.rules.mjs`:
+`.jidoka/invariants/no-legacy-client.rules.mjs`:
 
 ```js
 // Invariant: src files must not import the legacy "old-client" package.
 // New code uses "new-client". A monotone deny-list grandfathers files that
 // still import the old one during migration; each PR removes its entries.
-// Refresh the deny-list: coaligned invariants --seed no-legacy-client
+// Refresh the deny-list: jidoka invariants --seed no-legacy-client
 
 import { stringify as stringifyYaml } from "yaml";
 

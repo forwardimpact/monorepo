@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════
-   Co-Aligned — Brand Layer
+   Jidoka — Brand Layer
    Tokens, fonts, brand-specific surfaces, and scroll-section styles.
    Loaded after the shared base/layout/components stylesheets.
 
@@ -113,7 +113,7 @@
   display: none;
 }
 
-.layout-home .page-content > .coaligned-section {
+.layout-home .page-content > .jidoka-section {
   padding: var(--space-24) var(--space-6);
 }
 
@@ -158,7 +158,7 @@
 
 /* ── Hero ──────────────────────────────────────────────────────── */
 
-.coaligned-hero {
+.jidoka-hero {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -171,14 +171,14 @@
   position: relative;
 }
 
-.coaligned-hero .layer-stack-hero {
+.jidoka-hero .layer-stack-hero {
   width: 72px;
   height: 72px;
   margin-bottom: var(--space-8);
   animation: fadeUp 600ms var(--ease-default) 100ms backwards;
 }
 
-.coaligned-hero .hero-title {
+.jidoka-hero .hero-title {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: var(--text-hero-size);
@@ -190,7 +190,7 @@
   animation: fadeUp 600ms var(--ease-default) 200ms backwards;
 }
 
-.coaligned-hero .hero-subtitle {
+.jidoka-hero .hero-subtitle {
   font-family: var(--font-sans);
   font-size: 1.25rem;
   font-weight: 400;
@@ -254,7 +254,7 @@
 
 /* ── Sections ──────────────────────────────────────────────────── */
 
-.coaligned-section-cool {
+.jidoka-section-cool {
   background: var(--bg-warm);
 }
 

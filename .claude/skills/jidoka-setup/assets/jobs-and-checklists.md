@@ -3,7 +3,7 @@
   the root CLAUDE.md and adapt the first line to the jobs shape chosen in Step 1:
   a single static JTBD.md, or generated .jobs blocks where per-package jobs also
   live in each README.md. The tag names and rg patterns are fixed — they are the
-  discovery contract every contributor and the `coaligned` checks rely on, so
+  discovery contract every contributor and the `jidoka` checks rely on, so
   keep them verbatim. Delete this comment after copying.
 -->
 

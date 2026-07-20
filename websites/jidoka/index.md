@@ -1,11 +1,11 @@
 ---
-title: Co-Aligned Instruction Architecture
-description: An instruction architecture for humans and coding agents — eight layers, each with one job, each independently auditable. Grounded in Jobs To Be Done and The Checklist Manifesto.
+title: Jidoka Instruction Architecture
+description: Built-in quality for agent instructions — eight layers, each with one job, and checks that stop the line the moment a layer drifts. Grounded in Jidoka, Jobs To Be Done, and The Checklist Manifesto.
 toc: false
 layout: home
 ---
 
-<div class="coaligned-section coaligned-hero">
+<div class="jidoka-section jidoka-hero">
   <svg class="layer-stack-hero" viewBox="0 0 64 64" aria-hidden="true">
     <rect class="layer-bar" x="10" y="54" width="44" height="4" rx="1.5" />
     <rect class="layer-bar" x="12" y="47" width="40" height="4" rx="1.5" />
@@ -16,20 +16,20 @@ layout: home
     <rect class="layer-bar" x="22" y="12" width="20" height="4" rx="1.5" />
     <rect class="layer-bar layer-bar-top" x="24" y="5" width="16" height="4" rx="1.5" />
   </svg>
-  <h1 class="hero-title">Coding agents that stay aligned under load</h1>
-  <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers, each with a single job, each one you can audit on its own.</p>
+  <h1 class="hero-title">Build quality into agent instructions</h1>
+  <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers, each with a single job — and checks that stop the line the moment a layer drifts.</p>
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
   </div>
 </div>
 
-<div class="coaligned-section coaligned-section-cool">
+<div class="jidoka-section jidoka-section-cool">
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Problem</div>
-      <h2 class="section-headline">Instructions sprawl, and alignment breaks under load.</h2>
-      <p class="section-body">Prompts pile up. Instruction chains grow unauditable. The more expert the contributor, the more readily they skip the procedure — because they think they don't need it. Co-Aligned takes the opposite path: one layered architecture where every layer owns a single job, and a defect always traces to exactly one of them.</p>
+      <h2 class="section-headline">Instructions sprawl, and nothing stops the drift.</h2>
+      <p class="section-body">Prompts pile up. Layers restate each other, jobs go stale, and nobody notices until an agent misbehaves. Jidoka takes the Toyota path: build quality into the process itself. One layered architecture where every layer owns a single job and carries a machine-checkable budget — so a defect traces to exactly one layer, and the line stops before it ships.</p>
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
@@ -59,7 +59,7 @@ layout: home
   </svg>
 </div>
 
-<div class="coaligned-section">
+<div class="jidoka-section">
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Architecture</div>
@@ -119,14 +119,19 @@ layout: home
   </svg>
 </div>
 
-<div class="coaligned-section coaligned-section-cool">
+<div class="jidoka-section jidoka-section-cool">
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Foundations</div>
       <h2 class="section-headline">What agents align to, and how alignment holds.</h2>
-      <p class="section-body">Two well-publicized ideas answer the two halves of the problem — and together they explain why the layers are shaped the way they are.</p>
+      <p class="section-body">Three well-publicized ideas answer the halves of the problem — and together they explain why the layers are shaped the way they are, and why the checks stop the line.</p>
     </div>
     <div class="duo-grid stagger">
+      <div class="foundation-card stagger-item">
+        <div class="foundation-source">Toyota</div>
+        <div class="foundation-name">Jidoka</div>
+        <p class="foundation-desc">How quality holds. It is built into the process, not inspected in afterward — the checks halt at the first defect and never pass one downstream.</p>
+      </div>
       <div class="foundation-card stagger-item">
         <div class="foundation-source">Christensen &amp; Moesta</div>
         <div class="foundation-name">Jobs To Be Done</div>
@@ -149,7 +154,7 @@ layout: home
   </svg>
 </div>
 
-<div class="coaligned-section">
+<div class="jidoka-section">
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">Verification</div>
@@ -173,7 +178,7 @@ layout: home
   </div>
 </div>
 
-<div class="coaligned-section coaligned-section-cool">
+<div class="jidoka-section jidoka-section-cool">
   <div class="section-inner">
     <div class="reveal">
       <h2 class="getting-started-label">Adopt it in three lines.</h2>
@@ -188,10 +193,10 @@ layout: home
       </div>
       <div class="terminal-lines">
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">cd my-repo/</span></div>
-        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">apm install forwardimpact/coaligned-skills</span></div>
-        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Set up Co-Aligned"</span><span class="terminal-cmd"> | claude</span></div>
+        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">apm install forwardimpact/jidoka-skills</span></div>
+        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Set up Jidoka"</span><span class="terminal-cmd"> | claude</span></div>
       </div>
     </div>
-    <p class="closing-note reveal">Then wire <code>npx coaligned</code> into your checks, so every layer keeps its job. Read the full standard in <a href="https://github.com/forwardimpact/monorepo/blob/main/COALIGNED.md">COALIGNED.md</a>.</p>
+    <p class="closing-note reveal">Then wire the <code>jidoka</code> binary (or <code>npx @forwardimpact/jidoka</code>) into your checks, so the line stops at the first drifted layer. Read the full standard in <a href="https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md">JIDOKA.md</a>.</p>
   </div>
 </div>
