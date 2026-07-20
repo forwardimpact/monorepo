@@ -28,7 +28,8 @@ Architectural non-negotiables — the shape of the codebase.
 
 The mechanically checkable subset lives in `.jidoka/invariants/*.rules.mjs`,
 run by `bun run invariants` (inside `bun run check`); add rules with the
-[jidoka-invariant](.claude/skills/jidoka-invariant/SKILL.md) skill.
+[jidoka-invariant](.claude/skills/jidoka-invariant/SKILL.md) skill. The
+instruction layers these checks protect are defined in [JIDOKA.md](JIDOKA.md).
 
 ## Checklists
 
