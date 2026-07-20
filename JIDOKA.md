@@ -84,7 +84,7 @@ or "missing verification."
 ## L0 — System Prompt
 
 Loaded once per session by the harness — Claude Code's own prompt for
-interactive runs or `libeval` prompt for agent workflows.
+interactive runs or `libharness` prompt for agent workflows.
 
 ### Properties of Good System Prompts
 

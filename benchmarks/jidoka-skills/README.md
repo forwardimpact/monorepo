@@ -3,7 +3,7 @@
 Task family for `fit-benchmark` targeting the `forwardimpact/jidoka-skills`
 skill pack. Runs on manual dispatch via `eval-jidoka.yml`.
 
-Two tasks exercise the two ends of adopting the Co-Aligned standard in a
+Two tasks exercise the two ends of adopting the Jidoka standard in a
 repository: **bootstrapping the architecture** with `jidoka-setup`, and
 **authoring a job** with `jidoka-jtbd`. Each task is self-contained — a small
 fixture project, a single skill under test, and grading that never enters the
@@ -18,7 +18,7 @@ agent's working directory.
 
 `bootstrap-repo` is the primary task: it exercises the full setup path and
 verifies the auto-loaded `CLAUDE.md` advertises the discovery conventions for
-both jobs and checklists — the L1 property the Co-Aligned standard defines.
+both jobs and checklists — the L1 property the Jidoka standard defines.
 
 Run a single task with `--task`:
 

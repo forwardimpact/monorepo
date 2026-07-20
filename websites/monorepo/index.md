@@ -114,7 +114,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Root Files</div>
       <h2 class="section-headline">Three files. One job each. None restates another.</h2>
-      <p class="section-body">These three files come from the Co-Aligned standard that Monorepo builds on; here they orient you the moment you open the repository. A link is cheaper than a duplicate, so each points at the others rather than repeating them.</p>
+      <p class="section-body">These three files come from the Jidoka standard that Monorepo builds on; here they orient you the moment you open the repository. A link is cheaper than a duplicate, so each points at the others rather than repeating them.</p>
     </div>
     <div class="rootfile-grid stagger">
       <div class="rootfile-card stagger-item">

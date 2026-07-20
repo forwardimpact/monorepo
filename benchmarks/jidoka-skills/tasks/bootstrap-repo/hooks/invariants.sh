@@ -14,7 +14,7 @@ check jtbd-present         --gate --exists "$JTBD"
 # The L1 discovery property: the auto-loaded CLAUDE.md surfaces how BOTH jobs
 # and checklists are found. Match the tag names the discovery conventions use
 # (case-insensitive, multiline). Missing the checklist half is a real failure —
-# it is exactly the property the Co-Aligned standard requires L1 to advertise.
+# it is exactly the property the Jidoka standard requires L1 to advertise.
 check claude-surfaces-jobs       --grep '<job' "$CLAUDE" \
   --message "CLAUDE.md does not surface job discovery"
 check claude-surfaces-read-do    --grep 'read_do_checklist' "$CLAUDE" \

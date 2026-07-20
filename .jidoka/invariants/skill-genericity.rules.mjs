@@ -54,7 +54,7 @@ const PATTERNS = [
     reason: "internal runner — invoke fit-*/gemba-* CLIs bare",
   },
   {
-    pattern: "\\bnpx (fit-|gemba-|jidoka|kata-)",
+    pattern: "\\bnpx (fit-|gemba-|jidoka\\b|kata-)",
     reason: "CLIs are invoked bare — drop the npx prefix",
   },
   {

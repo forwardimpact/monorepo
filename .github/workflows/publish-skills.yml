@@ -84,11 +84,11 @@ jobs:
             readme-intro: >-
               Skills for standing up and maintaining a
               [Forward Impact](https://forwardimpact.team)-style monorepo — the
-              cross-cutting setup that composes the Co-Aligned and Kata packs.
+              cross-cutting setup that composes the Jidoka and Kata packs.
             apm-description: >-
               Skills for bootstrapping a Forward Impact-style monorepo end to
               end — repository structure, instruction architecture, and the Kata
-              Agent Team — composing the Co-Aligned and Kata packs.
+              Agent Team — composing the Jidoka and Kata packs.
           # Outpost is a product-local pack: its skills and agents live under
           # the installation template, not repo-root .claude, and its skills
           # share no common prefix — the directory itself is the pack boundary,

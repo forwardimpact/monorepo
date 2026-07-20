@@ -46,8 +46,8 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "@forwardimpact/libinvariant": "^0.2.0",
     "@forwardimpact/libcli": "^0.1.17",
+    "@forwardimpact/libinvariant": "^0.2.0",
     "@forwardimpact/libpreflight": "^0.1.4",
     "@forwardimpact/libutil": "^0.1.100"
   },

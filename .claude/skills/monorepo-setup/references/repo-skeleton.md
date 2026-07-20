@@ -47,9 +47,7 @@ apm_modules/      # APM writes this on first install
 ```
 
 `jidoka` resolves from this devDependency — the bin ships in the product
-package, and there is no bare npm launcher. Pin a version whose budgets exempt
-YAML frontmatter (0.1.15+); published skill packs carry publish-injected
-frontmatter that otherwise breaches the caps.
+package, and there is no bare npm launcher.
 
 ## scripts/bootstrap.sh
 

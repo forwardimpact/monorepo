@@ -1,6 +1,6 @@
 ---
 title: Meta
-description: The system that emerged from building the Forward Impact products — Monorepo, Co-Aligned, and Kata.
+description: The system that emerged from building the Forward Impact products — Monorepo, Jidoka, and Kata.
 toc: false
 ---
 
@@ -13,7 +13,7 @@ layers and made them their own thing.
 ```text
    Kata        ← autonomous agent team running PDSA
     ▲
-   Co-Aligned  ← instruction architecture standard
+   Jidoka      ← instruction architecture standard
     ▲
    Monorepo    ← repository structure standard
 ```

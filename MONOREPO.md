@@ -10,7 +10,7 @@ This standard defines the _shape_ of a repository shared by humans and coding
 agents — the top-level directories and how the universal root files and jobs map
 onto them. It builds on the
 [Jidoka Instruction Architecture](JIDOKA.md), which defines the
-instruction layers and the universal root files every co-aligned repository
+instruction layers and the universal root files every adopting repository
 carries (`CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and the JTBD conventions).
 This standard adds the directory shape those files live in.
 
@@ -114,7 +114,7 @@ the directory shape (below), and the tooling split `CLAUDE.md` spells out
 ## Jobs Across the Directory Shape
 
 Jobs distribute across the codebase so they live near the code that serves them
-— the placement this repo's shape gives the Co-Aligned job conventions:
+— the placement this repo's shape gives the Jidoka job conventions:
 
 - **Big Hires** — the adoption decision per persona-outcome pair. Live in
   [JTBD.md](JTBD.md), using the full entry structure from the

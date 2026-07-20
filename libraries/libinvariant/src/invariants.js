@@ -43,7 +43,14 @@ function registerBundledRuleDeps() {
  */
 export function findInvariantsRoot(runtime, rulesDir) {
   const found = runtime.finder.findUpward(runtime.proc.cwd(), rulesDir, 8);
-  return found ? resolve(found, "../..") : runtime.finder.findProjectRoot();
+  if (!found) return runtime.finder.findProjectRoot();
+  // Climb back out of the found rules directory — one level per segment of
+  // the caller-supplied path — to land on the project root that contains it.
+  const climb = rulesDir
+    .split("/")
+    .filter(Boolean)
+    .map(() => "..");
+  return resolve(found, ...climb);
 }
 
 // Generic host for repo-local invariant rule modules. A rule module is a
@@ -120,7 +127,7 @@ export async function loadRuleModules({ root, rulesDir, runtime }) {
  * subjects, then apply its rule catalogue through the shared rules engine.
  *
  * @param {object[]} modules - Rule-module default exports.
- * @param {{ root: string, runtime: import('@forwardimpact/libutil/runtime').Runtime, dir?: string }} options
+ * @param {{ root: string, runtime: import('@forwardimpact/libutil/runtime').Runtime, dir: string }} options
  *   `dir` is the modules' directory (for co-located config), supplied by
  *   the caller alongside the rules it loaded.
  * @returns {Promise<object[]>} Structured findings; empty when conformant.

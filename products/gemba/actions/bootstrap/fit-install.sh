@@ -576,9 +576,13 @@ ch_apt() {
 
 ch_npm() {
   # Our gear CLIs publish to npm as node launchers; a global install puts the
-  # command on PATH (npm's global bin is already there). Not every gear CLI is
-  # published (jidoka is not yet), so a 404 just falls through.
-  npm install -g "$1" >/dev/null 2>&1 || return 1
+  # command on PATH (npm's global bin is already there). jidoka has no bare
+  # launcher — the bare npm name belongs to an unrelated third-party package,
+  # which this mapping must never install — so it resolves via its scoped
+  # product package. A CLI not yet published 404s and falls through.
+  local pkg="$1"
+  [ "$1" = jidoka ] && pkg="@forwardimpact/jidoka"
+  npm install -g "$pkg" >/dev/null 2>&1 || return 1
   echo "Installed $1 $("$1" --version 2>/dev/null | head -1) (npm)"
 }
 

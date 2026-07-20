@@ -18,7 +18,7 @@ governs (invariants, rules, policy), and JTBD.md catalogues the Big Hires.
 Jobs are wrapped in a semantic `<job>` tag so any of them is discoverable
 from anywhere with one `rg` search.
 
-Monorepo builds on the Co-Aligned instruction architecture — which defines
+Monorepo builds on the Jidoka instruction architecture — which defines
 those three root files and the `<job>` convention — and adds the directory
 shape they live in. The Kata Agent Team implements the whole standard as a
 daily loop.
