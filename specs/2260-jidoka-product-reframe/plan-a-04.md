@@ -9,6 +9,11 @@ post-2250 ones.
 
 ## Step 4.0 — Sibling repository operations (pre-merge)
 
+Pre-flight: confirm spec 2250's train actually completed — its repin PR
+merged and the workflows' `clis:` values install `gemba-*` names (at plan
+time they still read `fit-wiki`/`fit-harness fit-trace fit-wiki`, i.e. the
+2250 train was pending). Do not start this train on a pre-repin tree.
+
 In the authenticated `gh` environment:
 
 1. Rename the GitHub repository `forwardimpact/coaligned-skills` →

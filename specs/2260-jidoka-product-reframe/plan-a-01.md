@@ -3,7 +3,9 @@
 One part because the `public-cli-set` invariant and the workspace couple the
 bin, the launcher set, and the invariant rules: any split leaves a bin
 without its package or a scanner without its prefix and fails CI. Sub-steps
-are verification units, not commit boundaries.
+are verification units, not commit boundaries — and Steps 1.1–1.3 form one
+unit: the package resolves and the bin runs only after the library rename
+lands, so run their verify lines once Step 1.3 completes.
 
 ## Step 1.1 — Scaffold `products/jidoka/package.json`
 
@@ -46,6 +48,7 @@ no `src/`, no hand-authored `README.md` (Gear/Gemba precedent).
   "type": "module",
   "bin": { "jidoka": "./bin/jidoka.js" },
   "files": ["bin/**/*.js"],
+  "scripts": { "test": "bun test test/*.test.js" },
   "dependencies": {
     "@forwardimpact/libinvariant": "^0.2.0",
     "@forwardimpact/libcli": "^0.1.17",
@@ -59,8 +62,9 @@ no `src/`, no hand-authored `README.md` (Gear/Gemba precedent).
 
 Version `0.2.0` seeds above the renamed pack sibling's retained `v0.1.x` tag
 floor (design § Components). Dependency ranges track the workspace at
-implementation time; the four packages are exactly what the bin imports. No
-`scripts.test` — the moved goldens (Step 1.8) have no runner test.
+implementation time; the four packages are exactly what the bin imports, and
+the `libinvariant ^0.2.0` range resolves against the version Step 1.3 seeds.
+`scripts.test` runs the golden replay test Step 1.8 wires.
 
 **Verify:** `bun install` resolves; `bun run context:check-jtbd` passes the
 new jobs entry (run `bun run context:fix` first to regenerate `JTBD.md`).
@@ -106,12 +110,13 @@ products/jidoka/bin/jidoka.js invariants` passes against the Step 1.4 tree.
 
 | File | Change |
 | --- | --- |
-| `package.json` | `name` → `@forwardimpact/libinvariant`; `description` → "Repository invariant checks — instruction-layer length caps, JTBD block validation, and a declarative rule-module runner over a caller-supplied rules directory."; `keywords` swap `coaligned` → `invariants` family tokens; `repository.directory` → `libraries/libinvariant`; delete the `bin` field and the `./bin/coaligned.js` export (root export `.` → `./src/index.js` stays); drop `bin/**/*.js` from `files`. The `jobs` entry keeps its goal; name tokens only. |
+| `package.json` | `name` → `@forwardimpact/libinvariant`; `version` → `0.2.0` (0.x minor over 0.1.18 signals the breaking rename and matches the Step 4.1 tag — the product's `^0.2.0` range resolves in-workspace); `description` → "Repository invariant checks — instruction-layer length caps, JTBD block validation, and a declarative rule-module runner over a caller-supplied rules directory."; `keywords` swap `coaligned` → `invariants` family tokens; `repository.directory` → `libraries/libinvariant`; delete the `bin` field and the `./bin/coaligned.js` export (root export `.` → `./src/index.js` stays); drop `bin/**/*.js` from `files`. The `jobs` entry keeps its goal; name tokens only. |
 | `src/index.js` | Drop the `INVARIANTS_DIR` re-export; other exports unchanged. |
 | `src/invariants.js` | Delete `export const INVARIANTS_DIR`; `findInvariantsRoot(runtime)` → `findInvariantsRoot(runtime, rulesDir)` (required — the one signature change); `loadRuleModules` and `checkInvariants` lose the `rulesDir` default (required option); `runRuleModules` loses the `dir` default (required option); `Bun.plugin` name `coaligned-rule-deps` → `invariant-rule-deps`; JSDoc/comments naming `.coaligned/invariants` → "the caller-supplied rules directory". |
 | `src/instructions.js`, `src/enum-drift.js` | Name tokens in comments/strings only (`rg -n -i coaligned` the two files); behavior untouched. |
 | `README.md` | Rename wholesale: import-only library, no CLI; point "run the checks" readers at the Jidoka product (`npx @forwardimpact/jidoka` or the installed binary). |
-| `test/invariants.test.js`, `test/invariant-kit.test.js` | Pass the now-required `rulesDir`/`dir` explicitly with brand-free fixture paths (e.g. `rules/invariants`); assert `findInvariantsRoot` against the passed directory. Handler and component tests otherwise stay put. |
+| `test/invariants.test.js`, `test/invariant-kit.test.js` | Pass the now-required `rulesDir`/`dir` explicitly with brand-free fixture paths (e.g. `rules/invariants`); assert `findInvariantsRoot` against the passed directory. |
+| `test/enumeration-drift.test.js` | Its live-repo read (L98) repoints to `.jidoka/invariants/enumeration-drift.topics.yml` in lockstep with Step 1.4's `git mv` — the one library test wired to the real config directory. Handler and component tests otherwise stay put. |
 
 **Verify:** `test ! -d libraries/libcoaligned`; `rg -n '"bin"'
 libraries/libinvariant/package.json` returns nothing;
@@ -125,7 +130,7 @@ self-referential tokens inside them — inventory of the non-mechanical edits:
 
 | File | Change |
 | --- | --- |
-| `public-cli-set.rules.mjs` | `PUBLISHED_NON_FIT_CLIS` → `[]` — the launcher retires with no successor (spec SC11); keep the escape hatch with a comment describing when a non-`fit`/`gemba` public CLI would be named. Header and L51-56 comments drop the `coaligned` example. |
+| `public-cli-set.rules.mjs` | `PUBLISHED_NON_FIT_CLIS` → `[]` — the launcher retires with no successor (spec SC11); keep the escape hatch with a comment describing when a non-`fit`/`gemba` public CLI would be named. Header and L51-56 comments drop the `coaligned` example. The `SIBLING_ACTION_CLIS` comment records the deliberate exclusion: the published `jidoka` action invokes the `jidoka` CLI, yet the name stays out of both lists — listing it would compute a launcher the squatted bare npm name forbids. |
 | `skill-genericity.rules.mjs` | npx pattern → `"\\bnpx (fit-|gemba-|jidoka|kata-)"`; website pattern → `"websites/(fit|kata|jidoka|monorepo)\\b"`; out-of-scope comment `coaligned-*` → `jidoka-*`; hint paths → `.jidoka/invariants/…`. |
 | `skill-template.rules.mjs` | `PACK_SKILL` → `(kata\|jidoka\|monorepo)`; both `coaligned-*` globs → `jidoka-*`; `NPX_PATTERNS` becomes two patterns — `"\\bnpx (fit-\|kata-)"` (unchanged reason) and `"\\b(npx\|bunx) jidoka\\b"` with reason "resolves the squatted third-party jidoka package — invoke the installed binary bare, or npx @forwardimpact/jidoka"; drop the `!**/check-workflows.md` exclusion and its header paragraph (the CI templates switch to the scoped form, Step 3.3, which matches neither pattern). |
 | `enumeration-drift.topics.yml`, `ambient-deps.{rules.mjs,allow.yml,deny.yml}`, `shared-workspace-staging.rules.mjs`, `subprocess-in-tests.rules.mjs`, `temporal.rules.mjs`, `model-defaults.rules.mjs`, `enumeration-drift.rules.mjs`, `skill-template.rules.mjs` hints | Mechanical: `.coaligned/invariants/…` paths (incl. `temporal.rules.mjs`/`model-defaults.rules.mjs` self-exclude globs and the `model-defaults` `paths` array entry `".coaligned"` → `".jidoka"`), `bunx coaligned invariants --seed …` → `bunx jidoka invariants --seed …`, `libcoaligned` prose → `libinvariant`. |
@@ -164,7 +169,7 @@ and no `jidoka` dir (spec SC11).
 | File | Change |
 | --- | --- |
 | `build/cli-manifest.json` | Entry `"name": "coaligned"` → `"jidoka"`; `targets` and `bundle: "gear"` unchanged (spec SC12). `build-binary.sh` resolves the name against the new `products/jidoka/package.json` bin at build time. |
-| `products/gemba/actions/bootstrap/fit-install.sh` | `DEFAULT_TOOLS` member `coaligned` → `jidoka` (L61); `is_gear_binary` case pattern → `fit-*\|gemba-*\|jidoka` (L127); comment mentions at L11, L42, L57, L64-66, L92, L124-125, L249, L580. `FIT_GEAR_RELEASE` default is **not** bumped here — Step 4.2 owns it; the script only executes via the pinned sibling until then. |
+| `products/gemba/actions/bootstrap/fit-install.sh` | `DEFAULT_TOOLS` member `coaligned` → `jidoka` (L61); `is_gear_binary` case pattern → `fit-*\|gemba-*\|jidoka` (L127); comment mentions at L11, L42, L57, L66, L92, L125, L249, L580. `FIT_GEAR_RELEASE` default is **not** bumped here — Step 4.2 owns it; the script only executes via the pinned sibling until then. |
 | `.github/workflows/publish-npm.yml` | Inline check step: import → `@forwardimpact/libcoaligned` becomes `@forwardimpact/libinvariant`; rules-module path and `dir` → `.jidoka/invariants` (L56/58/62). |
 
 **Verify:** `jq -r '.clis[].name' build/cli-manifest.json` lists `jidoka`
@@ -181,12 +186,12 @@ and no `coaligned`; `bash -n products/gemba/actions/bootstrap/fit-install.sh`.
 
 **Verify:** `bun run invariants`, `bun run context` green.
 
-## Step 1.8 — Golden fixtures
+## Step 1.8 — Golden fixtures and the replay test
 
-`git mv libraries/libcoaligned/test/golden/coaligned
-products/jidoka/test/golden/jidoka` (moves with the Step 1.3 `git mv`;
-relocate from the renamed library), then regenerate all five cases from
-actual output:
+`git mv libraries/libinvariant/test/golden/coaligned
+products/jidoka/test/golden/jidoka` (the golden dir travels into
+`libinvariant` with Step 1.3's rename; this moves it out), then regenerate
+all five cases from actual output:
 
 ```sh
 node scripts/capture-cli-golden.mjs --bin jidoka \
@@ -198,27 +203,37 @@ node scripts/capture-cli-golden.mjs --bin jidoka \
 three subcommand helps — 10 snapshot files). The capture script itself names
 no CLI and needs no edit.
 
+**Created:** `products/jidoka/test/golden.test.js` — the goldens gain an
+automated consumer: for each `cases.json` entry, spawn the bin with the
+case's args, apply its `transform` regexes, and byte-compare stdout/stderr
+and exit code against the snapshots. Spawn-based (unlike
+`products/gemba/test/golden.test.js`'s in-process replay) because the
+jidoka definition lives inline in the bin, not behind a library export.
+
 **Verify:** `git diff --stat products/jidoka/test/golden/jidoka` shows every
 `.txt` regenerated; no `coaligned` token remains in the snapshots
-(`rg -n coaligned products/jidoka/test`); re-running the capture command
-produces no further diff.
+(`rg -n coaligned products/jidoka/test`); `bun test products/jidoka` green;
+re-running the capture command produces no further diff.
 
 ## Step 1.9 — Part gate
 
-Blanket-check the part's three families across the tree, excluding the
-surfaces later parts own:
+First `bun install` (regenerates `bun.lock` for the renamed workspace) and
+`bun run context:fix` (regenerates the `libraries/README.md` catalog and
+jobs blocks, whose `libcoaligned` tokens flip to `libinvariant` from the
+renamed package). Then blanket-check the part's two families across the
+tree, excluding the surfaces later parts own:
 
 ```sh
 rg -n -i --hidden --no-ignore 'libcoaligned|\.coaligned' \
   --glob '!.git/**' --glob '!node_modules/**' --glob '!specs/**' \
   --glob '!wiki/**' --glob '!**/CHANGELOG.md' --glob '!bun.lock' \
   --glob '!.claude/skills/**' --glob '!benchmarks/**' --glob '!websites/**' \
-  --glob '!references/**' --glob '!COALIGNED.md'
+  --glob '!references/**' --glob '!/COALIGNED.md' \
+  --glob '!/.github/workflows/publish-skills.yml'
 ```
 
 Inspect every returned line — the expected result is empty
 (`CONTRIBUTING.md` and `MONOREPO.md` path references were updated in Steps
 1.4/1.7; the excluded globs are Part 2/3 surfaces — skills, benchmarks,
-websites, living templates, and the standard). Then `bun install`
-(regenerates `bun.lock`), `bun run context:fix`, `bun run check`, `bun run
-test` green.
+websites, living templates, the standard, and the pack leg's `version-file`
+lines that Step 3.4 owns). Then `bun run check` and `bun run test` green.

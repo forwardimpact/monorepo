@@ -72,9 +72,10 @@ trigger-condition structure); body prose swaps "Co-Aligned" → "Jidoka
 instruction architecture"; CLI invocations stay **bare** (`jidoka`,
 `jidoka instructions`, `jidoka jtbd --fix`, `jidoka invariants --seed …`);
 asset paths self-update (`.claude/skills/jidoka-setup/assets/…`); the
-`## Documentation` lists carry the same two entries as the bin's
-`documentation` array (Step 1.2): the JIDOKA.md standard and the
-`libinvariant` README URLs.
+`## Documentation` lists carry the same two entries, same order, as the
+bin's `documentation` array (Step 1.2): the JIDOKA.md standard and the
+Jidoka website — replacing the current standard + `libcoaligned`-README
+pair (the parity rule, `.claude/skills/CLAUDE.md` § Parity with CLIs).
 
 Cross-reference inventory (all in the same commit):
 
@@ -82,11 +83,11 @@ Cross-reference inventory (all in the same commit):
 | --- | --- |
 | Intra-pack links | setup → {layer, jtbd, invariant, audit}; audit → {layer, jtbd}; layer → {setup}; `structure-decision.md` uses `../../jidoka-jtbd/…`. |
 | `jidoka-setup` assets | `jobs-and-checklists.md` L6 CLI prose; `no-conflict-markers.rules.mjs` L5 skill-name comment. Step 4 wiring prose: the published CLI package is `@forwardimpact/jidoka`. |
-| `.claude/skills/monorepo-setup/SKILL.md` | Every `coaligned-setup` → `jidoka-setup` (9 sites); L83 → `apm install forwardimpact/jidoka-skills forwardimpact/kata-skills --target claude`; L148 brand link → `https://www.jidoka.team/`; L46/112 `.coaligned/` → `.jidoka/`. |
+| `.claude/skills/monorepo-setup/SKILL.md` | Every `coaligned-setup` → `jidoka-setup` (10 sites); L83 → `apm install forwardimpact/jidoka-skills forwardimpact/kata-skills --target claude`; L148 brand link → `https://www.jidoka.team/`; L46/112 `.coaligned/` → `.jidoka/`. **Semantic rewrite at L74-77** — the token codemod would produce a false claim there: the passage becomes "the `jidoka` bin ships in the product package `@forwardimpact/jidoka` (no bare launcher), so add it as a devDependency" with the version parenthetical → `0.2.0+`; no `rg` gate can catch this one, so it is named here. |
 | `monorepo-setup/references/check-workflows.md` | Generated CI templates: `npx coaligned <sub>` → `npx @forwardimpact/jidoka <sub>` (clean runners resolve from the registry; the bare name is squatted — plan-a.md § invocation rule); prose skill names. |
 | `monorepo-setup/references/repo-skeleton.md` | devDependency → `"@forwardimpact/jidoka": "^0.2.0"`; `"check": "jidoka"`; resolution prose (the bin comes from the product package). |
 | `monorepo-setup/references/wiki-init.md` | L6/57 skill names. |
-| `references/bionova-apps/{spec.md,plan-a.md,plan-a-01.md}` | Living templates: `coaligned-setup` → `jidoka-setup`, `coaligned-skills` → `jidoka-skills`, `.coaligned/` → `.jidoka/`, CLI tokens (16 lines per the sweep). |
+| `references/bionova-apps/{spec.md,plan-a.md,plan-a-01.md}` | Living templates: `coaligned-setup` → `jidoka-setup`, `coaligned-skills` → `jidoka-skills`, `.coaligned/` → `.jidoka/`, CLI tokens (14 lines per the sweep). |
 
 **Verify:** `ls .claude/skills/ | rg coaligned` empty (spec SC8);
 `bun run invariants` green — `skill-template` and `skill-genericity` now
@@ -140,7 +141,11 @@ rg --hidden --no-ignore -n -i coaligned \
 Inspect every returned line. Allowed remainders: the migration note in
 `JIDOKA.md` and the pack `readme-intro` in `publish-skills.yml` — nothing
 else (the workflow-pin remainder class the spec reserves is empty: no
-`clis:` list or pin line carries the token). Then `bun run context:fix`,
+`clis:` list or pin line carries the token; the action README's migration
+pointer is phrased without the old name — Step 2.1). The `!bun.lock` glob
+is a deliberate addition over SC5's pinned command: Step 1.9's `bun
+install` already regenerated the lock, and the glob only guards a stale
+interim run. Then `bun run context:fix`,
 `bun run check`, and `bun run test` green — final gate for the PR. Confirm
 the diff touches neither deferred decision (no DNS config, no bare-name
 launcher — spec SC17).

@@ -16,7 +16,9 @@ release-and-repin chain whose first step (sibling repo operations) executes
 blanket replace of the token families with a keep-list, verified by scoped
 `rg` gates, with golden fixtures regenerated from actual CLI output.
 
-Libraries used: none.
+Libraries used: libinvariant (the renamed library's existing handlers —
+`checkInstructions`, `checkJtbd`, the invariant kit — consumed by the moved
+bin); no new library dependencies.
 
 ## 2250 interaction points, re-verified
 
@@ -91,8 +93,11 @@ skill dirs, and the scanner prefix lists, so the rename must reach `main`
 atomically. Each part ends with `bun run context:fix`, then `bun run check`
 and `bun run test` green. Part 4's step 4.0 (sibling repo rename + creation)
 runs **before** the PR merges; the remaining steps run immediately after, by
-`release-engineer`, same-day. No parts run in parallel. PR editorial review
-covers the `JIDOKA.md` and website reframes (spec SC9/SC10).
+`release-engineer`, same-day. No parts run in parallel. Part 3 stays with
+`staff-engineer` despite its docs weight — its scanner regexes, pack leg,
+and skill dirs must land in lockstep with Parts 1–2 on the one branch; PR
+editorial review covers the `JIDOKA.md` and website reframes (spec
+SC9/SC10).
 
 ## Risks
 
@@ -122,10 +127,10 @@ covers the `JIDOKA.md` and website reframes (spec SC9/SC10).
   tokens. Flipping the skill dirs (Part 3) without the Part 1 rule edits —
   or vice versa across an aborted rebase — silently un-scans the renamed
   skills; the parts land on one branch precisely so CI sees them together.
-- **Goldens have no automated consumer.** `test/golden/coaligned/` (5 cases,
-  10 snapshot files + `cases.json`) is consumed only by the capture script's
-  conventions; nothing fails CI if regeneration is skipped. Step 1.8 makes
-  regeneration explicit and its verify line diffs the output.
+- **Goldens previously had no automated consumer.** `test/golden/coaligned/`
+  (5 cases, 10 snapshot files + `cases.json`) is consumed only by the
+  capture script's conventions today; Step 1.8 regenerates it and wires a
+  spawn-replay test in the product so a stale snapshot fails CI from now on.
 - **`publish-npm.yml` inline check.** Its build-kit import and rules path
   flip in Part 1; a tag cut between merge and any missed edit would fail the
   publish loudly (import error), not silently — acceptable, but keep the

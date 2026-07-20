@@ -19,7 +19,9 @@ then edit `action.yml`:
 usage doc in the `harness`/`kata-agent` shape: what the action does, the
 bootstrap prerequisite (`forwardimpact/bootstrap@v1` installs `jidoka` as a
 default tool), a `uses: forwardimpact/jidoka@v1` YAML example with the three
-inputs, and the migration pointer for `coaligned-check` adopters.
+inputs, and a pointer for adopters of the predecessor check action —
+phrased without the old name, linking the `JIDOKA.md` migration note, so
+the rename gates (Steps 2.6, 3.6, spec SC5) stay clean.
 
 **Verify:** `test ! -d .github/actions/coaligned-check`;
 `products/jidoka/actions/jidoka/action.yml` parses (`bunx js-yaml` or CI).
@@ -60,11 +62,11 @@ this merges: Step 4.0.
   table drops the `coaligned-check` row.
 - `KATA.md` L44 local-actions sentence drops `coaligned-check/` (only
   `audit/` remains).
-- Refresh the three `sibling-composite-actions` enum fences (source of
+- Refresh the four `sibling-composite-actions` enum fences (source of
   truth is the table just edited): `bunx jidoka invariants --seed
   enumeration-drift` prints the canonical bodies; update the `CLAUDE.md`
-  list fence, the `KATA.md` count+list fences, and the `.github/CLAUDE.md`
-  count fence to match.
+  list fence, the `KATA.md` count and list fences, and the
+  `.github/CLAUDE.md` count fence to match.
 
 **Verify:** `bun run invariants` green (enumeration-drift agrees across the
 four consumers).
