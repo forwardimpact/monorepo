@@ -17,11 +17,11 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
+      - uses: forwardimpact/bootstrap@71bd75533e5bc5f3046004839ab1b1c36261b033 # v1.0.17
         with:
           # gemba-benchmark runs the benchmark binary straight off PATH.
-          clis: fit-benchmark
-      - uses: forwardimpact/benchmark@f0ed6cd1bd94ba00a494a19d8c8d858b68cbefd2 # v1.0.4
+          clis: gemba-benchmark
+      - uses: forwardimpact/benchmark@9cf5ddb6f86afa13931bd204addd14e4517aa4a9 # v1.0.6
         with:
           family: ./benchmarks/fit-wiki
           runs: "5"

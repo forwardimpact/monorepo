@@ -104,14 +104,14 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
+      - uses: forwardimpact/bootstrap@71bd75533e5bc5f3046004839ab1b1c36261b033 # v1.0.17
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
           # gemba-harness (the eval run) needs gemba-harness + gemba-trace on PATH;
           # the gemba-wiki push step needs gemba-wiki. All resolve as binaries.
-          clis: fit-harness fit-trace fit-wiki
+          clis: gemba-harness gemba-trace gemba-wiki
 
       - name: Build data pipeline
         shell: bash
@@ -160,7 +160,7 @@ jobs:
         run: echo "dir=$(mktemp -d)" >> "$GITHUB_OUTPUT"
 
       - name: Run eval
-        uses: forwardimpact/harness@b7409ad9a1df4ff75eca8fe68041b5384f75bd7e # v1.0.3
+        uses: forwardimpact/harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -178,7 +178,7 @@ jobs:
 
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/wiki@f88ea81402d4d3411baf9ca0a38cafb11dfa7f60 # v1.0.1
+        uses: forwardimpact/wiki@ad0042953508240d061ecfb288ce6990247cbd9d # v1.0.2
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}
