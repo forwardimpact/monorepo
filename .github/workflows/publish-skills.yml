@@ -34,12 +34,11 @@ jobs:
       fail-fast: false
       matrix:
         pack:
-          # The fit leg stays single-prefix while the pinned bootstrap installs
-          # a fit-pack binary that parses only one --prefix (last flag wins):
-          # "fit gemba" would silently stage a fit-skills pack stripped of
-          # every fit-* skill. Flipping it to "fit gemba" requires a bootstrap
-          # pin whose fit-pack accepts repeated --prefix flags.
-          - prefix: fit
+          # The fit leg carries two prefixes: the fit-* skills plus the gemba
+          # product and gemba-* capability skills ship in the same fit-skills
+          # pack. Requires a bootstrap pin whose fit-pack accepts repeated
+          # --prefix flags (gear@v0.2.0+).
+          - prefix: fit gemba
             repo: fit-skills
             version-file: products/gear/package.json
             sync-agents: "false"
@@ -127,7 +126,7 @@ jobs:
           vulnerability-scanning: "false"
           secret-scanning: "true"
 
-      - uses: forwardimpact/bootstrap@3d474156f8e1c77f7ed94609912d9de3756896ff # v1.0.15
+      - uses: forwardimpact/bootstrap@71bd75533e5bc5f3046004839ab1b1c36261b033 # v1.0.17
         with:
           clis: fit-pack
 
