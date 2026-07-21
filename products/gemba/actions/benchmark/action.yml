@@ -100,20 +100,18 @@ runs:
     - name: Install apm
       if: inputs.mode == 'run'
       shell: bash
+      env:
+        GEAR_RELEASE: gear@v0.3.0
       run: |
+        # The released installer owns the pinned, SHA-verified apm version, so
+        # this action carries no duplicate pin. bootstrap usually provides apm
+        # already; the guard skips the download then.
         if command -v apm &>/dev/null; then
           echo "apm already available: $(apm --version)"
         else
-          APM_VERSION="0.12.4"
-          ARCH=$(uname -m)
-          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-          APM_DIR="$HOME/.local/lib/apm"
-          mkdir -p "$APM_DIR" "$HOME/.local/bin"
-          curl -fsSL "https://github.com/microsoft/apm/releases/download/v${APM_VERSION}/apm-${OS}-${ARCH}.tar.gz" \
-            | tar -xz -C "$APM_DIR" --strip-components=1
-          ln -sf "$APM_DIR/apm" "$HOME/.local/bin/apm"
+          curl -fsSL "https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}/fit-install.sh" \
+            | bash -s -- --only apm
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          echo "Installed apm $("$APM_DIR/apm" --version)"
         fi
 
     - name: Resolve paths

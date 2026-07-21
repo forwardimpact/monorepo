@@ -27,8 +27,9 @@
 # Two tools stay on the pinned download path on BOTH platforms (no brew): `claude`
 # is the SDK-embedded Claude Code CLI whose version must track
 # @anthropic-ai/claude-agent-sdk in libraries/libharness/package.json, and `apm`
-# is pinned to a version other tooling (benchmarks, the benchmark action) agrees
-# on. Moving either onto brew later is a one-line TOOL_TABLE edit.
+# is pinned here as the single source of its version — the benchmark action
+# installs it via `--only apm`. Moving either onto brew later is a one-line
+# TOOL_TABLE edit.
 #
 # This file is published verbatim as a GitHub Release asset (fit-install.sh),
 # so any environment can bootstrap with a single line, no repo checkout needed:
@@ -36,7 +37,7 @@
 #   curl -fsSL <release-url>/fit-install.sh | bash -s -- gemba-trace gemba-wiki
 #
 # Usage:
-#   fit-install.sh [--paths] [NAME ...]
+#   fit-install.sh [--paths] [--only] [NAME ...]
 #
 #   NAME   An external tool (apm, just, gh, rg, gitleaks, claude) or a gear binary —
 #          any fit-*/gemba-* CLI (gemba-trace, gemba-harness, gemba-wiki, …) or jidoka.
@@ -45,6 +46,9 @@
 #            and exit. Consumed by fit-bootstrap to scope its actions/cache.
 #            On Darwin, brew-managed tools emit nothing (brew installs globally
 #            and is idempotent); only the $HOME/.local download tools are cached.
+#   --only   Install only the named tools, skipping the default set. For a job
+#            that needs a single CLI without the dev/CI toolchain (e.g. a
+#            report-only merge job). Requires at least one NAME.
 set -euo pipefail
 
 PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
@@ -129,25 +133,36 @@ is_gear_binary() { case "$1" in fit-*|gemba-*|jidoka) return 0 ;; *) return 1 ;;
 # ── --paths / argument parsing ───────────────────────────────────
 # The default set is ALWAYS installed; named gear CLIs add to it (deduped). So
 # `clis: fit-doc` yields the external tools plus fit-doc, never fit-doc alone —
-# bootstrap.sh still finds `just`.
+# bootstrap.sh still finds `just`. --only inverts this: install nothing but the
+# named tools, for a job that needs one CLI without the toolchain.
 PRINT_PATHS=0
 SOFT=0
+ONLY=0
 EXTRA=()
 for arg in "$@"; do
   case "$arg" in
     --paths) PRINT_PATHS=1 ;;
     --soft)  SOFT=1 ;;         # best-effort: report unavailable tools, still exit 0
+    --only)  ONLY=1 ;;         # skip the default set; install only the named tools
     *)       EXTRA+=("$arg") ;;
   esac
 done
-NAMES=("${DEFAULT_TOOLS[@]}")
-if [ "${#EXTRA[@]}" -gt 0 ]; then
-  for n in "${EXTRA[@]}"; do
-    case " ${NAMES[*]} " in
-      *" $n "*) ;;            # already in the default set
-      *)        NAMES+=("$n") ;;
-    esac
-  done
+if [ "$ONLY" = 1 ]; then
+  if [ "${#EXTRA[@]}" -eq 0 ]; then
+    echo "::error::--only requires at least one tool name" >&2
+    exit 1
+  fi
+  NAMES=("${EXTRA[@]}")
+else
+  NAMES=("${DEFAULT_TOOLS[@]}")
+  if [ "${#EXTRA[@]}" -gt 0 ]; then
+    for n in "${EXTRA[@]}"; do
+      case " ${NAMES[*]} " in
+        *" $n "*) ;;            # already in the default set
+        *)        NAMES+=("$n") ;;
+      esac
+    done
+  fi
 fi
 
 if [ "$PRINT_PATHS" = "1" ]; then
