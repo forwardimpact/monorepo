@@ -120,7 +120,7 @@ jobs:
           # action has no bunx/npx fallback. Requires a bootstrap pin whose
           # gear release publishes the gemba-* binaries.
           clis: gemba-benchmark
-      - uses: forwardimpact/benchmark@v1.0.6
+      - uses: forwardimpact/benchmark@v1.0.8
         with:
           mode: run
           family: ${{ inputs.family }}
@@ -140,16 +140,25 @@ jobs:
           # renders the full report over the combined ledger.
           summary-detail: compact
 
-  # Merge job: no agent scaffold — only Node for the report CLI. Download every
-  # shard's partial ledger and aggregate one combined pass@k report.
+  # Merge job: no agent scaffold — only the report CLI. Download every shard's
+  # partial ledger and aggregate one combined pass@k report.
   merge:
     needs: shard
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
-        with:
-          node-version: "22"
-      - uses: forwardimpact/benchmark@v1.0.6
+      # The action runs gemba-benchmark straight off PATH. The shard job gets
+      # it from forwardimpact/bootstrap, but bootstrap needs a repo checkout
+      # and this job carries none — so install the pinned, SHA-verified gear
+      # binary through the released installer. --only skips the default dev/CI
+      # tool set the installer would otherwise add.
+      - name: Install report CLI
+        env:
+          GEAR_RELEASE: gear@v0.3.1
+        run: |
+          curl -fsSL "https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}/fit-install.sh" \
+            | bash -s -- --only gemba-benchmark
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - uses: forwardimpact/benchmark@v1.0.8
         with:
           mode: merge
           # family is a required action input but unused in merge mode.
