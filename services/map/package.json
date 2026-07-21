@@ -47,7 +47,7 @@
     "@forwardimpact/libtype": "^0.1.67",
     "@forwardimpact/libutil": "^0.1.85",
     "@forwardimpact/map": "^0.15.12",
-    "@supabase/supabase-js": "^2.108.1"
+    "@supabase/supabase-js": "^2.110.8"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

@@ -45,8 +45,8 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1067.0",
-    "@aws-sdk/credential-providers": "^3.1067.0",
+    "@aws-sdk/client-s3": "^3.1092.0",
+    "@aws-sdk/credential-providers": "^3.1092.0",
     "@forwardimpact/libcli": "^0.1.0",
     "@forwardimpact/libconfig": "^0.1.58",
     "@forwardimpact/libpreflight": "^0.1.0",
