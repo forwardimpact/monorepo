@@ -120,7 +120,7 @@ jobs:
           # action has no bunx/npx fallback. Requires a bootstrap pin whose
           # gear release publishes the gemba-* binaries.
           clis: gemba-benchmark
-      - uses: forwardimpact/benchmark@v1.0.6
+      - uses: forwardimpact/benchmark@v1.0.8
         with:
           mode: run
           family: ${{ inputs.family }}
@@ -153,12 +153,12 @@ jobs:
       # tool set the installer would otherwise add.
       - name: Install report CLI
         env:
-          GEAR_RELEASE: gear@v0.3.0
+          GEAR_RELEASE: gear@v0.3.1
         run: |
           curl -fsSL "https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}/fit-install.sh" \
             | bash -s -- --only gemba-benchmark
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - uses: forwardimpact/benchmark@v1.0.6
+      - uses: forwardimpact/benchmark@v1.0.8
         with:
           mode: merge
           # family is a required action input but unused in merge mode.
