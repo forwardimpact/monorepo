@@ -17,7 +17,7 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/bootstrap@71bd75533e5bc5f3046004839ab1b1c36261b033 # v1.0.17
+      - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
       - name: Install diffoscope
         run: brew install diffoscope
       - name: First build
