@@ -170,7 +170,7 @@ Format: `type(scope): subject`
 
 `spec` = new specification documents in `specs/`.
 
-### Releasing
+## Releasing
 
 Tag prefix matches the directory: `libraries/libfoo` → `libfoo@v0.1.5`,
 `services/graph` → `svcgraph@v0.1.60`.
