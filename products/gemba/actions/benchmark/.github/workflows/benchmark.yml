@@ -153,7 +153,7 @@ jobs:
       # tool set the installer would otherwise add.
       - name: Install report CLI
         env:
-          GEAR_RELEASE: gear@v0.3.1
+          GEAR_RELEASE: gear@v0.3.2
         run: |
           curl -fsSL "https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}/fit-install.sh" \
             | bash -s -- --only gemba-benchmark

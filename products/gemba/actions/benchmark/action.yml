@@ -101,7 +101,7 @@ runs:
       if: inputs.mode == 'run'
       shell: bash
       env:
-        GEAR_RELEASE: gear@v0.3.1
+        GEAR_RELEASE: gear@v0.3.2
       run: |
         # The released installer owns the pinned, SHA-verified apm version, so
         # this action carries no duplicate pin. bootstrap usually provides apm
