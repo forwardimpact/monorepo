@@ -80,7 +80,7 @@ websites/       Public site sources (websites/fit/, websites/kata/, …)
 
 The products tree holds these
 <!-- enum:products-tree:count -->
-nine
+ten
 <!-- /enum -->
 products:
 
@@ -89,6 +89,7 @@ products:
 - gear
 - gemba
 - guide
+- jidoka
 - kata
 - landmark
 - map

@@ -14,7 +14,6 @@ can read and tune via JSON.
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **libbridge**          | Channel-to-agent-team bridge — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the agent team, with thread state, multi-tenant routing, rate limits, and resume scheduling handled once. |
 | **libcli**             | Agent-friendly CLIs — self-documenting entry points that humans and agents reach through the same interface.                                                                                                             |
-| **libcoaligned**       | Co-Aligned architecture checks — enforce instruction-layer length caps, JTBD invariants, and the repo's own declarative invariant rule modules.                                                                          |
 | **libcodegen**         | Protobuf code generation — keep types in sync with proto definitions without hand-writing.                                                                                                                               |
 | **libconfig**          | Environment-aware application settings — services and CLIs load configuration without custom plumbing.                                                                                                                   |
 | **libdoc**             | Static documentation sites from markdown — publish docs without a framework.                                                                                                                                             |
@@ -23,6 +22,7 @@ can read and tune via JSON.
 | **libharness**         | Autonomous agent team harness — coordinate a lead and participant agents in one async session, with eval, benchmark, and trace tooling to prove the changes worked.                                                      |
 | **libhttp**            | HTTP service framework — ship a Hono service endpoint without reimplementing lifecycle, security headers, or health checks.                                                                                              |
 | **libindex**           | JSONL-backed indexes with filtering and buffered writes — fast context lookup without an external search engine.                                                                                                         |
+| **libinvariant**       | Repository invariant checks — instruction-layer length caps, JTBD block validation, and a declarative rule-module runner over a caller-supplied rules directory.                                                         |
 | **libmacos**           | macOS bundle assembly, code signing, and OS permission helpers — desktop delivery without platform ceremony.                                                                                                             |
 | **libmcp**             | Config-driven gRPC-to-MCP tool registration — expose protobuf services as agent tools without glue code.                                                                                                                 |
 | **libmock**            | Shared mocks and test fixtures so every library and service tests the same way.                                                                                                                                          |
@@ -277,14 +277,14 @@ precondition, an unsupervised process, missing telemetry, or stale instructions.
 
 **Big Hire:** Help me check preconditions before anything heavy runs, supervise
 long-running processes, emit structured telemetry, and keep instruction files
-honest. → **libcoaligned, libpreflight, librc, libsupervise, libtelemetry**
+honest. → **libinvariant, libpreflight, librc, libsupervise, libtelemetry**
 
 **Little Hire:** Help me verify a docs change before commit and trust the
 layered architecture has not drifted; surface a product-authored error for an
 unsupported runtime or empty config before anything heavy constructs partially;
 start, stop, or check a service without remembering its specific incantation;
 add a daemon to a manifest and trust it restarts on failure; add a log line or
-trace span without configuring a logging framework. → **libcoaligned,
+trace span without configuring a logging framework. → **libinvariant,
 libpreflight, librc, libsupervise, libtelemetry**
 
 **Competes With:** failing deep in execution instead of at startup; ad-hoc

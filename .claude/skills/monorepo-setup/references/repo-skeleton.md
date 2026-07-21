@@ -1,7 +1,7 @@
 # Repo skeleton
 
 Copy-paste seam artifacts for [monorepo-setup](../SKILL.md) Steps 1 and 2 — the
-skeleton files neither `coaligned-setup` nor `kata-setup` creates. CI templates
+skeleton files neither `jidoka-setup` nor `kata-setup` creates. CI templates
 live in [check-workflows.md](check-workflows.md) (Step 5); the wiki lifecycle
 and ledgers in [wiki-init.md](wiki-init.md) (Step 6). Rename to the repo; do not
 commit the lockfile until the pinned `@forwardimpact/*` versions are published.
@@ -41,14 +41,13 @@ apm_modules/      # APM writes this on first install
     "products/*/handlers",
     "libraries/*"
   ],
-  "scripts": { "check": "coaligned" },
-  "devDependencies": { "@forwardimpact/libcoaligned": "^0.1.15" }
+  "scripts": { "check": "jidoka" },
+  "devDependencies": { "@forwardimpact/jidoka": "^0.2.0" }
 }
 ```
 
-`coaligned` resolves from this devDependency — there is no bare npm launcher.
-Pin a version whose budgets exempt YAML frontmatter (0.1.15+); published skill
-packs carry publish-injected frontmatter that otherwise breaches the caps.
+`jidoka` resolves from this devDependency — the bin ships in the product
+package, and there is no bare npm launcher.
 
 ## scripts/bootstrap.sh
 

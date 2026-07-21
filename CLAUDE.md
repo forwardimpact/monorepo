@@ -70,8 +70,8 @@ agent-capable systems. See [JTBD.md](JTBD.md) for their jobs.
 - **Kata — `kata-skills`** — A self-improving agent team running a daily
   Plan-Do-Study-Act cycle: write specs, ship features, study traces, act on
   findings. [KATA.md](KATA.md)
-- **Co-Aligned Instructions Standard** — The layered instruction architecture
-  for aligned coding agents. [COALIGNED.md](COALIGNED.md)
+- **Jidoka — `jidoka-skills`** — Built-in instruction quality; stops the
+  line on drift. [JIDOKA.md](JIDOKA.md)
 - **Monorepo Structure Standard** — The directory shape and root files a
   repository shared by humans and agents follows. [MONOREPO.md](MONOREPO.md)
 
@@ -85,16 +85,15 @@ npm. It is the source of truth for `forwardimpact/*` sibling repos:
   use `#!/usr/bin/env node`, no Bun. gRPC products need
   `npx fit-codegen generate --all`
   ([Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md)).
-- **Skill packs** — `forwardimpact/{fit-skills,kata-skills,coaligned-skills}`
+- **Skill packs** — `forwardimpact/{fit-skills,kata-skills,jidoka-skills}`
   sync on push to `main`; install with `apm install forwardimpact/<pack>`.
   Internal skills (`libs-*`, product internals) never publish.
 - **Composite actions** — co-located with their owning unit
-  (`products/*/actions/`, `.github/actions/`), published
-  to siblings by subtree split. Edit in-repo
-  ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
+  (`products/*/actions/`, `.github/actions/`), published by subtree split. Edit
+  in-repo ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 
   <!-- enum:sibling-composite-actions:list -->
-  `benchmark`, `bootstrap`, `harness`, `kata-agent`, `kata-interview`, `wiki`
+  `benchmark`, `bootstrap`, `harness`, `jidoka`, `kata-agent`, `kata-interview`, `wiki`
   <!-- /enum -->
 
 Published skills teach how products **work** and **use**, not how they're

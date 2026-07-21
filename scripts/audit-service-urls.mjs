@@ -17,10 +17,10 @@ import { parse as parseYaml } from "yaml";
 import {
   expectedUrl,
   urlsEqual,
-} from "../.coaligned/invariants/service-url-drift.url.mjs";
+} from "../.jidoka/invariants/service-url-drift.url.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const REGISTRY = ".coaligned/invariants/service-url-drift.registry.yml";
+const REGISTRY = ".jidoka/invariants/service-url-drift.registry.yml";
 
 function valueRe(service) {
   const key = `SERVICE_${service.toUpperCase()}_URL`;

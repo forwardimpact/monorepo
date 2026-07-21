@@ -3,7 +3,7 @@
 Copy-paste seam artifacts for [monorepo-setup](../SKILL.md) Step 6 — standing up
 the agent team's persistent memory. The wiki is a separate git repository (the
 GitHub Wiki of the repo, `<repo>.wiki.git`) cloned into `wiki/` and gitignored,
-so it is never created by the bootstrap commit. Neither `coaligned-setup` nor
+so it is never created by the bootstrap commit. Neither `jidoka-setup` nor
 `kata-setup` seeds it; this skill does.
 
 Two pieces: a `.claude/settings.json` whose Claude Code hooks bootstrap the
@@ -54,7 +54,7 @@ setup and write it in:
 The released `fit-install.sh` self-stamps its gear release, so that one tag
 fixes the whole toolchain.
 
-If `coaligned-setup` or `kata-setup` already wrote `.claude/settings.json`,
+If `jidoka-setup` or `kata-setup` already wrote `.claude/settings.json`,
 merge these hook arrays into it rather than overwriting — do not drop their
 keys. `gemba-wiki init` may install the `Stop` push hook itself; if it is
 already present, leave the single copy in place.

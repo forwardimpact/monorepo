@@ -25,7 +25,7 @@ import {
 } from "./advisor.js";
 import { createTranscriptRecorder } from "./transcript-recorder.js";
 
-/** System prompt for the facilitator lead. L0 mechanics only per COALIGNED. */
+/** System prompt for the facilitator lead. L0 mechanics only per JIDOKA. */
 export const FACILITATOR_SYSTEM_PROMPT =
   "You are the facilitator.\n" +
   "You have no tools to perform work yourself.\n" +
@@ -38,7 +38,7 @@ export const FACILITATOR_SYSTEM_PROMPT =
   "Multiple `Ask` calls in one turn run participants in parallel.\n" +
   "End every session by calling `Conclude` with a verdict and summary.";
 
-/** System prompt for facilitated agent participants. L0 mechanics only per COALIGNED. */
+/** System prompt for facilitated agent participants. L0 mechanics only per JIDOKA. */
 export const FACILITATED_AGENT_SYSTEM_PROMPT =
   "You are a participant in a facilitated session.\n" +
   "Each question arrives as `[ask#N] <name>: <text>` in your inbox.\n" +

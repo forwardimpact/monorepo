@@ -3,7 +3,7 @@
 // Every `new Date(...)` here operates only on a value the caller passed (a ms
 // timestamp, a `Date`, or an ISO string) — never the ambient wall clock, which
 // lives behind `runtime.clock.now()`. That is why this module is allow-listed
-// in `.coaligned/invariants/ambient-deps.allow.yml` for the same reason `runtime.js`
+// in `.jidoka/invariants/ambient-deps.allow.yml` for the same reason `runtime.js`
 // is: it produces deterministic time values from its arguments rather than
 // reaching for an ambient dependency. Consumers read "now" from
 // `runtime.clock.now()` and pass the result here when they need a formatted or

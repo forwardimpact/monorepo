@@ -2,7 +2,7 @@
 name: monorepo-setup
 description: >
   Stand up a new Monorepo-standard repository end to end — bootstrap the
-  skeleton, install the skill packs, run coaligned-setup then kata-setup, and
+  skeleton, install the skill packs, run jidoka-setup then kata-setup, and
   fill the seams neither owns (root package.json, directory tree, agent
   profiles, CI, remote creation). Use when creating a Forward Impact-style repo
   from nothing, or when one exists but the cross-cutting wiring is missing.
@@ -12,7 +12,7 @@ description: >
 
 Orchestrate a full repository bootstrap to the three standards: structure
 ([Monorepo](https://www.monorepo.team/)),
-instruction architecture (via the `coaligned-setup` skill), and the agent team
+instruction architecture (via the `jidoka-setup` skill), and the agent team
 (via the `kata-setup` skill).
 
 This skill owns only the **seams** — the order of operations and the artifacts
@@ -42,11 +42,11 @@ once per repository.
 - [ ] `scripts/bootstrap.sh` exists and is executable (the `bootstrap` action
       runs it).
 - [ ] Both skill packs and the kata agent profiles are under `.claude/`.
-- [ ] `coaligned-setup` and `kata-setup` were each invoked as skills and ran to
-      completion — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.coaligned/`, and
+- [ ] `jidoka-setup` and `kata-setup` were each invoked as skills and ran to
+      completion — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.jidoka/`, and
       the agent workflows all exist.
 - [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
-      and `coaligned` runs clean.
+      and `jidoka` runs clean.
 - [ ] The remote exists, the wiki is on, and `KATA_KILLSWITCH` is engaged.
 - [ ] `.claude/settings.json` drives session bootstrap (curl `fit-install.sh`,
       then `scripts/bootstrap.sh`) and the wiki lifecycle, and the wiki holds
@@ -71,16 +71,15 @@ structure. Commit.
 
 Create the root manifest from
 [references/repo-skeleton.md](references/repo-skeleton.md). This is the seam
-`coaligned-setup` assumes: it wires `coaligned` into the check task but
-never creates the manifest. The `coaligned` bin ships only inside
-`@forwardimpact/libcoaligned` (no bare launcher), so add it as a devDependency,
-pinned to a release whose budgets exempt YAML frontmatter (0.1.15+) — otherwise
-the published skill packs breach the instruction caps.
+`jidoka-setup` assumes: it wires `jidoka` into the check task but never
+creates the manifest. The `jidoka` bin ships in the product package
+`@forwardimpact/jidoka` (no bare launcher), so add that package as a
+devDependency (0.2.0+).
 
 ### Step 3: Install the skill packs
 
 ```sh
-apm install forwardimpact/coaligned-skills forwardimpact/kata-skills --target claude
+apm install forwardimpact/jidoka-skills forwardimpact/kata-skills --target claude
 ```
 
 Both sub-skills assume their packs sit in `.claude/skills/`. APM integrates
@@ -94,27 +93,27 @@ The `apm.yml` this writes makes the packs reconstitutable:
 so you may commit `.claude/skills/` and `.claude/agents/` or gitignore them as
 build output — either satisfies the run-time requirement that they be present.
 
-### Step 4: Invoke coaligned-setup, then kata-setup
+### Step 4: Invoke jidoka-setup, then kata-setup
 
 These two upstream skills are the reason this orchestration exists. **Invoke
 each one as a skill and run it to completion** — do not read them for reference
 and hand-roll their work, and do not move on while one is unfinished. This is a
 hard gate, not a pointer: the most common failure of this step is treating
-"run coaligned-setup" as prose and skipping the actual skill invocation.
+"run jidoka-setup" as prose and skipping the actual skill invocation.
 
-Invoke `coaligned-setup` first, then `kata-setup`. Order matters: the root
+Invoke `jidoka-setup` first, then `kata-setup`. Order matters: the root
 identity files must exist before the agent team references them. Each skill owns
 its domain end to end — follow it, do not restate its steps here. Answer their
 configuration prompts with the choices from the entry checklist.
 
 Do not proceed to Step 5 until both have run. Confirm each left its artifacts:
-`coaligned-setup` — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and
-`.coaligned/`; `kata-setup` — the agent workflows under `.github/workflows/`. If
+`jidoka-setup` — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and
+`.jidoka/`; `kata-setup` — the agent workflows under `.github/workflows/`. If
 an artifact is missing, the skill did not run — invoke it before continuing.
 
 ### Step 5: Add the check CI
 
-`coaligned-setup` wires `coaligned` into the check task; add the check workflows
+`jidoka-setup` wires `jidoka` into the check task; add the check workflows
 that run on push and pull request — separate from the agent workflows
 `kata-setup` generates. One workflow per concern, never a single `check.yml`: at
 minimum `check-quality.yml`, `check-test.yml`, and `check-context.yml`. SHA-pin
@@ -138,15 +137,15 @@ empty-but-scaffolded, and `gemba-wiki push`. Full sequence in
 
 ### Step 7: Verify the composition
 
-Run the check task: `coaligned` passes clean with the vendored packs and agent
+Run the check task: `jidoka` passes clean with the vendored packs and agent
 profiles present. Confirm `gh workflow list` shows the generated workflows, and
 that the wiki clones with its three ledgers via `gemba-wiki pull`.
 
 ## Documentation
 
 - [Monorepo][monorepo] — repository structure and the JTBD convention.
-- [Co-Aligned](https://www.coaligned.team/)
-  — the layered instruction architecture (owned by `coaligned-setup`).
+- [Jidoka](https://www.jidoka.team/)
+  — the layered instruction architecture (owned by `jidoka-setup`).
 - [Kata Agent Team](https://www.kata.team/) — the
   agent team and its PDSA loop (owned by `kata-setup`).
 - [APM](https://microsoft.github.io/apm/) — the package manager that installs

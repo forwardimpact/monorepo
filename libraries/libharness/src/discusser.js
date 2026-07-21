@@ -40,7 +40,7 @@ import {
 import { OrchestrationLoop } from "./orchestration-loop.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
-/** System prompt for the discuss-mode lead. L0 mechanics only per COALIGNED. */
+/** System prompt for the discuss-mode lead. L0 mechanics only per JIDOKA. */
 export const DISCUSS_SYSTEM_PROMPT =
   "You lead a discussion.\n" +
   "You have no tools to perform work yourself.\n" +

@@ -30,7 +30,7 @@ import {
   requireNoUnprocessedInbox,
 } from "./orchestration-toolkit.js";
 
-/** System prompt for discuss-mode agent participants. L0 mechanics only per COALIGNED. */
+/** System prompt for discuss-mode agent participants. L0 mechanics only per JIDOKA. */
 export const DISCUSS_AGENT_SYSTEM_PROMPT =
   "You are a participant in a discussion.\n" +
   "Each question arrives as `[ask#N] <name>: <text>` in your inbox.\n" +

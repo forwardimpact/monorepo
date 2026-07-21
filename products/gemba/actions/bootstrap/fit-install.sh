@@ -8,7 +8,7 @@
 #
 #   Darwin  — Homebrew. Standard homebrew-core formulae (just, gh, ripgrep,
 #             gitleaks) and the forwardimpact/homebrew-tap `fit-gear` cask (which
-#             ships every fit-*/gemba-* CLI and coaligned). Versions track what brew and
+#             ships every fit-*/gemba-* CLI and jidoka). Versions track what brew and
 #             the tap publish. `brew --prefix`/bin is already on PATH.
 #   Linux   — pinned, SHA256-verified upstream archives into $HOME/.local. Every
 #             third-party version + SHA lives here; fit-*/gemba-* binaries are pinned by
@@ -39,7 +39,7 @@
 #   fit-install.sh [--paths] [NAME ...]
 #
 #   NAME   An external tool (apm, just, gh, rg, gitleaks, claude) or a gear binary —
-#          any fit-*/gemba-* CLI (gemba-trace, gemba-harness, gemba-wiki, …) or coaligned.
+#          any fit-*/gemba-* CLI (gemba-trace, gemba-harness, gemba-wiki, …) or jidoka.
 #          With no NAME, installs the default dev/CI tool set.
 #   --paths  Print the cache paths the requested names manage, one per line,
 #            and exit. Consumed by fit-bootstrap to scope its actions/cache.
@@ -54,16 +54,16 @@ LIB_DIR="$PREFIX/lib"
 # Default dev/CI tool set, in install order — the third-party external tools
 # every job needs (scripts/bootstrap.sh runs `just`), `claude` (the Claude Code
 # native CLI the Agent SDK spawns — gemba-harness/gemba-benchmark point at it via
-# pathToClaudeCodeExecutable), plus our own gear binaries: coaligned, which the
+# pathToClaudeCodeExecutable), plus our own gear binaries: jidoka, which the
 # instruction checks run, and the gemba-*/fit-* CLIs the kata-* skills invoke.
 # This set is ALWAYS installed; any named gear CLIs add to it. The same list
 # drives `--paths`.
-DEFAULT_TOOLS=(apm just gh rg gitleaks claude coaligned
+DEFAULT_TOOLS=(apm just gh rg gitleaks claude jidoka
   gemba-wiki gemba-xmr gemba-trace fit-doc fit-terrain)
 
 # ── gear binary release coordinates (Linux download path) ────────
 # Every installable gear binary (gemba-trace, gemba-wiki, gemba-harness, …, plus
-# coaligned) ships in the gear bundle, so one release tag carries them all. The
+# jidoka) ships in the gear bundle, so one release tag carries them all. The
 # publish step stamps the live tag into the released copy of this script; any
 # caller may override via the environment to pin a different release. On Darwin
 # the fit-gear cask supersedes this — the tap versions the gear set there.
@@ -89,7 +89,7 @@ pkg_token() {
 # above). Everything else is a gear binary, apm, or claude.
 is_system_tool() { pkg_token "$1" >/dev/null 2>&1; }
 
-# The gear cask ships ALL gear CLIs (every fit-*/gemba-* plus coaligned) via `binary`
+# The gear cask ships ALL gear CLIs (every fit-*/gemba-* plus jidoka) via `binary`
 # stanzas that symlink each one onto brew's bin. The fully-qualified name
 # auto-adds the tap, so no separate `brew tap` step is needed.
 GEAR_CASK="forwardimpact/homebrew-tap/fit-gear"
@@ -122,9 +122,9 @@ fit_target() {
 }
 
 # A "gear binary" is one of our own bun-compiled CLIs: every fit-*/gemba-* CLI plus
-# coaligned. On Darwin they all come from the fit-gear cask; on Linux each is a
+# jidoka. On Darwin they all come from the fit-gear cask; on Linux each is a
 # bare {name}-{target} file in the gear release beside a .sha256 sidecar.
-is_gear_binary() { case "$1" in fit-*|gemba-*|coaligned) return 0 ;; *) return 1 ;; esac; }
+is_gear_binary() { case "$1" in fit-*|gemba-*|jidoka) return 0 ;; *) return 1 ;; esac; }
 
 # ── --paths / argument parsing ───────────────────────────────────
 # The default set is ALWAYS installed; named gear CLIs add to it (deduped). So
@@ -246,7 +246,7 @@ install_tool() {
 
 # install_gear_binary NAME
 #
-# Download a pre-compiled gear binary (any fit-*/gemba-* CLI or coaligned) from its
+# Download a pre-compiled gear binary (any fit-*/gemba-* CLI or jidoka) from its
 # pinned gear release, verify it against the published .sha256 sidecar, and
 # install it straight into BIN_DIR. Returns non-zero on any failure (missing
 # asset, blocked network) so the dispatcher can fall back to the npm channel.
@@ -576,9 +576,13 @@ ch_apt() {
 
 ch_npm() {
   # Our gear CLIs publish to npm as node launchers; a global install puts the
-  # command on PATH (npm's global bin is already there). Not every gear CLI is
-  # published (coaligned is not yet), so a 404 just falls through.
-  npm install -g "$1" >/dev/null 2>&1 || return 1
+  # command on PATH (npm's global bin is already there). jidoka has no bare
+  # launcher — the bare npm name belongs to an unrelated third-party package,
+  # which this mapping must never install — so it resolves via its scoped
+  # product package. A CLI not yet published 404s and falls through.
+  local pkg="$1"
+  [ "$1" = jidoka ] && pkg="@forwardimpact/jidoka"
+  npm install -g "$pkg" >/dev/null 2>&1 || return 1
   echo "Installed $1 $("$1" --version 2>/dev/null | head -1) (npm)"
 }
 

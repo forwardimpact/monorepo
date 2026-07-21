@@ -34,7 +34,7 @@ import {
 } from "./advisor.js";
 import { createTranscriptRecorder } from "./transcript-recorder.js";
 
-/** System prompt for the supervisor lead. L0 mechanics only per COALIGNED. */
+/** System prompt for the supervisor lead. L0 mechanics only per JIDOKA. */
 export const SUPERVISOR_SYSTEM_PROMPT =
   "You supervise one agent.\n" +
   "Use `Ask` to delegate the agent's task to the agent.\n" +
@@ -44,7 +44,7 @@ export const SUPERVISOR_SYSTEM_PROMPT =
   "If the agent goes off-track, send a corrective `Ask`.\n" +
   "End every session by calling `Conclude` with a verdict and summary.";
 
-/** System prompt for the supervised agent. L0 mechanics only per COALIGNED. */
+/** System prompt for the supervised agent. L0 mechanics only per JIDOKA. */
 export const AGENT_SYSTEM_PROMPT =
   "A supervisor directs your work.\n" +
   "Each question arrives as `[ask#N] supervisor: <text>` in your inbox.\n" +

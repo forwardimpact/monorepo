@@ -38,7 +38,7 @@ const ALL_PROMPTS = [
   ...DISCUSS_PROMPTS,
 ];
 
-describe("COALIGNED L0 — leads name Ask and their terminal tool", () => {
+describe("JIDOKA L0 — leads name Ask and their terminal tool", () => {
   test("facilitator names Ask and Conclude", () => {
     assert.ok(FACILITATOR_SYSTEM_PROMPT.includes("Ask"));
     assert.ok(FACILITATOR_SYSTEM_PROMPT.includes("Conclude"));
@@ -54,7 +54,7 @@ describe("COALIGNED L0 — leads name Ask and their terminal tool", () => {
   });
 });
 
-describe("COALIGNED L0 — leads describe Ask as async and surface auto-resume", () => {
+describe("JIDOKA L0 — leads describe Ask as async and surface auto-resume", () => {
   for (const [name, prompt] of LEAD_PROMPTS) {
     test(`${name} states Ask is async`, () => {
       assert.ok(
@@ -85,7 +85,7 @@ describe("COALIGNED L0 — leads describe Ask as async and surface auto-resume",
   }
 });
 
-describe("COALIGNED L0 — agents describe inbox arrival of questions", () => {
+describe("JIDOKA L0 — agents describe inbox arrival of questions", () => {
   for (const [name, prompt] of AGENT_PROMPTS) {
     test(`${name} states questions arrive in the inbox as [ask#N]`, () => {
       assert.ok(
@@ -100,7 +100,7 @@ describe("COALIGNED L0 — agents describe inbox arrival of questions", () => {
   }
 });
 
-describe("COALIGNED L0 — leads state delegation constraint", () => {
+describe("JIDOKA L0 — leads state delegation constraint", () => {
   // Supervisor is excluded: it has its own tools (incl. Bash) to do its own
   // work, so it delegates only the agent's task — not all work — via Ask.
   const NO_TOOL_LEADS = [
@@ -117,7 +117,7 @@ describe("COALIGNED L0 — leads state delegation constraint", () => {
   }
 });
 
-describe("COALIGNED L0 — agents name Answer and carry recursion guard", () => {
+describe("JIDOKA L0 — agents name Answer and carry recursion guard", () => {
   for (const [name, prompt] of AGENT_PROMPTS) {
     test(`${name} names Answer`, () => {
       assert.ok(prompt.includes("Answer"));
@@ -131,7 +131,7 @@ describe("COALIGNED L0 — agents name Answer and carry recursion guard", () => 
   }
 });
 
-describe("COALIGNED L0 — prompts carry no enforcement phrasing", () => {
+describe("JIDOKA L0 — prompts carry no enforcement phrasing", () => {
   const forbidden = [
     "then Answer",
     "then Share",
@@ -149,7 +149,7 @@ describe("COALIGNED L0 — prompts carry no enforcement phrasing", () => {
   }
 });
 
-describe("COALIGNED L0 — prompts are domain-agnostic", () => {
+describe("JIDOKA L0 — prompts are domain-agnostic", () => {
   const forbidden = ["kata-", "storyboard", "coaching", "Toyota", "meeting"];
   for (const [name, prompt] of ALL_PROMPTS) {
     test(`${name} free of domain vocabulary`, () => {
@@ -160,7 +160,7 @@ describe("COALIGNED L0 — prompts are domain-agnostic", () => {
   }
 });
 
-describe("COALIGNED L0 — prompts do not reference removed Tell / Share tools", () => {
+describe("JIDOKA L0 — prompts do not reference removed Tell / Share tools", () => {
   for (const [name, prompt] of ALL_PROMPTS) {
     test(`${name} free of Tell / Share references`, () => {
       assert.ok(!prompt.includes("Tell"), `${name} contains "Tell"`);

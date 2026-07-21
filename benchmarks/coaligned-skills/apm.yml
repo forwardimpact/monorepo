@@ -1,5 +1,0 @@
-name: coaligned-skills-benchmark
-version: 0.0.0
-dependencies:
-  apm:
-    - forwardimpact/coaligned-skills

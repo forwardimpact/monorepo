@@ -209,7 +209,7 @@ build-app BUNDLE:
 
 # Enforce instruction layer limits (KATA.md § Instruction length)
 check-instructions:
-    bunx coaligned instructions
+    bunx jidoka instructions
 
 # Run security audit (vulnerability + secret scanning)
 audit: audit-vulnerabilities audit-secrets

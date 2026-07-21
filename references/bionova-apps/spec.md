@@ -111,7 +111,7 @@ calls.
 ### Included
 
 - Repository scaffolding stood up by the **monorepo-setup skill** (which runs
-  `coaligned-setup` and `kata-setup`) — the skeleton, instruction layers, agent
+  `jidoka-setup` and `kata-setup`) — the skeleton, instruction layers, agent
   team, check workflows, wiki, and remote. The spec layers the Polaris product
   and its PG On Rails infrastructure (`infrastructure/`) onto that skeleton and
   does not re-specify what the skill owns.

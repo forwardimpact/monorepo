@@ -2,15 +2,17 @@
 
 Conventions when working under `products/`. The catalog and jobs live in
 [README.md](README.md); this file documents the metadata, rules, and
-conventions a product must follow. Products are the eight end-user
-applications (Map, Pathway, Guide, Landmark, Summit, Outpost, Gear, Gemba)
-consumed via `npm install` and `npx` (`fit-<product>`, or `gemba-<name>` for
-the platform's family). Gear is a meta-package
-re-exporting the build-time service and library CLIs; Gemba is the
-agent-runtime platform, owning the `gemba-*` command family
-(`products/gemba/bin/gemba-<name>.js`) and the agent-run composite actions
-(`products/gemba/actions/`) while the implementation stays in the runtime
-libraries.
+conventions a product must follow. Products are the nine end-user
+applications (Map, Pathway, Guide, Landmark, Summit, Outpost, Gear, Gemba,
+Jidoka; metadata-only Kata makes the catalog ten) consumed via
+`npm install` and `npx` (`fit-<product>`,
+`gemba-<name>` for the platform's family, or the scoped
+`@forwardimpact/jidoka`). Gear is a meta-package re-exporting the build-time
+service and library CLIs; Gemba is the agent-runtime platform, owning the
+`gemba-*` command family (`products/gemba/bin/gemba-<name>.js`) and the
+agent-run composite actions (`products/gemba/actions/`) while the
+implementation stays in the runtime libraries; Jidoka owns the `jidoka`
+check CLI and action, implemented by `libinvariant`.
 
 ## Audience
 
@@ -95,7 +97,7 @@ must appear in that product's `package.json` — in `dependencies`,
 The monorepo's workspace hoist masks missing declarations in `bun install`
 and `bun test`; the gap only surfaces when a downstream consumer runs
 `npx fit-<product>` against a clean machine. The
-[`workspace-imports`](../.coaligned/invariants/workspace-imports.rules.mjs)
+[`workspace-imports`](../.jidoka/invariants/workspace-imports.rules.mjs)
 guard enforces the rule on every PR through `bun run invariants`.
 
 ## Adding a product

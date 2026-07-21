@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {{#description}}
+    <meta name="description" content="{{description}}" />
+    {{/description}}
+    <title>Jidoka – {{title}}</title>
+    <link rel="stylesheet" href="/assets/base.css" />
+    <link rel="stylesheet" href="/assets/layout.css" />
+    <link rel="stylesheet" href="/assets/components.css" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="alternate" type="text/markdown" href="{{markdownUrl}}" />
+    {{#canonicalUrl}}
+    <link rel="canonical" href="{{canonicalUrl}}" />
+    {{/canonicalUrl}}
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="/">
+          <span class="brand-text">Jidoka</span>
+        </a>
+        <div class="nav-spacer"></div>
+        <a href="https://github.com/forwardimpact/jidoka-skills" class="btn-ghost nav-github" target="_blank" aria-label="GitHub">
+          <img src="https://cdn.simpleicons.org/github/aeaba2" alt="" width="20" height="20" />
+        </a>
+      </div>
+    </header>
+
+    <main{{#layout}} class="layout-{{layout}}"{{/layout}}>
+      <div class="page-content">
+        {{^hasHero}}
+        <h1 class="page-title">{{{title}}}</h1>
+        {{/hasHero}}
+        {{{content}}}
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-column footer-column-left">
+          <span class="footer-brand">Jidoka</span>
+          <span class="footer-tagline">Stop the line at the first drifted layer.</span>
+        </div>
+        <div class="footer-social">
+          <a href="https://github.com/forwardimpact/jidoka-skills" target="_blank" aria-label="GitHub">
+            <img src="https://cdn.simpleicons.org/github/9ca3af" alt="" width="24" height="24" />
+          </a>
+        </div>
+        <div class="footer-column footer-column-right">
+          <span class="footer-heading">Copyright 2026</span>
+          <a href="https://www.monorepo.team/">monorepo.team</a>
+          <a href="https://www.kata.team/">kata.team</a>
+          <a href="https://www.forwardimpact.team/">forwardimpact.team</a>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Scroll reveal
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+            }
+          });
+        },
+        { threshold: 0.15 }
+      );
+      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+
+      // Header scroll state
+      const header = document.querySelector(".site-header");
+      window.addEventListener("scroll", () => {
+        header.classList.toggle("scrolled", window.scrollY > 10);
+      }, { passive: true });
+
+      // Terminal typing effect
+      const terminal = document.querySelector(".terminal-lines");
+      if (terminal) {
+        const termObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                terminal.classList.add("typing");
+                termObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.5 }
+        );
+        termObserver.observe(terminal);
+      }
+
+      // Stagger reveal children
+      document.querySelectorAll(".stagger").forEach((container) => {
+        const children = container.querySelectorAll(".stagger-item");
+        const staggerObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                children.forEach((child, i) => {
+                  child.style.transitionDelay = `${i * 80}ms`;
+                  child.classList.add("visible");
+                });
+                staggerObserver.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.15 }
+        );
+        staggerObserver.observe(container);
+      });
+    </script>
+  </body>
+</html>

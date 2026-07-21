@@ -6,7 +6,7 @@
 // the analyze partition reader (analyze.js) all import from here, so a
 // removed or renamed route is a build/test error at every consumer. The
 // published kata-implement reference (references/route-decision.md) is
-// guarded against drift from ROUTES by .coaligned/invariants.
+// guarded against drift from ROUTES by .jidoka/invariants.
 
 /** The closed set of kata-implement routes, keyed by bare id. */
 export const ROUTES = {

@@ -9,8 +9,8 @@
 This standard defines the _shape_ of a repository shared by humans and coding
 agents — the top-level directories and how the universal root files and jobs map
 onto them. It builds on the
-[Co-Aligned Instruction Architecture](COALIGNED.md), which defines the
-instruction layers and the universal root files every co-aligned repository
+[Jidoka Instruction Architecture](JIDOKA.md), which defines the
+instruction layers and the universal root files every adopting repository
 carries (`CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and the JTBD conventions).
 This standard adds the directory shape those files live in.
 
@@ -78,7 +78,7 @@ layout) or already have a home under the directories above.
 Every agent session sets up its environment in two layers, in order:
 
 1. **Toolchain — `fit-install.sh`.** Puts the pinned FIT toolchain on `PATH`
-   (`apm`, `just`, `gh`, `rg`, `gitleaks`, `coaligned`, and any requested
+   (`apm`, `just`, `gh`, `rg`, `gitleaks`, `jidoka`, and any requested
    `fit-*` CLIs). It is a released, versioned, repo-agnostic artifact — the same
    bytes for every repository, installing binaries only. It never mutates a
    repository's working tree.
@@ -106,7 +106,7 @@ separate concerns owned by whoever needs them, not folded into this entrypoint.
 
 `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md` orient every contributor. Their
 universal properties, the JTBD entry structure, and the `<job>` tagging
-convention are defined by the [Co-Aligned standard](COALIGNED.md) (L1/L2). This
+convention are defined by the [Jidoka standard](JIDOKA.md) (L1/L2). This
 standard adds only the monorepo-specific placement: how jobs distribute across
 the directory shape (below), and the tooling split `CLAUDE.md` spells out
 (§ Internal Contributors vs External Users).
@@ -114,17 +114,17 @@ the directory shape (below), and the tooling split `CLAUDE.md` spells out
 ## Jobs Across the Directory Shape
 
 Jobs distribute across the codebase so they live near the code that serves them
-— the placement this repo's shape gives the Co-Aligned job conventions:
+— the placement this repo's shape gives the Jidoka job conventions:
 
 - **Big Hires** — the adoption decision per persona-outcome pair. Live in
   [JTBD.md](JTBD.md), using the full entry structure from the
-  [Co-Aligned standard](COALIGNED.md).
+  [Jidoka standard](JIDOKA.md).
 - **Little Hires** — narrower, repeated daily jobs. Live in the `products/`,
   `services/`, and `libraries/` READMEs, in design docs, or near the code.
 
 Each top-level directory's `README.md` captures the jobs that directory exists
 to serve. Every job — Big or Little — is wrapped in a `<job>` tag and found with
-`rg '<job '`, per [COALIGNED.md](COALIGNED.md).
+`rg '<job '`, per [JIDOKA.md](JIDOKA.md).
 
 ## Internal Contributors vs External Users
 
@@ -174,7 +174,7 @@ every test imports them from there.
 ### Enforcement
 
 All of these run as declarative rule modules under
-`.coaligned/invariants/`, executed by `coaligned invariants` via
+`.jidoka/invariants/`, executed by `jidoka invariants` via
 `bun run invariants`.
 
 - `ambient-deps.rules.mjs` flags any new src file that imports

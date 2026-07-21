@@ -167,7 +167,7 @@
       "bundle": "gear"
     },
     {
-      "name": "coaligned",
+      "name": "jidoka",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"
     }

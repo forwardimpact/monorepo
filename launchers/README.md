@@ -8,11 +8,10 @@ package. Each launcher's npm name equals the invoked name (`gemba-harness`,
 the registry
 ([originating spec](../specs/1670-public-cli-launcher-packages/spec.md)).
 
-The one non-`fit-*` public CLI is `coaligned` (backed by
-`@forwardimpact/libcoaligned`), invoked as `npx coaligned …` in the published
-setup skills. The fit-only invocation scan cannot see it, so it is named in the
-rule's `PUBLISHED_NON_FIT_CLIS` — the launcher stays computed, not
-hand-maintained.
+A public CLI outside the `fit-*`/`gemba-*` families would be invisible to
+the family-scoped invocation scan; the rule's `PUBLISHED_NON_FIT_CLIS` list
+is the escape hatch that names such a CLI so its launcher stays computed,
+not hand-maintained. The list is empty today.
 
 ## Contract
 
@@ -30,7 +29,7 @@ hand-maintained.
 
 ## Enforcement
 
-`.coaligned/invariants/public-cli-set.rules.mjs` (auto-discovered by the root
+`.jidoka/invariants/public-cli-set.rules.mjs` (auto-discovered by the root
 `invariants` check) recomputes the public set from the rule — invoked names in
 `websites/fit/docs` + published skills + sibling actions, intersected with
 non-private workspace bins — and fails CI when `launchers/` drifts from it, a

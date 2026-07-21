@@ -1,0 +1,61 @@
+{
+  "name": "@forwardimpact/jidoka",
+  "version": "0.2.0",
+  "description": "Build quality into agent instructions — the jidoka CLI and CI action stop the line the moment an instruction layer drifts, a jobs block goes stale, or a repository invariant breaks.",
+  "keywords": [
+    "jidoka",
+    "instructions",
+    "jtbd",
+    "invariants",
+    "quality",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "products/jidoka"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Teams Using Agents",
+      "goal": "Build Quality Into Agent Instructions",
+      "trigger": "The team's layered instructions exist, but nothing enforces them — layers drift and restate each other, and stale jobs blocks ship unnoticed until an agent misbehaves.",
+      "bigHire": "keep humans and agents on one layered instruction architecture, with checks that stop the line the moment a layer drifts.",
+      "littleHire": "check one layer's caps, validate the jobs blocks, or run the repository's invariant rules with a single command before commit.",
+      "competesWith": "unenforced conventions; review-time nitpicking; hand-rolled lint scripts; letting drift accumulate until a rewrite",
+      "forces": {
+        "push": "Instruction sprawl keeps breaking agent behavior with no layer to blame.",
+        "pull": "One command family and CI action that stop the line at the first drifted layer.",
+        "habit": "Trusting contributors to keep instructions tidy by hand.",
+        "anxiety": "Another gate slowing every commit."
+      },
+      "firedWhen": "the checks block more work than the drift they catch, or the team stops layering its instructions."
+    }
+  ],
+  "type": "module",
+  "bin": {
+    "jidoka": "./bin/jidoka.js"
+  },
+  "files": [
+    "bin/**/*.js"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libcli": "^0.1.17",
+    "@forwardimpact/libinvariant": "^0.2.0",
+    "@forwardimpact/libpreflight": "^0.1.4",
+    "@forwardimpact/libutil": "^0.1.100"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

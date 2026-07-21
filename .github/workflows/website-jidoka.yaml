@@ -1,0 +1,21 @@
+name: "Website: Jidoka Standard"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "websites/jidoka/**"
+      - "libraries/libdoc/**"
+      - ".github/workflows/website-jidoka.yaml"
+      - ".github/workflows/website.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    uses: ./.github/workflows/website.yml
+    with:
+      site: jidoka
+    secrets: inherit

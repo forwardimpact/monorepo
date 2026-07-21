@@ -8,7 +8,7 @@ Task families for `fit-benchmark`. Each family lives under
 | Family | Pack under test | Workflow |
 | --- | --- | --- |
 | [`kata-skills/`](kata-skills/) | `forwardimpact/kata-skills` | `eval-kata.yml` |
-| [`coaligned-skills/`](coaligned-skills/) | `forwardimpact/coaligned-skills` | `eval-coaligned.yml` |
+| [`jidoka-skills/`](jidoka-skills/) | `forwardimpact/jidoka-skills` | `eval-jidoka.yml` |
 | [`fit-wiki/`](fit-wiki/) | `fit-wiki` CLI | `eval-wiki.yml` |
 
 ## Task family layout

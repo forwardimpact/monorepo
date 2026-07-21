@@ -16,7 +16,7 @@ specs, ship features, study their own traces, and act on findings.
 
 Kata is an implementation of two upstream standards: the repository structure
 in [MONOREPO.md](MONOREPO.md) and the instruction architecture in
-[COALIGNED.md](COALIGNED.md). Everything below assumes both.
+[JIDOKA.md](JIDOKA.md). Everything below assumes both.
 
 Kata runs on [Gemba](https://www.forwardimpact.team/gemba/), the
 agent-runtime platform: the `gemba-*` command family and the
@@ -41,10 +41,10 @@ domain knowledge. **Memory** (`libwiki` + `wiki/`) persists state across
 surfaces and sessions.
 
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
-`audit/` and `coaligned-check/`.
+`audit/`.
 <!-- enum:sibling-composite-actions:count -->
-Six composite actions are co-located in the monorepo (under
-`products/gemba/actions/` and `products/kata/actions/`) and published to
+Seven composite actions are co-located in the monorepo (under
+`products/{gemba,jidoka,kata}/actions/`) and published to
 `forwardimpact/` siblings:
 <!-- /enum -->
 
@@ -54,6 +54,7 @@ Six composite actions are co-located in the monorepo (under
 - `harness` — agent task execution
 - `wiki` — agent-memory commands with fresh App token
 - `kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
+- `jidoka` — Jidoka checks: stop the line on instruction drift
 - `kata-interview` — JTBD switching interview run
 <!-- /enum -->
 
@@ -354,4 +355,4 @@ accompany.
 - **Main branch CI repair.** See CONTRIBUTING.md for the release engineer's
   direct-to-`main` exception.
 - **Authoring.** Instruction architecture, length limits, skill structure, and
-  the seven-layer model live in [COALIGNED.md](COALIGNED.md).
+  the seven-layer model live in [JIDOKA.md](JIDOKA.md).

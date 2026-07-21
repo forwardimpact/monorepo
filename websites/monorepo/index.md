@@ -114,7 +114,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Root Files</div>
       <h2 class="section-headline">Three files. One job each. None restates another.</h2>
-      <p class="section-body">These three files come from the Co-Aligned standard that Monorepo builds on; here they orient you the moment you open the repository. A link is cheaper than a duplicate, so each points at the others rather than repeating them.</p>
+      <p class="section-body">These three files come from the Jidoka standard that Monorepo builds on; here they orient you the moment you open the repository. A link is cheaper than a duplicate, so each points at the others rather than repeating them.</p>
     </div>
     <div class="rootfile-grid stagger">
       <div class="rootfile-card stagger-item">
@@ -182,10 +182,10 @@ layout: home
       </div>
       <div class="terminal-lines">
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">cd my-new-repo/</span></div>
-        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">apm install forwardimpact/coaligned-skills forwardimpact/kata-skills</span></div>
+        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">apm install forwardimpact/jidoka-skills forwardimpact/kata-skills</span></div>
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Set up a Monorepo-standard repo"</span><span class="terminal-cmd"> | claude</span></div>
       </div>
     </div>
-    <p class="closing-note reveal">The structure builds on the Co-Aligned <a href="https://www.coaligned.team/">instruction architecture</a>, and the <a href="https://www.kata.team/">Kata Agent Team</a> runs the whole thing as a daily loop. Read the full standard in <a href="https://github.com/forwardimpact/monorepo/blob/main/MONOREPO.md">MONOREPO.md</a>.</p>
+    <p class="closing-note reveal">The structure builds on the Jidoka <a href="https://www.jidoka.team/">instruction architecture</a>, and the <a href="https://www.kata.team/">Kata Agent Team</a> runs the whole thing as a daily loop. Read the full standard in <a href="https://github.com/forwardimpact/monorepo/blob/main/MONOREPO.md">MONOREPO.md</a>.</p>
   </div>
 </div>

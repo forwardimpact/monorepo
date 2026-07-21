@@ -72,8 +72,8 @@ jobs:
 
 ## .github/workflows/check-context.yml
 
-This is the workflow `coaligned-setup` assumes: it wires `coaligned` into the
-check task but never adds CI. One job per `coaligned` subcommand so a layered
+This is the workflow `jidoka-setup` assumes: it wires `jidoka` into the
+check task but never adds CI. One job per `jidoka` subcommand so a layered
 instruction breach, a stale JTBD block, and an invariant violation each surface
 as their own red check.
 
@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-node@<sha> # v4
         with: { node-version: "22" }
       - run: npm ci
-      - run: npx coaligned instructions
+      - run: npx @forwardimpact/jidoka instructions
 
   jtbd:
     runs-on: ubuntu-latest
@@ -106,7 +106,7 @@ jobs:
       - uses: actions/setup-node@<sha> # v4
         with: { node-version: "22" }
       - run: npm ci
-      - run: npx coaligned jtbd
+      - run: npx @forwardimpact/jidoka jtbd
 
   invariants:
     runs-on: ubuntu-latest
@@ -115,7 +115,7 @@ jobs:
       - uses: actions/setup-node@<sha> # v4
         with: { node-version: "22" }
       - run: npm ci
-      - run: npx coaligned invariants
+      - run: npx @forwardimpact/jidoka invariants
 ```
 
 ## Why the wiki audit is not a check here

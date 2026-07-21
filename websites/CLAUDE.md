@@ -8,7 +8,7 @@ built and pending a publish workflow.
 | -------------------------- | --------------------- | ------------------------ | ------ |
 | Forward Impact Engineering | `websites/fit/`       | `www.forwardimpact.team` | Live   |
 | Kata Agent Team            | `websites/kata/`      | `www.kata.team`          | Live   |
-| Co-Aligned                 | `websites/coaligned/` | `www.coaligned.team`     | Built  |
+| Jidoka                     | `websites/jidoka/`    | `www.jidoka.team`        | Built  |
 | Monorepo Structure         | `websites/monorepo/`  | `www.monorepo.team`      | Built  |
 
 Preview locally:
@@ -16,7 +16,7 @@ Preview locally:
 ```sh
 bunx fit-doc serve --src=websites/fit --watch
 bunx fit-doc serve --src=websites/kata --watch
-bunx fit-doc serve --src=websites/coaligned --watch
+bunx fit-doc serve --src=websites/jidoka --watch
 bunx fit-doc serve --src=websites/monorepo --watch
 ```
 
@@ -115,7 +115,7 @@ Live sites share the same deployment pattern. Workflows in
 | `website-fit.yaml`  | `fit-pages`  | `forwardimpact/fit-pages`  |
 | `website-kata.yaml` | `kata-pages` | `forwardimpact/kata-pages` |
 
-The Co-Aligned and Monorepo sites are built but do not yet have publish
+The Jidoka and Monorepo sites are built but do not yet have publish
 workflows; they will be added when the sites are ready to ship.
 
 Push to `main` (path-filtered) triggers: build with `fit-doc`, upload artifact,
