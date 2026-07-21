@@ -51,7 +51,7 @@
     "@forwardimpact/libstorage": "^0.1.53",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libutil": "^0.1.64",
-    "protobufjs": "^7.6.3"
+    "protobufjs": "^7.6.5"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
