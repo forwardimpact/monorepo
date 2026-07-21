@@ -1,14 +1,14 @@
 # Websites
 
 Four sites built by `fit-doc`
-([internals](fit/docs/internals/fit-doc/index.md)). Two are live; two are
+([internals](fit/docs/internals/fit-doc/index.md)). Three are live; one is
 built and pending a publish workflow.
 
 | Site                       | Source                | Domain                   | Status |
 | -------------------------- | --------------------- | ------------------------ | ------ |
 | Forward Impact Engineering | `websites/fit/`       | `www.forwardimpact.team` | Live   |
 | Kata Agent Team            | `websites/kata/`      | `www.kata.team`          | Live   |
-| Jidoka                     | `websites/jidoka/`    | `www.jidoka.team`        | Built  |
+| Jidoka                     | `websites/jidoka/`    | `www.jidoka.team`        | Live   |
 | Monorepo Structure         | `websites/monorepo/`  | `www.monorepo.team`      | Built  |
 
 Preview locally:
@@ -110,13 +110,13 @@ pre-build hook. Asset paths in pages are absolute (`/assets/scene-guide.svg`).
 Live sites share the same deployment pattern. Workflows in
 `.github/workflows/`:
 
-| Workflow            | Artifact     | Pages repo                 |
-| ------------------- | ------------ | -------------------------- |
-| `website-fit.yaml`  | `fit-pages`  | `forwardimpact/fit-pages`  |
-| `website-kata.yaml` | `kata-pages` | `forwardimpact/kata-pages` |
+| Workflow              | Artifact       | Pages repo                   |
+| --------------------- | -------------- | ---------------------------- |
+| `website-fit.yaml`    | `fit-pages`    | `forwardimpact/fit-pages`    |
+| `website-kata.yaml`   | `kata-pages`   | `forwardimpact/kata-pages`   |
+| `website-jidoka.yaml` | `jidoka-pages` | `forwardimpact/jidoka-pages` |
 
-The Jidoka and Monorepo sites are built but do not yet have publish
-workflows; they will be added when the sites are ready to ship.
+The Monorepo site is built but not yet published.
 
 Push to `main` (path-filtered) triggers: build with `fit-doc`, upload artifact,
 dispatch to the pages repo via GitHub App token. The pages repo deploys to
