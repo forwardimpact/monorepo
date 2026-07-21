@@ -4,7 +4,7 @@
   },
   "effortLevel": "high",
   "permissions": {
-    "defaultMode": "auto",
+    "defaultMode": "acceptEdits",
     "allow": [
       "Edit(.claude/agents/**)",
       "Edit(.claude/commands/**)",
