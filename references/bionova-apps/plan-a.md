@@ -21,7 +21,7 @@ around synthetic data: `bionova-apps` vendors `data/synthetic/story.dsl` and
 `prose-cache.json` verbatim and runs `fit-terrain build` against them itself.**
 The DSL is the repository's domain source of truth; the SQL migrations and
 embeddings JSONL are rendered locally, never authored or vendored as output.
-This depends on two monorepo prerequisites that must publish to npm first (see
+This depends on two monorepo prerequisites, both published to npm (see
 Prerequisites): an `--output-root` flag so the build renders into a disposable
 directory instead of deleting `products/polaris/`, and prose-to-SQL rendering
 so the six clinical prose tables are emitted. The build is credential-free —
@@ -68,25 +68,22 @@ this spec; the monorepo PR (`plan-implemented`) updates only
 | --- | --- | --- |
 | Spec 1140 — clinical-output pipeline | implemented (commits `8bbf8f1c`, `0c921e81`) | `libterrain` clinical-output stage emits `supabase_migration` + `embeddings_jsonl` files |
 | Spec 1150 — story.dsl clinical rewrite | **implemented** (`wiki/STATUS.md` row `1150 plan implemented`; live-verified 2026-06-11 — `bunx fit-terrain build` at `6010964b`: 0 cache misses, all seed artifacts produced) | story.dsl carries `clinical {}` + `output … supabase_migration {…}` blocks at `data/synthetic/story.dsl:1250–1272` |
-| **Prerequisite A — `fit-terrain` external execution** | **NOT YET SPECCED — blocks implementation.** Needs `--output-root` (route the write sink off the project root so it does not `rm -rf products/polaris/`) and `--schema-dir` defaulting to `@forwardimpact/libskill`'s published `schema/json` (a hard dependency of `libterrain`). Must publish in a new `@forwardimpact/libterrain` minor. | `libterrain/bin/fit-terrain.js` sink wiring (~233–241) + `src/sinks.js` `writeFiles` (~262–285); `bin/fit-terrain.js` `defaultSchemaDir()`. See design § Prerequisite library changes A. |
-| **Prerequisite B — clinical prose → SQL** | **NOT YET SPECCED — blocks parts 05/07 prose surfaces.** Materialize the six prose types as records, add their `TABLE_SPEC` entries, and pass the prose cache into `renderSql`. Must publish in the same `libterrain`/`libsyntheticrender`/`libsyntheticgen` release train. | `libsyntheticgen/src/engine/clinical-entities.js` (~100–107); `libsyntheticrender/src/render/render-sql.js` `TABLE_SPEC` (~12–66); `libterrain/src/nodes.js` `renderClinicalOutput` (~543–545). See design § Prerequisite library changes B. |
-| `@forwardimpact/libcli@0.1.12`, `libui@1.3.0`, `libformat@0.1.18`, `libtemplate@0.2.12`, `librepl@0.1.14` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at panel-review time | part 01 pins these exact versions; implementer re-runs `npm view @forwardimpact/{libcli,libui,libformat,libtemplate,librepl} version` immediately before `bun install` and bumps in the part-01 PR if any further patch level published since. **libui crossed a minor (1.2 → 1.3): the implementer must scan `CHANGELOG.md` (or the GitHub release notes for `@forwardimpact/libui@1.3.0`) for breaking changes to `createBoundRouter`, `render`, `freezeInvocationContext`, and the exported `components` surface used by plan-a-07; record the scan result in the part-01 PR body** even when no breakage is found. |
-| `@forwardimpact/libterrain` on npm | required at the version that carries prerequisites A and B | part 01 adds it as a `devDependency`; part 03 pins the exact version that includes `--output-root` and prose-to-SQL rendering, and records it in its PR body |
+| **Prerequisite A — `fit-terrain` external execution** | **implemented** — `--output-root` (routes the write sink off the project root so it does not `rm -rf products/polaris/`) and `--schema-dir` (defaults to `@forwardimpact/libskill`'s published `schema/json`, a hard dependency of `libterrain`) ship in `fit-terrain` 0.1.41 on npm | `bunx fit-terrain --help` lists `--output-root` and `--schema-dir`. See design § Prerequisite library changes A. |
+| **Prerequisite B — clinical prose → SQL** | **implemented** — the six prose types materialize as records with `TABLE_SPEC` entries and the prose cache reaches `renderSql`; ships in the same `fit-terrain` release | the rendered build output contains the six prose seed tables (part 03 asserts this). See design § Prerequisite library changes B. |
+| `@forwardimpact/libcli@0.1.17`, `libui@1.4.1`, `libformat@0.1.21`, `libtemplate@0.2.14`, `librepl@0.1.16` on npm | published — versions verified via `npm view @forwardimpact/<lib> version` at the last reference pass | part 01 pins these exact versions; implementer re-runs `npm view @forwardimpact/{libcli,libui,libformat,libtemplate,librepl} version` immediately before `bun install` and bumps in the part-01 PR if any further patch level published since. **If any of the five crossed a minor (or major) since these pins, the implementer must scan its `CHANGELOG.md` (or GitHub release notes) for breaking changes to the symbols plan-a-06 (CLI) and plan-a-07 (web) import — `createCli`, `createBoundRouter`, `render`, `freezeInvocationContext`, and the exported `components` surface — and record the scan result in the part-01 PR body** even when no breakage is found. |
+| `fit-terrain` on npm | published — 0.1.41 carries prerequisites A and B | part 01 adds it as a pinned `devDependency` (0.1.41); part 03 verifies the pinned version carries `--output-root` and prose-to-SQL rendering, and records it in its PR body |
 
-**This plan must not enter implementation until prerequisites A and B are
-implemented and published to npm, in addition to spec 1150 (done).** Part 01
-(bootstrap + infrastructure) is the only part that can land without A/B; every
-part from 03 onward needs `fit-terrain build` to run externally (A) and the
-prose tables to exist (B). Approval recommendation: hold this plan in `plan
-approved` state until both prerequisite specs show `plan implemented` in
-`wiki/STATUS.md` and their npm releases are live; route `kata-implement` only
-after both signals flip.
+**Prerequisites A and B are implemented and published to npm** (they ship in
+`fit-terrain` 0.1.41 and later), in addition to spec 1150 (done). The plan is
+unblocked end to end; every part from 03 onward relies on `fit-terrain build`
+running externally (A) and the prose tables existing (B), both satisfied by
+the pinned devDependency.
 
 ## Part Index
 
 | Part | Title | Scope | Depends on |
 | --- | --- | --- | --- |
-| [01](plan-a-01.md) | Repo bootstrap + infrastructure | Repo skeleton via the **monorepo-setup skill**, then layered: `package.json`/`.gitignore`/CI extensions (+ `libterrain`/`map` devDeps), `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | A |
+| [01](plan-a-01.md) | Repo bootstrap + infrastructure | Repo skeleton via the **monorepo-setup skill**, then layered: `package.json`/`.gitignore`/CI extensions (+ the `fit-terrain` devDep), `docker-compose.yml`, all `infrastructure/{service}/` dirs, Kong config, `setup.sh` skeleton | A |
 | [02](plan-a-02.md) | Schema + RLS + interest_signals migration | Hand-written migration for `interest_signals`, RLS policies (prose tables get `public_read` from terrain), schema verification | 01 |
 | [03](plan-a-03.md) | Data pipeline (r3) | vendored `story.dsl` + `prose-cache.json` verbatim + `PROVENANCE.md`; `scripts/build-seed.sh` runs `fit-terrain build --output-root`; `setup.sh` data steps | 01, 02, prereqs A+B, spec 1150 |
 | [04](plan-a-04.md) | Edge functions | `embed-seed`, `eligibility-check`, `notify-updates`, `sync-listings` under `services/polaris-functions/` | 03 |
@@ -102,25 +99,18 @@ freezeInvocationContext), `@forwardimpact/libui` (createBoundRouter, render,
 components, freezeInvocationContext), `@forwardimpact/libformat`
 (createHtmlFormatter, createTerminalFormatter), `@forwardimpact/libtemplate`
 (createTemplateLoader), `@forwardimpact/librepl` (Repl). Build-time only:
-`@forwardimpact/libterrain` (`fit-terrain build --output-root`; schema
-resolution ships via its `libskill` dependency) — invoked by `setup.sh` and
-the `build-seed` script, never imported by a surface.
+`fit-terrain` (`fit-terrain build --output-root`; schema resolution ships
+via its `libskill` dependency) — invoked by `setup.sh` and the `build-seed`
+script, never imported by a surface.
 
 ## Risks
 
-- **Prerequisites A and B are not yet specced or published.** This is the
-  gating risk. r3 deliberately depends on `fit-terrain` running externally
-  (A) and emitting prose tables (B); neither exists today. If either slips,
-  this plan cannot start past part 01. Mitigation: the two prerequisites are
-  small, well-scoped library changes (design § Prerequisite library changes
-  lists the exact files and line ranges). They must be specced, implemented,
-  and published as an `@forwardimpact/libterrain` (+`libsyntheticrender`,
-  `libsyntheticgen`, `map`) release train before `kata-implement` is routed
-  here. Part 03 pins the exact npm versions that carry them. **Fallback:** if
-  A/B cannot ship, revert to r2's vendor-the-rendered-SQL pipeline (preserved
-  in git history) — the app loses local regeneration and the prose surfaces,
-  but still boots. That fallback is a different spec revision, not a silent
-  degrade.
+- **Building against a `fit-terrain` that predates prerequisites A and B.**
+  Both prerequisites are implemented and published (`fit-terrain` 0.1.41+),
+  so the residual risk is version drift: an implementer resolving an older
+  version loses external execution (A) or the prose tables (B). Part 01 pins
+  the devDependency and part 03 verifies the pinned version carries
+  `--output-root` and the prose seed tables before proceeding.
 - **`fit-terrain build` deleting `products/polaris/`.** Without
   `--output-root`, the write sink `rm -rf`s the first two path segments of
   each output path (`sinks.js` `writeFiles` ~262–285), i.e. `products/polaris`
@@ -132,7 +122,7 @@ the `build-seed` script, never imported by a surface.
   the monorepo at the provenance SHA reproduces the same bytes.
 - **Prose tables are silently dropped if prerequisite B is missing at
   build time.** `render-sql.js` ignores unknown entities in the output
-  block's `entities[]` (no error). If part 03 runs against a `libterrain`
+  block's `entities[]` (no error). If part 03 runs against a `fit-terrain`
   that predates B, the six prose tables simply will not appear and parts
   05/07 prose surfaces will 404 on empty tables. Part 03 step 1 asserts the
   prose tables are present in the build output before proceeding, and part 08
@@ -152,16 +142,14 @@ the `build-seed` script, never imported by a surface.
   `CREATE UNIQUE INDEX condition_embeddings_condition_id_uidx ON
   condition_embeddings(condition_id)` so PostgREST `on_conflict` upsert
   works in `embed-seed`.
-- **Forward Impact library versions** are pinned at panel-review time
-  (libcli 0.1.12, libui 1.3.0, libformat 0.1.18, libtemplate 0.2.12,
-  librepl 0.1.14). Patches may publish between approval and
-  implementation; part 01's PR description must record the resolved
-  versions. libui already crossed a minor (1.2 → 1.3) between plan-write
-  and panel review, and any further minor (or major) bump on any of the
-  five requires a breaking-change scan recorded in the part-01 PR — the
-  scan reads the relevant `CHANGELOG.md` and confirms the symbols
-  imported by plan-a-06 (CLI) and plan-a-07 (web) still behave as the
-  plan assumes.
+- **Forward Impact library versions** are pinned at the last reference pass
+  (libcli 0.1.17, libui 1.4.1, libformat 0.1.21, libtemplate 0.2.14,
+  librepl 0.1.16). Patches may publish between passes; part 01's PR
+  description must record the resolved versions. Any minor (or major) bump
+  on any of the five requires a breaking-change scan recorded in the
+  part-01 PR — the scan reads the relevant `CHANGELOG.md` and confirms the
+  symbols imported by plan-a-06 (CLI) and plan-a-07 (web) still behave as
+  the plan assumes.
 - **Postgres extension surface.** The plan uses `pgvector`, `pg_cron`,
   `pg_net`, `pgjwt`, `pgsodium`, `pgaudit`, `pgcrypto`, `uuid-ossp`. Only
   `supabase/postgres` ships all of these in one image. Part 01 step 6

@@ -310,14 +310,14 @@ Created:
 Test runner:
 `deno test --allow-net --allow-read --allow-env services/polaris-functions/`.
 
-Verify: `deno test` exits 0; CI runs this in a new job `edge-functions` in
-`.github/workflows/ci.yml`.
+Verify: `deno test` exits 0; CI runs this in the `edge-functions` job of
+`.github/workflows/check-edge.yml` (scaffolded in part 01).
 
 ## Step 7 — Open part-04 PR
 
 ```sh
 git checkout -b services/polaris-functions
-git add services/polaris-functions/ products/polaris/site/supabase/migrations/20260601000002_notify_trigger.sql products/polaris/site/supabase/migrations/20260601000003_sync_schedule.sql docker-compose.yml setup.sh .github/workflows/ci.yml
+git add services/polaris-functions/ products/polaris/site/supabase/migrations/20260601000002_notify_trigger.sql products/polaris/site/supabase/migrations/20260601000003_sync_schedule.sql docker-compose.yml setup.sh .github/workflows/check-edge.yml
 git commit -m "services: polaris-functions edge functions"
 git push -u origin services/polaris-functions
 gh pr create --title "services: polaris-functions edge functions" --body "Implements plan-a-04 of spec 1160. Adds embed-seed, eligibility-check, notify-updates, sync-listings; wires pg_net + cron triggers."

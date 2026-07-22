@@ -48,7 +48,7 @@ Created / extended:
 | `MONOREPO.md` | Repo's layout doc (three-shippable / three-support), scoped to bionova-apps |
 | `LICENSE` | Apache-2.0 |
 | `.nvmrc` | `20` (Node major) |
-| `.tool-versions` | `bun 1.2.0`, `nodejs 20.11.1` (`supabase` added in part 02, `deno` in part 04) |
+| `.tool-versions` | `bun 1.3.11`, `nodejs 20.19.0` (`supabase` added in part 02, `deno` in part 04). Bun must stay >= 1.2.9: `apm install` calls `Bun.YAML.parse`, absent in older bun |
 | `package.json` | **extend** the skeleton manifest — add `"type": "module"`, `engines`, the Polaris workspaces, the bionova scripts, and app devDependencies (below); keep the skeleton's `check`/`jidoka` entries |
 | `.gitignore` | **append** the bionova ignores (below) to the skeleton's |
 | `justfile` | Recipes: `up` (`docker compose up -d`), `down`, `setup`, `seed` (`bash scripts/build-seed.sh`), `cli`, `dev:site`, `test`, `lint` |
@@ -64,7 +64,7 @@ devDependencies (do **not** drop the skeleton's `check` / `jidoka` entries):
 {
   "type": "module",
   "workspaces": ["products/*/cli", "products/*/site", "products/*/handlers"],
-  "engines": { "node": ">=20", "bun": ">=1.2" },
+  "engines": { "node": ">=20.19.0", "bun": ">=1.2" },
   "scripts": {
     "setup": "./setup.sh",
     "seed": "bash scripts/build-seed.sh",
@@ -80,20 +80,20 @@ devDependencies (do **not** drop the skeleton's `check` / `jidoka` entries):
     "typescript": "5.9.3",
     "@eslint/js": "9.39.4",
     "eslint": "9.39.4",
-    "eslint-config-prettier": "9.1.2",
-    "prettier": "3.9.4",
-    "@forwardimpact/libterrain": "<pinned in part 03>"
+    "eslint-config-prettier": "10.1.8",
+    "prettier": "3.9.5",
+    "fit-terrain": "0.1.41"
   }
 }
 ```
 
 The Deno service `services/polaris-functions/` is **not** a Bun workspace — it
 carries `deno.json`, not `package.json`, so `lint`/`test` run JS and Deno
-tooling in separate steps. `@forwardimpact/libterrain` is a
+tooling in separate steps. `fit-terrain` is a
 **build-time devDependency only** — `setup.sh` and
 `scripts/build-seed.sh` invoke `fit-terrain build` to render the seed from the
-vendored `story.dsl`; no surface imports them. Part 03 pins the exact versions
-that carry prerequisites A (`--output-root`) and B (prose→SQL).
+vendored `story.dsl`; no surface imports it. Part 03 verifies the pinned
+version carries prerequisites A (`--output-root`) and B (prose→SQL).
 
 `.gitignore` — append the rendered-seed and runtime-data ignores (the skeleton
 already ignores `node_modules/`, `.env`, `*.log`, `wiki/`, `dist/`, `build/`,
@@ -372,10 +372,11 @@ those do not cover — **one workflow per concern, never folded into a single
 | `.github/CODEOWNERS` | `* @forwardimpact/agent-team` (extend only if `kata-setup` did not already set it) |
 | `.github/pull_request_template.md` | Summary, Test plan (if not already scaffolded) |
 
-The seed and e2e jobs skip cleanly with a `::warning::` until the
-`@forwardimpact/libterrain` release carrying `--output-root` (prerequisite A) is
-resolvable from npm; until then they point `fit-terrain` at a pinned checkout
-via `FIT_TERRAIN`. Do not add a monolithic `ci.yml` — a failing compose
+The seed and e2e jobs run against the pinned `fit-terrain` devDependency —
+`bun install` drops its bin at `node_modules/.bin/fit-terrain`, so no live
+fetch is needed. The `FIT_TERRAIN` env var points `build-seed.sh` at a local
+checkout only when rendering with an unreleased build.
+Do not add a monolithic `ci.yml` — a failing compose
 validation and a failing edge-function test must read as two distinct red
 checks, per the check-workflow rule the skill enforces.
 
