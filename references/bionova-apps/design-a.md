@@ -368,9 +368,9 @@ documents; `--token-env` carries the Polaris token name, so nothing
 Landmark-specific enters the flow.
 
 The substrate command brings Polaris' own compose stack up from the repo
-checkout and seeds it through `setup.sh`, while the interview itself stages
-its working files into the temp `agent-cwd` the action creates — the whole
-loop runs on `fit-terrain` plus Polaris' own migrations and seed, with no
-Polaris application code running in the runner. Prerequisite A (`fit-terrain` runs
+checkout and seeds it through `setup.sh`, while the interview itself stages its
+working files into the temp `agent-cwd` the action creates — the whole loop runs
+on `fit-terrain` plus Polaris' own migrations and seed, with no Polaris
+application code running in the runner. Prerequisite A (`fit-terrain` runs
 outside the monorepo) is the same dependency the seed pipeline already relies
 on.
