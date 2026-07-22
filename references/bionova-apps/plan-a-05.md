@@ -40,7 +40,7 @@ Created:
     "./templates": "./src/templates-dir.js"
   },
   "dependencies": {
-    "@forwardimpact/libtemplate": "0.2.10"
+    "@forwardimpact/libtemplate": "0.2.14"
   }
 }
 ```

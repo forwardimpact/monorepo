@@ -71,26 +71,40 @@ name: deploy
 on:
   push:
     branches: [main]
+# Deploys run `railway up` with the RAILWAY_TOKEN secret; the GITHUB_TOKEN is
+# only used to check out the repo. Least privilege is read-only.
+permissions:
+  contents: read
 jobs:
   detect:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.changes.outputs.services }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@<pinned-sha> # v7 — SHA-pin, per part 01 step 9
         with: { fetch-depth: 2 }
       - id: changes
         run: |
           changed=$(git diff --name-only HEAD~1 HEAD)
+          # Map each watched directory to its real Railway service name (the
+          # compose/Railway service key, not the dir basename).
+          declare -A svc=(
+            [infrastructure/postgres]=postgres
+            [infrastructure/kong]=kong
+            [infrastructure/postgrest]=postgrest
+            [infrastructure/gotrue]=gotrue
+            [infrastructure/storage]=storage
+            [infrastructure/tei]=tei
+            [products/polaris/site]=polaris-site
+            [services/polaris-functions]=polaris-functions
+          )
           services=()
-          for d in infrastructure/postgres infrastructure/kong infrastructure/postgrest infrastructure/gotrue infrastructure/storage infrastructure/tei products/polaris/site services/polaris-functions; do
-            if echo "$changed" | grep -q "^$d/"; then
-              services+=("$(basename "$d")")
-            fi
+          for d in "${!svc[@]}"; do
+            if echo "$changed" | grep -q "^$d/"; then services+=("${svc[$d]}"); fi
           done
-          # polaris-site also depends on handlers
-          if echo "$changed" | grep -q "^products/polaris/handlers/" && [[ ! " ${services[*]} " =~ " site " ]]; then
-            services+=("site")
+          # The site bundles the shared handlers; redeploy it when they change.
+          if echo "$changed" | grep -q "^products/polaris/handlers/" && [[ ! " ${services[*]} " =~ " polaris-site " ]]; then
+            services+=("polaris-site")
           fi
           echo "services=$(printf '%s\n' "${services[@]}" | jq -R -s 'split("\n") | map(select(length>0))' -c)" >> $GITHUB_OUTPUT
   deploy:
@@ -101,8 +115,8 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect.outputs.services) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@<pinned-sha> # v7
+      - uses: actions/setup-node@<pinned-sha> # v4
         with: { node-version: '20' }
       # Install Railway CLI from a pinned npm version. The upstream
       # `curl -fsSL https://railway.app/install.sh | sh` flow resolves
@@ -115,12 +129,15 @@ jobs:
 ```
 
 Document RAILWAY_TOKEN setup in `infrastructure/railway/README.md` —
-project-scoped token from Railway dashboard, set as repo secret.
+project-scoped token from Railway dashboard, set as repo secret. If no
+Railway project is linked yet, gate the `deploy` job on the secret being
+non-empty so it skips cleanly instead of standing red (a red `deploy`
+should mean a genuine deploy failure).
 
 Verify: a no-op commit to `main` runs the `detect` job, which emits an
 empty `services` array, and the `deploy` job is skipped. A commit
-touching `products/polaris/site/src/app/page.tsx` triggers a `site`-only
-deploy.
+touching `products/polaris/site/src/app/page.tsx` triggers a
+`polaris-site`-only deploy.
 
 ## Step 4 — Author the success-criteria smoke script
 
@@ -402,32 +419,41 @@ SCs pass.
 
 ## Step 5 — Wire smoke script into CI
 
-Edit `.github/workflows/ci.yml`:
+Fill in `.github/workflows/check-e2e.yml` (scaffolded in part 01; SHA-pin
+both actions per part 01 step 9). It is a standalone per-concern workflow —
+no `needs:` on other jobs; the other concerns run as their own workflows:
 
 ```yaml
+jobs:
   e2e:
     runs-on: ubuntu-latest
-    needs: [lint, seed-stage, edge-functions]
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
-      - run: docker compose up -d --wait
-      - run: ./setup.sh
-        env:
-          POSTGRES_PASSWORD: test
-          JWT_SECRET: ${{ secrets.TEST_JWT_SECRET }}
-          ANON_KEY: ${{ secrets.TEST_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.TEST_SERVICE_ROLE_KEY }}
-      - run: ./scripts/smoke.sh
-        env:
-          ANON_KEY: ${{ secrets.TEST_ANON_KEY }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.TEST_SERVICE_ROLE_KEY }}
+      - uses: actions/checkout@<pinned-sha> # v7
+      - uses: oven-sh/setup-bun@<pinned-sha> # v2
+        with:
+          bun-version-file: .tool-versions
+      - run: bun install
+      - run: cp .env.example .env
+      - run: |
+          # Render the seed BEFORE compose up — polaris-functions bind-mounts the JSONL.
+          bash scripts/build-seed.sh
+          # Pre-fetch the TEI model on the host and point tei at the local
+          # copy — the container cannot fetch through the runner's
+          # TLS-inspecting proxy (part 01 step 7).
+          TEI_MODEL_CACHE="$HOME/.cache/bionova-tei-model/bge-small-en-v1.5" \
+            bash scripts/fetch-tei-model.sh
+          printf 'TEI_MODEL_ID=/data\nTEI_MODEL_SOURCE=%s\n' \
+            "$HOME/.cache/bionova-tei-model/bge-small-en-v1.5" >> .env
+          docker compose up -d --wait
+          ./setup.sh
+          SMOKE_DESTRUCTIVE=1 ./scripts/smoke.sh
       - if: failure()
         run: docker compose logs --tail=200
 ```
 
-Token values are test-only (low-entropy is fine — Anon and service-role
-keys are scoped to the ephemeral CI Postgres instance).
+The `.env.example` placeholder values suffice — the anon and service-role
+keys are scoped to the ephemeral CI Postgres instance, so no repository
+secrets are needed.
 
 Verify: CI e2e job runs against a fresh stack and reports green.
 

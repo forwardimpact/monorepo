@@ -93,7 +93,7 @@ with pgvector for data and semantic search. PostgREST for auto-generated REST
 API. GoTrue for auth. HuggingFace TEI for embeddings. Supabase Edge Functions
 for eligibility scoring and embedding generation. Next.js App Router with
 Tailwind and shadcn/ui for the frontend. Forward Impact shared libraries from
-npm. `@forwardimpact/libterrain` from npm provides the synthetic-data build.
+npm. The `fit-terrain` package from npm provides the synthetic-data build.
 
 ### Data seeding
 
@@ -144,10 +144,13 @@ calls.
 
 ## Prerequisites
 
-These capabilities do not exist today and must ship before this spec can be
-implemented. Each needs its own spec, design, and plan.
+These capabilities were missing when the spec was first written and gated
+implementation. All have since shipped: the published `fit-terrain` package
+(0.1.41 and later) carries items 1 and 2, so a fresh build needs no
+unreleased code.
 
-1. **External `fit-terrain` execution.** `fit-terrain` hardcodes monorepo
+1. **External `fit-terrain` execution** (implemented — ships in
+   `fit-terrain` on npm). `fit-terrain` hardcodes monorepo
    paths: it writes output relative to the resolved project root and would
    `rm -rf` `products/polaris/` (the app code) in an external repo. It needs an
    `--output-root` flag so output renders into a disposable build directory
@@ -156,7 +159,8 @@ implemented. Each needs its own spec, design, and plan.
    hard dependency of `libterrain` — so `--schema-dir` resolves it by default
    and the verbatim DSL's `standard {}` block renders with no extra package.
    `--story` and `--cache` overrides already exist.
-2. **Prose entities rendered to SQL.** The clinical `content {}` block already
+2. **Prose entities rendered to SQL** (implemented — ships in the same
+   `fit-terrain` release). The clinical `content {}` block already
    generates condition explainers, trial FAQs, consent summaries, site
    descriptions, patient stories, and therapy descriptions into the prose
    cache, but the pipeline materializes them only as text fields on HTML

@@ -45,8 +45,8 @@ Edit `package.json` to add workspace deps:
 
 ```json
 "dependencies": {
-  "@forwardimpact/libui": "1.2.1",
-  "@forwardimpact/libformat": "0.1.15",
+  "@forwardimpact/libui": "1.4.1",
+  "@forwardimpact/libformat": "0.1.21",
   "@bionova/polaris-handlers": "workspace:*",
   "next": "14.2.5",
   "react": "18.3.1",

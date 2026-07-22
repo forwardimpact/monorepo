@@ -40,7 +40,7 @@ Write `data/synthetic/PROVENANCE.md` (one page):
 - Vendored verbatim: `story.dsl` (`seed 42`) + `prose-cache.json`
 - Render command: `bunx fit-terrain build --story data/synthetic/story.dsl
   --cache data/synthetic/prose-cache.json --output-root data/synthetic/.build`
-- libterrain version that produced the committed `SEED.sha256`: `<pinned>`
+- `fit-terrain` version that produced the committed `SEED.sha256`: `<pinned>`
 - SC7 verify: run the render command here, then `sha256sum -c SEED.sha256`
   against `data/synthetic/.build/.../migrations/`; running the same command in
   the monorepo at `$PROVENANCE_SHA` reproduces identical bytes.
@@ -49,20 +49,19 @@ Verify: `sha256sum -c SOURCE.sha256` passes; `PROVENANCE.md` carries a real
 40-char SHA reachable on `forwardimpact/monorepo:main`; `story.dsl` is
 byte-identical to the monorepo's at `$PROVENANCE_SHA` (`diff` is empty).
 
-## Step 2 — Pin the libterrain version that carries prereqs A+B
+## Step 2 — Verify the fit-terrain pin carries prereqs A+B
 
-Part 01 added `@forwardimpact/libterrain` as a
-`devDependency`. Pin the exact version that include `--output-root` (A) and
-prose-to-SQL rendering (B):
+Part 01 added `fit-terrain` as a pinned `devDependency` (0.1.41, the first
+release carrying `--output-root` (A) and prose-to-SQL rendering (B)). Confirm
+the resolved version is at least that:
 
 ```sh
-npm view @forwardimpact/libterrain version       # must be ≥ the A+B release
+npm view fit-terrain version       # must be >= 0.1.41
 ```
 
-Record the resolved version in this part's PR body. If the A+B release is not
-yet on npm, **stop** — this part is blocked (plan-a.md § Prerequisites).
+Record the resolved version in this part's PR body.
 
-Verify: `bun pm ls | grep libterrain` shows the pinned
+Verify: `bun pm ls | grep fit-terrain` shows the pinned
 version; `bunx fit-terrain --help` lists `--output-root` and `--schema-dir`.
 
 ## Step 3 — Author `scripts/build-seed.sh`
@@ -238,16 +237,23 @@ Verify: file present; renders cleanly on GitHub.
 
 ## Step 10 — Add CI step that proves the local build is deterministic
 
-Edit `.github/workflows/ci.yml` (from part 01):
+Fill in `.github/workflows/check-seed.yml` (scaffolded in part 01; SHA-pin
+both actions per part 01 step 9):
 
 ```yaml
+jobs:
   seed-build:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@<pinned-sha> # v7
+      - uses: oven-sh/setup-bun@<pinned-sha> # v2
+        with:
+          bun-version-file: .tool-versions
       - run: bun install
+      # fit-terrain (prereqs A+B) is a devDependency, so `bun install` above
+      # drops its bin locally and build-seed.sh resolves it without a live
+      # `bunx` fetch.
       - run: bash scripts/build-seed.sh
       - run: |
           MIG=products/polaris/site/supabase/migrations
@@ -258,9 +264,9 @@ Edit `.github/workflows/ci.yml` (from part 01):
           grep -Eq '[0-9a-f]{40}' data/synthetic/PROVENANCE.md
 ```
 
-The job needs npm (libterrain) but **no LLM credential** — `build` renders from
-the committed cache. The `sha256sum -c` against `SEED.sha256` is the SC7
-determinism gate: a non-deterministic render or a libterrain version drift
+The job needs npm (fit-terrain) but **no LLM credential** — `build` renders
+from the committed cache. The `sha256sum -c` against `SEED.sha256` is the SC7
+determinism gate: a non-deterministic render or a fit-terrain version drift
 fails here.
 
 Verify: PR CI runs `seed-build`; passes on the vendored-DSL layout.
@@ -270,11 +276,11 @@ Verify: PR CI runs `seed-build`; passes on the vendored-DSL layout.
 ```sh
 git checkout -b data/vendored-dsl
 git add scripts/build-seed.sh setup.sh docker-compose.yml data/synthetic/ \
-        .github/workflows/ci.yml .gitignore package.json
+        .github/workflows/check-seed.yml .gitignore package.json
 git commit -m "data: vendor story.dsl verbatim; render seed locally with fit-terrain"
 git push -u origin data/vendored-dsl
 gh pr create --title "data: vendor story.dsl verbatim; render seed locally" \
-  --body "Implements plan-a-03 (r3) of spec 1160. bionova-apps vendors data/synthetic/story.dsl + prose-cache.json verbatim from monorepo@<PROVENANCE_SHA> and runs fit-terrain build --output-root to render the seed locally (no LLM key; prose cache committed). Requires libterrain prereqs A (--output-root) and B (prose→SQL), pinned at <versions>. SEED.sha256 is the determinism anchor (SC7). Supersedes r2's vendor-the-SQL approach."
+  --body "Implements plan-a-03 (r3) of spec 1160. bionova-apps vendors data/synthetic/story.dsl + prose-cache.json verbatim from monorepo@<PROVENANCE_SHA> and runs fit-terrain build --output-root to render the seed locally (no LLM key; prose cache committed). Requires fit-terrain >= 0.1.41 (prereqs A --output-root and B prose→SQL), pinned in package.json. SEED.sha256 is the determinism anchor (SC7). Supersedes r2's vendor-the-SQL approach."
 ```
 
 Verify: PR CI green (lint + seed-build jobs).
@@ -286,7 +292,7 @@ Verify: PR CI green (lint + seed-build jobs).
       `SOURCE.sha256`, `SEED.sha256`, `PROVENANCE.md`, `README.md`, all
       committed.
 - [ ] `PROVENANCE.md` pins a real 40-char SHA on `forwardimpact/monorepo:main`
-      and the libterrain version used.
+      and the fit-terrain version used.
 - [ ] `bunx fit-terrain --help` shows `--output-root` (prereq A present).
 - [ ] `scripts/build-seed.sh` renders into `data/synthetic/.build/`, asserts the
       six prose tables, stages ≥ 15 SQL files, and refuses to run if the output

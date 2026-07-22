@@ -266,9 +266,10 @@ against (and kept in sync with `kong.yml`).
 
 ## Prerequisite library changes
 
-This design depends on two monorepo capabilities that do not exist yet. They
-are not `bionova-apps` work; they ship from the monorepo and publish to npm
-before `bionova-apps` implementation begins. Each needs its own spec.
+This design depends on two monorepo capabilities that did not exist when it
+was written. They are not `bionova-apps` work; both have since shipped from
+the monorepo and publish on npm in `fit-terrain` 0.1.41 and later. The tables
+below record what changed and where, as designed.
 
 ### A — `fit-terrain` runs outside the monorepo
 
@@ -321,7 +322,7 @@ the mandated `discipline`/`level`/`track` columns. `substrate.evidence` and
 with the degradation that declares: structural-only pick invariants, and an
 identity-only `.substrate.json` from `issue`.
 
-`.github/workflows/interview.yml` in `bionova-apps`:
+`.github/workflows/kata-interview.yml` in `bionova-apps`:
 
 ```yaml
 jobs:
@@ -335,14 +336,15 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           website-url: https://polaris.bionova.example
-          # Generic Supabase bring-up, Polaris' own migrations + embed seed,
-          # then the contract gate and identity provisioning.
+          # Polaris' own compose stack (not the Supabase CLI): boot, render +
+          # apply the seed via setup.sh, then the contract gate and identity
+          # provisioning. `fit-terrain` is on PATH via the action's bootstrap.
           substrate-setup-command: >-
-            npx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"
-            && supabase db push
-            && ./data/synthetic/setup.sh
-            && npx fit-terrain substrate check
-            && npx fit-terrain substrate provision
+            cp .env.example .env
+            && docker compose up -d --wait
+            && ./setup.sh
+            && fit-terrain substrate check
+            && fit-terrain substrate provision
           jwt-secret: ${{ secrets.SUPABASE_JWT_SECRET }}
           service-role-key: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 ```
@@ -355,9 +357,9 @@ token name (and, if diversification across runs matters, a Polaris-scoped
 `--memory` path):
 
 ```sh
-persona=$(npx fit-terrain substrate pick --format json) \
+persona=$(fit-terrain substrate pick --format json) \
 && email=$(printf '%s' "$persona" | jq -r '.personas[0].email') \
-&& npx fit-terrain substrate issue --email "$email" --cwd "$AGENT_CWD" \
+&& fit-terrain substrate issue --email "$email" --cwd "$AGENT_CWD" \
   --token-env PRODUCT_POLARIS_TOKEN --stash "$RUNNER_TEMP/.persona-jwt"
 ```
 
@@ -365,10 +367,10 @@ This satisfies the same `.env` / `.substrate.json` / stash contract the action
 documents; `--token-env` carries the Polaris token name, so nothing
 Landmark-specific enters the flow.
 
-The substrate command brings Supabase up from the repo checkout (`--cwd .`,
-using Polaris' own `supabase/` config), while the interview itself stages its
-working files into the temp `agent-cwd` the action creates — the whole loop
-runs on `fit-terrain` plus Polaris' own migrations and seed, with no Polaris
-application code running in the runner. Prerequisite A (`fit-terrain` runs
+The substrate command brings Polaris' own compose stack up from the repo
+checkout and seeds it through `setup.sh`, while the interview itself stages
+its working files into the temp `agent-cwd` the action creates — the whole
+loop runs on `fit-terrain` plus Polaris' own migrations and seed, with no
+Polaris application code running in the runner. Prerequisite A (`fit-terrain` runs
 outside the monorepo) is the same dependency the seed pipeline already relies
 on.

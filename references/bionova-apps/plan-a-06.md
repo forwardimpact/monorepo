@@ -28,10 +28,10 @@ Created:
   "type": "module",
   "bin": { "bionova-polaris": "bin/bionova-polaris.js" },
   "dependencies": {
-    "@forwardimpact/libcli": "0.1.9",
-    "@forwardimpact/librepl": "0.1.12",
-    "@forwardimpact/libformat": "0.1.15",
-    "@forwardimpact/libtemplate": "0.2.10",
+    "@forwardimpact/libcli": "0.1.17",
+    "@forwardimpact/librepl": "0.1.16",
+    "@forwardimpact/libformat": "0.1.21",
+    "@forwardimpact/libtemplate": "0.2.14",
     "@bionova/polaris-handlers": "workspace:*"
   }
 }
