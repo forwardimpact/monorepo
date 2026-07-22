@@ -1,6 +1,6 @@
 name: Kata Agent
 description: >
-  Run a Kata agent workflow — generates an installation token, checks out the repository, bootstraps the environment, and executes the agent via fit-harness.
+  Run a Kata agent workflow — generates an installation token, checks out the repository, bootstraps the environment, and executes the agent via gemba-harness.
 
 inputs:
   # --- Authentication ---
@@ -38,11 +38,11 @@ inputs:
     description: Comma-separated agent profile names (facilitate and discuss modes)
     required: false
   agent-model:
-    description: Claude model for agents (all modes); empty uses the fit-harness CLI default
+    description: Claude model for agents (all modes); empty uses the gemba-harness CLI default
     required: false
     default: ""
   lead-model:
-    description: Claude model for the lead role (supervise / facilitate / discuss modes); empty uses the fit-harness CLI default
+    description: Claude model for the lead role (supervise / facilitate / discuss modes); empty uses the gemba-harness CLI default
     required: false
     default: ""
   max-turns:
@@ -111,20 +111,20 @@ outputs:
       (empty when `trace` is disabled). Wraps each
       agent/supervisor/facilitator/chair/orchestrator event in
       `{source, seq, event}` envelopes. Read it directly to post-process the
-      run — e.g. `fit-trace cost <file>` to sum spend across every
-      participant. Passed through from the internal `fit-harness` action.
+      run — e.g. `gemba-trace cost <file>` to sum spend across every
+      participant. Passed through from the internal `gemba-harness` action.
     value: ${{ steps.assess.outputs.trace-file }}
   trace-dir:
     description: >
       Absolute path of the temp directory holding all trace files for this
       run (empty when `trace` is disabled). Use it to read the raw or split
       trace files without globbing the runner's temp space. Passed through
-      from the internal `fit-harness` action.
+      from the internal `gemba-harness` action.
     value: ${{ steps.assess.outputs.trace-dir }}
   case:
     description: >
       Effective case identifier embedded in the trace filenames. Passed
-      through from the internal `fit-harness` action.
+      through from the internal `gemba-harness` action.
     value: ${{ steps.assess.outputs.case }}
 
 runs:
@@ -158,19 +158,19 @@ runs:
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout —
     # leave it empty to skip wiki sync. The wiki is pushed back after the
     # agent run via forwardimpact/wiki below.
-    - uses: forwardimpact/bootstrap@c852d29b38edbb2e6c037bf3952aac339e9fe8b8 # v1.0.12
+    - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
         app-slug: ${{ inputs.app-slug }}
         app-id: ${{ inputs.app-id }}
-        # Install the pre-compiled CLIs the run uses onto PATH; fit-wiki only
-        # when wiki sync is enabled. The fit-harness/fit-wiki steps below
+        # Install the pre-compiled CLIs the run uses onto PATH; gemba-wiki only
+        # when wiki sync is enabled. The gemba-harness/gemba-wiki steps below
         # resolve these binaries before any npx path.
-        clis: ${{ inputs.wiki == 'true' && 'fit-wiki fit-harness fit-trace' || 'fit-harness fit-trace' }}
+        clis: ${{ inputs.wiki == 'true' && 'gemba-wiki gemba-harness gemba-trace' || 'gemba-harness gemba-trace' }}
 
     # Render the storyboard from current issue + CSV state before the agent
     # reads it, so the facilitator and participants see an up-to-date Current
-    # Condition and Active/Concluded lists rather than stale markdown. fit-wiki
+    # Condition and Active/Concluded lists rather than stale markdown. gemba-wiki
     # mints a fresh token for the `gh issue list` calls refresh makes.
     - name: Refresh wiki (pre-run)
       if: inputs.wiki == 'true'
@@ -182,13 +182,13 @@ runs:
 
     - name: Assess and Act
       id: assess
-      uses: forwardimpact/harness@b7409ad9a1df4ff75eca8fe68041b5384f75bd7e # v1.0.3
+      uses: forwardimpact/harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
         CLAUDE_CODE_USE_BEDROCK: "0"
         # The agent runs in bypass-permissions mode, which Claude Code refuses
-        # under uid 0 unless the process is marked sandboxed. fit-harness@v1 sets
+        # under uid 0 unless the process is marked sandboxed. gemba-harness@v1 sets
         # this on its own run step; set it here too so the requirement is
         # explicit at the workflow level. Harmless on non-root runners.
         IS_SANDBOX: "1"
@@ -226,7 +226,7 @@ runs:
         app-id: ${{ inputs.app-id }}
         app-private-key: ${{ inputs.app-private-key }}
 
-    # Push agent memory back. fit-wiki mints a fresh token (the one minted
+    # Push agent memory back. gemba-wiki mints a fresh token (the one minted
     # at job start expires after an hour, so a long agent run would leave a
     # cleanup-time push unauthenticated) and runs under always() so memory
     # is durable whether the agent step succeeded, failed, or timed out.
@@ -238,7 +238,7 @@ runs:
         app-id: ${{ inputs.app-id }}
         app-private-key: ${{ inputs.app-private-key }}
 
-    # Sum spend across every participant. fit-trace cost tolerates a missing
+    # Sum spend across every participant. gemba-trace cost tolerates a missing
     # trace (the run may have failed before producing one), so this needs no
     # file guard.
     - name: Report run cost
@@ -246,4 +246,4 @@ runs:
       shell: bash
       env:
         TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
-      run: fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+      run: gemba-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"

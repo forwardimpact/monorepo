@@ -84,12 +84,12 @@ outputs:
   trace-file:
     description: >
       Absolute path of the raw NDJSON trace file from the interview run.
-      Passed through from the internal fit-harness action.
+      Passed through from the internal gemba-harness action.
     value: ${{ steps.interview.outputs.trace-file }}
   trace-dir:
     description: >
       Absolute path of the temp directory holding all trace files for this run.
-      Passed through from the internal fit-harness action.
+      Passed through from the internal gemba-harness action.
     value: ${{ steps.interview.outputs.trace-dir }}
 
 runs:
@@ -123,12 +123,12 @@ runs:
     # fit-terrain now also provides the generic substrate bring-up, so fit-map
     # is NOT installed here — a consumer's FI substrate command runs it via bunx
     # as its own documented exception.
-    - uses: forwardimpact/bootstrap@c852d29b38edbb2e6c037bf3952aac339e9fe8b8 # v1.0.12
+    - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
       with:
         token: ${{ steps.ci-app.outputs.token }}
         app-slug: ${{ inputs.app-slug }}
         app-id: ${{ inputs.app-id }}
-        clis: fit-terrain fit-trace fit-harness fit-wiki
+        clis: fit-terrain gemba-trace gemba-harness gemba-wiki
 
     - name: Prepare interview workspace
       id: workspace
@@ -178,7 +178,7 @@ runs:
 
     - name: Run interview
       id: interview
-      uses: forwardimpact/harness@b7409ad9a1df4ff75eca8fe68041b5384f75bd7e # v1.0.3
+      uses: forwardimpact/harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -209,13 +209,13 @@ runs:
         supervisor-allowed-tools: ${{ inputs.supervisor-allowed-tools }}
         task-amend: ${{ steps.amend.outputs.amend }}
 
-    # fit-trace cost tolerates a missing trace, so no file guard is needed.
+    # gemba-trace cost tolerates a missing trace, so no file guard is needed.
     - name: Report run cost
       if: always()
       shell: bash
       env:
         TRACE_FILE: ${{ steps.interview.outputs.trace-file }}
-      run: fit-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
+      run: gemba-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
 
     - name: Push wiki changes
       if: always()
@@ -227,7 +227,7 @@ runs:
 
     # Scan the run's own logs for secret literals on the substrate path. The
     # persona-JWT stash is written by the persona-select command inside the
-    # harness step; the missing-file guard covers an unset command. fit-harness
+    # harness step; the missing-file guard covers an unset command. gemba-harness
     # scan-logs owns the archive download and fails closed.
     - name: Scan logs for sensitive values
       if: always() && inputs.substrate-setup-command != ''
@@ -249,7 +249,7 @@ runs:
         [ -n "$JWT_SECRET" ] && secrets+=(--secret "jwt-secret=$JWT_SECRET")
         [ -n "$SERVICE_ROLE_KEY" ] && secrets+=(--secret "service-role-key=$SERVICE_ROLE_KEY")
 
-        fit-harness scan-logs \
+        gemba-harness scan-logs \
           --run-id "${{ github.run_id }}" \
           --repo "${{ github.repository }}" \
           "${secrets[@]}"
