@@ -25,6 +25,9 @@ In `WorkdirManager.start(task, runIndex)`:
   `supervisorTracePath = join(runDir, laneFilename(caseId, "supervisor",
   "supervisor"))`,
   `judgeTracePath = join(runDir, laneFilename(caseId, "judge", "judge"))`.
+  (The workdir names its fixed lanes; source-to-role *classification*
+  stays solely in the split module — these are different rules, not a
+  duplicate.)
 - Materialize the raw and agent/supervisor lane files empty at allocation
   (`await fs.writeFile(p, "")` for raw, agent, supervisor — not judge), so
   every path that reaches the judge, including a pre-session agent
@@ -58,8 +61,8 @@ if (!isValidTaskId(id)) {
 The rule itself lives in the identity module; this file only invokes the
 predicate.
 
-Verification: `bun test
-libraries/libharness/test/benchmark-task-family.integration.test.js`.
+Verification: loader-level rejection test added in step 8
+(`benchmark-task-family.integration.test.js`).
 
 ## Step 3 — Raw-trace summary module
 
@@ -84,41 +87,49 @@ export async function summarizeRawTrace(runtime, rawTracePath)
 Implementation: `runtime.fs.readFile` once, split lines, `sumTraceCost`
 for `{totalCostUsd, bySource}`, then one walk of the parsed lines for
 turns/submission. The `extractText` last-text-block helper moves here from
-the private splitter.
+the private splitter. An empty (materialized-stub) raw file yields zeros
+and an empty submission.
 
-Verification: unit test in step 8 asserts cost/turns/submission from a
-seeded envelope stream.
+Verification: `bun test
+libraries/libharness/test/benchmark-raw-summary.test.js` (step 8).
 
-## Step 4 — Runner: preserve the raw trace, shared split, summary
+## Step 4 — Runner: preserve the raw trace, shared pipeline
+
+Split and summary run on the runner's shared path so the test seam
+exercises the real pipeline.
 
 Files: modified `libraries/libharness/src/benchmark/runner.js`.
 
-In `#runAgent`:
-
-- Stream the supervisor session to `workdir.rawTracePath` (replaces the
-  `.combined.ndjson` temp path).
-- After the session settles:
+- `#runAgent` (default path): stream the supervisor session to
+  `workdir.rawTracePath` (replaces the `.combined.ndjson` temp path) and
+  return only `{agentError}`. Delete the whole-file `readFile` +
+  `sumTraceCost` block, the `fs.unlink`, and the `splitAndSummarize`
+  import; drop the now-unused direct `sumTraceCost` import.
+- `#runAgentSafe`: after either the hook or the default path settles
+  (including the catch branch), run the shared pipeline once:
   `await splitTrace(this.runtime, workdir.rawTracePath, { caseId:
   workdir.caseId, outputDir: workdir.runDir })` (import from
-  `../trace-split.js`), then
-  `const summary = await summarizeRawTrace(this.runtime,
-  workdir.rawTracePath)`.
-- Return `{turns, submission, costUsd, costBreakdown, agentError}` from
-  the summary. Delete the whole-file `readFile` + `sumTraceCost` block,
-  the `fs.unlink`, and the `splitAndSummarize` import; drop the now-unused
-  direct `sumTraceCost` import.
-
-In record assembly (`#executeCell`):
-
-- Trace-path fields become run-output-relative and presence-gated
-  (decision 7): for each of `rawTracePath`, `agentTracePath`,
-  `supervisorTracePath`, `judgeTracePath`, include
-  `relative(this.output, absPath)` only when the file exists
-  (`fs.access` check via a small helper). Raw and agent/supervisor lanes
-  are materialized at allocation, so they are present on every executed
-  cell; the judge lane appears only on judged cells.
-- `#buildPreflightFailureRecord`: delete the three trace-path fields —
-  preflight-failure records carry none.
+  `../trace-split.js`), then `const summary = await
+  summarizeRawTrace(this.runtime, workdir.rawTracePath)`; return
+  `{...summary, agentError}`. Cost, turns, and submission are always
+  derived from the raw file — the fabricated-return shape disappears.
+- **Seam contract change**: `opts.runAgent` narrows to "run the session,
+  stream `{source, seq, event}` envelopes to `workdir.rawTracePath`,
+  return `{agentError?}`". Update the constructor JSDoc
+  (`runner.js:79-83`), which still documents "write a valid NDJSON trace
+  to `workdir.agentTracePath`".
+- Record assembly (`#executeCell`): trace-path fields become
+  run-output-relative and presence-gated (decision 7): for each of
+  `rawTracePath`, `agentTracePath`, `supervisorTracePath`,
+  `judgeTracePath`, include `relative(this.output, absPath)` only when
+  the file exists (`fs.access` check via a small helper). Raw and
+  agent/supervisor lanes are materialized at allocation, so they are
+  present on every executed cell; the judge lane appears only on judged
+  cells.
+- `#buildPreflightFailureRecord`: delete the three trace-path fields,
+  with a comment stating that preflight-failure records carry no trace
+  paths even though the materialized stubs exist on disk (decision 7 —
+  the record references only traces a session produced).
 - Update the `#runAgent` docblock (no more `agent.ndjson` /
   `supervisor.ndjson` wording).
 
@@ -169,12 +180,17 @@ products` returns nothing.
 Files: modified
 `libraries/libharness/test/benchmark-workdir-start.integration.test.js`,
 `libraries/libharness/test/benchmark-workdir.integration.test.js`,
+`libraries/libharness/test/benchmark-task-family.integration.test.js`,
 `libraries/libharness/test/benchmark-e2e.integration.test.js`,
+`libraries/libharness/test/mock-runner.js`,
 `libraries/libharness/test/benchmark-runner-concurrency.test.js`,
 `libraries/libharness/test/benchmark-runner-score.test.js`,
 `libraries/libharness/test/benchmark-shard.test.js`,
 `libraries/libharness/test/benchmark-result.test.js`,
+`libraries/libharness/test/benchmark-report.test.js`,
+`libraries/libharness/test/benchmark-report-score.test.js`,
 `libraries/libharness/test/benchmark-judge.test.js`,
+`libraries/libharness/test/redaction-pipeline-producer.test.js`,
 `libraries/libharness/test/report-helpers.js`; created
 `libraries/libharness/test/benchmark-raw-summary.test.js`.
 
@@ -182,33 +198,45 @@ Files: modified
   `runs/<taskId>/<idx>/`; raw + agent/supervisor lanes exist empty after
   `start()`; judge lane path allocated but not materialized; handle
   carries `caseId`/`rawTracePath`; no `__` slug directory for any id.
+- Task-family test: a `tasks/bad--id/` directory makes `loadTaskFamily`
+  throw the invalid-task-id error (loader invokes the predicate).
 - `benchmark-raw-summary.test.js`: cost (multi-source result events),
   turns (orchestrator summary), submission (last agent assistant text),
-  and tolerance of malformed/blank lines.
+  zeros on an empty file, tolerance of malformed/blank lines.
+- **Seam rework**: `mockRunAgent` in the e2e (and any hook in
+  `mock-runner.js` / runner unit tests) switches to the new contract —
+  write `{source, seq, event}` envelopes to `workdir.rawTracePath`
+  (agent assistant + result events with `total_cost_usd`, orchestrator
+  summary event with turns) and return `{agentError?}`; the real
+  split/summary derives cost, turns, and submission. Add a shared
+  envelope-writing helper to `mock-runner.js` so the fixtures live once.
 - E2E: per-cell tree keeps `trace--<case>.raw.ndjson` plus both lanes
-  after the run — no deletion (spec criterion 1); record `costUsd` +
-  `costBreakdown` equal `sumTraceCost` over the preserved raw file (spec
-  criterion 3); records' trace paths are run-output-relative and every
-  referenced file exists under the output dir (spec criterion 8); the
-  existing "consumable by gemba-trace overview" test reads the new lane
-  path.
-- Runner unit tests (`concurrency`/`score`/`shard`): update fabricated
-  records/paths to the new shape; preflight-failure expectations drop
-  trace paths.
-- `benchmark-result.test.js` and `report-helpers.js`: convention-named,
-  run-output-relative fixture paths (e.g.
-  `runs/x/0/trace--x-r0--agent.agent.ndjson`), `rawTracePath` added;
-  preflight branch rejects trace-path fields.
+  after the run — no deletion, lanes non-empty (spec criterion 1);
+  criterion 3 assertion compares the record's agent+supervisor spend to
+  the raw file: `costBreakdown.agent`/`costBreakdown.supervisor` equal
+  `sumTraceCost(raw).bySource` and their sum equals
+  `sumTraceCost(raw).totalCostUsd` (record `costUsd` additionally folds
+  in judge cost, so it is *not* compared to the raw file); records' trace
+  paths are run-output-relative and every referenced file exists under
+  the output dir (spec criterion 8); the existing "consumable by
+  gemba-trace overview" test reads the new lane path.
+- Runner unit tests (`concurrency`/`score`/`shard`): hooks adopt the new
+  seam contract (envelope fixtures where cost/turns matter); preflight
+  expectations drop trace paths.
+- `benchmark-result.test.js`, `report-helpers.js`,
+  `benchmark-report.test.js`, `benchmark-report-score.test.js`:
+  convention-named, run-output-relative fixture paths (e.g.
+  `runs/x/0/trace--x-r0--agent.agent.ndjson`), `rawTracePath` added to
+  happy records; preflight fixtures drop trace-path fields (the report
+  suites fabricate records inline and would otherwise be schema-skipped).
 - `benchmark-judge.test.js`: assert the judge lane file at the convention
   path contains only redacted content — drive `runJudge` with a fake query
   emitting a sentinel env value and assert the written file carries the
   redaction placeholder (spec criterion 9, judge lane).
-- Raw-file redaction (spec criterion 9, kept raw trace): assert in the
-  supervisor-output/redaction-pipeline coverage that the bytes persisted
-  to a `trace--<case>.raw.ndjson` path are the redacted stream — extend
-  `libraries/libharness/test/redaction-pipeline-producer.test.js` with a
-  file-content assertion at the convention-named path (the persisted file
-  is the same `fileStream` the existing criterion-1 test observes).
+- `redaction-pipeline-producer.test.js` (spec criterion 9, kept raw
+  trace): extend with a file-content assertion at a convention-named
+  `trace--<case>.raw.ndjson` path — the persisted file is the same
+  redacted `fileStream` the existing criterion-1 test observes.
 
 Verification: `bun test libraries/libharness` green, plus the criterion-11
 sweep from [plan-a.md](plan-a.md) § Verification.

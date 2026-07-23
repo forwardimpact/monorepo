@@ -35,7 +35,10 @@ export function nameMatchesKey(name, key)
 
 `nameMatchesKey` derives case/participant via `parseIdentity` on the
 basename and reuses the `participantInNames` single-name check; no second
-grammar.
+grammar. `parseIdentity` (member filenames, regex) and
+`participantInNames` (also artifact names with no extension) keep their
+distinct shapes deliberately — one matches bare artifact names the other
+cannot — now colocated under one owner.
 
 Verification: `bun test libraries/libharness/test/trace-identity.test.js`
 (step 7).
@@ -58,7 +61,8 @@ Files: created `libraries/libharness/src/trace-split.js`.
  * event JSON, one per line.
  * Async streaming: runtime.fs.createReadStream + node:readline in,
  * runtime.fs.createWriteStream out (lazily opened per source).
- * @returns {Promise<string[]>} absolute paths written
+ * @returns {Promise<string[]>} paths written, resolved against outputDir
+ *   (absolute iff outputDir is absolute)
  */
 export async function splitTrace(runtime, inputPath, { caseId, outputDir })
 ```
@@ -83,15 +87,23 @@ Files: modified `libraries/libharness/src/commands/trace.js`.
   `--output-dir` default `dirname(file)`, `mkdirSync`; then
   `await splitTrace(runtime, file, { caseId, outputDir })`. Delete the
   local `parseBuckets`, `STRUCTURAL_ROLES`, and `VALID_SOURCE_NAME`.
-- `runDownloadCommand`: produce `structured.json` only when the extracted
-  artifact carries exactly one `.ndjson` member
-  (`files.filter((f) => f.endsWith(".ndjson")).length === 1`); the
-  multi-member case writes no `structured.json` (decision 12).
-- `runFindCommand`: positional renames to `key`
-  (`ctx.args.key`), matching step 6's CLI definition.
+- `runDownloadCommand`: extract the auto-convert decision into an exported
+  pure helper so it is unit-testable:
+
+  ```js
+  /** The single `.ndjson` member to auto-convert, or null when the
+   *  artifact carries zero or several (decision 12). */
+  export function structuredConvertTarget(files)
+  ```
+
+  The handler converts only when the helper returns a member; the
+  multi-member case writes no `structured.json`.
+- `runFindCommand`: positional renames to `key` (`ctx.args.key`), matching
+  step 6's CLI definition.
 
 Verification: `bun test libraries/libharness/test/trace-split.test.js
-libraries/libharness/test/trace-resolve-files.test.js`.
+libraries/libharness/test/trace-resolve-files.test.js` plus the
+`structuredConvertTarget` units in step 7.
 
 ## Step 4 — Re-point trace-multi at the identity module
 
@@ -113,21 +125,29 @@ Files: modified `libraries/libharness/src/trace-github.js`,
   `trace-github.js` (design § Clean break).
 - `listRuns`: default `pattern` becomes `"kata|agent|eval|benchmark"`
   (decision 11); update the JSDoc default note.
-- `downloadTrace`: list extracted members recursively — `await
-  fs.readdir(dir, { recursive: true, withFileTypes: true })`, keep regular
-  files only, return paths relative to `dir`, still excluding `*.zip`
-  (decision 9). Basename-level name matching stays with callers via the
-  identity module.
-- `findByKey(runId, key, opts)`: matrix branch unchanged (artifact name
-  `trace--<key>` via `participantInNames`). Dispatch branch: download each
-  `trace--*` artifact, collect every member with
-  `nameMatchesKey(basename(member), key)` across all artifacts; exactly
-  one match returns `{runId, participant: key, host: "dispatch", artifact,
-  path}`; zero matches keeps the existing not-found error; several matches
-  throw an error listing the matching member names so the caller narrows
-  the key (decision 10 — deliberately replaces silent first-match).
-- `runMatchesParticipant`: unchanged rule, now via the imported
-  `participantInNames`.
+- `downloadTrace`: list extracted members recursively via a new exported
+  helper `listExtractedFiles(runtime, dir)` — `fs.readdir(dir,
+  { recursive: true, withFileTypes: true })`, regular files only, paths
+  relative to `dir`, `*.zip` excluded (decision 9).
+- **Name matching keys on basenames at every member call site**
+  (decision 9): members are now nested relative paths
+  (`runs/<taskId>/<idx>/trace--*`), so `runMatchesParticipant` and
+  `findByKey` map member paths through `basename()` before
+  `participantInNames` / `nameMatchesKey` — otherwise `runs
+  --participant` would silently omit every eval run (the
+  `startsWith("trace--")` check never matches a nested path).
+- `findByKey(runId, key, opts)`: matrix branch keeps its artifact-name
+  match; the result field `participant` renames to `key` on both
+  branches (the generalized contract — the key may be a case or exact
+  filename). Dispatch branch: download each `trace--*` artifact, collect
+  every member with `nameMatchesKey(basename(member), key)` across all
+  artifacts; exactly one match returns `{runId, key, host: "dispatch",
+  artifact, path}`; zero matches keeps the existing not-found error;
+  several matches throw an error listing the matching member names so the
+  caller narrows the key (decision 10 — deliberately replaces silent
+  first-match).
+- `runMatchesParticipant`: matching rule unchanged, now via the imported
+  `participantInNames` over basenames.
 
 Verification: `bun test libraries/libharness/test/trace-github.test.js`.
 
@@ -143,9 +163,11 @@ Files: modified `products/gemba/bin/gemba-trace.js`,
   participant; ambiguous keys error with candidates).
 - `download`: description notes `structured.json` is produced only for
   single-`.ndjson`-member artifacts.
-- Refresh the help golden to match (`cases.json` runner regenerates or
-  hand-edit lines 6–8 and the examples block if `find` example needs the
-  key wording).
+- Refresh the help golden: lines 6–8 (runs/find/download descriptions),
+  the usage column for `find <run-id> <key>`, and the examples block
+  (`find 27401632821 release-engineer` keeps working as a participant key
+  — reword its comment if one exists). The refresh is unconditional; the
+  examples block does surface in the golden.
 
 Verification: `cd products/gemba && bun test test/golden.test.js`.
 
@@ -163,18 +185,27 @@ modified `libraries/libharness/test/trace-split.test.js`,
   from `trace-multi.test.js`; `participantInNames` cases moved from
   `trace-github.test.js`; `nameMatchesKey` for basename/case/participant
   keys and non-matches.
-- `trace-split.test.js`: retarget the split assertions at `splitTrace`
-  (async runtime seeded via `createMockFs`; fall back to
-  `test/real-runtime.js` + `mkdtemp` if the mock read stream does not
-  compose with readline); add judge-source envelopes classifying to
-  `trace--<case>--judge.judge.ndjson` (spec criterion 2's benchmark
-  shape); keep `runSplitCommand`-level tests for `--mode` validation and
-  `--case`/`--output-dir` defaults.
+- `trace-split.test.js`: retarget the split assertions at `splitTrace`.
+  `createMockFs().createReadStream` returns a real `Readable`
+  (`libmock/src/mock/fs.js:274`), so the mock composes with
+  `node:readline` — no real-fs fallback needed here. Add judge-source
+  envelopes classifying to `trace--<case>--judge.judge.ndjson` (spec
+  criterion 2's benchmark shape); keep `runSplitCommand`-level tests for
+  `--mode` validation and `--case`/`--output-dir` defaults.
 - `trace-github.test.js`: new default-pattern expectations (an
   `eval-kata`- or `benchmark`-named run matches); `findByKey` dispatch
-  cases — case-segment key, exact-basename key, ambiguity error listing
-  candidates; recursive member listing (a member under
-  `runs/task/0/`).
+  cases over nested member paths — participant key, case-segment key,
+  exact-basename key, ambiguity error listing candidates;
+  `runMatchesParticipant` confirms a lane from nested member paths.
+  libmock's `readdir` ignores `recursive: true`, so test
+  `listExtractedFiles` against the real-fs runtime
+  (`test/real-runtime.js` + `mkdtemp`) with a nested
+  `runs/task/0/trace--*` tree; the `findByKey`/`runMatchesParticipant`
+  tests keep stubbing `downloadTrace` with nested relative member paths,
+  which needs no recursive mock.
+- New units for `structuredConvertTarget`: single `.ndjson` member →
+  that member; zero or several → null (covers the deliberate
+  cross-surface `download` narrowing).
 - `trace-multi.test.js`: `parseIdentity` moves out; keep `compareTwo`
   identity-threading coverage against the imported function.
 

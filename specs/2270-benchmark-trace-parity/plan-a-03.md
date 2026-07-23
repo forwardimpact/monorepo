@@ -1,9 +1,10 @@
 # Plan 2270-a — Part 03: Action and reusable workflow
 
 The benchmark action mints `trace--*` artifacts and exposes the trace
-contract; the reusable workflow forwards it. Design refs:
+contract; the reusable workflow forwards it; an action-contract test
+verifies spec criterion 10 on the PR. Design refs:
 [design-a.md](design-a.md) § Contracts § Benchmark action surface, Key
-Decision 8. No library code; may run in parallel with parts 01–02.
+Decision 8. No library code; independent of parts 01–02.
 
 ## Step 1 — Benchmark action: trace input, output, upload
 
@@ -47,9 +48,18 @@ ${{ inputs.trace }}`, `FAMILY: ${{ inputs.family }}`):
   fi
   ```
 
-- Compute the trace artifact name next to the existing results name:
-  `trace-artifact-name=trace--${ARTIFACT_NAME}` unsharded,
-  `trace--${ARTIFACT_NAME}-shard-${SHARD_INDEX}` when `SHARD_TOTAL != 1`.
+- Compute the trace artifact name next to the existing results name and
+  keep it in a shell variable for the manifest:
+
+  ```bash
+  if [ "$SHARD_TOTAL" != "1" ]; then
+    TRACE_ARTIFACT="trace--${ARTIFACT_NAME}-shard-${SHARD_INDEX}"
+  else
+    TRACE_ARTIFACT="trace--${ARTIFACT_NAME}"
+  fi
+  echo "trace-artifact-name=${TRACE_ARTIFACT}" >> "$GITHUB_OUTPUT"
+  ```
+
 - Emit `trace-dir=$(realpath "$OUTPUT_DIR")/runs` when `TRACE_ENABLED` is
   `true`, else `trace-dir=`.
 - When `TRACE_ENABLED` is `true`, write the artifact's root anchor
@@ -60,7 +70,7 @@ ${{ inputs.trace }}`, `FAMILY: ${{ inputs.family }}`):
   {
     echo "family=$FAMILY"
     echo "shard=${SHARD_INDEX}/${SHARD_TOTAL}"
-    echo "artifact=trace-artifact-name value"
+    echo "artifact=${TRACE_ARTIFACT}"
   } > "$OUTPUT_DIR/trace-manifest.txt"
   ```
 
@@ -84,9 +94,7 @@ inside its `cwd/` cannot enter the evidence. The manifest misses the
 artifact keeps its existing `benchmark-shard-<i>` scheme (pre-existing,
 out of scope).
 
-Verification: `bun run check` (workflow lint via repo checks); a
-dry-review that the upload set at depth `runs/*/*/` matches the part-02
-workdir layout.
+Verification: the action-contract test in step 3.
 
 ## Step 2 — Reusable workflow forwards the contract
 
@@ -98,11 +106,49 @@ Files: modified
   step. No other change — each shard mints its own collision-safe
   artifact, so eval workflows get trace artifacts with no caller-side
   steps.
+- Sequencing note (also in [plan-a.md](plan-a.md) § Risks): the shard step
+  pins the published `forwardimpact/benchmark@v1.0.8`, so the forwarded
+  input is inert until that pin advances to the release carrying this
+  change — a post-release step for the release engineer.
 
-Verification: `bun run check`; the shard step's `with:` block carries
-`trace`.
+Verification: the shard step's `with:` block carries `trace`; `bun run
+check` (markdown/format surfaces only — the repo has no workflow linter,
+which is why step 3 exists).
 
-## Step 3 — Action READMEs state the contract
+## Step 3 — Action-contract test (spec criterion 10)
+
+A test executes the action's shell contract so `trace-dir` and the upload
+set verify on the PR, not just post-release.
+
+Files: created `products/gemba/test/benchmark-action-contract.test.js`;
+modified `products/gemba/package.json` (add `yaml` to `devDependencies`).
+
+The test parses `products/gemba/actions/benchmark/action.yml` with `yaml`
+and:
+
+- asserts the `trace-dir` output wires to
+  `steps.resolve-paths.outputs.trace-dir`, and the `Upload traces` step's
+  `if:` gates on `always()`, run mode, and `inputs.trace`, with the
+  exact-depth `runs/*/*/trace--*.ndjson` + `trace-manifest.txt` path set;
+- extracts the `Resolve paths` step's `run` script and executes it with
+  `bash` in a temp dir (env: `OUTPUT_DIR`, `SHARD_INDEX`, `SHARD_TOTAL`,
+  `ARTIFACT_NAME`, `TRACE_ENABLED`, `FAMILY`, `GITHUB_OUTPUT` → temp
+  file), asserting: `trace-dir` equals `<output>/runs` (absolute) when
+  enabled and empty when disabled; `trace-artifact-name` is
+  `trace--<name>` unsharded and `trace--<name>-shard-<i>` sharded; an
+  `artifact-name` containing `--` exits non-zero; the manifest lands at
+  `<output>/trace-manifest.txt` with the family/shard/artifact lines;
+- seeds `<output>/runs/x/0/trace--x-r0--agent.agent.ndjson` plus a decoy
+  `<output>/runs/x/0/cwd/trace--planted.raw.ndjson`, then asserts the
+  upload glob (via `fs.globSync` with the same pattern) matches the
+  convention file beneath the emitted `trace-dir` and not the decoy —
+  the criterion-10 "read the output and list convention-named files
+  beneath it" assertion.
+
+Verification: `cd products/gemba && bun test
+test/benchmark-action-contract.test.js`.
+
+## Step 4 — Action READMEs state the contract
 
 Files: modified `products/gemba/actions/benchmark/README.md`,
 `products/gemba/actions/harness/README.md`.
