@@ -12,6 +12,8 @@
  */
 import { basename } from "node:path";
 
+import { parseIdentity } from "./trace-identity.js";
+
 /**
  * Load each file → `TraceQuery`. Run `query(tq)`. Tag each emitted record
  * with `source: <basename>` only when the caller supplies more than one file.
@@ -83,21 +85,4 @@ export function compareTwo(a, b, load) {
     aIdentity: parseIdentity(a),
     bIdentity: parseIdentity(b),
   });
-}
-
-/**
- * Parse `trace--<case>--<participant>.<role>.ndjson` into `{caseName,
- * participant}`. On no match, `caseName` is the basename without its final
- * `.ndjson` extension. The function removes that one extension only.
- * `participant` is then null.
- * @param {string} file
- * @returns {{caseName: string, participant: string|null}}
- */
-export function parseIdentity(file) {
-  const name = basename(file);
-  const match = name.match(/^trace--(.+?)--(.+?)\.[^.]+\.ndjson$/);
-  if (match) {
-    return { caseName: match[1], participant: match[2] };
-  }
-  return { caseName: name.replace(/\.ndjson$/, ""), participant: null };
 }
