@@ -148,7 +148,7 @@ Excluded:
 | 8 | Result records and the judge template placeholder reference only convention-named files that exist | Record validation test; judge unit test |
 | 9 | The newly preserved files — the kept raw trace and the judge lane — carry only redacted content | Redaction tests extended to assert both files are written through the existing redactor |
 | 10 | The benchmark action exposes a trace-directory output locating every trace file of the run | Action contract test or workflow-level assertion reading the output and listing convention-named files beneath it |
-| 11 | Old bare per-cell filenames appear nowhere in code or docs | `rg --hidden '(^|[^.\w-])(agent|supervisor|judge)\.ndjson'` — a boundary that excludes the convention's `.<role>.ndjson` suffixes, `--hidden` so the skills tree is searched — returns nothing outside `specs/` history |
+| 11 | Old bare per-cell filenames appear nowhere in code or docs | `rg --hidden --pcre2 '(?<![.\w-])(agent|supervisor|judge)\.ndjson'` — the lookbehind excludes the convention's `.<role>.ndjson` suffixes, `--hidden` so the skills tree is searched — returns nothing outside `specs/` history |
 | 12 | Docs state the eval trace contract on every surface that documents benchmark output | Sections exist in both skills, the Prove Agent Changes guides, and the action README |
 
 Criteria 5–7 exercise the published action and reusable workflow, so they
