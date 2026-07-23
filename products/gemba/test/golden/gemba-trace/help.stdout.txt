@@ -3,9 +3,9 @@ gemba-trace 0.1.0 — Download, query, and analyze agent execution traces — re
 Usage: gemba-trace <command> [options]
 
 Commands:
-  runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: kata|agent)
-  find <run-id> <participant>                Resolve a participant's lane trace for a known run id in one keyed lookup (no run enumeration, no content inspection)
-  download <run-id>                          Download trace artifact and convert to structured JSON; pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts
+  runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: kata|agent|eval|benchmark)
+  find <run-id> <key>                        Resolve a trace lane for a known run id by key — exact filename, case, or participant; ambiguous keys error with the candidates
+  download <run-id>                          Download a trace artifact and extract its .ndjson members (structured.json is produced only for single-member artifacts); pass --artifact to pick one when a workflow emits multiple `trace--*` artifacts
   overview                                   Metadata, summary, turn count, tool frequency
   count                                      Number of turns
   batch <file> <from> <to>                   Turns in range [from, to) (zero-indexed)
@@ -41,22 +41,23 @@ Examples:
   gemba-trace runs --lookback 7d
   gemba-trace runs --participant release-engineer
   gemba-trace find 27401632821 release-engineer
+  gemba-trace find 27401632821 demo-task-r0
   gemba-trace download 24497273755
-  gemba-trace split structured.json --mode=facilitate
-  gemba-trace overview --file structured.json
-  gemba-trace overview --file structured.json --format json
-  gemba-trace timeline --file structured.json
-  gemba-trace stats --file structured.json --by-tool
-  gemba-trace cost trace.ndjson
-  gemba-trace cost trace.ndjson --markdown
-  gemba-trace tool structured.json Conclude
-  gemba-trace tool-calls --file structured.json
-  gemba-trace commands --file structured.json --match '^git'
+  gemba-trace split trace--default.raw.ndjson --mode=facilitate
+  gemba-trace overview --file trace--default--agent.agent.ndjson
+  gemba-trace overview --file trace--default--agent.agent.ndjson --format json
+  gemba-trace timeline --file trace--default--agent.agent.ndjson
+  gemba-trace stats --file trace--default--agent.agent.ndjson --by-tool
+  gemba-trace cost trace--default.raw.ndjson
+  gemba-trace cost trace--default.raw.ndjson --markdown
+  gemba-trace tool trace--default--agent.agent.ndjson Conclude
+  gemba-trace tool-calls --file trace--default--agent.agent.ndjson
+  gemba-trace commands --file trace--default--agent.agent.ndjson --match '^git'
   gemba-trace paths --file 'traces/*.ndjson' --prefix /app
   gemba-trace compare trace-a.ndjson trace-b.ndjson
-  gemba-trace search structured.json 'error|fail' --context 1
-  gemba-trace filter --file structured.json --tool Bash --error
-  gemba-trace turn structured.json 3
+  gemba-trace search trace--default--agent.agent.ndjson 'error|fail' --context 1
+  gemba-trace filter --file trace--default--agent.agent.ndjson --tool Bash --error
+  gemba-trace turn trace--default--agent.agent.ndjson 3
   gemba-trace assert has-heading --grep '^## Problem' spec.md
   gemba-trace assert no-leak --not --grep 'password' output.log
   gemba-trace assert file-present --exists path/to/spec.md

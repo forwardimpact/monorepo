@@ -1,12 +1,7 @@
 import { describe, test } from "node:test";
 import assert from "node:assert";
 
-import {
-  runOver,
-  aggregate,
-  compareTwo,
-  parseIdentity,
-} from "../src/trace-multi.js";
+import { runOver, aggregate, compareTwo } from "../src/trace-multi.js";
 
 /**
  * Build a stub loader: maps a filename to a fixed TraceQuery-like object whose
@@ -94,6 +89,8 @@ describe("trace-multi", () => {
   });
 
   describe("compareTwo", () => {
+    // parseIdentity itself is covered in trace-identity.test.js; this keeps
+    // the identity-threading contract against the imported function.
     test("threads basename-derived identity into compare()", () => {
       const calls = [];
       const fakeQuery = (name) => ({
@@ -118,22 +115,6 @@ describe("trace-multi", () => {
       });
       assert.deepStrictEqual(calls[0].identities.bIdentity, {
         caseName: "plain",
-        participant: null,
-      });
-    });
-  });
-
-  describe("parseIdentity", () => {
-    test("parses the split convention", () => {
-      assert.deepStrictEqual(
-        parseIdentity("/x/trace--my-case--staff-engineer.agent.ndjson"),
-        { caseName: "my-case", participant: "staff-engineer" },
-      );
-    });
-
-    test("falls back to extension-stripped basename", () => {
-      assert.deepStrictEqual(parseIdentity("/x/structured.ndjson"), {
-        caseName: "structured",
         participant: null,
       });
     });
