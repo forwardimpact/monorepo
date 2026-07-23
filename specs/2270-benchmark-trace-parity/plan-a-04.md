@@ -31,6 +31,11 @@ Verification: `bun run context` (jidoka instruction checks) green.
 
 Files: modified `.claude/skills/gemba-trace/SKILL.md`.
 
+- Intro paragraph (lines ~12–15): "turns raw trace artifacts into
+  structured JSON and provides a query interface" describes the flow
+  decision 12 disables on common bundles — rewrite it around reading
+  NDJSON traces directly (structured JSON only for single-member
+  artifacts).
 - Command reference: add the default `runs` pattern
   (`kata|agent|eval|benchmark` — eval runs list by default) next to the
   existing `runs [pattern]` line, and add `find <run-id> <key>` (resolves
@@ -105,3 +110,16 @@ Files: modified
 Verification: `bun run check` green; criterion-11 sweep from
 [plan-a.md](plan-a.md) still clean (docs carry no bare per-cell
 filenames).
+
+## Step 6 — Internal runbook touch-up
+
+Files: modified
+`.claude/skills/kata-product-issue/references/trace-discovery.md`.
+
+- The claim "participant filtering, which the `gemba-trace` CLI does not
+  provide directly" (lines ~36–37) becomes false once `find <run-id>
+  <key>` ships — update the note to point at `find` with the ambiguity
+  error, keeping the `grep` recipe as the multi-match fallback. Internal
+  reference, so relative links are fine.
+
+Verification: `bun run context` green.

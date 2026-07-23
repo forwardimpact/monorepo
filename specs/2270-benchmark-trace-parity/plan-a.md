@@ -48,11 +48,14 @@ the action-contract test).
 - `bun run check` green (format, lint, jsdoc, invariants, context).
 - Spec criterion 11 sweep returns nothing outside `specs/`:
   `rg --hidden --pcre2 '(?<![.\w-])(agent|supervisor|judge)\.ndjson'`
-- Spec criteria on the PR: 1–3 via the part-02 e2e assertions (criterion 3
-  compares the record's agent+supervisor breakdown, not `costUsd`, which
-  folds in judge cost), 4 via the part-01 identity round-trip, 8–9 via the
-  part-02 record/redaction tests, 10 via the part-03 action-contract
-  test, 11 via the sweep above, 12 via part 04. Criteria 5–7 verify
+- Spec criteria on the PR: 1 and 3 via the part-02 e2e assertions
+  (criterion 3 drives the `cost` verb handler in-process over the
+  preserved raw file and compares the record's agent+supervisor
+  breakdown — not `costUsd`, which folds in judge cost); 2 via the
+  part-01 split units plus the part-02 step-7 deletion sweep; 4 via the
+  part-01 identity round-trip; 8–9 via the part-02 record/redaction
+  tests; 10 via the part-03 action-contract test; 11 via the sweep
+  above; 12 via parts 03 (action README) and 04. Criteria 5–7 verify
   post-release (published action + pin/Dependabot bumps), not on this PR
   — noted for the release engineer.
 

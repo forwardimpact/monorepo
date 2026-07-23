@@ -163,11 +163,19 @@ Files: modified `products/gemba/bin/gemba-trace.js`,
   participant; ambiguous keys error with candidates).
 - `download`: description notes `structured.json` is produced only for
   single-`.ndjson`-member artifacts.
+- Examples block: the twelve examples that pass `structured.json` as the
+  input file switch to a convention-named `.ndjson` lane file — after the
+  narrowing, virtually every artifact is multi-member and the file the
+  examples reference is no longer produced.
+- Deliberate reading of decision 10's "`find`/`download` key": keyed
+  member resolution applies to `findByKey`; `download` keeps
+  artifact-level `--artifact` selection, matching design § Components and
+  § Discovery.
 - Refresh the help golden: lines 6–8 (runs/find/download descriptions),
   the usage column for `find <run-id> <key>`, and the examples block
-  (`find 27401632821 release-engineer` keeps working as a participant key
-  — reword its comment if one exists). The refresh is unconditional; the
-  examples block does surface in the golden.
+  (both the `find` example wording and the `structured.json`
+  replacements above). The refresh is unconditional; the examples block
+  does surface in the golden.
 
 Verification: `cd products/gemba && bun test test/golden.test.js`.
 
