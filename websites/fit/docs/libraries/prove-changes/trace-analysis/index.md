@@ -24,11 +24,24 @@ npx gemba-trace runs                        # list recent workflow runs
 npx gemba-trace download 24497273755        # downloads to /tmp/trace-24497273755/
 ```
 
-The download extracts the artifact zip
-(`trace--<case>--<participant>.<role>.ndjson` files plus the combined
-`trace--<case>.raw.ndjson`). It then derives a `structured.json` from the
-first NDJSON file. Both NDJSON files and `structured.json` work as input to
-every query command below.
+The default `runs` pattern covers kata, agent, eval, and benchmark workflow
+names, so benchmark-driven eval runs list with no flags. The download
+extracts the artifact zip's `.ndjson` members —
+`trace--<case>--<participant>.<role>.ndjson` lane files plus the combined
+`trace--<case>.raw.ndjson` — and every one of them is direct input to every
+query command below. (A `structured.json` is produced only when the artifact
+carries a single `.ndjson` member; the common bundles carry several.)
+
+When you know the run but not the file, `find` resolves one lane in a keyed
+lookup. The key may be a participant name, a case id, or an exact member
+filename; a key matching several members errors and lists the candidates so
+you can narrow it:
+
+```sh
+npx gemba-trace find 24497273755 agent               # participant key
+npx gemba-trace find 24497273755 fix-bug-r0          # case key (eval runs)
+npx gemba-trace find 24497273755 trace--fix-bug-r0--agent.agent.ndjson
+```
 
 ## Orient with the overview
 
@@ -38,7 +51,7 @@ human-readable text by default. Add `--format json` for the machine-parseable
 envelope:
 
 ```sh
-npx gemba-trace overview --file /tmp/trace-24497273755/structured.json --format json
+npx gemba-trace overview --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --format json
 ```
 
 ```json
@@ -54,7 +67,7 @@ The `timeline` command shows the shape of the session at a glance. It prints
 one line per assistant turn, with the tools used and the token counts:
 
 ```sh
-npx gemba-trace timeline --file /tmp/trace-24497273755/structured.json
+npx gemba-trace timeline --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
 ```
 
 ```text
@@ -69,7 +82,7 @@ npx gemba-trace timeline --file /tmp/trace-24497273755/structured.json
 List every tool result where the agent's tool call failed:
 
 ```sh
-npx gemba-trace errors --file /tmp/trace-24497273755/structured.json
+npx gemba-trace errors --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
 ```
 
 Each result includes the turn index, the `toolUseId` that links it back to the
@@ -81,7 +94,7 @@ See every turn where the agent used a specific tool. The output holds both
 the `tool_use` request and its `tool_result` response:
 
 ```sh
-npx gemba-trace tool /tmp/trace-24497273755/structured.json Bash
+npx gemba-trace tool /tmp/trace-24497273755/trace--default--agent.agent.ndjson Bash
 ```
 
 `tool` takes the trace file as a positional (it pins a single trace plus a
@@ -89,9 +102,9 @@ tool name). Or use `filter` for structural queries by role, tool name, or
 error status:
 
 ```sh
-npx gemba-trace filter --file /tmp/trace-24497273755/structured.json --tool Edit
-npx gemba-trace filter --file /tmp/trace-24497273755/structured.json --error
-npx gemba-trace filter --file /tmp/trace-24497273755/structured.json --role user
+npx gemba-trace filter --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --tool Edit
+npx gemba-trace filter --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --error
+npx gemba-trace filter --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --role user
 ```
 
 ## Search across the trace
@@ -100,7 +113,7 @@ Search all turn content with a regex pattern (`search` is single-file, so the
 file is a positional):
 
 ```sh
-npx gemba-trace search /tmp/trace-24497273755/structured.json 'permission denied' --context 1
+npx gemba-trace search /tmp/trace-24497273755/trace--default--agent.agent.ndjson 'permission denied' --context 1
 ```
 
 `--context 1` includes one turn on each side of every match.
@@ -113,7 +126,7 @@ The text blocks in assistant turns show what the agent said it would do. The
 tool calls show what it actually did. Extract just the text blocks:
 
 ```sh
-npx gemba-trace reasoning --file /tmp/trace-24497273755/structured.json --from 5 --to 15
+npx gemba-trace reasoning --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --from 5 --to 15
 ```
 
 ```json
@@ -129,7 +142,7 @@ intent and execution.
 ## Measure token usage and cost
 
 ```sh
-npx gemba-trace stats --file /tmp/trace-24497273755/structured.json --format json
+npx gemba-trace stats --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --format json
 ```
 
 ```json
@@ -167,7 +180,7 @@ For supervised or facilitated runs, split the combined trace into per-source
 files. Then you can see what each agent saw independently:
 
 ```sh
-npx gemba-trace split /tmp/trace-24497273755/structured.json --mode=facilitate --case=demo
+npx gemba-trace split /tmp/trace-24497273755/trace--default.raw.ndjson --mode=facilitate --case=demo
 ```
 
 This produces files in the same directory. The names follow the
@@ -181,15 +194,26 @@ For supervised runs, use `--mode=supervise` to get
 `trace--<case>--supervisor.supervisor.ndjson`. `--case` defaults to `default`.
 Matrix workflows pass the case id, so per-shard artifacts stay isolated.
 
+## Eval traces
+
+Benchmark-driven eval runs emit the same convention with the case carrying
+cell identity: `<case>` is `<taskId>-r<runIndex>`, so every cell in the grid
+names its own lanes (`trace--fix-bug-r0--agent.agent.ndjson`), and the judge
+gets its own lane, `trace--<case>--judge.judge.ndjson`. Members extract
+nested per cell (`runs/<taskId>/<runIndex>/trace--*`). Raw and judge files
+are enveloped `{source, seq, event}` streams; split lanes carry unwrapped
+events — every file-consuming verb takes both shapes as-is, with no
+eval-specific flags.
+
 ## Navigate individual turns
 
 When you need to inspect a specific moment in the trace:
 
 ```sh
-npx gemba-trace turn /tmp/trace-24497273755/structured.json 8
-npx gemba-trace batch /tmp/trace-24497273755/structured.json 5 10
-npx gemba-trace head --file /tmp/trace-24497273755/structured.json --lines 5
-npx gemba-trace tail --file /tmp/trace-24497273755/structured.json --lines 5
+npx gemba-trace turn /tmp/trace-24497273755/trace--default--agent.agent.ndjson 8
+npx gemba-trace batch /tmp/trace-24497273755/trace--default--agent.agent.ndjson 5 10
+npx gemba-trace head --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --lines 5
+npx gemba-trace tail --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --lines 5
 ```
 
 `turn` and `batch` are single-file (positional). `batch` returns turns in the
@@ -204,7 +228,7 @@ emits one record per `tool_use` block. It pairs each block with its
 `tool-calls` never drops them:
 
 ```sh
-npx gemba-trace tool-calls --file /tmp/trace-24497273755/structured.json
+npx gemba-trace tool-calls --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
 ```
 
 `commands` lists every Bash command (filter with `--match <regex>`). `paths`
@@ -212,8 +236,8 @@ gives a frequency-sorted list of the distinct `Read`/`Edit`/`Write` file paths
 (filter with `--prefix`):
 
 ```sh
-npx gemba-trace commands --file /tmp/trace-24497273755/structured.json --match '^git'
-npx gemba-trace paths --file /tmp/trace-24497273755/structured.json --prefix /app
+npx gemba-trace commands --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --match '^git'
+npx gemba-trace paths --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --prefix /app
 ```
 
 These sit next to `tool` (every turn for one tool) and `tools` (frequency
