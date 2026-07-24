@@ -46,14 +46,16 @@ Handles task-family execution, pass@k reporting, and result artifact upload.
 | `summary`          | No       | `true`             | Append report to GITHUB_STEP_SUMMARY      |
 | `summary-detail`   | No       | `full`             | Run-mode summary verbosity (`full` or `compact`); `compact` renders status + pass@k only. Merge always renders full. |
 | `upload-results`   | No       | `true`             | Upload results.jsonl as artifact          |
-| `artifact-name`    | No       | `benchmark-results`| Name for the uploaded artifact (run mode with `shard-total` > 1 uploads `benchmark-shard-<i>`) |
+| `artifact-name`    | No       | `benchmark-results`| Name for the uploaded artifact (run mode with `shard-total` > 1 uploads `benchmark-shard-<i>`). Must not contain `--` (the trace-name delimiter) — the action fails fast otherwise |
 | `timeout-minutes`  | No       | `60`               | Max runtime for the run step (minutes)    |
+| `trace`            | No       | `true`             | Upload every trace file as a `trace--*` workflow artifact and expose the `trace-dir` output. Gates upload and outputs only — trace capture is unconditional in the runner (cost derivation and the judge depend on it). Deliberate asymmetry with the harness action's same-named input, which disables capture |
 
 ## Outputs
 
 | Output         | Description                        |
 | -------------- | ---------------------------------- |
 | `results-path` | Absolute path to `results.jsonl`   |
+| `trace-dir`    | Absolute path of `<output>/runs`; every trace file of the run sits beneath it at `<taskId>/<runIndex>/trace--*`. Empty when `trace` is disabled |
 
 ## Behaviour
 
@@ -68,10 +70,37 @@ The action executes three steps in sequence:
    status + pass@k summary instead of the full per-task detail.
 3. **Upload** — uploads `results.jsonl` as a workflow artifact. Fires even when
    earlier steps fail. Disable with `upload-results: "false"`.
+4. **Upload traces** — uploads every per-cell trace file as one `trace--*`
+   workflow artifact. Fires even when earlier steps fail (`if: always()`), so
+   failed and timed-out cells keep their evidence. Disable with
+   `trace: "false"`.
 
 In `mode: merge` the action skips the run/agent steps, downloads every
 `benchmark-shard-*` artifact, and runs `gemba-benchmark report` recursively over
 them to emit one combined pass@k summary plus a merged `results.jsonl`.
+
+## Trace artifacts
+
+Every run preserves, per cell under `runs/<taskId>/<runIndex>/`, the raw
+combined envelope trace (`trace--<case>.raw.ndjson`), the agent and supervisor
+lanes (`trace--<case>--<participant>.<role>.ndjson`), and a judge lane on
+judged cells, where `<case>` is `<taskId>-r<runIndex>`. The upload step
+archives them as `trace--<artifact-name>` (unsharded) or
+`trace--<artifact-name>-shard-<shard-index>` (sharded) — collision-safe across
+shards and matrix callers. A `trace-manifest.txt` anchor written before the
+run pins the archive root at `<output>`, so extracted members land at
+`runs/<taskId>/<runIndex>/trace--*` — exactly the run-output-relative paths
+each result record carries.
+
+Download and analyze with the `gemba-trace` CLI, the same flow used for any
+other agent run:
+
+```sh
+npx gemba-trace runs                    # eval runs list by default
+npx gemba-trace find <run-id> <key>     # key: exact filename, case, or participant
+npx gemba-trace download <run-id> --artifact trace--benchmark-results
+npx gemba-trace overview --file 'runs/<taskId>/<runIndex>/trace--*--agent.agent.ndjson'
+```
 
 ## Sharding across machines
 
