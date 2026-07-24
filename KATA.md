@@ -210,6 +210,7 @@ for utilities).
 | `kata-backlog-synthesis`  | Study   | Consolidate overlapping issues/PRs into one spec |
 | `kata-archive`            | Study   | Retire stale time-bounded artifacts safely    |
 | `kata-devex-audit`        | Study   | Deep-dive codebase-health review, one area/run |
+| `kata-synthesize-autonomy`| Study   | Autonomy-vs-approval grounded theory analysis |
 | `kata-spec`               | Act     | Write specs capturing WHAT/WHY                |
 | `kata-review`             | Utility | Grade a single artifact (leaf, no sub-agents) |
 | `kata-session`            | Utility | Toyota Kata coaching protocol for sessions    |

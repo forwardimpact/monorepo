@@ -3,7 +3,7 @@
 > An autonomous, continuously improving agent team organized as a daily
 > Plan-Do-Study-Act cycle.
 <!-- enum:published-skills:count -->
-> Eighteen skills, plain JavaScript,
+> Nineteen skills, plain JavaScript,
 <!-- /enum -->
 > zero infrastructure to maintain.
 
@@ -12,7 +12,7 @@ personas — Staff Engineer, Release Engineer, Security Engineer, DevEx
 Engineer, Product Manager, Technical Writer, Archivist, and Improvement
 Coach — operate the daily Plan-Do-Study-Act cycle.
 <!-- enum:published-skills:count -->
-The team's work is carried by eighteen skills.
+The team's work is carried by nineteen skills.
 <!-- /enum -->
 The team runs on plain
 JavaScript with no databases, no queues, and no third-party dependencies;
