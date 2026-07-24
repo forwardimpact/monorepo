@@ -45,11 +45,11 @@
     "@forwardimpact/libtelemetry": "^0.1.42",
     "@forwardimpact/libtype": "^0.1.63",
     "@forwardimpact/libutil": "^0.1.85",
-    "jose": "^6.2.3"
+    "jose": "^6.2.4"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0",
-    "hono": "^4.12.25"
+    "hono": "^4.12.31"
   },
   "engines": {
     "bun": ">=1.2.0",
