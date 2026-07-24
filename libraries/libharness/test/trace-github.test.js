@@ -1,5 +1,7 @@
 import { describe, test, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
@@ -8,9 +10,9 @@ import {
   createTraceGitHub,
   detectRepoSlug,
   parseGitRemote,
-  participantInNames,
   pickTraceArtifact,
 } from "@forwardimpact/libharness";
+import { listExtractedFiles } from "../src/trace-github.js";
 
 // Manifest shape for a Kata matrix run: six participants, each emits one
 // `trace--<participant>` artifact. The `.raw` / `.agent` suffixes live on
@@ -189,9 +191,11 @@ describe("pickTraceArtifact", () => {
 });
 
 describe("listRuns default pattern", () => {
-  // The prior default "agent" missed every Kata workflow name because
-  // none of them contain "agent" — "Kata: Shift", "Kata: Dispatch", etc.
-  // The new default keeps the legacy "agent" matcher and adds "Kata".
+  // The default must cover Kata workflows, legacy agent-named workflows, and
+  // the benchmark-driven eval workflows ("Eval: Kata", "eval-jidoka",
+  // benchmark-named callers) so eval runs list with no flags.
+  const DEFAULT = "kata|agent|eval|benchmark";
+
   const KATA_WORKFLOW_NAMES = [
     "Kata: Shift",
     "Kata: Dispatch",
@@ -200,63 +204,35 @@ describe("listRuns default pattern", () => {
     "Kata: Storyboard",
   ];
 
-  test("'kata|agent' matches every Kata workflow name", () => {
-    const re = new RegExp("kata|agent", "i");
+  test("matches every Kata workflow name", () => {
+    const re = new RegExp(DEFAULT, "i");
     for (const name of KATA_WORKFLOW_NAMES) {
       assert.ok(re.test(name), `expected default pattern to match "${name}"`);
     }
   });
 
-  test("'kata|agent' still matches legacy agent-named workflows", () => {
-    const re = new RegExp("kata|agent", "i");
+  test("matches legacy agent-named workflows", () => {
+    const re = new RegExp(DEFAULT, "i");
     assert.ok(re.test("agent-runner"));
     assert.ok(re.test("Some Agent Eval"));
   });
 
-  test("prior default 'agent' (regression case) misses Kata: Shift", () => {
-    const re = new RegExp("agent", "i");
-    assert.strictEqual(re.test("Kata: Shift"), false);
-    assert.strictEqual(re.test("Kata: Dispatch"), false);
+  test("matches eval and benchmark workflow names (spec criterion 6)", () => {
+    const re = new RegExp(DEFAULT, "i");
+    assert.ok(re.test("eval-kata"));
+    assert.ok(re.test("Eval: Jidoka"));
+    assert.ok(re.test("Benchmark (sharded)"));
+  });
+
+  test("prior default 'kata|agent' (regression case) misses eval workflows", () => {
+    const re = new RegExp("kata|agent", "i");
+    assert.strictEqual(re.test("eval-jidoka"), false);
+    assert.strictEqual(re.test("Benchmark (sharded)"), false);
   });
 });
 
-describe("participantInNames", () => {
-  test("matrix artifact name matches the whole participant", () => {
-    assert.ok(
-      participantInNames(["trace--release-engineer"], "release-engineer"),
-    );
-  });
-
-  test("dispatch member filename matches the participant segment", () => {
-    assert.ok(
-      participantInNames(
-        ["trace--default--release-engineer.agent.ndjson"],
-        "release-engineer",
-      ),
-    );
-  });
-
-  test("does not match a participant that is only a prefix (criterion 8 over-match guard)", () => {
-    assert.strictEqual(
-      participantInNames(["trace--release-engineer"], "release"),
-      false,
-    );
-    assert.strictEqual(
-      participantInNames(
-        ["trace--default--release-engineer.agent.ndjson"],
-        "release",
-      ),
-      false,
-    );
-  });
-
-  test("ignores non-trace names", () => {
-    assert.strictEqual(
-      participantInNames(["logs", "report.json"], "release-engineer"),
-      false,
-    );
-  });
-});
+// participantInNames unit coverage lives in trace-identity.test.js with the
+// rest of the identity grammar.
 
 describe("participant-keyed discovery", () => {
   let originalFetch;
@@ -361,6 +337,20 @@ describe("participant-keyed discovery", () => {
     assert.strictEqual(dispatch.match, "confirmed");
   });
 
+  test("listRuns confirms a lane from nested eval member paths", async () => {
+    stubFetch();
+    // Eval artifacts carry nested members; matching maps through basename.
+    const gh = ghWithDispatchMembers([
+      "runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+      "runs/fix-bug/0/trace--fix-bug-r0--supervisor.supervisor.ndjson",
+      "trace-manifest.txt",
+    ]);
+    const runs = await gh.listRuns({ participant: "agent" });
+    const dispatch = runs.find((r) => r.runId === 200);
+    assert.ok(dispatch, "dispatch host present");
+    assert.strictEqual(dispatch.match, "confirmed");
+  });
+
   test("listRuns labels an in-progress candidate, never drops it (criterion 2)", async () => {
     stubFetch();
     const gh = ghWithDispatchMembers([]);
@@ -375,6 +365,7 @@ describe("participant-keyed discovery", () => {
     const gh = ghWithDispatchMembers([]);
     const result = await gh.findByKey(100, "release-engineer");
     assert.strictEqual(result.host, "matrix");
+    assert.strictEqual(result.key, "release-engineer");
     assert.strictEqual(result.path, "trace--release-engineer");
   });
 
@@ -385,8 +376,140 @@ describe("participant-keyed discovery", () => {
     ]);
     const result = await gh.findByKey(200, "release-engineer");
     assert.strictEqual(result.host, "dispatch");
+    assert.strictEqual(result.key, "release-engineer");
     assert.ok(
       result.path.endsWith("trace--default--release-engineer.agent.ndjson"),
+    );
+  });
+
+  // Eval-style nested members: two cells, each with agent/supervisor lanes
+  // plus a raw file, and the non-trace manifest anchor.
+  const EVAL_MEMBERS = [
+    "runs/fix-bug/0/trace--fix-bug-r0.raw.ndjson",
+    "runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+    "runs/fix-bug/0/trace--fix-bug-r0--supervisor.supervisor.ndjson",
+    "runs/fix-bug/1/trace--fix-bug-r1.raw.ndjson",
+    "runs/fix-bug/1/trace--fix-bug-r1--agent.agent.ndjson",
+    "runs/fix-bug/1/trace--fix-bug-r1--supervisor.supervisor.ndjson",
+    "trace-manifest.txt",
+  ];
+
+  test("findByKey lists both lanes when a case-segment key matches the cell's pair", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers(EVAL_MEMBERS);
+    await assert.rejects(
+      () => gh.findByKey(200, "fix-bug-r0"),
+      (err) => {
+        // Both lanes of the cell match the case key — the ambiguity error
+        // must list them so the caller narrows to an exact filename.
+        assert.match(err.message, /Ambiguous key "fix-bug-r0"/);
+        assert.match(err.message, /trace--fix-bug-r0--agent\.agent\.ndjson/);
+        assert.match(
+          err.message,
+          /trace--fix-bug-r0--supervisor\.supervisor\.ndjson/,
+        );
+        return true;
+      },
+    );
+  });
+
+  test("findByKey resolves a case-segment key when exactly one lane matches", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers([
+      "runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+      "runs/fix-bug/1/trace--fix-bug-r1--agent.agent.ndjson",
+    ]);
+    const result = await gh.findByKey(200, "fix-bug-r0");
+    assert.strictEqual(result.host, "dispatch");
+    assert.strictEqual(result.key, "fix-bug-r0");
+    assert.ok(
+      result.path.endsWith(
+        "runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+      ),
+    );
+  });
+
+  test("findByKey resolves an exact-basename key against nested eval members", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers(EVAL_MEMBERS);
+    const result = await gh.findByKey(
+      200,
+      "trace--fix-bug-r1--agent.agent.ndjson",
+    );
+    assert.strictEqual(result.host, "dispatch");
+    assert.strictEqual(result.key, "trace--fix-bug-r1--agent.agent.ndjson");
+    assert.ok(
+      result.path.endsWith(
+        "runs/fix-bug/1/trace--fix-bug-r1--agent.agent.ndjson",
+      ),
+    );
+  });
+
+  test("findByKey isolates per-artifact extract dirs on multi-artifact (sharded) runs", async () => {
+    stubFetch();
+    globalThis.fetch = ((orig) => async (url) => {
+      // Two shard artifacts on run 200 instead of the single trace--shared.
+      if (url.includes("/runs/200/artifacts")) {
+        return jsonResponse({
+          artifacts: [
+            { id: 3, name: "trace--eval-shard-1" },
+            { id: 4, name: "trace--eval-shard-2" },
+          ],
+        });
+      }
+      return orig(url);
+    })(globalThis.fetch);
+
+    const SHARD_MEMBERS = {
+      "trace--eval-shard-1": [
+        "runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+      ],
+      "trace--eval-shard-2": [
+        "runs/fix-bug/1/trace--fix-bug-r1--agent.agent.ndjson",
+      ],
+    };
+    const gh = new TraceGitHub({
+      token: "t",
+      owner: "o",
+      repo: "r",
+      runtime: RT,
+    });
+    // Mimic the real extract-then-list-everything behaviour: each download
+    // appends its artifact's members into `dir` and returns the whole dir's
+    // listing. With a shared dir, shard 1's member would be re-listed while
+    // scanning shard 2 and a unique key would look ambiguous.
+    const extracted = new Map();
+    gh.downloadTrace = async (_runId, opts2) => {
+      const seen = extracted.get(opts2.dir) ?? [];
+      const files = [...seen, ...SHARD_MEMBERS[opts2.name]];
+      extracted.set(opts2.dir, files);
+      return { dir: opts2.dir, artifact: opts2.name, files };
+    };
+
+    const result = await gh.findByKey(
+      200,
+      "trace--fix-bug-r0--agent.agent.ndjson",
+    );
+    assert.strictEqual(result.host, "dispatch");
+    assert.strictEqual(result.artifact, "trace--eval-shard-1");
+    assert.ok(
+      result.path.endsWith(
+        "trace--eval-shard-1/runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+      ),
+    );
+  });
+
+  test("findByKey errors with candidates on an ambiguous participant key (decision 10)", async () => {
+    stubFetch();
+    const gh = ghWithDispatchMembers(EVAL_MEMBERS);
+    await assert.rejects(
+      () => gh.findByKey(200, "agent"),
+      (err) => {
+        assert.match(err.message, /Ambiguous key "agent"/);
+        assert.match(err.message, /trace--fix-bug-r0--agent\.agent\.ndjson/);
+        assert.match(err.message, /trace--fix-bug-r1--agent\.agent\.ndjson/);
+        return true;
+      },
     );
   });
 
@@ -405,6 +528,36 @@ describe("participant-keyed discovery", () => {
       () => gh.findByKey(200, "staff-engineer"),
       /No trace lane/,
     );
+  });
+});
+
+describe("listExtractedFiles", () => {
+  // libmock's readdir ignores `recursive: true`, so this exercises the real
+  // filesystem via a temp dir with the nested eval member shape.
+  test("lists nested regular files relative to dir, excluding *.zip", async () => {
+    const rt = createDefaultRuntime();
+    const dir = await rt.fs.mkdtemp(join(tmpdir(), "trace-extract-"));
+    try {
+      const cell = join(dir, "runs", "task", "0");
+      await rt.fs.mkdir(cell, { recursive: true });
+      await rt.fs.writeFile(join(cell, "trace--task-r0.raw.ndjson"), "{}\n");
+      await rt.fs.writeFile(
+        join(cell, "trace--task-r0--agent.agent.ndjson"),
+        "{}\n",
+      );
+      await rt.fs.writeFile(join(dir, "trace-manifest.txt"), "family=f\n");
+      await rt.fs.writeFile(join(dir, "trace--artifact.zip"), "zip");
+
+      const files = await listExtractedFiles(rt, dir);
+
+      assert.deepStrictEqual(files, [
+        "runs/task/0/trace--task-r0--agent.agent.ndjson",
+        "runs/task/0/trace--task-r0.raw.ndjson",
+        "trace-manifest.txt",
+      ]);
+    } finally {
+      await rt.fs.rm(dir, { recursive: true, force: true });
+    }
   });
 });
 

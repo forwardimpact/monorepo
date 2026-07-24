@@ -19,11 +19,11 @@
  * stream.
  */
 
-import { join, resolve as resolvePath } from "node:path";
+import { join, relative, resolve as resolvePath } from "node:path";
 
 import { DEFAULT_ENV_ALLOWLIST, createRedactor } from "../redaction.js";
-import { sumTraceCost } from "../cost.js";
 import { createSupervisor } from "../supervisor.js";
+import { splitTrace } from "../trace-split.js";
 import { installApm as defaultInstallApm } from "./apm-installer.js";
 import { installNpm as defaultInstallNpm } from "./npm-installer.js";
 import { runJudge } from "./judge.js";
@@ -31,8 +31,8 @@ import { validateResultRecord } from "./result.js";
 import { runInvariants } from "./invariants.js";
 import { runHiddenTests } from "./hidden-tests.js";
 import { runProducersAndGrade } from "./grade.js";
+import { summarizeRawTrace } from "./raw-summary.js";
 import { assertJudgeProfileStaged, loadTaskFamily } from "./task-family.js";
-import { splitAndSummarize } from "./trace-split.js";
 import { createWorkdirManager } from "./workdir.js";
 import { CellScheduler } from "./scheduler.js";
 
@@ -77,9 +77,10 @@ export class BenchmarkRunner {
    *   to `AGENT_WATCHDOG_MS`; injectable so tests can force a stall in-test.
    * @param {number} [opts.termGraceMs] - SIGTERM→SIGKILL grace (ms) for the per-task process group.
    * @param {Function} [opts.runAgent] - Test seam: replaces the agent-under-test
-   *   session. Must return `{costUsd, turns, submission, agentError?}` and
-   *   write a valid NDJSON trace to `workdir.agentTracePath`. Default uses
-   *   `createAgentRunner` with the harness `BASE_TOOLS` allowlist. Internal
+   *   session. Must run the session, stream `{source, seq, event}` envelopes
+   *   to `workdir.rawTracePath`, and return `{agentError?}` — cost, turns,
+   *   and submission are always derived from the raw file by the shared
+   *   split/summary pipeline, so the seam exercises the real path. Internal
    *   testing only — not part of the public API.
    * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime -
    *   Injected ambient collaborators (`fs`, `subprocess`, `clock`, `proc`),
@@ -255,11 +256,12 @@ export class BenchmarkRunner {
         t0,
       });
     } catch (e) {
-      // `wm.start()` (port acquire + workdir/env seeding) is the one throw site
-      // not caught inside `#executeCell`. Turn it into the runner's own fallback
-      // record so `#runOne` never rejects — the scheduler's one-record-per-cell
-      // contract depends on that. The fallback is schema-skipped by `report`,
-      // the same as any other runner-side schema failure.
+      // Catches the throw sites `#executeCell` does not: `wm.start()` (port
+      // acquire + workdir/env seeding) and the shared split/summary pipeline.
+      // Turn either into the runner's own fallback record so `#runOne` never
+      // rejects — the scheduler's one-record-per-cell contract depends on
+      // that. The fallback is schema-skipped by `report`, the same as any
+      // other runner-side schema failure.
       return {
         taskId: task.id,
         runIndex,
@@ -299,8 +301,8 @@ export class BenchmarkRunner {
     }
     {
       const agentRun = await this.#runAgentSafe(task, workdir);
-      const { costUsd, turns, submission, agentError } = agentRun;
-      const breakdown = agentRun.costBreakdown ?? { agent: 0, supervisor: 0 };
+      const { costUsd, costBreakdown, turns, submission, agentError } =
+        agentRun;
       const graded = await this.#gradeCell(family, task, workdir);
       const { invariants, hiddenRows, engineError, rows, grade } = graded;
       const { judgeVerdict, judgeCost } = await this.#judgeCell({
@@ -317,6 +319,7 @@ export class BenchmarkRunner {
       // a failing judge zeroes the effective score. Full marks does not — a
       // fractional score with verdict fail is the point.
       const scoreValid = graded.healthy && grade.gatesPass && judgePass;
+      const tracePaths = await this.#traceRecordPaths(workdir);
       const record = {
         taskId: task.id,
         runIndex,
@@ -335,15 +338,9 @@ export class BenchmarkRunner {
         submission,
         ...(judgeVerdict && { judgeVerdict }),
         costUsd: costUsd + judgeCost,
-        costBreakdown: {
-          agent: breakdown.agent ?? 0,
-          supervisor: breakdown.supervisor ?? 0,
-          judge: judgeCost,
-        },
+        costBreakdown: { ...costBreakdown, judge: judgeCost },
         turns,
-        agentTracePath: workdir.agentTracePath,
-        supervisorTracePath: workdir.supervisorTracePath,
-        judgeTracePath: workdir.judgeTracePath,
+        ...tracePaths,
         profiles: {
           agent: this.profiles.agent,
           supervisor: null,
@@ -423,38 +420,42 @@ export class BenchmarkRunner {
   }
 
   /**
-   * Dispatch to either the injected hook or the default `#runAgent`. Either
-   * path can throw; catch here so a thrown error becomes an `agentError` on
-   * the record (spec criterion 1: records on agent failure) rather than
-   * aborting the whole iterator.
+   * Dispatch to either the injected hook or the default `#runAgent`, then run
+   * the shared pipeline once: split the preserved raw trace into lanes and
+   * derive cost/turns/submission from the same file. Either session path can
+   * throw; catch here so a session error becomes an `agentError` on the
+   * record rather than aborting the whole iterator — the pipeline still runs,
+   * so failed cells keep coherent (possibly empty) lanes and zeroed totals.
+   * A pipeline throw itself (the raw file is materialized at allocation, so
+   * only an fs-level fault) propagates to `#runOne`'s fallback record.
    */
   async #runAgentSafe(task, workdir) {
+    let agentError = null;
     try {
-      if (this._runAgentHook) {
-        const r = await this._runAgentHook(task, workdir, this);
-        return { agentError: null, ...r };
-      }
-      return await this.#runAgent(task, workdir);
+      const r = this._runAgentHook
+        ? await this._runAgentHook(task, workdir, this)
+        : await this.#runAgent(task, workdir);
+      agentError = r?.agentError ?? null;
     } catch (e) {
-      return {
-        costUsd: 0,
-        costBreakdown: { agent: 0, supervisor: 0 },
-        turns: 0,
-        submission: "",
-        agentError: { message: e.message ?? String(e), aborted: false },
-      };
+      agentError = { message: e.message ?? String(e), aborted: false };
     }
+    await splitTrace(this.runtime, workdir.rawTracePath, {
+      caseId: workdir.caseId,
+      outputDir: workdir.runDir,
+    });
+    const summary = await summarizeRawTrace(this.runtime, workdir.rawTracePath);
+    return { ...summary, agentError };
   }
 
   /**
-   * Run the agent-under-test under a Supervisor. The supervisor writes
-   * a combined tagged NDJSON trace; after the session we split it into
-   * agent.ndjson and supervisor.ndjson and extract cost/turns/submission.
+   * Run the agent-under-test under a Supervisor. The supervisor streams the
+   * combined tagged NDJSON envelope trace to `workdir.rawTracePath`, which is
+   * preserved for the life of the run output; `#runAgentSafe` splits it into
+   * the convention-named lanes and summarizes it afterwards.
    */
   async #runAgent(task, workdir) {
     const fs = this.runtime.fs;
-    const combinedPath = join(workdir.runDir, ".combined.ndjson");
-    const combinedStream = fs.createWriteStream(combinedPath);
+    const combinedStream = fs.createWriteStream(workdir.rawTracePath);
     const supervisorInstructions = task.paths.supervisor
       ? await fs.readFile(task.paths.supervisor, "utf8").catch(() => null)
       : null;
@@ -507,26 +508,31 @@ export class BenchmarkRunner {
       this.runtime.clock.clearTimeout(watchdog);
       await new Promise((r) => combinedStream.end(r));
     }
-    const summary = await splitAndSummarize(
-      this.runtime,
-      combinedPath,
-      workdir.agentTracePath,
-      workdir.supervisorTracePath,
-    );
-    // Cost is summed across every participant's result events from the one
-    // combined trace, attributed per source. Read before unlinking.
-    const combined = await fs.readFile(combinedPath, "utf8");
-    const { totalCostUsd, bySource } = sumTraceCost(combined.split("\n"));
-    await fs.unlink(combinedPath).catch(() => {});
-    return {
-      ...summary,
-      costUsd: totalCostUsd,
-      costBreakdown: {
-        agent: bySource.agent ?? 0,
-        supervisor: bySource.supervisor ?? 0,
-      },
-      agentError,
+    return { agentError };
+  }
+
+  /**
+   * Run-output-relative trace-path record fields, each present only when its
+   * file exists: raw and agent/supervisor lanes are materialized at workdir
+   * allocation (present on every executed cell); the judge lane exists only
+   * on judged cells. Relative paths stay valid inside a downloaded artifact.
+   */
+  async #traceRecordPaths(workdir) {
+    const fields = {
+      rawTracePath: workdir.rawTracePath,
+      agentTracePath: workdir.agentTracePath,
+      supervisorTracePath: workdir.supervisorTracePath,
+      judgeTracePath: workdir.judgeTracePath,
     };
+    const out = {};
+    for (const [field, absPath] of Object.entries(fields)) {
+      const exists = await this.runtime.fs
+        .access(absPath)
+        .then(() => true)
+        .catch(() => false);
+      if (exists) out[field] = relative(this.output, absPath);
+    }
+    return out;
   }
 
   async #buildJudgeContext(task, workdir, skillSetHash) {
@@ -575,9 +581,9 @@ export class BenchmarkRunner {
       skillSetHash,
       familyRevision,
       durationMs,
-      agentTracePath: workdir.agentTracePath,
-      supervisorTracePath: workdir.supervisorTracePath,
-      judgeTracePath: workdir.judgeTracePath,
+      // No trace-path fields: even though the materialized stubs exist on
+      // disk, a preflight-failure record references only traces a session
+      // produced.
     };
   }
 

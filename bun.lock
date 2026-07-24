@@ -608,7 +608,7 @@
     },
     "products/gear": {
       "name": "@forwardimpact/gear",
-      "version": "0.3.1",
+      "version": "0.3.2",
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",
@@ -652,6 +652,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.15",
+        "yaml": "^2.9.0",
       },
     },
     "products/guide": {

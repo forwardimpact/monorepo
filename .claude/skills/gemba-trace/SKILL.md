@@ -10,10 +10,10 @@ description: >
 # Trace Analysis
 
 Download agent execution traces from GitHub Actions, query them with structured
-commands, and analyze agent behavior systematically. `gemba-trace` turns raw
-trace artifacts into structured JSON and provides a query interface
-purpose-built for understanding what an agent did, why, and what happened as a
-result.
+commands, and analyze agent behavior systematically. `gemba-trace` reads NDJSON
+trace files directly — raw combined envelope traces and split per-participant
+lanes alike — through a query interface purpose-built for understanding what an
+agent did, why, and what happened as a result.
 
 ## When to Use
 
@@ -32,11 +32,14 @@ take their file(s) as positionals.
 Install and run via npm:
 
 ```sh
-npx gemba-trace runs [pattern]                # list recent workflow runs
-npx gemba-trace download <run-id>             # download trace → /tmp/trace-<run-id>/structured.json
+npx gemba-trace runs [pattern]                # list workflow runs (default pattern: kata|agent|eval|benchmark)
+npx gemba-trace find <run-id> <key>           # resolve one lane by key: filename, case, or participant; ambiguous keys list candidates
+npx gemba-trace download <run-id>             # extract the artifact's .ndjson members into /tmp/trace-<run-id>/
 ```
 
-Once you have a structured trace file, query it:
+Verbs read the downloaded `.ndjson` files directly (`structured.json`
+appears only for single-member artifacts). Once you have a trace file,
+query it:
 
 ### Navigation
 
@@ -118,18 +121,20 @@ are written.
 ## Typical Workflow
 
 ```sh
-npx gemba-trace runs                          # find the run you want
-npx gemba-trace download 24497273755          # download and structure the trace
-npx gemba-trace split /tmp/trace-24497273755/structured.json --mode=facilitate
-npx gemba-trace overview --file /tmp/trace-24497273755/structured.json
-npx gemba-trace timeline --file /tmp/trace-24497273755/structured.json
-npx gemba-trace errors --file /tmp/trace-24497273755/structured.json
-npx gemba-trace search /tmp/trace-24497273755/structured.json 'permission denied' --context 1
+npx gemba-trace runs                          # find the run you want (kata, agent, eval, and benchmark runs by default)
+npx gemba-trace download 24497273755          # extract the artifact's .ndjson members into /tmp/trace-24497273755/
+npx gemba-trace split /tmp/trace-24497273755/trace--default.raw.ndjson --mode=supervise
+npx gemba-trace overview --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
+npx gemba-trace timeline --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
+npx gemba-trace errors --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
+npx gemba-trace search /tmp/trace-24497273755/trace--default--agent.agent.ndjson 'permission denied' --context 1
 ```
 
-Start with `overview` and `timeline` to orient, then drill into specific areas
-with `search`, `filter`, `tool`, `tool-calls`, and `errors`. To aggregate
-across several traces, repeat `--file` or pass a quoted glob.
+Every downloaded `.ndjson` member is native verb input; eval artifacts
+extract nested per cell (`runs/<taskId>/<runIndex>/trace--*`). Start with
+`overview` and `timeline` to orient, then drill in with `search`, `filter`,
+`tool`, `tool-calls`, and `errors`. To aggregate across several traces,
+repeat `--file` or pass a quoted glob.
 
 ---
 

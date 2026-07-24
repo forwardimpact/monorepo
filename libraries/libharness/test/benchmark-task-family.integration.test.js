@@ -47,6 +47,19 @@ describe("loadTaskFamily", () => {
     }
   });
 
+  test("rejects a task directory whose name is an invalid task id", async () => {
+    // "--" in a task id would collide with the trace-name delimiter, so the
+    // loader invokes the identity module's predicate before any agent spend.
+    const dir = await copyFixture();
+    const badDir = join(dir, "tasks", "bad--id");
+    await mkdir(join(badDir, "workdir"), { recursive: true });
+    await writeFile(join(badDir, "agent.task.md"), "x");
+    await assert.rejects(
+      () => loadTaskFamily(dir, RT),
+      /invalid task id 'bad--id'/,
+    );
+  });
+
   test("familyRevision is stable across two consecutive loads", async () => {
     const a = await loadTaskFamily(FIXTURE, RT);
     const b = await loadTaskFamily(FIXTURE, RT);

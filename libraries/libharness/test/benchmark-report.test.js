@@ -307,9 +307,6 @@ describe("renderTextReport (full report)", () => {
           message: "script failed",
           exitCode: 1,
         },
-        agentTracePath: "/tmp/a.ndjson",
-        supervisorTracePath: "/tmp/s.ndjson",
-        judgeTracePath: "/tmp/j.ndjson",
       },
     ];
     const runtime = jsonlRuntime(records);
