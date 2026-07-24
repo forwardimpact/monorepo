@@ -124,6 +124,6 @@ branches from mixing (`KATA.md` § Agents, § Design Principles).
   abstract operation, per tracker.
 - [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
   — the operation recipes for obstacle and experiment issues.
-- `kata-pattern-synthesis` (corpus mapping) and `kata-session`
+- `kata-synthesize-backlog` (corpus mapping) and `kata-session`
   [team-storyboard](../../skills/kata-session/references/team-storyboard.md)
   Q3 routing are **specializations** that build on this rubric.
