@@ -51,7 +51,7 @@ jobs:
       # as explicit options. `bunx fit-map substrate stage` is the sole
       # remaining `fit-map` exception (fit-map ships in the map release, not
       # the gear bundle on PATH).
-      - uses: forwardimpact/kata-interview@1e8d9c876da6851fa890d30fd6abbbf4b74692bb # v1.0.0
+      - uses: forwardimpact/kata-interview@83505dd60725cacd5b4be4120eca7d21d179d9b1 # v1.0.1
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
