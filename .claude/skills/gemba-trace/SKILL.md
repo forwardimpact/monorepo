@@ -123,7 +123,7 @@ are written.
 ```sh
 npx gemba-trace runs                          # find the run you want (kata, agent, eval, and benchmark runs by default)
 npx gemba-trace download 24497273755          # extract the artifact's .ndjson members into /tmp/trace-24497273755/
-npx gemba-trace split /tmp/trace-24497273755/trace--default.raw.ndjson --mode=facilitate
+npx gemba-trace split /tmp/trace-24497273755/trace--default.raw.ndjson --mode=supervise
 npx gemba-trace overview --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
 npx gemba-trace timeline --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson
 npx gemba-trace errors --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson

@@ -515,11 +515,8 @@ export async function runCompareCommand(ctx) {
  * `trace--<case>--<participant>.<role>.ndjson` convention.
  *
  * CLI concerns only — input and `--mode` validation, defaults, and output-dir
- * creation; the split itself is the shared `splitTrace` implementation.
- * Structural sources (`agent`, `supervisor`, `facilitator`, `judge`) classify
- * into the matching role and use their own name as participant; profile-named
- * sources (e.g. `staff-engineer`) classify as agents with the profile in the
- * participant slot. Orchestrator events and invalid source names are dropped.
+ * creation; the split itself (including source-to-role classification) is the
+ * shared `splitTrace` implementation.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */

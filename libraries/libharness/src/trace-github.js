@@ -201,11 +201,16 @@ export class TraceGitHub {
 
     // Dispatch host: download every shared artifact and collect the members
     // whose basename matches the key (members are nested relative paths).
+    // Each artifact extracts into its own subdirectory — a shared extract
+    // dir would re-list earlier artifacts' members on every iteration, so a
+    // uniquely-matching key on a multi-artifact (sharded) run would throw a
+    // spurious ambiguity error.
+    const baseDir = opts.dir ?? `/tmp/trace-${runId}`;
     const matches = [];
     for (const artifact of traceArtifacts) {
       const { dir, files } = await this.downloadTrace(runId, {
         name: artifact.name,
-        dir: opts.dir,
+        dir: path.join(baseDir, artifact.name),
       });
       for (const member of files) {
         if (nameMatchesKey(path.basename(member), key)) {

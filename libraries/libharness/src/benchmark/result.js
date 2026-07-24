@@ -121,8 +121,7 @@ const PREFLIGHT_RECORD = z.object({
   costUsd: z.literal(0),
   preflightError: PREFLIGHT_ERROR_SHAPE,
   // No trace-path fields: a preflight-failure record references only traces
-  // a session produced, even though the materialized stubs exist on disk
-  // (design decision 7).
+  // a session produced, even though the materialized stubs exist on disk.
   rawTracePath: z.undefined().optional(),
   agentTracePath: z.undefined().optional(),
   supervisorTracePath: z.undefined().optional(),

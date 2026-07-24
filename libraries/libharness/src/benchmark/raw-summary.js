@@ -6,6 +6,7 @@
  */
 
 import { sumTraceCost } from "../cost.js";
+import { parseEnvelopeLine } from "../trace-split.js";
 
 /**
  * One read of the preserved raw combined trace:
@@ -61,24 +62,6 @@ function deriveTurnsAndSubmission(lines) {
     }
   }
   return { turns, submission };
-}
-
-/**
- * Parse one NDJSON line into an envelope, or null when the line is blank,
- * malformed, or carries no `event`.
- * @param {string} line
- * @returns {{source: string, event: object}|null}
- */
-function parseEnvelopeLine(line) {
-  const trimmed = line.trim();
-  if (!trimmed) return null;
-  let envelope;
-  try {
-    envelope = JSON.parse(trimmed);
-  } catch {
-    return null;
-  }
-  return envelope.event ? envelope : null;
 }
 
 /**

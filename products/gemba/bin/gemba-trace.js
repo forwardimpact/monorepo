@@ -434,7 +434,7 @@ const definition = {
     "gemba-trace find 27401632821 release-engineer",
     "gemba-trace find 27401632821 demo-task-r0",
     "gemba-trace download 24497273755",
-    "gemba-trace split trace--default.raw.ndjson --mode=facilitate",
+    "gemba-trace split trace--default.raw.ndjson --mode=supervise",
     "gemba-trace overview --file trace--default--agent.agent.ndjson",
     "gemba-trace overview --file trace--default--agent.agent.ndjson --format json",
     "gemba-trace timeline --file trace--default--agent.agent.ndjson",
