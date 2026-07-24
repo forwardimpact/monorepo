@@ -14,8 +14,7 @@ description: >
 skills make agents better at writing code? A single agent run is a coin
 flip. `gemba-benchmark` runs each coding task N times across a skill-set
 manifest, grades each run against checks that never enter the agent's
-working directory, and reports pass@k (plus a mechanical score in [0, 1]
-for scored tasks).
+working directory, and reports pass@k (plus a score for scored tasks).
 
 `gemba-harness` is the generic agent-evaluation plumbing; `gemba-benchmark` adds
 the opinionated layer: task-family format, hidden checks, judge, and pass@k.
@@ -136,12 +135,12 @@ uploads `results.jsonl`.
     judge-profile: judge
 ```
 
-All CLI `run` flags are action inputs, plus CI extras (`summary`,
-`upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and a
-`results-path` output — see the action README. For parallelism it takes
-`concurrency` and `shard-index`/`shard-total` with `mode` (`run` a shard, or
-`merge` every shard's partial ledger); a `benchmark.yml` reusable workflow
-fans shards out from one `shard-total` input — see the CI guide below.
+All CLI `run` flags are action inputs, plus CI extras and the
+`results-path`/`trace-dir` outputs — see the action README. For parallelism
+it takes `concurrency` and `shard-index`/`shard-total` with `mode` (`run` a
+shard, or `merge` every shard's partial ledger); a `benchmark.yml` reusable
+workflow fans shards out from one `shard-total` input — see the CI guide
+below.
 
 | Command | Purpose |
 | --- | --- |
@@ -153,7 +152,7 @@ fans shards out from one `shard-total` input — see the CI guide below.
 
 ```sh
 npx gemba-benchmark run --family=./families/coding --judge-profile=judge
-npx gemba-benchmark report --format=text   # aggregate into pass@k + score@k
+npx gemba-benchmark report --format=text   # pass@k + score@k
 ```
 
 ## Judge Template Variables
@@ -162,7 +161,7 @@ npx gemba-benchmark report --format=text   # aggregate into pass@k + score@k
 | --- | --- |
 | `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
-| `{{AGENT_TRACE_PATH}}` | Path to `agent.ndjson` |
+| `{{AGENT_TRACE_PATH}}` | Path to the cell's `trace--<case>--agent.agent.ndjson` lane |
 | `{{GRADE_RESULT}}` | JSON grade object (verdict, gatesPass, score) plus the merged check rows |
 | `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
 | `{{TASK_ID}}` | Task name (directory under `tasks/`) |
@@ -170,7 +169,7 @@ npx gemba-benchmark report --format=text   # aggregate into pass@k + score@k
 
 ## Grading Surfaces
 
-Behavioral checks ("does the code work?") belong in the hidden `tests/`
+Behavioral checks belong in the hidden `tests/`
 suite; `hooks/invariants.sh` covers structural surfaces — a service probe,
 a repository-state digest, artifact content via `gemba-trace assert` — with
 gates for presence/anti-tamper and scored rows for content.
@@ -181,11 +180,14 @@ One record per `(taskId, runIndex)`, appended to `<output>/results.jsonl`,
 each validating against
 [`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libharness/src/benchmark/result.js).
 Records carry the `grade`, the effective `score` (zeroed by a failing gate,
-judge, or grader), skill-set hash, family revision, judge verdict, trace
-paths, cost, turn count, and (on pre-flight failure) a `preflightError`.
+judge, or grader), skill-set hash, family revision, judge verdict, relative
+trace paths, cost, turn count, and (on pre-flight failure) a `preflightError`.
 
-Each run produces agent and judge NDJSON traces, both consumable by
-`gemba-trace overview --file <trace>`.
+Each cell keeps convention-named traces under `runs/<taskId>/<runIndex>/`
+(`<case>` = `<taskId>-r<runIndex>`): `trace--<case>.raw.ndjson`,
+agent/supervisor lanes, and a judge lane on judged cells — uploaded as
+`trace--*` artifacts (failed cells included) and read by `gemba-trace` with
+no benchmark-specific flags.
 
 ---
 

@@ -33,7 +33,9 @@ ls /tmp/<run-id>/ | grep -- '--product-manager.'
 #    trace--<case>--product-manager.agent.ndjson.
 ```
 
-The `grep -- '--product-manager.'` step is participant filtering, which the
-`gemba-trace` CLI does not provide directly. Each download directory contains
-both an `.agent.ndjson` slice (the participant's turn-level trace) and a
-`.raw.ndjson` slice per participant.
+Participant filtering is also available directly:
+`gemba-trace find <run-id> product-manager` resolves the lane in one keyed
+lookup, and errors listing the candidates when several members match (keep
+the `grep` recipe for that multi-match case). Each download directory
+contains both an `.agent.ndjson` slice (the participant's turn-level trace)
+and a `.raw.ndjson` slice per participant.
