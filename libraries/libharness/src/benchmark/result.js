@@ -104,9 +104,15 @@ const HAPPY_RECORD = z.object({
   score: z.number().min(0).max(1).optional(),
   submission: z.string(),
   judgeVerdict: JUDGE_VERDICT_SHAPE.optional(),
+  // Trace paths are relative to the run output directory — valid on the
+  // runner and inside a downloaded trace artifact alike. Raw and
+  // agent/supervisor lanes are materialized at workdir allocation, so they
+  // are present on every executed cell; the judge lane exists only on
+  // judged cells.
+  rawTracePath: z.string(),
   agentTracePath: z.string(),
   supervisorTracePath: z.string(),
-  judgeTracePath: z.string(),
+  judgeTracePath: z.string().optional(),
   agentError: AGENT_ERROR_SHAPE.optional(),
   preflightError: z.undefined().optional(),
 });
@@ -115,12 +121,13 @@ const PREFLIGHT_RECORD = z.object({
   ...COMMON_FIELDS,
   costUsd: z.literal(0),
   preflightError: PREFLIGHT_ERROR_SHAPE,
-  // The runner allocates the trace paths in WorkdirManager.start, even on
-  // preflight failure. The record then stays uniform across branches, and
-  // downstream consumers can reference the paths without conditional fields.
-  agentTracePath: z.string(),
-  supervisorTracePath: z.string(),
-  judgeTracePath: z.string(),
+  // No trace-path fields: a preflight-failure record references only traces
+  // a session produced, even though the materialized stubs exist on disk
+  // (design decision 7).
+  rawTracePath: z.undefined().optional(),
+  agentTracePath: z.undefined().optional(),
+  supervisorTracePath: z.undefined().optional(),
+  judgeTracePath: z.undefined().optional(),
   invariants: z.undefined().optional(),
   grade: z.undefined().optional(),
   hiddenTests: z.undefined().optional(),

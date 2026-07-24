@@ -6,6 +6,8 @@ import {
   validateGradeRecord,
 } from "../src/benchmark/result.js";
 
+// Trace paths are run-output-relative, convention-named. The judge lane is
+// optional (present only on judged cells); preflight records carry none.
 const happy = {
   taskId: "pass",
   runIndex: 0,
@@ -16,9 +18,11 @@ const happy = {
   judgeVerdict: { verdict: "pass", summary: "approved" },
   costUsd: 0.123,
   turns: 4,
-  agentTracePath: "/tmp/x/agent.ndjson",
-  supervisorTracePath: "/tmp/x/supervisor.ndjson",
-  judgeTracePath: "/tmp/x/judge.ndjson",
+  rawTracePath: "runs/pass/0/trace--pass-r0.raw.ndjson",
+  agentTracePath: "runs/pass/0/trace--pass-r0--agent.agent.ndjson",
+  supervisorTracePath:
+    "runs/pass/0/trace--pass-r0--supervisor.supervisor.ndjson",
+  judgeTracePath: "runs/pass/0/trace--pass-r0--judge.judge.ndjson",
   profiles: { agent: "coder", supervisor: null, judge: "judge" },
   model: {
     agent: "claude-sonnet-4-6",
@@ -46,9 +50,6 @@ const preflightFail = {
   skillSetHash: "sha256:abc",
   familyRevision: "sha256:def",
   durationMs: 50,
-  agentTracePath: "/tmp/x/agent.ndjson",
-  supervisorTracePath: "/tmp/x/supervisor.ndjson",
-  judgeTracePath: "/tmp/x/judge.ndjson",
 };
 
 const agentFailed = {
@@ -126,6 +127,28 @@ describe("validateResultRecord", () => {
       ...preflightFail,
       grade: { verdict: "fail", gatesPass: true },
     };
+    assert.throws(() => validateResultRecord(broken));
+  });
+
+  test("rejects a preflight record carrying trace paths (decision 7)", () => {
+    const broken = {
+      ...preflightFail,
+      rawTracePath:
+        "runs/preflight-broken/0/trace--preflight-broken-r0.raw.ndjson",
+    };
+    assert.throws(() => validateResultRecord(broken));
+  });
+
+  test("accepts a judgeless happy record (no judge lane)", () => {
+    const judgeless = { ...happy };
+    delete judgeless.judgeTracePath;
+    delete judgeless.judgeVerdict;
+    assert.doesNotThrow(() => validateResultRecord(judgeless));
+  });
+
+  test("rejects a happy record without the raw trace path", () => {
+    const broken = { ...happy };
+    delete broken.rawTracePath;
     assert.throws(() => validateResultRecord(broken));
   });
 
