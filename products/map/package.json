@@ -87,7 +87,7 @@
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libtemplate": "^0.2.0",
     "@forwardimpact/libutil": "^0.1.64",
-    "@supabase/supabase-js": "^2.108.1",
+    "@supabase/supabase-js": "^2.110.8",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "yaml": "^2.9.0"
@@ -99,7 +99,7 @@
     "@forwardimpact/libresource": "^0.1.98",
     "@forwardimpact/libstorage": "^0.1.61",
     "microdata-rdf-streaming-parser": "^3.0.0",
-    "n3": "^2.0.3"
+    "n3": "^2.1.1"
   },
   "engines": {
     "bun": ">=1.2.0",
