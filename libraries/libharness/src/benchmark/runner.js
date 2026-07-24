@@ -257,12 +257,12 @@ export class BenchmarkRunner {
         t0,
       });
     } catch (e) {
-      // `wm.start()` (port acquire + workdir/env seed) is the one throw site
-      // that `#executeCell` does not catch. Turn it into the runner's own
-      // fallback record so `#runOne` never rejects. The scheduler's
-      // one-record-per-cell contract depends on that. `report` skips the
-      // fallback because it fails the schema, the same as any other
-      // runner-side schema failure.
+      // Catches the throw sites `#executeCell` does not: `wm.start()` (port
+      // acquire + workdir/env seed) and the shared split/summary pipeline.
+      // Turn either into the runner's own fallback record so `#runOne` never
+      // rejects. The scheduler's one-record-per-cell contract depends on
+      // that. `report` skips the fallback because it fails the schema, the
+      // same as any other runner-side schema failure.
       return {
         taskId: task.id,
         runIndex,
@@ -423,10 +423,11 @@ export class BenchmarkRunner {
    * Dispatch to either the injected hook or the default `#runAgent`, then run
    * the shared pipeline once: split the preserved raw trace into lanes and
    * derive cost/turns/submission from the same file. Either session path can
-   * throw; catch here so a thrown error becomes an `agentError` on the record
-   * (spec criterion 1: records on agent failure) rather than aborting the
-   * whole iterator — the pipeline still runs, so failed cells keep coherent
-   * (possibly empty) lanes and zeroed totals.
+   * throw; catch here so a session error becomes an `agentError` on the
+   * record rather than aborting the whole iterator — the pipeline still runs,
+   * so failed cells keep coherent (possibly empty) lanes and zeroed totals.
+   * A pipeline throw itself (the raw file is materialized at allocation, so
+   * only an fs-level fault) propagates to `#runOne`'s fallback record.
    */
   async #runAgentSafe(task, workdir) {
     let agentError = null;
@@ -583,7 +584,7 @@ export class BenchmarkRunner {
       durationMs,
       // No trace-path fields: even though the materialized stubs exist on
       // disk, a preflight-failure record references only traces a session
-      // produced (design decision 7).
+      // produced.
     };
   }
 

@@ -59,7 +59,7 @@ action runs a task family, reports pass@k, and uploads the result artifact.
 
 ## Behaviour
 
-The action executes three steps in sequence:
+The action executes four steps in sequence:
 
 1. **Run** — invokes `gemba-benchmark run` with the configured inputs. The run
    step streams one JSON line per result to stdout and appends to
@@ -99,8 +99,8 @@ other agent run:
 ```sh
 npx gemba-trace runs                    # eval runs list by default
 npx gemba-trace find <run-id> <key>     # key: exact filename, case, or participant
-npx gemba-trace download <run-id> --artifact trace--benchmark-results
-npx gemba-trace overview --file 'runs/<taskId>/<runIndex>/trace--*--agent.agent.ndjson'
+npx gemba-trace download <run-id> --artifact trace--benchmark-results --dir ./traces
+npx gemba-trace overview --file './traces/runs/<taskId>/<runIndex>/trace--*--agent.agent.ndjson'
 ```
 
 ## Sharding across machines

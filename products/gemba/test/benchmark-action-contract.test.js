@@ -80,7 +80,7 @@ describe("benchmark action trace contract (spec criterion 10)", () => {
     assert.ok(upload, "Upload traces step must exist");
     assert.strictEqual(
       upload.if,
-      "always() && inputs.mode == 'run' && inputs.trace == 'true'",
+      "always() && inputs.mode == 'run' && inputs.trace == 'true' && steps.resolve-paths.outcome == 'success'",
     );
     assert.strictEqual(
       upload.with.name,

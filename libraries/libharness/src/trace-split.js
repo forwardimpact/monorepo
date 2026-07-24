@@ -55,8 +55,10 @@ export async function splitTrace(runtime, inputPath, { caseId, outputDir }) {
   const streams = new Map();
   const paths = [];
   for await (const line of rl) {
-    const envelope = parseSplittableEnvelope(line);
+    const envelope = parseEnvelopeLine(line);
     if (!envelope) continue;
+    if (envelope.source === "orchestrator") continue;
+    if (!VALID_SOURCE_NAME.test(envelope.source)) continue;
 
     let stream = streams.get(envelope.source);
     if (!stream) {
@@ -80,13 +82,14 @@ export async function splitTrace(runtime, inputPath, { caseId, outputDir }) {
 }
 
 /**
- * Parse one NDJSON line into a splittable envelope, or null when the line is
- * skipped: empty, malformed, non-envelope, orchestrator-source, or an invalid
- * source name.
+ * Parse one NDJSON line into a `{source, seq, event}` envelope, or null when
+ * the line is blank, malformed, or not an envelope. Shared with the
+ * raw-summary reader so exactly one envelope-line parser exists; callers add
+ * their own source filters.
  * @param {string} line
  * @returns {{source: string, event: object}|null}
  */
-function parseSplittableEnvelope(line) {
+export function parseEnvelopeLine(line) {
   const trimmed = line.trim();
   if (!trimmed) return null;
   let envelope;
@@ -96,7 +99,5 @@ function parseSplittableEnvelope(line) {
     return null;
   }
   if (!envelope.event || typeof envelope.source !== "string") return null;
-  if (envelope.source === "orchestrator") return null;
-  if (!VALID_SOURCE_NAME.test(envelope.source)) return null;
   return envelope;
 }

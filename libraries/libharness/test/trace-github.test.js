@@ -445,6 +445,60 @@ describe("participant-keyed discovery", () => {
     );
   });
 
+  test("findByKey isolates per-artifact extract dirs on multi-artifact (sharded) runs", async () => {
+    stubFetch();
+    globalThis.fetch = ((orig) => async (url) => {
+      // Two shard artifacts on run 200 instead of the single trace--shared.
+      if (url.includes("/runs/200/artifacts")) {
+        return jsonResponse({
+          artifacts: [
+            { id: 3, name: "trace--eval-shard-1" },
+            { id: 4, name: "trace--eval-shard-2" },
+          ],
+        });
+      }
+      return orig(url);
+    })(globalThis.fetch);
+
+    const SHARD_MEMBERS = {
+      "trace--eval-shard-1": [
+        "runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+      ],
+      "trace--eval-shard-2": [
+        "runs/fix-bug/1/trace--fix-bug-r1--agent.agent.ndjson",
+      ],
+    };
+    const gh = new TraceGitHub({
+      token: "t",
+      owner: "o",
+      repo: "r",
+      runtime: RT,
+    });
+    // Mimic the real extract-then-list-everything behaviour: each download
+    // appends its artifact's members into `dir` and returns the whole dir's
+    // listing. With a shared dir, shard 1's member would be re-listed while
+    // scanning shard 2 and a unique key would look ambiguous.
+    const extracted = new Map();
+    gh.downloadTrace = async (_runId, opts2) => {
+      const seen = extracted.get(opts2.dir) ?? [];
+      const files = [...seen, ...SHARD_MEMBERS[opts2.name]];
+      extracted.set(opts2.dir, files);
+      return { dir: opts2.dir, artifact: opts2.name, files };
+    };
+
+    const result = await gh.findByKey(
+      200,
+      "trace--fix-bug-r0--agent.agent.ndjson",
+    );
+    assert.strictEqual(result.host, "dispatch");
+    assert.strictEqual(result.artifact, "trace--eval-shard-1");
+    assert.ok(
+      result.path.endsWith(
+        "trace--eval-shard-1/runs/fix-bug/0/trace--fix-bug-r0--agent.agent.ndjson",
+      ),
+    );
+  });
+
   test("findByKey errors with candidates on an ambiguous participant key (decision 10)", async () => {
     stubFetch();
     const gh = ghWithDispatchMembers(EVAL_MEMBERS);
