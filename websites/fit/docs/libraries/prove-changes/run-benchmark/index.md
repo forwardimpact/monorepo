@@ -220,7 +220,7 @@ variables before sending the prompt to the judge:
 | --- | --- |
 | `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
-| `{{AGENT_TRACE_PATH}}` | Absolute path to `agent.ndjson` |
+| `{{AGENT_TRACE_PATH}}` | Absolute path to the cell's agent lane, `trace--<case>--agent.agent.ndjson` |
 | `{{GRADE_RESULT}}` | JSON grade object (verdict, gatesPass, score) plus the merged check rows |
 | `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
 | `{{TASK_ID}}` | Task name (directory under `tasks/`) |
@@ -308,15 +308,45 @@ Output:
 - `./runs/2026-05-11/results.jsonl` — append-only, one record per
   `(task, runIndex)`. Survives partial failures.
 - `./runs/2026-05-11/runs/<task-name>/<runIndex>/` — per-run artifacts:
-  the agent CWD, the agent trace, the judge trace, the invariants stderr
-  log.
+  the agent CWD, the preserved traces (table below), and the invariants
+  stderr log.
 - `./runs/2026-05-11/.apm-staging/.claude/` — staged skills/agents.
 
-Each result record carries `skillSetHash`, `familyRevision`, the
-combined verdict, invariants details, judge verdict + summary, cost, turn
-count, and the absolute paths to both NDJSON traces. The record's
-schema is validated at write time, so a malformed write is caught
-before the report stage trips over it.
+Each cell preserves its traces under `runs/<taskId>/<runIndex>/`, named by
+the shared convention with `<case>` = `<taskId>-r<runIndex>`:
+
+| File | Content |
+| --- | --- |
+| `trace--<case>.raw.ndjson` | Combined envelope stream (agent, supervisor, orchestrator). Preserved for the life of the run output. |
+| `trace--<case>--agent.agent.ndjson` | Unwrapped agent events (split from the raw trace). |
+| `trace--<case>--supervisor.supervisor.ndjson` | Unwrapped supervisor events. |
+| `trace--<case>--judge.judge.ndjson` | Judge session's envelope stream; exists only on judged cells. |
+
+Each result record carries `skillSetHash`, `familyRevision`, the combined
+verdict, invariants details, judge verdict + summary, cost, turn count, and
+the trace paths **relative to the run output directory** — valid on the
+machine that ran the benchmark and inside a downloaded trace artifact
+alike. The record's schema is validated at write time, so a malformed
+write is caught before the report stage trips over it.
+
+### Traces as Artifacts
+
+In CI, the benchmark action uploads every trace file as a `trace--*`
+workflow artifact (see the `forwardimpact/benchmark` action README): the
+`trace` input gates the upload (default on; capture is unconditional), the
+`trace-dir` output locates the files on the runner, and each shard mints a
+collision-safe `trace--<artifact-name>[-shard-<i>]` artifact — kept even
+for failed and timed-out cells. Download and analyze with `gemba-trace`:
+
+```sh
+npx gemba-trace runs                      # eval and benchmark runs list by default
+npx gemba-trace find <run-id> <key>       # key: exact filename, case, or participant
+npx gemba-trace download <run-id> --artifact trace--benchmark-results
+```
+
+The extracted members land at `runs/<taskId>/<runIndex>/trace--*` — exactly
+the relative paths each result record carries. See the
+[trace analysis guide](../trace-analysis/index.md) for the full method.
 
 ### Run Cells Concurrently
 

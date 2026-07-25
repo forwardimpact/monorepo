@@ -4,6 +4,8 @@ import { Readable } from "node:stream";
 
 import { isoTimestamp } from "@forwardimpact/libutil";
 
+import { nameMatchesKey, participantInNames } from "./trace-identity.js";
+
 const API = "https://api.github.com";
 
 /**
@@ -45,14 +47,18 @@ export class TraceGitHub {
    * identity is read from artifact/file *names* only, never from trace content.
    *
    * @param {object} [opts]
-   * @param {string} [opts.pattern] - Case-insensitive regex to match workflow name (default: "kata|agent" — covers `Kata: Shift`, `Kata: Dispatch`, and any `agent`-named workflow)
+   * @param {string} [opts.pattern] - Case-insensitive regex to match workflow name (default: "kata|agent|eval|benchmark" — covers `Kata: Shift`, `Kata: Dispatch`, benchmark-driven eval workflows, and any `agent`-named workflow)
    * @param {number} [opts.limit=50] - Max runs to return from GitHub API
    * @param {string} [opts.lookback="7d"] - How far back to search (e.g. "7d", "24h", "2w")
    * @param {string} [opts.participant] - Participant name; when set, filter/annotate runs by trace lane
    * @returns {Promise<object[]>} Array of {workflow, runId, status, conclusion, createdAt, branch, url[, match]}
    */
   async listRuns(opts = {}) {
-    const { pattern = "kata|agent", limit = 50, lookback = "7d" } = opts;
+    const {
+      pattern = "kata|agent|eval|benchmark",
+      limit = 50,
+      lookback = "7d",
+    } = opts;
     const cutoff = parseLookback(lookback, this.runtime.clock.now());
 
     const params = new URLSearchParams({
@@ -134,32 +140,41 @@ export class TraceGitHub {
     }
 
     // Dispatch host: one shared artifact whose members name the participant.
-    // Download and list member filenames (names only).
+    // Download and list member filenames (names only). Members are nested
+    // relative paths (`runs/<taskId>/<idx>/trace--*` on eval artifacts), so
+    // match on basenames — the `trace--` prefix check never matches a nested
+    // path directly.
     for (const artifact of traceArtifacts) {
       const { files } = await this.downloadTrace(runId, {
         name: artifact.name,
       });
-      if (participantInNames(files, participant)) return "confirmed";
+      const basenames = files.map((f) => path.basename(f));
+      if (participantInNames(basenames, participant)) return "confirmed";
     }
     return "omit";
   }
 
   /**
-   * Resolve a participant's lane trace path for a known run in one keyed
-   * lookup — no run enumeration, no trace-content inspection.
+   * Resolve a trace lane path for a known run in one keyed lookup — no run
+   * enumeration, no trace-content inspection. The key may be an exact member
+   * filename, a case id, or a participant name.
    *
-   * Matrix host: the artifact name carries the participant (no download).
-   * Dispatch host: download the shared `trace--*` artifact and return the
-   * extracted member file whose name carries the participant.
+   * Matrix host: the artifact name carries the key (no download). Dispatch
+   * host: download every `trace--*` artifact and match member basenames
+   * against the key. Exactly one match resolves; several matches throw an
+   * error listing the candidates so the caller narrows the key — this
+   * deliberately replaces silent first-match, which returned an arbitrary
+   * cell's lane on eval runs (every cell emits the same participants).
    *
    * @param {number|string} runId
-   * @param {string} participant
+   * @param {string} key - Exact member filename, case id, or participant name.
    * @param {object} [opts]
    * @param {string} [opts.dir] - Output directory for a downloaded dispatch artifact
-   * @returns {Promise<{runId: (number|string), participant: string, host: "matrix"|"dispatch", artifact: string, path: string}>}
-   * @throws {Error} when the run has no trace artifacts, or none carries the participant's lane.
+   * @returns {Promise<{runId: (number|string), key: string, host: "matrix"|"dispatch", artifact: string, path: string}>}
+   * @throws {Error} when the run has no trace artifacts, no member matches
+   *   the key, or several members match.
    */
-  async findByKey(runId, participant, opts = {}) {
+  async findByKey(runId, key, opts = {}) {
     const url = `${API}/repos/${this.owner}/${this.repo}/actions/runs/${runId}/artifacts`;
     const data = await this.#get(url);
     const artifacts = data.artifacts ?? [];
@@ -170,41 +185,57 @@ export class TraceGitHub {
       throw new Error(`No trace artifacts for run ${runId}`);
     }
 
-    // Matrix host: the artifact name carries the participant. No download.
+    // Matrix host: the artifact name carries the key. No download.
     const matrix = traceArtifacts.find((a) =>
-      participantInNames([a.name], participant),
+      participantInNames([a.name], key),
     );
     if (matrix) {
       return {
         runId,
-        participant,
+        key,
         host: "matrix",
         artifact: matrix.name,
         path: matrix.name,
       };
     }
 
-    // Dispatch host: download the shared artifact and match a member filename.
+    // Dispatch host: download every shared artifact and collect the members
+    // whose basename matches the key (members are nested relative paths).
+    // Each artifact extracts into its own subdirectory — a shared extract
+    // dir would re-list earlier artifacts' members on every iteration, so a
+    // uniquely-matching key on a multi-artifact (sharded) run would throw a
+    // spurious ambiguity error.
+    const baseDir = opts.dir ?? `/tmp/trace-${runId}`;
+    const matches = [];
     for (const artifact of traceArtifacts) {
       const { dir, files } = await this.downloadTrace(runId, {
         name: artifact.name,
-        dir: opts.dir,
+        dir: path.join(baseDir, artifact.name),
       });
-      const member = files.find((f) => participantInNames([f], participant));
-      if (member) {
-        return {
-          runId,
-          participant,
-          host: "dispatch",
-          artifact: artifact.name,
-          path: path.join(dir, member),
-        };
+      for (const member of files) {
+        if (nameMatchesKey(path.basename(member), key)) {
+          matches.push({ artifact: artifact.name, dir, member });
+        }
       }
     }
 
-    throw new Error(
-      `No trace lane for participant "${participant}" in run ${runId}`,
-    );
+    if (matches.length === 1) {
+      const m = matches[0];
+      return {
+        runId,
+        key,
+        host: "dispatch",
+        artifact: m.artifact,
+        path: path.join(m.dir, m.member),
+      };
+    }
+    if (matches.length > 1) {
+      const names = matches.map((m) => m.member).join(", ");
+      throw new Error(
+        `Ambiguous key "${key}" for run ${runId}: matches ${names}. Narrow the key to a case id or exact filename.`,
+      );
+    }
+    throw new Error(`No trace lane for key "${key}" in run ${runId}`);
   }
 
   /**
@@ -264,9 +295,9 @@ export class TraceGitHub {
       );
     }
 
-    // List extracted files.
-    const entries = await fs.readdir(dir);
-    const files = entries.filter((f) => !f.endsWith(".zip"));
+    // List extracted files — recursively, since eval artifacts carry nested
+    // members (`runs/<taskId>/<idx>/trace--*`).
+    const files = await listExtractedFiles(this.runtime, dir);
 
     return { dir, artifact: artifact.name, files };
   }
@@ -294,33 +325,22 @@ export class TraceGitHub {
 }
 
 /**
- * Test whether a participant's trace lane is present in a list of names.
- *
- * Matches the two trace-naming shapes by *name* only (never by content):
- *   - matrix artifact name: `trace--<participant>`
- *   - dispatch member filename: `trace--<case>--<participant>.<role>.ndjson`
- *
- * The participant segment is delimited by `--` and ends at the next `--`, `.`,
- * or end-of-string, so a substring like `release` does not match
- * `release-engineer` and vice versa.
- *
- * @param {string[]} names - Artifact names or extracted member filenames.
- * @param {string} participant - Participant name to look for.
- * @returns {boolean}
+ * List every regular file under `dir` recursively, as paths relative to
+ * `dir`, excluding `*.zip` (the downloaded archive itself). Sorted for a
+ * deterministic member order.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
+ * @param {string} dir
+ * @returns {Promise<string[]>}
  */
-export function participantInNames(names, participant) {
-  return names.some((name) => {
-    if (!name.startsWith("trace--")) return false;
-    const rest = name.slice("trace--".length);
-    // Matrix: `<participant>` is the whole remainder (artifact name).
-    if (rest === participant) return true;
-    // Dispatch: `<case>--<participant>.<role>.ndjson`.
-    const sep = rest.indexOf("--");
-    if (sep === -1) return false;
-    const afterCase = rest.slice(sep + 2);
-    const participantSegment = afterCase.split(".")[0];
-    return participantSegment === participant;
+export async function listExtractedFiles(runtime, dir) {
+  const entries = await runtime.fs.readdir(dir, {
+    recursive: true,
+    withFileTypes: true,
   });
+  return entries
+    .filter((e) => e.isFile() && !e.name.endsWith(".zip"))
+    .map((e) => path.relative(dir, path.join(e.parentPath ?? e.path, e.name)))
+    .sort();
 }
 
 /**

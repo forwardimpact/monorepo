@@ -68,6 +68,11 @@ on:
         required: false
         type: string
         default: "text"
+      trace:
+        description: Upload each shard's trace files as a trace--* workflow artifact (capture is unconditional; this gates upload and outputs only)
+        required: false
+        type: string
+        default: "true"
     secrets:
       ANTHROPIC_API_KEY:
         required: true
@@ -136,6 +141,11 @@ jobs:
           shard-total: ${{ inputs.shard-total }}
           k: ${{ inputs.k }}
           format: ${{ inputs.format }}
+          # Each shard mints its own collision-safe trace--* artifact, so
+          # callers get trace artifacts with no caller-side steps. Inert
+          # (with a workflow warning) until the published action pin above
+          # advances to a release that declares the trace input.
+          trace: ${{ inputs.trace }}
           # Each shard emits a short status + pass@k summary; the merge job
           # renders the full report over the combined ledger.
           summary-detail: compact

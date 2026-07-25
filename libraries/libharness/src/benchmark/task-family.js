@@ -33,6 +33,8 @@
 import { createHash } from "node:crypto";
 import { join, posix, relative, resolve, sep } from "node:path";
 
+import { isValidTaskId } from "../trace-identity.js";
+
 const GIT_URL_RE = /^(git@|https?:\/\/|ssh:\/\/|git:\/\/)/;
 const SKIP_DIRS = new Set([".git", "node_modules"]);
 // POSIX `X_OK` (execute permission); node's fs honours the numeric mode, so we
@@ -127,6 +129,13 @@ async function discoverTasks(runtime, rootPath) {
 }
 
 async function loadTask(fs, taskDir, id) {
+  // The rule itself lives in the identity module; the loader only invokes
+  // the predicate so an unbuildable case id fails before any agent spend.
+  if (!isValidTaskId(id)) {
+    throw new Error(
+      `invalid task id '${id}': task directory names must not contain "--" or start/end with "-"`,
+    );
+  }
   const supervisorPath = join(taskDir, "supervisor.task.md");
   const judgePath = join(taskDir, "judge.task.md");
   const preflightPath = join(taskDir, "hooks", "preflight.sh");

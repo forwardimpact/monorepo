@@ -27,6 +27,7 @@ import { BenchmarkRunner } from "../src/benchmark/runner.js";
 import { validateResultRecord } from "../src/benchmark/result.js";
 import { resolveConcurrency } from "../src/commands/benchmark-run.js";
 import { realRuntimeWithSubprocess } from "./real-runtime.js";
+import { writeRawTrace } from "./benchmark-trace-helpers.js";
 
 const RT = createDefaultRuntime();
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
@@ -38,12 +39,10 @@ const mockInstallApm = (family, outputDir) =>
     outputDir,
   );
 
-/** A passing agent seam that writes a minimal trace. */
+/** A passing agent seam: streams envelopes to the raw trace (seam contract). */
 async function passingAgent(_task, workdir) {
-  const submission = "done";
-  await writeFile(workdir.agentTracePath, "");
-  await writeFile(workdir.supervisorTracePath, "");
-  return { costUsd: 0.01, turns: 1, submission };
+  await writeRawTrace(RT, workdir);
+  return {};
 }
 
 async function mockRunJudge(_task, workdir, grade) {
@@ -241,21 +240,16 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
       signalFast = r;
     });
     const stallingAgent = async (task, workdir) => {
-      await writeFile(workdir.agentTracePath, "");
-      await writeFile(workdir.supervisorTracePath, "");
       if (task.id === "repo-state") {
-        // Hold this slot until a fast cell has finished (safety-capped).
+        // Hold this slot until a fast cell has finished (safety-capped). The
+        // raw trace stays the materialized stub, so the shared pipeline
+        // yields zeroed totals for the stalled cell.
         await Promise.race([
           aFastCellDone,
           new Promise((r) => setTimeout(r, 5000)),
         ]);
         completionOrder.push(task.id);
-        return {
-          costUsd: 0,
-          turns: 0,
-          submission: "",
-          agentError: { message: "simulated stall", aborted: false },
-        };
+        return { agentError: { message: "simulated stall", aborted: false } };
       }
       completionOrder.push(task.id);
       signalFast();

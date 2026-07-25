@@ -2,7 +2,10 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 
 import { createMockFs } from "@forwardimpact/libmock";
-import { runPathsCommand } from "../src/commands/trace.js";
+import {
+  runPathsCommand,
+  structuredConvertTarget,
+} from "../src/commands/trace.js";
 
 // `resolveFiles` is module-private; exercise its two branches (literal-path
 // pass-through vs glob expansion via runtime.fsSync.globSync) and the
@@ -100,5 +103,31 @@ describe("resolveFiles (via paths handler)", () => {
     const { result } = await run({});
     assert.strictEqual(result.ok, false);
     assert.match(result.error, /no files/);
+  });
+});
+
+describe("structuredConvertTarget", () => {
+  test("returns the single .ndjson member", () => {
+    assert.strictEqual(
+      structuredConvertTarget(["trace.ndjson", "readme.txt"]),
+      "trace.ndjson",
+    );
+  });
+
+  test("returns null for zero .ndjson members", () => {
+    assert.strictEqual(structuredConvertTarget([]), null);
+    assert.strictEqual(structuredConvertTarget(["report.json"]), null);
+  });
+
+  test("returns null for several .ndjson members (decision 12 narrowing)", () => {
+    // Kata dispatch bundles, harness matrix bundles, and eval shards are all
+    // multi-member — none of them mints structured.json any more.
+    assert.strictEqual(
+      structuredConvertTarget([
+        "runs/t/0/trace--t-r0.raw.ndjson",
+        "runs/t/0/trace--t-r0--agent.agent.ndjson",
+      ]),
+      null,
+    );
   });
 });

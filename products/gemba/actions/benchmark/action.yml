@@ -87,11 +87,27 @@ inputs:
     description: Maximum minutes the run step may execute before cancellation
     required: false
     default: "60"
+  trace:
+    description: |
+      Upload every trace file as a trace--* workflow artifact and expose the
+      trace-dir output (run mode). Capture is unconditional in the runner —
+      cost derivation and the judge depend on the traces existing — so
+      disabling this skips only the artifact upload and empties the outputs.
+      Deliberate asymmetry with the harness action's same-named input, which
+      disables capture.
+    required: false
+    default: "true"
 
 outputs:
   results-path:
     description: Absolute path to results.jsonl (run mode)
     value: ${{ steps.resolve-paths.outputs.results-path }}
+  trace-dir:
+    description: |
+      Absolute path of <output>/runs; every trace file of the run sits
+      beneath it at <taskId>/<runIndex>/trace--*. Empty when trace is
+      disabled.
+    value: ${{ steps.resolve-paths.outputs.trace-dir }}
 
 runs:
   using: composite
@@ -123,15 +139,41 @@ runs:
         SHARD_INDEX: ${{ inputs.shard-index }}
         SHARD_TOTAL: ${{ inputs.shard-total }}
         ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        TRACE_ENABLED: ${{ inputs.trace }}
+        FAMILY: ${{ inputs.family }}
       run: |
+        # Fail fast on delimiter breakage: `--` in the artifact name would
+        # collide with the trace-name delimiter.
+        if [[ "$ARTIFACT_NAME" == *--* ]]; then
+          echo "::error::artifact-name must not contain '--' (trace-name delimiter)"
+          exit 1
+        fi
+
         mkdir -p "$OUTPUT_DIR"
         echo "results-path=$(realpath "$OUTPUT_DIR")/results.jsonl" >> "$GITHUB_OUTPUT"
-        # Shard-scope the artifact name so a matrix of shards never collides on
-        # upload; an unsharded run (shard-total 1) keeps the caller's name.
+        # Shard-scope both artifact names so a matrix of shards never collides
+        # on upload; an unsharded run (shard-total 1) keeps the caller's name.
         if [ "$SHARD_TOTAL" != "1" ]; then
           echo "artifact-name=benchmark-shard-${SHARD_INDEX}" >> "$GITHUB_OUTPUT"
+          TRACE_ARTIFACT="trace--${ARTIFACT_NAME}-shard-${SHARD_INDEX}"
         else
           echo "artifact-name=${ARTIFACT_NAME}" >> "$GITHUB_OUTPUT"
+          TRACE_ARTIFACT="trace--${ARTIFACT_NAME}"
+        fi
+        echo "trace-artifact-name=${TRACE_ARTIFACT}" >> "$GITHUB_OUTPUT"
+
+        if [ "$TRACE_ENABLED" = "true" ]; then
+          echo "trace-dir=$(realpath "$OUTPUT_DIR")/runs" >> "$GITHUB_OUTPUT"
+          # Pre-run manifest anchor: pins the trace archive's root at
+          # <output> so even a timed-out shard's always() upload extracts
+          # members at the record's run-output-relative paths.
+          {
+            echo "family=$FAMILY"
+            echo "shard=${SHARD_INDEX}/${SHARD_TOTAL}"
+            echo "artifact=${TRACE_ARTIFACT}"
+          } > "$OUTPUT_DIR/trace-manifest.txt"
+        else
+          echo "trace-dir=" >> "$GITHUB_OUTPUT"
         fi
 
     - name: Run benchmark
@@ -224,6 +266,22 @@ runs:
       with:
         name: ${{ steps.resolve-paths.outputs.artifact-name }}
         path: ${{ inputs.output }}/results.jsonl
+        if-no-files-found: warn
+
+    # The exact-depth glob is deliberate — never `**`, so files an agent
+    # plants inside its cwd/ cannot enter the evidence. The manifest anchor
+    # misses the `trace--` filename prefix, so member-name matching ignores
+    # it while it pins the archive root at <output>. Gating on the
+    # resolve-paths outcome keeps a delimiter fail-fast from adding a second
+    # noisy failure with an empty artifact name.
+    - name: Upload traces
+      if: always() && inputs.mode == 'run' && inputs.trace == 'true' && steps.resolve-paths.outcome == 'success'
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      with:
+        name: ${{ steps.resolve-paths.outputs.trace-artifact-name }}
+        path: |
+          ${{ inputs.output }}/runs/*/*/trace--*.ndjson
+          ${{ inputs.output }}/trace-manifest.txt
         if-no-files-found: warn
 
     # --- merge mode: aggregate every shard's partial ledger -----------------

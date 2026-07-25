@@ -100,6 +100,47 @@ describe("WorkdirManager.start", () => {
     await wm.teardown(wd);
   });
 
+  test("allocates convention-named trace paths and materializes raw + lanes empty", async () => {
+    const { family, wm } = await setupManager();
+    const task = family.tasks().find((t) => t.id === "pass");
+    const wd = await wm.start(task, 3);
+    const fs = (await import("node:fs")).promises;
+
+    assert.strictEqual(wd.caseId, "pass-r3");
+    // Convention paths under runs/<taskId>/<idx>/ — no `__` slug directory.
+    assert.ok(wd.runDir.endsWith(join("runs", "pass", "3")));
+    assert.ok(!wd.runDir.includes("__"));
+    assert.strictEqual(
+      wd.rawTracePath,
+      join(wd.runDir, "trace--pass-r3.raw.ndjson"),
+    );
+    assert.strictEqual(
+      wd.agentTracePath,
+      join(wd.runDir, "trace--pass-r3--agent.agent.ndjson"),
+    );
+    assert.strictEqual(
+      wd.supervisorTracePath,
+      join(wd.runDir, "trace--pass-r3--supervisor.supervisor.ndjson"),
+    );
+    assert.strictEqual(
+      wd.judgeTracePath,
+      join(wd.runDir, "trace--pass-r3--judge.judge.ndjson"),
+    );
+
+    // Raw and agent/supervisor lanes exist empty at allocation; the judge
+    // lane is allocated but not materialized (written by the judge session).
+    for (const p of [
+      wd.rawTracePath,
+      wd.agentTracePath,
+      wd.supervisorTracePath,
+    ]) {
+      assert.strictEqual(await fs.readFile(p, "utf8"), "", p);
+    }
+    await assert.rejects(fs.access(wd.judgeTracePath));
+
+    await wm.teardown(wd);
+  });
+
   test("populates preflightError without throwing when preflight exits non-zero", async () => {
     const { family, wm } = await setupManager();
     const task = family.tasks().find((t) => t.id === "preflight-broken");

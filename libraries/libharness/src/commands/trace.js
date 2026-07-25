@@ -3,6 +3,7 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 import { createTraceCollector, sumTraceCost } from "@forwardimpact/libharness";
 import { createTraceQuery } from "../trace-query.js";
 import { createTraceGitHub } from "../trace-github.js";
+import { splitTrace } from "../trace-split.js";
 import { stripSignatures } from "../signature-filter.js";
 import { runOver, aggregate, compareTwo } from "../trace-multi.js";
 import {
@@ -99,7 +100,9 @@ export async function runRunsCommand(ctx) {
 }
 
 /**
- * Resolve a participant's lane trace for a known run id in one keyed lookup.
+ * Resolve a trace lane for a known run id in one keyed lookup. The key may
+ * be an exact member filename, a case id, or a participant name; ambiguous
+ * keys error with the matching candidates.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
 export async function runFindCommand(ctx) {
@@ -109,7 +112,7 @@ export async function runFindCommand(ctx) {
     repo: ctx.options.repo,
     runtime,
   });
-  const result = await gh.findByKey(ctx.args["run-id"], ctx.args.participant, {
+  const result = await gh.findByKey(ctx.args["run-id"], ctx.args.key, {
     dir: ctx.options.dir,
   });
   writeJSON(runtime, result, ctx.options);
@@ -117,7 +120,22 @@ export async function runFindCommand(ctx) {
 }
 
 /**
- * Download a trace artifact and auto-convert to structured JSON.
+ * The single `.ndjson` member to auto-convert to structured JSON, or null
+ * when the artifact carries zero or several. Multi-member bundles (kata
+ * dispatch, harness matrix, eval shards) get no `structured.json` — the
+ * prior first-member conversion picked an arbitrary lane, which was actively
+ * misleading; the analysis verbs read the `.ndjson` members directly.
+ * @param {string[]} files - Extracted member paths, relative to the artifact dir.
+ * @returns {string|null}
+ */
+export function structuredConvertTarget(files) {
+  const ndjson = files.filter((f) => f.endsWith(".ndjson"));
+  return ndjson.length === 1 ? ndjson[0] : null;
+}
+
+/**
+ * Download a trace artifact; auto-convert to structured JSON only when the
+ * artifact carries exactly one `.ndjson` member.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
 export async function runDownloadCommand(ctx) {
@@ -132,7 +150,7 @@ export async function runDownloadCommand(ctx) {
     name: ctx.options.artifact,
   });
 
-  const ndjsonFile = result.files.find((f) => f.endsWith(".ndjson"));
+  const ndjsonFile = structuredConvertTarget(result.files);
   if (ndjsonFile) {
     const ndjsonPath = join(result.dir, ndjsonFile);
     const collector = createTraceCollector({
@@ -492,21 +510,13 @@ export async function runCompareCommand(ctx) {
 
 // --- Split command ---
 
-/** Valid source name pattern: lowercase letter, then lowercase alphanumeric or hyphen. */
-const VALID_SOURCE_NAME = /^[a-z][a-z0-9-]*$/;
-
-/** Sources whose name is itself a structural role; classified into the role they represent. */
-const STRUCTURAL_ROLES = new Set(["agent", "supervisor", "facilitator"]);
-
 /**
  * Split a combined NDJSON trace into per-source files using the
  * `trace--<case>--<participant>.<role>.ndjson` convention.
  *
- * Each valid envelope source becomes one output file. Structural sources
- * (`agent`, `supervisor`, `facilitator`) classify into the matching role and
- * use their own name as participant; profile-named sources (e.g.
- * `staff-engineer`) classify as agents with the profile in the participant
- * slot. Orchestrator events and invalid source names are dropped.
+ * CLI concerns only — input and `--mode` validation, defaults, and output-dir
+ * creation; the split itself (including source-to-role classification) is the
+ * shared `splitTrace` implementation.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
@@ -518,6 +528,8 @@ export async function runSplitCommand(ctx) {
   // `discuss` has the same lead + N-participants shape as `facilitate`, and the
   // splitter buckets purely by envelope `source` (mode-independent), so it is
   // accepted alongside the structural modes — the CLI owns this, not callers.
+  // `--mode` stays required-but-inert: the harness action passes it and that
+  // surface is out of scope for the shared-split extraction.
   const mode = ctx.options.mode;
   if (!mode) return { ok: false, code: 1, error: "split: --mode is required" };
   if (!["run", "supervise", "facilitate", "discuss"].includes(mode)) {
@@ -528,50 +540,8 @@ export async function runSplitCommand(ctx) {
   const outputDir = ctx.options["output-dir"] || dirname(file);
   runtime.fsSync.mkdirSync(outputDir, { recursive: true });
 
-  const buckets = parseBuckets(runtime.fsSync.readFileSync(file, "utf8"));
-
-  for (const [source, lines] of buckets.entries()) {
-    if (!VALID_SOURCE_NAME.test(source)) continue;
-    const role = STRUCTURAL_ROLES.has(source) ? source : "agent";
-    const outPath = join(
-      outputDir,
-      `trace--${caseId}--${source}.${role}.ndjson`,
-    );
-    runtime.fsSync.writeFileSync(outPath, lines.join("\n") + "\n");
-  }
+  await splitTrace(runtime, file, { caseId, outputDir });
   return { ok: true };
-}
-
-/**
- * Parse NDJSON content into per-source buckets of unwrapped event lines.
- * Skips empty lines, malformed JSON, non-envelope lines, and orchestrator events.
- * @param {string} content - Raw NDJSON file content
- * @returns {Map<string, string[]>} source name -> array of unwrapped JSON lines
- */
-function parseBuckets(content) {
-  const buckets = new Map();
-
-  for (const raw of content.split("\n")) {
-    const trimmed = raw.trim();
-    if (!trimmed) continue;
-
-    let envelope;
-    try {
-      envelope = JSON.parse(trimmed);
-    } catch {
-      continue;
-    }
-
-    if (!envelope.event || typeof envelope.source !== "string") continue;
-    if (envelope.source === "orchestrator") continue;
-
-    if (!buckets.has(envelope.source)) {
-      buckets.set(envelope.source, []);
-    }
-    buckets.get(envelope.source).push(JSON.stringify(envelope.event));
-  }
-
-  return buckets;
 }
 
 // --- Shared helpers ---

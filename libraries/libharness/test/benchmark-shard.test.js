@@ -21,6 +21,7 @@ import {
 import { resolveZeroRecordOutcome } from "../src/commands/benchmark-run.js";
 import { validateResultRecord } from "../src/benchmark/result.js";
 import { realRuntimeWithSubprocess } from "./real-runtime.js";
+import { writeRawTrace } from "./benchmark-trace-helpers.js";
 
 const RT = createDefaultRuntime();
 const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
@@ -33,9 +34,8 @@ const mockInstallApm = (family, outputDir) =>
   );
 
 async function passingAgent(_task, workdir) {
-  await writeFile(workdir.agentTracePath, "");
-  await writeFile(workdir.supervisorTracePath, "");
-  return { costUsd: 0, turns: 1, submission: "done" };
+  await writeRawTrace(RT, workdir);
+  return {};
 }
 async function mockRunJudge(_task, workdir, grade) {
   await writeFile(workdir.judgeTracePath, "");

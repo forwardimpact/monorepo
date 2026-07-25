@@ -155,24 +155,40 @@ eval fails -- which is when you most need it.
 ## Read the results
 
 When an eval fails, download the artifact and start with `overview` and
-`timeline` to orient, then drill into the verdict.
+`timeline` to orient, then drill into the verdict. The download extracts the
+artifact's `.ndjson` members — here the raw trace plus the two split lanes —
+and every verb reads them directly.
 
 ```sh
 npx gemba-trace runs                              # find the failed run
-npx gemba-trace download <run-id>                 # downloads and auto-converts
-npx gemba-trace overview --file structured.json
-npx gemba-trace timeline --file structured.json
-npx gemba-trace tool structured.json Conclude
+npx gemba-trace download <run-id>                 # extracts the .ndjson members
+npx gemba-trace overview --file trace--default--agent.agent.ndjson
+npx gemba-trace timeline --file trace--default--agent.agent.ndjson
+npx gemba-trace tool trace--default--supervisor.supervisor.ndjson Conclude
 ```
 
 Cross-trace verbs (`overview`, `timeline`, …) take their file through `--file`
 and print text by default; `tool` pins a single trace, so it takes a
 positional. Add `--format json` to any verb for the machine-parseable shape.
+(A `structured.json` is produced only when the artifact carries a single
+`.ndjson` member; multi-member bundles like this one are read as-is.)
 
 The `Conclude` tool call carries the judge's verdict and summary. From there,
 follow the timeline backwards to find the turn where the agent went wrong.
 
 Run `npx gemba-trace --help` for the full command surface.
+
+## Benchmark-driven evals
+
+A workflow that calls the reusable benchmark workflow
+(`forwardimpact/benchmark/.github/workflows/benchmark.yml`) mints `trace--*`
+artifacts on every shard with no caller-side steps — no manual split or
+upload like the harness-driven example above. Each cell preserves, under
+`runs/<taskId>/<runIndex>/`, its raw combined trace
+(`trace--<case>.raw.ndjson`), agent and supervisor lanes, and a judge lane
+on judged cells, with `<case>` = `<taskId>-r<runIndex>`. Download and
+analyze them with the same `runs` / `find` / `download` flow — see the
+[trace analysis guide](../trace-analysis/index.md).
 
 ## Scale to a suite
 

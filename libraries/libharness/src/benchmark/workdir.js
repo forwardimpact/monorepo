@@ -16,6 +16,11 @@ import { createServer } from "node:net";
 import { connect } from "node:net";
 import { join } from "node:path";
 
+import {
+  buildCaseId,
+  laneFilename,
+  rawTraceFilename,
+} from "../trace-identity.js";
 import { loadEnv } from "./env-loader.js";
 import { buildHookEnv } from "./hook-env.js";
 
@@ -28,6 +33,8 @@ const DEFAULT_TERM_GRACE_MS = 5_000;
  * @property {number} port - Allocated TCP port for the agent.
  * @property {number} pgid - Process-group id captured from the preflight child.
  * @property {*} scaffold - Reserved per design § Components; v1 sets null.
+ * @property {string} caseId - Grid-unique case identity `<taskId>-r<runIndex>`.
+ * @property {string} rawTracePath - Combined raw envelope trace (kept).
  * @property {string} agentTracePath
  * @property {string} supervisorTracePath
  * @property {string} judgeTracePath
@@ -72,8 +79,7 @@ export class WorkdirManager {
    */
   async start(task, runIndex) {
     const fs = this.runtime.fs;
-    const slug = task.id.replace("/", "__");
-    const runDir = join(this.runOutputDir, "runs", slug, String(runIndex));
+    const runDir = join(this.runOutputDir, "runs", task.id, String(runIndex));
     const cwd = join(runDir, "cwd");
     await fs.mkdir(cwd, { recursive: true });
 
@@ -123,11 +129,25 @@ export class WorkdirManager {
     const envNames =
       envDirs.length > 0 ? await loadEnv(envDirs, cwd, this.runtime) : [];
 
-    const port = await this.ports.acquire();
-    const agentTracePath = join(runDir, "agent.ndjson");
-    const supervisorTracePath = join(runDir, "supervisor.ndjson");
-    const judgeTracePath = join(runDir, "judge.ndjson");
+    // Allocate identity and trace paths before acquiring the port so an
+    // invalid task id cannot leak a port reservation.
+    const caseId = buildCaseId(task.id, runIndex);
+    const rawTracePath = join(runDir, rawTraceFilename(caseId));
+    const agentTracePath = join(runDir, laneFilename(caseId, "agent", "agent"));
+    const supervisorTracePath = join(
+      runDir,
+      laneFilename(caseId, "supervisor", "supervisor"),
+    );
+    const judgeTracePath = join(runDir, laneFilename(caseId, "judge", "judge"));
+    // Materialize the raw and agent/supervisor lanes empty at allocation so
+    // every path that reaches the judge — including a pre-session agent
+    // failure — finds them on disk. The judge lane is written by the judge
+    // session itself and exists only on judged cells.
+    for (const p of [rawTracePath, agentTracePath, supervisorTracePath]) {
+      await fs.writeFile(p, "");
+    }
 
+    const port = await this.ports.acquire();
     const preflight = task.paths.preflight
       ? await runPreflight(this.runtime, task.paths.preflight, cwd, port, {
           taskId: task.id,
@@ -143,6 +163,8 @@ export class WorkdirManager {
       port,
       pgid: preflight.pgid,
       scaffold: null,
+      caseId,
+      rawTracePath,
       agentTracePath,
       supervisorTracePath,
       judgeTracePath,

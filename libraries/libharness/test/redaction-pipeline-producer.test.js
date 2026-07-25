@@ -2,6 +2,8 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { Writable } from "node:stream";
 
+import { createMockFs } from "@forwardimpact/libmock";
+
 import { AgentRunner } from "@forwardimpact/libharness";
 import { createRedactor } from "../src/redaction.js";
 import { TraceCollector } from "../src/trace-collector.js";
@@ -104,6 +106,49 @@ describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
     assert.ok(out.includes("[REDACTED:env:ANTHROPIC_API_KEY]"));
     assert.ok(out.includes("[REDACTED:env:GH_TOKEN]"));
     assert.ok(out.includes("[REDACTED:env:GITHUB_TOKEN]"));
+  });
+});
+
+describe("Producer pipeline — preserved raw trace stays redacted", () => {
+  test("the persisted trace--<case>.raw.ndjson carries the same redacted stream", async () => {
+    // The benchmark runner now preserves the raw combined trace at a
+    // convention-named path instead of unlinking it. The persisted file is
+    // the same redacted fileStream the criterion-1 test observes — assert
+    // that at the file-content level so preservation cannot introduce an
+    // unredacted sibling.
+    const rawPath = "/out/runs/task/0/trace--task-r0.raw.ndjson";
+    const fs = createMockFs({});
+    const redactor = createRedactor({
+      runtime: _rt,
+      env: { GH_TOKEN: GH_SENT },
+    });
+
+    const scripted = [
+      {
+        type: "assistant",
+        message: {
+          content: [{ type: "text", text: `leak ${GH_SENT}` }],
+        },
+      },
+      { type: "result", subtype: "success", result: "ok" },
+    ];
+
+    const fileStream = fs.createWriteStream(rawPath);
+    const runner = new AgentRunner({
+      cwd: "/tmp",
+      query: async function* () {
+        for (const m of scripted) yield m;
+      },
+      output: fileStream,
+      redactor,
+    });
+    await runner.run("task");
+    await new Promise((r) => fileStream.end(r));
+
+    const persisted = fs.readFileSync(rawPath, "utf8");
+    assert.ok(persisted.length > 0, "raw trace file must be written");
+    assert.ok(!persisted.includes(GH_SENT), "sentinel leaked to the raw file");
+    assert.ok(persisted.includes("[REDACTED:env:GH_TOKEN]"));
   });
 });
 
