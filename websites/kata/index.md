@@ -18,7 +18,7 @@ layout: home
   </svg>
   <h1 class="hero-title">Autonomous coding agents that continuously improve</h1>
   <!-- enum:published-skills:count -->
-  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Eighteen skills. A focused agent roster. Zero infrastructure.</p>
+  <p class="hero-subtitle">An autonomous agent team that keeps getting better — organized as a daily Plan-Do-Study-Act cycle. Nineteen skills. A focused agent roster. Zero infrastructure.</p>
   <!-- /enum -->
   <div class="scroll-hint">
     <span>Scroll</span>
@@ -36,7 +36,7 @@ layout: home
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
         <!-- enum:published-skills:count -->
-        <div class="stat-number">18</div>
+        <div class="stat-number">19</div>
         <!-- /enum -->
         <div class="stat-label">Skills</div>
         <div class="stat-detail">Each under 200 lines of text</div>
