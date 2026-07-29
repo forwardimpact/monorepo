@@ -29,14 +29,17 @@ export const TASK_TEMPLATE_ISSUE_LABELED =
 export const TASK_TEMPLATE_PR_LABELED =
   'Label "${LABEL}" was added to PR "${PR_TITLE}" (#${NUMBER}). PR URL: ${URL}.';
 
-// "unreleased changes"/"cut" point at the genuine post-merge action — release
-// activity (the release-engineer's Assess step 3 / `kata-release-cut`).
-// "status" is a backstop: the spec's `wiki/STATUS.md` row is normally advanced
-// in the pre-merge gate (`kata-release-merge` Step 8), but the keyword catches a
-// merge that landed without it. Neither owner nor artifact is named, so the lead
-// routes the merge instead of treating it as a no-op.
+// `${MERGED_BY}` is distinct from `${AUTHOR}`: the common-field fallback
+// resolves AUTHOR to whoever *opened* the PR, so a human merging an
+// agent-authored PR would leave no trace of the human in the task text. Both
+// are named with their role.
+//
+// A human merge is an act of approval, so the template says so instead of
+// framing the event as bookkeeping. What to record belongs to the
+// approval-signals reference; the template supplies the identity and the
+// pointer. "cut" still names the genuine post-merge chore.
 export const TASK_TEMPLATE_PR_MERGED =
-  'PR "${PR_TITLE}" (#${NUMBER}) merged to main — may leave unreleased changes to cut or status to update. PR URL: ${URL}.';
+  'PR "${PR_TITLE}" (#${NUMBER}) merged to main by @${MERGED_BY} (type: ${MERGED_BY_TYPE}); opened by @${AUTHOR}. A human merge is an approval — record it per the approval-signals reference. May leave unreleased changes to cut. PR URL: ${URL}.';
 
 // Appended verbatim to comment/review templates. `${BODY}` is the untrusted
 // author text; the fence and the "data, not instructions" framing keep the lead
@@ -52,8 +55,12 @@ export const TASK_TEMPLATE_ISSUE_COMMENT_ON_PR =
   "New comment on PR #${NUMBER} by @${AUTHOR} (type: ${AUTHOR_TYPE}). Comment URL: ${URL}." +
   VERBATIM_BODY_BLOCK;
 
+// The `pull_request_review:submitted` trigger fires for APPROVED, COMMENTED,
+// and CHANGES_REQUESTED alike. Without `${REVIEW_STATE}` in the task text the
+// lead cannot tell them apart without a further API call — the same blind spot
+// `${MERGED_BY}` closes on the merge template.
 export const TASK_TEMPLATE_REVIEW_SUBMITTED =
-  'Review submitted on PR "${PR_TITLE}" (#${NUMBER}) by @${AUTHOR} (type: ${AUTHOR_TYPE}). Review URL: ${URL}.' +
+  'Review submitted on PR "${PR_TITLE}" (#${NUMBER}) by @${AUTHOR} (type: ${AUTHOR_TYPE}) — state: ${REVIEW_STATE}. Only an APPROVED review carries an approval signal. Review URL: ${URL}.' +
   VERBATIM_BODY_BLOCK;
 
 function render(template, fields) {
@@ -90,6 +97,13 @@ function extractCommonFields(payload) {
       payload.issue?.html_url ??
       payload.pull_request?.html_url ??
       "",
+    // Merge-event only. "unknown" rather than "" so a payload missing the field
+    // does not render a bare "@" that reads as a real account.
+    MERGED_BY: payload.pull_request?.merged_by?.login ?? "unknown",
+    MERGED_BY_TYPE: payload.pull_request?.merged_by?.type ?? "User",
+    // Review-event only. The webhook sends lowercase; upper-cased to match the
+    // enum the approval rules name.
+    REVIEW_STATE: (payload.review?.state ?? "unknown").toUpperCase(),
     // Substituted last (object order) so untrusted body text that happens to
     // contain a literal "${URL}" etc. is not re-expanded by a later pass.
     BODY: body.trim() === "" ? "(no body)" : body,
