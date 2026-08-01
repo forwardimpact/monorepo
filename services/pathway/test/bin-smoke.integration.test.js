@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 
 // Smoke tests. Spawn the real server.js with each short-circuit token. Strip
 // every SERVICE_* variable from the env, which is the env a freshly-installed
-// cask user has. Each token must print output and exit 0. No token binds a
-// port. The telemetry logger writes the "listening" log line to stderr, so
-// the capture merges stdout and stderr to make the no-port-bind guard real.
+// cask user has. Each token must print output, exit 0, and bind no port. The
+// telemetry logger writes the "listening" log line to stderr, so the capture
+// merges stdout and stderr to make the no-port-bind guard real.
 const serverJs = join(
   dirname(fileURLToPath(import.meta.url)),
   "..",

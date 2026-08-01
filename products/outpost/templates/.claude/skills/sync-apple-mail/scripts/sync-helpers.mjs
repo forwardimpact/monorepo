@@ -12,8 +12,9 @@ import { homedir } from "node:os";
 import { globSync } from "node:fs";
 
 // This module loads node:sqlite lazily through createRequire. Test environments
-// (bun, older node) that lack the built-in can then import it. The only call
-// site is openDb below. Production runs on Node 22+, where node:sqlite resolves.
+// (bun, older node) that lack the built-in can then import this module. The
+// only call site is openDb below. Production runs on Node 22+, where
+// node:sqlite resolves.
 const requireModule = createRequire(import.meta.url);
 
 const HOME = homedir();

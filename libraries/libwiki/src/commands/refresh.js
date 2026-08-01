@@ -33,8 +33,8 @@ async function deriveParentRepo(gitClient, parentDir, env) {
 // body is a fresh last-successful-sync stamp, then freshly rendered,
 // label-re-checked, sanitized item lines. On a tracker failure the function
 // keeps the body it materialized before (stamp + items) verbatim. Boot then
-// still serves the last good routing surface. It never falls back to an empty
-// one. The function does not advance the timestamp, so the stamp keeps
+// still serves the last good routing surface. It does not serve an empty one.
+// The function does not advance the timestamp, so the stamp keeps
 // staleness auditable.
 async function renderAgentExperimentsBlock(block, lines, ghContext, runtime) {
   const priorBody = lines.slice(block.openLine + 1, block.closeLine);

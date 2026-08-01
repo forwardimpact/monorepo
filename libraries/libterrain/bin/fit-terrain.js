@@ -306,8 +306,8 @@ async function resolveLlmApi(config, modelOverride) {
  * `<name>.schema.json` files from here. `libskill` is a required dependency.
  * A resolution miss can only mean a broken install, so fail loudly.
  *
- * This function lives here so `this === import.meta`, which Bun requires
- * for `import.meta.resolve`.
+ * This module calls it directly so `this === import.meta`, which Bun
+ * requires for `import.meta.resolve`.
  */
 function defaultSchemaDir() {
   let url;

@@ -171,7 +171,7 @@ describe("WikiSync (real git)", () => {
     assert.equal(
       git(wikiDir, "rev-parse", "HEAD"),
       headBefore,
-      "commitAndPush must not create a commit when the tree is clean",
+      "commitAndPush creates no new commit object when the tree is clean",
     );
     assert.equal(git(wikiDir, "diff", "origin/master"), "");
     assert.equal(
@@ -523,7 +523,7 @@ describe("WikiSync resolveToken (real git)", () => {
       "resetSoft + path-scoped checkout preserved foreign residue",
     );
 
-    // The bare origin tip now holds BOTH rows. The re-apply loop conserved the
+    // The bare origin tip now holds BOTH rows. The publish conserved the
     // sibling's row and did not erase it. The resolution is the re-applied row
     // set. It is never textual.
     const { wikiDir: verify } = cloneRepo(bare, "claimverify");

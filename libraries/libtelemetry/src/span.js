@@ -3,7 +3,7 @@ import { span as spanType } from "@forwardimpact/libtype";
 /**
  * Compute the wall-clock offset (ns) relative to hrtime.bigint() with the
  * given clock. The offset anchors nanosecond-precision timestamps to wall
- * time. It does not call `Date.now()` directly.
+ * time. This function does not call `Date.now()` directly.
  *
  * This function runs once per Span. The pre-1370 code ran it once at module
  * load. The per-Span call lets tests honour an injected clock

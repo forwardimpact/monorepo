@@ -19,7 +19,7 @@ import { createSubstrateClient } from "../src/substrate/client.js";
 /**
  * Build the service-role substrate client from script config. Every
  * stack-facing substrate verb funnels through here. `substrate init` and
- * `substrate up` are offline bring-up verbs and never touch it.
+ * `substrate up` are offline or bring-up verbs and never touch it.
  */
 async function substrateClient() {
   const config = await createScriptConfig("terrain");

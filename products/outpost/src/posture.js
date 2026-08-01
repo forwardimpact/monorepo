@@ -46,8 +46,8 @@ export async function writePosture(fs, posturePath, value) {
 }
 
 /**
- * Resolve the effective posture. Apply the default when the record holds no
- * posture. A posture-less install then behaves as `brief`.
+ * Resolve the effective posture. Apply the default when no posture is
+ * recorded. A posture-less install then behaves as `brief`.
  * @param {"brief"|"brief+draft"|null} stored
  * @returns {"brief"|"brief+draft"}
  */

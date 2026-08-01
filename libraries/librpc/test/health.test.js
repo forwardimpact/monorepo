@@ -82,7 +82,7 @@ describe("createHealthHandlers", () => {
     assert.strictEqual(response.status, ServingStatus.SERVING);
   });
 
-  test("same service name returns SERVING", async () => {
+  test("registered service name returns SERVING", async () => {
     const handlers = createHealthHandlers("Graph");
     const response = await checkAsync(handlers, "Graph");
     assert.strictEqual(response.status, ServingStatus.SERVING);

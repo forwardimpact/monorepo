@@ -1,7 +1,7 @@
 /**
  * HTML renderer helpers — enrichment functions and FAQ data.
  *
- * These helpers come from html.js. The move reduces its file length.
+ * These helpers moved out of html.js to reduce file length.
  *
  * @module libterrain/render/html-helpers
  */

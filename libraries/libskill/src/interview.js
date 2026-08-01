@@ -106,7 +106,7 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
 }
 
 /**
- * Derive a short screening interview within a time budget
+ * Derive a short or screening interview within a time budget
  * @param {Object} params
  * @param {import('./levels.js').JobDefinition} params.job - The job definition
  * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank

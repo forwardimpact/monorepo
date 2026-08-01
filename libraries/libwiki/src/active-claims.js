@@ -6,8 +6,8 @@ import {
 } from "./constants.js";
 
 // This module and the audit share the header matcher through constants.js.
-// The loose separator and the 6-cell row parser stay local. They serve the
-// parser. They do not serve the audit's column-count check.
+// The loose separator and the 6-cell row parser stay local. This module uses
+// them to parse the table. The audit's column-count check does not use them.
 const SEPARATOR_RE = /^\|\s*---\s*\|/;
 const ROW_RE =
   /^\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*$/;

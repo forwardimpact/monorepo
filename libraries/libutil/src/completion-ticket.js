@@ -8,8 +8,8 @@ import { isTrusted } from "./trusted-origins.js";
 export const TICKET_TTL_MS = 5 * 60 * 1000;
 
 /**
- * Encode the ticket payload as canonical JSON. This function sorts the keys
- * alphabetically (`exp, idp_origin, link_token, surface_user_id`). So the wire
+ * Encode the ticket payload as canonical JSON. The keys stay in alphabetical
+ * order (`exp, idp_origin, link_token, surface_user_id`). So the wire
  * bytes do not depend on the property iteration order of the input object. If
  * you mint the same claims twice, you get byte-identical payloads.
  *

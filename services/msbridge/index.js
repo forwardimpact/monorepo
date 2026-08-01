@@ -402,7 +402,7 @@ export class MsBridgeService {
       const limit = this.#rateLimiter.check(threadId, ctx.dispatches);
       if (!limit.allowed) {
         await context.sendActivity(
-          "You send messages too quickly. Please wait a moment before you try again.",
+          "Your messages arrive too quickly. Please wait a moment before you try again.",
         );
         span.addEvent("rate_limited");
         span.setOk();

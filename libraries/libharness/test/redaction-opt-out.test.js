@@ -33,7 +33,7 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     assert.strictEqual(matches.length, 1);
   });
 
-  test("the redactor ignores the retired redaction-disable name from the eval era (clean break)", () => {
+  test("the redactor ignores the retired redaction-disable env name from the eval era (clean break)", () => {
     // This test builds the name from parts so the criterion-1 completeness
     // oracle stays clean. The test still guards the clean break.
     const retired = `${"LIBEVAL"}_REDACTION_DISABLED`;

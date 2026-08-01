@@ -212,7 +212,7 @@ describe("GitEmitter", () => {
         return;
       }
 
-      // Smart HTTP upload-pack. Route on the POST body content
+      // Smart HTTP upload-pack. Route by the POST body content
       if (url.pathname === "/git-upload-pack" && req.method === "POST") {
         const bodyChunks = [];
         req.on("data", (c) => bodyChunks.push(c));

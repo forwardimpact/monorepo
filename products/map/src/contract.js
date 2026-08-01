@@ -9,7 +9,7 @@
 import { CONTRACT_URL } from "./validation/level.js";
 
 /**
- * Throw this error when loaded data violates a level field contract.
+ * Error thrown when loaded data violates a level field contract.
  */
 export class ContractViolationError extends Error {
   /**
@@ -26,8 +26,7 @@ export class ContractViolationError extends Error {
 }
 
 /**
- * Throw a ContractViolationError for the first validation error that
- * matches.
+ * Throw a ContractViolationError for the first matching validation error.
  * @param {{errors: Array}} result
  * @param {{ruleCodes: string[], paths: RegExp[]}} filter
  */

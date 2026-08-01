@@ -5,7 +5,7 @@
 // issue cross-reference live in wiki/metrics/exp-1738-publish-gate/README.md.
 //
 // Method A (staff-engineer ruling, facilitator [ask#4]) is read-only against
-// the GitHub Actions API at cut time. Nobody modifies the gate workflow
+// the GitHub Actions API at cut time. It never modifies the gate workflow
 // (publish-npm.yml). There is no SECONDS wrapper on the hot path.
 //
 // BOUNDARY: both conditions key on the "Run tests" STEP duration. They do not

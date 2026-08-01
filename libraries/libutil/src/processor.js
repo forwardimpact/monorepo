@@ -83,7 +83,7 @@ export class ProcessorBase {
    * @param {any[]} batch - Batch to process
    * @param {number} processed - Number already processed
    * @param {number} total - Total number of items
-   * @param {object} context - Context label
+   * @param {object} context - Processing context
    * @returns {Promise<any[]>} Batch results
    */
   async processBatch(batch, processed, total, context) {

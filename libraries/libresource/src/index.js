@@ -195,7 +195,7 @@ export function toIdentifier(uri) {
 
 /**
  * Creates a ResourceIndex instance with a configurable storage prefix.
- * @param {string} prefix - Storage prefix (bucket name) this function uses to create the underlying storage
+ * @param {string} prefix - Storage prefix (bucket name) for the underlying storage
  * @param {import("@forwardimpact/libpolicy").Policy} [policy] - Optional policy instance (defaults to createPolicy())
  * @returns {ResourceIndex} Configured ResourceIndex instance
  */

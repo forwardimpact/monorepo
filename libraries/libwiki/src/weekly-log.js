@@ -80,7 +80,8 @@ function prologueResidue(prologue, { overBudget, measure }) {
  * under both budgets, so the only over-cap part bodies are the ones `residue`
  * accounts for.
  * @param {Array<{date: string, text: string}>} sections
- * @param {string} prologue - Content above the first seam. It rides with part 1.
+ * @param {string} prologue - Content above the first seam. It rides with
+ *   part 1.
  * @param {{overBudget: (s: string) => boolean, measure: (s: string) => {lines: number, words: number}}} budget
  * @returns {{partBodies: string[], residue: null | {section: string, lines: number, words: number, partIndex: number}}}
  */
@@ -123,8 +124,8 @@ function packSections(sections, prologue, budget) {
  * Slice `body` at `seamRe` seam offsets into `{label, text}` sections. Each
  * label is the seam's full matched heading line (date or `### ` heading).
  * Returns `{prologue, sections}` where the prologue is everything above the
- * first seam (the whole body when there are no seams). Concatenate the prologue
- * and every section's text to reproduce `body` byte-for-byte.
+ * first seam (the whole body when there are no seams). A concatenation of the
+ * prologue and every section's text reproduces `body` byte-for-byte.
  */
 function findSections(body, seamRe) {
   const re = new RegExp(seamRe.source, "gm");

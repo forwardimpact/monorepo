@@ -41,7 +41,7 @@ function wrapSection(tag, content) {
  * @param {object} deps
  * @param {string|object} [deps.systemPrompt] - The system prompt the harness
  *   composed for the participant, exactly as it goes to the runner. The
- *   value arrives raw. The constructor redacts it.
+ *   value arrives raw. The recorder redacts it at construction.
  * @param {import("./redaction.js").Redactor} deps.redactor
  * @returns {{recordPrompt: (text: string) => void, recordMessage: (line: string) => void, render: () => string}}
  */

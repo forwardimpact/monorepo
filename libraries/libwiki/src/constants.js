@@ -53,7 +53,7 @@ export const DECISION_HEADING = "### Decision";
 // memory). They keep per-surface rule pairs so the limits can diverge as the
 // context-tax model says one surface should be looser or tighter. MEMORY.md is
 // the tightest. Every boot reads it, and it holds settled cross-cutting state
-// and no history. Its budget keeps the on-boot read cheap.
+// and no history. So its budget keeps the on-boot read cheap.
 export const SUMMARY_LINE_BUDGET = 496;
 export const SUMMARY_WORD_BUDGET = 2048;
 export const WEEKLY_LOG_LINE_BUDGET = 496;
@@ -80,8 +80,8 @@ export const WEEKLY_LOG_PART_NAME_RE =
 // `new RegExp(WEEKLY_LOG_SEAM_RE.source, …)`.
 export const WEEKLY_LOG_SEAM_RE = /^## (\d{4}-\d{2}-\d{2})/;
 
-// Idle-gap for the tier-2 integrity sweep. Lane-authored commits with a larger
-// gap between them delimit sessions in the wiki history. 30 minutes.
+// Idle-gap for the tier-2 integrity sweep. Lane-authored commits with a gap
+// larger than this value delimit sessions in the wiki history. 30 minutes.
 export const SESSION_GAP_MS = 30 * 60 * 1000;
 
 // Carry-surface filename and H1 convention: `<agent>-carries.md` with an H1

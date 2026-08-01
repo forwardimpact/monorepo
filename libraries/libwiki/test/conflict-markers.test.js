@@ -46,8 +46,8 @@ describe("scanConflictMarkers", () => {
 
   test("close marker fires alone but a lone separator above it does NOT", () => {
     // The seal-severed second half has a separator and a close with no open
-    // above. The separator is block-conditioned (openDepth 0). Only the close
-    // fires.
+    // above. The separator is block-conditioned (openDepth 0). So only the
+    // close fires.
     const text = ["theirs-content", "=======", ">>>>>>> origin/master"].join(
       "\n",
     );

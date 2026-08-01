@@ -314,7 +314,8 @@ export class TraceVisualizer {
 
   /**
    * Visualizes multiple traces as a single combined Mermaid sequence diagram
-   * Use this when you filter by resource_id to show conversation flow across requests
+   * `visualize` calls this when the filter has resource_id, to show
+   * conversation flow across requests
    * @param {Map<string, import("@forwardimpact/libtype").span.SpanItem[]>} traceGroups - Map of trace_id to spans
    * @param {string} resourceId - Resource ID that the diagram shows
    * @returns {string} Raw Mermaid sequence diagram syntax

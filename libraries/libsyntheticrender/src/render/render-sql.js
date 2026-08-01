@@ -4,7 +4,7 @@
  * It emits a numbered set of SQL files. The files hold dependency-ordered
  * `CREATE TABLE` and `INSERT` statements, junction tables for array
  * cross-references, RLS policies, and an optional pgvector embeddings
- * table. `supabase db push` loads them.
+ * table. `supabase db push` can load them.
  *
  * @module libsyntheticrender/render/render-sql
  */

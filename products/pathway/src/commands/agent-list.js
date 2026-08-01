@@ -1,7 +1,7 @@
 /**
  * Helpers for the agent list and the agent summary
  *
- * This module holds the list and summary output from agent.js. The command
+ * This module splits the list and summary output out of agent.js. The command
  * file then stays focused on orchestration.
  */
 

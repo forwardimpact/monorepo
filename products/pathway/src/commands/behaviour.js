@@ -1,7 +1,8 @@
 /**
  * Behaviour CLI Command
  *
- * This command shows the behaviour summary, list, and detail in the terminal.
+ * Shows the behaviour summary, the behaviour list, and the behaviour detail
+ * in the terminal.
  *
  * Usage:
  *   npx fit-pathway behaviour              # Summary with stats

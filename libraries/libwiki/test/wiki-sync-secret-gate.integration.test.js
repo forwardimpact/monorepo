@@ -45,7 +45,7 @@ describe("WikiSync secret gate (real git + gitleaks)", () => {
     : {};
 
   test(
-    "the gate refuses a write that carries a secret, and it never reaches the remote",
+    "the gate refuses a write that carries a secret, and the write never reaches the remote",
     opts,
     async () => {
       const { parent, wikiDir } = cloneRepo(bare, "gate-block");

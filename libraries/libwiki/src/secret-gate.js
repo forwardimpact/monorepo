@@ -94,8 +94,8 @@ function parseFindings(stdout) {
  * Append one secret-free line to the wiki tree's `secret-overrides.log` and
  * stage it (path-scoped) so it lands in the same push as the overridden
  * content. The line records the override as a durable, inspectable audit
- * trail: an ISO timestamp, the asserted operator identity (`git config
- * user.email`), the override class, the reason, and for a finding its
+ * trail. It holds an ISO timestamp, the asserted operator identity (`git
+ * config user.email`), the override class, the reason, and for a finding its
  * location. That identity asserts intent. It is NOT an authenticated identity.
  * The line never carries a matched secret value.
  *
@@ -143,7 +143,7 @@ export const OVERRIDE_LOG = "secret-overrides.log";
 /**
  * Translate a `commitAndPush` security refusal into a command envelope. Log the
  * cause and its break-glass procedure at error level. The logger always
- * surfaces them, whatever LOG_LEVEL is set to. Returns `null` for any
+ * surfaces them, regardless of LOG_LEVEL. Returns `null` for any
  * non-refusal result (clean, pushed, or network "saved locally"), so a caller
  * can fall through to its normal success path. Every command surface shares
  * this function, so the refusal message and exit code live in one place.

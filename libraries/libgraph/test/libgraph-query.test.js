@@ -58,7 +58,7 @@ describe("GraphIndex - Essential Functionality", () => {
     }));
   });
 
-  test("GraphIndex adds resources and queries them selectively", async () => {
+  test("GraphIndex adds multiple resources and queries them selectively", async () => {
     const resources = [
       {
         identifier: resource.Identifier.fromObject({

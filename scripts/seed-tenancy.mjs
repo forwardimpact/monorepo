@@ -134,7 +134,7 @@ if (!args.verifyOnly) {
   summarize("msteams", ms);
 }
 
-// Read back the exact resolutions the bridges and ghserver perform.
+// Read back the exact resolutions the bridges and ghserver will perform.
 const byChannel = await client.ResolveByChannelKey(
   new tenancy.ChannelTenantKey({ channel: "msteams", key: tid }),
 );

@@ -61,7 +61,7 @@ export function agentDeploymentToDOM({
           h2({}, `Role Variants (${roleAgents.length})`),
           p(
             { className: "text-muted" },
-            "Specialized agents for specific workflow phases. Use them as subagents or standalone.",
+            "Specialized agents for specific workflow phases. You can use them as subagents or standalone.",
           ),
           div(
             { className: "role-agents-list" },

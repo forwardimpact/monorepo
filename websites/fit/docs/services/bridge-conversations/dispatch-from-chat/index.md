@@ -64,12 +64,12 @@ sequence:
      session's inbox with `EnqueueInbox` on the shared `bridge` service, so
      the active run can pick it up mid-flight;
    - a message from a *different* requester gets `"A session is in
-     progress on this thread. Your message was not forwarded to the
-     active run."` and the bridge does not queue it.
+     progress on this thread. The bridge did not forward your message to
+     the active run."` and the bridge does not queue it.
 7. **Rate-limit check** — `RateLimiter.check(threadId, ctx.dispatches)`
    enforces a sliding-window cap of 5 dispatches per 60 seconds. Above
-   the cap, the bridge replies `"You're sending messages too quickly.
-   Please wait a moment before trying again."`. It then persists the
+   the cap, the bridge replies `"Your messages arrive too quickly.
+   Please wait a moment before you try again."`. It then persists the
    context and returns. It dispatches nothing.
 8. **Dispatch dance** — `Dispatcher.dispatch({ ctx, prompt, requester,
    ackTarget, callbackMeta, workflowInputs })` from libbridge performs,

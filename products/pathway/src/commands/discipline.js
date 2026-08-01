@@ -1,8 +1,8 @@
 /**
  * Discipline CLI Command
  *
- * Handles the discipline summary, the ID list, and the detail view in the
- * terminal.
+ * Shows the discipline summary, the discipline list, and the discipline
+ * detail in the terminal.
  *
  * Usage:
  *   npx fit-pathway discipline              # Summary with stats

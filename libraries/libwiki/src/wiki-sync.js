@@ -121,7 +121,7 @@ export class WikiSyncConflict extends Error {
  * `workAt` (only for `stranded-merge`) names where retained work lives. The
  * reason set is additive to the `clean` and `pushed` outcomes already
  * defined. So a future refusal taxonomy on this flow can union new reasons in
- * and leave those two unchanged.
+ * and rewrite none of the reasons that exist.
  */
 export class WikiSyncRefusal {
   /** @type {readonly string[]} The recognized refusal reasons. */
@@ -395,12 +395,13 @@ export class WikiSync {
    * gate secret-scans the content the push introduces (the commit range
    * `origin/master..HEAD`). The scan is fail-closed. A detected secret or an
    * unavailable scanner refuses the push with a distinct reason and no remote
-   * contact. The off-by-default environment override for that case lifts the
-   * refusal. `FIT_WIKI_SECRET_OVERRIDE` permits a finding, and
-   * `FIT_WIKI_SCANNER_ABSENT_OK` permits a scanner absence. Each override
-   * appends an audited line to the wiki tree's `secret-overrides.log` before
-   * the push. A *network/credential* push failure is distinct. It still
-   * degrades to "saved locally" (the preserved fire-and-forget behaviour).
+   * contact. The matching off-by-default override lifts the refusal only when
+   * it is set in the environment. `FIT_WIKI_SECRET_OVERRIDE` permits a
+   * finding, and `FIT_WIKI_SCANNER_ABSENT_OK` permits a scanner absence. Each
+   * override appends an audited line to the wiki tree's
+   * `secret-overrides.log` before the push. A *network/credential* push
+   * failure is distinct. It still degrades to "saved locally" (the preserved
+   * fire-and-forget behaviour).
    *
    * **Budget re-validation gate (size axis).** The reconcile (rebase or
    * singleton re-apply) re-derives content against the fresh tip. After that
@@ -1046,10 +1047,9 @@ export class WikiSync {
     // built the pushed history from a stale base. That history never saw the
     // remote's advance. So a row that keeps its key but carries a value
     // different from the remote is a stale revert. The pushed history holds
-    // no authored
-    // transition to the restored state. It is not a transition that propagates
-    // an approval. Only a HEAD that descends from the remote tip can author a
-    // transition over it.
+    // no authored transition to the restored state. It is not a transition
+    // that propagates an approval. Only a HEAD that descends from the remote
+    // tip can author a transition over it.
     const headAuthoredOverRemote = await this.#git.isAncestor(
       remoteTip,
       "HEAD",
@@ -1189,8 +1189,8 @@ export class WikiSync {
    * Declare that the next push deliberately removes foreign content in `paths`
    * (the cross-lane budget-trim shape, D5). This method records the
    * declaration clone-locally, so it survives a stranded-push retry from the
-   * same clone. A landed push clears it, so the declaration never leaks into
-   * an unrelated later push.
+   * same clone. Only a landed push clears it, so the declaration never leaks
+   * into an unrelated later push.
    * @param {string[]} paths - Files whose foreign-content removal is deliberate.
    */
   declareRemoval(paths) {

@@ -3,8 +3,8 @@
  * starter `references` entry (criterion 5 + criterion 6 on the build-packs
  * path).
  *
- * This suite lives in its own file and not in build-packs.test.js. That
- * file is at the 400-line ESLint cap.
+ * build-packs.test.js is at the 400-line ESLint cap. So this suite lives in
+ * its own file.
  */
 
 import { test, describe, before, after } from "node:test";

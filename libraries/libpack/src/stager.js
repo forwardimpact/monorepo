@@ -132,8 +132,8 @@ export class PackStager {
     }
     deployedFiles.sort();
 
-    // Epoch 0 as an ISO string. This constant is deterministic and never
-    // reads the ambient clock. So every run writes the same lockfile.
+    // Epoch 0 as an ISO string. This constant is deterministic. It does not
+    // come from the ambient clock. So every run writes the same lockfile.
     const epoch = "1970-01-01T00:00:00.000Z";
     const lockLines = [
       `lockfile_version: '1'`,

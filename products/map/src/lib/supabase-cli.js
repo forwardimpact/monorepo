@@ -15,8 +15,8 @@
  * All process invocation goes through the injected `runtime.subprocess`
  * surface. `run` is buffered and resolves with `exitCode`. It drives the
  * probe and the captured-output path. `spawn` with inherited stdio drives
- * the interactive path. So the `supabase start` and `db reset` progress
- * streams to the operator's terminal unchanged.
+ * the interactive path. So the progress from `supabase start` and
+ * `db reset` streams to the operator's terminal unchanged.
  */
 
 import { getPackageRoot } from "./package-root.js";

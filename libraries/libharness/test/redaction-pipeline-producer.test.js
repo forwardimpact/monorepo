@@ -28,8 +28,9 @@ describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
       },
     });
 
-    // A scripted async-generator query drives the real AgentRunner. It
-    // yields messages with the sentinels embedded in each carrier shape.
+    // A scripted async-generator query drives the real AgentRunner. The
+    // query yields messages with the sentinels embedded in each carrier
+    // shape.
     const scripted = [
       {
         type: "system",

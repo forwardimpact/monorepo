@@ -86,7 +86,7 @@ teams:
   assert.equal(planning.evidencedDepth, 0);
 });
 
-test("decorateRisksWithEvidence flips a skill into SPOF when evidence shows one practitioner", () => {
+test("decorateRisksWithEvidence flips a skill into SPOF when evidence shows only one practitioner", () => {
   const roster = parseRosterYaml(`
 teams:
   a:

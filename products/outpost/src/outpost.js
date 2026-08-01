@@ -12,7 +12,7 @@
 //   fit-outpost --help              Show this help
 //
 // This module owns the CLI definition and dispatch table. bin/fit-outpost.js
-// constructs the runtime collaborator bag once, and it is the sole
+// constructs the runtime collaborator bag once. That file is the sole
 // construction site. It threads the bag into `run(runtime, version)`. `run`
 // returns the process exit code. The bin translates that code to
 // `runtime.proc.exit`.
@@ -146,7 +146,8 @@ export async function run(runtime, version) {
   const logger = createLogger("outpost", runtime);
 
   /**
-   * Test whether a path exists, through the async fs surface of this module.
+   * Test whether a path exists, through the one async fs surface this module
+   * uses.
    * @param {string} p
    * @returns {Promise<boolean>}
    */
@@ -455,8 +456,8 @@ export async function run(runtime, version) {
         return result.code;
       }
       // A fresh init defaults the posture to `brief`, the opted-into trust
-      // contract. Only write when the record holds no posture. A second run
-      // then never flips an existing posture.
+      // contract. Only write when no posture is recorded. A later run then
+      // never flips an existing posture.
       if ((await readPosture(fs, POSTURE_PATH)) === null) {
         await writePosture(fs, POSTURE_PATH, "brief");
       }

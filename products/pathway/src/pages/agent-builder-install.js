@@ -5,9 +5,9 @@
  * Microsoft APM, and `npx skills`) for the currently selected
  * discipline/track pack. `fit-pathway build` emits the packs when you
  * configure `standard.distribution.siteUrl`. See specs 0520 and 0700, and
- * `products/pathway/src/commands/build-packs.js`. The pack name here must
- * stay in sync with that generator. The command then points at an artifact
- * that exists on the deployed site.
+ * `products/pathway/src/commands/build-packs.js`. This module derives the
+ * pack name. It must derive the name the same way as that generator, so the
+ * command points at an artifact that exists on the deployed site.
  */
 
 import { code, div, h2, p, section } from "../lib/render.js";

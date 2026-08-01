@@ -93,7 +93,7 @@ export function generateActivity(ast, rng, people, teams, runtime) {
   // source of truth for which prose-bearing outputs exist. Each
   // implementation owns its `generate` stage. Each entry attaches under
   // entities.activity[<id>], so the prose-context collector and the raw
-  // document renderer dispatch through the same registration.
+  // renderer can dispatch through the same registration.
   const proseOutputs = {};
   const genCtx = { ast, rng, entities: { people, teams, snapshots } };
   for (const pa of PROSE_ACTIVITIES) {

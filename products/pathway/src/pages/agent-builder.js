@@ -289,9 +289,9 @@ export async function renderAgentBuilder() {
   }
 
   /**
-   * Merge one derive result into the aggregation. Remove duplicate skills
-   * and tools.
-   * @param {Object} agg - Aggregation state
+   * Merge one derive result into the aggregation so far. Remove duplicate
+   * skills and tools.
+   * @param {Object} agg - Aggregation state so far
    * @param {Object} result - Output from deriveAgentData
    */
   function mergeResult(agg, result) {

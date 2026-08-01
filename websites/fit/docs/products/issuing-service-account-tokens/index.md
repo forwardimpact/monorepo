@@ -41,7 +41,7 @@ Issued JWT for kata-agent-team@example.com (service_account, ttl=8760h)
 
 eyJhbGciOi...
 
-  Export: PRODUCT_LANDMARK_TOKEN=<jwt above>; never commit or echo it.
+  Export: PRODUCT_LANDMARK_TOKEN=<jwt above>. Never commit or echo it.
 
   Done.
 ```

@@ -8,10 +8,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-/**
- * `createLandmarkClient` throws this when the configuration is absent and
- * the client cannot connect to Supabase.
- */
+/** `createLandmarkClient` throws this when missing configuration blocks the Supabase connection. */
 export class SupabaseUnavailableError extends Error {
   /** Wrap the reason in a prefixed message ("Supabase connection unavailable: <reason>") and attach code "LANDMARK_SUPABASE_UNAVAILABLE". */
   constructor(reason) {
@@ -64,7 +61,7 @@ export function createLandmarkClient({
 
 /**
  * Check if an error is a Postgres "relation not found" error (42P01).
- * Callers use it to detect absent tables gracefully.
+ * Callers use it to detect missing tables gracefully.
  *
  * @param {Error} err
  * @returns {boolean}

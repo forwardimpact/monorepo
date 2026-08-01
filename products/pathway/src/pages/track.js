@@ -62,7 +62,7 @@ export function renderTrackDetail(params) {
     return;
   }
 
-  // Use the DOM formatter. It transforms the data internally
+  // Use the DOM formatter. It transforms the data internally.
   render(
     trackToDOM(track, {
       skills: data.skills,

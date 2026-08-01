@@ -38,7 +38,7 @@ describe("VectorIndex - Core Functionality", () => {
       );
     });
 
-    test("constructor uses default indexKey when caller omits it", () => {
+    test("constructor uses the default indexKey when the caller omits it", () => {
       const index = new VectorIndex(mockStorage);
       assert.strictEqual(
         index.indexKey,

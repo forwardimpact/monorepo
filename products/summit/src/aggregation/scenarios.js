@@ -93,8 +93,8 @@ export function parseScenario(options, context = {}) {
 }
 
 /**
- * Parse a flow-style YAML job expression. Both what-if and other
- * callers that parse CLI job arguments can use it.
+ * Parse a flow-style YAML job expression. What-if uses it. Other
+ * callers that need to parse CLI job arguments can also use it.
  *
  * @param {string} input
  * @returns {{ discipline: string, level: string, track?: string }}

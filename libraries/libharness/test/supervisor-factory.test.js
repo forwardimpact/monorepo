@@ -161,7 +161,7 @@ describe("Supervisor - createSupervisor factory", () => {
   });
 });
 
-describe("Supervisor - advisor setup", () => {
+describe("Supervisor - advisor wiring", () => {
   const registeredTools = (runner) =>
     Object.keys(runner.mcpServers.orchestration.instance._registeredTools);
 

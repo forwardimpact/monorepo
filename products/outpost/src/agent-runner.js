@@ -150,7 +150,7 @@ export class AgentRunner {
   /**
    * Resolve the spawn flags the recorded posture adds. Under `brief`, deny
    * every draft-side skill by name and inject the brief directive. `brief` is
-   * also the default when the record holds no posture. The directive is a
+   * also the default when no posture is recorded. The directive is a
    * deterministic gate. The woken agent cannot override it under
    * `bypassPermissions`. Under `brief+draft`, add nothing. This method reads
    * the posture record. It never writes the record.

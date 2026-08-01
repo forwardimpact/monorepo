@@ -47,7 +47,8 @@ describe("admission scope (real git)", () => {
   });
 
   test("an untracked rogue is invisible (universe is the git index)", () => {
-    // Nothing runs `git add` on this file. It stays outside the universe.
+    // Nothing runs `git add` on this file. It stays outside the tracked
+    // universe.
     writeFileSync(
       join(wikiDir, "product-manager-2026-W24-history.md"),
       "# rogue\n",
@@ -70,7 +71,8 @@ describe("admission scope (real git)", () => {
   });
 
   test("the .git directory itself is never part of the universe", () => {
-    // No admission finding fires for a .git/* path, even though it is on disk.
+    // No admission finding fires for any .git/* path, even though it is on
+    // disk.
     const flagged = admissionFindings(audit().parsed).map(
       (f) => f.path ?? f.message,
     );

@@ -1,5 +1,5 @@
 /**
- * Real-grpc deadline behavior. A unary call can reach a connection that
+ * Real-grpc deadline behavior. A unary call goes against a connection that
  * accepts TCP but never speaks HTTP/2. This is the hung-service case. The
  * call must reject with DEADLINE_EXCEEDED in bounded time. It must not
  * wait forever. The test uses a raw net server, so the channel stays

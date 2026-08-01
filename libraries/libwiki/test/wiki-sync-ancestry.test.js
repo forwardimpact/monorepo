@@ -248,9 +248,9 @@ describe("WikiSync ancestry guard", () => {
   test("absent tracking ref, observable, shared ancestry ⇒ allowed", async () => {
     // origin/master does not resolve locally. The probe finds the branch
     // present. HEAD resolves and shares a merge-base ⇒ allow. The guard must
-    // first fetch the branch into the tracking ref. Git judges merge-base
-    // against the probed branch tip. It does not judge against an unresolvable
-    // ref (the path real git would otherwise reject).
+    // first fetch the branch into the tracking ref, because Git judges
+    // merge-base against the probed branch tip. Git does not judge against an
+    // unresolvable ref (the path real git would otherwise reject).
     const git = createMockGitClient({
       responses: {
         ...DIRTY_AHEAD,

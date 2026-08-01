@@ -99,8 +99,8 @@ describe("TraceCollector", () => {
       const text = collector.toText();
 
       // The fixture's tool_result is a success (`total 42\n...`). The
-      // updated rule drops successful tool results from the text output.
-      // Only `Error:` lines remain. The trailing
+      // updated render rule silently drops successful tool results from the
+      // text output. Only `Error:` lines remain. The trailing
       // `--- Result: <verdict> ---` footer is a different shape.
       const previewLines = text
         .split("\n")

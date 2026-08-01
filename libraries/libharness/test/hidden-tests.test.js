@@ -150,7 +150,7 @@ describe("runHiddenTests", () => {
     });
   });
 
-  test("a deleted scaffold becomes a failed row instead of a throw", async () => {
+  test("a deleted scaffold becomes a failed row and never throws", async () => {
     const { cwd, testsRoot } = await makeDirs();
     const check = await writeSuiteFile(testsRoot, "app/x.test.js", "// check");
     // The agent replaced the app/ directory with a file. The stage step

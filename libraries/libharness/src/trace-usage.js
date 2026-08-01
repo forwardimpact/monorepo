@@ -41,8 +41,8 @@ export function carriedPerTurn(turns) {
 
 /**
  * Whether a structured-document version predates per-message accounting
- * (1.2.0). This build collects traces from NDJSON with no version. Those
- * traces are not pre-change. Compares numeric version parts so 1.10.0 reads
+ * (1.2.0). A trace with no version is not pre-change. This build collects
+ * those traces from NDJSON. Compares numeric version parts so 1.10.0 reads
  * as post-change.
  * @param {string|undefined|null} version
  * @returns {boolean}

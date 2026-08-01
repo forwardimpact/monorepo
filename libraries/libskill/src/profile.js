@@ -8,7 +8,7 @@
  *   responsibilities)
  * - prepareAgentProfile() - agent-specific derivation with composed policies
  *
- * @see policies/composed.js - Policies that filter and sort agent profiles
+ * @see policies/composed.js - Policies that filter and sort skills for agents
  */
 
 import {

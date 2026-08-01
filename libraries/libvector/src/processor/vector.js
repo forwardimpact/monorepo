@@ -87,7 +87,7 @@ export class VectorProcessor extends ProcessorBase {
    * @param {Array<{text: string, identifier: any}>} batch - Batch of items to process
    * @param {number} processed - Number of items already processed
    * @param {number} total - Total number of items
-   * @param {string} context - Label for the process context
+   * @param {string} context - Context label
    * @returns {Promise<void>}
    */
   async processBatch(batch, processed, total, context) {

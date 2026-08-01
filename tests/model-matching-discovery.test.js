@@ -63,7 +63,7 @@ describe("Matching", () => {
       const disciplineWithValidTracks = {
         ...testDiscipline,
         id: "restricted_discipline",
-        validTracks: [null, "other_track"], // null allows trackless. test_track is absent
+        validTracks: [null, "other_track"], // null allows trackless. This list does not allow test_track
       };
 
       const matches = findMatchingJobs({
@@ -85,7 +85,7 @@ describe("Matching", () => {
       const disciplineWithValidTracks = {
         ...testDiscipline,
         id: "restricted_discipline",
-        validTracks: [null, "test_track"], // null allows trackless. test_track is present
+        validTracks: [null, "test_track"], // null allows trackless. This list allows test_track
       };
 
       const matches = findMatchingJobs({

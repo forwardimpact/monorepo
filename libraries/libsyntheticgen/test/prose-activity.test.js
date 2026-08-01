@@ -145,7 +145,7 @@ describe("comment proseKeys carries multi-driver array", () => {
       assert.strictEqual(
         ctx.drivers.length,
         2,
-        "alpha team has two declining drivers. context must carry both",
+        "alpha team has two declining drivers, so context must carry both",
       );
       const ids = ctx.drivers.map((d) => d.driver_id).sort();
       assert.deepStrictEqual(

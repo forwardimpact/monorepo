@@ -100,7 +100,7 @@ export async function runServeCommand({ dir, options, runtime }) {
     logger.info(`
 📡 Pathway site runs at http://${host === "0.0.0.0" ? "localhost" : host}:${port}
 📁 Directory: ${dir}
-🔧 Git smart HTTP is enabled for /packs/apm/*/
+🔧 Git smart HTTP enabled for /packs/apm/*/
 
 Press Ctrl+C to stop.
 `);

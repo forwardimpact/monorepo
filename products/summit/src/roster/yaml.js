@@ -24,7 +24,7 @@ import { parse as parseYaml } from "yaml";
  * @property {string} id
  * @property {"reporting" | "project"} type
  * @property {RosterPerson[]} members
- * @property {string|null} [managerEmail] - Only Map-sourced teams set this.
+ * @property {string|null} [managerEmail] - Map-sourced teams populate this.
  */
 
 /**

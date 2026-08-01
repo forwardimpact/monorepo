@@ -32,7 +32,7 @@ Options:
   --bcc <addrs>      Comma-separated BCC recipients
   --subject <subj>   Email subject line (required)
   --body <text>      Plain-text email body (required)
-  --draft <path>     Draft file. The script deletes it and appends the ID to Drafts/handled
+  --draft <path>     Draft file. The script deletes it after send and appends the ID to Drafts/handled
   -h, --help         Show this help message and exit
 
 Mail.app must run. You need no signature or sign-off. Apple Mail appends it.`;

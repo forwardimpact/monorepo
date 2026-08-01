@@ -57,7 +57,7 @@ describe("gemba-wiki bin smoke", () => {
     );
   });
 
-  test("warns and exits 0 when the wiki tree is absent", () => {
+  test("warns and exits 0 when the wiki tree is missing", () => {
     // A project root with no wiki/, e.g. a fresh worktree where bootstrap.sh
     // never ran. The session Stop hook (`gemba-wiki push`) must not fail loudly.
     const bare = mkdtempSync(join(tmpdir(), "gemba-wiki-nowiki-"));
@@ -67,7 +67,7 @@ describe("gemba-wiki bin smoke", () => {
         cwd: bare,
         encoding: "utf-8",
       });
-      assert.equal(result.status, 0, "absent wiki exits 0");
+      assert.equal(result.status, 0, "missing wiki exits 0");
       assert.match(result.stderr, /no wiki at/);
     } finally {
       rmSync(bare, { recursive: true, force: true });

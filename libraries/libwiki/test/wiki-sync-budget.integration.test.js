@@ -222,7 +222,7 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
     assert.equal(result.surfaced, undefined);
   });
 
-  test("the gate measures the committed HEAD and excludes autostash residue from the working dir", async () => {
+  test("the gate measures the committed HEAD and ignores autostash residue in the working dir", async () => {
     const bare = createBareRepo();
     seedBareRepo(bare, { files: { [SUMMARY]: summaryBody("Staff", 1500) } });
     const { parent, wikiDir } = cloneRepo(bare, "dirt");

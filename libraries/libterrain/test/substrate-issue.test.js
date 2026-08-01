@@ -77,7 +77,7 @@ describe("substrate issue", () => {
     );
     assert.equal(parsed.persona_email, "mgr@x");
     assert.equal(parsed.manager_email, "mgr@x");
-    // Discovery key/values spread at the top level. They never nest.
+    // Discovery key/values spread at the top level. They do not nest.
     assert.equal(parsed.snapshot_id, "S1");
     assert.equal(parsed.item_id, "ITEM1");
     assert.equal("discovery" in parsed, false);
@@ -169,7 +169,7 @@ describe("substrate issue", () => {
     assert.equal(stashStat.mode & 0o777, 0o600);
   });
 
-  test("rejects kind!=human and names substrate.people, never a product CLI", async () => {
+  test("rejects kind!=human and names substrate.people instead of a product CLI", async () => {
     await assert.rejects(
       () =>
         runSubstrateIssue({

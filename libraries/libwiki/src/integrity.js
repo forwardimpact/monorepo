@@ -79,7 +79,7 @@ export function findAbsent(changes, tipText, norm) {
   return absent;
 }
 
-/** Compose window changes into surviving additions; a later removal cancels its key. */
+/** Compose window changes into surviving additions. A later removal cancels its key. */
 function composeAssertions(changes, norm) {
   const asserted = new Map(); // norm(line) -> { contentId, pushHome }
   for (const change of changes) {

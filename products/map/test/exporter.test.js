@@ -1,7 +1,7 @@
 /**
  * Tests for the Exporter. They verify that exportAll writes one HTML
  * microdata file for each base entity into the expected directory tree.
- * They verify that a second run produces the same output. They verify that
+ * They verify that a second run of exportAll is idempotent. They verify that
  * exportAll removes the stale entries before it writes.
  */
 

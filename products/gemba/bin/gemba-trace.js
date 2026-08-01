@@ -166,7 +166,7 @@ const definition = {
         },
         context: {
           type: "string",
-          description: "Context turns per hit (default: 0)",
+          description: "Turns of context around each hit (default: 0)",
         },
         full: {
           type: "boolean",

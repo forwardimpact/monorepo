@@ -52,7 +52,7 @@ describe("coverage command", () => {
     assert.equal(result.view.uncoveredByType.review, 1);
   });
 
-  it("breaks down the numerator by provenance class and shows zero classes", async () => {
+  it("breaks down the numerator by provenance class and shows the zero-count classes", async () => {
     const result = await runCoverageCommand({
       options: { email: "alice@example.com" },
       supabase: {},
@@ -118,7 +118,7 @@ describe("coverage command", () => {
     const ratioIdx = lines.findIndex((l) =>
       l.includes("1/100 artifacts interpreted"),
     );
-    assert.ok(bannerIdx >= 0, "banner not found");
+    assert.ok(bannerIdx >= 0, "missing banner");
     assert.ok(ratioIdx > bannerIdx, "ratio should render after the banner");
     assert.match(text, /producer-skew diagnostic/);
   });

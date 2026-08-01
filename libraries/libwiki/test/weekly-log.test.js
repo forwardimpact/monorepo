@@ -55,7 +55,7 @@ describe("isoWeek", () => {
     assert.equal(year, 2025);
     assert.equal(week, 1);
   });
-  test("2027-01-01 belongs to ISO 2026-W53 (year rolls back) because 2026 has 53 ISO weeks", () => {
+  test("2027-01-01 belongs to ISO 2026-W53 (year rolls back), and 2026 has 53 ISO weeks", () => {
     const { year, week } = isoWeek(new Date("2027-01-01T00:00:00Z"));
     assert.equal(year, 2026);
     assert.equal(week, 53);

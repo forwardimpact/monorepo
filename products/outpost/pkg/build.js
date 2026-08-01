@@ -51,7 +51,7 @@ function compileLauncher() {
   rmSync(buildDir, { recursive: true, force: true });
 
   // Determinism profile. It produces a byte-identical Mach-O across rebuilds.
-  // (a) SWIFT_DETERMINISTIC_HASHING=1 — fixes symbol-table and section order.
+  // (a) SWIFT_DETERMINISTIC_HASHING=1 — symbol-table and section order.
   // (b) -file-prefix-map — scrubs absolute paths out of DWARF.
   //     -no-clang-module-breadcrumbs — strips the clang-module debug
   //     paths Swift modules can pull alongside DWARF.
@@ -92,8 +92,8 @@ function compileLauncher() {
 // CLI
 // ---------------------------------------------------------------------------
 
-// The only build step this script owns is the Swift launcher. It compiles the
-// launcher with no flags or with --launcher. There are no other steps.
+// The only build step this script owns is the Swift launcher. With no flags,
+// or with --launcher, it compiles the launcher. There are no other steps.
 console.log(`Outpost Build (v${VERSION})`);
 console.log("==========================");
 compileLauncher();

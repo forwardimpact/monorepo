@@ -22,13 +22,13 @@ import { withErrorBoundary } from "./error-boundary.js";
 
 /**
  * @typedef {Object} Router
- * @property {(pattern: string, handler: Function) => void} on - Register a route
- * @property {(path: string) => void} navigate - Navigate to a path
- * @property {() => string} currentPath - Get the current hash path
- * @property {() => void} handleRoute - Process the current route
+ * @property {(pattern: string, handler: Function) => void} on - Register route
+ * @property {(path: string) => void} navigate - Navigate to path
+ * @property {() => string} currentPath - Get current hash path
+ * @property {() => void} handleRoute - Process current route
  * @property {() => void} start - Start to listen for hash changes
  * @property {() => void} stop - Stop the listener for hash changes
- * @property {() => string[]} patterns - Get the registered patterns
+ * @property {() => string[]} patterns - Get registered patterns
  */
 
 /**

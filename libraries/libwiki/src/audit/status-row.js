@@ -121,7 +121,7 @@ export const STATUS_ROW_RULES = [
     },
     message: (_s, r) =>
       `Bad pin '${r.pin}' for state '${r.state}' (expected ${r.want})`,
-    hint: "registered pins `-`, approved pins a 40-hex SHA, and cancelled pins either",
+    hint: "registered pins `-`. approved pins a 40-hex SHA. cancelled pins either",
   },
   {
     id: "status-row.exp-planref",

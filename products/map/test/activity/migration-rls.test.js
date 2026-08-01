@@ -70,8 +70,8 @@ describe("RLS + retention migration", () => {
     // helper (the migration already ships it) as a proxy. It returns
     // non-null for every RLS'd table the migration ENABLEd. The full
     // pg_class check lives in the migration's own DO $$ validation block.
-    // A failure in that block aborts the migrate command. So this
-    // assertion already implies relrowsecurity = true.
+    // A failure in that block aborts the migrate command. So the test
+    // implies relrowsecurity = true when it reaches this assertion.
     for (const t of TABLES) {
       const { data, error } = await admin.rpc("retention_blob", {
         p_table: t,

@@ -37,7 +37,7 @@ const lockPath = join(cwd, "apm.lock.yaml");
 const apmYml = parseYamlFile(apmYmlPath);
 const declared = apmYml?.dependencies?.apm;
 
-// Nothing is declared under dependencies.apm, so there is nothing to verify.
+// If nothing is declared under dependencies.apm, there is nothing to verify.
 if (!Array.isArray(declared) || declared.length === 0) {
   console.log("apm-verify: no packs declared under apm.yml dependencies.apm.");
   process.exit(0);
@@ -46,7 +46,7 @@ if (!Array.isArray(declared) || declared.length === 0) {
 const errors = [];
 
 if (!existsSync(lockPath)) {
-  console.log("::error::apm-verify: apm.lock.yaml is absent. Declared packs are unresolved.");
+  console.log("::error::apm-verify: apm.lock.yaml is missing. Declared packs are unresolved.");
   process.exit(1);
 }
 
@@ -90,7 +90,7 @@ for (const decl of declared) {
   const missing = deployed.filter((rel) => !existsSync(join(cwd, rel)));
   if (missing.length > 0) {
     for (const rel of missing) {
-      errors.push(`declared pack '${decl}' has no deployed file on disk: ${rel}`);
+      errors.push(`declared pack '${decl}' is missing a deployed file on disk: ${rel}`);
     }
     continue;
   }

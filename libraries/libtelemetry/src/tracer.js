@@ -70,7 +70,7 @@ export class Tracer {
   }
 
   /**
-   * Starts a SERVER span for inbound gRPC calls with trace context from metadata
+   * Starts a SERVER span for incoming gRPC calls with trace context from metadata
    * @param {string} service - Service name (e.g., 'Agent', 'Vector')
    * @param {string} method - Method name (e.g., 'ProcessStream', 'QueryItems')
    * @param {object} [request] - Request object that may contain resource_id
@@ -100,7 +100,7 @@ export class Tracer {
   }
 
   /**
-   * Starts a CLIENT span for outbound gRPC calls with automatic RPC attributes
+   * Starts a CLIENT span for outgoing gRPC calls with automatic RPC attributes
    * Uses the active span from AsyncLocalStorage as parent
    * Creates metadata and populates it with trace context for propagation
    * @param {string} service - Service name (e.g., 'Agent', 'Vector')
@@ -140,7 +140,7 @@ export class Tracer {
   }
 
   /**
-   * Observes an outbound client RPC call and manages its span automatically
+   * Observes a client RPC call (outgoing) and manages its span automatically
    * @param {string} methodName - RPC method name
    * @param {object} request - Request object
    * @param {Function} callFn - Function that executes the gRPC call with metadata
@@ -177,7 +177,8 @@ export class Tracer {
   }
 
   /**
-   * Observes an outbound client streaming RPC call and manages its span automatically
+   * Observes a client streaming RPC call (outgoing) and manages its span
+   * automatically
    * @param {string} methodName - RPC method name
    * @param {object} request - Request object
    * @param {Function} callFn - Function that executes the gRPC call with metadata and returns a stream
@@ -220,7 +221,7 @@ export class Tracer {
   }
 
   /**
-   * Observes an inbound server RPC handler and manages its span automatically
+   * Observes a server RPC handler (incoming) and manages its span automatically
    * @param {string} methodName - RPC method name
    * @param {object} call - gRPC call object with metadata and request
    * @param {Function} handlerFn - Handler function for the business logic
@@ -263,7 +264,8 @@ export class Tracer {
   }
 
   /**
-   * Observes an inbound server streaming RPC handler and manages its span automatically
+   * Observes a server streaming RPC handler (incoming) and manages its span
+   * automatically
    * @param {string} methodName - RPC method name
    * @param {object} call - gRPC call object with metadata and request
    * @param {Function} handlerFn - Handler function for the business logic
@@ -322,7 +324,7 @@ export class Tracer {
   }
 
   /**
-   * Sets trace context in gRPC metadata for outbound calls
+   * Sets trace context in gRPC metadata for outgoing calls
    * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object to populate
    * @param {Span} span - Current span that provides the trace context
    * @private

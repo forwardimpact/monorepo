@@ -135,8 +135,8 @@ export class Repl {
 
   /**
    * Resolves the handler arguments for a command flag.
-   * Returns the args array and the number of extra argv positions it
-   * consumes.
+   * Returns the args array and the number of extra argv positions the
+   * flag consumes.
    * @param {object} command - Command definition
    * @param {string|null} inlineValue - Inline value from --key=value form
    * @param {string[]} args - Full argv array

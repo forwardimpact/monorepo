@@ -419,8 +419,9 @@ describe("runRules", () => {
   });
 
   test("over-budget MEMORY.md fires line and word budget rules", () => {
-    // 2600 words (200 lines × 13) breach the 128-line and 2048-word MEMORY
-    // budgets. Canonical sections stay valid, so only the budgets fire.
+    // 200 lines × 13 words = 2600 words breach both the 128-line and the
+    // 2048-word MEMORY budget. Canonical sections stay valid, so only the
+    // budgets fire.
     const filler = Array.from(
       { length: 200 },
       (_, i) =>

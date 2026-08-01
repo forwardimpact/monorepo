@@ -94,7 +94,7 @@ describe("ProcessorBase", () => {
       assert.deepStrictEqual(processor.processedItems, ["a", "b", "c", "d"]);
     });
 
-    test("continues when individual items fail", async () => {
+    test("continues to process when individual items fail", async () => {
       /** Test processor that simulates failures */
       class TestProcessor extends ProcessorBase {
         /**

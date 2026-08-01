@@ -53,7 +53,7 @@ export class SyntheaTool {
    * @param {string[]} [config.modules] - Synthea modules to enable
    * @param {string[]} [config.conditions] - Clinical condition IDs that
    *   filter the patients. The filter matches `Condition.code.coding[].code`
-   *   exactly. It also matches `.display` normalized to
+   *   exactly, or it matches `.display` normalized to
    *   `lowercase_underscored` form (the DSL condition-id convention).
    * @param {number} config.seed - RNG seed
    * @returns {Promise<Dataset[]>}
@@ -129,7 +129,7 @@ export class SyntheaTool {
 /**
  * Restrict the flattened FHIR resources to patients whose Condition entries
  * match one of the supplied clinical condition IDs. The filter matches
- * `code.coding[].code` exactly. It also matches `code.coding[].display`
+ * `code.coding[].code` exactly, or it matches `code.coding[].display`
  * normalized to lowercase-underscored form (the DSL convention).
  *
  * The function mutates `byType` in place. It does nothing when conditions is

@@ -160,7 +160,7 @@ async function collectRecords(runner) {
 
 describe("BenchmarkRunner E2E (fixture family)", () => {
   // Tests 1, 2, 4, 5, 6 share the runs:1 / mockRunAgent configuration and
-  // only differ in what they assert against the resulting records. Set up
+  // only differ in what they assert against the shared records. Set up
   // once, so the suite does not pay the runner.run() cost five times.
   let sharedRecords;
   // Shared setup does a full runner.run() with 4 tasks. On slower CI

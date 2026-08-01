@@ -42,8 +42,8 @@ function classOf(finding) {
  *
  * This lists only static-string hints. A function hint is a per-finding
  * resolved command (a `rotate` remediation the agent never performs). A
- * function hint is not a file invariant, so a list would leak its source text
- * into the prompt.
+ * function hint is not a file invariant, so an entry for it would leak its
+ * source text into the prompt.
  */
 function invariantContract(findings) {
   const scopes = new Set(

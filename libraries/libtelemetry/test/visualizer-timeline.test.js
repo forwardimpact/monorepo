@@ -256,7 +256,7 @@ describe("TraceVisualizer - multiple traces and timeline", () => {
       );
     });
 
-    test("handles spans that overlap", async () => {
+    test("correctly handles spans that overlap", async () => {
       // Create nested spans that overlap:
       // span1: 1000000 - 5000000 (outer)
       //   span2: 1500000 - 2500000 (inner, starts first)

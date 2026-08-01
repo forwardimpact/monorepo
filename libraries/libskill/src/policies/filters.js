@@ -4,8 +4,8 @@
  * Filters that operate on entire arrays of skill/behaviour entries.
  * Unlike predicates (single entry → boolean), these transform arrays.
  *
- * Name a function filter* when it reduces or transforms arrays.
- * Tag matrix filters with matrixFilter(). Then applyFilters can
+ * Naming convention: filter* for functions that reduce or transform arrays.
+ * matrixFilter() tags the matrix filters. Then applyFilters can
  * distinguish them from predicates without a runtime probe.
  */
 

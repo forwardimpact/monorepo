@@ -1,7 +1,7 @@
 /**
  * Shard coverage. `selectShard` is an exact, balanced, deterministic
- * partition. A `--shard` runner pass writes a self-contained partial ledger,
- * and that includes the deliberately-empty high-index shard.
+ * partition. A `--shard` runner pass writes a self-contained partial ledger.
+ * This holds even for the deliberately-empty high-index shard.
  */
 
 import { describe, test } from "node:test";

@@ -4,8 +4,8 @@ import { execFileSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Smoke test. Spawn the real fit-landmark bin to verify the runtime end to
-// end. The bin threads createDefaultRuntime into the dispatcher. The
+// Smoke test. Spawn the real fit-landmark bin to verify the runtime wiring
+// end to end. The bin threads createDefaultRuntime into the dispatcher. The
 // `--version` flag runs before any data load or Supabase setup, so it is
 // deterministic and network-free.
 const binPath = join(

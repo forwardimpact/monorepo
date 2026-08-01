@@ -1,6 +1,6 @@
 import { join } from "path";
 
-/** Build the packs with the stager and the emitters. */
+/** Orchestrate the pack build across the stager and the emitters. */
 export class PackBuilder {
   #stager;
   #emitters;

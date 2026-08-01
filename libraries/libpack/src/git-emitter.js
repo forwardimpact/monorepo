@@ -170,7 +170,7 @@ export class GitEmitter {
     // v1 stateless-rpc shallow fetch issues two POSTs to /git-upload-pack:
     //   POST 1 (no "done") → server returns shallow list + flush
     //   POST 2 (has "done") → server returns shallow list + flush + NAK + pack
-    // The web server routes each POST on whether the body contains "done".
+    // The web server checks each POST body for "done" and routes on that.
     const packDir = join(outputPath, "objects", "pack");
     const packFile = (await readdir(packDir)).find((f) => f.endsWith(".pack"));
     const packData = await readFile(join(packDir, packFile));

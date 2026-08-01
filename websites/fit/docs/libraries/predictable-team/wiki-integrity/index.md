@@ -132,7 +132,7 @@ exits non-zero and names them:
 ```text
 gemba-wiki fix: 1 finding(s) need human judgment (not auto-fixable):
 wiki/old-agent-2026-W20.md
-    error  wiki/old-agent-2026-W20.md matches no wiki filename grammar class  admission.not-in-grammar
+    error  wiki/old-agent-2026-W20.md matches no class in the wiki filename grammar  admission.not-in-grammar
 ```
 
 Two common cases:

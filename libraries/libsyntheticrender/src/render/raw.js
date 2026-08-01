@@ -312,8 +312,8 @@ function renderSummitYAML(entities, files) {
 /**
  * Render individual people YAML files.
  *
- * This function uses the `profiles/` prefix. It does NOT use `people/`.
- * Supabase Storage reserves `people/` for roster uploads.
+ * This function uses the `profiles/` prefix. It does NOT use `people/`,
+ * because Supabase Storage reserves `people/` for roster uploads.
  * `transformPeople` consumes those uploads. Individual person profiles
  * under `people/` made the seed command pick a profile instead of the
  * roster. The command then left organization_people empty.

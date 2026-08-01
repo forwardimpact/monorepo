@@ -90,7 +90,7 @@ export function prepareCurrentJob({
  */
 
 /**
- * Prepare the preview for the career progress builder to validate the form
+ * Prepare the career-progress builder preview for form validation
  * @param {Object} params
  * @param {Object|null} params.discipline
  * @param {Object|null} params.level

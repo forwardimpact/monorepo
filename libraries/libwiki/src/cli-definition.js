@@ -101,7 +101,7 @@ export function createDefinition() {
           ...todayOpt,
           target: {
             type: "string",
-            description: "What you claim (spec id, PR id, etc.)",
+            description: "Target to claim (spec id, PR id, etc.)",
           },
           branch: {
             type: "string",
@@ -145,7 +145,7 @@ export function createDefinition() {
           },
           owner: {
             type: "string",
-            description: "Owner field when you promote (default: --agent)",
+            description: "Owner field for promote (default: --agent)",
           },
         },
       },
@@ -193,7 +193,7 @@ export function createDefinition() {
           "dry-run": {
             type: "boolean",
             description:
-              "Print the issue body and intended action without a call to gh",
+              "Print the issue body and intended action. Do not call gh",
           },
         },
       },

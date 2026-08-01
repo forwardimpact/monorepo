@@ -74,7 +74,7 @@ export class Retry {
    * Executes a function and retries transient errors with exponential backoff
    * @param {() => Promise<Response>} requestFn - Function that returns a fetch promise
    * @returns {Promise<Response>} Response from successful request
-   * @throws {Error} When the client exhausts all retry attempts
+   * @throws {Error} When `execute` exhausts all retry attempts
    */
   async execute(requestFn) {
     let lastError;

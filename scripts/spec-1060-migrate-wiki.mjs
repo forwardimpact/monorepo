@@ -16,7 +16,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 
 // Constants inlined (mirrors `libraries/libwiki/src/constants.js`). The script
-// inlines them. It does not import them. This script is one-shot and runs
+// inlines them and does not import them, because it is one-shot and runs
 // before any workspace dependency install. See the header comment.
 const WEEKLY_LOG_LINE_BUDGET = 500;
 const DECISION_HEADING = "### Decision";

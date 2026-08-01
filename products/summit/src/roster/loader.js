@@ -3,7 +3,7 @@
  *
  * The loader dispatches to the YAML parser when the caller gives a roster
  * file path. Otherwise it dispatches to the Map-sourced loader. Tests can
- * inject the Supabase client factory.
+ * inject the Supabase client or its factory.
  */
 
 import { resolve } from "node:path";

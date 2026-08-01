@@ -167,8 +167,8 @@ export const WEIGHT_DEV_AI_BOOST = 1.5;
  * Maximum number of skills shown in agent profile body
  *
  * The limit applies to the skill index table and the before-handoff
- * checklist. It keeps the agent context focused. Every skill still gets
- * a SKILL.md file. The --skills flag still lists them all.
+ * checklist. It keeps the agent context focused. All skills are still
+ * exported as SKILL.md files. The --skills flag still lists them all.
  *
  * @see agent.js:buildStageProfileBodyData
  */

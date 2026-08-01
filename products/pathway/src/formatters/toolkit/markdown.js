@@ -1,5 +1,5 @@
 /**
- * Toolkit formatters for markdown/CLI output
+ * Toolkit formatter for markdown/CLI output
  *
  * Display the toolkit as a markdown table with tools, icons, and descriptions.
  */

@@ -2,7 +2,8 @@ import grpc from "@grpc/grpc-js";
 
 /**
  * gRPC interceptor for HMAC-based service authentication
- * Adds a token to each outgoing request and validates each incoming request
+ * Adds a token to each outgoing request automatically and validates each
+ * incoming request
  */
 export class Interceptor {
   #authenticator;

@@ -6,10 +6,7 @@ import {
   clearCredentials,
 } from "./credentials.js";
 
-/**
- * `resolveIdentity` throws this when it cannot derive a usable caller
- * identity from the env.
- */
+/** `resolveIdentity` throws this when the env gives no usable caller identity. */
 export class IdentityUnresolvedError extends Error {
   /** Wrap the reason in a prefixed message and attach code "LANDMARK_IDENTITY_UNRESOLVED". */
   constructor(reason) {
@@ -23,7 +20,7 @@ export class IdentityUnresolvedError extends Error {
 const HS256_DIGEST_BYTES = 32;
 
 // Refresh slightly before the access token's expires_at. A command that
-// runs for a long time then never trips PostgREST's own clock-skew check
+// runs for a long time never trips PostgREST's own clock-skew check
 // mid-batch.
 const REFRESH_LEAD_MS = 60_000;
 

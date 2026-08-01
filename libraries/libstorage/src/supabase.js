@@ -52,7 +52,7 @@ export class SupabaseStorage extends S3Storage {
   /**
    * Ensures the storage bucket exists. Uses the Supabase REST API.
    * Supabase doesn't support S3 CreateBucketCommand.
-   * @returns {Promise<boolean>} True if bucket was created
+   * @returns {Promise<boolean>} True if this method created the bucket
    */
   async ensureBucket() {
     const response = await fetch(`${this.#storageUrl}/bucket`, {

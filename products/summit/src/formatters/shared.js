@@ -1,5 +1,6 @@
 /**
- * Shared terminal helpers for every command's text formatter.
+ * Shared helpers that render terminal output for every command's text
+ * formatter.
  * All functions are pure. They take explicit parameters and return strings.
  */
 

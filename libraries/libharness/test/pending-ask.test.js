@@ -248,7 +248,7 @@ describe("Pending-ask enforcement — supervised mode", () => {
   test("supervisor → agent Ask: agent ignores twice → protocol_violation, session advances", async () => {
     const { ctx, messageBus } = seedSupervise();
     // Supervise is now sync Ask like facilitate/discuss. Supervisor Ask
-    // blocks until the agent answers. Both modes share the reminder and
+    // blocks until the agent answers. The modes share the reminder and
     // violation logic.
     const supAskHandler = createAskHandler(ctx, {
       from: "supervisor",

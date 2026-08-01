@@ -6,7 +6,8 @@
  * specification and uses progressive disclosure.
  *
  * Mustache templates keep the output format flexible.
- * Templates come from the data/ directory, with a fallback to templates/.
+ * Templates come from the data/ directory. The fallback is the templates/
+ * directory.
  */
 
 import Mustache from "mustache";

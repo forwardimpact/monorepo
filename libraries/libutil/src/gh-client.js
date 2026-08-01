@@ -58,7 +58,7 @@ export class GhClient {
 
   /**
    * GET every page of a paginated API `path`. Uses `gh api --paginate --slurp`.
-   * That flag wraps the per-page response arrays in one outer JSON array of
+   * Those flags wrap the per-page response arrays in one outer JSON array of
    * pages. This method parses that array once. It then flattens the array into
    * a single array. It avoids the concatenated-but-separate-documents shape a
    * bare `--paginate` produces. Returns `[]` when the response is empty.

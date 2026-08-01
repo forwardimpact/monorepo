@@ -188,8 +188,8 @@ function validateRouteContext(row, lineNumber, errors) {
   }
 }
 
-// Build a column-diff message so a reader sees which columns drifted. A
-// plain string comparison would only show that two long strings differ.
+// Build a column-diff message so a reader sees which columns drifted. The
+// reader does not only see that two long strings differ.
 function headerMismatchMessage(got) {
   const gotCols = got.split(",").map((c) => c.trim());
   const extra = gotCols.filter((c) => !COLUMNS.includes(c));

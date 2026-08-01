@@ -3,7 +3,7 @@
  * organization or repository, or adds repositories to an existing
  * installation. GitHub then fires `installation.created` or
  * `installation.repositories_added`. This handler registers each named
- * repository in the tenant registry. Later user events resolve to an
+ * repository in the tenant registry. Later user events then resolve to an
  * active tenant without operator intervention.
  *
  * The registry upsert is idempotent per `(installation_id, repo)` pair. So

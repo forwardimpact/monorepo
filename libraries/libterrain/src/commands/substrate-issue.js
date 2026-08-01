@@ -66,7 +66,7 @@ export async function runSubstrateIssue({
     throw new Error(
       `substrate issue: ${email} is kind=${row.kind}, not human ` +
         "(substrate.people kind=human rows are the persona surface. " +
-        "This library does not issue service identities)",
+        "this verb does not issue service identities)",
     );
   }
 

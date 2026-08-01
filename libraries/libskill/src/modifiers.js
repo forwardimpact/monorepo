@@ -85,7 +85,7 @@ export function expandModifiersToSkills({ skillModifiers, skills }) {
         expanded[skillId] = modifier;
       }
     }
-    // Ignore non-capability keys (validation should catch these)
+    // The loop ignores non-capability keys (validation should catch these)
   }
 
   return expanded;

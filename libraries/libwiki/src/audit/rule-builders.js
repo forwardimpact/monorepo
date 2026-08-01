@@ -222,9 +222,10 @@ export const AGENT_H3_REQUIREMENTS = STORYBOARD_DOMAIN_AGENTS.map((agent) => ({
 
 // Report every data line byte-identical to an earlier data line in the same
 // CSV. Line 1 is the header (positionally) and the check skips blank lines.
-// The header is never a duplicate subject. A key on exact line equality gives
-// the spec's exit path for free. Any column edit (run id or note) on one row
-// makes the pair non-identical, so the finding no longer fires.
+// The header is never a duplicate subject. The check keys on exact line
+// equality, which gives the spec's exit path for free. Any column edit (run id
+// or note) on one row makes the pair non-identical, so the finding no longer
+// fires.
 export const duplicateCsvRows = (s) => {
   const seen = new Set();
   const findings = [];

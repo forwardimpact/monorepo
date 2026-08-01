@@ -1,5 +1,5 @@
 /**
- * Track formatters for markdown/CLI output
+ * Track formatter for markdown/CLI output
  */
 
 import { tableToMarkdown, formatModifier } from "../shared.js";

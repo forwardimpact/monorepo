@@ -14,7 +14,7 @@ import { join } from "node:path";
 // process" of the spawned child. With disclaim = 1 the child becomes
 // responsible for itself. With disclaim = 0 the child keeps the parent
 // chain's responsible process. macOS then attributes the child's access to
-// fit-outpost.app. The code below passes 0.
+// fit-outpost.app. The code below passes 0 by default.
 const {
   symbols: { responsibility_spawnattrs_setdisclaim: setDisclaim },
 } = dlopen("/usr/lib/system/libquarantine.dylib", {

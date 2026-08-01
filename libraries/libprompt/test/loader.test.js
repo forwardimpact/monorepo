@@ -8,7 +8,7 @@ const PROMPT_DIR = "/prompts";
 
 /**
  * Build a PromptLoader over an in-memory fs seeded with `files` (a path→content
- * map). Inject the fs through the loader's `runtime` parameter.
+ * map). This function passes the fs through the loader's `runtime` parameter.
  */
 function loaderWith(files = {}) {
   return new PromptLoader(

@@ -407,7 +407,7 @@ export function printWriteStats(summary, writeStats, ok, stdout) {
 
 /**
  * Render the LLM-call accounting block that `generate` emits. Reports the
- * number of LLM calls this run made (prose.generated counter).
+ * number of actual LLM calls this run made (prose.generated counter).
  */
 export function printGenerateStats(summary, result, ok) {
   const items = [

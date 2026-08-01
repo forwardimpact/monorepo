@@ -1,9 +1,9 @@
 /**
  * Webhook-stream ProseActivity — binds the GitHub webhook output to
- * three pipeline stages. The first stage generates events and per-event
- * prose keys. The second stage builds the prose context as PR-body and
- * review-body entries. The third stage renders per-event JSON and an
- * index.
+ * the three pipeline stages. The first stage generates events and
+ * per-event prose keys. The second stage builds the prose context as
+ * PR-body and review-body entries. The third stage renders per-event
+ * JSON and an index.
  *
  * `TOut = { events, keys }`. `events` feeds render. `keys` feeds
  * prose-context. The `proseKeys` method may branch on PR-body against

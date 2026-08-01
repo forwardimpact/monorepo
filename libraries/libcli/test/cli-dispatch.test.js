@@ -63,7 +63,7 @@ describe("Cli", () => {
       assert.strictEqual(Object.isFrozen(ctx.args), true);
     });
 
-    test("omits from args any positional that argv does not supply", () => {
+    test("omits missing trailing positionals from args", () => {
       const proc = createProc();
       const received = [];
       const def = {

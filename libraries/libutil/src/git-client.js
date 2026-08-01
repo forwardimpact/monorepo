@@ -202,8 +202,9 @@ export class GitClient {
   /**
    * The content that `range` introduces (e.g. `origin/master..HEAD`), grouped
    * by path. Returns a `Map<path, addedText>`. `addedText` is the added side
-   * of the diff. It strips the leading `+` from each hunk line. It excludes
-   * the `+++`/`---` file headers. So line-anchored scanners match at column 1.
+   * of the diff. The method strips the leading `+` from each hunk line. It
+   * excludes the `+++`/`---` file headers. So line-anchored scanners match at
+   * column 1.
    * Throws {@link GitError} on a non-zero exit (e.g. an unresolvable ref).
    * Callers must treat a throw as refuse-with-reason. A silent pass is never
    * correct.
@@ -284,9 +285,10 @@ export class GitClient {
 
   /**
    * Unified-diff text (`--unified=0`) of a two-tree `range` (e.g. `"A B"` or
-   * `"A..B"`), or `null` on git failure. A two-tree range diff diffs merge
-   * commits correctly. A single-commit `git show` does not. An empty string
-   * is a legitimate empty diff. `null` is an error. Callers distinguish them.
+   * `"A..B"`), or `null` on git failure. This method uses a two-tree range
+   * diff and never a single-commit `git show`, so it diffs merge commits
+   * correctly. An empty string is a legitimate empty diff. `null` is an error.
+   * Callers distinguish them.
    * @param {string} range - Range spec. The method splits it on spaces into
    *   git args.
    * @param {{cwd?: string}} [opts]
@@ -496,10 +498,7 @@ export class GitClient {
     return r.stdout.trim();
   }
 
-  /**
-   * Drop a stash addressed by SHA (`stash drop <sha>`). This never addresses a
-   * stash by stack position.
-   */
+  /** Drop a stash addressed by SHA, never by stack position (`stash drop <sha>`). */
   async stashDropBySha(sha, { cwd } = {}) {
     return this.#runRaw(["stash", "drop", sha], { cwd, allowFailure: true });
   }

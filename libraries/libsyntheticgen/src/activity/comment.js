@@ -1,7 +1,7 @@
 /**
  * Snapshot-comment ProseActivity — binds the snapshot-comment output to
- * three pipeline stages. The stages generate deterministic data, build
- * the prose context, and render the output.
+ * the three pipeline stages. The stages generate deterministic data,
+ * build the prose context, and render the output.
  *
  * Compared to the pre-820 implementation, `generate` carries the full
  * team-affect driver array on each comment-key. It does not collapse
@@ -9,7 +9,8 @@
  * shuffle order as the *topic* driver. The top driver also gives the
  * human-readable `driver_name` scalar that the render layer consumes.
  * The code keeps the whole array end to end. So `proseKeys` can fill
- * `ProseContext.drivers` to match what the webhook activity emits.
+ * `ProseContext.drivers` to match what the webhook activity already
+ * emits.
  *
  * @module libsyntheticgen/activity/comment
  */
@@ -99,8 +100,8 @@ function collectCandidates(activeScenarios, people, teams, driverMap) {
     ),
   );
   // Sort into a stable order so a downstream shuffle stays reproducible.
-  // Upstream phases (people, scenarios) can order their outputs
-  // differently across platforms.
+  // The order does not depend on how the upstream phases (people
+  // generation, scenario parsing) ordered their outputs across platforms.
   candidates.sort((a, b) => {
     const ka = `${a.scenario.id} ${a.team.id} ${a.person.email} ${a.topic_driver_id}`;
     const kb = `${b.scenario.id} ${b.team.id} ${b.person.email} ${b.topic_driver_id}`;

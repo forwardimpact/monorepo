@@ -10,7 +10,10 @@
  * signal. It does not become a quietly rewritten filename.
  */
 
-/** Signals an agent name that cannot map to a safe state-file prefix. */
+/**
+ * `agentNameToStatePrefix` raises this when an agent name cannot map to a
+ * safe state-file prefix.
+ */
 export class UnsafeAgentNameError extends Error {
   /** @param {string} name */
   constructor(name) {

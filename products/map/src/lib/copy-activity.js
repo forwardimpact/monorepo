@@ -4,8 +4,8 @@
  * `data/activity` carries level ids that `data/pathway` defines. So both
  * ship from the same source.
  *
- * These are pure helpers. They throw raw Errors on failure. The caller's
- * runPhase envelope then frames them.
+ * These are pure helpers. They throw raw Errors on failure. So the caller's
+ * runPhase envelope frames them.
  */
 
 import path from "node:path";

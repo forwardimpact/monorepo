@@ -8,7 +8,7 @@ import * as libmock from "../src/index.js";
 
 // Drift detection. Every field on the production `Runtime` typedef must have
 // a canonical libmock fake. This test fails if you add a field to `Runtime`
-// without a fake, or without an alias entry that points at a real export.
+// with no fake and no alias entry that points at a real export.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RUNTIME_SRC = path.resolve(__dirname, "../../libutil/src/runtime.js");

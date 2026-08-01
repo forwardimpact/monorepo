@@ -59,7 +59,8 @@ import {
 
 /**
  * Calculate skill proficiency changes between two skill matrices
- * Cross-discipline comparisons include gained and lost skills
+ * This function handles cross-discipline comparisons. To do this, it
+ * includes gained and lost skills
  * @param {Array} currentMatrix - Current skill matrix entries
  * @param {Array} targetMatrix - Target skill matrix entries
  * @returns {SkillChange[]} Array of skill changes, sorted by change magnitude

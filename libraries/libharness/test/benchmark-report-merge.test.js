@@ -1,9 +1,9 @@
 /**
  * Recursive-merge coverage for `report`. `loadRecords` discovers every
- * `results.jsonl` under `--input` recursively. It then unions the records. A
- * merge of shard partials equals a report over a single non-sharded run of the
- * same cells. Split from `benchmark-report.test.js` (near the LOC ceiling) to
- * keep each file under the test-file-shape ceiling.
+ * `results.jsonl` under `--input` recursively. It then unions the records. So
+ * a merge of shard partials equals a report over a single non-sharded run of
+ * the same cells. Split from `benchmark-report.test.js` (near the LOC
+ * ceiling) to keep each file under the test-file-shape ceiling.
  */
 
 import { describe, test } from "node:test";

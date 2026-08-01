@@ -3,10 +3,10 @@
 // The gRPC mint surface is unauthenticated at the peer level in the
 // initial delivery. The substrate (mTLS, signed JWT, or mesh credential)
 // is the deferred follow-on per design § "What this design does not
-// cover". Until that lands, the service binds to the control-plane
-// internal network only. That bind is the only restriction on callers.
-// This guard refuses to start the service on a non-loopback, non-private
-// address unless the operator explicitly opts in with `allow_public_bind`.
+// cover". Until that lands, only the bind to the control-plane internal
+// network restricts callers. This guard refuses to start the service on
+// a non-loopback, non-private address unless the operator explicitly
+// opts in with `allow_public_bind`.
 
 const LOOPBACK_V4 = /^127\./;
 const PRIVATE_10 = /^10\./;

@@ -1,7 +1,7 @@
 /**
  * Driver CLI Command
  *
- * Handles the driver summary, the ID list, and the detail view in the
+ * Shows the driver summary, the driver list, and the driver detail in the
  * terminal.
  *
  * Usage:

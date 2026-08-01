@@ -18,7 +18,7 @@ export function renderCareerProgress() {
       title: "Career Progress",
       description:
         "Select your current role to visualize career progression. See what skills and behaviours " +
-        "change as you advance to the next level. Compare expectations across different tracks.",
+        "change as you advance to the next level. You can also compare expectations across different tracks.",
       formTitle: "Select Your Current Role",
       emptyPreviewText:
         "Select all three components to preview progression paths.",

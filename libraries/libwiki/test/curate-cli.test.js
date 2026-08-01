@@ -123,8 +123,7 @@ describe("gemba-wiki curate", () => {
 
   test("an over-large finding set truncates the body under GitHub's limit", async () => {
     // Many distinct over-budget summaries push the full findings JSON past
-    // GitHub's 65536-char body limit. The command must still post a body that
-    // fits.
+    // GitHub's 65536-char body limit. curate must still post a body that fits.
     const many = {};
     for (let i = 0; i < 300; i++) {
       many[`${WIKI_ROOT}/staff-engineer-${i}.md`] =

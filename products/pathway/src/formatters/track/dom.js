@@ -1,5 +1,5 @@
 /**
- * Track formatters for DOM/web output
+ * Track formatter for DOM/web output
  */
 
 import { div, h1, p } from "../../lib/render.js";

@@ -35,8 +35,8 @@ async function dispatchTools(toolDispatcher, message) {
  *   `{type:"assistant", content: resp.text}` per call.
  * @param {object} [opts]
  * @param {Record<string, function>} [opts.toolDispatcher] - Map of tool
- *   name to handler. The runner calls it for every `tool_use` block in
- *   the script.
+ *   name to handler. The runner calls the handler for every `tool_use`
+ *   block in the script.
  */
 export function createMockRunner(responses, messages, { toolDispatcher } = {}) {
   const output = new PassThrough();

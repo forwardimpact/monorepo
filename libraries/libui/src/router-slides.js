@@ -8,19 +8,19 @@ import { createRouter } from "./router-core.js";
 
 /**
  * @typedef {Object} SlideRouter
- * @property {(pattern: string, handler: Function) => void} on - Register a route
- * @property {(path: string) => void} navigate - Navigate to a path
- * @property {() => string} currentPath - Get the current hash path
- * @property {() => void} handleRoute - Process the current route
+ * @property {(pattern: string, handler: Function) => void} on - Register route
+ * @property {(path: string) => void} navigate - Navigate to path
+ * @property {() => string} currentPath - Get current hash path
+ * @property {() => void} handleRoute - Process current route
  * @property {() => void} start - Start to listen for hash changes
  * @property {() => void} stop - Stop the listener for hash changes
- * @property {() => string[]} patterns - Get the registered patterns
- * @property {(paths: string[]) => void} setSlideOrder - Define the navigation order
- * @property {() => void} next - Navigate to the next slide
- * @property {() => void} prev - Navigate to the previous slide
- * @property {() => void} home - Navigate to the index
- * @property {() => number} currentIndex - The current position in the order
- * @property {() => number} totalSlides - The total slide count
+ * @property {() => string[]} patterns - Get registered patterns
+ * @property {(paths: string[]) => void} setSlideOrder - Define navigation order
+ * @property {() => void} next - Navigate to next slide
+ * @property {() => void} prev - Navigate to previous slide
+ * @property {() => void} home - Navigate to index
+ * @property {() => number} currentIndex - Current position in order
+ * @property {() => number} totalSlides - Total slide count
  * @property {() => void} startKeyboardNav - Enable keyboard shortcuts
  * @property {() => void} stopKeyboardNav - Disable keyboard shortcuts
  */

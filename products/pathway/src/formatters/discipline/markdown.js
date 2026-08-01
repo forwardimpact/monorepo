@@ -1,5 +1,5 @@
 /**
- * Discipline formatting for markdown/CLI output
+ * Discipline formatter for markdown/CLI output
  */
 
 import { tableToMarkdown, formatModifier } from "../shared.js";

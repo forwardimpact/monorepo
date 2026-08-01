@@ -38,13 +38,13 @@ function lastDateHeading(text) {
 }
 
 /**
- * Rotate before an append. The rotation never blocks the append. A bisected
- * seal can now produce multiple parts, and the append still proceeds against
- * the fresh current file. An `incomplete` residue is a lone over-cap
- * day-section sealed as its own part, never the live file. The function writes
- * that residue to stderr, and it does not block the append. The function
- * reports a thrown fs error and swallows it. The writer rolled back, so the
- * (intact) current file still receives the new entry.
+ * Rotate before an append. The rotation never blocks the append. A seal that
+ * bisects can now produce multiple parts, and the append still proceeds
+ * against the fresh current file. An `incomplete` residue is a lone over-cap
+ * day-section sealed as its own part, never the live file. The function
+ * reports that residue to stderr, and it does not block the append. The
+ * function reports a thrown fs error and swallows it. The writer rolled back,
+ * so the (intact) current file still receives the new entry.
  */
 function rotateBeforeAppend(wikiRoot, agent, today, body, runtime) {
   try {

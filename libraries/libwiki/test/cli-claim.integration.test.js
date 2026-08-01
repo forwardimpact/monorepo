@@ -69,8 +69,8 @@ describe("claim/release push integration (real git)", () => {
   });
 
   test("claim leaves foreign dirty and untracked files out of the commit", async () => {
-    // Another writer left residue in the shared workspace. It holds a modified
-    // tracked file and a brand-new untracked file (#1568).
+    // Another writer left residue in the shared workspace. The residue is a
+    // modified tracked file and a brand-new untracked file (#1568).
     writeFileSync(join(wikiDir, "README.md"), "# Wiki\nforeign edit\n");
     writeFileSync(join(wikiDir, "foreign.md"), "untracked residue\n");
     const { harness, wikiSync } = harnessFor();
@@ -216,7 +216,8 @@ describe("claim/release push integration (real git)", () => {
     assert.equal(result.code, 1);
     assert.match(harness.stderr, /not published/i);
     // The command wrote the row to MEMORY.md but never committed it. The row
-    // stays an uncommitted working-tree change. No push landed on the remote.
+    // stays only as an uncommitted working-tree change. No push landed on the
+    // remote.
     assert.match(readFileSync(memPath, "utf-8"), /spec-NNNN/);
     assert.match(git(wikiDir, "status", "--porcelain"), /MEMORY\.md/);
     assert.equal(git(wikiDir, "rev-parse", "HEAD"), head);
@@ -437,7 +438,7 @@ describe("claim/release push integration (real git)", () => {
     assert.equal(
       se.expires_at,
       "2099-01-08",
-      "the expiry comes from the renewal",
+      "the expiry comes from the renewal. It does not come from the stale row",
     );
     assert.ok(
       claims.some((c) => c.target === "1900"),
@@ -491,8 +492,8 @@ describe("claim/release push integration (real git)", () => {
     );
     assert.equal(result.ok, true);
     assert.match(harness.stdout, /push: committed and pushed/);
-    // The expired row's removal landed. Check the content state. Do not check
-    // the log output.
+    // The expired row's removal landed. This checks the content state rather
+    // than the log output.
     assert.doesNotMatch(git(wikiDir, "show", "HEAD:MEMORY.md"), /spec-OLD/);
   });
 });

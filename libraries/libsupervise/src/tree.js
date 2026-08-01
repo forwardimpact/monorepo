@@ -41,8 +41,8 @@ export class SupervisionTree extends EventEmitter {
    * @param {boolean} [config.isCompiled] - Whether the host is a
    *   `bun build --compile` binary. Defaults to libcli's `LIBCLI_IS_COMPILED`.
    *   Selects how the tree launches the `fit-logger` child (see
-   *   {@link #loggerCommand}). Tests inject it to exercise both branches
-   *   without a real binary.
+   *   {@link #loggerCommand}). Tests can inject it to exercise both
+   *   branches without a real binary.
    */
   constructor(logDir, config) {
     super();

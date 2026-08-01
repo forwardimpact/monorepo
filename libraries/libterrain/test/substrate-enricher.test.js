@@ -39,7 +39,7 @@ describe("enrichPersonaRow", () => {
     assert.equal(out.scenario, null);
   });
 
-  test("resolves by bare team_id and never handles a vendor prefix", () => {
+  test("resolves by bare team_id and does not handle a vendor prefix", () => {
     const row = { email: "p@x", team_id: "alpha" };
     const out = enrichPersonaRow(row, makeAst());
     assert.deepEqual(out.repos, ["a", "b"]);

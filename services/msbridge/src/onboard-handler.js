@@ -90,8 +90,8 @@ export function createOnboardHandler({
     // registry `tenant_id` (a UUID). It never returns a body-supplied value.
     // Note the semantics. The upsert creates a tid with no prior consent row
     // fresh as `active`. A signature binds the tid, so the caller provably
-    // owns that Entra tenant. Self-service onboarding with no prior consent
-    // activity is therefore safe.
+    // owns that Entra tenant. So self-service onboarding with no prior
+    // consent activity is safe.
     const row = await tenancyClient.UpsertByChannelKey({
       channel: CHANNEL,
       channel_tenant_key: callerTid,

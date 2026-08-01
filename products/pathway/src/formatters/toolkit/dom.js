@@ -1,5 +1,5 @@
 /**
- * Toolkit formatters for DOM/web output
+ * Toolkit formatter for DOM/web output
  *
  * Display a compact toolkit table of tools with icons and descriptions.
  */

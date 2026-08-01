@@ -8,8 +8,8 @@ export { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext };
 /**
  * No-op reaction adapter for the Bot Framework. Teams bots cannot add
  * reactions programmatically. The `messageReaction` activity type is
- * receive-only. The Bot Framework fires it when a *user* reacts. The typing
- * adapter provides user-visible progress instead.
+ * receive-only. It arrives when a *user* reacts. The typing adapter
+ * provides user-visible progress instead.
  *
  * @returns {{add: Function, remove: Function}}
  */

@@ -29,7 +29,7 @@ describe("rotateIfOverBudget", () => {
   const WEEK = "2026-05-19"; // ISO 2026-W21
 
   // A multi-day source over the line budget. Each section is under the cap.
-  // Jointly they overflow, so a bisected seal yields ≥2 conforming parts.
+  // Jointly they overflow, so a seal that bisects yields ≥2 conforming parts.
   function multiDaySource(sections = 4, linesPerSection = 150) {
     let text = `# Staff Engineer — 2026-W21\n`;
     for (let s = 0; s < sections; s++) {

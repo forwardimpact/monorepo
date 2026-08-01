@@ -58,7 +58,7 @@ describe("checkProfessionalTitleDisjoint", () => {
       true,
     );
   });
-  test("ignores the literal Level when it tokenises", () => {
+  test("ignores the literal Level token", () => {
     const ds = [{ id: "swe", roleTitle: "Software Engineer Level" }];
     assert.equal(
       checkProfessionalTitleDisjoint({ professionalTitle: "Level I" }, ds).ok,

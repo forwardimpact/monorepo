@@ -97,7 +97,7 @@ describe("Universal Resource Identifier", () => {
     );
   });
 
-  test("Identifier throws an error without a type", () => {
+  test("Identifier throws an error when it generates a URI without a type", () => {
     const id = new resource.Identifier();
     assert.throws(
       () => {
@@ -110,7 +110,7 @@ describe("Universal Resource Identifier", () => {
     );
   });
 
-  test("Identifier throws an error without a name", () => {
+  test("Identifier throws an error when it generates a URI without a name", () => {
     const id = new resource.Identifier({ type: "common.Message" });
     assert.throws(
       () => {

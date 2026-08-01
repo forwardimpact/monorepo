@@ -1,7 +1,7 @@
 /**
  * Level CLI Command
  *
- * Handles the level summary, the ID list, and the detail view in the
+ * Shows the level summary, the level list, and the level detail in the
  * terminal.
  *
  * Usage:

@@ -3,7 +3,8 @@
  *
  * The wake path resolves a mandatory privilege level and logs it. It threads
  * the disclaim flag into the spawn call. It fail-closes a missing or invalid
- * level. It then logs `outpost.privilege.rejected` and spawns nothing.
+ * level. In that case it logs `outpost.privilege.rejected` and spawns
+ * nothing.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";

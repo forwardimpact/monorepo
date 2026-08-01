@@ -15,7 +15,7 @@ const SESSION_SWEEP_MS = 60_000;
  * Builds the MCP prompt. It appends one routing line for each (tool,
  * statement) pair. Tools that the config omits contribute no lines. This
  * also covers tools that an environment strips after init. So the prompt
- * stays in sync with the tools that the config wires.
+ * stays in sync with the actual tool wiring.
  *
  * @param {string} systemPrompt - Static prompt text from config
  * @param {Record<string, { routing?: string[] }>} [tools] - Tool definitions
@@ -48,10 +48,9 @@ function sendInternalError(res, logger, err) {
 
 /**
  * Compares an HTTP `Authorization: Bearer …` header against the configured
- * token in constant time. A `===` comparison short-circuits at the first byte
- * that differs. The time it takes then leaks the token. This function does
- * not short-circuit. The length-mismatch fast path is safe because the
- * expected token's length is not itself a secret.
+ * token in constant time. This avoids a token leak through the per-byte
+ * timing of a `===` short-circuit. The length-mismatch fast path is safe
+ * because the expected token's length is not itself a secret.
  *
  * @param {{ headers: { authorization?: unknown } }} req - Incoming HTTP request
  * @param {string} expectedToken - The configured bearer token

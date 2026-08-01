@@ -38,7 +38,7 @@ export async function createSummitClient({ config, schema = "activity" } = {}) {
     throw new SupabaseUnavailableError(
       "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set. " +
         "Pass --roster <path> for a file-based roster. " +
-        "You can also set the env vars from your Supabase project Settings → API " +
+        "As an alternative, set the env vars from your Supabase project Settings → API " +
         "(monorepo contributors can run `just env-setup`). " +
         `Underlying: ${err.message}`,
     );

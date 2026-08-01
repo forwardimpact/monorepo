@@ -78,7 +78,7 @@ describe("copyActivity", () => {
           err.message.includes(absent),
           `expected error message to include ${absent}, got: ${err.message}`,
         );
-        // raw error — no envelope prefix from runPhase
+        // raw error, no envelope prefix from runPhase
         assert.ok(
           !err.message.startsWith("[substrate stage:"),
           `expected raw error without envelope prefix, got: ${err.message}`,

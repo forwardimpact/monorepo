@@ -53,7 +53,7 @@ async function loadSkillsFromCapabilities(capabilitiesDir) {
           capability: capabilityId, // Add capability from parent
           description: human.description,
           proficiencyDescriptions: human.proficiencyDescriptions,
-          // Include the isHumanOnly flag to filter agents (defaults to false)
+          // Include the isHumanOnly flag for agent filters (defaults to false)
           ...(isHumanOnly && { isHumanOnly }),
           ...(agent && { agent }),
           // Include the content fields for the agent skill

@@ -72,8 +72,8 @@ async function allocate(env, options) {
   const { fold, owner, repo } = await loadFold(env);
   // Backfill registers an anchor for ids that predate the anchor surface. The
   // --ids flag names them, and their event keys already exist in history. A
-  // plain allocate mints the next free ids of the kind. The rebuild conflict
-  // detector guards against a second registration of an already-anchored id.
+  // plain allocate mints the next free ids of the kind. The conflict detector
+  // at rebuild guards against an id that already has an anchor.
   let ids;
   if (options.ids) {
     ids = options.ids

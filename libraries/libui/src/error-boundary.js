@@ -14,7 +14,7 @@ import { render, div, h1, p, a } from "./render.js";
  */
 
 /**
- * Wrap a render function so it handles errors
+ * Wrap a render function so the boundary handles its errors
  * @param {Function} renderFn - Page render function
  * @param {ErrorBoundaryOptions} [options]
  * @returns {Function}

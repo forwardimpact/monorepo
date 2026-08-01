@@ -153,7 +153,7 @@ describe("bootstrapProject — config writer", () => {
     assert.equal(before.equals(after), true);
   });
 
-  test("same-key-different-value write succeeds when overwrites.config lists the top-level key", async () => {
+  test("bootstrapProject overwrites the same-key-different-value when overwrites.config lists the top-level key", async () => {
     await bootstrapProject({
       target: testDir,
       fragment: { product: { x: { foo: "a" } } },
@@ -228,7 +228,7 @@ describe("bootstrapProject — env writer", () => {
     );
   });
 
-  test("same-key-different-value .env write succeeds when overwrites.env lists the key", async () => {
+  test("bootstrapProject overwrites the same-key-different-value in .env when overwrites.env lists the key", async () => {
     await bootstrapProject({
       target: testDir,
       env: { MCP_TOKEN: "old" },

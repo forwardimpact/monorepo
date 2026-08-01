@@ -2,8 +2,8 @@
  * The storyboard skeleton is the minimal, valid storyboard file that
  * `gemba-wiki refresh` writes when the current-month board does not yet exist.
  * It carries only the structural surface libwiki owns: the five Toyota Kata
- * sections and the generic `obstacles`/`experiments` issue-list marker blocks
- * that refresh renders from tracker state.
+ * sections and the generic `obstacles`/`experiments` issue-list marker blocks.
+ * Refresh renders those blocks from tracker state.
  *
  * This skeleton deliberately omits the per-agent `#### {metric}` XmR blocks.
  * Each installation curates which metric belongs to which agent, so libwiki

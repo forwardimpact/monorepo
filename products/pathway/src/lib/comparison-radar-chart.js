@@ -241,7 +241,7 @@ export class ComparisonRadarChart {
     this.tooltip.style.opacity = "1";
   }
 
-  /** Position a tooltip. Compare the current and target values with a directional diff indicator. */
+  /** Position a tooltip. Show the current and target values with a directional diff indicator. */
   showComparisonTooltip(event, currentData, targetData) {
     if (!this.tooltip) return;
 

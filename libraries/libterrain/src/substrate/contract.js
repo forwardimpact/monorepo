@@ -1,9 +1,9 @@
 /**
  * The Substrate Contract — the consumer-defined interface that every
- * `fit-terrain substrate` verb assumes when it touches the stack. Consumers
- * implement the relations (as views or tables) in a dedicated `substrate`
- * Postgres schema exposed through their Supabase API. The verbs never name
- * another schema or any vendor table.
+ * stack-facing `fit-terrain substrate` verb assumes. Consumers implement the
+ * relations (as views or tables) in a dedicated `substrate` Postgres schema
+ * exposed through their Supabase API. The verbs never name another schema or
+ * any vendor table.
  *
  * Normative documentation:
  * https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md

@@ -54,7 +54,7 @@ describe("assertSeededLevelsCovered", () => {
     });
   });
 
-  test("skips the query when no standard is installed", async () => {
+  test("skips the check and never queries when no standard is installed", async () => {
     const runtime = createTestRuntime({ fs: createMockFs({}) });
     const neverQueried = {
       from: () => {

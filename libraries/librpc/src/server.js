@@ -69,7 +69,7 @@ export class Server extends Rpc {
 
     this.#server.addService(definition, wrappedHandlers);
 
-    // Register the standard gRPC health check (no auth wrap, no observer wrap)
+    // Register the standard gRPC health check (no auth, no observer wrap)
     this.#server.addService(
       healthDefinition,
       createHealthHandlers(serviceName),

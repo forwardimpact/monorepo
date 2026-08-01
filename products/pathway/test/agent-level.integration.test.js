@@ -1,9 +1,9 @@
 /**
  * Integration tests for `fit-pathway agent --level=<id>`.
  *
- * Each test stages a copy of products/map/starter into a temp data dir. It
+ * The suite stages a copy of products/map/starter into a temp data dir. It
  * removes the organizational-context slot. Byte-comparisons then cover only
- * the teamInstructions / level-expectations layer. Each test then invokes
+ * the teamInstructions / level-expectations layer. It then invokes
  * runAgentCommand with different combinations of `--level`. The suite covers
  * level-driven output changes, the unknown-level error shape, and the
  * `--list` short-circuit.

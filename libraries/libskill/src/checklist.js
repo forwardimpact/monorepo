@@ -1,5 +1,5 @@
 /**
- * Format Checklists
+ * Checklist Formatting
  *
  * This utility formats skill checklists as markdown.
  */

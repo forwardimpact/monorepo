@@ -23,7 +23,7 @@ function normalizeParams(params, fields) {
 }
 
 /**
- * Register MCP tools from config endpoints with codegen metadata.
+ * Register MCP tools from config endpoints, using codegen metadata.
  *
  * @param {import("@modelcontextprotocol/sdk/server/mcp.js").McpServer} server
  * @param {object} config - Config instance with .tools (from createServiceConfig("mcp"))

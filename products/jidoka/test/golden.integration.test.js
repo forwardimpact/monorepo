@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { runCase } from "../../../scripts/capture-cli-golden.mjs";
 
 // This is the byte-for-byte guard for the CLI contract. The bin must still
-// produce the snapshots that golden/jidoka/ captured. The replay spawns the
+// produce the snapshots captured in golden/jidoka/. The replay spawns the
 // bin, unlike the gemba product's in-process render, because the jidoka
 // definition lives inline in the bin. No library export holds it. `runCase`
 // applies each case's `transform` regexes, which normalise the version,

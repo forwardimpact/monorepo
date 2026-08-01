@@ -4,8 +4,8 @@
  * GitHub's OIDC issuer or JWKS endpoint can rotate. The cache holds the
  * key set for a config-driven TTL. It fetches the key set again when the
  * TTL expires. `invalidate()` marks the cached set stale. The validator
- * then recovers from a signature-verification failure caused by a rotated
- * key. The recovery needs no service restart.
+ * can then recover from a signature-verification failure caused by a
+ * rotated key. The recovery needs no service restart.
  *
  * Any unauthenticated caller can reach `invalidate()`. A forged-signature
  * token drives the validator's invalidate-and-retry path. So a refetch

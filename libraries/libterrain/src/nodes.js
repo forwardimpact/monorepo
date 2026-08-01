@@ -445,7 +445,7 @@ function resolveDatasetConfig(ds, clinical, logger) {
     } else {
       logger.info(
         "pipeline",
-        `Skipping dataset '${ds.id}' condition '${condId}': no synthea_module`,
+        `Skipping dataset '${ds.id}' condition '${condId}' (no synthea_module)`,
       );
     }
   }

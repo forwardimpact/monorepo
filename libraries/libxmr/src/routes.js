@@ -1,12 +1,12 @@
 // kata-implement route-decision registry — the single source of truth for
-// the closed set of routes a kata-implement activation can take. It also
-// holds the metrics that carry route context. It holds the parse and
-// format helpers that read and write the route sub-grammar inside a
-// metrics-CSV `note` field. The recorder (commands/record.js), the
-// validator (csv.js validateRow), and the analyze partition reader
-// (analyze.js) all import from here. A removed or renamed route then
-// breaks the build or the tests at every consumer. .jidoka/invariants
-// guards the published kata-implement reference
+// three things. It holds the closed set of routes a kata-implement
+// activation can take. It holds the metrics that carry route context. It
+// holds the parse and format helpers that read and write the route
+// sub-grammar inside a metrics-CSV `note` field. The recorder
+// (commands/record.js), the validator (csv.js validateRow), and the
+// analyze partition reader (analyze.js) all import from here. A removed
+// or renamed route then breaks the build or the tests at every consumer.
+// .jidoka/invariants guards the published kata-implement reference
 // (references/route-decision.md) against drift from ROUTES.
 
 /** The closed set of kata-implement routes, keyed by bare id. */

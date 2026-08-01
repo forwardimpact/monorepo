@@ -1,7 +1,7 @@
 /**
- * This module holds the shared AgentRunner test setup. `agent-runner.test.js`
- * and its `agent-runner-privilege.test.js` sibling reuse one set of mock
- * collaborators (per .claude/rules/test-file-shape.md).
+ * This module holds the shared AgentRunner test setup. It is lifted here so
+ * `agent-runner.test.js` and its `agent-runner-privilege.test.js` sibling
+ * reuse one set of mock collaborators (per .claude/rules/test-file-shape.md).
  */
 import {
   spy,

@@ -4,9 +4,9 @@
  * This formatter turns job data into markdown job-description content.
  * Its structure parallels formatters/agent/profile.js.
  *
- * It uses Mustache templates to keep the output flexible.
- * It loads templates from the data/ directory. It falls back to the
- * templates/ directory.
+ * Mustache templates keep the output format flexible.
+ * Templates come from the data/ directory. The fallback is the templates/
+ * directory.
  */
 
 import Mustache from "mustache";

@@ -35,7 +35,7 @@ function toWire(row) {
  * Tenant registry service. A thin RPC layer over `TenantStore`.
  *
  * `ResolveByChannelKey` and `ResolveByRepo` return only rows in
- * `state = "active"`. A lookup that matches no row returns an empty
+ * `state = "active"`. A lookup that does not match returns an empty
  * `Tenant` message. The `RegistryTenantResolver` in
  * `libraries/libbridge` treats `state !== "active"` as "no active
  * tenant" and surfaces `null` to the caller. `ResolveByTenantId`

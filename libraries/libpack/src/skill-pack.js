@@ -217,8 +217,8 @@ export class SkillPackPublisher {
 
 /**
  * Insert `license` and a `metadata` block (version + author) just before the
- * closing `---` of a SKILL.md's YAML frontmatter. Return content without
- * frontmatter unchanged.
+ * closing `---` of a SKILL.md's YAML frontmatter. Return the content
+ * unchanged when it has no frontmatter.
  * @param {string} content
  * @param {string} version
  * @returns {string}

@@ -180,7 +180,7 @@ function buildEnrichContext(enrichKey, linked) {
 }
 
 /**
- * Build the LLM prompt that enriches a prose block.
+ * Build the LLM prompt to enrich a prose block.
  * @param {object} ctx - Context from buildEnrichContext
  * @param {string} placeholder - Current placeholder text
  * @param {string} domain - Terrain domain for IRI constraint

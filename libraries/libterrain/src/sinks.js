@@ -25,10 +25,11 @@ const ZERO_STATS = {
 };
 
 // Canonical serializers (`JSON.stringify(…, 2)` and `YAML.stringify`) emit
-// raw documents, so they are already well-formed. A second Prettier pass
-// over the thousands of activity/GetDX fixtures costs ~11s on a full build
-// and changes nothing. Skip those parsers. Let Prettier handle only the
-// content that genuinely needs a reflow (e.g. markdown emails, HTML).
+// raw documents, so those documents are already well-formed. A second
+// Prettier pass over the thousands of activity/GetDX fixtures costs ~11s on
+// a full build and changes nothing. Skip those parsers. Let Prettier handle
+// only the content that genuinely needs a reflow (e.g. markdown emails,
+// HTML).
 const PRESERIALIZED_PARSERS = new Set(["json", "yaml"]);
 
 /** No-op sink that discards pipeline output and returns zero stats. */
@@ -257,11 +258,11 @@ async function ensureDirs(paths, fs) {
 }
 
 /**
- * True when `dir` is a strict descendant of `root`. `dir` is not `root`
- * itself. `dir` is not a path that escapes `root` through `..`. This check
- * guards the destructive clean in `writeFiles`. A stray output path can then
- * never `rm -rf` the output root or anything outside it. That is the primary
- * risk when `fit-terrain` runs in a consumer's repo with `--output-root`.
+ * True when `dir` is a strict descendant of `root`. `dir` must not be `root`
+ * itself. `dir` must not escape `root` through `..`. This check guards the
+ * destructive clean in `writeFiles`. A stray output path can then never
+ * `rm -rf` the output root or anything outside it. That is the primary risk
+ * when `fit-terrain` runs in a consumer's repo with `--output-root`.
  */
 function isInside(root, dir) {
   const rel = relative(root, dir);

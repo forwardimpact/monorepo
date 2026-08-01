@@ -1,5 +1,5 @@
 /**
- * Discipline formatting for DOM output
+ * Discipline formatter for DOM output
  */
 
 import {

@@ -29,8 +29,8 @@ function isRelationAbsent(error) {
 /**
  * Fold `substrate.discovery` key/value rows into one object (e.g.
  * `{snapshot_id, item_id}`). Returns `null` when the relation is absent or
- * empty. The consumer then declared no discovery vector. Any other query
- * error propagates.
+ * empty. The consumer declared no discovery vector. Any other query error
+ * propagates.
  *
  * `substrate issue` also uses this helper. It copies the folded object into
  * `.substrate.json`.

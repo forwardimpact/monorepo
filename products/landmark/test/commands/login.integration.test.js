@@ -205,7 +205,7 @@ describe("runLoginCommand — browser flow", () => {
     assert.equal(result.summary.email, "alice@example.com");
   });
 
-  test("rejects when SUPABASE_URL is absent", async () => {
+  test("rejects when SUPABASE_URL is missing", async () => {
     await assert.rejects(
       () =>
         runLoginCommand({

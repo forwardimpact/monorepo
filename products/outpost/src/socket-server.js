@@ -325,7 +325,7 @@ export class SocketServer {
 }
 
 /**
- * Connect to the daemon and ask it to wake an agent.
+ * Connect to the daemon that already runs and ask it to wake an agent.
  *
  * The wake runs inside the daemon process. That process is the only spawn site
  * that descends from fit-outpost.app. So the spawned `claude` inherits the app

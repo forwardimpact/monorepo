@@ -39,8 +39,8 @@ export function setupTopBar() {
     copyBtn.addEventListener("click", handleCopy);
   }
 
-  // Intercept history.replaceState so the CLI command updates. Some pages
-  // change the hash and do not fire hashchange (e.g. agent builder)
+  // Intercept history.replaceState so the CLI command updates when a page
+  // changes the hash and does not fire hashchange (e.g. agent builder)
   const originalReplaceState = history.replaceState.bind(history);
   history.replaceState = (...args) => {
     originalReplaceState(...args);

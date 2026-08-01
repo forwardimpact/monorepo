@@ -92,7 +92,7 @@ describe("datasets node — condition resolution", () => {
     assert.deepStrictEqual(calls[0].modules, ["diabetes"]);
   });
 
-  test("ignores conditions and leaves modules untouched with no clinical block", async () => {
+  test("ignores conditions and leaves modules untouched when no clinical block exists", async () => {
     const { factory, calls } = makeRecordingFactory();
     const parse = {
       datasets: [

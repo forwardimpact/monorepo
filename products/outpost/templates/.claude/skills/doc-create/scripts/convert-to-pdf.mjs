@@ -3,9 +3,9 @@
  * Convert an HTML document to an A4 PDF with Playwright.
  *
  * The script renders an HTML file into an A4 PDF. It keeps the background
- * colours. It sets zero margins. The HTML must handle its own page layout
- * through CSS @page rules and page-break-after. Without an output path, the
- * script writes the PDF next to the input file.
+ * colours. It sets zero margins. The script expects the HTML to handle its own
+ * page layout through CSS @page rules and page-break-after. Without an output
+ * path, the script writes the PDF next to the input file.
  *
  * Requires: bun install playwright && bunx playwright install chromium
  */

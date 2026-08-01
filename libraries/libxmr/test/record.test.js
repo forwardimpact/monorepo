@@ -47,7 +47,7 @@ describe("gemba-xmr record", () => {
     assert.ok(lines[1].endsWith(",kata-test,local"));
   });
 
-  test("appends only to an existing file", () => {
+  test("append-only on an existing file", () => {
     const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
     const { fs } = run(
       {

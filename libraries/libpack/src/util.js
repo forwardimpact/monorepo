@@ -19,8 +19,8 @@ export async function collectPaths(dir, fs, prefix = ".") {
 
 /** Set mtime and atime to the Unix epoch for every entry under `dir`. */
 export async function resetTimestamps(dir, fs) {
-  // Epoch 0 (seconds). This constant is deterministic and never reads the
-  // ambient clock. So a packed tree is byte-identical no matter when you
+  // Epoch 0 (seconds). This constant is deterministic. It does not come from
+  // the ambient clock. So a packed tree is byte-identical no matter when you
   // stage it.
   const epoch = 0;
   const paths = await collectPaths(dir, fs);

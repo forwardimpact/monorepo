@@ -17,7 +17,7 @@ import { AssertionError } from "node:assert";
 import { isDeepStrictEqual } from "node:util";
 
 /**
- * Render a value for assertion messages. Do not throw on circular refs.
+ * Render a value for assertion messages. It does not throw on circular refs.
  * @param {unknown} value - Value to stringify.
  * @returns {string} Human-readable text.
  */
