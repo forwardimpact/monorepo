@@ -1,23 +1,23 @@
 ---
 name: anarlog-trim
-description: Trim a Anarlog transcript to its logical end. Recordings are often left running after a meeting finishes — this skill finds the natural conclusion (goodbyes, sign-offs) and cuts the transcript there. Use when the user asks to trim, cut, or clean up a Anarlog transcript.
+description: Trim an Anarlog transcript to its logical end. A recording often continues after a meeting finishes. This skill finds the natural conclusion (goodbyes, sign-offs) and cuts the transcript there. Use when the user asks to trim, cut, or clean up an Anarlog transcript.
 ---
 
 # Trim Transcript
 
-Find the logical end of a Anarlog meeting transcript and trim everything after
-it. Meetings recorded with Anarlog often have trailing noise — the mic stays on
-after goodbyes, capturing ambient sound, unrelated chatter, or silence. This
-skill identifies the natural conclusion and edits the transcript in place.
+Find the logical end of an Anarlog meeting transcript. Trim everything after it.
+Meetings that Anarlog records often have noise at the end. The mic stays on
+after the goodbyes and captures ambient sound, unrelated chatter, or silence.
+This skill identifies the natural conclusion and edits the transcript in place.
 
 ## Trigger
 
 Run this skill:
 
-- When the user asks to trim, cut, or clean up a Anarlog transcript
+- When the user asks to trim, cut, or clean up an Anarlog transcript
 - When given a specific session ID to trim
-- When another skill (e.g., anarlog-process) flags a transcript as having
-  excessive trailing content
+- When another skill (e.g., anarlog-process) flags a transcript that has too
+  much content at the end
 
 ## Prerequisites
 
@@ -26,18 +26,19 @@ Run this skill:
 
 ## Inputs
 
-- **Session ID** — a UUID identifying the Anarlog session to trim
+- **Session ID** — the UUID of the Anarlog session to trim
 - `~/Library/Application Support/anarlog/sessions/{uuid}/transcript.json` — the
   word-level transcript
 
 ## Outputs
 
 - `~/Library/Application Support/anarlog/sessions/{uuid}/transcript.json` —
-  edited in place with words after the logical end removed
-- `~/Library/Application Support/anarlog/sessions/{uuid}/audio.mp3` — deleted.
-  Trimming indicates the recording captured audio beyond the consented meeting,
-  so the full audio must be removed to respect participant privacy.
-- Printed summary: original duration, trim point, new duration, words removed
+  this skill edits it in place and removes the words after the logical end
+- `~/Library/Application Support/anarlog/sessions/{uuid}/audio.mp3` — this skill
+  deletes it. A trim means the recording captured audio beyond the consented
+  meeting. Delete the full audio to respect participant privacy.
+- A printed summary of the original duration, the trim point, the new duration,
+  and the words removed
 
 ---
 
@@ -82,10 +83,10 @@ for i, w in enumerate(words):
 
 ### Step 2 — Identify the logical end
 
-Read through the reconstructed text and find the **first point where the meeting
-has clearly concluded**. Look for these signals, roughly in order of strength:
+Read through the reconstructed text. Find the **first point where the meeting
+clearly ended**. Look for these signals, roughly in order of strength:
 
-**Strong ending signals (any one is sufficient):**
+**Strong end signals (any one is sufficient):**
 
 - Explicit farewells: "bye", "bye bye", "goodbye", "take care", "have a good
   day/evening/weekend", "cheers"
@@ -94,7 +95,7 @@ has clearly concluded**. Look for these signals, roughly in order of strength:
 - Meeting close phrases: "that's all", "we're done", "let's wrap up", "I'll let
   you go"
 
-**Supporting signals (strengthen the case but not sufficient alone):**
+**Support signals (they strengthen the case but are not sufficient alone):**
 
 - Long silence gaps (>30 seconds) after a farewell exchange
 - Channel drops — only one speaker remains after goodbyes
@@ -102,23 +103,23 @@ has clearly concluded**. Look for these signals, roughly in order of strength:
 - Filler-only content: repeated "um", "uh", fragments with no meaning
 
 **The trim point** is the end of the last meaningful farewell exchange. Include
-the final "bye" / "thank you" / "take care" from both parties if present, then
+the final "bye" / "thank you" / "take care" from both parties if present. Then
 cut everything after.
 
 ### Step 3 — Confirm with the user
 
-Before modifying the file, show the user:
+Before you modify the file, show the user:
 
 1. The **session title** and **original duration**
 2. The **last ~20 words before the proposed trim point** (as readable text)
 3. The **first ~20 words after the proposed trim point** (what will be removed)
-4. The **new duration** and **number of words being removed**
+4. The **new duration** and the **number of words to remove**
 
-Wait for the user to approve before proceeding.
+Wait for the user to approve before you continue.
 
 ### Step 4 — Trim the transcript
 
-Once approved:
+After the user approves:
 
 1. Read the current `transcript.json` (fresh read, not cached).
 2. Slice the words array at the identified index.
@@ -144,10 +145,10 @@ json.dump(data, open(path, 'w'), indent=2)
 
 ### Step 5 — Delete the audio recording
 
-The fact that a transcript needs trimming means the recording captured audio
-beyond the consented meeting — ambient conversation, unrelated chatter, or other
-people who did not consent to being recorded. The full audio file must be
-deleted to respect participant privacy.
+A transcript that needs a trim shows that the recording captured audio beyond
+the consented meeting. That audio holds ambient conversation, unrelated
+chatter, or other people who did not consent to the recording. Delete the full
+audio file to respect participant privacy.
 
 1. Delete the audio file:
 
@@ -155,29 +156,31 @@ deleted to respect participant privacy.
    rm "~/Library/Application Support/anarlog/sessions/{uuid}/audio.mp3"
    ```
 
-2. Confirm deletion and inform the user:
+2. Confirm that the file is gone and tell the user:
 
    ```text
    Audio deleted: audio.mp3 removed (recording contained unconsented content beyond the meeting)
    ```
 
-This step is **not optional** and does **not require separate user
-confirmation** — the user already approved the trim, which implicitly
-acknowledges the recording went beyond the meeting boundary.
+This step is **not optional**. It does **not require separate user
+confirmation**. The user already approved the trim. That approval acknowledges
+that the recording went beyond the meeting boundary.
 
 ### Step 6 — Verify
 
-Read back the last 10 words of the trimmed transcript to confirm the file was
-written correctly and ends at the expected point. Confirm `audio.mp3` no longer
-exists in the session directory.
+Read back the last 10 words of the trimmed transcript. Confirm that the write
+succeeded and that the transcript ends at the expected point. Confirm that
+`audio.mp3` no longer exists in the session directory.
 
 ---
 
 ## Quality checklist
 
-- [ ] Session ID validated and transcript exists
-- [ ] Logical end identified based on farewell/closing signals
-- [ ] Trim point shown to user and approved before modification
-- [ ] Transcript file written correctly with valid JSON
-- [ ] Audio recording deleted (contains unconsented content beyond meeting)
-- [ ] Post-trim verification confirms expected ending and audio removed
+- [ ] Validate the session ID and confirm the transcript exists
+- [ ] Identify the logical end from the farewell and close signals
+- [ ] Show the trim point to the user and get approval before you edit
+- [ ] Write the transcript file with valid JSON
+- [ ] Delete the audio recording (it holds unconsented content from beyond the
+      meeting)
+- [ ] Verify after the trim that the transcript ends as expected and that the
+      audio is gone

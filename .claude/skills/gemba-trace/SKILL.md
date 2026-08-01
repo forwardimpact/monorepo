@@ -4,16 +4,15 @@ description: >
   See exactly what an agent did and whether a change improved outcomes.
   Use when an agent workflow failed and you need to understand why, when
   you want to measure token usage, cost, and efficiency across runs, or
-  when studying agent behavior patterns from NDJSON traces.
+  when you study agent behavior patterns from NDJSON traces.
 ---
 
 # Trace Analysis
 
-Download agent execution traces from GitHub Actions, query them with structured
-commands, and analyze agent behavior systematically. `gemba-trace` turns raw
-trace artifacts into structured JSON and provides a query interface
-purpose-built for understanding what an agent did, why, and what happened as a
-result.
+Download agent execution traces from GitHub Actions. Query them with structured
+commands. Analyze agent behavior systematically. `gemba-trace` turns raw trace
+artifacts into structured JSON. It also provides a query interface built to
+show what an agent did, why, and what happened as a result.
 
 ## When to Use
 
@@ -23,13 +22,13 @@ result.
 - **Download traces from CI** — `runs`, then `download <run-id>`.
 
 Cross-trace verbs take their file(s) through `--file` (repeat it or pass a
-quoted glob) and print text by default; add `--format json` for the
+quoted glob). They print text by default. Add `--format json` for the
 machine-parseable envelope. `tool`, `turn`, `batch`, `search`, and `compare`
 take their file(s) as positionals.
 
 ## CLI Reference
 
-Install and run via npm:
+Install and run with npm:
 
 ```sh
 npx gemba-trace runs [pattern]                # list recent workflow runs
@@ -60,8 +59,8 @@ Once you have a structured trace file, query it:
 | `filter --file <file> --tool <name>` | Filter by tool name                               |
 | `filter --file <file> --error`   | Error tool results only                               |
 
-Search options: `--limit N` (max results), `--context N` (surrounding turns),
-`--full` (full content blocks in match descriptions).
+Search options: `--limit N` (max results), `--context N` (turns around the
+match), `--full` (full content blocks in match descriptions).
 
 ### Analysis
 
@@ -71,7 +70,7 @@ Search options: `--limit N` (max results), `--context N` (surrounding turns),
 | `stats --file <file> --by-tool`  | Per-tool token attribution and cost share        |
 | `stats --file <file> --summary`  | Totals only (suppress the per-turn array)         |
 | `tools --file <file>`            | Tool usage frequency (descending)                |
-| `tool <file> <name>`             | All turns involving a specific tool              |
+| `tool <file> <name>`             | All turns that involve a specific tool           |
 | `tool-calls --file <file>`       | One record per tool_use, paired with its result  |
 | `commands --file <file> [--match <regex>]` | One record per Bash command            |
 | `paths --file <file> [--prefix <p>]` | Distinct Read/Edit/Write paths, freq-sorted   |
@@ -80,23 +79,23 @@ Search options: `--limit N` (max results), `--context N` (surrounding turns),
 | `reasoning --file <file>`        | Agent reasoning text only                        |
 | `split <file> --mode <mode>`     | Split combined trace into per-source files       |
 
-`tool`, `tools`, and `tool-calls` are adjacent on purpose: `tool <name>` lists
-every turn for one tool, `tools` ranks tools by frequency, and `tool-calls`
-emits one record per `tool_use` block paired with its `tool_result`.
+`tool`, `tools`, and `tool-calls` are adjacent on purpose. `tool <name>` lists
+every turn for one tool. `tools` ranks tools by frequency. `tool-calls` emits
+one record per `tool_use` block paired with its `tool_result`.
 
 Reasoning options: `--from N` and `--to N` to limit turn range.
 
 Multi-file: cross-trace verbs (`overview`, `count`, `head`, `tail`, `tools`,
 `errors`, `reasoning`, `timeline`, `stats`, `init`, `filter`, `tool-calls`,
-`commands`, `paths`) accept several files via repeated `--file` or a quoted
+`commands`, `paths`) accept several files through repeated `--file` or a quoted
 glob. With more than one resolved file, each record carries its source
-basename; a single file (or a glob matching one) carries no prefix.
+basename. A single file (or a glob that resolves to one) carries no prefix.
 
-Split modes: `run`, `supervise`, or `facilitate`. Produces files named
-`trace--<case>--<participant>.<role>.ndjson` (e.g.
+Split modes: `run`, `supervise`, or `facilitate`. `split` produces files with
+the name `trace--<case>--<participant>.<role>.ndjson` (e.g.
 `trace--default--agent.agent.ndjson`). Pass `--case <id>` to embed a case
-identifier (defaults to `default`) and `--output-dir` to control where files
-are written.
+identifier (defaults to `default`). Pass `--output-dir` to control where
+`split` writes the files.
 
 ### Global Options
 
@@ -104,7 +103,7 @@ are written.
 | --------------------- | ------------------------------------------------------ |
 | `--format <text\|json>` | Command output format (default `text`)               |
 | `--signatures`        | Include thinking.signature blobs (stripped by default) |
-| `--json`              | Output **help** as JSON (not command output — use `--format json` for that) |
+| `--json`              | Output **help** as JSON. For command output use `--format json` |
 
 ### Run Listing Options
 
@@ -127,7 +126,7 @@ npx gemba-trace errors --file /tmp/trace-24497273755/structured.json
 npx gemba-trace search /tmp/trace-24497273755/structured.json 'permission denied' --context 1
 ```
 
-Start with `overview` and `timeline` to orient, then drill into specific areas
+Start with `overview` and `timeline` to orient. Then drill into specific areas
 with `search`, `filter`, `tool`, `tool-calls`, and `errors`. To aggregate
 across several traces, repeat `--file` or pass a quoted glob.
 
@@ -135,32 +134,32 @@ across several traces, repeat `--file` or pass a quoted glob.
 
 ## Analysis Method
 
-Trace analysis works best as qualitative research, not checklist verification.
-**Grounded theory** is the recommended approach: let findings emerge from the
-data rather than testing a hypothesis.
+Trace analysis works best as qualitative research. Do not treat it as
+checklist verification. **Grounded theory** is the recommended approach. Let
+findings emerge from the data. Do not test a hypothesis.
 
 ### Core Principles
 
-1. **Begin with no hypothesis.** Read the trace before forming opinions about
+1. **Begin with no hypothesis.** Read the trace before you form opinions about
    what went wrong.
 2. **Use the trace's own language.** Label observations with terms from the
-   actual output — error messages, tool names, status codes — not abstract
-   categories you bring to the analysis.
-3. **Write memos as you go.** Short notes on why something surprised you, or
-   connections between observations. Memos written during analysis are far more
-   valuable than retrospective summaries.
-4. **Read the full trace.** Skimming produces shallow findings. Every turn, tool
-   call, and result matters — agents often fail because of subtle interactions
+   actual output (error messages, tool names, status codes). Do not use
+   abstract categories you bring to the analysis.
+3. **Write memos as you go.** Write short notes on why something surprised you,
+   or on connections between observations. Memos written during analysis are
+   far more valuable than retrospective summaries.
+4. **Read the full trace.** A skim produces shallow findings. Every turn, tool
+   call, and result matters. Agents often fail because of subtle interactions
    between steps that look fine in isolation.
-5. **Seek a central explanation, not a bug list.** The most useful analysis
-   output is a theory that connects multiple observations, not an itemized list
-   of issues.
+5. **Seek a central explanation.** Do not produce a bug list. The most useful
+   analysis output is a theory that connects multiple observations. An itemized
+   list of issues is weaker.
 
 ### From Observations to Findings
 
 As you read the trace, assign short labels (codes) to meaningful events. Group
-related codes into categories by asking: what caused this, what happened, what
-was the context, how did the agent react, and what were the consequences?
+related codes into categories. Ask what caused this, what happened, what the
+context was, how the agent reacted, and what the consequences were.
 
 Look for: causal chains, repeated patterns, contrasts (same operation succeeded
 in one context but failed in another), and temporal patterns (early vs. late).
@@ -172,11 +171,12 @@ The strongest findings are **grounded** (traceable to specific turns),
 ### What to Measure
 
 - **Token usage** — `stats` totals sum over **all** result events (the last one
-  alone undercounts). Each total names its population; a trace with no result
+  alone undercounts). Each total names its population. A trace with no result
   event falls back to per-message totals (cost and duration unavailable).
 - **Retry counts** — search for repeated identical tool calls.
 - **Wasted turns** — turns that produced no useful progress.
-- **Error recovery** — did the agent diagnose and adapt, or retry blindly?
+- **Error recovery** — check whether the agent diagnosed and adapted, or
+  retried blindly.
 - **Intent vs. execution** — compare `reasoning` output to actual tool calls.
 
 ---
@@ -189,5 +189,5 @@ The strongest findings are **grounded** (traceable to specific turns),
 - [Run an Eval](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md)
   — How `gemba-harness supervise` produces the traces this skill analyzes.
 - [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
-  — End-to-end workflow including multi-agent collaboration; `split` is the
-  bridge into per-source trace files.
+  — End-to-end workflow that also covers multi-agent collaboration. `split` is
+  the bridge into per-source trace files.

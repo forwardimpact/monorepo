@@ -1,16 +1,25 @@
 /**
- * Numeric severity per syslog ordering. Mirrors the LOG_LEVEL contract used
- * by libtelemetry. Inlined here so libcli stays free of telemetry deps.
+ * Numeric severity in syslog order. This mirrors the LOG_LEVEL contract that
+ * libtelemetry uses. The constant lives here so libcli stays free of
+ * telemetry deps.
  */
 const LEVELS = { error: 0, warn: 1, info: 2, debug: 3, trace: 3 };
 const DEFAULT_LEVEL = "info";
 
-/** Render post-run summary blocks to stdout; successful blocks are suppressed only when LOG_LEVEL=error is explicitly set (default level is "info", which renders all blocks). */
+/**
+ * Render post-run summary blocks to stdout. The renderer suppresses a
+ * successful block only when the environment explicitly sets LOG_LEVEL=error.
+ * The default level is "info", and it renders all blocks.
+ */
 export class SummaryRenderer {
   #proc;
   #level;
 
-  /** Initialize the renderer, reading LOG_LEVEL from the environment; defaults to "info" (all blocks rendered) when LOG_LEVEL is absent or unrecognized. */
+  /**
+   * Initialize the renderer and read LOG_LEVEL from the environment. The level
+   * defaults to "info" when LOG_LEVEL is absent or unrecognized. At that level
+   * the renderer renders all blocks.
+   */
   constructor({ process }) {
     this.#proc = process;
     const raw = (process.env?.LOG_LEVEL || "").toLowerCase().trim();
@@ -18,10 +27,10 @@ export class SummaryRenderer {
   }
 
   /**
-   * Whether a block describing a run with the given `ok` would be rendered
-   * under the current LOG_LEVEL. Centralizes the suppression rule so callers
-   * that need to gate richer output (tables, multi-line blocks) on the same
-   * policy don't need to reimplement the level check.
+   * Report whether the renderer would render a block for a run with the given
+   * `ok` under the current LOG_LEVEL. This method centralizes the suppression
+   * rule. A caller that gates richer output (tables, multi-line blocks) on the
+   * same policy does not reimplement the level check.
    *
    * @param {boolean} ok
    * @returns {boolean}
@@ -36,22 +45,24 @@ export class SummaryRenderer {
   }
 
   /**
-   * Render a summary block. A block is **atomic, including its top margin**:
-   * `render` prepends a single blank line before the title so blocks visually
-   * separate from preceding output, and the whole unit (margin + title + items
-   * + extras) is suppressed together when LOG_LEVEL=error and the caller
-   * reports success (`ok: true`). A failing run still prints so the user sees
-   * the diagnostic context regardless of verbosity.
+   * Render a summary block. **A block is atomic, and it includes its top
+   * margin.** `render` prepends a single blank line before the title, so a
+   * block separates visually from the output before it. `render` suppresses
+   * the whole unit (margin + title + items + extras) together when
+   * LOG_LEVEL=error and the caller reports success (`ok: true`). A run that
+   * fails still prints, so the user sees the diagnostic context at any
+   * verbosity.
    *
-   * Because the margin is owned by the block, callers MUST NOT print their own
-   * `\n` before `render`. Doing so leaks a stray blank line when the block is
-   * suppressed, and double-spaces it when the block renders.
+   * The block owns the margin, so callers MUST NOT print their own `\n`
+   * before `render`. A caller that prints one leaks a stray blank line when
+   * `render` suppresses the block. It also double-spaces the block when
+   * `render` renders it.
    *
    * @param {object}   params
-   * @param {string}   params.title       Block title (rendered after the leading blank line).
+   * @param {string}   params.title       Block title. `render` writes it after the leading blank line.
    * @param {Array<{label: string, description: string}>} params.items  Rows.
    * @param {boolean}  params.ok          Whether the run this summary describes succeeded.
-   * @param {string}   [params.extras]    Free-form content rendered after items. Subject to the same suppression as the rest of the block.
+   * @param {string}   [params.extras]    Free-form content that `render` writes after the items. The same suppression applies to it.
    * @param {{ write: (s: string) => void }} [stream]  Defaults to process.stdout.
    */
   render({ title, items, ok, extras }, stream = this.#proc.stdout) {

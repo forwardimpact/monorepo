@@ -32,15 +32,17 @@ const SKILLS = [
 
 describe("isCapability", () => {
   // Property: every value in the Capability enum is a recognised capability.
-  // Single path (`VALID_CAPABILITIES.has(key)`); the per-value delivery/scale/ai
-  // blocks asserted the same shape and collapse into this loop.
+  // Single path (`VALID_CAPABILITIES.has(key)`). The per-value
+  // delivery/scale/ai blocks asserted the same shape. They collapse into this
+  // loop.
   test("returns true for every Capability enum value (property)", () => {
     for (const cap of Object.values(Capability)) {
       assert.strictEqual(isCapability(cap), true, `${cap} should be valid`);
     }
   });
 
-  // Boundary cases for the false branch — each is a distinct kind of non-key.
+  // Boundary cases for the false branch. Each one is a distinct kind of
+  // non-key.
   test("returns false for a skill ID, empty string, and arbitrary strings", () => {
     assert.strictEqual(isCapability("coding"), false); // skill ID
     assert.strictEqual(isCapability(""), false); // empty string
@@ -104,7 +106,7 @@ describe("getSkillsByCapability", () => {
 
 describe("buildCapabilityToSkillsMap", () => {
   // Property: the map's key set is exactly the Capability enum, regardless of
-  // input — every enum value is present (seeded with `[]`) and nothing else is.
+  // input. Every enum value is present (seeded with `[]`) and nothing else is.
   // Single path (the `for (const capability of VALID_CAPABILITIES)` seed loop).
   test("keys are exactly the Capability enum for any input (property)", () => {
     for (const skills of [SKILLS, []]) {
@@ -117,7 +119,7 @@ describe("buildCapabilityToSkillsMap", () => {
 
   // Boundary: a capability with multiple skills, one with a single skill, and
   // capabilities with no skills (empty arrays).
-  test("groups skill IDs by capability; unmatched capabilities stay empty", () => {
+  test("groups skill IDs by capability and leaves unmatched capabilities empty", () => {
     const result = buildCapabilityToSkillsMap(SKILLS);
     assert.deepStrictEqual(result.delivery, ["coding", "testing"]); // many
     assert.deepStrictEqual(result.scale, ["architecture"]); // one
@@ -126,7 +128,7 @@ describe("buildCapabilityToSkillsMap", () => {
     assert.deepStrictEqual(result.business, []); // none
   });
 
-  // Boundary: empty input — every key maps to an empty array.
+  // Boundary: empty input. Every key maps to an empty array.
   test("handles empty skills array", () => {
     const result = buildCapabilityToSkillsMap([]);
     for (const cap of Object.values(Capability)) {
@@ -134,7 +136,7 @@ describe("buildCapabilityToSkillsMap", () => {
     }
   });
 
-  // Boundary: an unrecognized capability key is dropped entirely.
+  // Boundary: the map drops an unrecognized capability key entirely.
   test("ignores skills with unrecognized capability", () => {
     const skills = [{ id: "x", name: "X", capability: "unknown_cap" }];
     const result = buildCapabilityToSkillsMap(skills);
@@ -202,7 +204,7 @@ describe("expandModifiersToSkills", () => {
     assert.deepStrictEqual(result, {});
   });
 
-  test("capability with no matching skills produces no entries", () => {
+  test("produces no entries when no skill has that capability", () => {
     const result = expandModifiersToSkills({
       skillModifiers: { people: 1 },
       skills: SKILLS,
@@ -230,7 +232,7 @@ describe("extractCapabilityModifiers", () => {
     assert.deepStrictEqual(result, { delivery: 1, scale: -1 });
   });
 
-  test("returns empty object when no capabilities present", () => {
+  test("returns empty object when the input has no capabilities", () => {
     const input = { coding: 1, testing: 2 };
     const result = extractCapabilityModifiers(input);
     assert.deepStrictEqual(result, {});
@@ -292,7 +294,7 @@ describe("extractSkillModifiers", () => {
 // =============================================================================
 
 describe("resolveSkillModifier", () => {
-  test("returns capability modifier for a matching skill", () => {
+  test("returns capability modifier for a skill that matches", () => {
     const modifiers = { delivery: 1, scale: -1 };
     const result = resolveSkillModifier({
       skillId: "coding",
@@ -322,7 +324,7 @@ describe("resolveSkillModifier", () => {
     assert.strictEqual(result, 0);
   });
 
-  test("returns 0 when skill ID is not found", () => {
+  test("returns 0 for an unknown skill ID", () => {
     const modifiers = { delivery: 1 };
     const result = resolveSkillModifier({
       skillId: "nonexistent",

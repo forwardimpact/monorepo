@@ -8,7 +8,7 @@ import { ProcessorBase } from "@forwardimpact/libutil";
 /**
  * Batch processes HTML knowledge files into structured Message resources.
  * Implements RDF union semantics to merge entity references across files.
- * See docs/reference.md for detailed processing pipeline and architecture.
+ * See docs/reference.md for the detailed pipeline and architecture.
  */
 export class ResourceProcessor extends ProcessorBase {
   #resourceIndex;
@@ -19,8 +19,8 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Creates a new ResourceProcessor instance
-   * @param {string} baseIri - Base IRI for resource identification (fallback if HTML lacks <base>)
-   * @param {object} resourceIndex - Index for storing/retrieving Message resources
+   * @param {string} baseIri - Base IRI to identify resources (fallback if HTML lacks <base>)
+   * @param {object} resourceIndex - Index that stores and retrieves Message resources
    * @param {object} knowledgeStorage - Storage backend for HTML knowledge files
    * @param {object} parser - Parser instance for HTML→RDF conversions
    * @param {object} logger - Logger instance
@@ -63,9 +63,9 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   * Extracts base IRI from the document's base element or uses fallback
+   * Extracts the base IRI from the document's base element or uses a fallback
    * @param {object} document - Parsed document with HTML (linkedom)
-   * @param {string} key - Storage key (filename) for fallback IRI generation
+   * @param {string} key - Storage key (filename) that forms the fallback IRI
    * @returns {string} Base IRI to use for this document
    */
   #extractBaseIri(document, key) {
@@ -79,7 +79,7 @@ export class ResourceProcessor extends ProcessorBase {
 
   /**
    * Merge a parsed item with an existing resource from the persistent index.
-   * Returns the merged item if new quads were added, or null to skip.
+   * Returns the merged item if the merge added new quads. Returns null to skip.
    */
   async #mergeWithExisting(parsedItem, name, id) {
     const [existing] = await this.#resourceIndex.get([id]);
@@ -101,10 +101,10 @@ export class ResourceProcessor extends ProcessorBase {
   }
 
   /**
-   * Parses HTML DOM and extracts structured items with RDF union merging.
-   * Implements entity merging across files using stable IRI-based identifiers.
+   * Parses the HTML DOM and extracts structured items with an RDF union merge.
+   * It merges entities across files with stable IRI-based identifiers.
    * @param {object} document - Parsed and sanitized document (linkedom)
-   * @param {string} baseIri - Base IRI for resolving relative references
+   * @param {string} baseIri - Base IRI that resolves relative references
    * @returns {Promise<Array>} Array of item objects ready for processItem()
    */
   async #parseHTML(document, baseIri) {

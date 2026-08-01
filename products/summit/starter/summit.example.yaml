@@ -1,6 +1,7 @@
-# Example Summit roster — copy to your data directory as summit.yaml.
-# All disciplines, levels, and tracks referenced here must be defined in
-# your Map agent-aligned engineering standard data. This example uses the starter standard:
+# Example Summit roster. Copy it to your data directory as summit.yaml.
+# Your Map data for the agent-aligned engineering standard must define every
+# discipline, level, and track that this file references. This example uses the
+# starter standard:
 #   discipline: software-engineering
 #   levels: J040 (Level I), J060 (Level II)
 #   tracks: platform, forward-deployed

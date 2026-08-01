@@ -19,14 +19,14 @@ const index = createGraphIndex('mygraph');
 
 - [Query a Knowledge Graph](https://www.forwardimpact.team/docs/libraries/ground-agents/query-graph/index.md)
   — answer relationship questions from an RDF graph index with triple-pattern
-  queries (`fit-rag query`) and type-filtered subject listings
+  queries (`fit-rag query`) and type-filtered subject lists
   (`fit-rag subjects`).
 - [Give Agents Typed, Retrievable Knowledge](https://www.forwardimpact.team/docs/libraries/ground-agents/index.md)
-  — the full workflow for building and populating the graph index from HTML
+  — the full workflow to build and populate the graph index from HTML
   knowledge sources.
 
 ## Internal CLIs
 
 The `fit-process graphs` build step (in [`librag`](../librag/README.md)) turns
-resources into RDF graphs as part of populating the index. It is not an
-agent-facing tool.
+resources into RDF graphs. The step does this as it populates the index. It is
+not an agent-facing tool.

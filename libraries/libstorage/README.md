@@ -21,43 +21,42 @@ const data = await storage.get('key.json');
 The library's published surface is the `createStorage` factory and the
 `StorageInterface` it returns. The `fit-storage` CLI (`upload`, `download`,
 `list`, `create-bucket`, `wait`) is an **internal deployment tool** that syncs a
-local `data/` directory to and from a remote bucket. It has no launcher package,
-so it is not a public `npx fit-*` CLI, and the three-artifact linking rule
+local `data/` directory to and from a remote bucket. It has no launcher package.
+It is not a public `npx fit-*` CLI. The three-artifact linking rule
 (`libraries/CLAUDE.md` § CLIs and progressive documentation) does not apply to
-it — there is deliberately no `SKILL.md` and no `documentation` array. The
-library itself is documented as the persistence substrate in the
+it. It deliberately has no `SKILL.md` and no `documentation` array. The
 [Ground Agents in Context](https://www.forwardimpact.team/docs/libraries/ground-agents/index.md)
-guide.
+guide documents the library as the persistence substrate.
 
 ## Atomicity
 
-`put(key, data)` is a same-target atomic file-replace on the local backend:
-a process termination at any point during the call leaves the target file
-at either its prior content or the new content — never an intermediate
+`put(key, data)` is a same-target atomic file-replace on the local backend.
+If the process stops at any point during the call, the target file keeps
+either its prior content or the new content. It never keeps an intermediate
 prefix. The mechanism is a same-directory tmp sibling plus POSIX
-`rename(2)` — see `LocalStorage.put` in `src/local.js`. The S3 and Supabase
+`rename(2)`. See `LocalStorage.put` in `src/local.js`. The S3 and Supabase
 backends inherit the same shape from their service `PutObject` semantics.
 
 **Reserved infix:** `.libstorage-tmp.` — consumers must not produce keys
-containing this literal. The local backend uses
-`<target>.libstorage-tmp.<nonce>` as the per-call tmp sibling and `list` /
-`findByPrefix` / `findByExtension` filter the sentinel out of their results so a
-process-killed tmp survivor is invisible to in-process consumers.
+that contain this literal. The local backend uses
+`<target>.libstorage-tmp.<nonce>` as the per-call tmp sibling. `list`,
+`findByPrefix`, and `findByExtension` filter the sentinel out of their results.
+A tmp survivor from a killed process stays invisible to in-process consumers.
 
 Covered:
 
 - Same-target atomicity for `LocalStorage.put` (POSIX `rename(2)`).
-- Concurrent same-key `put` calls — each uses a unique tmp; last rename
-  wins, matching the prior last-writer-wins outcome.
-- In-process listings exclude tmp survivors (no consumer needs to know
-  about the sentinel).
+- Concurrent same-key `put` calls — each call uses a unique tmp. The last
+  rename wins. This matches the prior last-writer-wins outcome.
+- The in-process list functions exclude tmp survivors (no consumer needs to
+  know about the sentinel).
 
 Not covered:
 
-- `fsync` durability — a power loss after the kernel acknowledged the
-  rename but before the page cache flushed may still lose the write.
-- Cross-process concurrent-writer correctness — two processes racing on
+- `fsync` durability — the kernel acknowledges the rename before the page
+  cache flushes. A power loss in that window can still lose the write.
+- Cross-process concurrent-writer correctness — two processes that race on
   the same key still produce a last-writer-wins outcome.
 - Operator-owned disk reclamation of orphan tmp files left by a process
-  kill mid-`put` — the filter hides them from the API; on-disk bytes
-  remain until removed by the owning operator.
+  kill mid-`put` — the filter hides them from the API. The on-disk bytes
+  remain until the owning operator removes them.

@@ -1,7 +1,7 @@
 /**
  * Engineering Pathway Type Definitions
  *
- * This module defines all data structures used in the engineering pathway.
+ * This module defines all data structures for the engineering pathway.
  */
 
 /**
@@ -18,7 +18,7 @@ export const SkillProficiency = {
 };
 
 /**
- * Ordered array of skill proficiencies for comparison/clamping
+ * Ordered array of skill proficiencies to compare and clamp
  * @type {string[]}
  */
 export const SKILL_PROFICIENCY_ORDER = [
@@ -43,7 +43,7 @@ export const BehaviourMaturity = {
 };
 
 /**
- * Ordered array of behaviour maturity levels for comparison/clamping
+ * Ordered array of behaviour maturity levels to compare and clamp
  * @type {string[]}
  */
 export const BEHAVIOUR_MATURITY_ORDER = [
@@ -76,7 +76,7 @@ export const Capability = {
 // ============================================================================
 // Data-driven Capability Functions
 // ============================================================================
-// These functions work with loaded capability data for responsibility derivation
+// These functions work with loaded capability data to derive responsibilities
 
 /**
  * Get capability metadata from loaded capability data
@@ -102,14 +102,15 @@ export function getCapabilityOrder(capabilities) {
 /**
  * Group skills by capability in display order
  * @param {import('./levels.js').Skill[]} skills - Array of skills to group
- * @param {Object[]} capabilities - Loaded capabilities array for ordering
+ * @param {Object[]} capabilities - Loaded capabilities array that defines the order
  * @returns {Object<string, import('./levels.js').Skill[]>} Object with capabilities as keys (in display order)
  */
 export function groupSkillsByCapability(skills, capabilities) {
   const capabilityOrder = getCapabilityOrder(capabilities);
   const result = {};
 
-  // Initialize all capabilities in display order (ensures consistent key order)
+  // Initialize all capabilities in display order. This keeps the key order
+  // consistent.
   for (const capability of capabilityOrder) {
     result[capability] = [];
   }
@@ -121,7 +122,7 @@ export function groupSkillsByCapability(skills, capabilities) {
     }
   }
 
-  // Remove empty capabilities and sort skills within each capability by name
+  // Remove empty capabilities. Sort the skills in each capability by name.
   for (const capability of Object.keys(result)) {
     if (result[capability].length === 0) {
       delete result[capability];
@@ -147,8 +148,8 @@ export function getCapabilityEmoji(capabilities, capabilityId) {
 /**
  * Get responsibility statement for a capability at a specific skill proficiency
  *
- * Uses professionalResponsibilities for professional disciplines and
- * managementResponsibilities for management disciplines.
+ * This function uses professionalResponsibilities for professional
+ * disciplines. It uses managementResponsibilities for management disciplines.
  *
  * @param {Object[]} capabilities - Loaded capabilities array
  * @param {string} capabilityId - The capability ID
@@ -222,9 +223,9 @@ export const SkillType = {
  * @property {string} [name] - Legacy display name (deprecated, use specialization/roleTitle)
  * @property {string} description - Description of the discipline
  * @property {Array<string|null>} validTracks - Valid track configurations. null = allow trackless (generalist), string = track ID
- * @property {string[]} coreSkills - Skill IDs requiring deep expertise (Practitioner/Expert)
- * @property {string[]} supportingSkills - Skill IDs requiring solid competence (Working/Practitioner)
- * @property {string[]} broadSkills - Skill IDs requiring awareness (Awareness/Foundational)
+ * @property {string[]} coreSkills - Skill IDs that need deep expertise (Practitioner/Expert)
+ * @property {string[]} supportingSkills - Skill IDs that need solid competence (Working/Practitioner)
+ * @property {string[]} broadSkills - Skill IDs that need awareness (Awareness/Foundational)
  * @property {Object<string, number>} behaviourModifiers - Map of behaviour ID to modifier (+1, 0, -1)
  */
 
@@ -273,7 +274,7 @@ export const SkillType = {
  * @property {string} managementTitle - Display name for management track (e.g., "Associate", "Director")
  * @property {string} [name] - Legacy display name (deprecated, use professionalTitle/managementTitle)
  * @property {string} [typicalExperienceRange] - Typical years of experience range (e.g., "0-2", "20+")
- * @property {number} ordinalRank - Numeric level for ordering (higher = more senior)
+ * @property {number} ordinalRank - Numeric level that sets the order (higher = more senior)
  * @property {LevelSkillProficiencies} baseSkillProficiencies - Base skill proficiencies by skill type
  * @property {string} baseBehaviourMaturity - Base behaviour maturity level
  * @property {LevelExpectations} expectations - Role expectations
@@ -364,8 +365,8 @@ export const SkillType = {
  * @property {number} overallScore - Combined weighted score (0-1)
  * @property {number} skillScore - Skill match score (0-1)
  * @property {number} behaviourScore - Behaviour match score (0-1)
- * @property {MatchingWeights} weightsUsed - The weights used in calculation
- * @property {MatchGap[]} gaps - Array of gaps where requirements not met
+ * @property {MatchingWeights} weightsUsed - The weights used in the calculation
+ * @property {MatchGap[]} gaps - Array of gaps where requirements are not met
  * @property {MatchTierInfo} tier - Match tier classification
  * @property {MatchGap[]} priorityGaps - Top 3 gaps by severity for focused development
  * @property {number} [expectationsScore] - For senior roles, expectations match score
@@ -420,7 +421,7 @@ export const SkillType = {
 
 /**
  * @typedef {Object} InterviewGuide
- * @property {JobDefinition} job - The job being interviewed for
+ * @property {JobDefinition} job - The job for this interview
  * @property {InterviewQuestion[]} questions - Ordered list of questions
  * @property {number} estimatedMinutes - Total estimated time
  * @property {Object} coverage - Coverage summary
@@ -440,7 +441,7 @@ export const SkillType = {
  * @typedef {Object} ValidationWarning
  * @property {string} type - Warning type identifier
  * @property {string} message - Human-readable warning message
- * @property {string} [path] - Path to the concerning data
+ * @property {string} [path] - Path to the data the warning is about
  */
 
 /**
@@ -475,7 +476,7 @@ export function getBehaviourMaturityIndex(maturity) {
 }
 
 /**
- * Clamp a skill proficiency index to valid range
+ * Clamp a skill proficiency index to the valid range
  * @param {number} index - The index to clamp
  * @returns {string} The clamped skill proficiency
  */
@@ -488,7 +489,7 @@ export function clampSkillProficiency(index) {
 }
 
 /**
- * Clamp a behaviour maturity index to valid range
+ * Clamp a behaviour maturity index to the valid range
  * @param {number} index - The index to clamp
  * @returns {string} The clamped maturity level
  */

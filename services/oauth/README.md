@@ -9,20 +9,20 @@ to a configured provider backend over gRPC.
 
 ## Prerequisites
 
-- A running provider backend (currently `ghuser`) that implements the
+- A provider backend (currently `ghuser`) that runs and implements the
   `Begin`, `Complete`, and `Redeem` RPCs.
 
-Configuration (loaded via `createServiceConfig("oauth")`):
+Configuration (loaded with `createServiceConfig("oauth")`):
 
 | Env var | Purpose |
 | --- | --- |
 | `SERVICE_OAUTH_URL` | Listen URL (default `http://localhost:3010`) |
 | `SERVICE_OAUTH_ISSUER` | Authorization server issuer URL (used in metadata document) |
-| `SERVICE_OAUTH_PROVIDER` | Backend provider service name, resolved via `createClient` (default `ghuser`) |
+| `SERVICE_OAUTH_PROVIDER` | Backend provider service name, resolved with `createClient` (default `ghuser`) |
 
 ## Running
 
-Add `oauth` to `config/config.json` under `init.services` — see
+Add `oauth` to `config/config.json` under `init.services`. See
 [`config/CLAUDE.md`](../../config/CLAUDE.md) for the entry format. List
 `oauthtunnel` with the other tunnels (before services) and `ghuser`
 before `oauth` (dependency first).
@@ -34,14 +34,14 @@ bunx fit-rc start
 ```
 
 The tunnel uses a quick `trycloudflare.com` hostname that changes on
-every restart. After starting, check the tunnel log for the assigned URL:
+every restart. After you start it, check the tunnel log for the assigned URL:
 
 ```sh
 cat data/logs/oauthtunnel/current | grep trycloudflare.com
 ```
 
-Set the tunnel domain as `SERVICE_GHUSER_LINK_BASE_URL` in `.env` (so
-`ghuser` composes the correct `LinkRequired.authorize_url`), then restart
+Set the tunnel domain as `SERVICE_GHUSER_LINK_BASE_URL` in `.env`, so
+`ghuser` composes the correct `LinkRequired.authorize_url`. Then restart
 the auth services:
 
 ```sh
@@ -68,9 +68,9 @@ Verify the metadata document:
 curl https://<tunnel-domain>/.well-known/oauth-authorization-server
 ```
 
-Returns the issuer, authorization endpoint, token endpoint, supported
-response types (`code`), grant types (`authorization_code`), and code
-challenge methods (`S256`).
+The endpoint returns the issuer, authorization endpoint, token endpoint,
+supported response types (`code`), grant types (`authorization_code`), and
+code challenge methods (`S256`).
 
 Verify the authorize redirect:
 
@@ -78,6 +78,6 @@ Verify the authorize redirect:
 curl -sI 'https://<tunnel-domain>/authorize?surface=test&surface_user_id=you'
 ```
 
-Returns a `302` redirect to the upstream provider's authorization URL.
-The full linking flow is described in the
-[ghuser README](../ghuser/README.md#smoke-test).
+The endpoint returns a `302` redirect to the upstream provider's
+authorization URL. The [ghuser README](../ghuser/README.md#smoke-test)
+describes the full link flow.

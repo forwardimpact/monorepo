@@ -82,7 +82,7 @@ describe("createHealthHandlers", () => {
     assert.strictEqual(response.status, ServingStatus.SERVING);
   });
 
-  test("matching service name returns SERVING", async () => {
+  test("same service name returns SERVING", async () => {
     const handlers = createHealthHandlers("Graph");
     const response = await checkAsync(handlers, "Graph");
     assert.strictEqual(response.status, ServingStatus.SERVING);
@@ -96,7 +96,7 @@ describe("createHealthHandlers", () => {
 });
 
 describe("Server health registration", () => {
-  test("start() registers health service alongside application service", async () => {
+  test("start() registers the health service alongside the application service", async () => {
     const mockService = {
       getHandlers: () => ({
         TestMethod: async () => ({ result: "test" }),
@@ -125,7 +125,7 @@ describe("Server health registration", () => {
     assert.ok(server);
   });
 
-  test("health handlers bypass auth wrapping", async () => {
+  test("health handlers bypass the auth wrap", async () => {
     let authCallCount = 0;
     const trackingAuthFn = () => ({
       createClientInterceptor: () => () => {},

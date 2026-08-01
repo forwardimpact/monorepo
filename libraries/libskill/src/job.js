@@ -1,12 +1,12 @@
 /**
  * Job Model
  *
- * Pure functions for preparing job data for display.
- * Parallels model/agent.js in structure.
+ * Pure functions that prepare job data for display.
+ * This module parallels the structure of model/agent.js.
  *
- * Functions that need caching accept a `jobCache` parameter (created
- * via `createJobCache()`). Callers without a cache can pass `null`
- * and a fresh (uncached) derivation will be performed.
+ * Functions that need a cache accept a `jobCache` parameter. Create it
+ * with `createJobCache()`. Callers without a cache can pass `null`. The
+ * function then derives the job without a cache.
  */
 
 import {
@@ -19,7 +19,7 @@ import { isValidJobCombination } from "./derivation-validation.js";
 import { deriveToolkit } from "./toolkit.js";
 
 /**
- * Get or derive a job, optionally using a cache.
+ * Get or derive a job, with an optional cache.
  * @param {import('./job-cache.js').JobCache|null} jobCache
  * @param {Object} params
  * @returns {Object|null}
@@ -200,7 +200,7 @@ export function prepareJobSummary({
  */
 
 /**
- * Prepare job builder preview for form validation
+ * Prepare the job builder preview to validate the form
  * @param {Object} params
  * @param {Object|null} params.discipline
  * @param {Object|null} params.level

@@ -1,7 +1,8 @@
 /**
  * Policy Module Index
  *
- * Re-exports all policy constants, predicates, filters, and orderings.
+ * This module re-exports all policy constants, predicates, filters, and
+ * orderings.
  *
  * Usage:
  *   import { THRESHOLD_MATCH_STRONG, isAgentEligible, filterHighestLevel }
@@ -68,7 +69,7 @@ export {
   // Match result limits
   LIMIT_PRIORITY_GAPS,
   WEIGHT_SAME_TRACK_BONUS,
-  // Realistic match filtering
+  // Filters for realistic matches
   RANGE_LEVEL_OFFSET,
   RANGE_READY_LEVEL_OFFSET,
   // Driver coverage thresholds
@@ -144,12 +145,12 @@ export {
 
 // Composed policies
 export {
-  // Agent skill filtering
+  // Filters for agent skills
   filterAgentSkills,
   filterToolkitSkills,
   // Agent profile focus
   focusAgentSkills,
-  // Sorting
+  // Sort functions
   sortAgentSkills,
   sortAgentBehaviours,
   sortJobSkills,

@@ -21,8 +21,8 @@ Omit `[service]` to operate on all configured services.
 
 ## Configuration
 
-`fit-rc` reads the `init` block from `config/config.json` via
-`createInitConfig()`. Services are declared in dependency order.
+`fit-rc` reads the `init` block from `config/config.json` with
+`createInitConfig()`. Declare the services in dependency order.
 
 ```json
 {
@@ -38,12 +38,12 @@ Omit `[service]` to operate on all configured services.
 
 ### Service types
 
-**Longrun** (default) — continuously running, supervised by `svscan`,
-auto-restarted on crash. Defined with `command`.
+**Longrun** (default) — runs continuously. `svscan` supervises it and
+restarts it on a crash. Define it with `command`.
 
-**Oneshot** — runs once on start/stop. Defined with `type: "oneshot"`,
-`up`, and optionally `down`. Add `"optional": true` to skip with a
-warning instead of failing.
+**Oneshot** — runs once on start/stop. Define it with `type: "oneshot"`,
+`up`, and optionally `down`. Add `"optional": true`. The service then
+skips with a warning and does not fail.
 
 ## Programmatic usage
 
@@ -62,8 +62,8 @@ await manager.stop();           // tear down in reverse order
 ## Relationship to libsupervise
 
 `librc` owns the service list and lifecycle commands. It delegates
-actual process supervision to `libsupervise` — spawning the `fit-svscan`
-daemon and communicating with it over a Unix socket.
+actual process supervision to `libsupervise`. The delegation spawns the
+`fit-svscan` daemon and communicates with it over a Unix socket.
 
 ## Documentation
 
@@ -71,4 +71,4 @@ daemon and communicating with it over a Unix socket.
   — start, stop, restart, check status, and read logs through one interface with
   `fit-rc`.
 - [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md)
-  — the full lifecycle setup, including supervision and observability.
+  — the full lifecycle setup, with supervision and observability.

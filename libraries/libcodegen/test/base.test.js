@@ -48,11 +48,11 @@ function createBase(injectedFs = fs) {
 }
 
 // `registerAssets` writes a module-global registry shared across the whole
-// `bun test` process; any earlier test file (e.g. libcli's embed.test.js) that
+// `bun test` process. Any earlier test file (e.g. libcli's embed.test.js) that
 // registers a mount leaves `embeddedAssetsActive()` true. Reset before each
-// test so loadTemplate's on-disk branch is exercised from a clean,
-// unregistered state regardless of file ordering — the source-branch assertions
-// no longer depend on running before the embedded block.
+// test so loadTemplate takes its on-disk branch from a clean, unregistered
+// state, whatever the file order. The source-branch assertions no longer need
+// to run before the embedded block.
 beforeEach(() => {
   resetEmbeddedAssets();
 });
@@ -84,12 +84,12 @@ describe("CodegenBase.loadTemplate (source branch)", () => {
   });
 });
 
-// The `beforeEach` reset leaves an empty registry; registering a mount here
-// flips the global flag so loadTemplate takes the embedded branch (embeddedDir
-// + overlay). The reset confines that flag to this test, so ordering against
-// the source-branch block above no longer matters.
+// The `beforeEach` reset leaves an empty registry. This test registers a
+// mount, which flips the global flag. Then loadTemplate takes the embedded
+// branch (embeddedDir + overlay). The reset confines that flag to this test,
+// so the order against the source-branch block above no longer matters.
 describe("CodegenBase.loadTemplate (embedded branch)", () => {
-  test("resolves templates from the registered mount via the overlay fs", () => {
+  test("resolves templates from the registered mount through the overlay fs", () => {
     registerAssets("libcodegen/templates", {
       "service.js.mustache": "EMBEDDED",
     });

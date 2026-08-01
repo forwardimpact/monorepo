@@ -1,10 +1,10 @@
 name: "Package: macOS"
 
 # Reusable: assemble + sign + notarize the .app and (outpost) the .pkg on one
-# macOS runner, reusing the same signed bundle. Called per release tag by
-# publish-binaries.yml. Platform and architecture are matrix data — the sole
-# `arch: arm64` cell today is byte-identical to the former inline job; a future
-# macOS x64 target is one more matrix value, not new code.
+# macOS runner, and reuse the same signed bundle. publish-binaries.yml calls it
+# per release tag. Platform and architecture are matrix data. The sole
+# `arch: arm64` cell today is byte-identical to the former inline job. A future
+# macOS x64 target adds one more matrix value and needs no new code.
 on:
   workflow_call:
     inputs:
@@ -31,9 +31,9 @@ jobs:
       fail-fast: false
       matrix:
         arch: [arm64]
-    # Environment-scoped signing secrets — only jobs that declare this
-    # environment can read them, so kata-* agent workflows cannot. Declared
-    # inside the reusable workflow so the scoping travels with the job.
+    # Environment-scoped signing secrets. Only jobs that declare this
+    # environment can read them, so kata-* agent workflows cannot. The
+    # reusable workflow declares it here, so the scope travels with the job.
     environment: macos-signing
     permissions:
       contents: read
@@ -50,8 +50,8 @@ jobs:
           pattern: "*-bun-darwin-${{ matrix.arch }}"
           path: dist/dl
           # Merge every matched artifact into dist/dl as bare {cli} +
-          # {cli}.sha256 (no per-artifact subdir). Deterministic for 1 CLI
-          # (outpost) or 25 (gear) — names don't collide.
+          # {cli}.sha256 (no per-artifact subdir). This is deterministic for
+          # 1 CLI (outpost) or 25 (gear). The names do not collide.
           merge-multiple: true
 
       - name: Verify checksums and stage binaries
@@ -61,8 +61,8 @@ jobs:
           mkdir -p dist/binaries
           # The .sha256 sibling holds only the hash (build-binaries emits
           # `shasum | awk '{print $1}'`), so compare rather than `shasum -c`.
-          # Verifying before signing proves the bytes we sign are the bytes the
-          # build produced.
+          # Verify before you sign. That proves the bytes we sign are the
+          # bytes the build produced.
           found=0
           for sha in dist/dl/*.sha256; do
             bin="${sha%.sha256}"
@@ -96,19 +96,21 @@ jobs:
         run: |
           APP="dist/apps/${BUNDLE_NAME}"
           codesign --verify --deep --strict "$APP"
-          # Smoke every CLI the manifest assigns to this bundle, not just the
-          # first — a single startup-crash binary would otherwise ship signed.
-          # A single-CLI product runs the loop once; gear runs it ~29 times.
-          # Server entries honour --help via the libcli short-circuit, so they
-          # are smoked alongside the rest with no carve-out.
+          # Smoke every CLI the manifest assigns to this bundle. Do not smoke
+          # only the first. Otherwise a single startup-crash binary would ship
+          # signed. A single-CLI product runs the loop once. gear runs it ~29
+          # times. Server entries honour --help through the libcli
+          # short-circuit, so the loop smokes them alongside the rest with no
+          # carve-out.
           for cli in $(jq -r --arg b "$BUNDLE" '.clis[] | select(.bundle == $b) | .name' build/cli-manifest.json); do
             "$APP/Contents/MacOS/$cli" --help >/dev/null
           done
 
       - name: Verify cdhash stability
-        # Rebuild from the same (already checksum-verified) binaries and confirm
-        # the signed cdhash is identical. A drifting cdhash wipes TCC grants on
-        # `brew upgrade`, so a non-deterministic wrap must fail the release.
+        # Rebuild from the same (already checksum-verified) binaries and
+        # confirm the signed cdhash is identical. A cdhash that drifts wipes
+        # TCC grants on `brew upgrade`, so a non-deterministic wrap must fail
+        # the release.
         env:
           BUNDLE: ${{ inputs.bundle }}
           BUNDLE_NAME: ${{ inputs.bundle_name }}
@@ -119,7 +121,7 @@ jobs:
           just build-app "$BUNDLE"
           AFTER=$(codesign -dvvv "$BUNDLE_PATH" 2>&1 | grep -i CDHash || true)
           if [ "$BASELINE" != "$AFTER" ]; then
-            echo "::error::cdhash drift detected — bundle is not deterministic"
+            echo "::error::cdhash drift detected. The bundle is not deterministic"
             echo "baseline: $BASELINE"; echo "after: $AFTER"; exit 1
           fi
           echo "cdhash stable: $AFTER"
@@ -141,8 +143,8 @@ jobs:
           set -euo pipefail
           BUNDLE="dist/apps/${BUNDLE_NAME}"
           codesign --verify --deep --strict --verbose=2 "$BUNDLE"
-          # Gatekeeper assessment + stapled ticket — the .pkg must never wrap an
-          # un-notarized app.
+          # Gatekeeper assessment + stapled ticket. The .pkg must never wrap
+          # an un-notarized app.
           spctl --assess --type exec --verbose=4 "$BUNDLE"
           xcrun stapler validate "$BUNDLE"
 
@@ -158,7 +160,7 @@ jobs:
           BUNDLE="dist/apps/${BUNDLE_NAME}"
           ASSET="${CASK}-${VERSION}-darwin-${ARCH}.zip"
           mkdir -p dist/release
-          # ditto preserves codesign metadata through zip; a plain zip does not.
+          # ditto preserves codesign metadata through zip. A plain zip does not.
           ditto -c -k --sequesterRsrc --keepParent "$BUNDLE" "dist/release/${ASSET}"
           shasum -a 256 "dist/release/${ASSET}" | awk '{print $1}' > "dist/release/${ASSET}.sha256"
 
@@ -168,9 +170,10 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          # Wrap the same signed + notarized + stapled app built above — no
-          # rebuild, no re-download. build-pkg.sh signs the .pkg with the
-          # installer identity (MACOS_INSTALLER_IDENTITY) when set.
+          # Wrap the same signed + notarized + stapled app built above. This
+          # step does not rebuild it and does not download it again.
+          # build-pkg.sh signs the .pkg with the installer identity
+          # (MACOS_INSTALLER_IDENTITY) when set.
           bash products/outpost/pkg/macos/build-pkg.sh "$PWD/dist/apps" "$VERSION"
           cp "dist/apps/fit-outpost-${VERSION}.pkg" dist/release/
 

@@ -1,14 +1,14 @@
 /**
  * Job Combination Validation
  *
- * Pure functions for validating discipline × track × level combinations.
- * Extracted from derivation.js for max-lines compliance.
+ * Pure functions that validate discipline × track × level combinations.
+ * A refactor moved them out of derivation.js to meet the max-lines limit.
  */
 
 /**
  * Check if a discipline allows trackless jobs
  * @param {Array|undefined} validTracks - The discipline's validTracks array
- * @returns {boolean} True if trackless jobs are allowed
+ * @returns {boolean} True if the discipline allows trackless jobs
  */
 function allowsTrackless(validTracks) {
   if (!validTracks || validTracks.length === 0) {
@@ -21,7 +21,7 @@ function allowsTrackless(validTracks) {
  * Check if a discipline allows a specific track
  * @param {Array|undefined} validTracks - The discipline's validTracks array
  * @param {string} trackId - The track ID to check
- * @returns {boolean} True if the track is allowed
+ * @returns {boolean} True if the discipline allows the track
  */
 function allowsTrack(validTracks, trackId) {
   if (!validTracks || validTracks.length === 0) {

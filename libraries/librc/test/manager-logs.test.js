@@ -9,7 +9,7 @@ import {
   createTestRuntime,
 } from "@forwardimpact/libmock";
 
-// Stream that asynchronously fails with an Error carrying the given code.
+// Stream that fails asynchronously with an Error that carries the given code.
 const failingStream = (code) =>
   new Readable({
     read() {
@@ -57,10 +57,10 @@ describe("ServiceManager - logs", () => {
         logCalls.push({ level: "error", name, msg, data }),
     };
 
-    // Sync-fs the lifecycle methods touch; logs() adds createReadStream
+    // Sync-fs the lifecycle methods touch. logs() adds createReadStream
     // per-test. The full surface (createReadStream + stdout) now flows through
-    // the injected runtime, so logs() reads runtime.fsSync.createReadStream and
-    // pipes into runtime.proc.stdout — there is no deps.fs / deps.stdout.
+    // the injected runtime. So logs() reads runtime.fsSync.createReadStream
+    // and pipes into runtime.proc.stdout. There is no deps.fs / deps.stdout.
     mockFs = {
       readFileSync: () => "12345",
       mkdirSync: () => {},
@@ -78,7 +78,8 @@ describe("ServiceManager - logs", () => {
   });
 
   // Build deps whose runtime carries the given createReadStream over the
-  // sync-fs base and a fresh capturing proc (read its `stdout.chunks`).
+  // sync-fs base and a fresh proc that captures output (read its
+  // `stdout.chunks`).
   const depsWith = (createReadStream, proc) => ({
     ...baseDeps,
     runtime: createTestRuntime({

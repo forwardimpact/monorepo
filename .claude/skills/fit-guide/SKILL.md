@@ -2,46 +2,45 @@
 name: fit-guide
 description: >
   Get career guidance and output review grounded in your organization's
-  engineering standard. Use when a promotion conversation
-  ended without specifics and you need evidence of what to improve, when
-  reviewing agent output and you want a second opinion against the
-  standard, or when asking about skills, levels, and career expectations.
-  Also covers setting up the Guide service stack and ingesting knowledge
-  content.
+  engineering standard. Use when a promotion conversation ended without
+  specifics and you need evidence of what to improve. Use when you review
+  agent output and want a second opinion against the standard. Use when
+  you ask about skills, levels, and career expectations. This skill also
+  covers how to set up the Guide service stack and how to ingest
+  knowledge content.
 ---
 
 # Guide Product
 
-AI agent that understands your organization's agent-aligned engineering standard
-— skills, levels, behaviours, and expectations — and reasons about them in
-context. Guide helps engineers onboard, find growth areas, and interpret
-engineering artifacts against skill markers.
+Guide is an AI agent. It understands your organization's agent-aligned
+engineering standard: skills, levels, behaviours, and expectations. It reasons
+about them in context. Guide helps engineers onboard, find growth areas, and
+interpret engineering artifacts against skill markers.
 
-Guide runs on the Claude Agent SDK and exposes its knowledge through MCP, making
-it accessible from three surfaces: `fit-guide` CLI, Claude Code, and Claude
-Chat.
+Guide runs on the Claude Agent SDK. It exposes its knowledge through MCP. Three
+surfaces reach it: the `fit-guide` CLI, Claude Code, and Claude Chat.
 
 ## When to Use
 
 **Find growth areas:**
 
-- Getting career guidance grounded in your organization's standard —
+- Get career guidance grounded in your organization's standard —
   `npx fit-guide "What should I focus on to reach the next level?"`
-- Asking about skills, levels, behaviours, and expectations —
+- Ask about skills, levels, behaviours, and expectations —
   `npx fit-guide "What does practitioner-level delivery look like?"`
-- Checking whether recent work shows progress —
+- Check whether recent work shows progress —
   `npx fit-guide "Does my recent PR show growth in code quality?"`
 
 **Verify agent work:**
 
-- Interpreting engineering artifacts against skill markers —
+- Interpret engineering artifacts against skill markers —
   `npx fit-guide "Review this diff against senior delivery expectations"`
-- Getting a second opinion before approving a deliverable —
+- Get a second opinion before you approve a deliverable —
   `npx fit-guide "Does this design doc meet the standard for system design?"`
 
 **Setup and operations:**
 
-- Bootstrap a new project — `npx fit-guide --init` (safe to re-run; no-op on
+- Bootstrap a new project — `npx fit-guide --init` (safe to re-run, a no-op on
   existing projects)
 - Authenticate — `npx fit-guide --login`
 - Start the service stack — `npx fit-rc start`
@@ -50,9 +49,9 @@ Chat.
   `npx fit-process graphs`, `npx fit-process vectors`
 
 `npx fit-guide "question"` and `echo "question" | npx fit-guide` are
-equivalent one-shot forms. Positional words are always prompt text, never
-commands — `npx fit-guide status` sends the word "status" to the agent;
-operational commands are always flags (`--status`, `--login`).
+equivalent one-shot forms. Positional words are always prompt text. They are
+never commands. `npx fit-guide status` sends the word "status" to the agent.
+Operational commands are always flags (`--status`, `--login`).
 
 ---
 
@@ -60,35 +59,36 @@ operational commands are always flags (`--status`, `--login`).
 
 ### Agent Orchestration
 
-The CLI sends user queries to the Claude Agent SDK, which orchestrates the
-conversation using a single-agent `guide-default` prompt. The agent follows a
-structured workflow: orient (explore the ontology), query (retrieve data via
-tools), and synthesize (compose a grounded answer). The SDK handles context
-compaction and session persistence automatically.
+The CLI sends user queries to the Claude Agent SDK. The SDK orchestrates the
+conversation with a single-agent `guide-default` prompt. The agent follows a
+structured workflow: orient (explore the ontology), query (retrieve data
+through tools), and synthesize (compose a grounded answer). The SDK handles
+context compaction and session persistence automatically.
 
 ### Tool Execution
 
-Guide exposes its tools via an MCP endpoint, each backed by a gRPC
-service. The authoritative list is the `service.mcp.tools` block of your
-`config/config.json`; the starter ships fifteen tools spanning graph
-queries, semantic search, pathway lookups, and activity data.
+Guide exposes its tools through an MCP endpoint. A gRPC service backs each
+tool. The authoritative list is the `service.mcp.tools` block of your
+`config/config.json`. The starter ships fifteen tools for graph queries,
+semantic search, pathway lookups, and activity data.
 
 ### Knowledge Pipeline
 
-Content flows through three stages: HTML files in `data/knowledge/` are
-processed into typed resources (`data/resources/`), then indexed as RDF triples
-in the graph store (`data/graphs/`) for structured queries, and as vector
-embeddings (`data/vectors/`) for similarity search. This dual index lets the
-agent combine precise graph lookups with fuzzy semantic retrieval.
+Content flows through three stages. The pipeline turns HTML files in
+`data/knowledge/` into typed resources (`data/resources/`). It then indexes
+them as RDF triples in the graph store (`data/graphs/`) for structured queries.
+It also indexes them as vector embeddings (`data/vectors/`) for similarity
+search. This dual index lets the agent combine precise graph lookups with fuzzy
+semantic retrieval.
 
 ### Three Surfaces
 
-- **`fit-guide` CLI** — Reference implementation on the Claude Agent SDK.
-  Fetches the `guide-default` prompt from MCP and streams the response.
+- **`fit-guide` CLI** — The reference implementation on the Claude Agent SDK.
+  It fetches the `guide-default` prompt from MCP. It streams the response.
 - **Claude Code** — Register the MCP endpoint as an MCP server. Guide's tools
-  appear in the tool picker; Claude Code provides the harness.
+  appear in the tool picker. Claude Code provides the harness.
 - **Claude Chat** — Configure a Claude Connector backed by the MCP endpoint.
-  Same tools, same knowledge, same answers.
+  The tools, the knowledge, and the answers are the same.
 
 ---
 
@@ -96,9 +96,9 @@ agent combine precise graph lookups with fuzzy semantic retrieval.
 
 Run `npx fit-guide --init` in a fresh project directory. It produces `.env`
 (token and port assignments) and `config/config.json` (service composition).
-Re-runs are byte-stable no-ops — generated `SERVICE_SECRET` and `MCP_TOKEN`
-are preserved across invocations, so running init again to pick up a starter
-update never rotates credentials. Then authenticate and set up the stack:
+Re-runs are byte-stable no-ops. `--init` keeps the generated `SERVICE_SECRET`
+and `MCP_TOKEN` across invocations. A second run to pick up a starter update
+never rotates credentials. Then authenticate and set up the stack:
 
 ```sh
 npx fit-guide --init        # Bootstrap .env + config/config.json (idempotent)
@@ -121,8 +121,8 @@ See [`references/cli.md`](references/cli.md) for full command listings.
 
 ## Service Stack
 
-Guide requires the service stack to be running. Services are supervised by
-`fit-rc` and defined in `config/config.json`.
+Guide needs the service stack to run. `fit-rc` supervises the services.
+`config/config.json` defines them.
 
 | Order | Service   | Protocol        | Purpose                     | Port |
 | ----- | --------- | --------------- | --------------------------- | ---- |

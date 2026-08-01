@@ -20,7 +20,7 @@ function writeTrace(dir, name, firstEvent, mtimeSec) {
 }
 
 describe("gemba-trace by-discussion", () => {
-  test("lists matching traces ordered by file mtime ascending", () => {
+  test("lists traces that match and orders them by file mtime ascending", () => {
     const dir = mkdtempSync(join(tmpdir(), "by-discussion-"));
     try {
       const newer = writeTrace(

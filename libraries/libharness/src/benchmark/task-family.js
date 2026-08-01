@@ -14,16 +14,18 @@
  *       specs/                # copied into agent CWD
  *       workdir/              # copied into agent CWD
  *
- * `tests/` is an overlay mirror of the agent CWD: a file's path under
- * `tests/` is its staging path. Every `*.test.js` file is one check —
- * `*.gate.test.js` marks a gate, any other `*.test.js` is scored — and every
- * other file is support material, staged but never graded. The layout is
- * validated eagerly here so authoring errors fail before any agent spend.
+ * `tests/` is an overlay mirror of the agent CWD. A file's path under
+ * `tests/` is its staging path. Every `*.test.js` file is one check.
+ * `*.gate.test.js` marks a gate. Any other `*.test.js` counts toward the
+ * score. Every other file is support material. The benchmark stages it but
+ * never grades it. This loader validates the layout eagerly, so authoring
+ * errors fail before any agent spend.
  *
- * Local paths or git URLs are both accepted; git URLs are shallow-cloned into
- * a temp dir and `familyRevision` becomes `git:<sha>` of HEAD at clone time.
- * Local paths use the canonical-tree algorithm from design § Family revision
- * algorithm so the result is stable across operating systems.
+ * The loader accepts a local path or a git URL. For a git URL it makes a
+ * shallow clone into a temp dir. `familyRevision` then becomes `git:<sha>` of
+ * HEAD at clone time. Local paths use the canonical-tree algorithm from
+ * design § Family revision algorithm, so the result is stable across
+ * operating systems.
  *
  * Filesystem and subprocess access route through the injected `runtime` bag
  * (`runtime.fs` async, `runtime.subprocess.run` one-shot, `tmpdir` derived
@@ -35,13 +37,13 @@ import { join, posix, relative, resolve, sep } from "node:path";
 
 const GIT_URL_RE = /^(git@|https?:\/\/|ssh:\/\/|git:\/\/)/;
 const SKIP_DIRS = new Set([".git", "node_modules"]);
-// POSIX `X_OK` (execute permission); node's fs honours the numeric mode, so we
-// avoid importing `node:fs`'s `constants` (which would light the fs smell).
+// POSIX `X_OK` (execute permission). Node's fs honours the numeric mode, so we
+// do not import `node:fs`'s `constants`, which would light the fs smell.
 const X_OK = 1;
 
 /**
- * Derive the system temp dir from the env (node's `os.tmpdir()` is itself an
- * env-respecting wrapper). The runtime bag has no `os` slot by design.
+ * Derive the system temp dir from the env. Node's `os.tmpdir()` also reads
+ * the env. The runtime bag has no `os` slot by design.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {string}
  */
@@ -84,9 +86,9 @@ export async function loadTaskFamily(rootPathOrGitUrl, runtime) {
 }
 
 /**
- * Assert that `<judgeProfilesDir>/<judgeProfile>.md` exists. Called from
- * `BenchmarkRunner.run()` so a missing judge profile fails the family
- * install before any agent session starts.
+ * Assert that `<judgeProfilesDir>/<judgeProfile>.md` exists.
+ * `BenchmarkRunner.run()` calls it, so a missing judge profile fails the
+ * family install before any agent session starts.
  * @param {TaskFamily} _family
  * @param {string} judgeProfilesDir
  * @param {string} judgeProfile
@@ -161,8 +163,8 @@ const GATE_SUFFIX = ".gate.test.js";
 
 /**
  * Discover and validate a task's hidden test suite under `<taskDir>/tests/`.
- * Returns null when the directory is absent; throws on an invalid layout
- * (no check files, a dangling symlink, duplicate check names) so
+ * Returns null when the directory is absent. Throws on an invalid layout
+ * (no check files, a dangling symlink, duplicate check names), so
  * `loadTaskFamily` rejects broken suites before any agent spend.
  * @param {object} fs - Async filesystem surface (`runtime.fs`).
  * @param {string} taskDir
@@ -211,10 +213,10 @@ async function discoverSuite(fs, taskDir) {
 }
 
 /**
- * Walk a suite tree collecting `{sourcePath, stagePath}` entries. Unlike
- * `walkFiles` (which silently skips dangling symlinks for hashing), every
- * entry here must be a regular file after symlink resolution — a dangling
- * symlink or a link to a non-file target is an authoring error.
+ * Walk a suite tree and collect `{sourcePath, stagePath}` entries. Every
+ * entry here must be a regular file after symlink resolution. `walkFiles` is
+ * different. It silently skips a dangling symlink when it hashes the tree. A
+ * dangling symlink or a link to a non-file target is an authoring error.
  */
 async function walkSuiteFiles(fs, root, dir, out) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -258,8 +260,8 @@ async function fileExecutable(fs, path) {
 
 /**
  * Canonical-tree hash per design § Family revision algorithm:
- *   list regular files (excluding .git/, node_modules/)
- *   resolve symlinks before reading
+ *   list regular files (skip .git/ and node_modules/)
+ *   resolve symlinks before you read them
  *   sort by NFC-normalised POSIX-style root-relative path
  *   row = <rel-path>\0<hex-sha256>\n
  *   sha256(concat(rows))
@@ -343,18 +345,18 @@ async function git(runtime, args) {
 
 /**
  * @typedef {object} HiddenCheck
- * @property {string} name - Basename stem with the check suffix stripped.
+ * @property {string} name - Basename stem without the check suffix.
  * @property {boolean} gate - True iff the filename ends `.gate.test.js`.
  * @property {string} sourcePath - Absolute path under `tests/`.
- * @property {string} stagePath - Path relative to `tests/` — the overlay
- *   mirror of the staging path under the agent CWD.
+ * @property {string} stagePath - Path relative to `tests/`. It mirrors the
+ *   staging path under the agent CWD.
  */
 
 /**
  * @typedef {object} HiddenSuite
  * @property {HiddenCheck[]} checks - In sorted stage-path order.
  * @property {{sourcePath: string, stagePath: string}[]} support - Non-check
- *   files, staged for the whole pass but never graded.
+ *   files. The benchmark stages them for the whole pass but never grades them.
  */
 
 /**

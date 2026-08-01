@@ -1,8 +1,9 @@
 # Worked example
 
-A complete module enforcing one invariant: source files must not import a
+This is a complete module for one invariant: source files must not import a
 forbidden package. It shows the three required parts (top comment, `build`,
-`rules`) and the optional `seed` for grandfathering.
+`rules`). It also shows the optional `seed` that grandfathers existing
+violations.
 
 `.jidoka/invariants/no-legacy-client.rules.mjs`:
 
@@ -88,9 +89,9 @@ export default {
 ## What to copy
 
 - The **top comment** states the invariant and documents the `--seed` refresh.
-- `subjects` collects through the kit and records `parseError` instead of
-  throwing — the `parseError` rule turns that into a finding.
-- The `check` returns `{}` (truthy) on violation and `null` when clean, and
-  consults `ctx.deny` so grandfathered files pass until migrated.
-- `seed` reuses the same `subjects` function so the deny-list and the live
+- `subjects` collects through the kit. It records `parseError` and does not
+  throw. The `parseError` rule turns that record into a finding.
+- The `check` returns `{}` (truthy) on violation and `null` when clean. It also
+  consults `ctx.deny`, so grandfathered files pass until you migrate them.
+- `seed` reuses the same `subjects` function, so the deny-list and the live
   check can never diverge.

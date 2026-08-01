@@ -1,13 +1,13 @@
 ---
 name: draft-emails
-description: Draft and send email responses using the knowledge base and calendar for context. Use when the user asks to draft, reply to, respond to, or send an email.
+description: Draft and send email responses with context from the knowledge base and calendar. Use when the user asks to draft, reply to, respond to, or send an email.
 ---
 
 # Draft Emails
 
-Draft and send email responses using the knowledge base and calendar for full
-context on every person and conversation. Every draft requires explicit user
-approval before sending.
+Draft and send email responses. Use the knowledge base and calendar for full
+context on every person and conversation. Every draft needs explicit user
+approval before you send it.
 
 ## Trigger
 
@@ -31,20 +31,22 @@ The user asks to draft, reply to, respond to, or send an email.
 | Draft files     | `Drafts/{email_id}_draft.md`                 |
 
 `handled` and `ignored` both exclude threads from `scan-emails.mjs`. Use
-`handled` for resolved threads (sent here, replied manually, resolved via DM);
-`ignored` for threads that need no response (newsletters, spam, outbound with no
-reply).
+`handled` for resolved threads (sent here, replied manually, resolved through a
+DM). Use `ignored` for threads that need no response (newsletters, spam,
+outbound with no reply).
 
 <do_confirm_checklist goal="Verify a draft is safe and ready before sending">
 
-- [ ] Sender and organization were looked up in `Knowledge/` before drafting.
-- [ ] Draft is a single email (not multiple variants) and matches the incoming
-      tone.
-- [ ] Body has no sign-off / name / "Best" — Apple Mail signature handles it.
-- [ ] Recruitment thread: candidate excluded from internal recipients; any
-      direct-to-candidate draft is flagged `⚠️ RECRUITER ONLY`.
-- [ ] No sensitive personal data (health, politics, etc.) was included.
-- [ ] User has explicitly approved the draft before any send.
+- [ ] You looked up the sender and the organization in `Knowledge/` before you
+      drafted.
+- [ ] The draft is a single email (not multiple variants). It matches the
+      incoming tone.
+- [ ] The body has no sign-off, name, or "Best". The Apple Mail signature
+      handles it.
+- [ ] In a recruitment thread, the candidate is excluded from internal
+      recipients. Any direct-to-candidate draft carries `⚠️ RECRUITER ONLY`.
+- [ ] The draft includes no sensitive personal data (health, politics, etc.).
+- [ ] The user explicitly approved the draft before any send.
 - [ ] Send used `--draft <path>` so cleanup and `Drafts/handled` happen
       automatically.
 
@@ -58,7 +60,7 @@ reply).
 node scripts/scan-emails.mjs
 ```
 
-Outputs `email_id<TAB>subject` for unprocessed emails (those not in
+The script outputs `email_id<TAB>subject` for unprocessed emails (those not in
 `Drafts/handled` or `Drafts/ignored`).
 
 ### 2. Classify
@@ -69,11 +71,11 @@ notifications, spam, outbound with no reply.
 **Draft a response**: meeting requests, personal mail from known contacts,
 business inquiries or follow-ups, requests for information or action.
 
-Be conservative with ignore — when in doubt, draft.
+Be conservative with ignore. When in doubt, draft.
 
 ### 3. Gather context
 
-Before drafting, look up the sender and organization in `Knowledge/`:
+Before you draft, look up the sender and the organization in `Knowledge/`:
 
 ```bash
 rg -l "sender_name" Knowledge/
@@ -81,42 +83,44 @@ cat "Knowledge/People/Sender Name.md"
 cat "Knowledge/Organizations/Company Name.md"
 ```
 
-For scheduling emails, also read the relevant calendar event:
+For an email that arranges a meeting time, also read the relevant calendar
+event:
 
 ```bash
 ls ~/.cache/fit/outpost/apple_calendar/ 2>/dev/null
 cat "$HOME/.cache/fit/outpost/apple_calendar/event123.json"
 ```
 
-Extract role, organization, relationship history, and open items. If intent is
-unclear or the person has multiple contexts, **ask** rather than guess.
+Extract role, organization, relationship history, and open items. If the intent
+is unclear or the person has multiple contexts, **ask** rather than guess.
 
 ### 4. Write the draft
 
-Save to `Drafts/{email_id}_draft.md` using the template in
+Save to `Drafts/{email_id}_draft.md` with the template in
 [references/template.md](references/template.md). Reference past interactions
-naturally; for scheduling, propose specific times from calendar availability.
+naturally. To arrange a meeting, propose specific times from the calendar
+availability.
 
 ### 5. Recruitment & staffing emails
 
-Candidates **must never** be copied on internal threads about them.
+You **must never** copy candidates on internal threads about them.
 
 - Identify the candidate from the thread and `Knowledge/Candidates/`.
-- Strip the candidate from To/CC; draft to internal stakeholders only.
+- Strip the candidate from To/CC. Draft to internal stakeholders only.
 - Direct-to-candidate emails carry the warning header
   `⚠️ RECRUITER ONLY — This email goes directly to the candidate.`
 
 If a thread mentions a candidate and includes multiple internal recipients,
-treat it as internal and exclude the candidate.
+treat it as internal. Exclude the candidate.
 
 ### 6. Present and approve
 
-Show the draft to the user. Wait for explicit approval before sending. Apply
-edits and present again as needed.
+Show the draft to the user. Wait for explicit approval before you send. Apply
+edits. Present the draft again as needed.
 
 ### 7. Send
 
-After approval, send via Apple Mail:
+After the user approves, send the email through Apple Mail:
 
 ```bash
 node scripts/send-email.mjs \
@@ -128,12 +132,12 @@ node scripts/send-email.mjs \
 ```
 
 Required: `--to`, `--subject`, `--body` (plain text). Optional: `--cc`, `--bcc`,
-`--draft`. With `--draft`, the draft file is deleted and the email ID is
-appended to `Drafts/handled` automatically.
+`--draft`. With `--draft`, the script deletes the draft file. It also appends
+the email ID to `Drafts/handled` automatically.
 
-### 8. Mark handled without sending
+### 8. Mark handled without a send
 
-When a thread is resolved through other channels:
+When other channels resolve a thread:
 
 ```bash
 echo "$EMAIL_ID" >> Drafts/handled

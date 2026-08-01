@@ -1,6 +1,6 @@
 import { createTestRuntime, createMockFs } from "@forwardimpact/libmock";
 
-// Fixed test env path used across all mocked-fs tests.
+// All mocked-fs tests use this fixed test env path.
 export const TEST_ENV_PATH = "/test/.env";
 
 /**

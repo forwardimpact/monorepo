@@ -6,12 +6,12 @@ import { dirname, join } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-describe("libconfig README — Bootstrap onboarding contract", () => {
+describe("libconfig README — the Bootstrap contract that onboards a product", () => {
   test("documents entry point, namespace declaration, overwrite-intent, and libsecret cross-link", async () => {
     const text = await readFile(join(__dirname, "..", "README.md"), "utf8");
     const heading = "## Bootstrap";
     const idx = text.indexOf(heading);
-    assert.ok(idx >= 0, "README is missing the `## Bootstrap` section");
+    assert.ok(idx >= 0, "README has no `## Bootstrap` section");
     // Scope substring assertions to the new section so unrelated mentions
     // elsewhere can't satisfy them.
     const nextHeading = text.indexOf("\n## ", idx + heading.length);
@@ -24,7 +24,7 @@ describe("libconfig README — Bootstrap onboarding contract", () => {
     ]) {
       assert.ok(
         section.includes(needle),
-        `README ## Bootstrap section missing "${needle}"`,
+        `README ## Bootstrap section has no "${needle}"`,
       );
     }
   });

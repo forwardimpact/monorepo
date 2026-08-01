@@ -8,5 +8,5 @@ one row per run.
 | retired_count  | count | Artifacts retired this run        | Archive ledger |
 | deferred_count | count | Candidates deferred this run      | Archive ledger |
 
-Artifacts still inside their retention window are not counted — they are a
-stock, not a per-run flow.
+Do not count artifacts still inside their retention window. They are a stock.
+They are not a per-run flow.

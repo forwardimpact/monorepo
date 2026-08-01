@@ -47,7 +47,7 @@ describe("dispatchWorkflow", () => {
     });
   });
 
-  test("custom ref is honoured", async () => {
+  test("honours a custom ref", async () => {
     await dispatchWorkflow({
       workflowFile: "kata-dispatch.yml",
       ref: "release/1.0",
@@ -60,7 +60,7 @@ describe("dispatchWorkflow", () => {
     expect(JSON.parse(captured.init.body).ref).toBe("release/1.0");
   });
 
-  test("discussionId and resumeContext are included only when defined", async () => {
+  test("includes discussionId and resumeContext only when defined", async () => {
     await dispatchWorkflow({
       workflowFile: "kata-dispatch.yml",
       repo: "owner/repo",
@@ -76,7 +76,7 @@ describe("dispatchWorkflow", () => {
     expect(body.inputs.resume_context).toBe('{"open_rfcs":{}}');
   });
 
-  test("omitting discussionId and resumeContext keeps body byte-identical to legacy", async () => {
+  test("a call without discussionId and resumeContext keeps body byte-identical to legacy", async () => {
     await dispatchWorkflow({
       workflowFile: "kata-dispatch.yml",
       repo: "owner/repo",

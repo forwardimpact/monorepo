@@ -1,7 +1,7 @@
 # Products
 
-The ten products serve external users — leadership, engineers, platform
-builders, teams using agents, and agents — empowering teams to have lasting
+The ten products serve external users: leadership, engineers, platform
+builders, teams using agents, and agents. They empower teams to have lasting
 impact on their organizations.
 
 ## Catalog

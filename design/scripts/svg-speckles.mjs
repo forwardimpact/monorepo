@@ -89,8 +89,8 @@ const preset = LEVEL_PRESETS[level];
 console.log(`Level ${level} (${preset.name})\n`);
 for (const file of positionals) cleanSvg(file);
 
-// Per-command handlers. Each receives (state, v, ax, ay, push) where
-// ax/ay resolve relative/absolute coordinates and push records a point.
+// Per-command handlers. Each handler receives (state, v, ax, ay, push).
+// ax and ay resolve relative and absolute coordinates. push records a point.
 const CMD_HANDLERS = {
   M(state, v, ax, ay, push) {
     for (let i = 0; i < v.length; i += 2) {

@@ -14,18 +14,17 @@ const definition = {
     {
       name: "stage",
       description:
-        "Stage a skill pack into a sibling repo working tree (APM .apm/ layout)",
+        "Stage a skill pack into a sibling-repo working tree (APM .apm/ layout)",
       options: {
         from: {
           type: "string",
-          description:
-            "Source dir holding skills/ and agents/ (default: .claude)",
+          description: "Source dir with skills/ and agents/ (default: .claude)",
         },
         prefix: {
           type: "string",
           multiple: true,
           description:
-            "Skill directory prefix to select (repeatable; each selects <prefix> and <prefix>-*)",
+            "Skill directory prefix to select, repeatable (each prefix selects <prefix> and <prefix>-*)",
         },
         all: {
           type: "boolean",
@@ -34,15 +33,15 @@ const definition = {
         },
         into: {
           type: "string",
-          description: "Target sibling repo working tree",
+          description: "Target sibling-repo working tree",
         },
         name: {
           type: "string",
-          description: "APM package name (sibling repo short name)",
+          description: "APM package name (short name of the sibling repo)",
         },
         "pack-version": {
           type: "string",
-          description: "Version stamped into apm.yml and SKILL.md metadata",
+          description: "Version to stamp into apm.yml and SKILL.md metadata",
         },
         description: {
           type: "string",

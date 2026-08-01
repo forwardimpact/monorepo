@@ -247,7 +247,7 @@
     display: none !important;
   }
 
-  /* Hide job description HTML on screen - only show when printing */
+  /* Hide job description HTML on screen. Show it only in print. */
   .slide-view .job-description-print-section {
     display: none;
   }

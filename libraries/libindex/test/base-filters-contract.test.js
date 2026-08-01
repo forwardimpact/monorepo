@@ -218,7 +218,7 @@ describe("IndexBase - Contract and Edge Cases", () => {
       );
     });
 
-    test("add handles items with missing optional fields", async () => {
+    test("add handles items without optional fields", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "test.Item",
         name: "minimal",

@@ -1,10 +1,11 @@
 /**
- * NpmInstaller — runs `bun install` in the family root when a package.json
- * is present, then copies the resulting `node_modules/` into the staging
- * directory so WorkdirManager can seed each per-task CWD.
+ * NpmInstaller — runs `bun install` in the family root when a package.json is
+ * present. It then copies the `node_modules/` that `bun install` produced
+ * into the staging directory, so WorkdirManager can seed each per-task CWD.
  *
- * Symmetric to ApmInstaller: the subprocess and filesystem flow through the
- * injected `runtime` bag (`runtime.subprocess.spawn` + `runtime.fs`).
+ * NpmInstaller is symmetric to ApmInstaller. The subprocess and the
+ * filesystem flow through the injected `runtime` bag
+ * (`runtime.subprocess.spawn` + `runtime.fs`).
  */
 
 import { join } from "node:path";
@@ -14,7 +15,7 @@ export class NpmInstaller {
   /**
    * @param {object} deps
    * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime -
-   *   Ambient collaborators; uses `subprocess.spawn` and `fs`.
+   *   Ambient collaborators. This class uses `subprocess.spawn` and `fs`.
    */
   constructor({ runtime }) {
     if (!runtime) throw new Error("runtime is required");
@@ -23,7 +24,7 @@ export class NpmInstaller {
 
   /**
    * @param {import("./task-family.js").TaskFamily} family
-   * @param {string} stagingDir - The staging directory (created by ApmInstaller).
+   * @param {string} stagingDir - The staging directory ApmInstaller creates.
    * @returns {Promise<void>}
    */
   async install(family, stagingDir) {
@@ -42,7 +43,7 @@ export class NpmInstaller {
       await fs.access(sourceModules);
     } catch {
       throw new Error(
-        `bun install did not produce node_modules/ at ${sourceModules}; check the family's package.json`,
+        `bun install did not produce node_modules/ at ${sourceModules}. Check the family's package.json`,
       );
     }
 

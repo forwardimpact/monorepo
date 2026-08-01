@@ -60,7 +60,7 @@ const cli = createCli(definition, {
 const logger = createLogger("process", runtime);
 
 /**
- * Parse argv, route the leading positional to its write-stage handler.
+ * Parse argv. Route the leading positional to its write-stage handler.
  * @returns {Promise<void>}
  */
 async function main() {

@@ -40,10 +40,10 @@ const GIT_METHODS = [
 ];
 
 // A response descriptor models one git failure: an `Error` thrown as-is, or
-// `{ throw: <message>, stderr?: <text> }` thrown as an Error carrying that
-// stderr — mirroring how GitClient's `#runRaw` surfaces a failure (the real
-// GitError exposes `.stderr`), so a caller inspecting stderr (e.g. to tell a
-// push rejection from an auth failure) sees a faithful shape.
+// `{ throw: <message>, stderr?: <text> }` thrown as an Error that carries
+// that stderr. This mirrors how GitClient's `#runRaw` surfaces a failure
+// (the real GitError exposes `.stderr`). So a caller that inspects stderr
+// (e.g. to tell a push rejection from an auth failure) sees a faithful shape.
 function isResponseDescriptor(value) {
   return (
     value instanceof Error ||
@@ -52,10 +52,11 @@ function isResponseDescriptor(value) {
 }
 
 // A configured response that is an array of response descriptors is a per-call
-// sequence: consumed one entry per invocation, reusing the last entry once
-// exhausted, so a test can express "push rejected on call 1, succeeds on call
-// 2". An array that is plain data (e.g. a `logByAuthor` commit list) is returned
-// whole — the descriptor check keeps data returns and failure sequences apart.
+// sequence. The mock takes one entry per invocation. It reuses the last entry
+// after the sequence runs out. So a test can express "push rejected on call 1,
+// succeeds on call 2". The mock returns the whole array when it holds plain
+// data (e.g. a `logByAuthor` commit list). The descriptor check keeps data
+// returns and failure sequences apart.
 function makeResponder(configured) {
   const isSequence =
     Array.isArray(configured) && configured.some(isResponseDescriptor);
@@ -75,7 +76,7 @@ function resolveResponse(responder) {
   return value;
 }
 
-// Per-method default returns when no `responses[method]` is configured.
+// Per-method default returns when the caller configures no `responses[method]`.
 // Methods absent here default to a no-op success `{ stdout, stderr, exitCode }`.
 const GIT_DEFAULTS = {
   revListCount: 0,
@@ -90,9 +91,10 @@ const GIT_DEFAULTS = {
 
 /**
  * Creates a mock `GitClient` collaborator. Every method on the real
- * `GitClient` surface is a spy returning a no-op success by default, or the
- * configured `responses[method]` value. `withAuth(token)` returns a client
- * sharing the same `calls` log. Invocations are recorded on `calls`.
+ * `GitClient` surface is a spy that returns a no-op success by default, or
+ * the configured `responses[method]` value. `withAuth(token)` returns a
+ * client that shares the same `calls` log. The mock records every call on
+ * `calls`.
  *
  * @param {object} [options]
  * @param {Record<string, unknown>} [options.responses] - Per-method returns.

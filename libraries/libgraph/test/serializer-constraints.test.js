@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { ShaclSerializer } from "../src/serializer.js";
 
-describe("ShaclSerializer - constraints and ordering", () => {
+describe("ShaclSerializer - constraints and order", () => {
   let serializer;
 
   test("includes dominant class constraints", () => {
@@ -55,7 +55,7 @@ describe("ShaclSerializer - constraints and ordering", () => {
     assert.ok(output.includes("sh:IRI"));
   });
 
-  test("includes inverse path when provided", () => {
+  test("includes an inverse path when the data provides one", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([
@@ -183,7 +183,7 @@ describe("ShaclSerializer - constraints and ordering", () => {
     assert.ok(nameIndex < emailIndex);
   });
 
-  test("computes dominant class correctly", () => {
+  test("computes the dominant class correctly", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([
@@ -228,11 +228,11 @@ describe("ShaclSerializer - constraints and ordering", () => {
           line.includes("schema:Person") ||
           line.includes("https://schema.org/Person"),
       ),
-      "Should include Person as dominant class",
+      "Should include Person as the dominant class",
     );
   });
 
-  test("does not include class constraint when no dominant class", () => {
+  test("does not include a class constraint when no class dominates", () => {
     serializer = new ShaclSerializer();
     const data = {
       classSubjects: new Map([

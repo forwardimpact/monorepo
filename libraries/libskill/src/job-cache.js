@@ -1,18 +1,18 @@
 /**
  * Job Cache
  *
- * Factory-based caching for generated job definitions.
- * Each consumer creates its own cache instance via createJobCache(),
- * eliminating module-level mutable state so libskill remains a pure-function
- * library.
+ * A factory builds the cache for generated job definitions.
+ * Each consumer creates its own cache instance with createJobCache().
+ * This removes module-level mutable state, so libskill stays a
+ * pure-function library.
  */
 
 import { deriveJob } from "./derivation.js";
 
 /**
  * Build a consistent cache key from job parameters.
- * Includes capabilities and validationRules so that calls with different
- * derivation inputs never collide.
+ * The key includes capabilities and validationRules so calls with
+ * different derivation inputs never collide.
  * For the user-facing job id, see `generateJobId` in derivation.js.
  * @param {Object} params
  * @param {string} params.disciplineId
@@ -36,7 +36,7 @@ export function buildJobKey({
 }
 
 /**
- * Produce a stable hash string from validationRules for cache key use.
+ * Produce a stable hash string from validationRules for the cache key.
  * @param {Object} [validationRules]
  * @returns {string|null}
  */

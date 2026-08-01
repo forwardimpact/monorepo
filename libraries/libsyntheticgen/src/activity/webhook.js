@@ -1,14 +1,15 @@
 /**
- * Webhook-stream ProseActivity — binds the GitHub webhook output to the
- * three pipeline stages: deterministic generation (events + per-event
- * prose keys), prose-context construction (PR-body and review-body
- * entries), and output rendering (per-event JSON + index).
+ * Webhook-stream ProseActivity — binds the GitHub webhook output to
+ * three pipeline stages. The first stage generates events and per-event
+ * prose keys. The second stage builds the prose context as PR-body and
+ * review-body entries. The third stage renders per-event JSON and an
+ * index.
  *
- * `TOut = { events, keys }` — `events` feeds render, `keys` feeds
- * prose-context. Internal branching in `proseKeys` (PR-body vs
- * review-body) is allowed inside the per-output method body; the call
- * sites must not name the branches (the no-per-output-names rule
- * governs call sites, not method internals).
+ * `TOut = { events, keys }`. `events` feeds render. `keys` feeds
+ * prose-context. The `proseKeys` method may branch on PR-body against
+ * review-body inside its own body. The call sites must not name the
+ * branches. The no-per-output-names rule governs the call sites. It
+ * does not govern the method internals.
  *
  * @module libsyntheticgen/activity/webhook
  */
@@ -431,9 +432,9 @@ function webhookToKey(wh, scenarios, peopleByLogin, teamMap) {
 }
 
 /**
- * Build prose-key metadata for webhook events. Keys are capped per
- * `ast.snapshots.webhook_prose_cap` so a small fixture does not balloon
- * the prose budget.
+ * Build prose-key metadata for webhook events.
+ * `ast.snapshots.webhook_prose_cap` caps the keys so a small fixture
+ * does not balloon the prose budget.
  *
  * @param {import('../dsl/parser.js').TerrainAST} ast
  * @param {object[]} webhooks
@@ -479,8 +480,8 @@ function generateWebhook(ctx) {
 
 /**
  * Yield prose-context entries for PR-body and review-body prose. The
- * branch by `prose_type` is internal to this method — the call site
- * does not see it (the no-per-output-names rule governs call sites).
+ * branch by `prose_type` stays internal to this method. The call site
+ * does not see it. The no-per-output-names rule governs the call sites.
  *
  * @param {{ keys: object[] }} output
  * @param {{ domain: string, orgName: string }} ctx

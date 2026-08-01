@@ -1,10 +1,10 @@
 # Shared Libraries
 
-The packages under `libraries/` are agent-shaped utilities — designed for
-agentic systems from the ground up. Agent-friendly CLIs and output formats,
-retrieval primitives that surface rich grounded context, evaluation tooling that
-closes the self-improvement loop, and service infrastructure with knobs agents
-can read and tune via JSON.
+The packages under `libraries/` are agent-shaped utilities. Their design targets
+agentic systems from the ground up. The set covers agent-friendly CLIs and
+output formats, plus retrieval primitives that surface rich grounded context. It
+also covers evaluation tooling that closes the self-improvement loop, and
+service infrastructure with knobs agents can read and tune through JSON.
 
 ## Catalog
 

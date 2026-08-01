@@ -2,11 +2,11 @@ import path from "node:path";
 import { spy } from "./spy.js";
 
 /**
- * Creates a mock `Finder` collaborator over an in-memory `files` map. Mimics
- * the real `Finder` surface (`findUpward`, `findData`, `findProjectRoot`,
- * `findPackagePath`, `findGeneratedPath`, `createSymlink`,
- * `createPackageSymlinks`) without touching the real filesystem. Every call
- * is recorded on `calls`.
+ * Creates a mock `Finder` collaborator over an in-memory `files` map. It
+ * mimics the real `Finder` surface (`findUpward`, `findData`,
+ * `findProjectRoot`, `findPackagePath`, `findGeneratedPath`,
+ * `createSymlink`, `createPackageSymlinks`). It does not touch the real
+ * filesystem. The mock records every call on `calls`.
  *
  * @param {object} [options]
  * @param {Object<string, true|string>} [options.files] - Existing paths.

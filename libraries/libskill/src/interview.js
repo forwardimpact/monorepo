@@ -1,8 +1,8 @@
 /**
- * Engineering Pathway Interview Question Generation
+ * Interview Question Generation for the Engineering Pathway
  *
- * This module provides pure functions for generating interview questions
- * based on job definitions and question banks.
+ * Pure functions in this module generate interview questions from job
+ * definitions and question banks.
  */
 
 import {
@@ -29,7 +29,7 @@ import {
  * @param {import('./levels.js').JobDefinition} params.job - The job definition
  * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
  * @param {Object} [params.options] - Generation options
- * @param {boolean} [params.options.includeBelowLevel=true] - Include one question from level below
+ * @param {boolean} [params.options.includeBelowLevel=true] - Include one question from the level below
  * @param {boolean} [params.options.deterministic=false] - Use deterministic selection
  * @param {number} [params.options.maxQuestionsPerSkill=2] - Max questions per skill
  * @param {number} [params.options.maxQuestionsPerBehaviour=2] - Max questions per behaviour
@@ -106,7 +106,7 @@ export function deriveInterviewQuestions({ job, questionBank, options = {} }) {
 }
 
 /**
- * Derive a short/screening interview within a time budget
+ * Derive a short screening interview within a time budget
  * @param {Object} params
  * @param {import('./levels.js').JobDefinition} params.job - The job definition
  * @param {import('./levels.js').QuestionBank} params.questionBank - The question bank
@@ -195,7 +195,7 @@ export function deriveShortInterview({
 }
 
 /**
- * Pick the next question alternating between skill and behaviour lists
+ * Pick the next question. Alternate between the skill and behaviour lists
  * @param {Array} skillQuestions
  * @param {Array} behaviourQuestions
  * @param {number} skillIdx

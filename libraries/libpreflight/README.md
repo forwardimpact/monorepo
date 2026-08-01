@@ -29,9 +29,9 @@ Error: This command requires Node.js 22 or later (running 20.11.0).
 Install Node.js 22 (LTS) from https://nodejs.org/ and re-run.
 ```
 
-The failure intercepts the bin before any heavy static import — including
-upstream packages whose constructors may raise their own runtime-floor
-errors — evaluates.
+The failure intercepts the bin before any heavy static import evaluates. That
+includes upstream packages whose constructors may raise their own
+runtime-floor errors.
 
 ## Testable helper
 
@@ -64,10 +64,11 @@ assertNonEmpty(config.link_completion_ticket_secret, "link_completion_ticket_sec
 
 On failure the process writes
 `Error: required configuration "<label>" is empty.` to stderr and exits `1`.
-A test injects a `processObj` exposing `stderr.write` and `exit`.
+A test injects a `processObj` that exposes `stderr.write` and `exit`.
 
 ## Why a side-effect import per floor
 
-Encoding the floor in the subpath (`./node22`, future `./node24`, …) keeps
-the import statement self-describing and lets a CI invariant cross-check
-the floor literal against the importing package's `engines.node`.
+The subpath encodes the floor (`./node22`, future `./node24`, …). The subpath
+keeps the import statement self-describing. It also lets a CI invariant
+cross-check the floor literal against the `engines.node` of the package that
+imports it.

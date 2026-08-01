@@ -1,7 +1,8 @@
 /**
  * AgentRunner — runs a single Claude Agent SDK session and emits raw
- * NDJSON events to an output stream. Building block for `gemba-harness run`,
- * `gemba-harness supervise`, `gemba-harness facilitate`, and `gemba-harness discuss`.
+ * NDJSON events to an output stream. `gemba-harness run`,
+ * `gemba-harness supervise`, `gemba-harness facilitate`, and
+ * `gemba-harness discuss` build on it.
  *
  * Follows OO+DI: constructor injection, factory function, tests bypass factory.
  */
@@ -12,15 +13,16 @@ import { resolveClaudeCodeExecutable } from "./claude-code-executable.js";
 const DEFAULT_ALLOWED_TOOLS = ["Bash", "Read", "Glob", "Grep", "Write", "Edit"];
 
 /**
- * Did the session actually invoke the model? A genuine run always bills
+ * Report whether the session invoked the model. A genuine run always bills
  * tokens (the system prompt alone is thousands of input tokens) and costs
- * more than zero. A `result` message with `subtype: "success"` but zero
- * token usage and zero cost means the model was never reached — the
- * canonical signature of a Claude Code init/auth failure (e.g. an invalid
- * `ANTHROPIC_API_KEY`), which the SDK otherwise reports as a clean success.
+ * more than zero. A `result` message can carry `subtype: "success"` with
+ * zero token usage and zero cost. That combination means the run never
+ * reached the model. It is the canonical signature of a Claude Code init or
+ * auth failure (e.g. an invalid `ANTHROPIC_API_KEY`). The SDK otherwise
+ * reports that failure as a clean success.
  *
  * If the SDK gave us neither a `usage` object nor `total_cost_usd`, don't
- * second-guess the subtype — trust the reported success.
+ * second-guess the subtype. Trust the reported success.
  * @param {object|null} result - The SDK `result` message, or null.
  * @returns {boolean}
  */
@@ -38,8 +40,9 @@ function modelDidWork(result) {
 }
 
 // gemba-harness and kata-action run headless in CI/CD with no human to answer
-// permission prompts. The SDK is always launched in bypass mode — not
-// overridable — so a future caller can't accidentally reduce permissions.
+// permission prompts. The runner always launches the SDK in bypass mode. No
+// caller can override that mode, so a future caller can't accidentally
+// reduce permissions.
 const PERMISSION_MODE = "bypassPermissions";
 
 /** Run a single Claude Agent SDK session and emit raw NDJSON events to an output stream. */
@@ -47,25 +50,27 @@ export class AgentRunner {
   /**
    * @param {object} deps
    * @param {string} deps.cwd - Agent working directory
-   * @param {function} deps.query - SDK query function (injected for testing)
+   * @param {function} deps.query - SDK query function (tests inject it)
    * @param {import("stream").Writable} deps.output - Stream to emit NDJSON to
    * @param {string} [deps.model] - Claude model identifier
-   * @param {number} [deps.maxTurns] - Maximum agentic turns; 0 means unlimited
+   * @param {number} [deps.maxTurns] - Maximum agentic turns. 0 means unlimited
    * @param {string[]} [deps.allowedTools] - Tools the agent may use
-   * @param {function} [deps.onLine] - Callback invoked with each NDJSON line as it's produced
-   * @param {function} [deps.onPrompt] - Callback invoked with the effective (amend-applied) prompt of each run/resume
+   * @param {function} [deps.onLine] - Callback that receives each NDJSON line as the runner produces it
+   * @param {function} [deps.onPrompt] - Callback that receives the effective (amend-applied) prompt of each run/resume
    * @param {string[]} [deps.settingSources] - SDK setting sources (e.g. ['project'] to load CLAUDE.md)
-   * @param {string|object} [deps.systemPrompt] - SDK system prompt (string replaces default; {type:'preset', preset:'claude_code', append} appends)
+   * @param {string|object} [deps.systemPrompt] - SDK system prompt. A string replaces the default. The preset form {type:'preset', preset:'claude_code', append} appends
    * @param {string[]} [deps.disallowedTools] - Tools to explicitly remove from the model's context
    * @param {Record<string, object>} [deps.mcpServers] - MCP server configs to pass to the SDK query
    * @param {string} [deps.pathToClaudeCodeExecutable] - Absolute path to the
-   *   native `claude` CLI the SDK should spawn. Set for compiled fit-* binaries,
-   *   which can't self-resolve the SDK's platform optional dependency; omitted
-   *   from source runs so the SDK resolves its own version-matched binary.
+   *   native `claude` CLI the SDK should spawn. Set it for compiled fit-*
+   *   binaries, which can't self-resolve the SDK's platform optional
+   *   dependency. Omit it from source runs so the SDK resolves its own
+   *   version-matched binary.
    * @param {object} deps.redactor
    * @param {import("@forwardimpact/libutil/runtime").Runtime} [deps.runtime] -
-   *   Ambient collaborators. Only `proc.env` is read (to record Skill
-   *   invocations into `LIBHARNESS_SKILL`); when absent the write is skipped.
+   *   Ambient collaborators. The runner reads only `proc.env`, to record Skill
+   *   invocations into `LIBHARNESS_SKILL`. When `runtime` is absent, the
+   *   runner skips the write.
    */
   constructor(deps) {
     if (!deps.cwd) throw new Error("cwd is required");
@@ -81,15 +86,17 @@ export class AgentRunner {
     this.maxTurns = deps.maxTurns ?? 50;
     this.allowedTools = deps.allowedTools ?? DEFAULT_ALLOWED_TOOLS;
     this.onLine = deps.onLine ?? null;
-    // Optional; read only through a truthy guard in run()/resume(), so an
-    // absent value stays undefined rather than needing a `?? null` default.
+    // Optional. The code reads it only through a truthy guard in
+    // run()/resume(), so an absent value stays undefined and needs no
+    // `?? null` default.
     this.onPrompt = deps.onPrompt;
     this.settingSources = deps.settingSources ?? [];
     this.systemPrompt = deps.systemPrompt ?? null;
     this.disallowedTools = deps.disallowedTools ?? [];
     this.mcpServers = deps.mcpServers ?? null;
-    // Optional; read only through a truthy guard in #callOptions, so an absent
-    // value stays undefined rather than needing a `?? null` default.
+    // Optional. The code reads it only through a truthy guard in
+    // #callOptions, so an absent value stays undefined and needs no
+    // `?? null` default.
     this.pathToClaudeCodeExecutable = deps.pathToClaudeCodeExecutable;
     this.taskAmend = deps.taskAmend ?? null;
     this.sessionId = null;
@@ -146,16 +153,17 @@ export class AgentRunner {
   }
 
   /**
-   * Build the options passed to every SDK query() call. Shared by run()
-   * and resume() so the agent's configuration — cwd, tools, prompt,
-   * setting sources, turn budget — is identical across the session's
-   * lifetime. Only resume() layers `resume: this.sessionId` on top.
+   * Build the options for every SDK query() call. run() and resume()
+   * share this method, so the agent's configuration stays identical
+   * across the session's lifetime. That configuration is the cwd, the
+   * tools, the prompt, the setting sources, and the turn budget. Only
+   * resume() layers `resume: this.sessionId` on top.
    *
-   * SDK options are call-attached, not session-attached: the resumed
-   * call loads the prior conversation but otherwise uses whatever
-   * options this call passes. Omitting tool/prompt/setting options on
-   * resume causes the agent to silently lose its restrictions and
-   * persona between turns.
+   * SDK options attach to the call. They do not attach to the session.
+   * The resumed call loads the prior conversation. It otherwise uses
+   * whatever options this call passes. If you omit the tool, prompt, or
+   * setting options on resume, the agent silently loses its restrictions
+   * and persona between turns.
    */
   #callOptions(abortController) {
     return {
@@ -179,14 +187,14 @@ export class AgentRunner {
   }
 
   /**
-   * Iterate the SDK query iterator, mirroring every message to the
-   * output stream and the `onLine` callback. Captures `sessionId` from
-   * the SDK's `system/init` message and tracks Skill invocations into
+   * Iterate the SDK query iterator. Mirror every message to the output
+   * stream and to the `onLine` callback. Capture `sessionId` from the
+   * SDK's `system/init` message. Track Skill invocations into
    * `LIBHARNESS_SKILL` for downstream metrics.
    *
    * If the iterator throws and we triggered the abort ourselves
    * (`currentAbortController.signal.aborted`), we report `aborted:
-   * true`; otherwise the error propagates as `error`.
+   * true`. Otherwise the error propagates as `error`.
    */
   async #consumeQuery(iterator) {
     let text = "";
@@ -212,10 +220,10 @@ export class AgentRunner {
       }
     }
 
-    // A "success" subtype is necessary but not sufficient: the SDK reports a
-    // failed init (e.g. an invalid API key) as success with zero model work.
-    // Require evidence the model actually ran, and surface a clear error when
-    // it didn't, so the masked failure can't be reported as a green run.
+    // A "success" subtype is necessary. It is not sufficient. The SDK reports
+    // a failed init (e.g. an invalid API key) as success with zero model work.
+    // Require evidence that the model ran. Surface a clear error when it did
+    // not, so nobody reports the masked failure as a green run.
     const reportedSuccess = stopReason === "success";
     const success =
       reportedSuccess &&
@@ -223,7 +231,7 @@ export class AgentRunner {
       modelDidWork(resultMessage);
     if (reportedSuccess && !success && !error) {
       error = new Error(
-        "agent reported success but performed no model work (zero token usage) — likely a Claude Code init or authentication failure",
+        "agent reported success but did no model work (zero token usage), which is likely a Claude Code init or authentication failure",
       );
     }
 
@@ -251,8 +259,9 @@ export class AgentRunner {
   #trackSkillInvocation(message) {
     const content = message.message?.content ?? message.content;
     if (!Array.isArray(content)) return;
-    // Skill metric is recorded into the env map; without a runtime there is
-    // no env surface to write to, so the side-effect is simply skipped.
+    // The runner records the Skill metric into the env map. Without a
+    // runtime there is no env surface to write to, so the code simply skips
+    // the side-effect.
     const env = this.runtime?.proc?.env ?? null;
     if (!env) return;
     for (const block of content) {
@@ -268,9 +277,10 @@ export class AgentRunner {
 }
 
 /**
- * Factory function — wires real dependencies. Resolves the native `claude`
- * executable for compiled fit-* binaries so the SDK doesn't fail to find its
- * own platform optional dependency; an explicit `deps` value overrides it.
+ * Factory function — wires real dependencies. It resolves the native
+ * `claude` executable for compiled fit-* binaries, so the SDK doesn't fail
+ * to find its own platform optional dependency. An explicit `deps` value
+ * overrides it.
  */
 export function createAgentRunner(deps) {
   return new AgentRunner({

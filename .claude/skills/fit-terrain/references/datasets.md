@@ -1,8 +1,8 @@
 # Dataset Blocks
 
 The terrain DSL may include `dataset` and `output` blocks that invoke
-external tools (Faker, Synthea, SDV). Unavailable tools are skipped with an
-info log — the pipeline continues and writes all other generated files.
+external tools (Faker, Synthea, SDV). The pipeline skips an unavailable tool
+and writes an info log. It continues and writes all other generated files.
 
 | Tool    | Requirement              | Always available? |
 | ------- | ------------------------ | ----------------- |
@@ -13,9 +13,9 @@ info log — the pipeline continues and writes all other generated files.
 The `--only` flag gates render types (html, pathway, raw, markdown). It does
 **not** affect dataset generation.
 
-## Installing Synthea
+## Install Synthea
 
-Download the JAR once, set `SYNTHEA_JAR`:
+Download the JAR once. Set `SYNTHEA_JAR`:
 
 ```sh
 mkdir -p vendor/synthea
@@ -25,13 +25,13 @@ curl -fSL \
 export SYNTHEA_JAR="$(pwd)/vendor/synthea/synthea-with-dependencies.jar"
 ```
 
-`fit-terrain` checks `SYNTHEA_JAR` first, then falls back to
+`fit-terrain` checks `SYNTHEA_JAR` first. It then falls back to
 `vendor/synthea/synthea-with-dependencies.jar` relative to the working
 directory. Confirm `java -version` reports 11 or newer.
 
 ## Dataset Block Reference
 
-A `dataset` block names the generator tool and its config; an `output` block
+A `dataset` block names the generator tool and its config. An `output` block
 names a dataset and renders it to a file format.
 
 ```dsl
@@ -52,17 +52,17 @@ output trial_patients_patient parquet { path "output/patients.parquet" }
 | `tool`       | ident    | Must be `synthea`                                    |
 | `population` | number   | Patient count to request from Synthea                |
 | `modules`    | ident[]  | Synthea modules to enable (optional)                 |
-| `conditions` | ident[]  | DSL `clinical.condition` ids; resolved to modules and used to keep only patients carrying a matching FHIR Condition |
+| `conditions` | ident[]  | DSL `clinical.condition` ids. `fit-terrain` resolves them to modules and keeps only patients with a matching FHIR Condition |
 
-When the DSL contains a `clinical {}` block, each id in `conditions` is
-looked up against `clinical.condition.{id}.synthea_module`. The resolved
-modules merge with any explicit `modules` entries. After Synthea runs,
-patients whose FHIR `Condition` resources do not match any of the requested
-conditions are dropped from the output, along with the Encounter,
-Observation, and other linked resources belonging to those patients.
+When the DSL contains a `clinical {}` block, `fit-terrain` looks up each id
+in `conditions` against `clinical.condition.{id}.synthea_module`. The
+resolved modules merge with any explicit `modules` entries. After Synthea
+runs, `fit-terrain` drops from the output every patient whose FHIR
+`Condition` resources match none of the requested conditions. It also drops
+the Encounter, Observation, and other resources linked to those patients.
 
-When the DSL has no `clinical {}` block, `conditions` is ignored and only
-`modules` controls Synthea's module set; no post-generation filtering runs.
+When the DSL has no `clinical {}` block, `fit-terrain` ignores `conditions`.
+Only `modules` controls Synthea's module set. No filter runs after generation.
 
 ### Faker fields
 
@@ -93,18 +93,18 @@ The `output` block routes a dataset through a format-specific renderer.
 | `markdown`           | Markdown table                                                    |
 | `parquet`            | Apache Parquet binary file                                        |
 | `sql`                | Single SQL `INSERT` statement                                     |
-| `supabase_migration` | Numbered SQL migration files (CREATE TABLE + INSERT + RLS) applicable via `supabase db push` |
+| `supabase_migration` | Numbered SQL migration files (CREATE TABLE + INSERT + RLS) you apply with `supabase db push` |
 | `embeddings_jsonl`   | JSONL where each line is `{ id, table, text }`, ready for vector embedding |
 
 `supabase_migration` and `embeddings_jsonl` are the natural fit for clinical
-datasets: the first lands schemas + seed data in a Supabase project; the
-second produces text blocks combining entity fields with cached prose for
-downstream embedding into pgvector or another vector store.
+datasets. The first lands schemas and seed data in a Supabase project. The
+second produces text blocks that combine entity fields with cached prose.
+Those blocks are ready to embed into pgvector or another vector store.
 
-## Output Naming for Synthea Datasets
+## Output Names for Synthea Datasets
 
 Synthea produces one underlying dataset per FHIR resource type
-(`Patient`, `Condition`, `Encounter`, `Observation`, etc.), so a single
+(`Patient`, `Condition`, `Encounter`, `Observation`, etc.). So a single
 `dataset trial_patients { tool synthea }` block fans out into
 `trial_patients_patient`, `trial_patients_condition`,
 `trial_patients_encounter`, and so on. Reference each one in its own

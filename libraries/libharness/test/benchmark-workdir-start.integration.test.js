@@ -15,8 +15,8 @@ const FIXTURE = new URL("./fixtures/benchmark-family/", import.meta.url)
   .pathname;
 
 // WorkdirManager spawns real preflight scripts and binds real TCP ports, so it
-// gets the production runtime; the apm installer keeps a fake subprocess so the
-// suite never shells out to a real `apm`.
+// gets the production runtime. The apm installer keeps a fake subprocess, so
+// the suite never shells out to a real `apm`.
 const RT = createDefaultRuntime();
 const INSTALLER_RT = realRuntimeWithSubprocess();
 
@@ -77,7 +77,7 @@ describe("WorkdirManager.start", () => {
     await wm.teardown(wd);
   });
 
-  test("copies family-level workdir/ + specs/, with per-task files overriding the shared base", async () => {
+  test("copies family-level workdir/ + specs/, and per-task files override the shared base", async () => {
     const { family, wm } = await setupManager();
     const task = family.tasks().find((t) => t.id === "pass");
     const wd = await wm.start(task, 0);
@@ -100,7 +100,7 @@ describe("WorkdirManager.start", () => {
     await wm.teardown(wd);
   });
 
-  test("populates preflightError without throwing when preflight exits non-zero", async () => {
+  test("populates preflightError and does not throw when preflight exits non-zero", async () => {
     const { family, wm } = await setupManager();
     const task = family.tasks().find((t) => t.id === "preflight-broken");
     const wd = await wm.start(task, 0);
@@ -112,4 +112,4 @@ describe("WorkdirManager.start", () => {
 });
 
 // The teardown listener-cleanup test spawns a real `node` subprocess and binds
-// a real TCP port; it lives in benchmark-workdir.integration.test.js.
+// a real TCP port. It lives in benchmark-workdir.integration.test.js.

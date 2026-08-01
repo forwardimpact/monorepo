@@ -14,7 +14,7 @@ import { LongrunProcess } from "./longrun.js";
  */
 
 /**
- * Supervision tree managing multiple processes, inspired by s6-svscan
+ * Supervision tree that manages multiple processes, inspired by s6-svscan
  */
 export class SupervisionTree extends EventEmitter {
   #runtime;
@@ -34,13 +34,15 @@ export class SupervisionTree extends EventEmitter {
    * @param {string} logDir - Base directory for process logs
    * @param {object} config - Tree configuration
    * @param {import("@forwardimpact/libutil/runtime").Runtime} config.runtime
-   *   Injected runtime bag (uses `subprocess`, `clock`; threaded into children).
+   *   Injected runtime bag (uses `subprocess`, `clock`). The tree threads it
+   *   into the children.
    * @param {number} [config.shutdownTimeout] - Timeout for graceful shutdown in ms (default: 3000)
    * @param {import('@forwardimpact/libtelemetry').Logger} config.logger - Logger instance
    * @param {boolean} [config.isCompiled] - Whether the host is a
-   *   `bun build --compile` binary; defaults to libcli's `LIBCLI_IS_COMPILED`.
-   *   Selects how the `fit-logger` child is launched (see {@link #loggerCommand});
-   *   injectable so tests can exercise both branches without a real binary.
+   *   `bun build --compile` binary. Defaults to libcli's `LIBCLI_IS_COMPILED`.
+   *   Selects how the tree launches the `fit-logger` child (see
+   *   {@link #loggerCommand}). Tests inject it to exercise both branches
+   *   without a real binary.
    */
   constructor(logDir, config) {
     super();
@@ -62,17 +64,18 @@ export class SupervisionTree extends EventEmitter {
   }
 
   /**
-   * Resolve the command + base args used to launch the `fit-logger` child,
-   * daemontools-style: svscan execs a separate logger program per supervised
-   * service (like s6-svscan exec'ing s6-log) and pipes the service's output
-   * into its stdin.
+   * Resolve the command and base args that launch the `fit-logger` child,
+   * daemontools-style. svscan execs a separate logger program for each
+   * supervised service, as s6-svscan execs s6-log. It pipes the service's
+   * output into the logger's stdin.
    *
-   * A compiled install ships `fit-logger` alongside `fit-svscan` on PATH, so it
-   * is launched by bare name and resolved by the OS — the same way s6 run
-   * scripts invoke their logger. In source/npx execution there is no installed
-   * binary, so the entry module is run under `node`; the `require.resolve` stays
-   * inside this branch (and lazy) so it never runs in a compiled binary, where
-   * the `../bin/fit-logger.js` path does not exist on the `$bunfs`.
+   * A compiled install ships `fit-logger` alongside `fit-svscan` on PATH. The
+   * tree launches it by bare name, and the OS resolves it. s6 run scripts
+   * invoke their logger the same way. A source or npx run has no installed
+   * binary, so the tree runs the entry module under `node`. The
+   * `require.resolve` stays inside this branch, and stays lazy, so it never
+   * runs in a compiled binary. On the `$bunfs` the `../bin/fit-logger.js`
+   * path does not exist.
    * @returns {{command: string, baseArgs: string[]}}
    */
   #loggerCommand() {
@@ -127,7 +130,8 @@ export class SupervisionTree extends EventEmitter {
 
     const processLogDir = path.join(this.#logDir, name);
 
-    // Create PassThrough streams that the tree holds - these survive log process restarts
+    // Create PassThrough streams that the tree holds. These survive log
+    // process restarts.
     const stdout = new PassThrough();
     const stderr = new PassThrough();
 
@@ -171,18 +175,20 @@ export class SupervisionTree extends EventEmitter {
       },
     );
 
-    // Pipe streams to log process stdin (with end: false so pipe survives
-    // restarts). `stdin` is the child's writable from the spawn contract.
+    // Pipe the streams to the log process stdin. Use end: false so the pipe
+    // survives restarts. `stdin` is the child's writable from the spawn
+    // contract.
     if (logProcess.stdin) {
       stdout.pipe(logProcess.stdin, { end: false });
       stderr.pipe(logProcess.stdin, { end: false });
     }
 
-    // Supervise: restart on unexpected exit. The exit event is the resolution
-    // of the exitCode/signal promises from the spawn contract.
+    // Supervise the log process. Restart it after an unexpected exit. The
+    // exitCode and signal promises from the spawn contract resolve when the
+    // log process exits.
     void Promise.all([logProcess.exitCode, logProcess.signal]).then(
       ([code, signal]) => {
-        // Only restart if tree is still running and process entry exists
+        // Restart only if the tree still runs and the process entry exists
         if (this.#running && this.#longruns.has(name)) {
           this.emit("log:down", { name, code, signal });
           // Respawn after a short delay

@@ -1,11 +1,11 @@
 /**
- * Fixture-anchored equivalence test — guards that the live stream and
+ * Fixture-anchored equivalence test. It guards that the live stream and
  * the offline replay render identical text.
  *
  * The live `TeeWriter` stream and the offline `TraceCollector.toText()`
- * replay share one rendering path. If anyone changes a renderer without
- * updating both, this test catches it by comparing ANSI-stripped output
- * for a scripted multi-agent session.
+ * replay share one code path when they render. If anyone changes a
+ * renderer and does not update both, this test catches it. The test
+ * compares ANSI-stripped output for a scripted multi-agent session.
  */
 
 import { describe, test } from "node:test";
@@ -42,7 +42,7 @@ describe("live stream and offline replay fixture equivalence", () => {
     for (const line of lines) collector.addLine(line);
     const offlineText = collector.toText();
 
-    // Strip ANSI for the equivalence comparison, trim trailing whitespace
+    // Strip ANSI for the equivalence comparison. Trim trailing whitespace
     // so footer newline differences between the two paths don't matter.
     // Both paths must agree on every visible character.
     assert.strictEqual(

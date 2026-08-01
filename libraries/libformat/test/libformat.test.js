@@ -19,7 +19,7 @@ describe("libformat", () => {
         // Simple mock that removes script tags but keeps other allowed tags
         let sanitized = html.replace(/<script[^>]*>.*?<\/script>/gi, "");
 
-        // Filter allowed tags (basic implementation for testing)
+        // Filter allowed tags (basic implementation for the tests)
         if (options.allowedTags) {
           const allowedTagsSet = new Set(options.allowedTags);
           sanitized = sanitized.replace(
@@ -49,7 +49,7 @@ describe("libformat", () => {
       mockMarked = {
         Marked: class {
           /**
-           * Set options for marked instance
+           * Set options for the marked instance
            * @returns {object} Mock marked instance
            */
           setOptions() {
@@ -123,10 +123,10 @@ describe("libformat", () => {
           }
           /**
            * Use marked extensions
-           * @returns {this} Returns this for method chaining
+           * @returns {this} Returns this so callers can chain methods
            */
           use() {
-            return this; // Return this for method chaining like real Marked
+            return this; // Return this so callers can chain, like real Marked
           }
           /**
            * Parse markdown to formatted output
@@ -134,7 +134,7 @@ describe("libformat", () => {
            * @returns {string} Formatted output
            */
           parse(markdown) {
-            // Simple mock that adds ANSI codes for terminal formatting
+            // Simple mock that adds ANSI codes to format terminal output
             return markdown
               .replace(/^# (.*$)/gm, "\x1b[1m$1\x1b[0m") // Bold for headers
               .replace(/\*\*(.*?)\*\*/g, "\x1b[1m$1\x1b[0m") // Bold
@@ -179,7 +179,7 @@ describe("libformat", () => {
       assert.strictEqual(typeof terminal, "string");
     });
 
-    test("strips ANSI codes when colors are disabled", () => {
+    test("strips ANSI codes when the caller disables colors", () => {
       const plain = new TerminalFormatter(mockMarked, mockMarkedTerminal, {
         colors: false,
       });
@@ -216,17 +216,17 @@ describe("libformat", () => {
     // -- Section spacing rule -----------------------------------------------
     // Every section (thinking, tool call, result marker) ends with \n\n.
 
-    test("every thinking section ends with blank separator", () => {
+    test("every thinking section ends with a blank separator", () => {
       formatter.writeBlocks([{ type: "thinking", thinking: "hmm" }]);
       assert.ok(written().endsWith("\n\n"));
     });
 
-    test("every tool call section ends with blank separator", () => {
+    test("every tool call section ends with a blank separator", () => {
       formatter.writeBlocks([{ type: "tool_use", name: "Read", input: {} }]);
       assert.ok(written().endsWith("\n\n"));
     });
 
-    test("marker getter returns configured marker", () => {
+    test("marker getter returns the configured marker", () => {
       const f = new AgentTraceFormatter(output, { marker: "⏺" });
       assert.strictEqual(f.marker, "⏺");
     });
@@ -243,7 +243,7 @@ describe("libformat", () => {
       assert.strictEqual(chunks.length, 0);
     });
 
-    test("indents thinking when indent option is set", () => {
+    test("indents thinking when the caller sets the indent option", () => {
       const f = new AgentTraceFormatter(output, { indent: "  " });
       f.writeBlocks([{ type: "thinking", thinking: "line one\nline two" }]);
       assert.strictEqual(written(), "\x1b[2m  line one\n  line two\x1b[0m\n\n");
@@ -251,7 +251,7 @@ describe("libformat", () => {
 
     // -- Tool calls ---------------------------------------------------------
 
-    test("renders tool_use with bold name and params", () => {
+    test("renders tool_use with a bold name and params", () => {
       formatter.writeBlocks([
         { type: "tool_use", name: "Read", input: { file_path: "/tmp/a.js" } },
       ]);
@@ -325,7 +325,7 @@ describe("libformat", () => {
 
     // -- Marker getter -------------------------------------------------------
 
-    test("marker getter returns empty string when not configured", () => {
+    test("marker getter returns an empty string with no marker", () => {
       assert.strictEqual(formatter.marker, "");
     });
 
@@ -349,7 +349,7 @@ describe("libformat", () => {
       ]);
       const text = written();
       assert.ok(text.indexOf("Planning") < text.indexOf("Read"));
-      // Two sections, each ending with \n\n
+      // Two sections. Each one ends with \n\n
       assert.strictEqual(text.match(/\n\n/g).length, 2);
     });
 

@@ -14,7 +14,7 @@ export class PackStager {
     this.#fs = rt.fs;
   }
 
-  /** Return true if path exists (file or directory). */
+  /** Return true if the path exists (file or directory). */
   async #exists(path) {
     try {
       await this.#fs.access(path);
@@ -42,7 +42,7 @@ export class PackStager {
       if (!skill.dirname) {
         throw new Error(
           "PackStager.stageFull: skill is missing a dirname (the skill id / " +
-            "agent skill name); cannot stage its directory. Offending skill: " +
+            "agent skill name). Cannot stage its directory. Offending skill: " +
             JSON.stringify(skill).slice(0, 300),
         );
       }
@@ -132,8 +132,8 @@ export class PackStager {
     }
     deployedFiles.sort();
 
-    // Epoch 0 as an ISO string — a deterministic constant (not the ambient
-    // clock) so generated lockfiles are reproducible across packing runs.
+    // Epoch 0 as an ISO string. This constant is deterministic and never
+    // reads the ambient clock. So every run writes the same lockfile.
     const epoch = "1970-01-01T00:00:00.000Z";
     const lockLines = [
       `lockfile_version: '1'`,
@@ -159,12 +159,12 @@ export class PackStager {
     );
   }
 
-  /** Stage the APM git repo layout from a full staging dir.
+  /** Stage the APM git-repo layout from a full staging dir.
    *  Skills and agents both live under APM's canonical `.apm/` source root
    *  (`.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`) so `apm install`
-   *  discovers and installs both. The `.agent.md` suffix is required — APM's
-   *  agent discovery keys on it. Shared with the sibling-repo publisher via
-   *  `./layout.js` so the two staging paths cannot drift.
+   *  discovers and installs both. The `.agent.md` suffix is required. APM's
+   *  agent discovery keys on it. `./layout.js` shares the layout with the
+   *  sibling-repo publisher, so the two staging paths cannot drift.
    */
   async stageApmGit(fullDir, gitDir, packName, version) {
     const { mkdir, readdir, cp, writeFile, copyFile } = this.#fs;

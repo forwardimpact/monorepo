@@ -1,46 +1,50 @@
 /**
- * Grading derivation — the sole home of the check-row arithmetic.
+ * Grade derivation — the sole home of the check-row arithmetic.
  *
- * Check rows are the single authoritative grading channel. Every row is a
- * check by default; a row declares its role with its own fields, checked in
- * order:
+ * Check rows are the one authoritative input to the grade. Every row is a
+ * check by default. A row declares its role with its own fields. The
+ * classifier reads the fields in this order:
  *
  *   1. Gate       — `gate` is exactly `true`, `pass` is boolean, and no
- *                   `weight` key is present. Any failing gate → `gatesPass`
- *                   false.
- *   2. Diagnostic — no `gate` key and `weight` is exactly `0`. Free-form;
- *                   never graded.
+ *                   `weight` key is present. A gate that fails sets
+ *                   `gatesPass` to false.
+ *   2. Diagnostic — no `gate` key and `weight` is exactly `0`. The row is
+ *                   free-form. The grader never scores it.
  *   3. Scored     — no `gate` key, boolean `pass`, `weight` absent (defaults
  *                   to 1) or finite > 0.
- *   4. Malformed  — everything else: any `gate`+`weight` co-occurrence (a
- *                   stray weight must never silently disarm a gate), a
+ *   4. Malformed  — everything else: any `gate`+`weight` co-occurrence, a
  *                   non-boolean `gate`, a missing or non-boolean `pass` on a
  *                   graded row, an invalid `weight`, an fd-3 line that failed
- *                   to parse, a non-object row. Counts as a **failing scored
- *                   check** — dropping a defect could mint full marks;
- *                   failing the whole run would zero completed work.
+ *                   to parse, a non-object row. A stray weight must never
+ *                   silently disarm a gate. A malformed row counts as a
+ *                   **scored check that fails**. If the grader dropped the
+ *                   defect, the cell could mint full marks. If it failed the
+ *                   whole run, it would zero completed work.
  *
- * The producers' `source` stamp is display metadata, never a grading input.
+ * The producers' `source` stamp is display metadata. The grader never reads
+ * it.
  */
 
 /**
  * @typedef {object} GradeResult
  * @property {"pass" | "fail"} verdict - `healthy ∧ gatesPass ∧ fullMarks`.
  * @property {boolean} gatesPass - Every gate row passes (vacuously true).
- * @property {number | null} score - Weighted fraction of passing scored
- *   checks; `null` when the cell has zero scored checks (binary task).
- * @property {boolean} fullMarks - Integer count predicate: no malformed rows
- *   and every scored check passes. Never a float comparison, so fractional
- *   weights carry no equality hazard. Vacuously true with zero scored checks.
+ * @property {number | null} score - Weighted fraction of the scored checks
+ *   that pass. It is `null` when the cell has zero scored checks (binary
+ *   task).
+ * @property {boolean} fullMarks - An integer count predicate. It is true when
+ *   no row is malformed and every scored check passes. It is never a float
+ *   comparison, so fractional weights carry no equality hazard. It is
+ *   vacuously true with zero scored checks.
  * @property {number} malformed - Malformed row count.
  */
 
 /**
  * Grade the merged check rows against grader health.
  *
- * `healthy` is the completion signal a crashed grader cannot fake: when it is
- * false the verdict is `fail` whatever the rows say, so a hook that dies
- * after emitting passing rows can never mint marks.
+ * `healthy` is the completion signal a crashed grader cannot fake. When it is
+ * false, the verdict is `fail` whatever the rows say. A hook that emits rows
+ * that pass and then dies can never mint marks.
  * @param {unknown[]} details - Merged check rows from both producers.
  * @param {boolean} healthy - Invariants exited 0 AND the hidden-test engine
  *   did not throw.
@@ -73,7 +77,7 @@ export function gradeChecks(details, healthy) {
 }
 
 /**
- * Fold one row into the running tally per its classified role.
+ * Fold one row into the tally per its classified role.
  * @param {{gatesPass: boolean, malformed: number, scored: number, passing: number, weightAll: number, weightPassing: number}} tally
  * @param {unknown} row
  */
@@ -96,11 +100,10 @@ function tallyRow(tally, row) {
 }
 
 /**
- * Run both check-row producers and grade the merged rows — the one
- * composition shared by the runner and the `grade` subcommand. An engine
- * throw is grader fault: its message lands on the returned `engineError`
- * and health fails, so a crashed grader can never mint marks from rows it
- * happened to emit first.
+ * Run both check-row producers and grade the merged rows. The runner and the
+ * `grade` subcommand share this one composition. An engine throw is grader
+ * fault. Its message lands on the returned `engineError` and health fails. A
+ * crashed grader can never mint marks from rows it emitted first.
  * @param {import("./task-family.js").Task} task
  * @param {{cwd: string, port: number, runDir: string, familyDir?: string|null}} ctx
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
@@ -126,8 +129,8 @@ export async function runProducersAndGrade(task, ctx, runtime, producers) {
 
 /**
  * Merge the two producers' rows (invariants first) and stamp each row's
- * provenance. The stamp is display metadata, never a grading input, and
- * non-object rows (malformed by contract) pass through verbatim.
+ * provenance. The stamp is display metadata. The grader never reads it.
+ * Non-object rows (malformed by contract) pass through verbatim.
  * @param {unknown[]} invariantsDetails
  * @param {unknown[]} hiddenDetails
  * @returns {unknown[]}
@@ -147,9 +150,9 @@ function stampSource(row, source) {
 }
 
 /**
- * Project the raw `gradeChecks` return onto the record schema: `fullMarks`
- * is derivable and dropped, `score` is omitted on binary tasks (`null`),
- * `malformed` is omitted when clean.
+ * Project the raw `gradeChecks` return onto the record schema. `fullMarks` is
+ * derivable, so this function drops it. It omits `score` on binary tasks
+ * (`null`). It omits `malformed` when the rows are clean.
  * @param {GradeResult} raw
  * @returns {{verdict: "pass"|"fail", gatesPass: boolean, score?: number, malformed?: number}}
  */
@@ -177,9 +180,9 @@ function classifyRow(row) {
 }
 
 /**
- * A row carrying a `gate` key: valid only as `gate: true` with a boolean
- * `pass` and no `weight` key — any co-occurring weight is malformed so a
- * stray weight can never silently disarm a gate.
+ * Classify a row that has a `gate` key. The row is valid only as `gate: true`
+ * with a boolean `pass` and no `weight` key. Any weight that co-occurs makes
+ * the row malformed. A stray weight can never silently disarm a gate.
  * @param {object} row
  * @returns {"gate" | "malformed"}
  */
@@ -191,9 +194,9 @@ function classifyGateRow(row) {
 }
 
 /**
- * A gate-less row carrying a `weight` key: exactly 0 is a diagnostic, a
- * finite positive weight with a boolean `pass` is scored, anything else is
- * malformed.
+ * Classify a gate-less row that has a `weight` key. A weight of exactly 0 is
+ * a diagnostic. A finite positive weight with a boolean `pass` is scored.
+ * Anything else is malformed.
  * @param {object} row
  * @returns {"diagnostic" | "scored" | "malformed"}
  */
@@ -205,8 +208,8 @@ function classifyWeightedRow(row) {
 }
 
 /**
- * A malformed row fails at its own weight when it carries a valid positive
- * one, else at unit weight 1.
+ * A malformed row fails at its own weight when that weight is valid and
+ * positive. Otherwise it fails at unit weight 1.
  * @param {unknown} row
  * @returns {number}
  */

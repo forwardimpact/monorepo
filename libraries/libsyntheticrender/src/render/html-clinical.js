@@ -1,18 +1,18 @@
 /**
- * Clinical HTML rendering — patient-facing pages with Schema.org microdata.
+ * Clinical HTML renderer — patient-facing pages with Schema.org microdata.
  *
  * Each `build*Data` helper looks up the prose key for the entity (e.g.
- * `clinical_condition_explainer_${id}`) in the prose cache and slots the
- * resolved prose into the template at Pass-1 render time via Mustache. The
- * `data-enrich="clinical_..."` attribute is left on the output element as
- * a marker only — the LLM enricher (`enricher.js`) iterates `data-enrich`
- * blocks but matches handlers by prefix (`project_`, `drug_`, ...), so
- * `clinical_` keys are never re-enriched and the cached prose survives
- * intact to disk.
+ * `clinical_condition_explainer_${id}`) in the prose cache. The helper then
+ * slots the resolved prose into the template with Mustache at Pass-1 render
+ * time. The `data-enrich="clinical_..."` attribute stays on the output
+ * element as a marker only. The LLM enricher (`enricher.js`) iterates
+ * `data-enrich` blocks. It matches handlers by prefix (`project_`,
+ * `drug_`, ...). So it never re-enriches `clinical_` keys. The cached prose
+ * survives intact to disk.
  *
- * Prose is interpolated with triple-brace Mustache (`{{{prose}}}`) so the
- * patient-facing prompt's inline Schema.org spans land as live microdata
- * rather than HTML-escaped text.
+ * Triple-brace Mustache (`{{{prose}}}`) interpolates the prose. So the
+ * inline Schema.org spans from the patient-facing prompt land as live
+ * microdata. They do not land as HTML-escaped text.
  */
 
 function titleCase(str) {
@@ -194,8 +194,8 @@ function buildTrialCardData(trials, conditions, sites, fhirCrossRef = null) {
 }
 
 /**
- * Render 7 clinical HTML files into `files`. The `page` wrapper is supplied
- * by the caller so clinical pages share the org-wide page chrome.
+ * Render 7 clinical HTML files into `files`. The caller supplies the `page`
+ * wrapper so clinical pages share the org-wide page chrome.
  *
  * @param {Map<string,string>} files
  * @param {object} entities - Must include `entities.clinical`

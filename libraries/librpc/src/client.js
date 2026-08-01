@@ -9,16 +9,16 @@ import {
   capitalizeFirstLetter,
 } from "./base.js";
 
-// No unary call waits forever: every call carries one absolute gRPC
-// deadline spanning all retry attempts, so both a hung connection and a
-// retryable-error grind (exponential backoff on UNAVAILABLE) fail with
-// DEADLINE_EXCEEDED instead of blocking the caller indefinitely. Sized
-// for the slowest unary in practice (embedding model inference);
-// override per service via the `deadline` config key.
+// No unary call waits forever. Every call carries one absolute gRPC
+// deadline that spans all retry attempts. So a hung connection fails with
+// DEADLINE_EXCEEDED, and so does a retryable-error grind (exponential
+// backoff on UNAVAILABLE). Neither one blocks the caller forever. The
+// default fits the slowest unary in practice (embedding model inference).
+// Override it per service with the `deadline` config key.
 const DEFAULT_UNARY_DEADLINE_MS = 60_000;
 
 /**
- * Creates a gRPC client with consistent API using pre-compiled definitions
+ * Creates a gRPC client with a consistent API from pre-compiled definitions
  */
 export class Client extends Rpc {
   #client;
@@ -35,7 +35,7 @@ export class Client extends Rpc {
    * @param {(serviceName: string, logger: object, tracer: object) => object} observerFn - Observer factory
    * @param {() => {grpc: object}} grpcFn - gRPC factory
    * @param {(serviceName: string, runtime: object) => object} authFn - Auth factory
-   * @param {import("@forwardimpact/libutil").Retry} [retry] - Optional retry instance for handling transient errors
+   * @param {import("@forwardimpact/libutil").Retry} [retry] - Optional retry instance that handles transient errors
    */
   constructor(
     config,
@@ -55,14 +55,14 @@ export class Client extends Rpc {
   }
 
   /**
-   * Sets up the gRPC client using pre-compiled definition
+   * Sets up the gRPC client from the pre-compiled definition
    * @private
    */
   #setupClient() {
     const serviceName = capitalizeFirstLetter(this.config.name);
     const serviceDefinition = this.getServiceDefinition(serviceName);
 
-    // In case default host is used, resort to a well-known service name
+    // If the config uses the default host, resort to a well-known service name
     const host =
       this.config.host === "0.0.0.0"
         ? `${this.config.name}.guide.local`
@@ -73,7 +73,7 @@ export class Client extends Rpc {
       interceptors: [this.auth().createClientInterceptor()],
     };
 
-    // Configure client with keepalive for long-running streams
+    // Configure the client with keepalive for long-running streams
     // https://github.com/grpc/grpc-node/blob/master/doc/keepalive.md
     const channelOptions = {
       "grpc.keepalive_time_ms": 30000, // Send keepalive ping every 30 seconds
@@ -84,7 +84,7 @@ export class Client extends Rpc {
     };
     const clientCredentials = this.grpc().credentials.createInsecure();
 
-    // Create client using pre-compiled service definition
+    // Create the client from the pre-compiled service definition
     const ClientConstructor = this.grpc().makeGenericClientConstructor(
       serviceDefinition,
       serviceName,
@@ -94,7 +94,7 @@ export class Client extends Rpc {
   }
 
   /**
-   * Close the underlying gRPC channel, releasing its sockets and timers
+   * Close the underlying gRPC channel. This releases its sockets and timers
    * so short-lived processes (CLIs, tests) can exit promptly.
    * @returns {void}
    */
@@ -220,13 +220,12 @@ export class Client extends Rpc {
   }
 
   /**
-   * Internal unary call handler with retry logic. The absolute deadline
-   * is computed once and shared by every retry attempt, so retryable
-   * errors keep cycling only until the call's budget is spent — the
-   * first attempt past the deadline fails immediately with
-   * DEADLINE_EXCEEDED, which is deliberately not retryable. Streaming
-   * calls are exempt (keepalive bounds them, and long-lived streams are
-   * legitimate).
+   * Internal unary call handler with retry logic. The handler computes the
+   * absolute deadline once and shares it with every retry attempt. So
+   * retryable errors repeat only until the call spends its budget. The
+   * first attempt past the deadline fails at once with DEADLINE_EXCEEDED,
+   * which is deliberately not retryable. Streaming calls are exempt.
+   * Keepalive bounds them, and long-lived streams are legitimate.
    * @param {string} methodName - The name of the method
    * @param {object} request - Request object
    * @param {object} metadata - gRPC Metadata instance

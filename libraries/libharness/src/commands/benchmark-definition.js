@@ -1,7 +1,7 @@
 /**
- * `gemba-benchmark` CLI definition. Lives in `src/` so the bin stays an
- * execute-on-import entry point — launcher packages import the bin to run
- * it — while tests import the definition without running the CLI.
+ * `gemba-benchmark` CLI definition. It lives in `src/` so the bin stays an
+ * execute-on-import entry point. Launcher packages import the bin to run it.
+ * Tests import the definition and never run the CLI.
  */
 
 import { runBenchmarkRunCommand } from "./benchmark-run.js";
@@ -36,7 +36,7 @@ export const definition = {
         "skills-from": {
           type: "string",
           description:
-            "Stage .claude/ from this directory (a root containing .claude/) instead of running apm install — exercise local, unpublished skills",
+            "Stage .claude/ from this directory (a root that holds .claude/) instead of an apm install, to exercise local, unpublished skills",
         },
         output: {
           type: "string",
@@ -85,7 +85,7 @@ export const definition = {
         shard: {
           type: "string",
           description:
-            "Run only shard i of N as i/N (1-based; default: the whole family). Each shard writes a partial results.jsonl; report --input merges them.",
+            "Run only shard i of N as i/N (1-based; default: the whole family). Each shard writes a partial results.jsonl. report --input merges them.",
         },
         "allowed-tools": {
           type: "string",
@@ -99,7 +99,7 @@ export const definition = {
       args: [],
       handler: runBenchmarkGradeCommand,
       description:
-        "Grade a single task against a post-run workdir without invoking an agent: run the hidden test suite and the invariants script, then derive the verdict from the check rows (the exit mirrors it).",
+        "Grade a single task against a post-run workdir with no agent. Run the hidden test suite and the invariants script. Then derive the verdict from the check rows (the exit mirrors it).",
       options: {
         family: {
           type: "string",
@@ -112,7 +112,7 @@ export const definition = {
         "run-dir": {
           type: "string",
           description:
-            "Post-run directory whose cwd/ subdir is the agent CWD; both producers run against that cwd — the path hooks receive as $AGENT_CWD",
+            "Post-run directory whose cwd/ subdir is the agent CWD. Both producers run against that cwd. Hooks receive it as $AGENT_CWD",
         },
         output: {
           type: "string",
@@ -125,12 +125,12 @@ export const definition = {
       args: [],
       handler: runBenchmarkReportCommand,
       description:
-        "Aggregate result records into pass@k via the OpenAI HumanEval estimator.",
+        "Aggregate result records into pass@k with the OpenAI HumanEval estimator.",
       options: {
         input: {
           type: "string",
           description:
-            "Run-output directory containing results.jsonl (default: benchmark-runs)",
+            "Run-output directory that holds results.jsonl (default: benchmark-runs)",
         },
         k: {
           type: "string",
@@ -143,7 +143,7 @@ export const definition = {
         detail: {
           type: "string",
           description:
-            "Text report verbosity (full|compact, default: full). compact omits per-task detail — useful for sharded run summaries.",
+            "Text report verbosity (full|compact, default: full). compact omits per-task detail, which helps with sharded run summaries.",
         },
       },
     },

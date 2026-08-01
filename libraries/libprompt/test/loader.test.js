@@ -8,7 +8,7 @@ const PROMPT_DIR = "/prompts";
 
 /**
  * Build a PromptLoader over an in-memory fs seeded with `files` (a path→content
- * map), injected through the loader's `runtime` parameter.
+ * map). Inject the fs through the loader's `runtime` parameter.
  */
 function loaderWith(files = {}) {
   return new PromptLoader(
@@ -18,46 +18,46 @@ function loaderWith(files = {}) {
 }
 
 describe("PromptLoader", () => {
-  test("constructor throws when promptDir is not provided", () => {
+  test("constructor throws when promptDir is missing", () => {
     assert.throws(() => new PromptLoader(), {
       message: "promptDir is required",
     });
   });
 
-  test("constructor throws when promptDir is empty string", () => {
+  test("constructor throws when promptDir is an empty string", () => {
     assert.throws(() => new PromptLoader(""), {
       message: "promptDir is required",
     });
   });
 
-  test("constructor accepts valid promptDir", () => {
+  test("constructor accepts a valid promptDir", () => {
     const loader = loaderWith();
     assert.ok(loader instanceof PromptLoader);
   });
 
   describe("load", () => {
-    test("throws when promptName is not provided", () => {
+    test("throws when promptName is missing", () => {
       const loader = loaderWith();
       assert.throws(() => loader.load(), {
         message: "promptName is required",
       });
     });
 
-    test("throws when promptName is empty string", () => {
+    test("throws when promptName is an empty string", () => {
       const loader = loaderWith();
       assert.throws(() => loader.load(""), {
         message: "promptName is required",
       });
     });
 
-    test("throws when prompt file does not exist", () => {
+    test("throws when the prompt file does not exist", () => {
       const loader = loaderWith();
       assert.throws(() => loader.load("nonexistent"), {
         message: /Prompt file not found/,
       });
     });
 
-    test("loads prompt file content", () => {
+    test("loads the prompt file content", () => {
       const content = "# Test Prompt\n\nThis is a test prompt.";
       const loader = loaderWith({ [`${PROMPT_DIR}/test.prompt.md`]: content });
       const result = loader.load("test");
@@ -65,7 +65,7 @@ describe("PromptLoader", () => {
       assert.strictEqual(result, content);
     });
 
-    test("loads prompt file with utf-8 encoding", () => {
+    test("loads the prompt file with utf-8 encoding", () => {
       const content = "# Prompt with umlauts and accents";
       const loader = loaderWith({
         [`${PROMPT_DIR}/unicode.prompt.md`]: content,
@@ -77,7 +77,7 @@ describe("PromptLoader", () => {
   });
 
   describe("render", () => {
-    test("renders template with data", () => {
+    test("renders the template with data", () => {
       const template = "Hello, {{name}}!";
       const loader = loaderWith({
         [`${PROMPT_DIR}/greeting.prompt.md`]: template,
@@ -87,7 +87,7 @@ describe("PromptLoader", () => {
       assert.strictEqual(result, "Hello, World!");
     });
 
-    test("renders template with empty data object", () => {
+    test("renders the template with an empty data object", () => {
       const template = "Hello, {{name}}!";
       const loader = loaderWith({
         [`${PROMPT_DIR}/greeting.prompt.md`]: template,
@@ -97,7 +97,7 @@ describe("PromptLoader", () => {
       assert.strictEqual(result, "Hello, !");
     });
 
-    test("renders template without data argument", () => {
+    test("renders the template without the data argument", () => {
       const template = "Static content";
       const loader = loaderWith({
         [`${PROMPT_DIR}/static.prompt.md`]: template,
@@ -107,7 +107,7 @@ describe("PromptLoader", () => {
       assert.strictEqual(result, "Static content");
     });
 
-    test("renders template with triple mustache for unescaped content", () => {
+    test("renders unescaped content with a triple mustache", () => {
       const template = "Content: {{{html}}}";
       const loader = loaderWith({
         [`${PROMPT_DIR}/html.prompt.md`]: template,
@@ -117,7 +117,7 @@ describe("PromptLoader", () => {
       assert.strictEqual(result, "Content: <strong>bold</strong>");
     });
 
-    test("renders template with sections", () => {
+    test("renders the template with sections", () => {
       const template =
         "Items:{{#items}}\n- {{name}}{{/items}}\nTotal: {{total}}";
       const loader = loaderWith({

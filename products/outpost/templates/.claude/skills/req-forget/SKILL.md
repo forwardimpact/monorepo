@@ -4,17 +4,18 @@ description: >
   Process GDPR Article 17 data erasure requests. Finds and removes all personal
   data related to a named individual from the knowledge base, cached data, and
   agent state files. Use when the user receives a right-to-be-forgotten
-  request, asks to delete all data about a person, or needs to comply with a
+  request, asks to delete all data about a person, or must comply with a
   data erasure obligation.
 compatibility: Requires macOS filesystem access
 ---
 
 # Right to Be Forgotten
 
-Process data erasure requests under GDPR Article 17. Given a person's name,
-systematically find and remove all personal data from the knowledge base, cached
-synced data, and agent state files. Produces an **erasure report** documenting
-what was found, deleted, and redacted — the compliance audit trail.
+Process data erasure requests under GDPR Article 17. Work from the person's
+name. Systematically find and remove all personal data from the knowledge base,
+the cached synced data, and the agent state files. Produces an **erasure
+report** that records what you found, deleted, and redacted. The report is the
+compliance audit trail.
 
 ## Trigger
 
@@ -43,16 +44,16 @@ what was found, deleted, and redacted — the compliance audit trail.
 <do_confirm_checklist goal="Verify erasure is complete and the audit trail is
 sound">
 
-- [ ] User confirmed intent before any deletion.
-- [ ] All discovery recipes ran; inventory covers knowledge, cache, state,
-      drafts.
-- [ ] All dedicated files and directories deleted.
-- [ ] All mentions and backlinks redacted from other notes.
-- [ ] Cached email threads, attachments, and calendar entries handled.
-- [ ] Agent state and `graph_processed` cleaned.
-- [ ] Erasure report saved; contains **no** personal data beyond the name and
-      actions taken.
-- [ ] Final `rg` search shows only the erasure report as a match.
+- [ ] Get the user's confirmation before any deletion.
+- [ ] Run every discovery recipe. Cover knowledge, cache, state, and drafts in
+      the inventory.
+- [ ] Delete all dedicated files and directories.
+- [ ] Redact all mentions and backlinks from other notes.
+- [ ] Handle cached email threads, attachments, and calendar entries.
+- [ ] Clean the agent state and `graph_processed`.
+- [ ] Save the erasure report. Keep **no** personal data in it beyond the name
+      and the actions taken.
+- [ ] Run a final `rg` search. Confirm the erasure report is the only match.
 
 </do_confirm_checklist>
 
@@ -70,9 +71,9 @@ State to the user:
 > - Cached email threads and attachments
 > - Agent state and triage files
 >
-> This action cannot be undone. Proceed?
+> You cannot undo this action. Proceed?
 
-**Wait for explicit confirmation before continuing.**
+**Wait for explicit confirmation before you continue.**
 
 ### 1. Discovery
 
@@ -97,12 +98,12 @@ rm -f "Knowledge/People/{Name}.md"
 find ~/.cache/fit/outpost/apple_mail/attachments/ -iname "*{Name}*" -delete
 ```
 
-**3b. Redact mentions in other notes:** read each file, remove the specific
+**3b. Redact mentions in other notes:** Read each file. Remove the specific
 lines/bullets/sections per the rules in
-[references/classify.md](references/classify.md#redaction-rules), remove broken
-`[[backlinks]]` to deleted notes, write the file back.
+[references/classify.md](references/classify.md#redaction-rules). Remove broken
+`[[backlinks]]` to deleted notes. Write the file back.
 
-**3c. Email threads:** delete sole-subject threads; redact paragraphs only in
+**3c. Email threads:** Delete sole-subject threads. Redact paragraphs only in
 multi-person threads.
 
 **3d. Agent state files:**
@@ -126,9 +127,10 @@ rg -v "{deleted_path}" ~/.cache/fit/outpost/state/graph_processed \
 
 ### 4. Write the erasure report
 
-Save to `Knowledge/Erasure/{Name}--{YYYY-MM-DD}.md` using the template in
-[references/report-template.md](references/report-template.md). Record **only**
-what was deleted — never CV content, skills, or assessments.
+Use the template in
+[references/report-template.md](references/report-template.md). Save to
+`Knowledge/Erasure/{Name}--{YYYY-MM-DD}.md`. Record **only** what you deleted.
+Never record CV content, skills, or assessments.
 
 ### 5. Verify
 
@@ -148,7 +150,7 @@ them and update the report.
 - Recruitment threads (known agency domains)
 - `recruiter_triage.md`
 
-Leaves `Knowledge/People/{Name}.md` and the wider graph intact — the person may
-be a colleague or non-recruitment contact.
+It leaves `Knowledge/People/{Name}.md` and the wider graph intact. The person
+may be a colleague or a non-recruitment contact.
 
 **`all`** (default): full erasure across knowledge base, cache, and state.

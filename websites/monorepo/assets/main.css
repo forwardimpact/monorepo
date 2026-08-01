@@ -1,10 +1,12 @@
 /* ══════════════════════════════════════════════════════════════════
    Monorepo — Brand Layer
-   Tokens, fonts, brand-specific surfaces, and scroll-section styles.
-   Loaded after the shared base/layout/components stylesheets.
+   This file holds tokens, fonts, brand-specific surfaces, and
+   scroll-section styles. The page loads it after the shared base,
+   layout, and components stylesheets.
 
-   Metaphor: a directory tree — every node traces back to one root, the
-   aim. Grounded pine-green signal (a living, ordered system).
+   Metaphor: a directory tree. Every node traces back to one root, the
+   aim. The signal is a grounded pine green (a system that is alive and
+   ordered).
    ══════════════════════════════════════════════════════════════════ */
 
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap");
@@ -19,7 +21,7 @@
   --bg-hover: #dde6db;
   --bg-inverted: #11160f;
 
-  /* Pine (grounded signal — living system) */
+  /* Pine (grounded signal, a system that is alive) */
   --ink-50: #e9f4ee;
   --ink-100: #d2eadd;
   --ink-200: #a3d4bd;
@@ -41,7 +43,7 @@
   --text-tertiary: #a7aaa1;
   --text-on-dark: #e6e9e3;
 
-  /* Grays — warm-leaning */
+  /* Grays that lean warm */
   --gray-50: #f1f3ef;
   --gray-100: #e3e7e0;
   --gray-200: #cdd2c8;

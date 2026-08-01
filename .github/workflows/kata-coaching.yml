@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       task-amend:
-        description: "Additional text appended to the task prompt for steering"
+        description: "Extra text appended to the task prompt to steer the run"
         required: false
         type: string
 

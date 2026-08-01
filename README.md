@@ -10,10 +10,10 @@
 ## The Problem
 
 Engineering organizations lack shared definitions of quality. Promotions stall
-because managers can't point to what 'senior' means. Staffing decisions rely on
-gut feel. The only available metrics single out individuals. Engineers can't see
-what's expected of them, and coding agents follow generic practices instead of
-organizational standards.
+because managers can't point to what 'senior' means. Leaders staff teams on gut
+feel. The only available metrics single out individuals. Engineers can't see
+what their organization expects of them. Coding agents follow generic practices
+instead of organizational standards.
 
 ## The Goal
 
@@ -27,8 +27,8 @@ organizational standards.
 
 ### Engineering Leaders
 
-Define what good engineering looks like, staff teams to succeed, and measure
-outcomes without blaming individuals.
+Define what good engineering looks like. Staff teams to succeed. Measure
+outcomes and do not blame individuals.
 
 | Job                             | Products |
 | ------------------------------- | -------- |
@@ -38,8 +38,8 @@ outcomes without blaming individuals.
 
 ### Empowered Engineers
 
-Understand expectations, find growth areas, prepare for the day ahead, and
-equip and trust their agent teams — grounded in their organization's
+Understand expectations. Find growth areas. Prepare for the day ahead. Equip
+and trust your agent teams. Ground each of these in your organization's
 agent-aligned engineering standard.
 
 | Job                                       | Products |
@@ -50,7 +50,7 @@ agent-aligned engineering standard.
 
 ## Quick Start
 
-Install Pathway and Guide from npm, then generate installation-specific service
+Install Pathway and Guide from npm. Then generate installation-specific service
 code:
 
 ```sh
@@ -65,9 +65,8 @@ npx fit-pathway discipline --list
 npx fit-pathway job software-engineering J060
 ```
 
-Guide requires a running service stack — see the
-[getting started guide](websites/fit/docs/getting-started/engineers/index.md)
-for setup.
+Guide needs a service stack that runs. To set it up, see the
+[getting started guide](websites/fit/docs/getting-started/engineers/index.md).
 
 ## Learn More
 

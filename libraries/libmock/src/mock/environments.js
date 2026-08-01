@@ -2,11 +2,12 @@ import { createMockStorage } from "./storage.js";
 
 /**
  * Graph-index test triple: a mock storage, an n3 Store, and a GraphIndex wired
- * to both. GraphIndex and Store are injected so libmock stays dependency-free.
+ * to both. The caller injects GraphIndex and Store so libmock stays
+ * dependency-free.
  * @param {object} opts
  * @param {Function} opts.GraphIndex - libgraph GraphIndex constructor.
  * @param {Function} opts.Store - n3 Store constructor.
- * @param {object} [opts.storageOverrides] - passed to createMockStorage.
+ * @param {object} [opts.storageOverrides] - overrides for createMockStorage.
  * @param {*} [opts.prefixes] - prefixes arg for GraphIndex (default {}).
  * @param {string} [opts.indexKey] - jsonl key (default "test-graph.jsonl").
  * @returns {{ n3Store: object, graphIndex: object, mockStorage: object }}
@@ -25,9 +26,10 @@ export function createGraphIndexFixture({
 }
 
 /**
- * The stripped gRPC health service definition consumers' tests fake — the
- * `{ Check: { path, requestStream, responseStream } }` shape, not librpc's
- * real `healthDefinition` (which librpc's own tests exercise directly).
+ * The stripped definition of the gRPC health service that consumers' tests
+ * fake. It has the `{ Check: { path, requestStream, responseStream } }`
+ * shape. It is not librpc's real `healthDefinition`, which librpc's own
+ * tests exercise directly.
  * @returns {{ Check: { path: string, requestStream: boolean, responseStream: boolean } }}
  */
 export function createMockGrpcHealthDefinition() {
@@ -42,7 +44,7 @@ export function createMockGrpcHealthDefinition() {
 
 /**
  * The readline/process/os/formatter/storage bundle librepl's tests inject.
- * Mirrors libraries/librepl/test/librepl.test.js's pre-collapse beforeEach.
+ * It mirrors libraries/librepl/test/librepl.test.js's pre-collapse beforeEach.
  * @returns {{ readline: object, process: object, os: object, formatter: Function, storage: object }}
  */
 export function createReplEnvironment() {

@@ -1,9 +1,9 @@
-/* Required CSS for HTML slide decks rendered to PDF via Playwright.
+/* Required CSS for HTML slide decks that Playwright renders to PDF.
  *
  * Include this in the <style> block of /tmp/outpost-presentation.html.
- * See scripts/convert-to-pdf.mjs for the rendering script.
+ * See scripts/convert-to-pdf.mjs for the script that renders them.
  *
- * PDF rendering rules:
+ * Rules for PDF output:
  * - No layered elements — style content directly, no separate backgrounds
  * - No box-shadow — use borders: border: 1px solid #e5e7eb
  * - Bullets via CSS only — use li::before pseudo-elements

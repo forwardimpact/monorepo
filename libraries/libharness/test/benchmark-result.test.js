@@ -121,7 +121,7 @@ describe("validateResultRecord", () => {
     assert.throws(() => validateResultRecord(broken));
   });
 
-  test("rejects a preflight record carrying a grade", () => {
+  test("rejects a preflight record that carries a grade", () => {
     const broken = {
       ...preflightFail,
       grade: { verdict: "fail", gatesPass: true },
@@ -145,7 +145,7 @@ describe("validateResultRecord", () => {
     assert.doesNotThrow(() => validateResultRecord(withBreakdown));
   });
 
-  test("rejects a costBreakdown missing the judge field", () => {
+  test("rejects a costBreakdown without the judge field", () => {
     const broken = {
       ...happy,
       costBreakdown: { agent: 0.08, supervisor: 0.03 },

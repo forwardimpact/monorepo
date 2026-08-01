@@ -56,10 +56,11 @@ const DETECTIONS = [
     message:
       "inline { run, spawn, calls } subprocess fake — use createMockSubprocess",
   },
-  // Inline GraphIndex mock triple: createMockStorage + `new GraphIndex(...)`
-  // co-occurring without the fixture import. Keyed on the *mock* triple, not a
-  // bare `new GraphIndex` — products/map/test/pipeline.test.js builds a real
-  // GraphIndex over LocalStorage (integration) and must not trip.
+  // Inline GraphIndex mock triple: createMockStorage plus
+  // `new GraphIndex(...)` that co-occur without the fixture import. This
+  // keys on the *mock* triple. It does not key on a bare `new GraphIndex`.
+  // products/map/test/pipeline.test.js builds a real GraphIndex over
+  // LocalStorage (integration) and must not trip.
   {
     test: (t) =>
       /createMockStorage\s*\(/.test(t) &&
@@ -68,10 +69,11 @@ const DETECTIONS = [
     message: "inline GraphIndex mock triple — use createGraphIndexFixture",
   },
   // Inline mock gRPC health definition `{ Check: { … requestStream: …
-  // responseStream: … } }`. Keyed on the requestStream/responseStream literal
-  // keys inside a Check object literal, NOT a bare `check.path` assertion —
-  // librpc/health.test.js asserts on the real definition's serialization
-  // surface (no `Check: {` mock literal) and must not trip.
+  // responseStream: … } }`. This keys on the requestStream/responseStream
+  // literal keys inside a Check object literal. It does NOT key on a bare
+  // `check.path` assertion. librpc/health.test.js asserts on the real
+  // definition's serialization surface (no `Check: {` mock literal) and must
+  // not trip.
   {
     test: (t) =>
       /Check\s*:\s*\{[\s\S]{0,160}?requestStream\s*:[\s\S]{0,80}?responseStream\s*:/.test(
@@ -81,8 +83,8 @@ const DETECTIONS = [
       "inline gRPC health definition — use createMockGrpcHealthDefinition",
   },
   // Inline readline.createInterface bundle paired with a mock process exit
-  // flag (`_exitCalled`). Keyed on both halves so a plain
-  // `readline.createInterface(...)` call doesn't trip.
+  // flag (`_exitCalled`). This keys on both halves so a plain
+  // `readline.createInterface(...)` call does not trip.
   {
     test: (t) =>
       /createInterface\s*:/.test(t) &&
@@ -117,7 +119,7 @@ export default {
       skip: SKIP_DIRS,
       match: (name) => name.endsWith(".test.js"),
     })
-      // libmock's own self-tests are expected to redefine some helpers.
+      // Expect libmock's own self-tests to redefine some helpers.
       .filter((s) => !s.path.includes("/libraries/libmock/"))
       .map(({ path, text }) => ({
         path,
@@ -137,7 +139,7 @@ export default {
         return hits.length === 0 ? null : hits.map((d) => ({ msg: d.message }));
       },
       message: (s, r) => r.msg,
-      hint: "reuse the canonical fake from @forwardimpact/libmock instead of redefining it inline",
+      hint: "reuse the canonical fake from @forwardimpact/libmock. Do not redefine it inline",
     },
   ],
 };

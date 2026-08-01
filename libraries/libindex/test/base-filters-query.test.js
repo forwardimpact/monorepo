@@ -167,7 +167,7 @@ describe("IndexBase - Filters and Query", () => {
   });
 
   describe("New IndexBase Implementation", () => {
-    test("add uses parent class storage logic", async () => {
+    test("add uses parent-class storage logic", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "test.Item",
         name: "test1",
@@ -189,7 +189,7 @@ describe("IndexBase - Filters and Query", () => {
       );
     });
 
-    test("queryItems provides default filtering implementation", async () => {
+    test("queryItems provides a default filter implementation", async () => {
       const items = [
         { type: "common.Message", name: "msg1", tokens: 10 },
         { type: "common.Message", name: "msg2", tokens: 20 },

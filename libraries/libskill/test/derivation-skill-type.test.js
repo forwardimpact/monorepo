@@ -53,7 +53,7 @@ describe("buildSkillTypeMap", () => {
     assert.strictEqual(map.size, 0);
   });
 
-  test("handles discipline with missing skill arrays", () => {
+  test("handles discipline with no skill arrays", () => {
     const discipline = {
       id: "minimal",
       roleTitle: "Minimal",
@@ -199,7 +199,7 @@ describe("deriveSkillProficiency", () => {
     assert.strictEqual(result, "awareness");
   });
 
-  test("applies positive track modifier via capability", () => {
+  test("applies positive track modifier through capability", () => {
     const discipline = makeDiscipline();
     const level = makeLevel(); // supporting=foundational(1), max=working(2)
     const track = makeTrack({ skillModifiers: { delivery: 1 } });
@@ -251,7 +251,7 @@ describe("deriveSkillProficiency", () => {
     assert.strictEqual(result, "working");
   });
 
-  test("negative modifier is not capped (can go below base)", () => {
+  test("does not cap negative modifier (can go below base)", () => {
     const discipline = makeDiscipline();
     const level = makeLevel(); // core=working(2)
     const track = makeTrack({ skillModifiers: { delivery: -2 } });

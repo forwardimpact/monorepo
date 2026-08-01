@@ -4,11 +4,11 @@ import assert from "node:assert";
 import { createMockFs } from "@forwardimpact/libmock";
 import { runPathsCommand } from "../src/commands/trace.js";
 
-// `resolveFiles` is module-private; exercise its two branches (literal-path
-// pass-through vs glob expansion via runtime.fsSync.globSync) and the
-// no-files envelope through the `paths` handler, which is the cross-trace verb
-// with the simplest output. A single-turn fixture with one Read keeps the
-// assertion focused on file resolution, not analysis.
+// `resolveFiles` is module-private. The tests exercise its two branches
+// and the no-files envelope through the `paths` handler. A literal path
+// passes through, and runtime.fsSync.globSync expands a glob. That handler
+// is the cross-trace verb with the simplest output. A single-turn fixture
+// with one Read keeps the assertion on file resolution only.
 const A = "/d/a.ndjson";
 const B = "/d/b.ndjson";
 
@@ -37,9 +37,9 @@ function traceBody(path) {
 }
 
 /**
- * Run `paths` with the given options over a mock fs, capturing stdout.
- * `globSync` is provided as a spy returning `globReturn` so the glob branch is
- * observable without a real filesystem.
+ * Run `paths` with the given options over a mock fs and capture stdout.
+ * A `globSync` spy returns `globReturn`, so the glob branch is observable
+ * without a real filesystem.
  */
 async function run(options, { globReturn } = {}) {
   const fsSync = createMockFs({ [A]: traceBody("/x"), [B]: traceBody("/y") });
@@ -63,8 +63,8 @@ async function run(options, { globReturn } = {}) {
   return { out, result, globCalls };
 }
 
-describe("resolveFiles (via paths handler)", () => {
-  test("literal path passes through without calling globSync", async () => {
+describe("resolveFiles (through the paths handler)", () => {
+  test("literal path passes through and never calls globSync", async () => {
     const { out, result, globCalls } = await run({ file: [A] });
     assert.deepStrictEqual(result, { ok: true });
     assert.strictEqual(globCalls.length, 0);
@@ -73,7 +73,7 @@ describe("resolveFiles (via paths handler)", () => {
   });
 
   test("multiple literal --file values aggregate with sources provenance", async () => {
-    // `paths` is an aggregator: provenance is the JSON `sources` array (the
+    // `paths` is an aggregator. Provenance is the JSON `sources` array (the
     // design's "Aggregated sources plurality" decision), present only when N>1.
     const { out, globCalls } = await run({ file: [A, B], format: "json" });
     assert.strictEqual(globCalls.length, 0);
@@ -84,7 +84,7 @@ describe("resolveFiles (via paths handler)", () => {
     assert.deepStrictEqual(y.sources, ["b.ndjson"]);
   });
 
-  test("glob value expands via runtime.fsSync.globSync", async () => {
+  test("glob value expands through runtime.fsSync.globSync", async () => {
     const { out, globCalls } = await run(
       { file: ["/d/*.ndjson"], format: "json" },
       { globReturn: [A, B] },

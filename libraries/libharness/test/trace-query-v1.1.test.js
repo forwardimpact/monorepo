@@ -139,7 +139,7 @@ describe("TraceQuery v1.1 introspection", () => {
   });
 
   describe("turn(index)", () => {
-    test("returns the turn matching the given index", () => {
+    test("returns the turn at the given index", () => {
       const q = new TraceQuery(buildTrace({ turns: mixedTurns() }));
       const t = q.turn(3);
       assert.ok(t);
@@ -198,7 +198,7 @@ describe("TraceQuery v1.1 introspection", () => {
       assert.strictEqual(result.length, 0);
     });
 
-    test("returns all turns when no criteria given", () => {
+    test("returns all turns when the caller gives no criteria", () => {
       const turns = mixedTurns();
       const q = new TraceQuery(buildTrace({ turns }));
       assert.strictEqual(q.filter().length, turns.length);

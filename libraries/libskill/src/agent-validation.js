@@ -1,8 +1,9 @@
 /**
  * Agent Profile and Skill Validation
  *
- * Pure functions for validating agent profiles and skills against
- * Claude Code spec constraints. Extracted from agent.js for max-lines compliance.
+ * Pure functions that validate agent profiles and skills against the
+ * constraints in the Claude Code spec. A refactor moved them out of agent.js
+ * to meet the max-lines limit.
  */
 
 /**
@@ -41,7 +42,7 @@ function estimateBodyDataLength(bodyData) {
 }
 
 /**
- * Validate agent profile against Claude Code spec constraints
+ * Validate an agent profile against the constraints in the Claude Code spec
  * @param {Object} profile - Generated profile
  * @returns {Array<string>} Array of error messages (empty if valid)
  */
@@ -85,7 +86,7 @@ export function validateAgentProfile(profile) {
 }
 
 /**
- * Validate agent skill against spec constraints
+ * Validate an agent skill against the spec constraints
  * @param {Object} skill - Generated skill
  * @returns {Array<string>} Array of error messages (empty if valid)
  */

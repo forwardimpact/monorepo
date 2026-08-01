@@ -16,17 +16,17 @@ npx fit-pathway update --url=URL              # Update from custom source URL
 `init` writes a starter agent-aligned engineering standard into
 `./data/pathway/` (`standard.yaml`, `levels.yaml`, `stages.yaml`,
 `drivers.yaml`, plus `disciplines/`, `capabilities/`, `behaviours/`, and
-`tracks/` directories). After init, validate with `npx fit-map validate` and
+`tracks/` directories). After init, validate with `npx fit-map validate`. Then
 explore with any of the entity commands below.
 
-### Entity Browsing
+### Browse Entities
 
 All entity commands support three modes:
 
 | Mode    | Pattern                        | Description                 |
 | ------- | ------------------------------ | --------------------------- |
 | Summary | `npx fit-pathway <command>`    | Concise overview with stats |
-| List    | `npx fit-pathway <cmd> --list` | IDs for piping              |
+| List    | `npx fit-pathway <cmd> --list` | IDs you can pipe            |
 | Detail  | `npx fit-pathway <cmd> <id>`   | Full entity details         |
 
 Entity commands: `discipline`, `level`, `track`, `behaviour`, `driver`, `stage`,

@@ -67,17 +67,17 @@ export function evaluateAssertion(values, args, fsSync) {
 }
 
 /**
- * Attach the check-row grading role: `--gate` marks a gate check, `--weight`
- * attaches a numeric weight (0 marks the row diagnostic). `--gate` with any
- * `--weight` — 0 included — is invalid: a stray weight must never silently
- * disarm a gate.
+ * Attach the grading role of the check row. `--gate` marks a gate check.
+ * `--weight` attaches a numeric weight, and 0 marks the row diagnostic.
+ * `--gate` with any `--weight` is invalid, and that includes 0. A stray
+ * weight must never silently disarm a gate.
  * @param {object} values
  * @param {{test: string, pass: boolean, message?: string}} output - Mutated.
  */
 function applyGradingFlags(values, output) {
   const hasWeight = values.weight !== undefined;
   if (values.gate && hasWeight) {
-    throw new Error("assert: --gate cannot be combined with --weight");
+    throw new Error("assert: do not combine --gate with --weight");
   }
   if (values.gate) output.gate = true;
   if (hasWeight) {
@@ -92,8 +92,9 @@ function applyGradingFlags(values, output) {
 }
 
 /**
- * Parse a `--weight` value; null when invalid. A blank string is invalid —
- * `Number("")` is 0, which would silently demote the check to a diagnostic.
+ * Parse a `--weight` value. Return null when it is invalid. A blank string is
+ * invalid, because `Number("")` is 0. That would silently demote the check to
+ * a diagnostic.
  * @param {string} raw
  * @returns {number | null}
  */
@@ -104,11 +105,11 @@ function parseWeight(raw) {
 }
 
 /**
- * The grading role an emit-then-fail row keeps: a failing check must not
- * lose its authored role — an errored gate that demoted to a scored row
- * would let a broken scaffold earn partial credit instead of zeroing the
- * score. Invalid or conflicting flags yield no role (the row fails as a
- * unit-weight scored check).
+ * The grading role an emit-then-fail row keeps. A check that fails must not
+ * lose its authored role. An errored gate that demoted to a scored row would
+ * let a broken scaffold earn partial credit. The score would not drop to
+ * zero. Invalid flags, or flags that conflict, yield no role. The row then
+ * fails as a unit-weight scored check.
  * @param {object} values
  * @returns {{gate?: true, weight?: number}}
  */
@@ -126,10 +127,10 @@ function errorRowRole(values) {
  * Run an assertion, write JSON to stdout, and return a failure envelope when
  * the assertion does not pass.
  *
- * Emit-then-fail on every failure path: an invalid grading flag or an
- * errored evaluation (e.g. `--grep` against a file the agent deleted) writes
- * a failing row before the nonzero exit, so a typo or a vanished target
- * shrinks the score, never the denominator.
+ * Emit-then-fail applies on every failure path. An invalid grading flag
+ * writes a failed row before the nonzero exit. An errored evaluation does the
+ * same, for example `--grep` against a file the agent deleted. So a typo or a
+ * vanished target shrinks the score. It never shrinks the denominator.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}
  */

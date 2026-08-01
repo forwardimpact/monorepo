@@ -21,7 +21,7 @@ describe("IndexBase compact() — put-call shape (mock storage)", () => {
     mockStorage = createMockStorage();
   });
 
-  test("writes one record per live in-memory entry via storage.put", async () => {
+  test("writes one record per live in-memory entry through storage.put", async () => {
     const idx = new TestIndex(mockStorage);
     await idx.addRecord("a", { body: "alpha" });
     await idx.addRecord("b", { body: "beta" });

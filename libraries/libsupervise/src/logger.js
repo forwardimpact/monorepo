@@ -48,7 +48,7 @@ export class LogWriter {
   }
 
   /**
-   * Initializes the logger by ensuring the log directory exists
+   * Initializes the logger and makes sure the log directory exists
    * @returns {Promise<void>}
    */
   async init() {
@@ -138,7 +138,7 @@ export class LogWriter {
     await this.#pruneArchives();
   }
 
-  /** Removes old archives beyond maxFiles limit */
+  /** Removes old archives beyond the maxFiles limit */
   async #pruneArchives() {
     const entries = await this.#fs.readdir(this.#logDir);
     const archives = entries

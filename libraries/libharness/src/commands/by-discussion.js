@@ -4,11 +4,11 @@ const FIRST_LINE_CAP = 64 * 1024;
 
 /**
  * Read the first newline-terminated line of a file, bounded to the first
- * {@link FIRST_LINE_CAP} bytes. Trace `.ndjson` files can be many MB; the
- * Step 2.6 meta header is always small, so a bounded positional read avoids
- * loading whole files into memory just to inspect the header. The positional
- * `openSync`/`readSync`/`closeSync` trio is read off the injected
- * `runtime.fsSync` surface.
+ * {@link FIRST_LINE_CAP} bytes. Trace `.ndjson` files can be many MB. The
+ * Step 2.6 meta header is always small. So a bounded positional read does
+ * not load whole files into memory just to inspect the header. This function
+ * reads the positional `openSync`/`readSync`/`closeSync` trio off the
+ * injected `runtime.fsSync` surface.
  *
  * @param {object} fsSync - Sync filesystem surface (`runtime.fsSync`).
  * @param {string} path
@@ -30,9 +30,9 @@ function readFirstLine(fsSync, path) {
 /**
  * Scan a directory for `.ndjson` files whose meta header carries the
  * given discussion_id. The Step 2.6 first-line guarantee makes the
- * lookup cheap: we read only the first line per file. Files without a
- * meta header (e.g. legacy supervise/facilitate traces) are skipped
- * silently — not erroneous.
+ * lookup cheap. This function reads only the first line per file. It
+ * silently skips files without a meta header (e.g. legacy
+ * supervise/facilitate traces). Such a file is not an error.
  *
  * @param {string} dir
  * @param {string} discussionId
@@ -74,8 +74,8 @@ export function findTracesByDiscussion(dir, discussionId, fsSync) {
 /**
  * `gemba-trace by-discussion <discussion-id> [trace-dir]` — list trace
  * files whose meta header carries the given discussion_id, one per
- * line, ordered by first-event timestamp (file mtime ascending). The
- * result is usable with `xargs cat` for a chronological merge.
+ * line. Order them by first-event timestamp (file mtime ascending).
+ * You can use the result with `xargs cat` for a chronological merge.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: true} | {ok: false, code: number, error: string}>}

@@ -13,17 +13,17 @@ Reference data for `req-assess` Steps 1, 3, 4, and 5.
 | **Behaviour observations**    | How the candidate acted under pressure, with others       |
 | **Self-identified strengths** | What the candidate claims they're good at                 |
 | **Self-identified gaps**      | What the candidate acknowledges as growth areas           |
-| **Red flags**                 | Contradictions with CV, concerning patterns               |
+| **Red flags**                 | Contradictions with CV, patterns of concern               |
 | **Interviewer feedback**      | Direct quotes or observations from interviewers           |
 | **Level signals**             | Autonomy, scope, complexity demonstrated in responses     |
 | **Track signals**             | Business immersion vs. platform thinking in their answers |
 
 ## Skill re-rating
 
-**Interview evidence outranks CV evidence.** A candidate who claimed
-`practitioner` but demonstrated `foundational` should be re-rated. The reverse
-also applies. Every re-rating cites a specific moment, quote, or observation
-from the transcript — "seemed strong" is not evidence.
+**Interview evidence outranks CV evidence.** Re-rate a candidate who claimed
+`practitioner` but demonstrated `foundational`. The reverse also applies. Every
+re-rating cites a specific moment, quote, or observation from the transcript.
+The phrase "seemed strong" is not evidence.
 
 | Interview evidence                          | Rating adjustment                     |
 | ------------------------------------------- | ------------------------------------- |
@@ -36,13 +36,13 @@ from the transcript — "seemed strong" is not evidence.
 
 ## Behaviour signals
 
-| Behaviour                  | Interview evidence                                             |
-| -------------------------- | -------------------------------------------------------------- |
-| Own the Outcome            | Takes responsibility, doesn't deflect, drives to resolution    |
-| Think in Systems           | Considers second-order effects, trade-offs, system boundaries  |
-| Communicate with Precision | Clear explanations, appropriate detail, listens actively       |
-| Be Polymath Oriented       | Draws on diverse knowledge, makes unexpected connections       |
-| Don't Lose Your Curiosity  | Asks good questions, explores alternatives, admits not knowing |
+| Behaviour                  | Interview evidence                                                       |
+| -------------------------- | ------------------------------------------------------------------------ |
+| Own the Outcome            | Takes responsibility, doesn't deflect, drives to resolution              |
+| Think in Systems           | Considers second-order effects, trade-offs, system boundaries            |
+| Communicate with Precision | Clear explanations, appropriate detail, listens actively                 |
+| Be Polymath Oriented       | Draws on diverse knowledge, makes unexpected connections                 |
+| Don't Lose Your Curiosity  | Asks good questions, explores alternatives, admits what they do not know |
 
 ## Behaviour maturity scale
 
@@ -59,7 +59,7 @@ from the transcript — "seemed strong" is not evidence.
 | Interview signal                                          | Implication                    |
 | --------------------------------------------------------- | ------------------------------ |
 | Needed guidance to structure their approach               | Level may be lower than est.   |
-| Self-directed; sound trade-offs independently             | Level estimate confirmed       |
+| Self-directed, made sound trade-offs independently        | Level estimate confirmed       |
 | Mentored or coached others during the exercise            | Level may be higher than est.  |
 | Struggled with complexity appropriate to the target level | Downgrade                      |
 | Interviewer explicitly suggested a different level        | Strong signal — weight heavily |

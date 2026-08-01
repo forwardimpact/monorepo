@@ -7,18 +7,18 @@ description: "Interactive REPL library — Repl class, custom commands, state pe
 
 `@forwardimpact/librepl` provides a single `Repl` class that powers interactive
 and non-interactive CLI tools. It handles readline management, command dispatch,
-state persistence, and output formatting so that CLI entry points only need to
+state persistence, and output formatting. CLI entry points then only need to
 define their application-specific behaviour.
 
-Used by `fit-guide` (conversational agent) and `fit-visualize` (trace
-visualizer).
+`fit-guide` (conversational agent) and `fit-visualize` (trace visualizer) use
+it.
 
 ---
 
 ## Repl Class
 
-The `Repl` class follows the standard OO+DI pattern. All external dependencies
-are injected through the constructor with sensible defaults for production use.
+The `Repl` class follows the standard OO+DI pattern. You inject all external
+dependencies through the constructor. The defaults suit production use.
 
 ```js
 import { Repl } from "@forwardimpact/librepl";
@@ -34,8 +34,8 @@ const repl = new Repl(app, formatterFn, readlineModule, processModule, osModule)
 | `processModule`  | `global.process`          | Process object (stdin/stdout)    |
 | `osModule`       | Node `os`                 | OS module (user info for UID)    |
 
-In production, only `app` is provided. The remaining parameters exist for
-testing — inject mocks to verify behaviour without real I/O.
+In production, you provide only `app`. The remaining parameters exist for tests.
+Inject mocks to verify behaviour without real I/O.
 
 ### Public API
 
@@ -90,23 +90,24 @@ Load state from storage
         → For each line: beforeLine → dispatch → afterLine → save state
 ```
 
-**Interactive mode** (TTY stdin): creates a readline interface that prompts and
-waits for input. Lines starting with `/` are dispatched as commands; all other
-input goes to `onLine`. Empty lines are silently ignored. Ctrl+C exits cleanly.
+**Interactive mode** (TTY stdin) creates a readline interface that prompts and
+waits for input. The REPL dispatches lines that start with `/` as commands. All
+other input goes to `onLine`. The REPL silently ignores empty lines. Ctrl+C
+exits cleanly.
 
-**Non-interactive mode** (piped stdin): reads all input, splits by newline, and
-processes each line sequentially. Each line is echoed with the prompt before
-processing. Exits when input is consumed.
+**Non-interactive mode** (piped stdin) reads all input. It splits the input by
+newline. It processes each line in sequence. It echoes each line with the prompt
+before it processes the line. It exits when it consumes all the input.
 
-**Error handling:** errors thrown by `onLine` or command handlers are caught
-silently — the REPL continues and `afterLine` still runs. Handlers are expected
-to log their own errors (typically via `libtelemetry`).
+**Errors:** the REPL silently catches errors that `onLine` or command handlers
+throw. The REPL continues and `afterLine` still runs. Handlers should log their
+own errors (typically through `libtelemetry`).
 
 ---
 
 ## Writing Custom Commands
 
-Commands are defined as entries in `app.commands`. Each command has a name (the
+You define commands as entries in `app.commands`. Each command has a name (the
 object key), a `usage` string, and a `handler` function.
 
 ```js
@@ -156,21 +157,23 @@ Commands work in both modes with different syntax:
 | CLI arguments | `--<command> <value>` or `--<command>=<value>` | `--name Alice` / `--name=Alice` |
 | Piped input   | `/<command> [args...]`                         | `echo "/name Alice" \| bunx …`  |
 
-`/`-prefixed commands work in both interactive and piped input. `--` flags are
-parsed from CLI arguments before the REPL starts. Both `--key value` (next argv
-entry) and `--key=value` (inline) forms are accepted for non-boolean commands;
-they are equivalent. In CLI mode, dashes in flag names are converted to
-underscores for lookup (e.g. `--resource-id` maps to the `resource_id` command).
-Boolean commands consume no argument; all others receive the value as `args[0]`.
+`/`-prefixed commands work in both interactive and piped input. The REPL parses
+`--` flags from CLI arguments before it starts. Non-boolean commands accept both
+the `--key value` form (next argv entry) and the `--key=value` form (inline).
+The two forms are equivalent. In CLI mode, the REPL converts dashes in flag
+names to underscores for lookup (e.g. `--resource-id` maps to the `resource_id`
+command). Boolean commands consume no argument. All others receive the value as
+`args[0]`.
 
-In interactive mode, command names are lowercased before lookup. CLI mode does
-not lowercase — it only converts dashes to underscores.
+In interactive mode, the REPL lowercases command names before lookup. CLI mode
+does not lowercase. It only converts dashes to underscores.
 
-If an unrecognized command is entered interactively, the help output is shown.
+If you enter an unrecognized command interactively, the REPL shows the help
+output.
 
 ### Built-in Commands
 
-Three commands are always registered (user commands can override them):
+The REPL always registers three commands (user commands can override them):
 
 | Command | Type    | Behaviour                                                                      |
 | ------- | ------- | ------------------------------------------------------------------------------ |
@@ -182,11 +185,11 @@ Three commands are always registered (user commands can override them):
 
 ## State Persistence
 
-When `app.storage` is provided (any `StorageInterface` implementation), the REPL
+When you provide `app.storage` (any `StorageInterface` implementation), the REPL
 automatically loads state on startup and saves it after every line.
 
-State is keyed by the system UID (`os.userInfo().uid`), stored as `{uid}.json`.
-This means each OS user gets independent state.
+The REPL keys state by the system UID (`os.userInfo().uid`) and stores it as
+`{uid}.json`. So each OS user gets independent state.
 
 ```js
 import { createStorage } from "@forwardimpact/libstorage";
@@ -198,16 +201,16 @@ const repl = new Repl({
 });
 ```
 
-The `/clear` command resets all state keys to their initial values defined in
-`app.state` and writes the reset state to storage.
+The `/clear` command resets all state keys to the initial values that
+`app.state` defines. It then writes the reset state to storage.
 
 ---
 
 ## Output Formatting
 
 All output flows through a formatter (from `@forwardimpact/libformat`). The
-`onLine` handler receives a writable `output` stream — write to it and the REPL
-handles formatting and flushing to stdout.
+`onLine` handler receives a writable `output` stream. Write to the stream. The
+REPL then formats the output and flushes it to stdout.
 
 ```js
 onLine: async (line, state, output) => {
@@ -216,8 +219,8 @@ onLine: async (line, state, output) => {
 },
 ```
 
-Command handlers that return a `Readable` stream get the same treatment — the
-stream is consumed, formatted, and written to stdout.
+Command handlers that return a `Readable` stream get the same treatment. The
+REPL consumes the stream, formats it, and writes it to stdout.
 
 ---
 

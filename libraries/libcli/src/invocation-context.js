@@ -2,39 +2,40 @@
  * @typedef {Object} InvocationContext
  *
  * The shape libui and libcli both produce from their native inputs.
- * Handlers consume the context and return a view; surface-specific
+ * Handlers consume the context and return a view. Surface-specific
  * formatters render the view. The context carries no information about
- * which surface produced it — surface dispatch happens one level above the
+ * which surface produced it. Surface dispatch happens one level above the
  * handler.
  *
  * Invariants:
  * - No surface affordances — no DOM nodes, streams, Request/Response, or
  *   surface tag. Anything that exists on only one surface stays out.
- * - Uniform value shapes — args values are strings; options values are one
+ * - Uniform value shapes — args values are strings. Options values are one
  *   of string, boolean true, or string[]. No nulls, no numbers.
- * - Frozen at all levels — the context, args, options, and any array
- *   inside options are Object.freeze'd by the producer.
+ * - Frozen at all levels — the producer calls Object.freeze on the context,
+ *   args, options, and any array inside options.
  *
  * @property {Object} data
- *   Host's data dependencies, opaque to libui and libcli. Shape is the
- *   product's responsibility. Anything a handler needs that is not a
- *   positional or named argument lives here, including surface-specific
- *   runtime dependencies the host folds in before invocation. The handler
- *   treats data as immutable input.
+ *   Host's data dependencies, opaque to libui and libcli. The product owns
+ *   the shape. Anything a handler needs that is not a positional or named
+ *   argument lives here. This includes surface-specific runtime dependencies
+ *   the host folds in before invocation. The handler treats data as
+ *   immutable input.
  *
  * @property {Readonly<Object<string, string>>} args
- *   Named positional arguments. On the web side: route-pattern parameters
- *   keyed by their name. On the CLI side: the subcommand's declared
- *   positional argument names mapped to their argv values. Values are
- *   always strings; consumers parse if they need other types.
+ *   Named positional arguments. On the web side they are route-pattern
+ *   parameters keyed by their name. On the CLI side they are the names of
+ *   the subcommand's declared positionals, mapped to their argv values.
+ *   Values are always strings. Consumers parse them if they need other types.
  *
  * @property {Readonly<Object<string, string | boolean | string[]>>} options
- *   Named non-positional arguments. On the web side: the URL hash query
- *   string parsed once. On the CLI side: parsed CLI flags. Values are one
- *   of: a string, the boolean true (for a presence-only flag or an
- *   empty-valued query parameter), or an array of strings (when the same
- *   key appears more than once). Absent options are not present in the
- *   object — 'foo' in ctx.options is the membership test.
+ *   Named non-positional arguments. On the web side they are the query
+ *   string in the URL hash, parsed once. On the CLI side they are parsed CLI
+ *   flags. A value is one of: a string, the boolean true, or an array of
+ *   strings. The boolean true marks a presence-only flag or an empty-valued
+ *   query parameter. You get an array of strings when the same key appears
+ *   more than once. Absent options are not present in the object. The
+ *   expression 'foo' in ctx.options is the membership test.
  *
  * @property {Readonly<Object>} deps
  *   Host-injected ambient collaborators (the `runtime` bag and typed

@@ -1,10 +1,10 @@
 /**
  * End-to-end test for `BenchmarkRunner` against the fixture family.
  *
- * The agent-under-test and judge are both injected as test seams on the
- * runner so the SDK is never invoked. Each seam writes a realistic NDJSON
- * trace to the path the runner allocates, and returns the same shape the
- * real implementations return. This is the moral equivalent of the
+ * This test injects the agent-under-test and the judge as test seams on the
+ * runner, so it never invokes the SDK. Each seam writes a realistic NDJSON
+ * trace to the path the runner allocates. Each seam returns the same shape
+ * the real implementations return. This is the moral equivalent of the
  * `createMockAgentQuery` / Supervisor-with-mock-runners pattern from
  * `supervisor-run.test.js`.
  */
@@ -29,7 +29,7 @@ import {
 import { realRuntimeWithSubprocess } from "./real-runtime.js";
 
 // The runner spawns the fixture's real preflight scripts, so it gets the
-// production runtime; the injected apm installer keeps a fake subprocess.
+// production runtime. The injected apm installer keeps a fake subprocess.
 const RT = createDefaultRuntime();
 
 const mockInstallApm = (family, outputDir) =>
@@ -53,9 +53,9 @@ async function mockRunAgent(task, workdir) {
   if (task.id === "repo-state") {
     await writeFile(join(workdir.cwd, "result.txt"), "hello\n");
   }
-  // Stub agent that "tries to enumerate" — its assistant text mentions
-  // every filename it explored. The sentinel filename must NOT appear
-  // because hooks/ is never copied to cwd.
+  // Stub agent that "tries to enumerate". Its assistant text mentions
+  // every filename it explored. The sentinel filename must NOT appear,
+  // because nothing ever copies hooks/ to cwd.
   const submission = `I built it. Listed cwd: README.md, app.js, specs/, .claude/, sentinel-pass-file.`;
   const messages = [
     { type: "system", subtype: "init", session_id: "mock", model: "m" },
@@ -82,8 +82,8 @@ async function mockRunAgent(task, workdir) {
 }
 
 /**
- * Mock judge: writes a supervisor-source Conclude tool_use to
- * `workdir.judgeTracePath` matching the graded verdict.
+ * Mock judge. Writes a supervisor-source Conclude tool_use to
+ * `workdir.judgeTracePath` that matches the graded verdict.
  */
 async function mockRunJudge(_task, workdir, grade) {
   const verdict = grade.verdict === "pass" ? "success" : "failure";
@@ -160,11 +160,12 @@ async function collectRecords(runner) {
 
 describe("BenchmarkRunner E2E (fixture family)", () => {
   // Tests 1, 2, 4, 5, 6 share the runs:1 / mockRunAgent configuration and
-  // only differ in what they assert against the resulting records — set up
-  // once instead of paying the runner.run() cost five times.
+  // only differ in what they assert against the resulting records. Set up
+  // once, so the suite does not pay the runner.run() cost five times.
   let sharedRecords;
-  // Shared setup does a full runner.run() with 4 tasks; on slower CI hardware
-  // the default 5s test timeout is tight, so explicitly budget headroom.
+  // Shared setup does a full runner.run() with 4 tasks. On slower CI
+  // hardware the default 5s test timeout is tight, so budget headroom
+  // explicitly.
   before(
     async () => {
       const { runner } = await setupRunner({ runs: 1 });
@@ -196,7 +197,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
       assert.strictEqual(r.costUsd, 0);
     }
 
-    // Read results.jsonl — every line must validate.
+    // Read results.jsonl. Every line must validate.
     const jsonl = await readFile(join(out, "results.jsonl"), "utf8");
     const lines = jsonl.split("\n").filter(Boolean);
     assert.strictEqual(lines.length, 10);
@@ -205,7 +206,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("pass: running-service grading via HTTP probe yields verdict='pass'", () => {
+  test("pass: running-service grading through an HTTP probe yields verdict='pass'", () => {
     const passRec = sharedRecords.find((r) => r.taskId === "pass");
     assert.ok(passRec, "pass record missing");
     assert.strictEqual(passRec.grade.verdict, "pass");
@@ -213,11 +214,11 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     assert.strictEqual(passRec.invariants.exitCode, 0);
     assert.strictEqual(passRec.verdict, "pass");
     assert.strictEqual(passRec.invariants.details[0].test, "probe");
-    // Gate rows only — a binary task carries no score.
+    // Gate rows only. A binary task carries no score.
     assert.ok(!("score" in passRec));
   });
 
-  test("repo-state: repository-state grading via SHA-256 yields verdict='pass'", () => {
+  test("repo-state: repository-state grading through SHA-256 yields verdict='pass'", () => {
     const rs = sharedRecords.find((r) => r.taskId === "repo-state");
     assert.ok(rs);
     assert.strictEqual(rs.grade.verdict, "pass");
@@ -227,12 +228,12 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   test("scored: the hidden suite yields a fractional grade against a real subprocess", () => {
     const rec = sharedRecords.find((r) => r.taskId === "scored");
     assert.ok(rec, "scored record missing");
-    // One of the two hidden checks fails: grade carries the fraction …
+    // One of the two hidden checks fails, so the grade carries the fraction …
     assert.strictEqual(rec.grade.verdict, "fail");
     assert.strictEqual(rec.grade.score, 0.5);
     assert.strictEqual(rec.verdict, "fail");
-    // … and the judge gate (tracking the graded verdict) zeroes the
-    // effective score.
+    // … and the judge gate zeroes the effective score. That gate tracks the
+    // graded verdict.
     assert.strictEqual(rec.score, 0);
     const rows = rec.hiddenTests.details;
     assert.deepStrictEqual(
@@ -242,13 +243,13 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
         { test: "always-pass", pass: true },
       ],
     );
-    // Restoration held against the real subprocess: no staged check file
+    // Restoration held against the real subprocess. No staged check file
     // survives in the run's agent CWD (the judge saw the agent's work).
     const cwd = join(dirname(rec.agentTracePath), "cwd");
     for (const staged of ["always-pass.test.js", "always-fail.test.js"]) {
       assert.ok(
         !existsSync(join(cwd, staged)),
-        `${staged} should have been unstaged from ${cwd}`,
+        `the run must unstage ${staged} from ${cwd}`,
       );
     }
   });
@@ -264,7 +265,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("judge prompt has {{GRADE_RESULT}} substituted (verdict tracks the grade)", () => {
+  test("the judge prompt carries the substituted {{GRADE_RESULT}} (verdict tracks the grade)", () => {
     for (const r of sharedRecords) {
       if (r.preflightError) continue;
       assert.strictEqual(
@@ -275,7 +276,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     }
   });
 
-  test("traces are consumable by gemba-trace overview", async () => {
+  test("gemba-trace overview consumes the traces", async () => {
     for (const r of sharedRecords) {
       if (!r.agentTracePath) continue;
       const ndjson = await readFile(r.agentTracePath, "utf8").catch(() => "");
@@ -309,7 +310,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
   });
 
   test("agent-execution failure still produces a record (spec criterion 1)", async () => {
-    // Force the agent session to throw for tf/pass; the runner must still
+    // Force the agent session to throw for tf/pass. The runner must still
     // produce a record, validate it, and proceed to invariants/judge against
     // the partial workdir. Plan Step 13 row 1 explicitly required this
     // coverage at the integration layer.
@@ -345,7 +346,7 @@ describe("BenchmarkRunner E2E (fixture family)", () => {
     );
   });
 
-  test("--task with an unknown id throws, listing available tasks", async () => {
+  test("--task with an unknown id throws and lists the available tasks", async () => {
     const { runner } = await setupRunner({ runs: 1, task: "nope" });
     await assert.rejects(
       () => collectRecords(runner),

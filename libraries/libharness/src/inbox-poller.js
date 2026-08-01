@@ -1,6 +1,6 @@
 /**
  * InboxPoller — concurrent task that long-polls the bridge inbox for
- * injected messages and lands them on the lead's bus queue via
+ * injected messages. It lands them on the lead's bus queue through
  * `messageBus.synthetic`.
  */
 export class InboxPoller {
@@ -19,8 +19,8 @@ export class InboxPoller {
    * @param {string} deps.leadName
    * @param {AbortSignal} deps.signal
    * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime -
-   *   Injected collaborators; `clock.setTimeout`/`clock.clearTimeout` drive the
-   *   inter-poll backoff.
+   *   Injected collaborators. `clock.setTimeout` and `clock.clearTimeout` drive
+   *   the inter-poll backoff.
    */
   constructor({ inboxUrl, messageBus, leadName, signal, runtime }) {
     if (!runtime) throw new Error("runtime is required");
@@ -61,7 +61,7 @@ export class InboxPoller {
   }
 
   /**
-   * Sleep for `ms`, resolving early when the abort signal fires.
+   * Sleep for `ms`. Resolve early when the abort signal fires.
    * @param {number} ms
    * @returns {Promise<void>}
    */

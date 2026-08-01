@@ -1,8 +1,8 @@
 /**
- * One-shot input contract: one line of input produces exactly one
- * onLine call whether it arrives as positional argv or piped stdin,
- * flags win over positionals, and positionals are always prompt text —
- * never commands.
+ * One-shot input contract. One line of input produces exactly one
+ * onLine call. This holds for positional argv and for piped stdin.
+ * Flags win over positionals. Positionals are always prompt text.
+ * They are never commands.
  */
 
 import { test, describe, beforeEach } from "node:test";
@@ -81,7 +81,7 @@ describe("librepl one-shot input", () => {
     assert.deepStrictEqual(onLineCalls, argvCalls);
   });
 
-  test("a flag handler returning false exits before any positional prompt", async () => {
+  test("a flag handler that returns false exits before any positional prompt", async () => {
     mockProcess.argv = ["node", "script.js", "--status", "hello"];
 
     await buildRepl({
@@ -97,7 +97,7 @@ describe("librepl one-shot input", () => {
     assert.deepStrictEqual(onLineCalls, []);
   });
 
-  test("args consumed as flag values are not prompt text", async () => {
+  test("args that a flag consumes are not prompt text", async () => {
     mockProcess.argv = ["node", "script.js", "--set-var", "value", "hello"];
 
     await buildRepl({

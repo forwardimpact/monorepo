@@ -13,11 +13,11 @@ just env-setup
 # Create data directories
 just data-init
 
-# Point EMBEDDING_BASE_URL at the TEI sidecar (not localhost)
+# Point EMBEDDING_BASE_URL at the TEI sidecar instead of localhost
 sed -i 's|EMBEDDING_BASE_URL=http://localhost:8090|EMBEDDING_BASE_URL=http://tei:8090|' .env
 
-# Remove tei and supabase from rc services — TEI runs as a Docker sidecar,
-# Supabase is not needed for the minimal devcontainer workflows
+# Remove tei and supabase from rc services. TEI runs as a Docker sidecar.
+# The minimal devcontainer workflows do not need Supabase.
 bun -e "
 import { readFileSync, writeFileSync } from 'node:fs';
 const c = JSON.parse(readFileSync('config/config.json', 'utf8'));

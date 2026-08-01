@@ -4,10 +4,10 @@ import assert from "node:assert";
 import { parseFacilitateOptions } from "../src/commands/facilitate.js";
 
 // These tests lock in the contract that `--max-turns` from the CLI threads
-// into every facilitated agent's config — without it, the participants
+// into every facilitated agent's config. Without it, the participants
 // silently fall back to the 50-turn default in facilitator.js. See run
-// 26078312414, where staff-engineer terminated at numTurns 51 despite the
-// workflow passing --max-turns=200.
+// 26078312414, where staff-engineer stopped at numTurns 51 even though the
+// workflow passed --max-turns=200.
 describe("facilitate command - parseFacilitateOptions", () => {
   const minimal = (extra = {}) => ({
     "task-text": "do the thing",
@@ -32,7 +32,7 @@ describe("facilitate command - parseFacilitateOptions", () => {
     }
   });
 
-  test("omitting --max-turns falls back to the documented CLI default", () => {
+  test("without --max-turns the parser falls back to the documented CLI default", () => {
     const opts = parseFacilitateOptions(minimal());
     assert.strictEqual(opts.maxTurns, 20);
     for (const cfg of opts.agentConfigs) {

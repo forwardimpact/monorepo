@@ -1,9 +1,9 @@
 /**
- * Real-grpc deadline behavior: a unary call against a connection that
- * accepts TCP but never speaks HTTP/2 (the hung-service case) must
- * reject with DEADLINE_EXCEEDED in bounded time instead of waiting
- * forever. Uses a raw net server so the channel stays CONNECTING until
- * the per-attempt deadline fires.
+ * Real-grpc deadline behavior. A unary call can reach a connection that
+ * accepts TCP but never speaks HTTP/2. This is the hung-service case. The
+ * call must reject with DEADLINE_EXCEEDED in bounded time. It must not
+ * wait forever. The test uses a raw net server, so the channel stays
+ * CONNECTING until the per-attempt deadline fires.
  */
 
 import { test, describe } from "node:test";
@@ -18,9 +18,9 @@ import { Client } from "../src/index.js";
 
 describe("Client unary deadline", () => {
   test("hung connection rejects with DEADLINE_EXCEEDED in bounded time", async () => {
-    // Accept connections and never respond; track the sockets so
-    // teardown can destroy them — open handles would otherwise keep the
-    // node test runner alive after the assertions pass.
+    // Accept connections and never respond. Track the sockets so teardown
+    // can destroy them. Open handles would otherwise keep the node test
+    // runner alive after the assertions pass.
     const sockets = [];
     const server = net.createServer((socket) => {
       sockets.push(socket);
@@ -58,7 +58,7 @@ describe("Client unary deadline", () => {
       );
       assert.ok(
         Date.now() - started < 5000,
-        "must fail within the deadline, not hang",
+        "must fail within the deadline and must not hang",
       );
     } finally {
       client.close();

@@ -1,9 +1,9 @@
 /**
  * Facilitator — facilitate-mode wrapper around `OrchestrationLoop`. The
- * lead participant is named "facilitator" and ends the session via the
- * `Conclude` tool. The within-run turn loop lives in
- * `orchestration-loop.js`; this file owns only the facilitate-mode
- * specifics (lead role name, system prompts, tool wiring, factory).
+ * lead participant carries the name "facilitator". It ends the session with
+ * the `Conclude` tool. The within-run turn loop lives in
+ * `orchestration-loop.js`. This file owns only the facilitate-mode
+ * specifics (lead role name, system prompts, tool setup, factory).
  */
 
 import { Writable } from "node:stream";
@@ -31,25 +31,25 @@ export const FACILITATOR_SYSTEM_PROMPT =
   "You have no tools to perform work yourself.\n" +
   "Use `RollCall` to list participants.\n" +
   "Use `Ask` to delegate work to the best-suited participant.\n" +
-  "Participants are domain experts; state the task, not how to do it.\n" +
-  "`Ask` is async and returns {askIds:[N,…]} immediately.\n" +
+  "Participants are domain experts. State the task. Do not state how to do it.\n" +
+  "`Ask` is async. It returns {askIds:[N,…]} immediately.\n" +
   "Answers arrive on your next turn as `[answer#N] <participant>: <text>` in your inbox.\n" +
   "End your turn while Asks are pending. The system resumes you when answers arrive.\n" +
   "Multiple `Ask` calls in one turn run participants in parallel.\n" +
-  "End every session by calling `Conclude` with a verdict and summary.";
+  "End every session with a `Conclude` call that carries a verdict and summary.";
 
 /** System prompt for facilitated agent participants. L0 mechanics only per JIDOKA. */
 export const FACILITATED_AGENT_SYSTEM_PROMPT =
   "You are a participant in a facilitated session.\n" +
   "Each question arrives as `[ask#N] <name>: <text>` in your inbox.\n" +
   "Quote N as askId on your `Answer` to route the reply correctly.\n" +
-  "If the task already contains a completed response with no new human input after it, `Answer` that no further action is needed.\n" +
+  "The task can already contain a completed response with no new human input after it. In that case, `Answer` that no further action is needed.\n" +
   "Do not redo completed work.";
 
 /**
- * Facilitate-mode wrapper around `OrchestrationLoop`. The lead is named
- * `"facilitator"`. `facilitatorRunner` getter is a readability shim for
- * tests that read the runner directly.
+ * Facilitate-mode wrapper around `OrchestrationLoop`. The lead carries the
+ * name `"facilitator"`. The `facilitatorRunner` getter is a readability shim
+ * for tests that read the runner directly.
  */
 export class Facilitator extends OrchestrationLoop {
   /**
@@ -71,7 +71,7 @@ export class Facilitator extends OrchestrationLoop {
     });
   }
 
-  /** Readability shim — exposes the lead runner under its mode-specific name. */
+  /** Readability shim. Exposes the lead runner under its mode-specific name. */
   get facilitatorRunner() {
     return this.leadRunner;
   }
@@ -84,7 +84,7 @@ const devNull = new Writable({
 });
 
 /**
- * Factory function — wires all participants with MCP servers.
+ * Factory function. Wires all participants with MCP servers.
  * @param {object} deps
  * @param {string} deps.facilitatorCwd
  * @param {Array<{name: string, role: string, cwd?: string, maxTurns?: number, allowedTools?: string[], agentProfile?: string, systemPromptAmend?: string}>} deps.agentConfigs
@@ -93,14 +93,14 @@ const devNull = new Writable({
  * @param {string} [deps.model]
  * @param {string} [deps.agentModel]
  * @param {string} [deps.facilitatorModel]
- * @param {number} [deps.maxTurns] - Per-SDK-call turn budget for the facilitator runner (default 80). Each agent's budget is taken from `config.maxTurns` (default 50). The lead is resumed once per inbox-drain round, so this caps the size of one such round, not the whole session — `OrchestrationLoop.maxLeadTurns` bounds session length.
+ * @param {number} [deps.maxTurns] - Turn budget for each SDK call to the facilitator runner (default 80). Each agent takes its budget from `config.maxTurns` (default 50). The loop resumes the lead once per inbox-drain round. This caps the size of one such round. It does not cap the whole session. `OrchestrationLoop.maxLeadTurns` bounds the session length.
  * @param {string[]} [deps.facilitatorAllowedTools]
  * @param {string[]} [deps.facilitatorDisallowedTools]
  * @param {string} [deps.facilitatorProfile]
  * @param {string} [deps.profilesDir]
  * @param {string} [deps.taskAmend]
- * @param {string} [deps.advisorModel] - Claude model for advisor consults; absent means no Advisor tool is offered.
- * @param {number} [deps.advisorMaxUses] - Session-wide consult budget shared by all agent participants (default 3).
+ * @param {string} [deps.advisorModel] - Claude model for advisor consults. When absent, the factory offers no Advisor tool.
+ * @param {number} [deps.advisorMaxUses] - Consult budget for the whole session (default 3). All agent participants share it.
  * @returns {Facilitator}
  */
 export function createFacilitator({
@@ -141,12 +141,12 @@ export function createFacilitator({
   const facilitatorServer = createFacilitatorToolServer(ctx);
 
   const abortController = new AbortController();
-  // One budget per session, shared by every agent's Advisor handler.
+  // One budget per session. Every agent's Advisor handler shares it.
   const budget = advisorModel ? createAdvisorBudget(advisorMaxUses ?? 3) : null;
 
   const agents = agentConfigs.map((config) => {
-    // Everything advisor-shaped is gated on advisorModel; with it unset the
-    // composed prompt and tool surface are byte-identical to today's.
+    // `advisorModel` gates everything advisor-shaped. When it is unset, the
+    // composed prompt and tool surface stay byte-identical to today's.
     const systemPrompt = composeSystemPrompt({
       role: "agent",
       profile: config.agentProfile,
@@ -160,8 +160,8 @@ export function createFacilitator({
     let extraTools;
     if (advisorModel) {
       recorder = createTranscriptRecorder({ systemPrompt, redactor });
-      // Late-bound through the `let facilitator` closure — the instance
-      // does not exist yet when the advisor and tool are built.
+      // Late-bound through the `let facilitator` closure. The instance does
+      // not exist yet when the factory builds the advisor and the tool.
       const advisor = createAdvisor({
         model: advisorModel,
         cwd: config.cwd ?? facilitatorCwd,

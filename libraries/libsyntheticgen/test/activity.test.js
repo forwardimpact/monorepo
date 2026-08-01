@@ -25,7 +25,7 @@ function generateFromDsl(source) {
   return { ast, orgs, departments, teams, people, projects, activity };
 }
 
-describe("DSL distribution key validation", () => {
+describe("validation of DSL distribution keys", () => {
   test("rejects distribution keys that don't match standard levels", () => {
     const source = `
       terrain test {
@@ -55,7 +55,7 @@ describe("DSL distribution key validation", () => {
     );
   });
 
-  test("accepts distribution keys matching standard levels", () => {
+  test("accepts distribution keys that match standard levels", () => {
     const source = `
       terrain test {
         domain "Testing"
@@ -81,8 +81,8 @@ describe("DSL distribution key validation", () => {
     assert.doesNotThrow(() => parse(tokenize(source)));
   });
 
-  test("skips validation when standard has no levels", () => {
-    // MINI_TERRAIN uses L1-L4 without standard levels — should still parse
+  test("does not validate when the standard has no levels", () => {
+    // MINI_TERRAIN uses L1-L4 without standard levels. It must still parse.
     assert.doesNotThrow(() => parse(tokenize(MINI_TERRAIN)));
   });
 });
@@ -101,7 +101,10 @@ describe("activity generation", () => {
       const deepWorkInit = initiatives.find(
         (i) => i._driver_id === "deep-work",
       );
-      assert.ok(deepWorkInit, "should have initiative for deep-work driver");
+      assert.ok(
+        deepWorkInit,
+        "should have an initiative for the deep-work driver",
+      );
       assert.strictEqual(deepWorkInit.priority, 0);
       assert.ok(deepWorkInit.name.includes("Alpha Team"));
       assert.ok(deepWorkInit.scorecard_id);
@@ -113,7 +116,7 @@ describe("activity generation", () => {
       const risingInit = activity.initiatives.find(
         (i) => i._driver_id === "learning-culture",
       );
-      assert.ok(risingInit, "should have initiative for rising driver");
+      assert.ok(risingInit, "should have an initiative for the rising driver");
       assert.ok(
         risingInit.priority >= 3,
         "rising initiatives should have lower priority",
@@ -150,7 +153,7 @@ describe("activity generation", () => {
       for (const init of activity.initiatives) {
         assert.ok(
           scorecardIds.has(init.scorecard_id),
-          `initiative ${init.id} should reference valid scorecard`,
+          `initiative ${init.id} should reference a valid scorecard`,
         );
       }
     });
@@ -196,8 +199,8 @@ describe("activity generation", () => {
       const baseline = generateFromDsl(MINI_TERRAIN).activity.comment.keys;
 
       // Burn an arbitrary amount of entropy from the shared RNG before
-      // generateActivity runs, simulating a cross-platform difference in
-      // an upstream phase (e.g., generatePeople allocating one more name).
+      // generateActivity runs. This simulates a cross-platform difference in
+      // an upstream phase (e.g., generatePeople allocates one more name).
       const ast = parse(tokenize(MINI_TERRAIN));
       const rng = createSeededRNG(ast.seed);
       const { teams, people } = buildEntities(ast, rng);
@@ -217,7 +220,7 @@ describe("activity generation", () => {
       );
     });
 
-    test("declining drivers weighted higher in comment selection", () => {
+    test("the generator weights declining drivers higher when it selects comments", () => {
       const { activity } = generateFromDsl(MINI_TERRAIN);
       // The first snapshot overlaps with the "pressure" scenario (declining)
       const firstSnap = activity.snapshots[0];

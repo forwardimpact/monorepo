@@ -2,16 +2,16 @@
 name: fit-doc
 description: >
   Ship a documentation site that agents and humans can both navigate.
-  Use when building a static site from markdown, when previewing with
-  live reload, or when configuring front matter, templates, llms.txt
+  Use when you build a static site from markdown, when you preview with
+  live reload, or when you configure front matter, templates, llms.txt
   augmentation, content partials, or the pre-build hook.
 ---
 
 # fit-doc
 
-A static site generator that turns a directory of markdown files into a complete
-website with directory-style URLs, table of contents, breadcrumbs, and
-auto-generated metadata files.
+`fit-doc` is a static site generator. It turns a directory of markdown files
+into a complete website. The website has directory-style URLs, a table of
+contents, breadcrumbs, and auto-generated metadata files.
 
 ```sh
 npx fit-doc build --src=docs --out=dist                  # production build
@@ -22,22 +22,22 @@ npx fit-doc serve --src=docs --watch --port=3000         # dev server with live 
 
 ### `fit-doc build`
 
-Renders all markdown files into HTML and copies static assets to the output
-directory.
+`fit-doc build` renders all markdown files into HTML. It copies static assets
+to the output directory.
 
 | Flag          | Default  | Description                                         |
 | ------------- | -------- | --------------------------------------------------- |
-| `--src <dir>` | `public` | Source directory containing markdown and assets     |
+| `--src <dir>` | `public` | Source directory with markdown and assets           |
 | `--out <dir>` | `dist`   | Output directory                                    |
 | `--base-url`  | _(none)_ | Base URL for sitemap, canonical links, and llms.txt |
 
-When `--base-url` is omitted, `fit-doc` looks for a `CNAME` file in the source
-directory and derives the base URL from it (`https://{cname}/`).
+If you omit `--base-url`, `fit-doc` looks for a `CNAME` file in the source
+directory. It derives the base URL from that file (`https://{cname}/`).
 
 ### `fit-doc serve`
 
-Builds the site and starts a local HTTP server. Optionally watches for changes
-and rebuilds automatically.
+`fit-doc serve` builds the site. It then starts a local HTTP server. It can
+also watch for changes and rebuild automatically.
 
 | Flag          | Default  | Description                   |
 | ------------- | -------- | ----------------------------- |
@@ -54,14 +54,14 @@ A `fit-doc` site needs at minimum an `index.template.html` and one `.md` file.
 | --------------------- | -------- | ------------------------------------------------ |
 | `index.template.html` | yes      | Mustache template applied to every page          |
 | `*.md`                | yes      | Pages with YAML front matter                     |
-| `CNAME`               | no       | Custom domain — also used to derive base URL     |
+| `CNAME`               | no       | Custom domain that also gives the base URL       |
 | `assets/`             | no       | Static files copied verbatim to output           |
 | `justfile`            | no       | Pre-build hook (runs `just build` before render) |
 | `llms.txt`            | no       | Curated LLM index, auto-augmented at build time  |
 | `robots.txt`          | no       | Copied verbatim to output                        |
 
-Files and directories named `CLAUDE.md`, `SKILL.md`, and `assets/` are excluded
-from page rendering.
+`fit-doc` excludes files and directories named `CLAUDE.md`, `SKILL.md`, and
+`assets/` from page rendering.
 
 ## Front Matter
 
@@ -122,43 +122,46 @@ Markdown files become directories with `index.html`:
 Every HTML page gets a co-located `index.md` with the rendered markdown content.
 Pages include `<link rel="alternate" type="text/markdown" href="index.md">`.
 
-### Link rewriting
+### Link rewrites
 
-Links to `.md` files in markdown source are rewritten to directory-style URLs:
-`[link](../other.md)` → `href="../other/"`, `[link](dir/index.md)` →
+`fit-doc` rewrites links to `.md` files in markdown source to directory-style
+URLs: `[link](../other.md)` → `href="../other/"`, `[link](dir/index.md)` →
 `href="dir/"`.
 
 ### `sitemap.xml`
 
-Generated when a base URL is available. Lists all pages sorted by URL path.
+`fit-doc` generates this file when a base URL is available. It lists all pages
+sorted by URL path.
 
 ### `llms.txt` augmentation
 
 If a curated `llms.txt` exists in the source directory, `fit-doc` copies it to
-the output and appends markdown links under each H2 section. Pages are
-classified by URL prefix:
+the output. It then appends markdown links under each H2 section. `fit-doc`
+classifies pages by URL prefix:
 
 - Product slugs (top-level pages) → `## Products`
 - `/docs/` prefix → `## Documentation`
 - Everything else → `## Optional`
 
-To add a custom section, edit `llms.txt` and update the mapping in
+To add a custom section, edit `llms.txt`. Then update the mapping in
 `libraries/libdoc/src/builder.js` (`#augmentLlmsTxt`).
 
 ### Table of contents
 
-Auto-generated from h2 headings into a `<nav class="toc-nav">`. Disable per page
-with `toc: false` in front matter.
+`fit-doc` generates the table of contents from h2 headings into a
+`<nav class="toc-nav">`. To disable it for one page, set `toc: false` in front
+matter.
 
 ### Breadcrumbs
 
-Auto-generated for pages two or more levels deep, using titles collected from
-all pages' front matter.
+`fit-doc` generates breadcrumbs for pages two or more levels deep. It collects
+the titles from the front matter of all pages.
 
 ## Content Partials
 
 Markers like `<!-- part:card:path -->` pull the target page's front matter
-`title` and `description` at build time, replacing the marker with HTML.
+`title` and `description` at build time. The build replaces the marker with
+HTML.
 
 | Type   | Output |
 | ------ | ------ |
@@ -173,9 +176,9 @@ unregistered. To add a type, add an entry to `defaultRegistry` in
 ## Pre-Build Hook
 
 When a `justfile` exists in the source directory with a `build` recipe,
-`fit-doc` runs `just build` before rendering. This lets sites generate or copy
-assets as part of the build pipeline. If `just` is not installed, the hook logs
-a warning and continues.
+`fit-doc` runs `just build` before it renders the pages. This lets sites
+generate or copy assets as part of the build pipeline. If `just` is missing,
+the hook logs a warning and continues.
 
 ## Documentation
 

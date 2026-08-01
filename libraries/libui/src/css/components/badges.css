@@ -1,7 +1,8 @@
 /**
  * Badge Components
  *
- * All badge variants consolidated: type badges, level badges, capability badges, modifiers.
+ * This file consolidates all badge variants: type badges, level badges,
+ * capability badges, modifiers.
  */
 
 @layer components {

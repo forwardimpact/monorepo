@@ -1,15 +1,15 @@
 import { createRequire } from "node:module";
 
 /**
- * Handles JavaScript type generation from protobuf files
- * Specializes in Protocol Buffer to JavaScript type conversion
+ * Generates the JavaScript types from the protobuf files
+ * Converts Protocol Buffer types into JavaScript types
  */
 export class CodegenTypes {
   #base;
 
   /**
    * Creates a new types generator with base functionality
-   * @param {object} base - CodegenBase instance providing shared utilities
+   * @param {object} base - CodegenBase instance that provides shared utilities
    */
   constructor(base) {
     if (!base) throw new Error("CodegenBase instance is required");
@@ -38,7 +38,7 @@ export class CodegenTypes {
 
     const protoFiles = this.#base.collectProtoFiles({ includeTools: true });
 
-    // Copy all proto source files into generated/proto for runtime loading
+    // Copy all proto source files into generated/proto for the runtime to load
     protoFiles.forEach((protoFile) => {
       this.#base.fs.copyFileSync(
         protoFile,
@@ -51,7 +51,8 @@ export class CodegenTypes {
 
     await this.generateJavaScriptTypes(protoFiles, jsOutFile);
 
-    // ESM resolution fix: ensure explicit extension for Node ESM and default import
+    // ESM resolution fix: give Node ESM an explicit extension and a default
+    // import
     const content = this.#base.fs.readFileSync(jsOutFile, "utf8");
     const fixed = content
       .replace(/from\s+"protobufjs\/minimal";/, 'from "protobufjs/minimal.js";')
@@ -60,8 +61,8 @@ export class CodegenTypes {
         'import $protobuf from "protobufjs/minimal.js";',
       )
       // Statically bind protobufjs's $util.Long to the `long` package. Without
-      // this, `bun build --compile` tree-shakes `long` (only reached via
-      // protobufjs's lazy require) and module-init crashes on int64 prototype
+      // this, `bun build --compile` tree-shakes `long`, which only protobufjs's
+      // lazy require reaches. Module-init then crashes on int64 prototype
       // defaults like `Span.prototype.start_time_unix_nano = $util.Long.fromBits(...)`.
       .replace(
         /(import \$protobuf from "protobufjs\/minimal\.js";)/,
@@ -74,13 +75,14 @@ export class CodegenTypes {
   }
 
   /**
-   * Generate JavaScript types using protobufjs compiler
+   * Generate JavaScript types with the protobufjs compiler
    * @param {string[]} protoFiles - Array of proto file paths to compile
    * @param {string} outFile - Output JavaScript file path
    * @returns {Promise<void>}
    */
   async generateJavaScriptTypes(protoFiles, outFile) {
-    // Resolve pbjs binary from protobufjs-cli package — works in both Bun and Node
+    // Resolve the pbjs binary from the protobufjs-cli package. This works in
+    // both Bun and Node.
     const require = createRequire(import.meta.url);
     const pbjsBin = require.resolve("protobufjs-cli/bin/pbjs");
 

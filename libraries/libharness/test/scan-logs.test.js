@@ -1,10 +1,10 @@
 /**
  * Unit tests for `gemba-harness scan-logs`.
  *
- * `scanDirectory` and `parseSecrets` are pure and tested directly against a
- * libmock fs; `runScanLogsCommand` is tested for the fail-closed path when the
- * archive cannot be extracted (unzip exits non-zero) — a fail-open there would
- * silently disarm the leak gate.
+ * `scanDirectory` and `parseSecrets` are pure. The tests call them directly
+ * against a libmock fs. The tests also cover the fail-closed path of
+ * `runScanLogsCommand` when unzip cannot extract the archive and exits
+ * non-zero. A fail-open there would silently disarm the leak gate.
  */
 
 import { test, describe } from "node:test";
@@ -45,7 +45,7 @@ describe("scanDirectory", () => {
   function runtimeWithLogs(files) {
     const fs = createMockFs();
     for (const [path, content] of Object.entries(files)) {
-      // Register the file by writing it; nested dirs are inferred by readdir.
+      // Register the file by writing it. readdir infers the nested dirs.
       fs.writeFileSync(path, content);
     }
     return createTestRuntime({ fs });
@@ -79,7 +79,7 @@ describe("scanDirectory", () => {
     assert.deepEqual(failures, []);
   });
 
-  test("empty literals are skipped (a never-set secret cannot leak)", async () => {
+  test("skips empty literals (a never-set secret cannot leak)", async () => {
     const runtime = runtimeWithLogs({ "/logs/a.txt": "" });
     const failures = await scanDirectory({
       dir: "/logs",
@@ -91,9 +91,10 @@ describe("scanDirectory", () => {
 });
 
 describe("runScanLogsCommand", () => {
-  // Build a runtime whose `unzip` "extracts" the given fixture files into the
-  // `-d <dir>` target in the mock fs, so the whole command (resolve → extract
-  // → scan → exit code) runs end-to-end without a real archive or binary.
+  // Build a runtime whose `unzip` "extracts" the given fixture files into
+  // the `-d <dir>` target in the mock fs. The whole command then runs
+  // end-to-end (resolve → extract → scan → exit code) without a real
+  // archive or binary.
   function runtimeExtracting(files) {
     const fs = createMockFs();
     const proc = createMockProcess();
@@ -112,7 +113,7 @@ describe("runScanLogsCommand", () => {
     return createTestRuntime({ fs, proc, subprocess });
   }
 
-  test("hit: a resolved archive containing a literal exits non-zero", async () => {
+  test("hit: a resolved archive that holds a literal exits non-zero", async () => {
     const runtime = runtimeExtracting({
       "1_build.txt": "starting\nAuthorization: Bearer super-secret-jwt\ndone",
     });
@@ -142,7 +143,7 @@ describe("runScanLogsCommand", () => {
     assert.equal(result.code, 0);
   });
 
-  test("fails closed when the archive cannot be extracted", async () => {
+  test("fails closed when unzip cannot extract the archive", async () => {
     const runtime = createTestRuntime({
       subprocess: {
         // unzip a nonexistent archive → non-zero exit.

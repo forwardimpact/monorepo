@@ -1,15 +1,16 @@
 /**
  * Palette — pure profile-name → ANSI SGR foreground color function.
  *
- * Assignment is a FNV-1a hash of the source name modulo the palette size, so
- * the same name maps to the same color in every process. Red is reserved for
- * tool-result errors and is never in the palette.
+ * The module assigns a color from a FNV-1a hash of the source name modulo
+ * the palette size. So the same name maps to the same color in every
+ * process. The module reserves red for tool-result errors. The palette never
+ * contains red.
  *
  * Colors use the 24-bit truecolor SGR escape (`ESC[38;2;R;G;Bm`) rather than
  * the 16-color table. GitHub Actions' log viewer and most modern terminals
- * render truecolor as the exact hex requested, avoiding the washed-out
+ * render truecolor as the exact hex requested. This avoids the washed-out
  * mustard/olive tones GHA applies to `ESC[93m` etc. Eight slots cover the
- * largest concurrent cast in any existing workflow (five domain agents plus
+ * largest concurrent cast in any current workflow (five domain agents plus
  * the facilitator) with headroom.
  */
 
@@ -33,9 +34,10 @@ export const RESET = "\u001b[0m";
 /**
  * Map a source name to a stable ANSI foreground color.
  *
- * The mapping is a pure function of the name via FNV-1a 32-bit hash — same
- * name, same color, every call, in every process. Returns `RESET` for
- * missing/empty names so callers never emit a stray escape.
+ * This function is pure. A FNV-1a 32-bit hash of the name decides the color.
+ * The same name gives the same color on every call, in every process.
+ * Returns `RESET` for absent or empty names so callers never emit a stray
+ * escape.
  *
  * @param {string|null|undefined} name
  * @returns {string} ANSI SGR escape, never equal to `ERROR_COLOR`
@@ -47,7 +49,7 @@ export function colorForSource(name) {
     h ^= name.charCodeAt(i);
     h = Math.imul(h, 0x01000193) >>> 0;
   }
-  // Length mixer: reduces FNV's intrinsic birthday collisions on short
+  // Length mixer. It reduces FNV's intrinsic birthday collisions on short
   // names with shared affixes (e.g. `staff-engineer`/`facilitator`).
   h ^= name.length;
   h = Math.imul(h, 0x01000193) >>> 0;

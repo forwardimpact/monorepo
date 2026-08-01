@@ -110,7 +110,7 @@ describe("composed", () => {
   });
 
   describe("sortAgentSkills", () => {
-    test("sorts by level descending without mutating input", () => {
+    test("sorts by level descending and does not mutate input", () => {
       const matrix = [
         skill({ skillName: "A", proficiency: "awareness" }),
         skill({ skillName: "B", proficiency: "expert" }),
@@ -128,7 +128,7 @@ describe("composed", () => {
   });
 
   describe("sortAgentBehaviours", () => {
-    test("sorts by maturity descending without mutating input", () => {
+    test("sorts by maturity descending and does not mutate input", () => {
       const items = [
         behaviour({ behaviourName: "A", maturity: "emerging" }),
         behaviour({ behaviourName: "B", maturity: "exemplifying" }),
@@ -228,7 +228,7 @@ describe("composed", () => {
       ];
       const result = focusAgentSkills(matrix);
       assert.strictEqual(result.length, LIMIT_AGENT_PROFILE_SKILLS);
-      // First should be expert core (highest priority)
+      // The first entry should be expert core (highest priority)
       assert.strictEqual(result[0].skillName, "A");
     });
 
@@ -260,7 +260,8 @@ describe("composed", () => {
         }),
       ];
       const result = focusAgentSkills(matrix);
-      // Should be ordered by capabilityRank, not alphabetically
+      // The result orders entries by capabilityRank. It ignores alphabetical
+      // order.
       assert.deepStrictEqual(
         result.map((e) => e.capabilityRank),
         [1, 2, 3, 4],
@@ -318,7 +319,7 @@ describe("composed", () => {
       const result = prepareAgentSkillMatrix(matrix);
       // Exclude human-only and below-max-level
       assert.strictEqual(result.length, 2);
-      // Both at expert, sorted by level desc (same level, so stable)
+      // Both entries are at expert, so the level-desc sort keeps them stable
       assert.ok(result.every((e) => e.proficiency === "expert"));
       assert.ok(result.every((e) => e.isHumanOnly === false));
     });

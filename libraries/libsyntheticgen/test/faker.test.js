@@ -9,10 +9,11 @@ import {
 
 const logger = createSilentLogger();
 
-// @faker-js/faker is an optional peer dependency, provisioned on demand by
-// `just synthetic-deps` rather than installed by default. Detect it once so the
-// tests that need the real package self-skip when it is absent (conditional
-// registration, since bun's node:test ignores the `{ skip }` option).
+// @faker-js/faker is an optional peer dependency. `just synthetic-deps`
+// provisions it on demand. The default install does not include it. Detect it
+// once so the tests that need the real package self-skip when it is absent.
+// The registration is conditional because bun's node:test ignores the
+// `{ skip }` option.
 const FAKER_AVAILABLE = await (async () => {
   try {
     await import("@faker-js/faker");
@@ -35,7 +36,7 @@ describe("FakerTool", () => {
     assert.strictEqual(await tool.checkAvailability(), true);
   });
 
-  test("generates correct number of records", async () => {
+  test("generates the correct number of records", async () => {
     const tool = new FakerTool({ logger });
     const datasets = await tool.generate({
       name: "test",
@@ -65,7 +66,7 @@ describe("FakerTool", () => {
     }
   });
 
-  test("deterministic with same seed", async () => {
+  test("is deterministic with the same seed", async () => {
     const tool = new FakerTool({ logger });
     const config = {
       name: "det",

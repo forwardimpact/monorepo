@@ -1,19 +1,20 @@
 /**
  * Redactor — replaces secrets in JSON-serialisable values before they reach
- * the trace artifact. Composes two layers: an env-var value allowlist and a
- * set of credential-shape regexes. Both run on every primitive string.
+ * the trace artifact. It composes two layers: an env-var value allowlist and
+ * a set of credential-shape regexes. Both run on every primitive string.
  *
- * Coverage includes encoded credential forms, not only raw bytes: the env
- * layer matches each allowlisted secret both raw and in its **standard
- * base64** form at any byte offset within the encoded plaintext, and the
- * pattern layer covers the git `extraheader` basic-auth wrapper. Boundary:
- * **standard base64 only** — URL-safe base64, hex, and percent-encoding are
- * not covered — and the **trace-write sink only**; content an agent authors
- * into a wiki commit is never passed through this redactor.
+ * Coverage includes encoded credential forms as well as raw bytes. The env
+ * layer matches each allowlisted secret raw. It also matches the secret in
+ * its **standard base64** form at any byte offset within the encoded
+ * plaintext. The pattern layer covers the git `extraheader` basic-auth
+ * wrapper. Two limits apply. The redactor covers **standard base64 only**,
+ * so it does not cover URL-safe base64, hex, or percent-encoding. It also
+ * covers the **trace-write sink only**. Content an agent authors into a wiki
+ * commit never passes through this redactor.
  *
- * Stateless after construction: `env` is captured once so in-process
- * `process.env` writes (e.g. agent-runner.js LIBHARNESS_SKILL, commands/run.js
- * LIBHARNESS_AGENT_PROFILE) cannot smuggle a value past the redactor.
+ * The redactor is stateless after construction. It captures `env` once, so
+ * in-process `process.env` writes (e.g. agent-runner.js LIBHARNESS_SKILL,
+ * commands/run.js LIBHARNESS_AGENT_PROFILE) cannot smuggle a value past it.
  */
 
 export const DEFAULT_ENV_ALLOWLIST = Object.freeze([
@@ -36,7 +37,7 @@ export const DEFAULT_ENV_ALLOWLIST = Object.freeze([
 
 // Anchored prefixes per
 // https://github.blog/security/application-security/behind-githubs-new-authentication-token-formats/
-// Anthropic prefix is heuristic — the env-allowlist layer is the primary
+// The Anthropic prefix is heuristic. The env-allowlist layer is the primary
 // defence for Anthropic keys.
 export const DEFAULT_PATTERNS = Object.freeze([
   { kind: "anthropic", regex: /sk-ant-[A-Za-z0-9_-]{80,}/g },
@@ -45,11 +46,11 @@ export const DEFAULT_PATTERNS = Object.freeze([
   { kind: "gh-oauth", regex: /\bgho_[A-Za-z0-9]{36}\b/g },
   { kind: "gh-fine-grained", regex: /\bgithub_pat_[A-Za-z0-9_]{82}\b/g },
   // git persists HTTP basic-auth credentials base64-encoded in
-  // `http.<url>.extraheader` as `AUTHORIZATION: basic <b64>` where the
-  // plaintext is `x-access-token:<token>` (actions/checkout form) — a shape
-  // the raw-byte layers above cannot see. The plaintext prefix is 15 bytes
-  // — five whole base64 triplets — so every encoding starts with the same
-  // 20 chars no matter which token follows.
+  // `http.<url>.extraheader` as `AUTHORIZATION: basic <b64>`. There the
+  // plaintext is `x-access-token:<token>` (actions/checkout form). The
+  // raw-byte layers above cannot see that shape. The plaintext prefix is 15
+  // bytes, which is five whole base64 triplets. So every encoded form starts
+  // with the same 20 chars, whatever token follows.
   {
     kind: "gh-b64-basic-credential",
     regex: /\beC1hY2Nlc3MtdG9rZW46[A-Za-z0-9+/]{8,}={0,2}/g,
@@ -60,27 +61,29 @@ const ENV_PLACEHOLDER = (name) => `[REDACTED:env:${name}]`;
 const PATTERN_PLACEHOLDER = (kind) => `[REDACTED:pattern:${kind}]`;
 
 /**
- * Minimum secret byte length for encoded-form matching. At 9 bytes the
- * shortest offset core is exactly 8 chars; below 9 it drops under 8 — too
- * short to be a sound needle against ordinary base64 trace content (margin of
- * safety, false positives). Every DEFAULT_ENV_ALLOWLIST value (token, key,
- * password) far exceeds it.
+ * The minimum byte length a secret needs before the redactor matches its
+ * encoded form. At 9 bytes the shortest offset core is exactly 8 chars.
+ * Below 9 bytes it drops under 8 chars. That is too short for a sound needle
+ * against ordinary base64 trace content (margin of safety, false positives).
+ * Every DEFAULT_ENV_ALLOWLIST value (token, key, password) far exceeds it.
  */
 const MIN_ENCODED_SECRET_BYTES = 9;
 
-// Leading base64 chars contaminated by the k filler bytes, per alignment.
+// The k filler bytes contaminate this many base64 chars at the start, per
+// alignment.
 const ENCODED_LEAD_STRIP = [0, 2, 3];
 
 /**
- * The three offset-invariant standard-base64 core substrings of `secret`, one
- * per byte alignment (k = 0/1/2). base64 maps disjoint 3-byte groups to 4 chars
- * independently, so the chars covering a secret's interior groups depend only
- * on the secret's bytes — never on the bytes surrounding it. Only the partial
- * groups at each edge are neighbour-dependent; stripping them leaves a core
- * that appears in the base64 of any plaintext placing `secret` at that
- * alignment. Padding lives only in the final partial group, which is stripped,
- * so each core is padding-free and one needle matches padded and unpadded
- * haystack content. Returns [] below MIN_ENCODED_SECRET_BYTES.
+ * Return the three standard-base64 core substrings of `secret`, one per byte
+ * alignment (k = 0/1/2). Each core is offset-invariant. base64 maps disjoint
+ * 3-byte groups to 4 chars independently. So the chars that cover a secret's
+ * interior groups depend only on the secret's bytes. They never depend on the
+ * bytes around it. Only the partial groups at each edge depend on the
+ * neighbours. This function strips those groups. The core that remains
+ * appears in the base64 of any plaintext that puts `secret` at that
+ * alignment. Padding lives only in the final partial group, and this function
+ * strips that group. So each core is padding-free. One needle matches padded
+ * and unpadded haystack content. Returns [] below MIN_ENCODED_SECRET_BYTES.
  * @param {string} secret
  * @returns {string[]}
  */
@@ -98,9 +101,10 @@ function encodedNeedles(secret) {
 
 /**
  * Build a frozen { name → { secret, needles } } snapshot of the requested env
- * vars. Empty strings are skipped — a leaked empty env var would otherwise
- * cause every empty string in the trace to be replaced. `needles` are the
- * precomputed standard-base64 cores (empty for sub-floor secrets).
+ * vars. This function skips empty strings. A leaked empty env var would
+ * otherwise make the redactor replace every empty string in the trace.
+ * `needles` are the precomputed standard-base64 cores (empty for sub-floor
+ * secrets).
  */
 function snapshotEnv(env, allowlist) {
   const snap = {};
@@ -129,8 +133,8 @@ function walk(value, redactString) {
 export class Redactor {
   /**
    * @param {object} deps
-   * @param {Readonly<Record<string, {secret: string, needles: string[]}>>} deps.envSnapshot - Frozen { name → { secret, needles } } map captured at construction time; `needles` are the precomputed standard-base64 cores of `secret`.
-   * @param {ReadonlyArray<{kind: string, regex: RegExp}>} deps.patterns - Credential-shape regexes; each match becomes `[REDACTED:pattern:KIND]`.
+   * @param {Readonly<Record<string, {secret: string, needles: string[]}>>} deps.envSnapshot - Frozen { name → { secret, needles } } map captured at construction time. `needles` are the precomputed standard-base64 cores of `secret`.
+   * @param {ReadonlyArray<{kind: string, regex: RegExp}>} deps.patterns - Credential-shape regexes. Each match becomes `[REDACTED:pattern:KIND]`.
    * @param {boolean} deps.enabled - When false, `redactValue` returns its input by reference.
    */
   constructor({ envSnapshot, patterns, enabled }) {
@@ -140,8 +144,9 @@ export class Redactor {
   }
 
   /**
-   * Redact any JSON-serialisable value by deep-walking and replacing secrets
-   * in every primitive string. Identity on the input when disabled.
+   * Redact any JSON-serialisable value. This method deep-walks the value and
+   * replaces secrets in every primitive string. When disabled, it returns its
+   * input by reference.
    * @param {unknown} value
    * @returns {unknown}
    */
@@ -163,10 +168,11 @@ export class Redactor {
       if (out.includes(secret)) {
         out = out.split(secret).join(ENV_PLACEHOLDER(name));
       }
-      // Standard-base64 form at any byte offset. Order among the three needles
-      // is irrelevant: once a region is replaced by the placeholder (which
-      // shares no base64 run with any needle) those bytes are gone, so a later
-      // needle cannot re-match them. The floor keeps every needle ≥ 8 chars.
+      // Standard-base64 form at any byte offset. The order among the three
+      // needles does not matter. Once a replacement puts the placeholder over
+      // a region, those bytes are gone, so a later needle cannot re-match
+      // them. The placeholder shares no base64 run with any needle. The floor
+      // keeps every needle ≥ 8 chars.
       for (const needle of needles) {
         if (out.includes(needle)) {
           out = out.split(needle).join(ENV_PLACEHOLDER(name));
@@ -181,20 +187,20 @@ export class Redactor {
 }
 
 /**
- * Build a redactor. Reads `LIBHARNESS_REDACTION_DISABLED` and
- * `LIBHARNESS_REDACTION_ENV_VARS` from the supplied env. The env and the stderr
- * sink are sourced from an injected `runtime` (`runtime.proc.env` /
- * `runtime.proc.stderr`); when no runtime is supplied a default one is
- * constructed so existing callers keep working. An explicit `opts.env`
- * override still wins for the snapshot. Fires a one-shot stderr warning when
- * constructed disabled — bypass via `createNoopRedactor()` for silent
- * fixtures.
+ * Build a redactor. It reads `LIBHARNESS_REDACTION_DISABLED` and
+ * `LIBHARNESS_REDACTION_ENV_VARS` from the supplied env. An injected
+ * `runtime` supplies the env and the stderr sink (`runtime.proc.env` /
+ * `runtime.proc.stderr`). When a caller supplies no runtime, the function
+ * constructs a default one so current callers keep working. An explicit
+ * `opts.env` override still wins for the snapshot. The function fires a
+ * one-shot stderr warning when a caller constructs it disabled. Use
+ * `createNoopRedactor()` for silent fixtures to bypass that warning.
  * @param {object} [opts]
- * @param {import("@forwardimpact/libutil/runtime").Runtime} [opts.runtime] - Ambient collaborators; `proc.env`/`proc.stderr` are used.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} [opts.runtime] - Ambient collaborators. The factory uses `proc.env` and `proc.stderr`.
  * @param {Record<string, string|undefined>} [opts.env] - Environment to snapshot. Defaults to `runtime.proc.env`.
  * @param {string[]} [opts.allowlist] - Override the env-var name list. Defaults to `DEFAULT_ENV_ALLOWLIST` or the parsed `LIBHARNESS_REDACTION_ENV_VARS` value.
  * @param {ReadonlyArray<{kind: string, regex: RegExp}>} [opts.patterns] - Credential-shape regexes. Defaults to `DEFAULT_PATTERNS`.
- * @param {boolean} [opts.enabled] - Force enabled/disabled; bypasses `LIBHARNESS_REDACTION_DISABLED`.
+ * @param {boolean} [opts.enabled] - Force enabled or disabled. It bypasses `LIBHARNESS_REDACTION_DISABLED`.
  * @returns {Redactor}
  */
 export function createRedactor({
@@ -215,7 +221,7 @@ export function createRedactor({
     : Object.freeze({});
   if (!resolvedEnabled) {
     proc.stderr.write(
-      "libharness: trace redaction DISABLED via LIBHARNESS_REDACTION_DISABLED — secrets may appear in trace artifact\n",
+      "libharness: trace redaction DISABLED through LIBHARNESS_REDACTION_DISABLED. Secrets may appear in the trace artifact\n",
     );
   }
   return new Redactor({ envSnapshot, patterns, enabled: resolvedEnabled });
@@ -240,8 +246,8 @@ function resolveAllowlistFromEnv(env) {
 
 /**
  * Build a disabled redactor whose `redactValue` is the identity function.
- * Test-fixture form — bypasses `createRedactor` so no stderr warning
- * fires regardless of env state.
+ * Use this form in test fixtures. It bypasses `createRedactor`, so no stderr
+ * warning fires whatever the env state.
  * @returns {Redactor}
  */
 export function createNoopRedactor() {

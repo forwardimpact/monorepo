@@ -1,9 +1,10 @@
 /**
  * Toolkit Derivation Functions
  *
- * Derives a de-duplicated list of tools from a skill matrix by looking up
+ * Derives a de-duplicated list of tools from a skill matrix. It looks up
  * toolReferences from skill definitions. Only skills at the highest derived
- * level contribute tools, ensuring focused toolkits for both jobs and agents.
+ * level contribute tools. This keeps toolkits focused for both jobs and
+ * agents.
  */
 
 import { filterToolkitSkills } from "./policies/composed.js";
@@ -20,16 +21,17 @@ import { filterToolkitSkills } from "./policies/composed.js";
 /**
  * Derive a de-duplicated toolkit from a skill matrix
  *
- * Extracts tools from skills at the highest derived level, de-duplicates by name,
- * and collects which skills reference each tool. This keeps toolkits focused on
- * the engineer's core competencies for both jobs and agents.
+ * Extracts tools from skills at the highest derived level. De-duplicates the
+ * tools by name. Collects which skills reference each tool. This keeps
+ * toolkits focused on the engineer's core competencies for both jobs and
+ * agents.
  *
  * @param {Object} params
  * @param {Array<{skillId: string, level: string}>} params.skillMatrix - Skill matrix with skill IDs and levels
  * @param {Array} params.skills - All skill definitions with toolReferences
  * @returns {ToolkitEntry[]} De-duplicated toolkit sorted by name
  */
-/** Merge a tool reference into an existing entry, filling missing metadata. */
+/** Merge a tool reference into an existing entry. Fill missing metadata. */
 function mergeToolEntry(existing, tool, skillId) {
   if (!existing.skillIds.includes(skillId)) {
     existing.skillIds.push(skillId);

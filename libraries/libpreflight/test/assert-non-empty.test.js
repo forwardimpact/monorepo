@@ -42,7 +42,7 @@ describe("libpreflight assertNonEmpty", () => {
     assert.deepStrictEqual(proc.exitCalls, []);
   });
 
-  test("writes labelled error and exits 1 on empty string", () => {
+  test("writes a labelled error and exits 1 on an empty string", () => {
     const proc = makeProcess();
     assertNonEmpty("", "idp_origin", proc);
     assert.deepStrictEqual(proc.stderrCalls, [
@@ -51,7 +51,7 @@ describe("libpreflight assertNonEmpty", () => {
     assert.deepStrictEqual(proc.exitCalls, [1]);
   });
 
-  test("writes labelled error and exits 1 on empty array", () => {
+  test("writes a labelled error and exits 1 on an empty array", () => {
     const proc = makeProcess();
     assertNonEmpty([], "trusted_idp_origins", proc);
     assert.deepStrictEqual(proc.stderrCalls, [
@@ -60,7 +60,7 @@ describe("libpreflight assertNonEmpty", () => {
     assert.deepStrictEqual(proc.exitCalls, [1]);
   });
 
-  test("writes labelled error and exits 1 on empty Set", () => {
+  test("writes a labelled error and exits 1 on an empty Set", () => {
     const proc = makeProcess();
     assertNonEmpty(new Set(), "trusted_idp_origins (loaded)", proc);
     assert.deepStrictEqual(proc.stderrCalls, [
@@ -69,7 +69,7 @@ describe("libpreflight assertNonEmpty", () => {
     assert.deepStrictEqual(proc.exitCalls, [1]);
   });
 
-  test("writes labelled error and exits 1 on undefined", () => {
+  test("writes a labelled error and exits 1 on undefined", () => {
     const proc = makeProcess();
     assertNonEmpty(undefined, "secret", proc);
     assert.deepStrictEqual(proc.stderrCalls, [
@@ -78,7 +78,7 @@ describe("libpreflight assertNonEmpty", () => {
     assert.deepStrictEqual(proc.exitCalls, [1]);
   });
 
-  test("writes labelled error and exits 1 on null", () => {
+  test("writes a labelled error and exits 1 on null", () => {
     const proc = makeProcess();
     assertNonEmpty(null, "secret", proc);
     assert.deepStrictEqual(proc.stderrCalls, [

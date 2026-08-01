@@ -1,8 +1,8 @@
 /**
  * Render a drained batch of bus messages as tagged text lines so the
  * LLM can read its inbox at a glance. Asks and answers include the
- * `askId` in the tag (`[ask#42] facilitator: …`, `[answer#42] agent: …`)
- * so the addressee can quote it back via Answer's `askId` field.
+ * `askId` in the tag (`[ask#42] facilitator: …`, `[answer#42] agent: …`).
+ * The addressee can then quote it back in Answer's `askId` field.
  *
  * @param {Array<{from: string, text: string, kind?: string, askId?: number}>} messages
  * @returns {string}

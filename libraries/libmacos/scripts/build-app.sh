@@ -10,10 +10,11 @@ set -euo pipefail
 #   --info-plist PATH         Path to Info.plist to embed
 #   --entitlements PATH       Path to entitlements plist for ad-hoc codesigning
 #   --resource PATH           Path to copy into Contents/Resources/ (repeatable)
-#   --version VERSION         Version string written into the bundle's Info.plist
-#                             (CFBundleVersion + CFBundleShortVersionString) before
-#                             codesigning. If omitted, the existing plist values are
-#                             kept as-is. Requires plutil (macOS native).
+#   --version VERSION         Version string for the bundle's Info.plist
+#                             (CFBundleVersion + CFBundleShortVersionString). The
+#                             script writes it before codesign runs. Without this
+#                             flag, the plist keeps its existing values. Requires
+#                             plutil (macOS native).
 #   --out-dir DIR             Output directory (default: dist/apps)
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -94,15 +95,15 @@ cp "$INFO_PLIST" "$APP_DIR/Contents/Info.plist"
 
 # --- Embed version into Info.plist -------------------------------------------
 
-# Substitute the release version into the bundle's Info.plist before signing
-# so codesign covers the version-correct plist. The bundle's
+# Substitute the release version into the bundle's Info.plist before codesign
+# runs. Then codesign covers the version-correct plist. The bundle's
 # CFBundleShortVersionString must match the release tag.
 if [ -n "$VERSION" ]; then
   if command -v plutil >/dev/null 2>&1; then
     plutil -replace CFBundleVersion -string "$VERSION" "$APP_DIR/Contents/Info.plist"
     plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP_DIR/Contents/Info.plist"
   else
-    echo "  Warning: plutil unavailable; Info.plist version not embedded" >&2
+    echo "  Warning: plutil unavailable. Info.plist version not embedded" >&2
   fi
 fi
 

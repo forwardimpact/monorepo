@@ -1,7 +1,7 @@
 /**
- * Engineering Pathway Job Derivation Functions
+ * Job Derivation Functions for the Engineering Pathway
  *
- * This module provides pure functions for deriving job definitions from
+ * This module provides pure functions that derive job definitions from
  * discipline, track, and level combinations.
  */
 
@@ -29,8 +29,8 @@ export { deriveResponsibilities } from "./derivation-responsibilities.js";
 
 /**
  * Build a Map of skillId → skillType for a discipline.
- * Enables O(1) lookup instead of repeated array scans.
- * @internal Used by deriveSkillMatrix; not part of the public API.
+ * The Map gives O(1) lookup instead of repeated array scans.
+ * @internal deriveSkillMatrix uses it. It is not part of the public API.
  * @param {import('./levels.js').Discipline} discipline - The discipline
  * @returns {Map<string, string>} Map of skill ID to skill type
  */
@@ -376,7 +376,7 @@ function partitionBehaviourCoverage(behaviourIds, maturityMap) {
   return { covered, missing };
 }
 
-/** Compute coverage ratio: 1.0 when the list is empty. */
+/** Compute the coverage ratio. Return 1.0 when the list is empty. */
 function coverageRatio(covered, total) {
   return total > 0 ? covered / total : 1;
 }
@@ -447,7 +447,7 @@ export function getDisciplineSkillIds(discipline) {
 }
 
 /**
- * Return the ordinalRank of a level for numeric comparison and sorting.
+ * Return the ordinalRank of a level, so you can compare and sort numerically.
  * @param {import('./levels.js').Level} level - The level
  * @returns {number} The ordinal rank
  */

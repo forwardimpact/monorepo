@@ -116,7 +116,7 @@
     border-left-color: var(--color-text-muted);
   }
 
-  /* Legacy match quality classes (can be removed later) */
+  /* Legacy match quality classes (you can remove them later) */
   .match-card.match-excellent {
     border-left-color: var(--color-success);
   }

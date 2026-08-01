@@ -5,7 +5,7 @@ import { ProgressTicker } from "../src/progress-ticker.js";
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 describe("ProgressTicker", () => {
-  test("invokes tick at the configured interval until stopped", async () => {
+  test("invokes tick at the configured interval until the caller stops it", async () => {
     const ticker = new ProgressTicker({ intervalMs: 10 });
     let count = 0;
     ticker.start("t1", () => {
@@ -38,7 +38,7 @@ describe("ProgressTicker", () => {
     expect(b).toBeGreaterThan(0);
   });
 
-  test("tick rejection auto-stops the ticker (matches legacy)", async () => {
+  test("a rejected tick auto-stops the ticker (matches legacy)", async () => {
     const ticker = new ProgressTicker({ intervalMs: 10 });
     let count = 0;
     ticker.start("err", async () => {
@@ -50,7 +50,7 @@ describe("ProgressTicker", () => {
     expect(ticker.size).toBe(0);
   });
 
-  test("starting an existing token replaces the prior ticker", async () => {
+  test("start with an existing token replaces the prior ticker", async () => {
     const ticker = new ProgressTicker({ intervalMs: 10 });
     let first = 0;
     let second = 0;
@@ -68,7 +68,7 @@ describe("ProgressTicker", () => {
     expect(ticker.size).toBe(0);
   });
 
-  test("first tick fires immediately without waiting for the interval", async () => {
+  test("first tick fires immediately and does not wait for the interval", async () => {
     const ticker = new ProgressTicker({ intervalMs: 60_000 });
     let count = 0;
     ticker.start("t-immediate", () => {

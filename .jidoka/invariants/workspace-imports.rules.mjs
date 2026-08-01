@@ -1,16 +1,16 @@
-// Contributor-side guard. Fails when a source file inside a workspace
-// package imports a workspace package (`@forwardimpact/*`) that is not
-// declared in the importing package's `package.json` (any of
+// Contributor-side guard. It fails when a source file inside a workspace
+// package imports a workspace package (`@forwardimpact/*`) that the
+// importing package's `package.json` does not declare (in any of
 // `dependencies`, `devDependencies`, `peerDependencies`,
 // `optionalDependencies`).
 //
 // The disease: a static `import { … } from "@forwardimpact/<pkg>"` inside
 // a published package. The workspace hoist masks the missing declaration
-// in `bun install`; `npm install <published>` doesn't, so a fresh adopter
-// hits `Cannot find package …` before any package code runs.
+// in `bun install`. `npm install <published>` does not mask it. So a fresh
+// adopter hits `Cannot find package …` before any package code runs.
 //
-// Scope: `products/*`, `libraries/*`, `services/*` — every tree listed in
-// the workspace globs of the root `package.json`.
+// Scope: `products/*`, `libraries/*`, `services/*` — every tree the
+// workspace globs of the root `package.json` list.
 
 import { join } from "node:path";
 
@@ -117,9 +117,9 @@ export default {
       subjects.push(subject);
     }
 
-    // A package whose manifest is missing or malformed can't be checked at
-    // all — surface that loudly (once per package) instead of silently
-    // skipping its files.
+    // This rule cannot check a package whose manifest is missing or
+    // malformed. So surface that loudly, once per package. Do not skip its
+    // files in silence.
     const manifestGaps = [...manifests.entries()]
       .filter(([, manifest]) => !manifest)
       .map(([packageDir]) => ({
@@ -142,7 +142,7 @@ export default {
       id: "workspace.manifest-unreadable",
       message: (s) =>
         `${s.packageDir} contains source files but its package.json is missing or malformed`,
-      hint: "fix the manifest so the package's imports can be checked against its declared dependencies",
+      hint: "fix the manifest so the rule can check the package's imports against its declared dependencies",
     }),
     parseError("package-file", {
       id: "workspace.parse-error",
@@ -167,8 +167,8 @@ export default {
           : undeclared.map((i) => ({ lineNo: i.line, pkg: i.pkg }));
       },
       message: (s, r) =>
-        `imports "${r.pkg}" but it is not declared in ${s.packageDir}/package.json`,
-      hint: "declare the workspace package in the importing package's dependencies — the workspace hoist masks the gap locally, npm installs of the published package break",
+        `imports "${r.pkg}" but ${s.packageDir}/package.json does not declare it`,
+      hint: "declare the workspace package in the importing package's dependencies — the workspace hoist masks the gap locally. An npm install of the published package breaks",
     },
   ],
 };

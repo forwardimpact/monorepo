@@ -25,8 +25,8 @@ Typical path: `~/Library/Mail/V10/MailData/Envelope Index`
 | `flagged`                | INTEGER | 1 = flagged                                              |
 
 **IMPORTANT:** `date_received` stores **Unix timestamps** (seconds since
-1970-01-01 UTC), NOT Core Data timestamps (which use 2001-01-01 epoch). Do NOT
-apply Core Data conversion.
+1970-01-01 UTC). It does NOT store Core Data timestamps, which use the
+2001-01-01 epoch. Do NOT apply Core Data conversion.
 
 ## addresses (sender and recipient addresses)
 
@@ -36,8 +36,8 @@ apply Core Data conversion.
 | `address` | TEXT    | Email address                        |
 | `comment` | TEXT    | Display name (e.g., `"Chen, Sarah"`) |
 
-**IMPORTANT:** The display name is in `comment`, not a `name` or `display_name`
-column.
+**IMPORTANT:** The display name is in `comment`. There is no `name` column and
+no `display_name` column.
 
 ## subjects
 
@@ -46,8 +46,8 @@ column.
 | `ROWID`   | INTEGER | Primary key       |
 | `subject` | TEXT    | Base subject text |
 
-Note: `subject_prefix` (Re:, Fwd:, etc.) is stored on the `messages` table
-directly, not here.
+Note: the `messages` table stores `subject_prefix` (Re:, Fwd:, etc.) directly.
+This table does not store it.
 
 ## recipients (To/Cc/Bcc per message)
 
@@ -59,8 +59,8 @@ directly, not here.
 | `type`     | INTEGER | 0 = To, 1 = Cc, 2 = Bcc     |
 | `position` | INTEGER | Order within the type group |
 
-**IMPORTANT:** Column names are `message` and `address` (not `message_id` or
-`address_id`).
+**IMPORTANT:** The column names are `message` and `address`. They are not
+`message_id` or `address_id`.
 
 ## summaries (Apple Intelligence email summaries)
 
@@ -99,8 +99,8 @@ Use case-insensitive `LIKE` patterns to match both:
 **Constraints:** `UNIQUE(message, attachment_id)` — each attachment within a
 message has a unique identifier.
 
-**IMPORTANT:** Column is `message` (not `message_id`), matching the convention
-used by the `recipients` table.
+**IMPORTANT:** The column is `message`. It is not `message_id`. This matches the
+convention of the `recipients` table.
 
 ### Filesystem mapping
 

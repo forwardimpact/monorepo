@@ -1,8 +1,8 @@
 /**
  * Turn renderer — maps a structured turn into formatted text lines.
  *
- * Shared by `TeeWriter.flushTurns()` (live stream) and
- * `TraceCollector.toText()` (offline replay) so both emit identical output.
+ * `TeeWriter.flushTurns()` (live stream) and `TraceCollector.toText()`
+ * (offline replay) share it, so both emit identical output.
  */
 
 import {
@@ -51,8 +51,8 @@ function renderAssistantTurn(turn, withPrefix) {
 
 /** @param {object} turn @param {boolean} withPrefix @returns {string[]} */
 function renderToolResultTurn(turn, withPrefix) {
-  // Successful tool results emit no preview line — the trace document keeps
-  // the structured turn, but readers of the streamed log only see errors.
+  // Successful tool results emit no preview line. The trace document keeps
+  // the structured turn. Readers of the streamed log see errors only.
   if (!turn.isError) return [];
   return [
     renderToolResultLine({

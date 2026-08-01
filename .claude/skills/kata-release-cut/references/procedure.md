@@ -1,6 +1,7 @@
 # Release-cut procedure tables
 
-Lookup tables and edge-case notes for the release-cut procedure in SKILL.md.
+This file holds the lookup tables and the edge-case notes for the release-cut
+procedure in SKILL.md.
 
 ## Tag prefix mapping
 
@@ -21,8 +22,8 @@ git push origin <prefix>@v<version>    # then each tag — never --tags
 gh run list --limit 10 --json name,conclusion,headBranch,event
 ```
 
-For multiple packages: commit all bumps, then tag each. On a publish failure,
-`gh run view <run-id> --log-failed`.
+For multiple packages, commit all the bumps. Then tag each package. On a
+publish failure, run `gh run view <run-id> --log-failed`.
 
 ## Summary table format (Step 8)
 
@@ -34,16 +35,18 @@ For multiple packages: commit all bumps, then tag each. On a publish failure,
 
 ## Publish-class issues (Step 7)
 
-A publish-class issue — one whose definition of done is a live artifact, not a
-merged fix — auto-closes when its fix PR merges, before the publish outcome
-exists. After verifying the publish, post a verification comment on each such
-issue citing the green publish run and the live artifact; it stays closed only
-with that comment. If the publish failed, reopen the issue.
+A publish-class issue defines done as a live artifact. Its definition of done
+is not a merged fix. Such an issue auto-closes when its fix PR merges, before
+the publish outcome exists. After you verify the publish, post a verification
+comment on each such issue. The comment cites the green publish run and the
+live artifact. The issue stays closed only with that comment. If the publish
+failed, reopen the issue.
 
 ## Edge cases
 
 - **First release.** Skip packages with version `0.0.0` or `"private": true`.
-- **Failed publish.** Don't delete the tag. Fix, bump patch, re-tag.
+- **Failed publish.** Do not delete the tag. Fix the failure. Bump the patch
+  version. Re-tag.
 
-(The dependency-chain ordering hazard is stated inline in SKILL.md § Edge
-Cases — release foundational packages before their consumers.)
+(SKILL.md § Edge Cases states the hazard for dependency-chain order inline.
+Release the foundational packages before their consumers.)

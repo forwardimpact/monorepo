@@ -13,8 +13,9 @@ applies and use it as the source of the final rating.
    answers.
 3. **Interviewer observation** — an interviewer noted strength or concern.
 4. **CV evidence with quantification** — concrete metrics, named projects.
-5. **CV evidence without quantification** — described but vague.
-6. **Not evidenced** — never surfaced across any stage.
+5. **CV evidence without quantification** — the CV describes it but stays
+   vague.
+6. **Not evidenced** — no stage surfaced it.
 
 For each skill record: **final rating**, **best evidence source**,
 **trajectory** (↑ / ↓ / —), **confidence** (High = demonstrated live; Medium =
@@ -22,9 +23,9 @@ discussed well; Low = CV only or thin).
 
 ## Behaviour evidence
 
-Same hierarchy. Behaviours assessed in interviews carry far more weight than CV
-signals. For each: **final maturity**, **best evidence** (specific moment or
-pattern), **consistency** (once vs. throughout).
+Same hierarchy. A behaviour that an interview assessed carries far more weight
+than a CV signal. For each: **final maturity**, **best evidence** (specific
+moment or pattern), **consistency** (once vs. throughout).
 
 ## Level confirmation criteria
 
@@ -41,7 +42,7 @@ pattern), **consistency** (once vs. throughout).
 | Recommendation             | Criteria                                                                                  |
 | -------------------------- | ----------------------------------------------------------------------------------------- |
 | **Hire**                   | ≥ 70 % Strong match at the final level, no unresolved core-skill gaps, strong behaviours  |
-| **Hire at adjusted level** | Strong candidate; evidence supports a different level than originally targeted            |
+| **Hire at adjusted level** | Strong candidate. The evidence supports a level other than the original target            |
 | **Do not hire**            | Unresolved core-skill gaps, behaviour concerns, or insufficient evidence after interviews |
 
 ### Hire criteria check
@@ -50,14 +51,14 @@ pattern), **consistency** (once vs. throughout).
 - No core skill gaps remain unresolved (core = top-tier skills for the
   discipline/track combo).
 - All agent-aligned standard behaviours at or above expected maturity.
-- Level confirmed by interview evidence (not just CV).
-- Track fit confirmed by interview evidence.
+- Interview evidence confirms the level. The CV alone does not.
+- Interview evidence confirms the track fit.
 - No red flags from any interview stage.
 
 ## Pipeline context (Step 5)
 
-This is **not** a ranking exercise — it provides context. Note:
+This is **not** a ranking exercise. It gives context. Note:
 
 - Whether this candidate fills a gap in the current pipeline.
 - Whether stronger candidates exist for the same role.
-- Whether this candidate is better suited to a different open position.
+- Whether a different open position suits this candidate better.

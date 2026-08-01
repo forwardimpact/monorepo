@@ -1,8 +1,9 @@
 /**
- * OntologyProcessor builds a lightweight SHACL shapes graph from observed RDF quads.
- * Observes rdf:type assertions, predicate usage per class, global predicate frequency,
- * object types, and inverse relationship patterns to generate SHACL NodeShapes with
- * sh:targetClass, sh:property, sh:class constraints, and sh:inversePath constraints.
+ * OntologyProcessor builds a lightweight SHACL shapes graph from observed
+ * RDF quads. It observes rdf:type assertions, predicate usage per class,
+ * global predicate frequency, object types, and inverse relationship
+ * patterns. Then it generates SHACL NodeShapes with sh:targetClass,
+ * sh:property, sh:class constraints, and sh:inversePath constraints.
  */
 export class OntologyProcessor {
   #classSubjects; // Map<classIRI, Set<subjectIRI>>
@@ -14,24 +15,28 @@ export class OntologyProcessor {
   #inversePredicates; // Map<"fromClass|predicate|toClass", inversePredicate>
 
   /**
-   * Minimum ratio threshold for inferring inverse relationships.
-   * Both forward and reverse ratios must be >= this value to consider predicates as inverses.
-   * Lower values are more permissive but risk false pairings.
+   * The minimum ratio threshold to infer inverse relationships.
+   * The processor treats predicates as inverses only when both the forward
+   * ratio and the reverse ratio are >= this value.
+   * Lower values are more permissive. They also risk false pairs.
    * @type {number}
    */
   #minInverseRatio = 0.8;
 
   /**
-   * Maximum ratio threshold for inferring inverse relationships.
-   * Both forward and reverse ratios must be <= this value to consider predicates as inverses.
-   * Higher values are more permissive but risk pairing relationships with very different cardinalities.
+   * The maximum ratio threshold to infer inverse relationships.
+   * The processor treats predicates as inverses only when both the forward
+   * ratio and the reverse ratio are <= this value.
+   * Higher values are more permissive. They also risk pairs of
+   * relationships with very different cardinalities.
    * @type {number}
    */
   #maxInverseRatio = 1.25;
 
   /**
-   * Predicates that are typically one-way references and should NOT get inverse paths.
-   * These represent semantic relationships that are inherently directional (citations, mentions, references).
+   * Predicates that are typically one-way references. They should NOT get
+   * inverse paths. They represent semantic relationships that are
+   * inherently directional (citations, mentions, references).
    * @type {Set<string>}
    */
   #oneWayPredicates = new Set([
@@ -57,7 +62,7 @@ export class OntologyProcessor {
 
   /**
    * Process a single RDF/JS quad
-   * @param {import('rdf-js').Quad|any} quad - Quad object implementing RDF/JS terms
+   * @param {import('rdf-js').Quad|any} quad - Quad that implements RDF/JS terms
    */
   process(quad) {
     if (!quad) return;
@@ -78,7 +83,7 @@ export class OntologyProcessor {
   }
 
   /**
-   * Processes object node if it is a named node
+   * Processes the object node if it is a named node
    * @param {object} objectNode - RDF object node
    * @param {string} predicate - Predicate IRI
    * @param {string} subject - Subject IRI
@@ -101,7 +106,7 @@ export class OntologyProcessor {
   }
 
   /**
-   * Determine if predicate is rdf:type
+   * Determine if the predicate is rdf:type
    * @param {string} predicate - Predicate IRI
    * @returns {boolean} true if rdf:type
    * @private
@@ -111,7 +116,7 @@ export class OntologyProcessor {
   }
 
   /**
-   * Records a type assertion for subject and object
+   * Records a type assertion for the subject and the object
    * @param {string} subject - Subject IRI
    * @param {string} object - Object IRI (class)
    */
@@ -184,11 +189,14 @@ export class OntologyProcessor {
 
   /**
    * Compute inverse predicates for all class-predicate-class relationships.
-   * Call this after all quads have been processed via process().
-   * Uses conservative heuristics to avoid false inverse pairings:
-   * - Requires high count match to infer bidirectional relationship (see #minInverseRatio and #maxInverseRatio)
-   * - Excludes known one-way reference predicates (citation, mentions, about, etc.)
-   * - Detects and prevents circular contradictions (A↔B when A↔C already exists)
+   * Call this after process() handles all quads.
+   * Uses conservative heuristics to avoid false inverse pairs:
+   * - Requires a high count match to infer a bidirectional relationship
+   *   (see #minInverseRatio and #maxInverseRatio)
+   * - Excludes known one-way reference predicates (citation, mentions,
+   *   about, etc.)
+   * - Detects and prevents circular contradictions (A↔B when A↔C already
+   *   exists)
    * @private
    */
   #computeInversePredicates() {
@@ -248,7 +256,7 @@ export class OntologyProcessor {
           matchRatio >= this.#minInverseRatio &&
           matchRatio <= this.#maxInverseRatio
         ) {
-          // Also check reverse ratio to ensure symmetry
+          // Also check the reverse ratio to make sure the pair is symmetric
           const reverseKey = `${subjClass}|${pred}|${objClass}`;
           const reverseCount = this.#predicateDirections.get(reverseKey) || 0;
           const reverseRatio = forwardCount / reverseCount;
@@ -268,7 +276,7 @@ export class OntologyProcessor {
   }
 
   /**
-   * Assign inverse predicate if it doesn't create conflicts
+   * Assign the inverse predicate if it does not create conflicts
    * @param {string} forwardKey - Forward relationship key
    * @param {string} predicate - Forward predicate IRI
    * @param {string} inverse - Inverse predicate IRI
@@ -280,7 +288,7 @@ export class OntologyProcessor {
     const reverseExistingInverse = assignedInverses.get(inverse);
 
     if (!existingInverse && !reverseExistingInverse) {
-      // Safe to assign - no conflicts
+      // Safe to assign because there are no conflicts
       this.#inversePredicates.set(forwardKey, inverse);
       assignedInverses.set(predicate, inverse);
       assignedInverses.set(inverse, predicate);
@@ -288,22 +296,23 @@ export class OntologyProcessor {
       existingInverse === inverse &&
       reverseExistingInverse === predicate
     ) {
-      // Already correctly paired bidirectionally - safe to assign
+      // Already paired correctly in both directions. Safe to assign.
       this.#inversePredicates.set(forwardKey, inverse);
     }
-    // else: conflict detected, skip this pairing to avoid contradictions
+    // else: a conflict exists. Skip this pair to avoid contradictions.
   }
 
   /**
-   * Returns a read-only view of collected ontology statistics.
-   * MUST be called after all quads are processed.
-   * WARNING: Do not mutate the returned Maps or Sets. They are internal data structures
-   * shared with the processor for performance. This method is intended only for
-   * serializer consumption within the same package.
-   * @returns {import('./serializer.js').OntologyData} Ontology data snapshot containing class subjects, predicates, and inverse relationships
+   * Returns a read-only view of the collected ontology statistics.
+   * You MUST call this after the processor handles all quads.
+   * WARNING: Do not mutate the returned Maps or Sets. The processor shares
+   * these internal data structures for performance. Only the serializer in
+   * the same package should use this method.
+   * @returns {import('./serializer.js').OntologyData} Ontology data snapshot
+   * with class subjects, predicates, and inverse relationships
    */
   getData() {
-    // Compute inverse predicates once before returning data
+    // Compute the inverse predicates once before this method returns the data
     this.#computeInversePredicates();
 
     return {

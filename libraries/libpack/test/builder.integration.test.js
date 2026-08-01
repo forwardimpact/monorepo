@@ -81,7 +81,7 @@ const COMBINATIONS = [
 ];
 
 describe("PackBuilder", () => {
-  test("calls emitters in correct order with recording stubs", async () => {
+  test("calls the emitters in the correct order with recording stubs", async () => {
     const outputDir = await makeTempDir();
     const tar = createRecordingEmitter();
     const git = createRecordingEmitter();
@@ -109,7 +109,7 @@ describe("PackBuilder", () => {
     expect(disc.calls).toHaveLength(3);
     expect(disc.calls[2][0]).toBe("emitAggregate");
 
-    // Staging dir cleaned up
+    // The builder removed the staging dir
     expect(existsSync(join(outputDir, "_packs"))).toBe(false);
 
     // Return value

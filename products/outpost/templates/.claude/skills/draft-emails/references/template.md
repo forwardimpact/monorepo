@@ -1,6 +1,6 @@
 # Draft File Template
 
-Save each draft to `Drafts/{email_id}_draft.md` using this layout:
+Save each draft to `Drafts/{email_id}_draft.md` with this layout:
 
 ```markdown
 # Draft Response
@@ -22,5 +22,5 @@ Save each draft to `Drafts/{email_id}_draft.md` using this layout:
 ```
 
 The body must end with the last sentence of content. Apple Mail appends the
-user's configured signature automatically, so do **not** add a sign-off, "Best",
+user's configured signature automatically. So do **not** add a sign-off, "Best",
 "Cheers", or the user's name.

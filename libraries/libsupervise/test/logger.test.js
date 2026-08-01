@@ -27,7 +27,7 @@ describe("LogWriter", () => {
   });
 
   describe("init", () => {
-    test("creates the log directory via runtime.fs", async () => {
+    test("creates the log directory through runtime.fs", async () => {
       const fs = createMockFs();
       const writer = new LogWriter("/logs/svc", {
         runtime: createTestRuntime({ fs }),

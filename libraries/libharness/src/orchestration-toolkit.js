@@ -1,7 +1,7 @@
 /**
  * OrchestrationToolkit — tool schemas, per-role tool sets, and handler
  * factories for orchestration between leads (facilitator, supervisor,
- * discuss-lead) and their participating agents.
+ * discuss-lead) and the agents that take part.
  *
  * **Tool surface, by role:**
  *
@@ -15,16 +15,16 @@
  *   | Discuss agt |  ✓  |   ✓    |    ✓     |    ✓     |          | RFC                   |
  *   | Judge       |     |        |          |          |    ✓     |                       |
  *
- * **Ask is async.** Ask returns `{askIds:[…]}` immediately and posts the
+ * **Ask is async.** Ask returns `{askIds:[…]}` immediately. It posts the
  * question to the addressee's bus queue. The reply arrives on the asker's
- * next turn as `[answer#N] <participant>: <text>`. Pending state keys by
- * `askId` (visible in `[ask#N]` tags), so duplicate Asks to the same
- * addressee coexist without overwriting.
+ * next turn as `[answer#N] <participant>: <text>`. The toolkit keys pending
+ * state by `askId` (visible in `[ask#N]` tags). Duplicate Asks to the same
+ * addressee coexist. Neither one overwrites the other.
  *
  * **Answer's `askId` is optional.** With a matching askId, the reply
- * routes to that specific asker. Without, the handler auto-picks if
- * exactly one ask is owed to the caller, otherwise routes the message
- * as an Announce so it still reaches everyone.
+ * routes to that specific asker. Without one, the handler auto-picks when
+ * exactly one ask is owed to the caller. If not, the handler routes the
+ * message as an Announce so it still reaches everyone.
  */
 
 import { createSdkMcpServer, tool } from "@anthropic-ai/claude-agent-sdk";
@@ -48,9 +48,9 @@ export function createOrchestrationContext() {
 
 /**
  * Guard for terminal tools (`Conclude`, `Adjourn`, `Recess`). Returns an
- * error result when the caller still has Asks in flight, telling them to
- * end the turn and wait for the auto-resume. Returns `null` when no Asks
- * are pending and the terminal tool is free to run.
+ * error result when the caller still has Asks in flight. That result tells
+ * the caller to end the turn and wait for the auto-resume. Returns `null`
+ * when no Asks are pending and the terminal tool is free to run.
  */
 export function requireNoPendingAsks(ctx) {
   if (ctx.pendingAsks.size === 0) return null;
@@ -62,18 +62,18 @@ export function requireNoPendingAsks(ctx) {
 /**
  * Guard for terminal tools in discuss mode (`Adjourn`, `Recess`). Returns
  * an error result when the lead's inbox has unprocessed messages from the
- * human, telling them to end the turn and wait for the auto-resume.
- * Returns `null` when no inbox messages are pending and the terminal tool
- * is free to run.
+ * human. That result tells the lead to end the turn and wait for the
+ * auto-resume. Returns `null` when no inbox messages are pending and the
+ * terminal tool is free to run.
  */
 export function requireNoUnprocessedInbox(ctx) {
   if (!ctx.messageBus?.hasPending?.("lead")) return null;
   return errorResult(
-    "New messages from the human are waiting. End your turn. You will be resumed to process them.",
+    "New messages from the human are in your inbox. End your turn. You will be resumed to process them.",
   );
 }
 
-/** Mark the session as concluded; cancel any open Asks so askers see the synthetic null on their next turn. */
+/** Mark the session as concluded. Cancel any open Asks so askers see the synthetic null on their next turn. */
 export function createConcludeHandler(ctx) {
   return async ({ verdict, summary }) => {
     const guard = requireNoPendingAsks(ctx);
@@ -84,11 +84,11 @@ export function createConcludeHandler(ctx) {
 }
 
 /**
- * Shared terminal-tool helper. Conclude / Adjourn / Recess all set the
- * same three context fields (`concluded`, `verdict`, `summary`) and
- * cancel any in-flight Asks for the same reason: nobody will ever
- * answer them now. Mode-specific handlers (Adjourn, Recess) layer
- * extra state on top before calling this.
+ * Shared terminal-tool helper. Conclude, Adjourn, and Recess all set the
+ * same three context fields (`concluded`, `verdict`, `summary`). All three
+ * also cancel any in-flight Asks for the same reason. Nobody will ever
+ * answer them now. Mode-specific handlers (Adjourn, Recess) layer extra
+ * state on top before they call this.
  */
 export function concludeSession(ctx, { verdict, summary, reason }) {
   ctx.concluded = true;
@@ -124,21 +124,24 @@ function registerPendingAsk(ctx, { from, addressee, question }) {
 }
 
 /**
- * Create an Ask handler. Registers a pending entry per addressee, posts
- * the ask on the bus, returns `{askIds:[…]}` immediately. The LLM uses
- * those ids to match the `[answer#N]` it sees on a later turn.
+ * Create an Ask handler. The handler registers a pending entry for each
+ * addressee. It posts the ask on the bus. It returns `{askIds:[…]}`
+ * immediately. The LLM uses those ids to match the `[answer#N]` it sees on
+ * a later turn.
  *
  * @param {object} ctx
  * @param {object} opts
  * @param {string} opts.from
  * @param {string|undefined} opts.defaultTo - `undefined` means "broadcast
- *   to everyone else"; a participant name means "target that one when
+ *   to everyone else". A participant name means "target that one when
  *   `to` is omitted."
  */
 export function createAskHandler(ctx, { from, defaultTo }) {
   return async ({ question, to }) => {
     if (ctx.concluded) {
-      return errorResult("Session is concluded; Ask was not delivered.");
+      return errorResult(
+        "The session is concluded. The handler did not deliver your Ask.",
+      );
     }
     const addressees = resolveAddressees(ctx, { from, to, defaultTo });
     if (addressees.length === 0) {
@@ -157,7 +160,8 @@ export function createAskHandler(ctx, { from, defaultTo }) {
  * - askId provided + matches a pending entry whose addressee is the caller →
  *   route the reply to the asker's queue and clear the pending entry.
  * - askId provided but unknown or wrong addressee → `isError`. The caller
- *   tried to specify; we tell them why it didn't match.
+ *   tried to name an askId. The handler tells the caller why it did not
+ *   match.
  * - askId omitted + exactly one ask owed by the caller → auto-pick it.
  * - askId omitted + 0 or many pending → broadcast as Announce so the
  *   message still reaches every other participant.
@@ -180,9 +184,9 @@ export function createAnswerHandler(ctx, { from }) {
     ctx.messageBus.announce(from, message);
     const reason =
       owed.length === 0
-        ? "no pending ask for you"
-        : `${owed.length} pending asks (askId omitted is ambiguous)`;
-    return textResult(`Answer routed as Announce — ${reason}.`);
+        ? "You have no pending ask."
+        : `You have ${owed.length} pending asks. An omitted askId is ambiguous.`;
+    return textResult(`Answer routed as Announce. ${reason}`);
   };
 }
 
@@ -191,7 +195,7 @@ function routeAnswerByAskId(ctx, { from, askId, message }) {
   if (!entry) return errorResult(`No pending ask with askId=${askId}.`);
   if (entry.addresseeName !== from) {
     return errorResult(
-      `Ask #${askId} is addressed to ${entry.addresseeName}, not ${from}.`,
+      `Ask #${askId} is addressed to ${entry.addresseeName}. You are ${from}.`,
     );
   }
   ctx.pendingAsks.delete(askId);
@@ -208,9 +212,9 @@ export function createAnnounceHandler(ctx, { from }) {
 }
 
 /**
- * Cancel pending Asks and route a synthetic `[no answer: <reason>]` to
- * each asker's queue so callers never deadlock on a participant ignoring
- * its inbox.
+ * Cancel pending Asks. Route a synthetic `[no answer: <reason>]` to each
+ * asker's queue, so callers never deadlock when a participant ignores its
+ * inbox.
  *
  * @param {object} ctx
  * @param {string} reason - Surfaced inside `[no answer: <reason>]`.
@@ -234,8 +238,8 @@ export function pendingAsksOwedBy(ctx, addressee) {
 }
 
 /**
- * Inject a synthetic reminder onto the addressee's bus queue and mark
- * each owed ask as reminded. Returns true when a reminder fired.
+ * Inject a synthetic reminder onto the addressee's bus queue. Mark each
+ * owed ask as reminded. Returns true when a reminder fired.
  */
 export function remindOwedAsks(ctx, addressee) {
   const owed = pendingAsksOwedBy(ctx, addressee).filter((e) => !e.reminded);
@@ -252,13 +256,13 @@ export function remindOwedAsks(ctx, addressee) {
 // --- Tool descriptions (shared across roles) ---
 
 const ASK_DESC_BROADCAST =
-  "Send a question to one named participant, or omit 'to' to broadcast to every other participant. Returns {askIds:[…]} immediately; the reply arrives on a later turn as `[answer#N] <from>: <text>` in your inbox.";
+  "Send a question to one named participant. Omit 'to' to broadcast to every other participant. Returns {askIds:[…]} immediately. The reply arrives on a later turn as `[answer#N] <from>: <text>` in your inbox.";
 
 const ASK_DESC_TARGETED = (target) =>
-  `Send a question to ${target}. Returns {askIds:[N]} immediately; the reply arrives on a later turn as \`[answer#N] ${target}: <text>\` in your inbox.`;
+  `Send a question to ${target}. Returns {askIds:[N]} immediately. The reply arrives on a later turn as \`[answer#N] ${target}: <text>\` in your inbox.`;
 
 const ANSWER_DESC =
-  "Reply to an ask addressed to you. Quote askId from the [ask#N] tag on the question; omit it and the handler auto-picks the only pending ask, or routes your message as an Announce when 0 or many are pending.";
+  "Reply to an ask addressed to you. Quote askId from the [ask#N] tag on the question. Omit askId and the handler auto-picks the only pending ask. When 0 or many asks are pending, the handler routes your message as an Announce.";
 
 const ANNOUNCE_DESC = "Broadcast a message with no reply expected.";
 
@@ -275,7 +279,7 @@ const ADJOURN_DESC =
   "End the discussion. Provide a verdict ('adjourned' or 'failed') and a summary. Cancels any unanswered Asks.";
 
 const RECESS_DESC =
-  "End the run and schedule an out-of-session re-dispatch. Cancels any unanswered Asks. Use only when waiting on an external reply or duration. Do not use to wait on in-flight Asks.";
+  "End the run. Schedule an out-of-session re-dispatch. Cancels any unanswered Asks. Use only when you wait on an external reply or duration. Do not use to wait on in-flight Asks.";
 
 // --- Tool builders ---
 
@@ -283,7 +287,7 @@ const RECESS_DESC =
 function textResult(text) {
   return { content: [{ type: "text", text }] };
 }
-/** Build an MCP tool error result wrapping a single text message. */
+/** Build an MCP tool error result that wraps a single text message. */
 function errorResult(text) {
   return { content: [{ type: "text", text }], isError: true };
 }
@@ -298,10 +302,10 @@ function jsonResult(obj) {
  * @param {object} ctx
  * @param {object} opts
  * @param {string} opts.from - Caller's canonical name.
- * @param {string|undefined} opts.defaultTo - Default Ask target; `undefined`
+ * @param {string|undefined} opts.defaultTo - Default Ask target. `undefined`
  *   means "broadcast across everyone else when `to` is omitted."
  * @param {boolean} opts.broadcast - Whether Ask accepts a `to` field at all.
- *   Leads with multiple participants set this true; supervise's
+ *   Leads with multiple participants set this true. Supervise's
  *   single-participant roles set it false.
  */
 function baseTools(ctx, { from, defaultTo, broadcast }) {
@@ -338,19 +342,20 @@ function concludeTool(ctx) {
 }
 
 const ADVISOR_DESC =
-  "Consult a stronger model on one focused question. Your full session context (system prompt, prompts, transcript so far) is forwarded automatically — you cannot restrict it. The advice returns in the tool result. The consult budget is shared session-wide across all participants.";
+  "Consult a stronger model on one focused question. The tool forwards your full session context (system prompt, prompts, transcript so far) automatically. You cannot restrict it. The advice returns in the tool result. All participants share one session-wide consult budget.";
 
 /**
- * Build the `Advisor` consult tool for one caller. Mode-agnostic: loop
- * modes pass it into the agent tool-server factories via `extraTools`;
- * run mode gives it a dedicated server. No orchestration-context
- * dependency — the budget object and emit callback are injected.
+ * Build the `Advisor` consult tool for one caller. The tool is
+ * mode-agnostic. Loop modes pass it into the agent tool-server factories
+ * through `extraTools`. Run mode gives it a dedicated server. The tool has
+ * no orchestration-context dependency. The budget object and the emit
+ * callback arrive as injected dependencies.
  *
  * @param {object} deps
  * @param {string} deps.from - Caller's canonical name (event attribution).
  * @param {(question: string) => Promise<{advice?: string, unavailable?: boolean, reason?: string, durationMs: number}>} deps.consult
  * @param {(event: object) => void} deps.emit - Orchestrator-event emitter for the `advisor_consult` event.
- * @param {{maxUses: number, used: number}} deps.budget - Session-wide budget shared by every caller's handler.
+ * @param {{maxUses: number, used: number}} deps.budget - Session-wide budget that every caller's handler shares.
  * @param {string} deps.model - Advisor model id, carried on the consult event.
  */
 export function advisorTool({ from, consult, emit, budget, model }) {
@@ -378,7 +383,7 @@ export function advisorTool({ from, consult, emit, budget, model }) {
         remaining,
       });
       if (r.unavailable) {
-        // Not isError: fail-open, the caller continues normally.
+        // Not isError. This fails open, so the caller continues normally.
         return textResult(
           `The advisor is unavailable (${r.reason}) — proceed with your best judgment.`,
         );
@@ -477,7 +482,7 @@ export function createRequestForCommentHandler(ctx) {
 function requestForCommentTool(ctx) {
   return tool(
     "RequestForComment",
-    "Open a new Discussion thread for long-horizon coordination on an open question. The bridge creates the thread; replies arrive asynchronously on future runs.",
+    "Open a new Discussion thread for long-horizon coordination on an open question. The bridge creates the thread. Replies arrive asynchronously on future runs.",
     {
       channel: z.string(),
       body: z.string(),
@@ -487,8 +492,8 @@ function requestForCommentTool(ctx) {
   );
 }
 
-// Re-export the building blocks discuss-tools.js needs to assemble its
-// own lead tool surface (it has two extra terminal tools).
+// Re-export the parts discuss-tools.js needs to assemble its own lead tool
+// surface (it has two extra terminal tools).
 export {
   ADJOURN_DESC,
   baseTools,

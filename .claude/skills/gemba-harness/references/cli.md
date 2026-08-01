@@ -1,6 +1,6 @@
 # gemba-harness CLI Reference
 
-Install and run via npm:
+Install and run with npm:
 
 ```sh
 npx gemba-harness <command> [options]
@@ -57,7 +57,7 @@ npx gemba-harness <command> [options]
 | ----------------------- | ------------------------------------------------------------------------ |
 | `--facilitator-cwd`     | Facilitator working directory                                            |
 | `--agent-profiles`      | Comma-separated list of agent profile names (required)                   |
-| `--agent-cwd`           | Working directory shared by participating agents (default: `.`)          |
+| `--agent-cwd`           | Working directory shared by the participant agents (default: `.`)        |
 
 ## Discuss-Only Options
 
@@ -65,7 +65,7 @@ npx gemba-harness <command> [options]
 | ------------------ | ------------------------------------------------------------------------ |
 | `--agent-profiles` | Comma-separated participant profile names (optional; lead can run solo)  |
 | `--agent-cwd`      | Working directory shared by participants (default: `.`)                  |
-| `--discussion-id`  | Stable id for the threaded conversation; carried through traces          |
+| `--discussion-id`  | Stable id for the threaded conversation, carried through traces          |
 | `--resume-context` | JSON-serialized prior state for a resumed run                            |
 
 ## Output Commands

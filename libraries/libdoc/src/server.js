@@ -1,7 +1,7 @@
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 /**
- * Documentation server for serving built documentation and watching for changes
+ * Serves the built documentation and watches for changes
  */
 export class PagesServer {
   #fs;
@@ -35,7 +35,7 @@ export class PagesServer {
   }
 
   /**
-   * Start watching for changes and rebuild
+   * Watch for changes and rebuild
    * @param {string} pagesDir - Documentation directory to watch
    * @param {string} distDir - Distribution directory for output
    * @returns {void}
@@ -61,10 +61,10 @@ export class PagesServer {
       },
     );
 
-    // Keep process alive. Signal registration is inherently global — the
-    // `runtime.proc` surface deliberately omits `.on` (like librpc's server) —
-    // so SIGINT is wired on the ambient `process`; only the exit routes through
-    // the injected `proc` so tests can observe it.
+    // Keep the process alive. You can only register a signal handler
+    // globally. The `runtime.proc` surface deliberately omits `.on`, like
+    // librpc's server. So this code wires SIGINT on the ambient `process`.
+    // Only the exit routes through the injected `proc` for tests to observe.
     process.on("SIGINT", () => {
       this.stopWatch();
       this.#proc.exit(0);
@@ -72,7 +72,7 @@ export class PagesServer {
   }
 
   /**
-   * Stop watching for changes
+   * Stop the watcher
    * @returns {void}
    */
   stopWatch() {
@@ -93,12 +93,12 @@ export class PagesServer {
   serve(distDir, options = {}) {
     if (!this.#Hono) {
       throw new Error(
-        "HonoConstructor is required for serve() - pass it to constructor",
+        "HonoConstructor is required for serve(). Pass it to the constructor",
       );
     }
     if (!this.#serve) {
       throw new Error(
-        "serveFn is required for serve() - pass it to constructor",
+        "serveFn is required for serve(). Pass it to the constructor",
       );
     }
 
@@ -122,7 +122,7 @@ export class PagesServer {
       if (this.#fs.existsSync(fullPath)) {
         const stats = this.#fs.statSync(fullPath);
         if (stats.isDirectory()) {
-          // Ensure we don't double up slashes
+          // Make sure the slashes do not double up
           fullPath = fullPath.replace(/\/$/, "") + "/index.html";
           filePath = filePath.replace(/\/$/, "") + "/index.html";
         }

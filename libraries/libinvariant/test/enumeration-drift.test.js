@@ -7,7 +7,7 @@ import { parse as parseYaml } from "yaml";
 import { buildSubjects, ENUM_DRIFT_RULES } from "../src/enum-drift.js";
 import { fsSync } from "./helpers.js";
 
-// --- Rule firing over crafted subjects --------------------------------------
+// --- Rules that fire over crafted subjects ----------------------------------
 
 function ruleById(id) {
   return ENUM_DRIFT_RULES.find((r) => r.id === id);
@@ -101,7 +101,7 @@ describe("engine over the live repo", () => {
     );
     assert.equal(registry.topics.length, 6);
     const { subjects } = buildSubjects({ registry, root, fsSync });
-    // Every assertion subject must have a present, matching fence.
+    // Every assertion subject must have a fence that is present and matches.
     for (const s of subjects.assertion) {
       assert.equal(
         s.fenceAbsent,

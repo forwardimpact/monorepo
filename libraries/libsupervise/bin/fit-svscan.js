@@ -2,7 +2,7 @@
 /**
  * svscan - Supervision daemon that manages a SupervisionTree.
  * Listens on a Unix domain socket for control commands.
- * This is a pure supervisor - it knows nothing about service order or oneshots.
+ * This is a pure supervisor. It knows nothing about service order or oneshots.
  */
 import "@forwardimpact/libpreflight/node22";
 
@@ -50,7 +50,7 @@ const definition = {
       title: "Start, Stop, or Check a Service",
       url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md",
       description:
-        "Manage services through one interface; fit-svscan is the supervision daemon fit-rc drives.",
+        "Manage services through one interface. fit-svscan is the supervision daemon that fit-rc drives.",
     },
     {
       title: "Manage Service Lifecycle from One Interface",
@@ -134,7 +134,7 @@ async function handleCommand(line) {
       await tree.stop();
       cleanup();
       runtime.proc.exit(0);
-      break; // Unreachable but required for ESLint
+      break; // Unreachable, but ESLint requires it
     }
 
     case "ping": {
@@ -162,7 +162,7 @@ function cleanup() {
 
 /** Handles graceful shutdown */
 async function shutdown() {
-  logger.info("svscan", "Signal received, shutting down...");
+  logger.info("svscan", "Signal received, shutdown started");
   await tree.stop();
   cleanup();
   runtime.proc.exit(0);
@@ -197,7 +197,7 @@ const server = net.createServer((conn) => {
   });
 
   conn.on("error", () => {
-    // Client disconnected, ignore
+    // The client disconnected. Ignore the error.
   });
 });
 

@@ -12,7 +12,7 @@ on:
         required: false
         type: string
       task-amend:
-        description: "Additional text appended to the task prompt for steering"
+        description: "Extra text appended to the task prompt to steer the run"
         required: false
         type: string
       website-url:
@@ -36,7 +36,7 @@ permissions:
 jobs:
   interview:
     runs-on: ubuntu-latest
-    # A composite action cannot declare concurrency or a job timeout — both
+    # A composite action cannot declare concurrency or a job timeout. Both
     # stay here. Keep timeout-minutes strictly under 60 so a stalled run
     # cannot outlive its 1-hour App token.
     timeout-minutes: 50
@@ -44,13 +44,13 @@ jobs:
       # Thin wrapper over the reusable action. The only monorepo-specific
       # knowledge lives here: which products are substrate-backed, and the FI
       # substrate + persona commands. The action gates all substrate steps on
-      # `substrate-setup-command != ''` — so a file-only product passes an
+      # `substrate-setup-command != ''`. So a file-only product passes an
       # empty command and skips bring-up, persona selection, and the log scan.
-      # Persona pick/issue run `fit-terrain` (on PATH via the gear bundle) and
-      # carry the FI-specific values — pick memory and the issued token name —
-      # as explicit options. `bunx fit-map substrate stage` is the sole
-      # remaining `fit-map` exception (fit-map ships in the map release, not
-      # the gear bundle on PATH).
+      # Persona pick/issue run `fit-terrain` (on PATH through the gear bundle).
+      # They carry the FI-specific values as explicit options: the pick memory
+      # and the issued token name. `bunx fit-map substrate stage` is the sole
+      # remaining `fit-map` exception. fit-map ships in the map release. It is
+      # absent from the gear bundle on PATH.
       - uses: forwardimpact/kata-interview@1e8d9c876da6851fa890d30fd6abbbf4b74692bb # v1.0.0
         with:
           app-id: ${{ secrets.KATA_APP_ID }}

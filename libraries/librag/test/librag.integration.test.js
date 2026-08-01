@@ -9,8 +9,8 @@ const processBin = fileURLToPath(
 const ragBin = fileURLToPath(new URL("../bin/fit-rag.js", import.meta.url));
 
 /**
- * Run a bin with node and return its stdout, or throw the child error (which
- * carries `.status` for the exit code).
+ * Run a bin with node and return its stdout, or throw the child error. The
+ * error carries `.status` for the exit code.
  * @param {string} bin
  * @param {string[]} args
  * @returns {string}
@@ -19,10 +19,10 @@ function runBin(bin, args) {
   return execFileSync("node", [bin, ...args], { encoding: "utf8" });
 }
 
-// Dispatch smoke test: both bins list their subcommands in help and reject an
-// unknown subcommand with exit 2 (spec criterion 3 — the two bins exist and
-// dispatch). Spawns the real bins, so this is the one whole-file integration
-// smoke per binary.
+// Dispatch smoke test. Both bins list their subcommands in help. Both reject
+// an unknown subcommand with exit 2 (spec criterion 3, the two bins exist and
+// dispatch). The test spawns the real bins. It is the one whole-file
+// integration smoke per binary.
 describe("bin dispatch", () => {
   test("fit-process --help lists its write subcommands", () => {
     const out = runBin(processBin, ["--help"]);

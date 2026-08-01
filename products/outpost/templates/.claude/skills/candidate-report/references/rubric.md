@@ -1,11 +1,11 @@
-# Benchmarking Rubric
+# Benchmark Rubric
 
 Reference data for `candidate-report` Step 3 (benchmark) and Step 4 (verdict).
 
 ## Skill ratings
 
-Map each agent-aligned engineering standard skill against candidate evidence (CV
-or `screening.md`).
+Map each skill in the agent-aligned engineering standard against the candidate
+evidence (CV or `screening.md`).
 
 | Rating      | Criteria                                           | Pill class |
 | ----------- | -------------------------------------------------- | ---------- |
@@ -14,8 +14,9 @@ or `screening.md`).
 | **Gap**     | No evidence, or clearly below expected             | `p-g`      |
 | **Unknown** | Cannot assess from available evidence              | `p-u`      |
 
-Apply the **two-level scepticism rule** from `req-screen`: default two levels
-below CV claims unless concrete, quantified evidence is provided.
+Apply the **two-level scepticism rule** from `req-screen`. Default to two levels
+below the CV claims, unless the candidate supplies concrete, quantified
+evidence.
 
 ## Behaviour bar widths
 
@@ -38,17 +39,17 @@ candidate's estimate and the target level.
 
 Pick one verdict class for the report header.
 
-| Verdict              | Class             | When to use                                                         |
-| -------------------- | ----------------- | ------------------------------------------------------------------- |
-| Proceed              | `verdict-proceed` | Candidate benchmarks at or above target level                       |
-| Proceed with Caution | `verdict-caution` | Mixed signals; viable for scoped role or needs interview to resolve |
-| Pass                 | `verdict-pass`    | Clear misalignment with role requirements                           |
+| Verdict              | Class             | When to use                                                               |
+| -------------------- | ----------------- | ------------------------------------------------------------------------- |
+| Proceed              | `verdict-proceed` | Candidate benchmarks at or above target level                             |
+| Proceed with Caution | `verdict-caution` | Mixed signals. Viable for a scoped role, or needs an interview to resolve |
+| Pass                 | `verdict-pass`    | Clear misalignment with role requirements                                 |
 
 Write a one-line headline and a brief detail sentence.
 
 ## Template sections to populate
 
-Drives the placeholder substitution in Step 5.
+Use this table to replace the placeholders in Step 5.
 
 | Section           | Source                                                             |
 | ----------------- | ------------------------------------------------------------------ |
@@ -69,8 +70,8 @@ The report **must** fit on a single A4 page (210mm × 297mm):
 
 - Snapshot: max 6 `<dt>`/`<dd>` pairs.
 - Strengths: max 5 `<li>`, one sentence each.
-- Benchmark grid: 4–6 rows per capability area; prioritise notable
-  gaps/strengths, omit "Unknown" rows when tight.
+- Benchmark grid: 4–6 rows per capability area. Prioritise the notable gaps and
+  strengths. Omit "Unknown" rows when the space is tight.
 - Combine small capability areas (e.g. Docs + ML) into one block.
 - Recommendation: max 4 `<li>`.
-- Test with browser print preview (Ctrl+P); cut content if it overflows.
+- Test with the browser print preview (Ctrl+P). Cut content if it overflows.

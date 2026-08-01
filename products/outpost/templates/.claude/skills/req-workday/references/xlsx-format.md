@@ -1,8 +1,8 @@
 # Workday Export Format
 
-Reference for `req-workday`. The export format varies between Workday versions;
-the parse script handles both with header-driven column mapping and dynamic
-header-row detection.
+Reference for `req-workday`. The export format varies between Workday versions.
+The parse script handles both. It maps columns by header and detects the header
+row dynamically.
 
 ## Sheet 1 — requisition metadata
 
@@ -33,16 +33,16 @@ The new format does not carry hiring manager, recruiter, or location.
 
 ## Candidates sheet
 
-Auto-detected:
+The parser detects the format automatically:
 
 - **Old format:** 3+ sheets; candidates on the "Candidates" sheet or Sheet3;
   header at row 3 (index 2); two "Job Application" columns.
 - **New format:** 2 sheets; candidates on Sheet2; header at row 8 (index 7);
   single "Job Application" column.
 
-Column mapping is header-driven — the parser reads the header row and maps
-columns by name. Columns that vary between exports ("Jobs Applied to", "Referred
-by", "Convenience Task") are handled automatically.
+Column mapping is header-driven. The parser reads the header row and maps
+columns by name. It automatically handles columns that vary between exports
+("Jobs Applied to", "Referred by", "Convenience Task").
 
 ## Name annotations
 

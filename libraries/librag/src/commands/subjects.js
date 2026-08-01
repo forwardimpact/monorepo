@@ -1,8 +1,8 @@
 import { createGraphIndex } from "@forwardimpact/libgraph";
 
 /**
- * Format one `fit-rag subjects` line — `subject<TAB>type`, byte-identical to
- * the old `fit-rag subjects` output.
+ * Format one `fit-rag subjects` line as `subject<TAB>type`. The line is
+ * byte-identical to the old `fit-rag subjects` output.
  * @param {string} subject
  * @param {string} type
  * @returns {string}

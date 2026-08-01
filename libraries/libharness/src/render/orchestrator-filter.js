@@ -1,8 +1,8 @@
 /**
  * Orchestrator filter — predicate for the orchestrator lifecycle events that
- * should be suppressed from the human-readable log.
+ * the human-readable log hides.
  *
- * NDJSON artifacts still carry every orchestrator event; this module only
+ * NDJSON artifacts still carry every orchestrator event. This module only
  * controls what the live `textStream` and offline `toText()` show.
  */
 

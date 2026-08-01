@@ -32,7 +32,7 @@ jobs:
 
       - uses: ./.github/actions/audit
 
-      # libwiki's push path secret-scans with gitleaks (fail-closed); the
+      # libwiki's push path secret-scans with gitleaks (fail-closed). The
       # wiki-sync push tests need the binary present on PATH (mirrors
       # check-test.yml). Without it the real-git tests fail-close here.
       - uses: ./.github/actions/install-gitleaks
@@ -46,10 +46,11 @@ jobs:
           npm-name: ${{ steps.package.outputs.npm_name }}
           dir-name: ${{ steps.package.outputs.dir_name }}
 
-      # In-job so a tag cut from a commit that skipped CI still gets the
-      # guarantee that launchers/ equals the rule's output before anything
-      # is stamped or published. Runs only this rule module — the full
-      # invariant suite assumes a contributor checkout (wiki present).
+      # In-job, so a tag cut from a commit that skipped CI still gets the
+      # guarantee. The guarantee is that launchers/ equals the rule's output
+      # before the job stamps or publishes anything. This step runs only this
+      # rule module. The full invariant suite assumes a contributor checkout
+      # (wiki present).
       - name: Check public-CLI set
         run: |
           node --input-type=module <<'EOF'
@@ -69,9 +70,10 @@ jobs:
           EOF
 
       # A launcher matches when its single dependency is the package this tag
-      # ships. Space-separated list; dir names match fit-[a-z-]+ so later
-      # steps word-split safely. Empty list -> launcher steps no-op.
-      - name: Resolve matching launchers
+      # ships. The output is a space-separated list. Dir names match
+      # fit-[a-z-]+ so later steps word-split safely. An empty list makes the
+      # launcher steps no-op.
+      - name: Resolve launchers that match
         id: launchers
         env:
           NPM_NAME: ${{ steps.package.outputs.npm_name }}
@@ -84,7 +86,7 @@ jobs:
             console.log(dirs.join(' '));
           ")
           echo "dirs=$DIRS" >> $GITHUB_OUTPUT
-          echo "Matching launchers: ${DIRS:-none}"
+          echo "Launchers matched: ${DIRS:-none}"
 
       - name: Stamp, pack, and smoke launchers
         if: steps.launchers.outputs.dirs != ''

@@ -1,7 +1,7 @@
 /**
- * TeeWriter tests for the v1.1 schema expansion — system and user role
- * rendering must match `TraceCollector.toText()` so the live stream
- * equals the offline replay.
+ * TeeWriter tests for the v1.1 schema expansion. The writer must render
+ * system and user roles the same way as `TraceCollector.toText()`. The live
+ * stream then equals the offline replay.
  */
 import { describe, test } from "node:test";
 import assert from "node:assert";
@@ -14,8 +14,8 @@ import {
   writeLines,
 } from "@forwardimpact/libmock";
 
-describe("TeeWriter v1.1 schema rendering", () => {
-  test("renders system turns with subtype label", async () => {
+describe("TeeWriter output for the v1.1 schema", () => {
+  test("renders system turns with the subtype label", async () => {
     const fileStream = new PassThrough();
     const textStream = new PassThrough();
     const writer = new TeeWriter({ fileStream, textStream, mode: "raw" });
@@ -40,7 +40,7 @@ describe("TeeWriter v1.1 schema rendering", () => {
     assert.ok(text.includes("[hook]"), `expected [hook] in ${text}`);
   });
 
-  test("renders user text turns with [user] prefix", async () => {
+  test("renders user text turns with the [user] prefix", async () => {
     const fileStream = new PassThrough();
     const textStream = new PassThrough();
     const writer = new TeeWriter({ fileStream, textStream, mode: "raw" });
@@ -62,7 +62,7 @@ describe("TeeWriter v1.1 schema rendering", () => {
     );
   });
 
-  test("supervised mode keeps source prefix on system/user lines", async () => {
+  test("supervised mode keeps the source prefix on system/user lines", async () => {
     const fileStream = new PassThrough();
     const textStream = new PassThrough();
     const writer = new TeeWriter({

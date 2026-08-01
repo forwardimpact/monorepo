@@ -4,9 +4,9 @@ import assert from "node:assert/strict";
 import { generateSkillMarkdown } from "../src/agent.js";
 
 /**
- * The agent skill name (SKILL.md frontmatter `name` and its directory) is
- * derived from `skill.id` — `skill.agent.name` was removed. These tests lock
- * that contract and the fail-fast guards so an empty `name:` can never ship.
+ * The agent skill name (SKILL.md frontmatter `name` and its directory) comes
+ * from `skill.id`. `skill.agent.name` no longer exists. These tests lock that
+ * contract and the fail-fast guards so an empty `name:` can never ship.
  */
 
 function skill(overrides = {}) {
@@ -40,7 +40,7 @@ describe("generateSkillMarkdown", () => {
     assert.equal(md.frontmatter.name, "code-review");
   });
 
-  test("title uses the human-readable skill.name, not the id", () => {
+  test("title uses the human-readable skill.name instead of the id", () => {
     const md = generateSkillMarkdown({ skillData: skill() });
     assert.equal(md.title, "Task Completion");
   });
@@ -52,7 +52,7 @@ describe("generateSkillMarkdown", () => {
     );
   });
 
-  test("throws when id is missing — never emits an empty name", () => {
+  test("throws when id is missing and never emits an empty name", () => {
     assert.throws(
       () => generateSkillMarkdown({ skillData: skill({ id: undefined }) }),
       /has no id/,

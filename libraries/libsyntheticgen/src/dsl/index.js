@@ -2,7 +2,7 @@ import { tokenize } from "./tokenizer.js";
 import { parse } from "./parser.js";
 
 /**
- * DSL parser that wraps tokenization and parsing.
+ * DSL parser that tokenizes the source and then parses the tokens.
  */
 export class DslParser {
   /**
@@ -28,7 +28,7 @@ export class DslParser {
 }
 
 /**
- * Creates a DslParser with the built-in tokenizer and parser.
+ * Create a DslParser with the built-in tokenizer and parser.
  * @returns {DslParser}
  */
 export function createDslParser() {

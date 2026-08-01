@@ -13,11 +13,12 @@ import {
   parseShard,
 } from "../src/commands/benchmark-run.js";
 
-// Every agent-running entry point resolves --work-tracker (default "github")
-// so the handler can write it unconditionally to
-// runtime.proc.env.LIBHARNESS_WORK_TRACKER, mirroring --agent-profile.
-// All cases use --task-text so the runtime's fs is never read; an in-memory fs
-// suffices. The env map is isolated for discuss's CALLBACK_URL/INBOX_URL reads.
+// Every entry point that runs an agent resolves --work-tracker (default
+// "github") so the handler can write it unconditionally to
+// runtime.proc.env.LIBHARNESS_WORK_TRACKER. This mirrors --agent-profile.
+// All cases use --task-text, so nothing reads the runtime's fs. An
+// in-memory fs suffices. The env map stays isolated for discuss's
+// CALLBACK_URL/INBOX_URL reads.
 function makeRuntime(env = {}) {
   return { fs: createMockFs(), proc: { env: { ...env } } };
 }
@@ -47,7 +48,7 @@ describe("--work-tracker resolution across gemba-harness agent commands", () => 
     assert.strictEqual(opts.workTracker, "github");
   });
 
-  test("an unknown --work-tracker throws, listing the known trackers", () => {
+  test("an unknown --work-tracker throws and lists the known trackers", () => {
     assert.throws(
       () =>
         parseRunOptionsEval(
@@ -74,9 +75,9 @@ describe("--work-tracker resolution across gemba-harness agent commands", () => 
     assert.strictEqual(opts.workTracker, "github");
   });
 
-  test("the retired eval-era work-tracker env name is ignored (clean break)", () => {
-    // The name is built from parts so the criterion-1 completeness oracle
-    // stays clean while this still guards the clean break.
+  test("the parser ignores the retired work-tracker env name from the eval era (clean break)", () => {
+    // The test builds the name from parts so the criterion-1 completeness
+    // oracle stays clean. The test still guards the clean break.
     const retired = `${"LIBEVAL"}_WORK_TRACKER`;
     const opts = parseRunOptionsEval(
       { "task-text": "do a thing" },
@@ -145,8 +146,8 @@ describe("--work-tracker resolution across gemba-harness agent commands", () => 
 describe("gemba-harness handlers write LIBHARNESS_WORK_TRACKER unconditionally", () => {
   // The handler writes runtime.proc.env.LIBHARNESS_WORK_TRACKER = workTracker
   // immediately after the --agent-profile block. Replay that one-line write
-  // against the parsed value to assert the env var lands with the right
-  // string, including the default, without spawning the agent SDK.
+  // against the parsed value. Assert the env var lands with the right string,
+  // the default included. The agent SDK never starts.
   function writeEnv(runtime, workTracker) {
     runtime.proc.env.LIBHARNESS_WORK_TRACKER = workTracker;
   }
@@ -191,10 +192,10 @@ describe("gemba-benchmark run resolves --work-tracker", () => {
     assert.strictEqual(opts.workTracker, "filesystem");
   });
 
-  test("the env var is set from opts.workTracker before the runner starts", () => {
-    // Mirror benchmark-run.js: the handler writes the env var right after the
-    // ANTHROPIC_API_KEY write and before createBenchmarkRunner, so the spawned
-    // subprocess inherits it. Replay that write against parsed opts.
+  test("the handler sets the env var from opts.workTracker before the runner starts", () => {
+    // Mirror benchmark-run.js. The handler writes the env var right after the
+    // ANTHROPIC_API_KEY write and before createBenchmarkRunner. The spawned
+    // subprocess then inherits it. Replay that write against parsed opts.
     const runtime = makeRuntime();
     const opts = parseBenchmarkRunOptions({
       family: "./families/coding",
@@ -210,7 +211,7 @@ describe("gemba-benchmark run resolves --concurrency", () => {
     assert.ok(resolveConcurrency({}) > 1);
   });
 
-  test("an explicit --concurrency flag is honored", () => {
+  test("resolveConcurrency honors an explicit --concurrency flag", () => {
     assert.strictEqual(resolveConcurrency({ concurrency: "8" }), 8);
   });
 
@@ -231,7 +232,7 @@ describe("gemba-benchmark run resolves --concurrency", () => {
     );
   });
 
-  test("a non-positive concurrency is rejected", () => {
+  test("resolveConcurrency rejects a non-positive concurrency", () => {
     assert.throws(
       () => resolveConcurrency({ concurrency: "0" }),
       /--concurrency must be a positive integer/,
@@ -258,11 +259,11 @@ describe("gemba-benchmark run parses --shard", () => {
     assert.deepStrictEqual(parseShard("3/3"), { index: 3, total: 3 });
   });
 
-  test("index > total is rejected", () => {
+  test("parseShard rejects index > total", () => {
     assert.throws(() => parseShard("9/3"), /1 ≤ i ≤ N/);
   });
 
-  test("a non-i/N form is rejected", () => {
+  test("parseShard rejects a non-i/N form", () => {
     assert.throws(() => parseShard("4"), /i\/N/);
     assert.throws(() => parseShard("a/b"), /i\/N/);
   });

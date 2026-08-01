@@ -33,7 +33,7 @@ describe("Supervisor - createSupervisor factory", () => {
     );
   });
 
-  test("uses default supervisor tools when none specified", () => {
+  test("uses the default supervisor tools when the caller gives none", () => {
     const s = createSupervisor(baseOpts());
     assert.deepStrictEqual(s.supervisorRunner.allowedTools, [
       "Read",
@@ -55,7 +55,7 @@ describe("Supervisor - createSupervisor factory", () => {
     ]);
   });
 
-  test("supervisor lead gets plain string system prompt (no preset)", () => {
+  test("supervisor lead gets a plain string as the system prompt (no preset)", () => {
     const s = createSupervisor(baseOpts());
     assert.strictEqual(typeof s.supervisorRunner.systemPrompt, "string");
     assert.strictEqual(
@@ -64,7 +64,7 @@ describe("Supervisor - createSupervisor factory", () => {
     );
   });
 
-  test("agent gets claude_code preset system prompt", () => {
+  test("agent gets the system prompt from the claude_code preset", () => {
     const s = createSupervisor(baseOpts());
     assert.deepStrictEqual(s.agentRunner.systemPrompt, {
       type: "preset",
@@ -84,7 +84,7 @@ describe("Supervisor - createSupervisor factory", () => {
     );
   });
 
-  test("blocks sub-agent spawn and write tools on supervisor by default", () => {
+  test("blocks sub-agent spawn and write tools on the supervisor by default", () => {
     const s = createSupervisor(baseOpts());
     assert.deepStrictEqual(s.supervisorRunner.disallowedTools, [
       "Agent",
@@ -126,7 +126,7 @@ describe("Supervisor - createSupervisor factory", () => {
     assert.strictEqual(s.supervisorRunner.mcpServers.orchestration.type, "sdk");
   });
 
-  test("merges agentMcpServers into agent runner only", () => {
+  test("merges agentMcpServers into the agent runner only", () => {
     const s = createSupervisor({
       ...baseOpts(),
       agentMcpServers: {
@@ -138,11 +138,11 @@ describe("Supervisor - createSupervisor factory", () => {
     assert.strictEqual(s.supervisorRunner.mcpServers.guide, undefined);
   });
 
-  // After the sync-Ask refactor there's no outer "exchange" loop to bound —
-  // the supervisor's run() carries the whole session through one
+  // After the sync-Ask refactor no outer "exchange" loop remains to bound.
+  // The supervisor's run() carries the whole session through one
   // contiguous SDK call, the same shape as facilitate. `maxTurns` is the
   // per-runner SDK turn budget on both sides.
-  test("maxTurns sets per-runner budget on both runners", () => {
+  test("maxTurns sets the per-runner budget on both runners", () => {
     const s = createSupervisor({ ...baseOpts(), maxTurns: 50 });
     assert.strictEqual(s.agentRunner.maxTurns, 50);
     assert.strictEqual(s.supervisorRunner.maxTurns, 50);
@@ -161,7 +161,7 @@ describe("Supervisor - createSupervisor factory", () => {
   });
 });
 
-describe("Supervisor - advisor wiring", () => {
+describe("Supervisor - advisor setup", () => {
   const registeredTools = (runner) =>
     Object.keys(runner.mcpServers.orchestration.instance._registeredTools);
 
@@ -172,7 +172,7 @@ describe("Supervisor - advisor wiring", () => {
     assert.ok(!s.supervisorRunner.systemPrompt.includes("`Advisor` tool"));
   });
 
-  test("guidance is composed after an existing amendment in the agent prompt", () => {
+  test("composes the guidance after an existing amendment in the agent prompt", () => {
     const s = createSupervisor({
       ...baseOpts(),
       advisorModel: "adv-model",
@@ -193,8 +193,8 @@ describe("Supervisor - advisor wiring", () => {
   });
 
   test("loop stop aborts a pending consult, which resolves fail-open", async () => {
-    // The advisor session's query hangs until its abort controller fires —
-    // the same shape as a wedged live consult.
+    // The advisor session's query hangs until its abort controller fires.
+    // This is the same shape as a wedged live consult.
     const hangingQuery = (params) =>
       (async function* () {
         await new Promise((_, reject) => {
@@ -212,7 +212,7 @@ describe("Supervisor - advisor wiring", () => {
     const advisor =
       s.agentRunner.mcpServers.orchestration.instance._registeredTools.Advisor;
     const pending = advisor.handler({ question: "Q" }, {});
-    // #stop() aborts this controller; trigger the same path directly.
+    // #stop() aborts this controller. Trigger the same path directly.
     s.abortController.abort();
     const result = await pending;
     assert.match(result.content[0].text, /advisor is unavailable/);

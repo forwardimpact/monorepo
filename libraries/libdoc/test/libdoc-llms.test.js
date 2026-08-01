@@ -172,7 +172,7 @@ test("PagesBuilder skips llms.txt when no curated file exists", async () => {
   assert.ok(!files.has("dist/llms.txt"), "no llms.txt without curated file");
 });
 
-test("PagesBuilder uses CNAME fallback when no baseUrl provided", async () => {
+test("PagesBuilder uses CNAME fallback when baseUrl is absent", async () => {
   const sourceFiles = new Map([
     ["src/index.md", "---\ntitle: Home\n---\nContent"],
     ["src/CNAME", "example.com"],

@@ -20,18 +20,18 @@ import {
 //   ctx.options — parsed flag values (`cli.parse().values`)
 //   ctx.args    — named positionals declared on the subcommand
 //   ctx.deps    — host-injected collaborators: `{ runtime, config }`
-// Handlers read/write the filesystem and stdout exclusively through
-// `ctx.deps.runtime` and return `{ ok: true }` on success.
+// Handlers read and write the filesystem and stdout only through
+// `ctx.deps.runtime`. They return `{ ok: true }` on success.
 
-/** Characters whose presence in a `--file` value marks it as a glob. */
+/** These characters mark a `--file` value as a glob. */
 const GLOB_CHARS = /[*?[\]{}]/;
 
 /**
  * Resolve the cross-trace `--file` option (`ctx.options.file`) into a sorted
- * flat list of file paths. A literal path passes through; a value carrying
- * glob metacharacters expands via `runtime.fsSync.globSync`. The literal-path
- * fast path means the common single-file and shell-pre-expanded cases never
- * touch `globSync`.
+ * flat list of file paths. A literal path passes through. A value that
+ * carries glob metacharacters expands through `runtime.fsSync.globSync`. The
+ * literal-path fast path means the common single-file and shell-pre-expanded
+ * cases never touch `globSync`.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {string[]}
@@ -51,10 +51,11 @@ function resolveFiles(runtime, ctx) {
 }
 
 /**
- * Emit a query result for a cross-trace verb: under `--format json` write the
- * JSON payload (single-object verbs unwrap when single-file so the envelope
- * deep-equals today's output); otherwise render text to stdout. Source
- * attribution is the renderer's job, gated by `multi`.
+ * Emit a query result for a cross-trace verb. Under `--format json` this
+ * function writes the JSON payload. Single-object verbs unwrap when there is
+ * one file, so the envelope deep-equals today's output. Otherwise this
+ * function renders text to stdout. The renderer owns source attribution.
+ * `multi` gates it.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {object|object[]} result
  * @param {Function} renderer
@@ -78,7 +79,7 @@ function emit(runtime, result, renderer, ctx, multi, unwrap = false) {
 // --- GitHub commands ---
 
 /**
- * List recent workflow runs matching a pattern.
+ * List recent workflow runs that match a pattern.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
 export async function runRunsCommand(ctx) {
@@ -332,8 +333,8 @@ export async function runStatsCommand(ctx) {
   if (files.length === 0) return noFiles("stats");
   const multi = files.length > 1;
   const query = statsQuery(ctx);
-  // stats results are per-file objects; one block per file (no cross-file sum),
-  // tagged with source only when multi-file.
+  // stats results are per-file objects. Each file gets one block and no
+  // cross-file sum. Each block carries a source tag only when multi-file.
   const results = files.map((file) => ({
     result: query(loadTrace(runtime, file)),
     source: multi ? basename(file) : undefined,
@@ -356,20 +357,22 @@ export async function runStatsCommand(ctx) {
 }
 
 /**
- * Total run cost across every participant (agent, supervisor, judge, and any
- * named profile), summed from each `result` event in the trace and attributed
- * per source. The combined trace from a supervised, facilitated, or discuss
- * session already interleaves all participants, so one file yields the whole
- * run's spend. Default output is `{totalCostUsd, bySource}` JSON; `--markdown`
- * emits a GitHub-flavored block to redirect into `$GITHUB_STEP_SUMMARY`.
+ * Report the total run cost across every participant (agent, supervisor,
+ * judge, and any named profile). The command sums each `result` event in the
+ * trace. It attributes the cost per source. The combined trace from a
+ * supervised, facilitated, or discuss session already interleaves all
+ * participants, so one file yields the whole run's spend. The default output
+ * is `{totalCostUsd, bySource}` JSON. `--markdown` emits a GitHub-flavored
+ * block to redirect into `$GITHUB_STEP_SUMMARY`.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
 export async function runCostCommand(ctx) {
   const { runtime } = ctx.deps;
-  // Tolerate a missing/empty trace: a CI step reports cost under `always()`,
-  // so the trace may not exist (the run failed before producing one). Print
-  // nothing and exit 0 rather than throwing — the caller needs no `if [ -f ]`.
+  // Tolerate a missing or empty trace. A CI step reports cost under
+  // `always()`, so the trace may not exist. The run can fail before it
+  // produces one. Print nothing and exit 0. Do not throw. The caller then
+  // needs no `if [ -f ]`.
   const file = ctx.args.file;
   if (!file || !runtime.fsSync.existsSync(file)) return { ok: true };
   const cost = computeTraceCost(runtime.fsSync.readFileSync(file, "utf8"));
@@ -383,7 +386,8 @@ export async function runCostCommand(ctx) {
 
 /**
  * Render a cost summary as a GitHub-flavored markdown block for a CI step
- * summary: a headline total plus a per-participant table (descending).
+ * summary. The block holds a headline total and a per-participant table. The
+ * table lists the highest cost first.
  * @param {{totalCostUsd: number, bySource: Record<string, number>}} cost
  * @returns {string}
  */
@@ -391,7 +395,7 @@ function renderCostMarkdown(cost) {
   const lines = [
     `### 💰 Run cost: $${cost.totalCostUsd.toFixed(4)}`,
     "",
-    "Summed across every participant (agent, supervisor, judge, named profiles).",
+    "This total covers every participant (agent, supervisor, judge, named profiles).",
   ];
   const sources = Object.entries(cost.bySource).sort((a, b) => b[1] - a[1]);
   if (sources.length > 0) {
@@ -492,21 +496,27 @@ export async function runCompareCommand(ctx) {
 
 // --- Split command ---
 
-/** Valid source name pattern: lowercase letter, then lowercase alphanumeric or hyphen. */
+/**
+ * A valid source name starts with a lowercase letter. The rest is lowercase
+ * alphanumeric characters or hyphens.
+ */
 const VALID_SOURCE_NAME = /^[a-z][a-z0-9-]*$/;
 
-/** Sources whose name is itself a structural role; classified into the role they represent. */
+/**
+ * Sources whose name is itself a structural role. The splitter classifies
+ * each one into the role it represents.
+ */
 const STRUCTURAL_ROLES = new Set(["agent", "supervisor", "facilitator"]);
 
 /**
- * Split a combined NDJSON trace into per-source files using the
- * `trace--<case>--<participant>.<role>.ndjson` convention.
+ * Split a combined NDJSON trace into per-source files. The output names
+ * follow the `trace--<case>--<participant>.<role>.ndjson` convention.
  *
  * Each valid envelope source becomes one output file. Structural sources
- * (`agent`, `supervisor`, `facilitator`) classify into the matching role and
- * use their own name as participant; profile-named sources (e.g.
+ * (`agent`, `supervisor`, `facilitator`) classify into the matching role.
+ * They use their own name as participant. Profile-named sources (e.g.
  * `staff-engineer`) classify as agents with the profile in the participant
- * slot. Orchestrator events and invalid source names are dropped.
+ * slot. The command drops orchestrator events and invalid source names.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
@@ -515,9 +525,10 @@ export async function runSplitCommand(ctx) {
   const file = ctx.args.file;
   if (!file) return { ok: false, code: 1, error: "split: missing input file" };
 
-  // `discuss` has the same lead + N-participants shape as `facilitate`, and the
-  // splitter buckets purely by envelope `source` (mode-independent), so it is
-  // accepted alongside the structural modes — the CLI owns this, not callers.
+  // `discuss` has the same lead + N-participants shape as `facilitate`. The
+  // splitter buckets purely by envelope `source`, which is mode-independent.
+  // So the CLI accepts `discuss` alongside the structural modes. The CLI owns
+  // this rule. Callers do not.
   const mode = ctx.options.mode;
   if (!mode) return { ok: false, code: 1, error: "split: --mode is required" };
   if (!["run", "supervise", "facilitate", "discuss"].includes(mode)) {
@@ -578,8 +589,9 @@ function parseBuckets(content) {
 
 /**
  * Compute total + per-source cost from raw file content. A structured JSON
- * trace (from `gemba-trace download`) carries its total in `summary.totalCostUsd`
- * but no per-source split; raw NDJSON is summed via `sumTraceCost`.
+ * trace (from `gemba-trace download`) carries its total in
+ * `summary.totalCostUsd` but no per-source split. `sumTraceCost` sums raw
+ * NDJSON.
  * @param {string} content - Raw file content (structured JSON or NDJSON).
  * @returns {{totalCostUsd: number, bySource: Record<string, number>}}
  */
@@ -590,7 +602,7 @@ function computeTraceCost(content) {
       return { totalCostUsd: parsed.summary.totalCostUsd, bySource: {} };
     }
   } catch {
-    // Not a single JSON object — treat as NDJSON below.
+    // Not a single JSON object. Treat it as NDJSON below.
   }
   return sumTraceCost(content.split("\n"));
 }
@@ -610,7 +622,7 @@ export function loadTrace(runtime, file) {
       return createTraceQuery(parsed);
     }
   } catch {
-    // Not valid JSON — fall through to NDJSON.
+    // Not valid JSON. Fall through to NDJSON.
   }
 
   const collector = createTraceCollector({
@@ -623,9 +635,10 @@ export function loadTrace(runtime, file) {
 }
 
 /**
- * Write JSON output to stdout. By default strips `thinking.signature`
- * base64 blobs from the payload so they don't dominate terminal output;
- * pass `--signatures` (surfaced as `values.signatures`) to keep them.
+ * Write JSON output to stdout. By default the function strips
+ * `thinking.signature` base64 blobs from the payload so they do not dominate
+ * terminal output. Pass `--signatures` (surfaced as `values.signatures`) to
+ * keep them.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {*} data
  * @param {object} [values]

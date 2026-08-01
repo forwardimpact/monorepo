@@ -29,9 +29,9 @@ projects:
       allocation: 1.0
 ```
 
-All disciplines, levels, and tracks referenced must exist in the Map
-agent-aligned engineering standard data. Use `npx fit-summit validate` to check.
+Every discipline, level, and track you reference must exist in the Map data for
+the agent-aligned engineering standard. Use `npx fit-summit validate` to check.
 
-Alternatively, Summit can load rosters directly from Map's activity layer
-(requires `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`), grouping
+Summit can also load rosters directly from Map's activity layer. This needs
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Summit groups
 `organization_people` by manager email to form reporting teams.

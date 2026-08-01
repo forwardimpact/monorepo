@@ -1,7 +1,7 @@
 # Workflow Template: Agent Shift
 
 One workflow (`agent-shift.yml`) runs the whole roster. The matrix is the
-roster: add or remove an agent by editing one matrix line, and `max-parallel: 1`
+roster. Edit one matrix line to add or remove an agent. `max-parallel: 1`
 serializes them.
 
 ## Placeholders
@@ -14,10 +14,10 @@ serializes them.
 | `{{WIKI}}`           | `"true"` or `"false"`                               |
 | `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0` |
 
-List `{{AGENT_MATRIX}}` in producer → reviewer → shipper order;
-`{{SHIFT_CRONS}}` are shift-start times. Set `wiki: "false"` to skip sync, omit
-`agent-model:` for the default. `kata-agent` runs the killswitch gate first and
-reports cost last. These workflows pass
+List `{{AGENT_MATRIX}}` in producer → reviewer → shipper order.
+`{{SHIFT_CRONS}}` are shift-start times. Set `wiki: "false"` to skip the sync.
+Omit `agent-model:` for the default. `kata-agent` runs the killswitch gate first
+and reports cost last. These workflows pass
 `killswitch: ${{ vars.KATA_KILLSWITCH }}` and add no inline steps. Emit the
 self-hosted (default) or hosted block per `--hosted` (`SKILL.md`).
 
@@ -70,9 +70,9 @@ jobs:
 
 ## Template (Hosted)
 
-The self-hosted template with three changes (the **canonical** hosted recipe):
+Change the self-hosted template in three ways (the **canonical** hosted recipe):
 
-1. Add `id-token: write` to `permissions`, keeping `contents: write`.
+1. Add `id-token: write` to `permissions`. Keep `contents: write`.
 2. Insert this OIDC mint step as the **first** step, before `kata-agent`:
 
    ```yaml
@@ -93,19 +93,19 @@ The self-hosted template with three changes (the **canonical** hosted recipe):
              printf 'token=%s\n' "$INSTALL_TOKEN" >> "$GITHUB_OUTPUT"
    ```
 
-3. In the `kata-agent` step, drop `app-id`/`app-private-key`, add
-   `installation-token: ${{ steps.mint.outputs.token }}`; keep `killswitch:`.
+3. In the `kata-agent` step, drop `app-id`/`app-private-key`. Add
+   `installation-token: ${{ steps.mint.outputs.token }}`. Keep `killswitch:`.
 
-`FIT_OIDC_URL` is the hosted OIDC service URL as a repository **variable**,
-masked in logs. Hosted needs a `kata-agent` SHA accepting `installation-token`.
+`FIT_OIDC_URL` is the hosted OIDC service URL, a repository **variable** that is
+masked in logs. Hosted needs a `kata-agent` SHA that takes `installation-token`.
 
 ## Inline steps
 
-For the harness-based dispatch workflow (`workflow-dispatch.md`), which does not
-delegate to `kata-agent`: copy the killswitch below as its first step, and add a
-final `if: always()` step running `gemba-trace cost "$TRACE_FILE" --markdown >>
-"$GITHUB_STEP_SUMMARY"` (`TRACE_FILE` from the trace step's `trace-file`; a
-missing trace is tolerated, no guard).
+The harness-based dispatch workflow (`workflow-dispatch.md`) does not delegate
+to `kata-agent`. Copy the killswitch below as its first step. Add a final
+`if: always()` step that runs `gemba-trace cost "$TRACE_FILE" --markdown >>
+"$GITHUB_STEP_SUMMARY"`. `TRACE_FILE` comes from the trace step's
+`trace-file`. The step tolerates a missing trace, so add no guard.
 
 ```yaml
       - name: Kata killswitch
@@ -121,8 +121,8 @@ missing trace is tolerated, no guard).
 
 ## Resolving Action Refs
 
-Pin published actions to an immutable SHA, never the mutable `v1` tag. List tags
-with `gh api repos/forwardimpact/kata-agent/tags` (also `bootstrap`, `harness`,
-and `wiki` for `workflow-dispatch.md`), pick the highest `vX.Y.Z`, and emit
-`<full-40-char-sha> # <tag>`. If resolution fails, stop and ask. Pair the pins
-with the `github-actions` Dependabot config (`SKILL.md` Step 2).
+Pin published actions to an immutable SHA. Never use the mutable `v1` tag.
+List tags with `gh api repos/forwardimpact/kata-agent/tags` (also `bootstrap`,
+`harness`, and `wiki` for `workflow-dispatch.md`). Pick the highest `vX.Y.Z`.
+Emit `<full-40-char-sha> # <tag>`. If resolution fails, stop and ask. Pair the
+pins with the `github-actions` Dependabot config (`SKILL.md` Step 2).

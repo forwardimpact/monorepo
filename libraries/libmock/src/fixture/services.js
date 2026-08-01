@@ -1,9 +1,9 @@
 /**
- * Test fixture utilities for creating dynamic test data
+ * Test fixture utilities that create dynamic test data
  */
 
 /**
- * Creates sample request data for testing
+ * Creates sample request data for tests
  * @param {object} overrides - Properties to override
  * @returns {object} Test request object
  */
@@ -17,7 +17,7 @@ export function createTestRequest(overrides = {}) {
 }
 
 /**
- * Creates sample vector data for testing
+ * Creates sample vector data for tests
  * @param {number} count - Number of vectors to create
  * @returns {Array} Array of test vectors
  */
@@ -30,7 +30,7 @@ export function createTestVectors(count = 3) {
 }
 
 /**
- * Creates sample message data for testing
+ * Creates sample message data for tests
  * @param {number} count - Number of messages to create
  * @returns {Array} Array of test messages
  */
@@ -43,7 +43,7 @@ export function createTestMessages(count = 3) {
 }
 
 /**
- * Creates sample chunk data for testing
+ * Creates sample chunk data for tests
  * @param {number} count - Number of chunks to create
  * @returns {Array} Array of test chunks
  */

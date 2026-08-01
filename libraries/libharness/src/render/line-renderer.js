@@ -1,14 +1,14 @@
 /**
  * Line renderer — composes prefix + color + body + reset into a single
- * terminal line. Pure; no side effects.
+ * terminal line. Pure, with no side effects.
  *
  * Every renderer returns a `\n`-terminated string:
  *     <source>: <ESC><color><body><RESET>\n
  *
- * The `<source>: ` prefix lives outside the color escape so grep and
- * color-stripping terminals preserve the participant tag. Colons separate
- * the source label and the kind label (`Bash:`, `Result:`, `Error:`) for a
- * tighter line on narrow viewports without losing structure.
+ * The `<source>: ` prefix lives outside the color escape, so grep and
+ * terminals that strip color preserve the participant tag. Colons separate
+ * the source label and the kind label (`Bash:`, `Result:`, `Error:`). The
+ * line then stays tight on narrow viewports and keeps its structure.
  */
 
 import { colorForSource, ERROR_COLOR, RESET } from "./palette.js";

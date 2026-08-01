@@ -83,8 +83,7 @@ export class ResumeScheduler {
    * @param {object} ctx
    * @param {string} correlationId
    * @param {import("./triggers.js").ResumeTrigger} trigger
-   * @param {string} requester - Surface user id of the human who triggered
-   *   it
+   * @param {string} requester - Surface user id of the human who triggered it
    */
   enterRecess(ctx, correlationId, trigger, requester) {
     if (!trigger) return;

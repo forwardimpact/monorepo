@@ -2,17 +2,17 @@
 name: fit-visualize
 description: >
   Query recorded OpenTelemetry spans with JMESPath and render them as Mermaid
-  sequence diagrams. Use when you need to read spans back from the span index,
-  filter by trace or resource id, and see the call flow without wiring up a
-  tracing UI.
+  sequence diagrams. Use when you need to read spans back from the span index
+  and filter by trace or resource id. Use when you want to see the call flow
+  with no tracing UI.
 ---
 
 # Visualize Recorded Spans
 
-`fit-visualize` reads spans from the span index, filters them with a JMESPath
-expression piped on stdin, and prints a Mermaid sequence diagram you can paste
-into any Markdown renderer. Use it to see what a service did once spans are
-flowing.
+`fit-visualize` reads spans from the span index. It filters them with a
+JMESPath expression piped on stdin. It prints a Mermaid sequence diagram you
+can paste into any Markdown renderer. Use it to see what a service did once
+spans flow.
 
 ## When to Use
 
@@ -39,18 +39,18 @@ echo "[]" | npx fit-visualize --trace 0f53069dbc62d
 echo "[?kind==\`2\`]" | npx fit-visualize --resource common.Conversation.abc123
 ```
 
-The JMESPath expression arrives as a one-shot positional argument or on
-stdin — the two forms are equivalent — and is applied to the spans before
-rendering. `--trace` and `--resource` narrow the set first. Output is a fenced
-`mermaid` block, ready to paste into Markdown.
+The JMESPath expression arrives as a one-shot positional argument or on stdin.
+The two forms are equivalent. `fit-visualize` applies the expression to the
+spans before it renders them. `--trace` and `--resource` narrow the set first.
+The output is a fenced `mermaid` block, ready to paste into Markdown.
 
-Spans are read from the `spans` storage location. Record spans first — see the
-guide below.
+`fit-visualize` reads spans from the `spans` storage location. Record spans
+first. See the guide below.
 
 ## Documentation
 
 - [Add Observability](https://www.forwardimpact.team/docs/libraries/service-lifecycle/add-observability/index.md)
-  — Structured logs and spans with no framework setup, including querying and
-  visualizing recorded spans with `fit-visualize`.
+  — Structured logs and spans with no framework setup. It also covers how to
+  query and visualize recorded spans with `fit-visualize`.
 - [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md)
   — The full lifecycle setup for services, from supervision to observability.

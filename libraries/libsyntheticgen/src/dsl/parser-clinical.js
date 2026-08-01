@@ -1,7 +1,8 @@
 /**
- * DSL Parser — clinical domain block parser.
+ * DSL Parser — the block parser for the clinical domain.
  *
- * Parses `clinical { condition {}, site {}, trial {}, content {} }`
+ * This module parses
+ * `clinical { condition {}, site {}, trial {}, content {} }`
  * into ClinicalBlock AST nodes.
  *
  * @module libterrain/dsl/parser-clinical

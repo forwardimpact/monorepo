@@ -31,13 +31,13 @@ describe("supportsColor", () => {
 });
 
 describe("colorize", () => {
-  test("wraps text with ANSI codes when color is supported", () => {
+  test("wraps text with ANSI codes when the process supports color", () => {
     const proc = { env: { FORCE_COLOR: "1" }, stdout: { isTTY: true } };
     const result = colorize("hello", colors.red, proc);
     assert.strictEqual(result, `${colors.red}hello${colors.reset}`);
   });
 
-  test("returns plain text when color is not supported", () => {
+  test("returns plain text when the process does not support color", () => {
     const proc = { env: {}, stdout: { isTTY: false } };
     const result = colorize("hello", colors.red, proc);
     assert.strictEqual(result, "hello");

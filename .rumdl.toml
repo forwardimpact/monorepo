@@ -1,19 +1,19 @@
 # rumdl — Markdown linter and formatter (https://rumdl.dev).
-# `bunx rumdl check .` lints; `bunx rumdl fmt .` formats.
+# `bunx rumdl check .` lints. `bunx rumdl fmt .` formats.
 
 [global]
-# node_modules, generated/, dist/, etc. are gitignored and skipped here too.
+# Git ignores node_modules, generated/, dist/, etc. This config skips them too.
 respect-gitignore = true
-# wiki/ is a separate git repo (agent memory), not authored source.
-# JTBD.md is a generated artifact rendered by `jidoka jtbd --fix` from the
-# package.json .jobs source; its byte form is owned by jidoka, which emits
-# unwrapped job bodies. Reflowing it fights the generator, so leave it alone.
-# Golden snapshots and test fixtures are byte-exact test data — golden files
-# must match unwrapped tool output, and fixtures are asserted verbatim — so
-# reflowing them breaks the suites that compare against them.
+# wiki/ is a separate git repo (agent memory). It is not authored source.
+# `jidoka jtbd --fix` renders JTBD.md from the package.json .jobs source.
+# jidoka owns its byte form and emits unwrapped job bodies. A reflow fights
+# the generator, so leave it alone.
+# Golden snapshots and test fixtures are byte-exact test data. Golden files
+# must match unwrapped tool output. The suites assert fixtures verbatim. A
+# reflow breaks the suites that compare against them.
 # Co-located action sources are byte-faithful projections of their sibling
-# repos, not authored monorepo markdown; reflowing their READMEs would diverge
-# the projection from the published sibling.
+# repos. Nobody authors them as monorepo markdown. A reflow of their READMEs
+# would diverge the projection from the published sibling.
 exclude = [
   "wiki",
   "JTBD.md",
@@ -22,37 +22,38 @@ exclude = [
   "products/gemba/actions/**",
   "products/kata/actions/**",
 ]
-# MD033: repo uses intentional inline HTML (<br> in tables, <job>/
+# MD033: the repo uses intentional inline HTML (<br> in tables, <job>/
 #        <read_do_checklist> tag conventions).
 # MD041: agent/skill files, content partials, and front-matter-led docs
 #        legitimately do not open with an H1.
-# MD057: relative-link existence check. Has no options to whitelist targets,
-#        so it flags links into wiki/ (a separate repo, present only after
-#        sync) and the repo's root-relative link style. Run a dedicated link
-#        audit instead.
+# MD057: relative-link existence check. It has no options to whitelist
+#        targets. So it flags links into wiki/ (a separate repo, present only
+#        after sync) and the repo's root-relative link style. Run a dedicated
+#        link audit instead.
 # MD046: code-block style. rumdl's "consistent" detection misclassifies fenced
-#        blocks indented as list children (treating the 4-space indent as an
-#        indented block), so it flags correct fenced blocks. Pinning a single
-#        style would instead churn published skill files (which carry jidoka
-#        line/word budgets) and tool-generated enum blocks. The repo is already
+#        blocks indented as list children. It reads the 4-space indent as an
+#        indented block, so it flags correct fenced blocks. A pinned single
+#        style would instead churn published skill files, which carry jidoka
+#        line/word budgets, and tool-generated enum blocks. The repo is already
 #        consistently fenced where it matters.
 # MD001: heading-increment. A strict one-level-at-a-time hierarchy is the wrong
-#        constraint for documents whose structure is presentational, not
-#        outline-driven. The suite landing page presents five product cards as
-#        peers under one section; their heading level expresses equal weight,
-#        not nesting depth. Leave heading structure to each document and author.
+#        constraint for documents with a presentational structure. Their
+#        structure is not outline-driven. The suite landing page presents five
+#        product cards as peers under one section. Their heading level
+#        expresses equal weight. It does not express how deeply they nest.
+#        Leave heading structure to each document and author.
 disable = ["MD033", "MD041", "MD057", "MD046", "MD001"]
 
 [MD013]
 # Wrap prose to 80 columns. `reflow` makes `rumdl fmt` re-wrap paragraphs and
 # list items automatically (like Prettier's proseWrap: "always"). Code blocks
-# and tables hold content that cannot be wrapped, so exclude them — reflow
-# leaves them intact and enforcing 80 there is only noise.
+# and tables hold content that no tool can wrap, so exclude them. Reflow
+# leaves them intact. A limit of 80 there is only noise.
 line-length = 80
 reflow = true
-# Exclude content that cannot be wrapped to 80 columns. Reflow still wraps
-# ordinary prose; these elements hold atomic content that has no break point.
+# Exclude content that no tool can wrap to 80 columns. Reflow still wraps
+# ordinary prose. These elements hold atomic content that has no break point.
 code-blocks = false   # fenced/indented code holds verbatim, unwrappable lines
-tables = false        # table rows cannot be broken without changing meaning
-headings = false      # a heading is one line; wrapping it is not valid markdown
+tables = false        # a break in a table row changes its meaning
+headings = false      # a heading is one line, so a wrap gives invalid markdown
 code-spans = false    # inline `code` (CLI commands, snippets) cannot be split

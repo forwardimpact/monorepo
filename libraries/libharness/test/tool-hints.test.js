@@ -8,9 +8,9 @@ import {
 } from "../src/render/tool-hints.js";
 
 /**
- * Assert a hint contains no `{`, `}`, or `"` characters — success criterion #2,
- * which applies to non-MCP tools only. MCP tools intentionally render full
- * single-line JSON and DO contain `{` and `"`.
+ * Assert a hint contains no `{`, `}`, or `"` characters. This is success
+ * criterion #2, which applies to non-MCP tools only. MCP tools intentionally
+ * render full single-line JSON and DO contain `{` and `"`.
  * @param {string} hint
  */
 function assertNoJsonPunctuation(hint) {
@@ -119,7 +119,7 @@ describe("hintForCall", () => {
     assert.strictEqual(hint, "3 todos");
   });
 
-  test("TodoWrite — zero todos is still rendered as count", () => {
+  test("TodoWrite — still renders zero todos as a count", () => {
     const hint = hintForCall("TodoWrite", { todos: [] });
     assert.strictEqual(hint, "0 todos");
   });
@@ -157,7 +157,7 @@ describe("hintForCall", () => {
     assert.strictEqual(hint, JSON.stringify(input));
   });
 
-  test("mcp__orchestration__Announce — preserves embedded quotes via JSON", () => {
+  test("mcp__orchestration__Announce — preserves embedded quotes with JSON", () => {
     const input = { message: 'Say "hello"' };
     const hint = hintForCall("mcp__orchestration__Announce", input);
     assert.strictEqual(hint, JSON.stringify(input));
@@ -183,17 +183,17 @@ describe("hintForCall", () => {
     assert.ok(!hint.includes("\n"), "MCP hint must be single-line");
   });
 
-  test("unknown tool — returns empty string", () => {
+  test("unknown tool — returns an empty string", () => {
     const hint = hintForCall("UnknownXyz", { foo: "bar" });
     assert.strictEqual(hint, "");
   });
 
-  test("missing input — renders empty hint for Bash", () => {
+  test("missing input — renders an empty hint for Bash", () => {
     const hint = hintForCall("Bash", undefined);
     assert.strictEqual(hint, "");
   });
 
-  test('sanitizer strips every { } " from any branch', () => {
+  test('the sanitizer strips every { } " from any branch', () => {
     // Craft inputs that deliberately contain JSON punctuation.
     const cases = [
       ["Bash", { command: 'echo {a: "b"}' }],
@@ -208,18 +208,18 @@ describe("hintForCall", () => {
 });
 
 describe("simplifyToolName", () => {
-  test("strips mcp__orchestration__ prefix", () => {
+  test("strips the mcp__orchestration__ prefix", () => {
     assert.strictEqual(simplifyToolName("mcp__orchestration__Ask"), "Ask");
   });
 
-  test("strips mcp__github__ prefix", () => {
+  test("strips the mcp__github__ prefix", () => {
     assert.strictEqual(
       simplifyToolName("mcp__github__list_branches"),
       "list_branches",
     );
   });
 
-  test("preserves method with embedded __", () => {
+  test("preserves the method with embedded __", () => {
     assert.strictEqual(simplifyToolName("mcp__server__foo__bar"), "foo__bar");
   });
 
@@ -251,7 +251,7 @@ describe("previewForResult", () => {
     assert.ok(p.text.endsWith("..."));
   });
 
-  test("error — returns raw body with isError flag (renderer owns label)", () => {
+  test("error — returns the raw body with the isError flag (the renderer owns the label)", () => {
     const p = previewForResult("fatal: not a git repository", true);
     assert.deepStrictEqual(p, {
       text: "fatal: not a git repository",
@@ -270,7 +270,7 @@ describe("previewForResult", () => {
     assert.ok(p.text.endsWith("..."));
   });
 
-  test("object content — stringified then previewed", () => {
+  test("object content — stringifies the object, then previews it", () => {
     const p = previewForResult({ status: "ok" }, false);
     assert.strictEqual(p.isError, false);
     assert.ok(p.text.length > 0);
@@ -281,7 +281,7 @@ describe("previewForResult", () => {
     assert.deepStrictEqual(p, { text: "(ok)", isError: false });
   });
 
-  test("multi-line content — only first non-blank line", () => {
+  test("multi-line content — only the first non-blank line", () => {
     const p = previewForResult("\nhello\nworld\n", false);
     assert.deepStrictEqual(p, { text: "hello", isError: false });
   });

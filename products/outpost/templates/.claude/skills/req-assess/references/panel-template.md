@@ -1,8 +1,9 @@
 # Panel Brief Template
 
 Reference template for `req-assess` Step 7. Save to
-`Knowledge/Candidates/{Name}/panel.md`. Audience: **next-stage interviewers,
-often non-engineers** — explain without jargon, focus on behaviours and scope.
+`Knowledge/Candidates/{Name}/panel.md`. The audience is **next-stage
+interviewers, often non-engineers**. Explain without jargon. Focus on
+behaviours and scope.
 
 ```markdown
 # Panel Brief — {Full Name}

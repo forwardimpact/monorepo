@@ -1,10 +1,10 @@
 /**
- * Thin wrappers around @forwardimpact/libmock pathway atoms that preserve
- * libskill-specific defaults (e.g. the `specialization` field on disciplines,
- * the populated `expectations` shape on levels, and the capability/skill ids
- * that libskill derivation tests reason about).
+ * Thin wrappers around @forwardimpact/libmock pathway atoms. The wrappers
+ * preserve libskill-specific defaults. Examples are the `specialization`
+ * field on disciplines, the populated `expectations` shape on levels, and
+ * the capability/skill ids that libskill derivation tests reason about.
  *
- * New tests should prefer calling the libmock atoms directly; these
+ * New tests should call the libmock atoms directly. These
  * `make*` names exist for backward compat with the existing libskill suite.
  */
 import {
@@ -24,7 +24,7 @@ const DEFAULT_LEVEL_EXPECTATIONS = {
   complexityHandled: "moderate",
 };
 
-/** Create a software engineering discipline fixture with supporting and broad skill defaults. */
+/** Create a software-engineering discipline fixture with supporting and broad skill defaults. */
 export function makeDiscipline(overrides = {}) {
   return createTestDiscipline({
     specialization: "Software Engineering",
@@ -104,7 +104,7 @@ export function makeTrack(overrides = {}) {
   });
 }
 
-/** Create a full set of ten skill fixtures spanning delivery, scale, reliability, and management capabilities. */
+/** Create a full set of ten skill fixtures across delivery, scale, reliability, and management capabilities. */
 export function makeSkills() {
   return [
     createTestSkill({
@@ -258,7 +258,7 @@ export function makeCapabilities() {
   ];
 }
 
-/** Create velocity and stability driver fixtures linking contributing skills and behaviours. */
+/** Create velocity and stability driver fixtures that link contributing skills and behaviours. */
 export function makeDrivers() {
   return [
     createTestDriver({

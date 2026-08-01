@@ -17,7 +17,7 @@ describe("InboxPoller", () => {
     globalThis.fetch = originalFetch;
   });
 
-  test("polls inbox and lands messages on lead queue via synthetic", async () => {
+  test("polls inbox and lands messages on lead queue with synthetic", async () => {
     const ac = new AbortController();
     let callCount = 0;
     globalThis.fetch = async () => {

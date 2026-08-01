@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Deleted package names — must not appear outside allowed locations
+# Deleted package names. They must not appear outside allowed locations.
 PACKAGES="libagent|libllm|libmemory|libweb|svcagent|svcmemory|svcllm|svctool|svcweb"
 
 # Allowed locations: specs, generated output, node_modules, lockfiles,

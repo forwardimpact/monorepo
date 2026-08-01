@@ -1,7 +1,7 @@
 /**
- * Grading composition coverage for `BenchmarkRunner.#executeCell`: merged
+ * Coverage of how `BenchmarkRunner.#executeCell` composes a grade: merged
  * check rows + grader health → grade → judge gate → record. All collectors
- * and the judge are injected seams; the fixture family supplies a real task
+ * and the judge are injected seams. The fixture family supplies a real task
  * whose `tests/` overlay (added to a temp copy) makes `hiddenTests` present
  * on the record.
  */
@@ -43,14 +43,14 @@ before(async () => {
   familyDir = await mkdtemp(join(tmpdir(), "benchmark-score-family-"));
   await cp(FIXTURE, familyDir, { recursive: true });
   // Give the `pass` task a suite so `task.tests` is truthy and the record
-  // carries `hiddenTests` (the engine itself is replaced by a seam).
+  // carries `hiddenTests` (a seam replaces the engine itself).
   const tests = join(familyDir, "tasks/pass/tests");
   await mkdir(tests, { recursive: true });
   await writeFile(join(tests, "dummy.test.js"), "// replaced by seam\n");
 });
 
 /**
- * Run one `pass` cell with injected collectors and judge; returns the record
+ * Run one `pass` cell with injected collectors and judge. Returns the record
  * and the grade result the judge saw.
  */
 async function runCell({
@@ -91,7 +91,7 @@ async function runCell({
   return { record, judgeSaw };
 }
 
-describe("BenchmarkRunner grading composition", () => {
+describe("BenchmarkRunner grade composition", () => {
   test("healthy, gates pass, scored 2/3, judge pass → verdict fail, fractional score", async () => {
     const { record } = await runCell({
       invariants: { details: [gateRow(true)], exitCode: 0 },
@@ -120,7 +120,7 @@ describe("BenchmarkRunner grading composition", () => {
     assert.strictEqual(record.score, 1);
   });
 
-  test("invariants exit 1 with all rows passing → verdict fail, score 0", async () => {
+  test("invariants exit 1 while all rows pass → verdict fail, score 0", async () => {
     const { record } = await runCell({
       invariants: {
         details: [scoredRow("a", true)],
@@ -134,7 +134,7 @@ describe("BenchmarkRunner grading composition", () => {
     assert.strictEqual(record.grade.verdict, "fail");
   });
 
-  test("engine throw with all rows passing → verdict fail, score 0, error on hiddenTests", async () => {
+  test("engine throw while all rows pass → verdict fail, score 0, error on hiddenTests", async () => {
     const { record } = await runCell({
       invariants: { details: [scoredRow("a", true)], exitCode: 0 },
       hidden: async () => {
@@ -149,7 +149,7 @@ describe("BenchmarkRunner grading composition", () => {
     });
   });
 
-  test("failing gate row with passing scored rows → verdict fail, score 0", async () => {
+  test("gate row fails while scored rows pass → verdict fail, score 0", async () => {
     const { record } = await runCell({
       invariants: { details: [gateRow(false)], exitCode: 0 },
       hidden: async () => ({
@@ -161,7 +161,7 @@ describe("BenchmarkRunner grading composition", () => {
     assert.strictEqual(record.grade.gatesPass, false);
   });
 
-  test("full marks with a failing judge → verdict fail, score 0", async () => {
+  test("full marks with a judge that fails → verdict fail, score 0", async () => {
     const { record } = await runCell({
       invariants: { details: [gateRow(true)], exitCode: 0 },
       hidden: async () => ({ details: [scoredRow("a", true)] }),

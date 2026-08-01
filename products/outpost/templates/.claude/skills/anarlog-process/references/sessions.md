@@ -15,8 +15,8 @@ Reference for `anarlog-process` Step 1. Each session lives at
 }
 ```
 
-Use: session date (from `created_at`), title, participants (often empty —
-Anarlog doesn't reliably populate this).
+Use the session date (from `created_at`), the title, and the participants.
+Anarlog does not reliably populate the participants, so the list is often empty.
 
 ## `_memo.md`
 
@@ -31,12 +31,12 @@ session_id: 213e0f78-a66a-468d-b8e5-bc3fbbe04bf4
 Chat with Sarah about the product roadmap.
 ```
 
-High-signal — every name and observation is intentional.
+The memo is high-signal. Every name and every observation is intentional.
 
 ## `_summary.md` (optional)
 
 YAML frontmatter (`id`, `position`, `session_id`, `title`) plus an AI-generated
-summary — typically the richest source:
+summary. The summary is typically the richest source:
 
 ```markdown
 ---
@@ -64,18 +64,18 @@ title: Summary
 }
 ```
 
-**Do not extract entities from the full transcript** — too noisy. Consult it
-only to disambiguate a name from the memo or summary, confirm who said what
-(channel 0 = user, channel 1 = other speaker), or find context around a specific
-topic or decision.
+**Do not extract entities from the full transcript.** It is too noisy. Consult
+it only for these purposes. Disambiguate a name from the memo or the summary.
+Confirm who said what (channel 0 = user, channel 1 = other speaker). Find
+context around a specific topic or decision.
 
 ## Skip rules
 
-A session is skipped when **all** of:
+Skip a session when **all** of these are true:
 
 - `_memo.md` body is empty or only `&nbsp;` / whitespace.
 - No `_summary.md` exists.
-- Title is empty or generic ("Hello", "Welcome to Anarlog", "Test").
+- The title is empty or generic ("Hello", "Welcome to Anarlog", "Test").
 
 Process a session if it has **either** a substantive memo **or** a
 `_summary.md`.

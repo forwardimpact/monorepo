@@ -45,7 +45,7 @@ describe("ApmInstaller.install", () => {
   test("--skills-from stages the given .claude/ and skips apm install", async () => {
     const runtime = rt();
     const family = await loadTaskFamily(FIXTURE, runtime);
-    // A local skills root containing a .claude/ tree, standing in for a
+    // A local skills root that holds a .claude/ tree. It stands in for a
     // working tree with unpublished skills.
     const skillsRoot = await mkdtemp(join(tmpdir(), "benchmark-skills-"));
     await cp(join(FIXTURE, ".claude"), join(skillsRoot, ".claude"), {
@@ -59,14 +59,19 @@ describe("ApmInstaller.install", () => {
     );
     await access(join(stagingDir, ".claude", "skills", "noop", "SKILL.md"));
     const apmCalls = runtime.subprocess.calls.filter((c) => c.cmd === "apm");
-    assert.strictEqual(apmCalls.length, 0, "apm install must be skipped");
+    assert.strictEqual(
+      apmCalls.length,
+      0,
+      "the installer must skip apm install",
+    );
     await rm(skillsRoot, { recursive: true, force: true });
   });
 
   test("stages a pack's agents/ subtree from apm_modules into .claude/agents/", async () => {
-    // apm's claude target deploys skills/ only; the installer must still carry
-    // a pack's agents/ (profiles + references) so a skill that cites an agent
-    // reference (e.g. the work-tracker matrix) resolves in the agent CWD.
+    // apm's claude target deploys skills/ only. The installer must still
+    // carry a pack's agents/ (profiles + references). A skill that cites an
+    // agent reference (e.g. the work-tracker matrix) then resolves it in the
+    // agent CWD.
     const runtime = rt();
     const root = await mkdtemp(join(tmpdir(), "benchmark-agents-"));
     const refDir = join(
@@ -80,7 +85,8 @@ describe("ApmInstaller.install", () => {
     await mkdir(refDir, { recursive: true });
     await writeFile(join(refDir, "work-trackers.md"), "# matrix\n");
     const out = await mkdtemp(join(tmpdir(), "benchmark-agents-out-"));
-    // No apm.yml at root → apm install is skipped; staging still pulls agents.
+    // The root has no apm.yml, so the installer skips apm install. It still
+    // stages the agents.
     const { stagingDir } = await createApmInstaller({ runtime }).install(
       { rootPath: root },
       out,
@@ -118,7 +124,7 @@ describe("ApmInstaller.install", () => {
     assert.strictEqual(a.skillSetHash, b.skillSetHash);
   });
 
-  test("lockfile mutation flips the skillSetHash", async () => {
+  test("a mutated lockfile flips the skillSetHash", async () => {
     const dir = await mkdtemp(join(tmpdir(), "benchmark-apm-mut-"));
     await cp(FIXTURE, dir, { recursive: true });
     const before = await newInstaller().install(
@@ -182,7 +188,7 @@ describe("ApmInstaller.install", () => {
     );
   });
 
-  test("is idempotent: a previous staging directory is wiped and recreated", async () => {
+  test("is idempotent, so it wipes and recreates a previous staging directory", async () => {
     const family = await loadTaskFamily(FIXTURE, rt());
     const out = await mkdtemp(join(tmpdir(), "benchmark-apm-idem-"));
     await newInstaller().install(family, out);

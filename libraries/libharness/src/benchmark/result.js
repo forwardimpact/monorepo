@@ -3,16 +3,17 @@
  *
  * Two schemas live here:
  *   - RESULT_RECORD_SCHEMA — one record per (task, runIndex) from a full
- *     benchmark run. Has a happy branch (grade + collectors + judge present)
- *     and a pre-flight-failure branch (grade/judgeVerdict/submission absent).
- *   - GRADE_RECORD_SCHEMA — narrower output of `benchmark-grade`: ad-hoc
- *     grading without a full lifecycle.
+ *     benchmark run. It has a happy branch (grade + collectors + judge
+ *     present) and a pre-flight-failure branch (grade/judgeVerdict/submission
+ *     absent).
+ *   - GRADE_RECORD_SCHEMA — narrower output of `benchmark-grade`, which
+ *     grades ad hoc without a full lifecycle.
  *
- * The check rows are the authoritative grading channel: the happy branch
- * requires a `grade` object, so a pre-break record fails validation rather
- * than rendering under semantics it never carried.
+ * The check rows are the authoritative channel for grades. The happy branch
+ * requires a `grade` object, so a pre-break record fails validation. It does
+ * not render under semantics it never carried.
  *
- * Validation is throw-on-mismatch so the runner can wrap every JSONL append
+ * The validators throw on mismatch, so the runner can wrap every JSONL append
  * in a guard and reject schema drift at write time.
  */
 
@@ -27,8 +28,8 @@ const INVARIANTS_SHAPE = z.object({
 });
 
 /**
- * The normalized grading projection: `score` appears only on scored tasks,
- * `malformed` only when at least one row was malformed.
+ * The normalized projection of a grade. `score` appears only on scored
+ * tasks. `malformed` appears only when at least one row was malformed.
  */
 const GRADE_SHAPE = z.object({
   verdict: VERDICT_ENUM,
@@ -48,9 +49,9 @@ const JUDGE_VERDICT_SHAPE = z.object({
 });
 
 /**
- * Per-participant cost attribution. `costUsd` is the sum of these; the
+ * Per-participant cost attribution. `costUsd` is the sum of these. The
  * breakdown lets reports show where the spend went. The judge runs as its
- * own SDK session, so its cost is tracked separately from agent/supervisor.
+ * own SDK session, so its cost stays separate from agent/supervisor.
  */
 const COST_BREAKDOWN_SHAPE = z.object({
   agent: z.number(),
@@ -98,8 +99,8 @@ const HAPPY_RECORD = z.object({
   invariants: INVARIANTS_SHAPE,
   grade: GRADE_SHAPE,
   hiddenTests: HIDDEN_TESTS_SHAPE.optional(),
-  // The effective, judge-zeroed score `report` aggregates — present only on
-  // scored tasks.
+  // The effective, judge-zeroed score `report` aggregates. It is present
+  // only on scored tasks.
   score: z.number().min(0).max(1).optional(),
   submission: z.string(),
   judgeVerdict: JUDGE_VERDICT_SHAPE.optional(),
@@ -114,9 +115,9 @@ const PREFLIGHT_RECORD = z.object({
   ...COMMON_FIELDS,
   costUsd: z.literal(0),
   preflightError: PREFLIGHT_ERROR_SHAPE,
-  // Trace paths are populated even on preflight failure (the runner allocates
-  // them in WorkdirManager.start) so the record is uniform across branches
-  // and downstream consumers can reference them without conditional fields.
+  // The runner allocates the trace paths in WorkdirManager.start, even on
+  // preflight failure. The record then stays uniform across branches, and
+  // downstream consumers can reference the paths without conditional fields.
   agentTracePath: z.string(),
   supervisorTracePath: z.string(),
   judgeTracePath: z.string(),
@@ -133,15 +134,15 @@ export const RESULT_RECORD_SCHEMA = z.union([HAPPY_RECORD, PREFLIGHT_RECORD]);
 
 export const GRADE_RECORD_SCHEMA = z.object({
   taskId: z.string().min(1),
-  // Unlike the happy result record — where `grade.score` is the raw
-  // weighted fraction and the effective (zeroed) value lives on the
-  // top-level `score` — this record has no second score field, so its
-  // `grade.score` carries the effective health/gate-zeroed value.
+  // In the happy result record, `grade.score` is the raw weighted fraction,
+  // and the effective (zeroed) value lives on the top-level `score`. This
+  // record has no second score field, so its `grade.score` carries the
+  // effective health/gate-zeroed value.
   grade: GRADE_SHAPE,
   invariants: INVARIANTS_SHAPE,
   hiddenTests: HIDDEN_TESTS_SHAPE.optional(),
-  // Mirrors the invariants script's exit for diagnosis; the graded verdict
-  // is what drives the command's process exit.
+  // This mirrors the invariants script's exit for diagnosis. The graded
+  // verdict drives the command's process exit.
   exitCode: z.number().int(),
 });
 

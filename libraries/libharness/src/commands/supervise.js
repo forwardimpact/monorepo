@@ -23,7 +23,8 @@ export async function parseSuperviseOptions(values, runtime) {
   const supervisorAllowedToolsRaw = values["supervisor-allowed-tools"];
 
   // `||` (not `??`) throughout so an empty-string flag from a CI forwarder
-  // falls back to the default rather than overriding it with "".
+  // falls back to the default. The empty string does not override the
+  // default.
   const tmpRoot = runtime.proc.env.TMPDIR ?? "/tmp";
   const agentCwd = resolve(
     values["agent-cwd"] ||
@@ -58,9 +59,9 @@ export async function parseSuperviseOptions(values, runtime) {
 }
 
 /**
- * Supervise command — run one agent under a supervisor via the
- * orchestration loop. The supervisor delegates work through Ask, sees
- * each reply on its next turn, and ends with Conclude.
+ * Supervise command — run one agent under a supervisor through the
+ * orchestration loop. The supervisor delegates work through Ask. It sees
+ * each reply on its next turn. It ends with Conclude.
  *
  * Usage: gemba-harness supervise [options]
  *
@@ -71,12 +72,12 @@ export async function runSuperviseCommand(ctx) {
   const runtime = ctx.deps.runtime;
   const opts = await parseSuperviseOptions(ctx.options, runtime);
 
-  // Build the redactor as the first observable side-effect after option
-  // parsing — the env snapshot must freeze BEFORE any in-process
-  // env writes the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
+  // Build the redactor as the first observable side-effect after the parser
+  // reads the options. The env snapshot must freeze BEFORE any in-process
+  // env write the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
   const redactor = createRedactor({ runtime });
 
-  // When --output is specified, stream text to stdout while writing NDJSON to file.
+  // With --output, stream text to stdout and write NDJSON to the file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
   const fileStream = opts.outputPath
     ? runtime.fs.createWriteStream(opts.outputPath)
@@ -107,7 +108,8 @@ export async function runSuperviseCommand(ctx) {
     runtime.proc.env.LIBHARNESS_AGENT_PROFILE = opts.agentProfile;
   }
   // Unconditional so the default "github" is observable to the agent's
-  // active-tracker resolution, mirroring --agent-profile's env write above.
+  // active-tracker resolution. This mirrors --agent-profile's env write
+  // above.
   runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");

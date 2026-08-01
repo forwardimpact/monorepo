@@ -5,11 +5,11 @@ import { formatQueryLine } from "../src/commands/query.js";
 import { formatSubjectLine } from "../src/commands/subjects.js";
 import { formatSearchLine } from "../src/commands/search.js";
 
-// Byte-parity: each read subcommand reproduces its predecessor's exact stdout
-// format (spec criterion 2). The formatter is the byte contract; the pipeline
-// that feeds it (index construction, embedding service) is exercised by the
-// live spot-run in the plan's step 10.
-describe("read-command stdout format parity", () => {
+// Byte-parity. Each read subcommand reproduces its predecessor's exact stdout
+// format (spec criterion 2). The formatter is the byte contract. The live
+// spot-run in the plan's step 10 exercises the pipeline that feeds the
+// formatter (the index build and the embedding service).
+describe("stdout format parity for read commands", () => {
   test("fit-rag query prints the bare identifier", () => {
     const id = { toString: () => "cld:common.Person/alice" };
     assert.strictEqual(formatQueryLine(id), "cld:common.Person/alice");

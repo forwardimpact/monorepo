@@ -5,15 +5,15 @@
  * - `Recess` suspends the session with a resumption trigger.
  * - `Adjourn` ends the discussion with a verdict.
  *
- * `Conclude` is absent — discuss mode ends via Adjourn or Recess.
+ * `Conclude` is absent. Discuss mode ends through Adjourn or Recess.
  *
- * `RequestForComment` is an agent-level coordination tool — available on
+ * `RequestForComment` is an agent-level coordination tool. It is available on
  * discuss agents and facilitated agents (not leads). It opens a new
  * Discussion thread for long-horizon coordination on open questions.
  *
- * In discuss mode, each agent Answer routed to the lead is captured as a
- * thread reply delivered via the bridge callback — no explicit reply tool
- * is needed on the lead surface.
+ * In discuss mode, each agent Answer routed to the lead becomes a thread
+ * reply. The bridge callback delivers that reply. The lead surface needs no
+ * explicit reply tool.
  */
 
 import { tool } from "@anthropic-ai/claude-agent-sdk";
@@ -35,8 +35,8 @@ export const DISCUSS_AGENT_SYSTEM_PROMPT =
   "You are a participant in a discussion.\n" +
   "Each question arrives as `[ask#N] <name>: <text>` in your inbox.\n" +
   "Quote N as askId on your `Answer` to route the reply correctly.\n" +
-  "Your `Answer` is posted to the discussion thread as a separate reply.\n" +
-  "If the task already contains a completed response with no new human input after it, `Answer` that no further action is needed.\n" +
+  "The system posts your `Answer` to the discussion thread as a separate reply.\n" +
+  "The task may already contain a completed response with no new human input after it. In that case, `Answer` that no further action is needed.\n" +
   "Do not redo completed work.";
 
 const RESUME_TRIGGER_SCHEMA = z.discriminatedUnion("kind", [
@@ -66,7 +66,7 @@ export function createDiscussLeadToolServer(ctx) {
     ...baseTools(ctx, { from: "lead", defaultTo: undefined, broadcast: true }),
     tool(
       "Acknowledge",
-      "Post a brief message directly to the discussion thread. Use when responding to a human follow-up or providing a status update while participants are working.",
+      "Post a brief message directly to the discussion thread. Use it to respond to a human follow-up. Use it to give a status update while participants work.",
       {
         message: z.string().describe("Message to post on the thread"),
       },
@@ -104,7 +104,7 @@ export function createDiscussLeadToolServer(ctx) {
 }
 
 const ACKNOWLEDGE_DESC =
-  "Acknowledge an Ask before starting work. Posts a visible comment on the thread. Does not discharge the Ask — you still owe an Answer.";
+  "Acknowledge an Ask before you start work. Posts a visible comment on the thread. Does not discharge the Ask. You still owe an Answer.";
 
 /** Discuss-mode agent tool server. */
 export function createDiscussAgentToolServer(ctx, { from, extraTools = [] }) {
@@ -118,7 +118,7 @@ export function createDiscussAgentToolServer(ctx, { from, extraTools = [] }) {
         message: z
           .string()
           .describe("Brief acknowledgement to post on the thread"),
-        askId: z.number().optional().describe("The ask being acknowledged"),
+        askId: z.number().optional().describe("The ask you acknowledge"),
       },
       async ({ message }) => {
         const seq =
@@ -138,11 +138,11 @@ export function createDiscussAgentToolServer(ctx, { from, extraTools = [] }) {
 }
 
 /**
- * Recess handler — ends the run with a structured pause + resumption
- * trigger; cancels any open Asks so askers see a synthetic null answer.
- * `concluded` flips true (same as Adjourn); the `recessed` verdict
- * distinguishes them, and `recessTrigger` carries the resume shape for
- * the bridge.
+ * Recess handler — ends the run with a structured pause and a resumption
+ * trigger. It cancels any open Asks so askers see a synthetic null answer.
+ * `concluded` flips true, the same as Adjourn. The `recessed` verdict
+ * distinguishes them. `recessTrigger` carries the resume shape for the
+ * bridge.
  */
 export function createRecessHandler(ctx) {
   return async ({ reason, trigger }) => {

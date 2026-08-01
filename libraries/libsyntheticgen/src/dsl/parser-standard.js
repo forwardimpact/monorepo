@@ -1,7 +1,8 @@
 /**
  * DSL Parser — standard and dataset block parsers.
  *
- * Extracted from parser.js to reduce file length.
+ * These parsers moved out of parser.js. The move reduces the length of
+ * that file.
  *
  * @module libterrain/dsl/parser-standard
  */
@@ -27,8 +28,9 @@ export function createStandardParsers(helpers) {
   const { consumeFields, parseMappedArrays } = createDispatchHelpers(helpers);
 
   /**
-   * Parse a brace-delimited block of keyword–value pairs using a dispatch
-   * table. Throws on any keyword not present in the table.
+   * Parse a brace-delimited block of keyword–value pairs with a dispatch
+   * table. The function throws on any keyword that the table does not
+   * hold.
    * @param {Record<string, (obj: object) => void>} dispatch
    * @param {string} context  — label for error messages
    * @returns {object}
@@ -41,8 +43,9 @@ export function createStandardParsers(helpers) {
   }
 
   /**
-   * Parse a brace-delimited list of named items. Each item is identified by a
-   * string/ident key, then parsed via parseKeyedBlock with the given dispatch.
+   * Parse a brace-delimited list of named items. A string/ident key
+   * identifies each item. parseKeyedBlock then parses the item with the
+   * given dispatch.
    * @param {Record<string, (obj: object) => void>} dispatch
    * @param {string} context
    * @returns {object[]}
@@ -160,7 +163,7 @@ export function createStandardParsers(helpers) {
 
   /**
    * Resolve a single nullable-array element from the current token.
-   * Returns the parsed value or null for literal "null".
+   * It returns the parsed value, or null for the literal "null".
    */
   function resolveNullableElement() {
     const t = peek();

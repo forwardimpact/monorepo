@@ -1,13 +1,14 @@
 /**
  * Strip `thinking.signature` base64 blobs from a JSON-serializable value.
  *
- * Applied at the CLI output boundary — the stored structured trace keeps
- * signatures intact (lossless storage), and the display filter drops them
- * by default because they dominate output without helping analysis.
+ * The CLI applies this filter at the output boundary. The stored structured
+ * trace keeps signatures intact (lossless storage). The display filter drops
+ * them by default, because they dominate the output and do not help
+ * analysis.
  *
- * Recursively walks the input. For any object whose `type === "thinking"`,
- * the `signature` field is removed after copying. Signatures on objects of
- * any other type are preserved.
+ * This function walks the input recursively. For any object whose
+ * `type === "thinking"`, it copies the object and then removes the
+ * `signature` field. It keeps signatures on objects of any other type.
  *
  * @param {*} value - Any JSON-serializable value
  * @returns {*} A deep-copy with thinking signatures removed

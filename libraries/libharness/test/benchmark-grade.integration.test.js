@@ -65,10 +65,11 @@ exit 3
     assert.strictEqual(out.details.length, 0);
   });
 
-  test("script stderr is surfaced so a hook failure reads distinctly", async () => {
-    // A failing hook tool (here a command that does not exist) writes to
-    // stderr and exits non-zero while emitting no fd-3 rows — the signature of
-    // a harness problem, not a real invariant miss. The stderr must survive.
+  test("script stderr survives so a hook failure reads distinctly", async () => {
+    // A hook tool that fails (here a command that does not exist) writes to
+    // stderr and exits non-zero. It emits no fd-3 rows. That signature marks
+    // a harness problem. It does not mark a real invariant miss. The stderr
+    // must survive.
     const { task, ctx } = await buildStubTask(
       `#!/bin/sh
 this-tool-does-not-exist assert --exists /nope
@@ -142,7 +143,7 @@ exit 0
 });
 
 /**
- * A check file body: passes iff `<marker>` exists in the agent CWD.
+ * A check file body. It passes iff `<marker>` exists in the agent CWD.
  * @param {string} marker
  */
 function checkFile(marker) {
@@ -161,8 +162,8 @@ exit 0
 
 /**
  * Build an on-disk family with one `todo` task: an invariants gate hook and
- * (optionally) a two-check hidden `tests/` overlay graded by real
- * `node --test` runs.
+ * (optionally) a hidden `tests/` overlay of two checks. Real `node --test`
+ * runs grade the overlay.
  */
 async function buildGradeFamily({ hook = GATE_ONLY_HOOK, withSuite = true }) {
   const family = await mkdtemp(join(tmpdir(), "benchmark-grade-family-"));

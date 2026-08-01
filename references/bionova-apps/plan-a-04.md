@@ -1,8 +1,8 @@
 # Plan 1160-a-04 — Edge functions
 
 Implement the four Supabase Edge Functions under
-`services/polaris-functions/`. All four are Deno modules served through Kong
-at `/functions/v1/{name}`.
+`services/polaris-functions/`. All four are Deno modules. Kong serves them at
+`/functions/v1/{name}`.
 
 All paths are inside `bionova-apps/`.
 
@@ -15,9 +15,9 @@ Created:
 | `services/polaris-functions/deno.json` | Deno config: import map, `tasks.start: "deno run --allow-net --allow-env --allow-read main.ts"` |
 | `services/polaris-functions/import_map.json` | `{"imports": {"std/": "https://deno.land/std@0.224.0/", "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.45.0"}}` |
 | `services/polaris-functions/Dockerfile` | FROM `denoland/deno:1.46.3`; copies module dirs; ENTRYPOINT `deno task start` |
-| `services/polaris-functions/main.ts` | HTTP router — dispatches `/{name}` to the matching module's `handle(req, env)` export |
-| `services/polaris-functions/env.ts` | Reads `SUPABASE_URL` (`http://kong:8000`), `SUPABASE_SERVICE_ROLE_KEY`, `TEI_URL` (`http://tei:80` — internal Docker DNS, NOT `tei:8080` which is the host-side mapping), `PGREST_URL` (`http://kong:8000/rest/v1`); throws if any missing |
-| `services/polaris-functions/README.md` | One-page describing each function + how to invoke locally via `curl http://localhost:8082/<name>` |
+| `services/polaris-functions/main.ts` | HTTP router — dispatches `/{name}` to the `handle(req, env)` export of the module with that name |
+| `services/polaris-functions/env.ts` | Reads `SUPABASE_URL` (`http://kong:8000`), `SUPABASE_SERVICE_ROLE_KEY`, `TEI_URL` (`http://tei:80`, the internal Docker DNS name, NOT `tei:8080`, which is the host-side mapping), `PGREST_URL` (`http://kong:8000/rest/v1`). Throws if any is absent |
+| `services/polaris-functions/README.md` | One page that describes each function and how to invoke it locally with `curl http://localhost:8082/<name>` |
 
 `main.ts` router shape:
 
@@ -53,7 +53,7 @@ serve(async (req) => {
 });
 ```
 
-Verify: `deno check services/polaris-functions/main.ts` exits 0;
+Verify: `deno check services/polaris-functions/main.ts` exits 0.
 `curl http://localhost:8082/health` returns `ok` after `docker compose up
 polaris-functions`.
 
@@ -61,13 +61,13 @@ polaris-functions`.
 
 Created: `services/polaris-functions/embed-seed/mod.ts`
 
-Behavior: reads JSONL from a path on disk (default
-`/data/synthetic/seed_embeddings.jsonl`, written by `build-seed.sh` and
-mounted per plan-a-03 step 8); for each row whose `table`
-is `"conditions"`, POSTs the prose text to TEI (`POST ${TEI_URL}/embed`),
-receives a 384-dim vector, and upserts `{ id, condition_id, embedding }` (the
-row id is the condition id, supplied for the NOT-NULL text PK) into
-`condition_embeddings` via PostgREST with `on_conflict=condition_id` — which
+Behavior: the function reads JSONL from a path on disk. The default path is
+`/data/synthetic/seed_embeddings.jsonl`. `build-seed.sh` writes that file.
+Step 8 of plan-a-03 mounts it. For each row whose `table` is `"conditions"`,
+the function POSTs the prose text to TEI (`POST ${TEI_URL}/embed`). TEI returns
+a 384-dim vector. The function then upserts `{ id, condition_id, embedding }`
+into `condition_embeddings` through PostgREST with `on_conflict=condition_id`.
+The row id is the condition id, supplied for the NOT-NULL text PK. This upsert
 needs the unique index from plan-a-02 step 3b.
 
 Request shape:
@@ -84,18 +84,17 @@ JSONL row shape (verified against
 {"id":"<text-id>","table":"conditions","text":"…prose…"}
 ```
 
-`id` is the entity's primary key (here, the condition id, which is what
-populates `condition_embeddings.condition_id`). `table` is `"conditions"`
-for embeddings produced from `clinical.conditions` — embed-seed filters
-on this field and ignores any other tables in the JSONL (if a future
-story.dsl adds embeddings for `trials` or `sites`, embed-seed needs an
-explicit upsert path per table, but for 1160 only `conditions` is
-expected).
+`id` is the entity's primary key. Here it is the condition id, which populates
+`condition_embeddings.condition_id`. `table` is `"conditions"` for embeddings
+that come from `clinical.conditions`. embed-seed filters on this field. It
+ignores any other tables in the JSONL. If a future story.dsl adds embeddings
+for `trials` or `sites`, embed-seed needs an explicit upsert path per table.
+For 1160, expect only `conditions`.
 
-TEI call (HuggingFace TEI `/embed` returns a 2D array `[[…], …]` when
-`inputs` is a string array, and `[[…]]` when `inputs` is a single
-string — verify against TEI 1.5 release notes at implementation time and
-adjust shape handling if the API has shifted):
+HuggingFace TEI `/embed` returns a 2D array `[[…], …]` when `inputs` is a
+string array. It returns `[[…]]` when `inputs` is a single string. Verify this
+against the TEI 1.5 release notes when you implement the function. Adjust the
+shape logic if the API shifted. TEI call:
 
 ```ts
 const r = await fetch(`${env.TEI_URL}/embed`, {
@@ -110,7 +109,7 @@ if (!Array.isArray(arr) || !Array.isArray(arr[0])) {
 const vec = arr[0];  // first (only) row of the 2D response
 ```
 
-PostgREST upsert uses the unique index added in plan-a-02 Step 3b
+The PostgREST upsert uses the unique index that plan-a-02 Step 3b added
 (`condition_embeddings_condition_id_uidx`):
 
 ```ts
@@ -132,11 +131,11 @@ for (const row of rows) {
 }
 ```
 
-Idempotent: re-running `embed-seed` upserts via the unique index on
-`condition_id`, overwriting prior embeddings in place. condition_embeddings'
-`id` column (set by terrain output) remains untouched on upsert
-because PostgREST `Prefer: resolution=merge-duplicates` only updates
-explicitly-supplied columns.
+Idempotent: a second `embed-seed` run upserts through the unique index on
+`condition_id`. The run overwrites prior embeddings in place. The terrain
+output sets the `id` column of condition_embeddings. The upsert leaves that
+column untouched, because PostgREST `Prefer: resolution=merge-duplicates`
+updates only the columns that the request supplies explicitly.
 
 Verify: after `setup.sh` invokes embed-seed, `psql -c "SELECT COUNT(*)
 FROM condition_embeddings;"` matches the JSONL row count.
@@ -145,10 +144,10 @@ FROM condition_embeddings;"` matches the JSONL row count.
 
 Created: `services/polaris-functions/eligibility-check/mod.ts`
 
-Behavior: given a `trial_id` and a screener answer payload, reads
-`criteria` for that trial via PostgREST, evaluates each `inclusion.custom[]`
-and `exclusion.custom[]` string against the matching answer, and returns a
-match score.
+Behavior: the function takes a `trial_id` and a screener answer payload. It
+reads `criteria` for that trial through PostgREST. It evaluates each
+`inclusion.custom[]` and `exclusion.custom[]` string against the answer that
+matches. It returns a match score.
 
 Request:
 
@@ -167,7 +166,8 @@ type EligibilityResponse = {
 };
 ```
 
-Scoring rule (matches design "criteria.custom[]" decision — no LLM):
+Rule for the score (this matches the design decision "criteria.custom[]", with
+no LLM):
 
 | Condition | Score |
 | --- | --- |
@@ -180,27 +180,26 @@ Scoring rule (matches design "criteria.custom[]" decision — no LLM):
 checked).
 
 Verify: a curl with the seeded "Type-2 diabetes" patient profile against a
-matching trial returns `eligible`; with an excluded patient returns
-`not_eligible`.
+trial that matches returns `eligible`. The same curl with an excluded patient
+returns `not_eligible`.
 
 ## Step 4 — `notify-updates` function
 
 Created: `services/polaris-functions/notify-updates/mod.ts`
 
-Behavior: triggered by a DB trigger on `trials.status` change. Queries
-`interest_signals` for affected trial; for each interested
-`screener_answers.email` (if any — interest_signals are anonymous so this
-will usually be empty), logs a "would-notify" line. Email sending is
-stubbed (GoTrue email integration deferred per design).
+Behavior: a DB trigger on a `trials.status` change starts this function. The
+function queries `interest_signals` for the affected trial. For each interested
+`screener_answers.email`, if any, it logs a "would-notify" line. The
+interest_signals rows are anonymous, so that list is usually empty. The
+function stubs the email send. The design defers the GoTrue email integration.
 
 Created:
 `products/polaris/site/supabase/migrations/20260601000002_notify_trigger.sql`
 
-The trigger uses `pg_net.http_post` (already created in part 01's
-`00-extensions.sql` via the `supabase/postgres` image). Kong requires an
-`apikey` header on `/functions/v1/*` routes (part 01 step 5), so the
-trigger reads the service-role key from a Postgres setting populated by
-`setup.sh`:
+The trigger uses `pg_net.http_post`. Part 01's `00-extensions.sql` already
+created it through the `supabase/postgres` image. Kong requires an `apikey`
+header on `/functions/v1/*` routes (part 01 step 5). So the trigger reads the
+service-role key from a Postgres setting that `setup.sh` populates:
 
 ```sql
 -- setup.sh exports the service-role key into a Postgres setting once at boot:
@@ -244,22 +243,23 @@ Verify: `UPDATE trials SET status='completed' WHERE id=<some_id>;` logs a
 
 Created: `services/polaris-functions/sync-listings/mod.ts`
 
-Behavior: re-reads the staged trial/criteria migrations from the rendered
-seed, parses out `INSERT` statements for `trials` and `criteria` tables,
-and upserts via PostgREST. Used to refresh seed data without re-running
-full `setup.sh`. In r3 there is no committed `data/synthetic/seed/*.sql` —
-the SQL is rendered by `build-seed.sh` into the staged migrations
-directory. Mount that directory read-only into the `polaris-functions`
-container (add to the `volumes` block edited in plan-a-03 step 8):
+Behavior: the function re-reads the staged trial/criteria migrations from the
+rendered seed. It parses out the `INSERT` statements for the `trials` and
+`criteria` tables. It upserts them through PostgREST. Use it to refresh seed
+data without a full `setup.sh` run. In r3 there is no committed
+`data/synthetic/seed/*.sql`. `build-seed.sh` renders the SQL into the staged
+migrations directory. Mount that directory read-only into the
+`polaris-functions` container. Add it to the `volumes` block that plan-a-03
+step 8 edits:
 
 ```yaml
   - ./products/polaris/site/supabase/migrations:/data/migrations:ro
 ```
 
 `sync-listings` reads `/data/migrations/20250101*_seed_004_trials.sql` and
-`*_seed_005_criteria.sql`. The directory is populated by `build-seed.sh`
-before `docker compose up`, so the mount is non-empty at function-invoke
-time. To refresh after a DSL re-vendor, run `build-seed.sh` then invoke
+`*_seed_005_criteria.sql`. `build-seed.sh` populates the directory before
+`docker compose up`, so the mount is non-empty when the function runs. To
+refresh after a DSL re-vendor, run `build-seed.sh`. Then invoke
 `sync-listings`.
 
 Request:
@@ -293,7 +293,7 @@ Also edit `docker-compose.yml` `postgres` service env to add `TZ: UTC`
 so the cron schedule fires at a predictable wall-clock time.
 
 Verify: `curl -X POST http://localhost:8000/functions/v1/sync-listings -d
-'{"dry_run":true}'` returns a count without modifying data;
+'{"dry_run":true}'` returns a count and does not modify data.
 `SELECT * FROM cron.job;` lists `sync-listings-daily`.
 
 ## Step 6 — Tests
@@ -302,16 +302,16 @@ Created:
 
 | File | Tests |
 | --- | --- |
-| `services/polaris-functions/embed-seed/test.ts` | Unit: TEI mock returns vector; upsert called per row. Integration: against running stack, seeds correct count |
-| `services/polaris-functions/eligibility-check/test.ts` | Unit: each scoring branch (`eligible`, `not_eligible`, `possibly_eligible`); reads canned criteria fixture |
-| `services/polaris-functions/notify-updates/test.ts` | Unit: builds correct log line; idempotent on repeat trigger |
-| `services/polaris-functions/sync-listings/test.ts` | Unit: parses SQL INSERTs; dry_run returns counts without writes |
+| `services/polaris-functions/embed-seed/test.ts` | Unit: the TEI mock returns a vector. The test calls the upsert once per row. Integration: against a live stack, the function seeds the correct count |
+| `services/polaris-functions/eligibility-check/test.ts` | Unit: each score branch (`eligible`, `not_eligible`, `possibly_eligible`). Reads a canned criteria fixture |
+| `services/polaris-functions/notify-updates/test.ts` | Unit: builds the correct log line. Idempotent on a repeat trigger |
+| `services/polaris-functions/sync-listings/test.ts` | Unit: parses SQL INSERTs. dry_run returns counts without writes |
 
 Test runner:
 `deno test --allow-net --allow-read --allow-env services/polaris-functions/`.
 
-Verify: `deno test` exits 0; CI runs this in the `edge-functions` job of
-`.github/workflows/check-edge.yml` (scaffolded in part 01).
+Verify: `deno test` exits 0. CI runs this in the `edge-functions` job of
+`.github/workflows/check-edge.yml` (part 01 scaffolded it).
 
 ## Step 7 — Open part-04 PR
 
@@ -328,13 +328,14 @@ Verify: PR CI green (deno check + deno test + compose validate).
 ## Verification (end of part 04)
 
 - [ ] `curl http://localhost:8082/health` returns `ok`.
-- [ ] `embed-seed` populates `condition_embeddings` with row count matching
-      JSONL.
+- [ ] `embed-seed` populates `condition_embeddings` with a row count that
+      matches the JSONL.
 - [ ] `eligibility-check` returns each of `eligible`, `possibly_eligible`,
-      `not_eligible` for the appropriate seeded patient × trial pairing.
-- [ ] `UPDATE trials SET status=…` fires `notify-updates`; log line appears.
-- [ ] `sync-listings` upserts seeded SQL idempotently; `pg_cron` schedule
-      listed.
+      `not_eligible` for the appropriate seeded patient × trial pair.
+- [ ] `UPDATE trials SET status=…` fires `notify-updates`. The log line
+      appears.
+- [ ] `sync-listings` upserts seeded SQL idempotently. The `pg_cron` schedule
+      appears.
 - [ ] `deno test services/polaris-functions/` exits 0.
 
 — Staff Engineer 🛠️

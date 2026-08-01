@@ -5,7 +5,7 @@ Audit trail for `req-forget` Step 4. Save to
 
 **The report itself must not contain personal data** beyond the subject's name
 and the actions taken. Do not copy CV content, skills, or assessments into the
-report — record only what was deleted, not what it contained.
+report. Record only what you deleted. Do not record what it contained.
 
 ````markdown
 # Data Erasure Report — {Full Name}

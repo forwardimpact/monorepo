@@ -14,22 +14,22 @@ custody service (`ghserver`) that each need to answer the same question:
 "which customer tenant does this event, repo, or callback belong to?"
 `services/tenancy` is the one place that answer lives.
 
-The registry stores one row per `(channel, channel_tenant_key)` pair —
-GitHub uses the composite `"{installation_id}:{owner}/{name}"`; Microsoft
+The registry stores one row per `(channel, channel_tenant_key)` pair.
+GitHub uses the composite `"{installation_id}:{owner}/{name}"`. Microsoft
 Teams uses the Azure tenant id. Lifecycle states are `pending_consent`,
-`active`, and `revoked`; `ResolveByChannelKey` and `ResolveByRepo` return
+`active`, and `revoked`. `ResolveByChannelKey` and `ResolveByRepo` return
 only `active` rows. `ResolveByTenantId` returns the row regardless of
-state so callback verification can reject mismatched tenant ids without
-sniffing state first.
+state. Callback verification can then reject mismatched tenant ids without
+a state check first.
 
 The registry holds **no** credential material. The GitHub App private key
-lives only in `services/ghserver`; the Bot Framework credential lives in
+lives only in `services/ghserver`. The Bot Framework credential lives in
 `services/msbridge`. The callback-verification token model is the
-single-use registry already owned by `libraries/libbridge` — `services/tenancy`
-only adds tenant-id binding on top of that token; it does not introduce a new
-signature primitive.
+single-use registry that `libraries/libbridge` already owns.
+`services/tenancy` only binds the tenant id on top of that token. It does not
+introduce a new signature primitive.
 
-Configuration (loaded via `createServiceConfig("tenancy")`):
+Configuration (loaded with `createServiceConfig("tenancy")`):
 
 | Env var               | Purpose                                       |
 | --------------------- | --------------------------------------------- |
@@ -43,11 +43,11 @@ of the registry substrate and gRPC peer authentication are deferred (see
 
 Add `tenancy` to `config/config.json` under `init.services` (see
 [`config/CLAUDE.md`](../../config/CLAUDE.md) for entry format). In
-single-tenant deployments the service is **not** started — `libbridge`'s
+single-tenant deployments you do **not** start the service. `libbridge`'s
 `DefaultTenantResolver` returns the fixed `default` tenant directly.
 
-Tenants are persisted as JSONL under `data/tenancy/` via `libstorage`
-(the standard `createStorage` path — no extra env var needed).
+The service persists tenants as JSONL under `data/tenancy/` with `libstorage`
+(the standard `createStorage` path, with no extra env var needed).
 
 ## RPCs
 
@@ -62,5 +62,5 @@ Tenants are persisted as JSONL under `data/tenancy/` via `libstorage`
 | `SetRepo`            | write     | Teams self-served repo mapping   |
 
 The proto definition is at [`proto/tenancy.proto`](proto/tenancy.proto).
-Wire shape matches the `TenantResolver` duck type the bridges already
-consume via `libraries/libbridge`'s `RegistryTenantResolver`.
+The wire shape matches the `TenantResolver` duck type the bridges already
+consume through `libraries/libbridge`'s `RegistryTenantResolver`.

@@ -1,7 +1,8 @@
 /**
  * DSL Parser — block-level parsers for specific AST node types.
  *
- * Extracted from parser.js to reduce file length and complexity.
+ * These parsers moved out of parser.js. The move reduces the length and
+ * the complexity of that file.
  *
  * @module libterrain/dsl/parser-blocks
  */

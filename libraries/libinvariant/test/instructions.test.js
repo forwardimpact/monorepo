@@ -8,7 +8,7 @@ const ROOT = "/repo";
 
 /**
  * Build a runtime over an in-memory fs seeded with `files` (a path→content map
- * rooted at `/repo`), injected through `checkInstructions`'s `runtime` param.
+ * rooted at `/repo`). `checkInstructions` takes it through its `runtime` param.
  */
 function runtimeWith(files = {}) {
   return createTestRuntime({ fs: createMockFs(files) });
@@ -43,7 +43,7 @@ describe("checkInstructions", () => {
 
   test("flags an oversized subdir CLAUDE.md at the tighter 128-line cap", async () => {
     // 140 lines exceeds the 128-line subdir cap but stays under the 192
-    // root cap — proves the tighter rule applies to subdirectories only.
+    // root cap. This proves the tighter rule applies to subdirectories only.
     const oversize = "line\n".repeat(140);
     const findings = await checkInstructions({
       root: ROOT,
@@ -81,12 +81,12 @@ describe("checkInstructions", () => {
     assert.match(f.message, /agent reference/);
   });
 
-  test("classifies a frontmatter profile as L3, not an L4 reference", async () => {
+  test("classifies a frontmatter profile as L3 instead of an L4 reference", async () => {
     // 100 lines exceeds the 72-line L3 profile cap but stays under the 192-line
-    // L4 reference cap. A file carrying name/description frontmatter must be
-    // judged a profile (and flagged) — proving the partition keys on
-    // frontmatter, not on a directory, so a misclassification as a reference
-    // (which would pass under 192) is caught here.
+    // L4 reference cap. The check must judge a file with name/description
+    // frontmatter to be a profile, and must flag it. This proves the partition
+    // keys on frontmatter. It does not key on a directory. A misclassification
+    // as a reference would pass under 192, and this test catches it.
     const profile = `---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n${"line\n".repeat(100)}`;
     const findings = await checkInstructions({
       root: ROOT,
@@ -108,8 +108,8 @@ describe("checkInstructions", () => {
 
   test("admits memory-protocol.md above the default L4 cap", async () => {
     // 200 lines exceeds the 192-line default agent-reference cap but stays
-    // under the memory-protocol override (216) — proves the per-file budget
-    // applies to this one reference.
+    // under the memory-protocol override (216). This proves the per-file
+    // budget applies to this one reference.
     const oversize = "line\n".repeat(200);
     const findings = await checkInstructions({
       root: ROOT,
@@ -151,7 +151,8 @@ describe("checkInstructions", () => {
 
   test("admits kata-release-merge SKILL.md above the default L5 cap", async () => {
     // 250 lines exceeds the 192-line default skill cap but stays under the
-    // kata-release-merge override (320) — proves the per-skill budget applies.
+    // kata-release-merge override (320). This proves the per-skill budget
+    // applies.
     const oversize = "line\n".repeat(250);
     const findings = await checkInstructions({
       root: ROOT,
@@ -221,8 +222,9 @@ describe("checkInstructions", () => {
 
   test("excludes YAML frontmatter from the line budget", async () => {
     // 8 frontmatter lines + a 190-line body = 198 raw lines, but only the
-    // body counts against the 192-line L1 cap. Mirrors a published skill whose
-    // source body fits but whose injected `license`/`metadata` push it over.
+    // body counts against the 192-line L1 cap. This mirrors a published skill
+    // whose source body fits but whose injected `license`/`metadata` push it
+    // over.
     const frontmatter = [
       "---",
       "name: demo",
@@ -249,7 +251,7 @@ describe("checkInstructions", () => {
     );
   });
 
-  test("flags body overage and reports the body line count, not raw", async () => {
+  test("flags body overage and reports the body line count instead of the raw count", async () => {
     const frontmatter = ["---", "name: demo", "---"].join("\n");
     const body = `\n${"line\n".repeat(200)}`;
     const findings = await checkInstructions({
@@ -264,7 +266,7 @@ describe("checkInstructions", () => {
       f,
       `expected a line-budget finding, got: ${JSON.stringify(findings)}`,
     );
-    // The body is 200 lines; the 3 frontmatter lines are excluded.
+    // The body is 200 lines. The count excludes the 3 frontmatter lines.
     assert.match(f.message, /200 lines/);
   });
 });

@@ -1,15 +1,15 @@
 // The enumeration-drift grammar: source probes (fs-glob, md-table), the
 // list/count value extractors, and the fenced-block consumer parser. These are
-// the reusable mechanics the invariant kit injects as `kit.enumDrift`; they
-// carry no policy. Filesystem access is passed in (`fsSync`) rather than
-// imported, so this module stays clean under the repo's ambient-deps invariant;
-// the orchestration that binds them lives in enum-drift.js.
+// the reusable mechanics the invariant kit injects as `kit.enumDrift`. They
+// carry no policy. The caller passes filesystem access in (`fsSync`) instead of
+// an import, so this module stays clean under the repo's ambient-deps
+// invariant. The orchestration that binds them lives in enum-drift.js.
 
 import { isAbsolute, join } from "node:path";
 
 export const VALID_PROPERTIES = new Set(["count", "list"]);
 
-/** Reject a pattern/file that escapes `root` (absolute or `..`); else null.
+/** Reject a pattern/file that escapes `root` (absolute or `..`), else null.
  *
  * @param {string} pattern - A repo-relative source pattern or file path.
  * @returns {string|null} An error message, or null when contained.
@@ -59,7 +59,7 @@ function splitGlob(pattern) {
   return { fixed: segments.slice(0, i), tail: segments.slice(i) };
 }
 
-/** Walk `tail`-deep below `dir`, matching each level, collecting ids. */
+/** Walk `tail`-deep below `dir`. Match each level and collect ids. */
 function walkGlob(dir, tail, fixed, relParts, id, excludeSet, ids, fsSync) {
   if (relParts.length === tail.length) {
     const base = relParts[relParts.length - 1];
@@ -119,8 +119,8 @@ export function probeFsGlob(source, root, fsSync) {
 // --- md-table probe --------------------------------------------------------
 
 /**
- * Reduce a composite-action cell to its bare slug. Unwraps a leading
- * `[text](url)` markdown link to its link text, then drops backticks, the
+ * Reduce a composite-action cell to its bare slug. Unwrap a leading
+ * `[text](url)` markdown link to its link text. Then drop backticks, the
  * `forwardimpact/` scope, and a trailing `@version`.
  *
  * @param {string} cell - A raw table cell.
@@ -157,8 +157,8 @@ export function parseTableRow(line) {
     .map((c) => c.trim());
 }
 
-// The table rows under a `## <section>` heading, up to the next heading,
-// skipping fenced-code regions. Returns parsed cell-arrays (header included).
+// The table rows under a `## <section>` heading, up to the next heading. This
+// skips fenced-code regions and returns parsed cell-arrays (header included).
 function sectionTableRows(lines, section) {
   const headingRe = new RegExp(`^#{1,6}\\s+${escapeRegExp(section)}\\s*$`);
   let i = lines.findIndex((l) => headingRe.test(l));
@@ -178,7 +178,7 @@ function sectionTableRows(lines, section) {
   return rows;
 }
 
-/** Probe a md-table source: filtered column cells under a section heading.
+/** Probe a md-table source for filtered column cells under a section heading.
  *
  * @param {{ file: string, section: string, column: string, filter: string }} source
  * @param {string} root - Repository root.
@@ -351,8 +351,8 @@ function bulletTokens(lines) {
   return out;
 }
 
-// First non-empty cell of each GFM data row, dropping the header (the row right
-// before the `|---|` alignment row).
+// First non-empty cell of each GFM data row. This drops the header (the row
+// right before the `|---|` alignment row).
 function tableIds(lines) {
   const rows = [];
   let alignmentAt = -1;
@@ -380,7 +380,7 @@ function tableIds(lines) {
   return ids;
 }
 
-// ASCII-tree leaf `name/  desc` — the trailing slash distinguishes a directory
+// ASCII-tree leaf `name/  desc`. The trailing slash distinguishes a directory
 // leaf from a prose sentence whose first word is capitalized.
 function treeIds(lines) {
   const ids = new Set();
@@ -396,10 +396,10 @@ function treeIds(lines) {
 
 // A bare comma/space-separated run of inline code spans and nothing else, e.g.
 // `a`, `b`, `c`. Returns the code-span tokens, or null when the span carries
-// any other text (prose, a bullet marker, an item description). That ambiguity
-// — commas inside a description versus commas between items — is exactly what
-// the bracketed shapes resolve, so this fires only when the whole span is code
-// spans plus separators, and needs at least two so a lone token is not a list.
+// any other text (prose, a bullet marker, an item description). Commas inside
+// a description look like commas between items. The bracketed shapes resolve
+// exactly that ambiguity. So this fires only when the whole span is code spans
+// plus separators. It needs at least two, so a lone token is not a list.
 function inlineCodeSpanList(span) {
   const t = span.trim();
   const spans = t.match(/`[^`]+`/g);
@@ -411,8 +411,8 @@ function inlineCodeSpanList(span) {
 /**
  * Identifier set from a list-shaped span. Precedence: brace expansion, bullets,
  * a bare comma/space-separated run of code spans, GFM table, ASCII tree, then a
- * parenthetical comma-list (last resort, since a bullet/tree leaf often carries
- * a parenthetical aside whose commas are prose).
+ * parenthetical comma-list. The parenthetical comma-list comes last, because a
+ * bullet/tree leaf often carries a parenthetical aside whose commas are prose.
  *
  * @param {string} span - The fenced body to read.
  * @returns {Set<string>} The normalized identifier set.

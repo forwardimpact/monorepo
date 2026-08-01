@@ -21,10 +21,10 @@
     {
       "user": "Platform Builders",
       "goal": "Enable Agents on Every Surface",
-      "trigger": "Agents need to call platform services as tools, and every product is hand-writing MCP wrappers around the same gRPC methods.",
+      "trigger": "Agents need to call platform services as tools. Every product hand-writes MCP wrappers around the same gRPC methods.",
       "bigHire": "expose typed service contracts as MCP tools so agents reach the same capabilities humans do, without per-product wrapper code.",
-      "littleHire": "add a service to the MCP surface without writing integration code.",
-      "competesWith": "hand-written MCP servers per product; HTTP shims around gRPC services; agents working without tools"
+      "littleHire": "add a service to the MCP surface without integration code.",
+      "competesWith": "hand-written MCP servers per product; HTTP shims around gRPC services; agents with no tools"
     }
   ],
   "type": "module",

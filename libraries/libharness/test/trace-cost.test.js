@@ -8,7 +8,7 @@ import { runCostCommand } from "../src/commands/trace.js";
 const FILE = "/traces/trace--demo.raw.ndjson";
 
 /**
- * Invoke the cost handler over a seeded NDJSON file, capturing stdout.
+ * Invoke the cost handler over a seeded NDJSON file and capture stdout.
  * @param {object} options - Parsed flags (e.g. { markdown: true }).
  * @param {object[]} records - Trace records written as NDJSON.
  * @returns {Promise<string>} Captured stdout.
@@ -37,7 +37,7 @@ const COMBINED = [
 ];
 
 describe("gemba-trace cost", () => {
-  test("default JSON output reports total and per-source breakdown", async () => {
+  test("default JSON output reports the total and the per-source breakdown", async () => {
     const out = await cost({}, COMBINED);
     const parsed = JSON.parse(out);
     assert.ok(Math.abs(parsed.totalCostUsd - 0.07) < 1e-9);
@@ -52,8 +52,8 @@ describe("gemba-trace cost", () => {
   });
 
   test("a missing trace file exits ok and prints nothing", async () => {
-    // A CI cost step runs under always(); the trace may not exist when the
-    // run failed before producing one. The handler must not throw.
+    // A CI cost step runs under always(). The trace may not exist when the
+    // run failed before it produced one. The handler must not throw.
     const fsSync = createMockFs({});
     let out = "";
     const result = await runCostCommand({

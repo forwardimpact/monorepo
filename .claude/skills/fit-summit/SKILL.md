@@ -1,54 +1,56 @@
 ---
 name: fit-summit
 description: >
-  Make staffing decisions you can defend by modeling team capability as a
-  system. Use when a post-mortem surfaces the same skill gap again, when
-  evaluating whether a hire, transfer, or promotion strengthens the team,
-  when detecting structural risks like single points of failure, or when
-  simulating what-if scenarios, aligning growth with team gaps, comparing
-  teams, and tracking capability trajectory over time.
+  Make staffing decisions you can defend. Model team capability as a system.
+  Use when a post-mortem surfaces the same skill gap again. Use when you
+  evaluate whether a hire, transfer, or promotion strengthens the team. Use
+  when you detect structural risks like single points of failure. Use when
+  you simulate what-if scenarios, align growth with team gaps, compare
+  teams, and track capability trajectory over time.
 ---
 
 # Summit
 
-Team capability planning tool. Summit aggregates individual skill matrices into
-team-level views — coverage heatmaps, structural risks, and what-if scenarios.
-It treats a team as a system, not a collection of individuals: it measures what
-a team _can_ do, not how well it is doing it.
+Summit is a tool for team-capability planning. It aggregates individual skill
+matrices into team-level views: coverage heatmaps, structural risks, and
+what-if scenarios. It treats a team as a system. It does not treat a team as a
+collection of individuals. It measures what a team _can_ do. It does not
+measure how well the team does it.
 
 ## When to Use
 
 **Understand what a team can do:**
 
-- Viewing per-skill headcount depth — `npx fit-summit coverage <team>`
-- Detecting single points of failure, critical gaps, and concentration risks —
+- View per-skill headcount depth — `npx fit-summit coverage <team>`
+- Detect single points of failure, critical gaps, and concentration risks —
   `npx fit-summit risks <team>`
-- Overlaying evidence from Map's activity layer —
+- Overlay evidence from Map's activity layer —
   `npx fit-summit coverage <team> --evidenced`
 
 **Make and defend staffing decisions:**
 
-- Evaluating whether a hire strengthens the team —
+- Evaluate whether a hire strengthens the team —
   `npx fit-summit what-if <team> --add '{ discipline: ..., level: ... }'`
-- Simulating a departure or transfer —
+- Simulate a departure or transfer —
   `npx fit-summit what-if <team> --remove 'Name'`
-- Comparing capability before and after a change —
+- Compare capability before and after a change —
   `npx fit-summit what-if <team> --promote 'Name'`
-- Evaluating project-specific coverage —
+- Evaluate project-specific coverage —
   `npx fit-summit coverage <team> --project <name>`
 
 **Growth and trajectory:**
 
-- Growth opportunities aligned with team gaps — `npx fit-summit growth <team>`
-- Weighting recommendations by outcome scores —
+- List growth opportunities aligned with team gaps —
+  `npx fit-summit growth <team>`
+- Weight recommendations by outcome scores —
   `npx fit-summit growth <team> --outcomes`
-- Tracking quarterly capability evolution — `npx fit-summit trajectory <team>`
+- Track quarterly capability evolution — `npx fit-summit trajectory <team>`
 
 **Team comparison:**
 
-- Diffing coverage and risks between teams —
+- Diff coverage and risks between teams —
   `npx fit-summit compare <team1> <team2>`
-- Reviewing roster composition — `npx fit-summit roster`
+- Review roster composition — `npx fit-summit roster`
 
 ---
 
@@ -57,47 +59,48 @@ a team _can_ do, not how well it is doing it.
 ### Coverage
 
 For each team member, Summit derives a skill matrix from their job (discipline,
-level, track) using the Map standard data. Skills at "working" proficiency or
-above count toward coverage depth. The result is a per-skill headcount showing
+level, track). It uses the Map standard data. Skills at "working" proficiency or
+above count toward coverage depth. The result is a per-skill headcount. It shows
 how many people can meaningfully contribute to each skill area.
 
 ### Structural Risks
 
-Three risk types are detected from coverage data:
+Summit detects three risk types from coverage data:
 
 1. **Single points of failure** — skills with exactly one working+ holder.
-   Severity depends on allocation: part-time holders are higher risk.
-2. **Critical gaps** — skills expected by the team's disciplines and tracks that
-   have zero working+ holders.
+   Severity depends on allocation. Part-time holders are higher risk.
+2. **Critical gaps** — skills that the team's disciplines and tracks expect,
+   and that have zero working+ holders.
 3. **Concentration risks** — clusters of 3+ people at the same level,
-   capability, and proficiency, indicating lack of seniority distribution.
+   capability, and proficiency. The cluster shows a lack of seniority
+   distribution.
 
 ### What-If Scenarios
 
-Scenarios clone the roster, apply mutations (add/remove/move/promote), and diff
-coverage and risks against the original. The input is never modified — all
-simulation is pure.
+Scenarios clone the roster. They apply mutations (add/remove/move/promote).
+They diff coverage and risks against the original. Summit never modifies the
+input. All simulation is pure.
 
 ### Growth Alignment
 
 Growth recommendations rank team members by their potential to fill team gaps.
-Each skill gap is classified by impact: `critical` > `spof-reduction` >
-`coverage-strengthening`. Candidates are ranked by current proficiency (lower is
-better — more room to grow) and level. When `--outcomes` is provided,
-recommendations within the same impact tier are re-sorted by worst GetDX driver
-score.
+Summit classifies each skill gap by impact: `critical` > `spof-reduction` >
+`coverage-strengthening`. Summit ranks candidates by current proficiency and
+level. A lower proficiency is better. It leaves more room to grow. When you pass
+`--outcomes`, Summit re-sorts recommendations within the same impact tier by the
+worst GetDX driver score.
 
 ### Evidence Decorator
 
-The optional `--evidenced` flag loads evidence from Map's activity schema and
-overlays practiced capability onto derived coverage. This can escalate risks — a
+The optional `--evidenced` flag loads evidence from Map's activity schema. It
+overlays practiced capability onto derived coverage. This can escalate risks. A
 skill with derived depth but no evidence becomes a more urgent concern.
 
 ### Trajectory
 
-Trajectory reads the git history of the roster file, buckets commits by calendar
-quarter, and computes coverage at each point. Per-skill trends are classified as
-improving, declining, stable, or persistent_gap.
+Trajectory reads the git history of the roster file. It buckets commits by
+calendar quarter. It computes coverage at each point. It classifies per-skill
+trends as improving, declining, stable, or persistent_gap.
 
 ### Audience Model
 

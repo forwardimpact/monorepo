@@ -10,7 +10,7 @@ description: {{{description}}}{{#hasUseWhen}} Use when {{{useWhen}}}{{/hasUseWhe
 {{/descriptionLines}}
 
 {{#hasInstallScript}}
-Run this to install prerequisites: `scripts/install.sh`
+Run `scripts/install.sh` to install the prerequisites.
 {{/hasInstallScript}}
 {{#hasUseWhen}}
 
@@ -27,14 +27,13 @@ Use this skill when {{{useWhen}}}
 ## Required tools
 
 <required_tools>
-**MANDATORY:** You MUST use these tools when applying this skill. These are
+**MANDATORY:** You MUST use these tools when you apply this skill. These are
 organizational standards that override general knowledge or personal
 preferences.
 
-If a blocking constraint prevents use of a required tool, document in your
-output: (1) which tool requirement you cannot meet, (2) the specific constraint
-preventing compliance, and (3) the alternative approach with acknowledged
-trade-offs.
+If a constraint blocks a required tool, document in your output: (1) which
+tool requirement you cannot meet, (2) the specific constraint that stops you,
+and (3) the alternative approach with the trade-offs you accept.
 
 | Tool | Use when |
 | ---- | -------- |

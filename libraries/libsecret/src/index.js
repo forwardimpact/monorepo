@@ -6,7 +6,8 @@ import path from "path";
  * @param {string} key - Environment variable name
  * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
  * @param {object} [runtime] - Runtime collaborator bag
- * @returns {Promise<string|undefined>} The value if found, undefined otherwise
+ * @returns {Promise<string|undefined>} The value if the key exists.
+ *   Otherwise undefined.
  */
 export async function readEnvFile(key, envPath = ".env", runtime) {
   const { fs } = runtime;
@@ -30,9 +31,9 @@ export async function readEnvFile(key, envPath = ".env", runtime) {
 }
 
 /**
- * Gets an existing secret from env file or generates a new one
+ * Gets an existing secret from the env file or generates a new one
  * @param {string} key - Environment variable name
- * @param {() => string} generator - Function that generates the secret if not found
+ * @param {() => string} generator - Generates the secret when the key is absent
  * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<string>} The existing or newly generated secret
@@ -56,7 +57,7 @@ export async function getOrGenerateSecret(
 }
 
 /**
- * Updates or creates an environment variable in .env file
+ * Updates or creates an environment variable in the .env file
  * @param {string} key - Environment variable name (e.g., "SERVICE_SECRET")
  * @param {string} value - Environment variable value
  * @param {string} [envPath] - Path to .env file (defaults to .env in current directory)
@@ -78,7 +79,7 @@ export async function updateEnvFile(key, value, envPath = ".env", runtime) {
   const lines = content.split("\n");
   let found = false;
 
-  // Look for existing key line (both active and commented)
+  // Look for an existing key line (both active and commented)
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].startsWith(`${key}=`) || lines[i].startsWith(`# ${key}=`)) {
       lines[i] = envLine;
@@ -87,7 +88,7 @@ export async function updateEnvFile(key, value, envPath = ".env", runtime) {
     }
   }
 
-  // If not found, add it to the end
+  // If no line matches, add the key at the end
   if (!found) {
     if (content && !content.endsWith("\n")) {
       lines.push("");
@@ -95,9 +96,10 @@ export async function updateEnvFile(key, value, envPath = ".env", runtime) {
     lines.push(envLine);
   }
 
-  // Write back to file — ensure trailing newline for POSIX compatibility,
-  // and enforce 0o600 since this file holds secrets. writeFile's `mode`
-  // applies only on creation; chmod also covers the update path.
+  // Write back to the file. Add a trailing newline for POSIX compatibility.
+  // Enforce 0o600 because this file holds secrets. The writeFile `mode`
+  // applies only when it creates the file. The chmod call also covers the
+  // update path.
   const output = lines.join("\n");
   await fs.writeFile(fullPath, output.endsWith("\n") ? output : output + "\n", {
     mode: 0o600,
@@ -108,7 +110,7 @@ export async function updateEnvFile(key, value, envPath = ".env", runtime) {
 /**
  * Generates a deterministic hash from multiple input values
  * @param {...string} values - Values to hash together
- * @returns {string} The first 8 characters of SHA256 hash
+ * @returns {string} The first 8 characters of the SHA256 hash
  */
 export function generateHash(...values) {
   const input = values.filter(Boolean).join(".");
@@ -120,7 +122,7 @@ export function generateHash(...values) {
 }
 
 /**
- * Generates a unique identifier using crypto.randomUUID
+ * Generates a unique identifier with crypto.randomUUID
  * @returns {string} Unique identifier
  */
 export function generateUUID() {
@@ -148,7 +150,7 @@ export function generateBase64Secret(length = 32) {
 /**
  * Creates an HS256-signed JWT
  * @param {object} payload - JWT payload
- * @param {string} secret - Signing secret
+ * @param {string} secret - Secret for the HMAC signature
  * @returns {string} Signed JWT
  */
 export function generateJWT(payload, secret) {
@@ -163,11 +165,11 @@ export function generateJWT(payload, secret) {
 }
 
 /**
- * Mint a Supabase-shaped HS256 JWT. Wraps generateJWT with the standard
- * claims Supabase Auth expects on a caller token.
+ * Mints a Supabase-shaped HS256 JWT. Wraps generateJWT with the standard
+ * claims that Supabase Auth expects on a caller token.
  *
  * @param {object} params
- * @param {string} params.email - Caller email, becomes the `email` claim
+ * @param {string} params.email - Caller email that becomes the `email` claim
  * @param {string} params.secret - Supabase JWT secret (HMAC key)
  * @param {number} [params.ttlSeconds] - Token lifetime in seconds
  * @param {object} [params.claims] - Extra claims merged into the payload
@@ -214,8 +216,8 @@ function mintSupabaseRoleKey({ role, secret }, runtime) {
 }
 
 /**
- * Mint a long-lived Supabase anon-role HS256 JWT, used by the local
- * Supabase stack and by anon Supabase clients.
+ * Mints a long-lived HS256 JWT for the Supabase anon role. The local
+ * Supabase stack and anon Supabase clients use this key.
  *
  * @param {object} params
  * @param {string} params.secret - Supabase JWT secret (HMAC key)
@@ -227,8 +229,8 @@ export function mintSupabaseAnonKey({ secret }, runtime) {
 }
 
 /**
- * Mint a long-lived Supabase service-role HS256 JWT, used for admin
- * operations against the local Supabase stack.
+ * Mints a long-lived HS256 JWT for the Supabase service role. Admin
+ * operations against the local Supabase stack use this key.
  *
  * @param {object} params
  * @param {string} params.secret - Supabase JWT secret (HMAC key)
@@ -240,7 +242,7 @@ export function mintSupabaseServiceRoleKey({ secret }, runtime) {
 }
 
 /**
- * Parse a duration string like "8760h", "365d", or "1y" into seconds.
+ * Parses a duration string like "8760h", "365d", or "1y" into seconds.
  * Accepted suffixes: h (hours), d (days, 86400s), y (years, 31536000s).
  *
  * @param {string} value

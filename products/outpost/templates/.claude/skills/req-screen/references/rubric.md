@@ -14,7 +14,7 @@ Reference data for `req-screen` Steps 1, 3, 4, 5, and 6 (recommendation).
 | **Leadership signals**  | Team size, mentoring, cross-team work, architecture            |
 | **Scope signals**       | Scale of systems, user base, revenue impact                    |
 | **Communication**       | Publications, talks, open source, documentation                |
-| **Gender**              | Pronouns or gendered titles only — never inferred from names   |
+| **Gender**              | Pronouns or gendered titles only. Never infer it from a name   |
 
 ## Level estimation heuristics
 
@@ -40,21 +40,21 @@ Reference data for `req-screen` Steps 1, 3, 4, 5, and 6 (recommendation).
 
 ## Proficiency mapping
 
-| Proficiency    | CV evidence                                             |
-| -------------- | ------------------------------------------------------- |
-| `awareness`    | Mentioned but no project evidence                       |
-| `foundational` | Used in projects, basic application                     |
-| `working`      | Primary tool/skill in multiple roles, independent usage |
-| `practitioner` | Led teams using this skill, mentored others, deep work  |
-| `expert`       | Published, shaped org practice, industry recognition    |
+| Proficiency    | CV evidence                                               |
+| -------------- | --------------------------------------------------------- |
+| `awareness`    | Mentioned but no project evidence                         |
+| `foundational` | Used in projects, basic application                       |
+| `working`      | Primary tool/skill in multiple roles, independent usage   |
+| `practitioner` | Led teams that use this skill, mentored others, deep work |
+| `expert`       | Published, shaped org practice, industry recognition      |
 
 ### Scepticism rule
 
-CVs inflate. Default **two levels below** what the CV implies unless the
-candidate provides concrete, quantified evidence (metrics, named systems, team
-sizes, user/revenue scale). Vague phrases like "improved performance" or "led
-initiatives" do not count. A skill listed only in a "Skills" section with no
-project context is `awareness` at most.
+CVs inflate. Default **two levels below** what the CV implies. Make an
+exception when the candidate provides concrete, quantified evidence (metrics,
+named systems, team sizes, user/revenue scale). Vague phrases like "improved
+performance" or "led initiatives" do not count. A skill that appears only in a
+"Skills" section with no project context is `awareness` at most.
 
 ## Behaviour signals
 
@@ -73,8 +73,8 @@ project context is `awareness` at most.
 - **Adequate** — exactly one level below expected with clear project evidence,
   **or** at level but evidence thin.
 - **Gap** — two or more levels below expected.
-- **Not evidenced** — CV doesn't mention this skill area. **Treat as a gap**:
-  absence of evidence is not evidence of skill.
+- **Not evidenced** — the CV does not mention this skill area. **Treat it as a
+  gap.** Absence of evidence is not evidence of skill.
 
 ## Recommendation decision rules
 
@@ -82,7 +82,7 @@ project context is `awareness` at most.
 | ------------------------------ | ------------------------------------------------------------------------ |
 | **Interview**                  | ≥ 70 % Strong match, no core-skill gaps, strong behaviour signals        |
 | **Interview with focus areas** | ≥ 50 % Strong match, ≤ 2 gaps in non-core skills, no behaviour red flags |
-| **Pass**                       | Everything else — including thin evidence                                |
+| **Pass**                       | Everything else, including thin evidence                                 |
 
 **Threshold rule:** if more than **one third** of the target job's skills are
 Gap or Not evidenced, the candidate cannot receive "Interview." If more than
@@ -90,5 +90,5 @@ Gap or Not evidenced, the candidate cannot receive "Interview." If more than
 focus areas."
 
 When in doubt, choose the stricter recommendation. "Interview with focus areas"
-should be rare — strong candidate with a specific, named concern, not a marginal
-candidate.
+should be rare. Use it for a strong candidate with a specific, named concern.
+Do not use it for a marginal candidate.

@@ -10,10 +10,10 @@ permissions:
   contents: read
 
 jobs:
-  # Compile + smoke every CLI as a standalone binary on Linux, so a CLI that
-  # runs from source but breaks under `bun --compile` is caught here rather than
-  # at release. The full linux+mac matrix runs at release time
-  # (publish-binaries.yml); macOS-specific compile breakage surfaces there.
+  # Compile + smoke every CLI as a standalone binary on Linux. This catches a
+  # CLI that runs from source but breaks under `bun --compile`, and it catches
+  # it before the release. The full linux+mac matrix runs at release time
+  # (publish-binaries.yml). macOS-specific compile breakage surfaces there.
   build:
     permissions:
       contents: read

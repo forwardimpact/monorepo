@@ -15,7 +15,7 @@ import {
 import { stubBus } from "./orchestration-toolkit-helpers.js";
 
 describe("OrchestrationToolkit - simple handlers", () => {
-  test("Conclude sets ctx.concluded, ctx.verdict, ctx.summary; returns ack", async () => {
+  test("Conclude sets ctx.concluded, ctx.verdict, ctx.summary and returns ack", async () => {
     const ctx = createOrchestrationContext();
     ctx.messageBus = stubBus();
     const result = await createConcludeHandler(ctx)({
@@ -85,7 +85,7 @@ describe("OrchestrationToolkit - simple handlers", () => {
     assert.strictEqual(answers.length, 0);
   });
 
-  test("Announce publishes via the bus and never touches pendingAsks", async () => {
+  test("Announce publishes through the bus and never touches pendingAsks", async () => {
     const ctx = createOrchestrationContext();
     ctx.messageBus = stubBus();
     await createAnnounceHandler(ctx, { from: "agent-1" })({

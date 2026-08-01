@@ -64,7 +64,7 @@ describe("Client", () => {
     mockObserverFn = createMockObserverFn();
   });
 
-  test("should require config parameter", () => {
+  test("should require the config parameter", () => {
     assertThrowsMessage(
       () =>
         new Client(
@@ -95,7 +95,7 @@ describe("Client", () => {
     assert.strictEqual(client.config, mockConfig);
   });
 
-  test("callUnary should execute unary call", async () => {
+  test("callUnary should execute a unary call", async () => {
     const client = new Client(
       mockConfig,
       mockRuntime,
@@ -113,7 +113,7 @@ describe("Client", () => {
     assert.strictEqual(typeof options.deadline, "number");
   });
 
-  test("callStream should execute streaming call", async () => {
+  test("callStream should execute a streaming call", async () => {
     const client = new Client(
       mockConfig,
       mockRuntime,
@@ -137,7 +137,7 @@ describe("Client", () => {
     assert.strictEqual(mockClientInstance.StreamMethod.mock.callCount(), 1);
   });
 
-  test("should accept tracer parameter", () => {
+  test("should accept the tracer parameter", () => {
     const client = new Client(
       mockConfig,
       mockRuntime,

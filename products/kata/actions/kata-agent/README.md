@@ -1,10 +1,10 @@
 # Kata Agent
 
-Run a complete Kata agent workflow in a single step. Handles GitHub App
-authentication, repository checkout, environment bootstrap, agent execution
-via [fit-harness](https://www.npmjs.com/package/@forwardimpact/libharness), and
-wiki-memory sync — the storyboard is refreshed from live issue/CSV state both
-before and after the run, then pushed back.
+Run a complete Kata agent workflow in a single step. The action handles GitHub
+App authentication, repository checkout, environment bootstrap, agent execution
+through [fit-harness](https://www.npmjs.com/package/@forwardimpact/libharness),
+and wiki-memory sync. It refreshes the storyboard from live issue/CSV state
+before the run and after it. It then pushes the storyboard back.
 
 ## Usage
 
@@ -43,7 +43,7 @@ jobs:
 - A GitHub App installed on your repository (see
   [setup guide](https://www.kata.team/))
 - Repository secrets: `KATA_APP_ID`, `KATA_APP_PRIVATE_KEY`, `ANTHROPIC_API_KEY`
-- Agent profiles in `.claude/agents/` (install via
+- Agent profiles in `.claude/agents/` (install with
   `npx skills add forwardimpact/kata-skills`)
 
 ## Inputs
@@ -76,27 +76,27 @@ jobs:
 
 ### Lead role (`supervisor` / `facilitator` / `chair`)
 
-The lead's profile and model are controlled by a single pair of inputs across
-all three multi-agent modes:
+One pair of inputs controls the lead's profile and model across all three
+multi-agent modes:
 
-- `supervise` mode runs a supervisor + agent relay; the lead is the supervisor.
-- `facilitate` mode runs a facilitator + N participants; the lead is the
+- `supervise` mode runs a supervisor + agent relay. The lead is the supervisor.
+- `facilitate` mode runs a facilitator + N participants. The lead is the
   facilitator.
-- `discuss` mode runs a chair + N participants over a suspendable bridge; the
+- `discuss` mode runs a chair + N participants over a suspendable bridge. The
   lead is the chair.
 
-Set `lead-profile` to choose the lead's profile and `lead-model` to override
+Set `lead-profile` to choose the lead's profile. Set `lead-model` to override
 the lead's model.
 
 ### Discuss mode
 
 `mode: discuss` runs an asynchronous, suspendable discussion. Use
-`discussion-id` to correlate traces across resumed runs and `resume-context`
+`discussion-id` to correlate traces across resumed runs. Use `resume-context`
 to restore prior state when the caller resumes a suspended discussion.
 
 | Input            | Required | Default | Description                                              |
 | ---------------- | -------- | ------- | -------------------------------------------------------- |
-| `discussion-id`  | No       | —       | Stable id for the threaded discussion; enables resume    |
+| `discussion-id`  | No       | —       | Stable id for the threaded discussion, which lets a run resume |
 | `resume-context` | No       | —       | JSON-serialized prior state for a resumed discuss run    |
 
 ### Optional Overrides
@@ -111,4 +111,4 @@ to restore prior state when the caller resumes a suspended discussion.
 | `supervisor-cwd`  | No       | `.`     | Supervisor working dir (supervise mode) |
 | `agent-cwd`       | No       | `.`     | Agent working dir (supervise / facilitate / discuss modes) |
 
-\*Exactly one of `task-text` or `task-file` is required.
+\*Supply exactly one of `task-text` or `task-file`.

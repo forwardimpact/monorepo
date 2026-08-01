@@ -1,7 +1,7 @@
 /**
  * ReplyEmitter — POST reply/ack events to the callback URL as they
- * happen. Each emission is fire-and-forget so the message bus is never
- * blocked on network I/O.
+ * happen. Each emission is fire-and-forget, so network I/O never blocks
+ * the message bus.
  */
 export class ReplyEmitter {
   #callbackUrl;

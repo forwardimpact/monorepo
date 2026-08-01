@@ -1,12 +1,16 @@
 /**
- * SDV tool — generates statistically representative tabular data via Python subprocess.
+ * SDV tool — generates statistically representative tabular data through a
+ * Python subprocess.
  */
 
 import { join } from "path";
 import { tmpdir } from "os";
 import { randomUUID } from "crypto";
 
-/** Generate statistically representative tabular data by delegating to SDV via a Python subprocess. */
+/**
+ * Generate statistically representative tabular data. Delegate to SDV
+ * through a Python subprocess.
+ */
 export class SdvTool {
   /**
    * @param {object} deps
@@ -41,7 +45,8 @@ export class SdvTool {
   }
 
   /**
-   * Generate tabular data preserving statistical properties from sample data.
+   * Generate tabular data that preserves the statistical properties of the
+   * sample data.
    * @param {object} config
    * @param {string} config.name - Dataset name from DSL
    * @param {string} config.metadata - Path to SDV metadata JSON

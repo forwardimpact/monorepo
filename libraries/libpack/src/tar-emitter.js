@@ -13,7 +13,7 @@ export class TarEmitter {
     this.#fs = rt.fs;
   }
 
-  /** Run a command synchronously with binary output; returns stdout Buffer. */
+  /** Run a command synchronously. Return the binary stdout as a Buffer. */
   #exec(cmd, args, opts = {}) {
     const result = this.#subprocess.runSync(cmd, args, {
       encoding: "buffer",

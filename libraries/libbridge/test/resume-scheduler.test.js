@@ -212,7 +212,7 @@ describe("ResumeScheduler", () => {
     expect(ctx.open_rfcs["corr-3"]).toBeUndefined();
   });
 
-  test("cancelRecess removes the rfc and cancels its timer; idempotent", () => {
+  test("cancelRecess removes the rfc, cancels its timer, and is idempotent", () => {
     const ctx = makeCtx();
     env.scheduler.enterRecess(
       ctx,
@@ -421,7 +421,7 @@ describe("ResumeScheduler", () => {
     expect(tr.calls[0].surface).toBe("test-channel");
   });
 
-  test("resume declined: cancelRecess + onDeclined called", async () => {
+  test("resume declined: calls cancelRecess and onDeclined", async () => {
     const declinedCalls = [];
     const tr = {
       resolve: async () => ({
@@ -456,7 +456,7 @@ describe("ResumeScheduler", () => {
     expect(declinedCalls[0].kind).toBe("link_required");
   });
 
-  test("RFC missing requester: cancel + skip, dispatch not called", async () => {
+  test("RFC missing requester: cancels the rfc, skips the resume, and never calls dispatch", async () => {
     const tr = makeTokenResolver();
     env = buildEnv({ tokenResolver: tr });
     const ctx = makeCtx();

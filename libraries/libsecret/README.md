@@ -21,7 +21,7 @@ import {
 
 - `mintSupabaseJwt({ email, secret, ttlSeconds })` — per-caller HS256 token
   signed against the Supabase JWT secret.
-- `mintSupabaseAnonKey({ secret })` — long-lived `role: anon` token used by
-  Supabase Auth's anon-keyed clients.
+- `mintSupabaseAnonKey({ secret })` — long-lived `role: anon` token that
+  Supabase Auth's anon-keyed clients use.
 - `mintSupabaseServiceRoleKey({ secret })` — long-lived `role: service_role`
-  token used for admin operations against Supabase.
+  token for admin operations against Supabase.

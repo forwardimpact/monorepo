@@ -2,19 +2,19 @@
 
 // Bun FFI wrapper for posix_spawn (macOS only).
 //
-// Used by the scheduler when running inside fit-outpost.app so that child
-// processes (claude) inherit TCC attributes from the responsible binary.
+// The scheduler uses this when it runs inside fit-outpost.app. Child
+// processes (claude) then inherit TCC attributes from the responsible binary.
 
 import { dlopen, ptr } from "bun:ffi";
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-// responsibility_spawnattrs_setdisclaim controls the spawned child's TCC
-// "responsible process". With disclaim = 1 the child becomes responsible for
-// itself; with disclaim = 0 (what we pass below) it keeps the parent chain's
-// responsible process, so macOS attributes the child's access to
-// fit-outpost.app.
+// responsibility_spawnattrs_setdisclaim controls the TCC "responsible
+// process" of the spawned child. With disclaim = 1 the child becomes
+// responsible for itself. With disclaim = 0 the child keeps the parent
+// chain's responsible process. macOS then attributes the child's access to
+// fit-outpost.app. The code below passes 0.
 const {
   symbols: { responsibility_spawnattrs_setdisclaim: setDisclaim },
 } = dlopen("/usr/lib/system/libquarantine.dylib", {
@@ -24,8 +24,8 @@ const {
   },
 });
 
-// Bun's dlopen requires `args`/`returns` field names — the `parameters`/
-// `result` aliases silently return undefined, causing null-pointer crashes.
+// Bun's dlopen requires the `args`/`returns` field names. The `parameters`/
+// `result` aliases silently return undefined and cause null-pointer crashes.
 const libc = dlopen("libSystem.B.dylib", {
   posix_spawn: {
     args: [
@@ -81,7 +81,8 @@ function cstr(str) {
 
 /**
  * Build a C-style string array (char *const[]) from JS strings.
- * Returns the pointer array and the buffers (must keep references alive).
+ * Returns the pointer array and the buffers. The caller must keep the
+ * references alive.
  * @param {string[]} strings
  * @returns {{ pointer: BigInt64Array, buffers: Uint8Array[] }}
  */
@@ -117,11 +118,12 @@ export function readOutput(filePath, runtime) {
 }
 
 /**
- * Spawn a child process using posix_spawn so TCC attributes inherit from
- * the calling process (the responsible binary).
+ * Spawn a child process with posix_spawn. TCC attributes then inherit from
+ * the process that calls it (the responsible binary).
  *
- * Stdout and stderr are captured via temp files. Call `waitForExit()` with
- * the PID, then `readOutput()` on the returned file paths.
+ * This function captures stdout and stderr in temp files. Call
+ * `waitForExit()` with the PID. Then call `readOutput()` on the returned
+ * file paths.
  *
  * @param {string} executable - Absolute path to the executable
  * @param {string[]} args - Arguments (argv[0] should be the executable name)
@@ -129,10 +131,10 @@ export function readOutput(filePath, runtime) {
  * @param {string} [cwd] - Working directory for the child process
  * @param {object} [runtime] - Runtime collaborator bag
  * @param {0|1} [disclaim=0] - TCC responsibility for the child. `0` keeps the
- *   parent chain's responsible process (the child's access attributes to that
- *   process, e.g. fit-outpost.app, so one grant covers the subtree); `1` makes
- *   the child responsible for itself, so the parent's grants are not extended
- *   to it.
+ *   parent chain's responsible process. The child's access then attributes to
+ *   that process, for example fit-outpost.app. One grant covers the subtree.
+ *   `1` makes the child responsible for itself. The parent's grants do not
+ *   extend to it.
  * @returns {{ pid: number, stdoutFile: string, stderrFile: string }}
  */
 export function spawn(executable, args, env, cwd, runtime, disclaim = 0) {
@@ -144,10 +146,10 @@ export function spawn(executable, args, env, cwd, runtime, disclaim = 0) {
     .map(([k, v]) => `${k}=${v}`);
   const envp = buildStringArray(envStrings);
 
-  // Capture stdout/stderr via temp files instead of pipes. The tag must be
-  // unique across concurrent spawns; `runtime.proc` exposes no pid, so a
-  // random UUID replaces the former `${pid}-${Date.now()}` scheme (clock.now()
-  // alone is not unique within a millisecond).
+  // Capture stdout/stderr in temp files instead of pipes. The tag must be
+  // unique across concurrent spawns. `runtime.proc` exposes no pid, so a
+  // random UUID replaces the former `${pid}-${Date.now()}` scheme.
+  // clock.now() alone is not unique within a millisecond.
   const tag = `outpost-${clock.now()}-${randomUUID()}`;
   const stdoutFile = join(tmpdir(), `${tag}-stdout`);
   const stderrFile = join(tmpdir(), `${tag}-stderr`);
@@ -155,24 +157,24 @@ export function spawn(executable, args, env, cwd, runtime, disclaim = 0) {
   const stderrFd = fsSync.openSync(stderrFile, "w", 0o600);
 
   // Allocate attr and file_actions on the heap
-  const attrBuf = new Uint8Array(512); // posix_spawnattr_t is opaque, 512 is generous
+  const attrBuf = new Uint8Array(512); // posix_spawnattr_t is opaque. 512 is generous
   const fileActionsBuf = new Uint8Array(512);
   const attr = ptr(attrBuf);
   const fa = ptr(fileActionsBuf);
 
   libc.symbols.posix_spawnattr_init(attr);
 
-  // Apply the per-wake TCC responsibility setting. With disclaim = 0 the child
-  // keeps the parent chain's responsible process, so its access is attributed
-  // to fit-outpost.app and a single grant to the app covers the whole subtree.
-  // With disclaim = 1 the child is responsible for itself, so the app's grants
-  // are not extended to it (used for least-privilege agents — see
-  // products/outpost/macos/TCC-VERIFICATION.md).
+  // Apply the TCC responsibility for this wake. With disclaim = 0 the child
+  // keeps the parent chain's responsible process. macOS then attributes its
+  // access to fit-outpost.app, and a single grant to the app covers the whole
+  // subtree. With disclaim = 1 the child is responsible for itself. The app's
+  // grants do not extend to it. Least-privilege agents use this value. See
+  // products/outpost/macos/TCC-VERIFICATION.md.
   setDisclaim(attr, disclaim);
 
   libc.symbols.posix_spawn_file_actions_init(fa);
 
-  // Set working directory if specified
+  // Set the working directory if the caller provides one
   if (cwd) {
     libc.symbols.posix_spawn_file_actions_addchdir_np(fa, cstr(cwd));
   }
@@ -192,7 +194,7 @@ export function spawn(executable, args, env, cwd, runtime, disclaim = 0) {
     ptr(envp.pointer),
   );
 
-  // Close file fds in the parent (child has its own copies)
+  // Close the file fds in the parent. The child has its own copies.
   fsSync.closeSync(stdoutFd);
   fsSync.closeSync(stderrFd);
 
@@ -218,9 +220,9 @@ export function spawn(executable, args, env, cwd, runtime, disclaim = 0) {
 
 /**
  * Wait for a child process to exit (non-blocking poll).
- * Uses WNOHANG to avoid blocking the event loop.
+ * Uses WNOHANG so the event loop does not block.
  * @param {number} pid
- * @param {number} [pollIntervalMs=100] - Polling interval in milliseconds
+ * @param {number} [pollIntervalMs=100] - Interval between polls in milliseconds
  * @param {object} [runtime] - Runtime collaborator bag
  * @returns {Promise<number>} Exit status
  */
@@ -233,7 +235,7 @@ export async function waitForExit(pid, pollIntervalMs = 100, runtime) {
       // WEXITSTATUS: (status >> 8) & 0xff
       return (status[0] >> 8) & 0xff;
     }
-    // Child not yet exited — yield to event loop
+    // The child still runs. Yield to the event loop.
     await clock.sleep(pollIntervalMs);
   }
 }

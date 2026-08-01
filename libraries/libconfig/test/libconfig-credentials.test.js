@@ -15,7 +15,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
   });
 
   /**
-   * Wraps a mock storage so put() stringifies .json values, matching
+   * Wraps a mock storage so put() stringifies .json values. This matches
    * real LocalStorage behaviour (get already JSON.parses them).
    */
   const mockStorageFn = (storage) => () => {
@@ -30,7 +30,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
     return storage;
   };
 
-  test("mcpToken() returns value from environment", async () => {
+  test("mcpToken() returns the value from the environment", async () => {
     const storage = createMockStorage({
       get: spy(() => Promise.resolve("")),
     });
@@ -63,14 +63,14 @@ describe("libconfig - Anthropic and MCP credentials", () => {
     });
   });
 
-  test("anthropicToken() prefers env var over OAuth", async () => {
+  test("anthropicToken() prefers the env var over OAuth", async () => {
     const storage = createMockStorage({
       get: spy(() => Promise.resolve("")),
     });
     const proc = baseMockProcess();
     proc.env.ANTHROPIC_API_KEY = "sk-ant-env-key";
 
-    // Also seed an OAuth file — env var should still win
+    // Also seed an OAuth file. The env var still wins.
     storage.data.set(
       "anthropic-oauth.json",
       JSON.stringify({
@@ -91,7 +91,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
     assert.strictEqual(token, "sk-ant-env-key");
   });
 
-  test("anthropicToken() falls back to OAuth file", async () => {
+  test("anthropicToken() falls back to the OAuth file", async () => {
     const storage = createMockStorage();
     storage.data.set(
       "anthropic-oauth.json",
@@ -113,7 +113,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
     assert.strictEqual(token, "oauth-access-token");
   });
 
-  test("anthropicToken() refreshes expired token", async () => {
+  test("anthropicToken() refreshes the expired token", async () => {
     const storage = createMockStorage();
     storage.data.set(
       "anthropic-oauth.json",
@@ -151,7 +151,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       const token = await config.anthropicToken();
 
       assert.strictEqual(token, "refreshed-token");
-      // Verify the token was persisted
+      // Verify that the config persisted the token
       const stored = JSON.parse(storage.data.get("anthropic-oauth.json"));
       assert.strictEqual(stored.access_token, "refreshed-token");
       assert.strictEqual(stored.refresh_token, "new-refresh");
@@ -160,7 +160,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
     }
   });
 
-  test("anthropicToken() clears token and throws on failed refresh", async () => {
+  test("anthropicToken() clears the token and throws on a failed refresh", async () => {
     const storage = createMockStorage();
     storage.data.set(
       "anthropic-oauth.json",
@@ -188,7 +188,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       await assert.rejects(() => config.anthropicToken(), {
         message: "Session expired. Run `fit-guide login` to re-authenticate.",
       });
-      // Verify the stale token was cleared
+      // Verify that the config cleared the stale token
       assert.strictEqual(storage.data.has("anthropic-oauth.json"), false);
     } finally {
       globalThis.fetch = originalFetch;
@@ -210,7 +210,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
     });
   });
 
-  test("writeOAuthCredential() persists token", async () => {
+  test("writeOAuthCredential() persists the token", async () => {
     const storage = createMockStorage({
       get: spy(() => Promise.resolve("")),
     });
@@ -236,7 +236,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
     );
   });
 
-  test("clearOAuthCredential() removes file", async () => {
+  test("clearOAuthCredential() removes the file", async () => {
     const storage = createMockStorage();
     storage.data.set(
       "anthropic-oauth.json",
@@ -264,7 +264,7 @@ describe("libconfig - Anthropic and MCP credentials", () => {
       rt(baseMockProcess()),
       mockStorageFn(storage),
     );
-    // Should not throw
+    // This call must not throw
     await config.clearOAuthCredential();
   });
 });

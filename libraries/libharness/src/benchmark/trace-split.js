@@ -1,18 +1,19 @@
 /**
- * Combined-supervisor-trace splitting for the benchmark runner: one pass
+ * Split the combined supervisor trace for the benchmark runner. One pass
  * over the tagged NDJSON envelope stream separates agent events from
- * supervisor/orchestrator events and extracts the run summary.
+ * supervisor and orchestrator events. The same pass extracts the run summary.
  */
 
 import { createInterface } from "node:readline";
 
 /**
- * Split the combined supervisor trace into agent and supervisor files and
- * extract turn count and submission in a single pass. Agent-source events go
- * to `agentPath`; supervisor and orchestrator events go to `supervisorPath`.
+ * Split the combined supervisor trace into agent and supervisor files. The
+ * same pass extracts the turn count and the submission. Agent-source events
+ * go to `agentPath`. Supervisor and orchestrator events go to
+ * `supervisorPath`.
  *
- * Cost is deliberately not summed here — the caller derives it from the same
- * combined trace via `sumTraceCost`, so there is one cost path across the
+ * This function deliberately does not sum cost. The caller derives it from
+ * the same combined trace with `sumTraceCost`. One cost path then serves the
  * benchmark, callback, and `gemba-trace cost` consumers.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} combinedPath

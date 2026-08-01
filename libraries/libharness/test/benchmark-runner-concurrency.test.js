@@ -1,16 +1,16 @@
 /**
  * In-process concurrency coverage for `BenchmarkRunner`. The agent-under-test
- * and judge are injected seams so no SDK runs; the fixture family supplies real
- * tasks + preflight scripts.
+ * and judge are injected seams, so no SDK runs. The fixture family supplies
+ * real tasks + preflight scripts.
  *
- * Why a high-water-mark instead of a wall-clock assertion: the mock clock
- * advances one shared virtual `now` and resolves `sleep` on the next microtask,
- * so concurrent cells do not overlap in virtual time. Boundedness is therefore
- * asserted via a **max-in-flight high-water-mark** maintained by the fake-agent
- * seam. The "stall costs one slot" property splits into two checks: an injected
- * short `watchdogMs` proves a hung agent session becomes an `agentError` (real
- * watchdog path), and a hook-based slow cell proves a stall occupies one slot
- * while others complete.
+ * These checks use a high-water-mark rather than a wall-clock assertion. The
+ * mock clock advances one shared virtual `now` and resolves `sleep` on the
+ * next microtask. So concurrent cells do not overlap in virtual time. The
+ * fake-agent seam keeps a **max-in-flight high-water-mark**, and the checks
+ * assert boundedness against it. The "stall costs one slot" property splits
+ * into two checks. An injected short `watchdogMs` proves a hung agent session
+ * becomes an `agentError` (real watchdog path). A hook-based slow cell proves
+ * a stall occupies one slot while others complete.
  */
 
 import { describe, test, before } from "node:test";
@@ -38,7 +38,7 @@ const mockInstallApm = (family, outputDir) =>
     outputDir,
   );
 
-/** A passing agent seam that writes a minimal trace. */
+/** An agent seam that passes and writes a minimal trace. */
 async function passingAgent(_task, workdir) {
   const submission = "done";
   await writeFile(workdir.agentTracePath, "");
@@ -82,12 +82,12 @@ async function collect(runner) {
 }
 
 /**
- * Deterministic overlap barrier. Each `enter()` bumps the in-flight count,
- * records the high-water mark, and blocks until `target` calls are
+ * Deterministic overlap barrier. Each `enter()` bumps the in-flight count and
+ * records the high-water mark. It then blocks until `target` calls are
  * simultaneously in flight (then all release) or a safety timeout fires. A
- * blocked agent holds its scheduler slot, so the scheduler fills up to its
- * bound and `target` overlap is reached without racing a fixed sleep against
- * CI-variable setup/teardown I/O — the source of the earlier flakiness.
+ * blocked agent holds its scheduler slot. So the scheduler fills up to its
+ * bound and reaches `target` overlap. It does not race a fixed sleep against
+ * CI-variable setup/teardown I/O. That race caused the earlier flakiness.
  */
 function overlapBarrier(target) {
   let inFlight = 0;
@@ -141,7 +141,8 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
   }, async () => {
     const C = 2;
     // Barrier target = C: blocked agents hold their slots until exactly C
-    // overlap, so the bound is both reached and never exceeded — deterministic.
+    // overlap. The run reaches the bound and never exceeds it. This is
+    // deterministic.
     const bar = overlapBarrier(C);
     const trackingAgent = (task, workdir) =>
       bar.enter().then(() => passingAgent(task, workdir));
@@ -155,7 +156,7 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
       bar.highWater <= C,
       `max-in-flight ${bar.highWater} exceeded C=${C}`,
     );
-    assert.strictEqual(bar.highWater, C, "the bound should be reached");
+    assert.strictEqual(bar.highWater, C, "the run should reach the bound");
   });
 
   test("verdict unchanged: C=1 and C=8 produce identical pass@k and per-task n/c", {
@@ -208,7 +209,7 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
   test("an injected short watchdogMs turns a hung agent session into an agentError", {
     timeout: 30_000,
   }, async () => {
-    // No runAgent hook → the real #runAgent runs; a query whose iterator never
+    // No runAgent hook → the real #runAgent runs. A query whose iterator never
     // settles hangs supervisor.run(), so the watchdog (50 ms here) fires.
     const hangingQuery = () => ({
       async *[Symbol.asyncIterator]() {
@@ -228,13 +229,13 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
     assert.match(records[0].agentError.message, /no result within 50ms/);
   });
 
-  test("a stalled cell costs one slot, not the run", {
+  test("a stalled cell costs one slot while the run completes", {
     timeout: 30_000,
   }, async () => {
-    // One task's agent stalls until a healthy cell has completed, then records
-    // an agentError; the rest resolve immediately. With C>1 the stalled cell
-    // holds one slot while the others finish and the run completes —
-    // deterministic via a completion signal, not a fixed sleep.
+    // One task's agent stalls until a healthy cell completes, then records an
+    // agentError. The rest resolve immediately. With C>1 the stalled cell
+    // holds one slot while the others finish and the run completes. A
+    // completion signal makes this deterministic. A fixed sleep does not.
     const completionOrder = [];
     let signalFast;
     const aFastCellDone = new Promise((r) => {
@@ -244,7 +245,7 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
       await writeFile(workdir.agentTracePath, "");
       await writeFile(workdir.supervisorTracePath, "");
       if (task.id === "repo-state") {
-        // Hold this slot until a fast cell has finished (safety-capped).
+        // Hold this slot until a fast cell finishes (safety-capped).
         await Promise.race([
           aFastCellDone,
           new Promise((r) => setTimeout(r, 5000)),
@@ -269,9 +270,9 @@ describe("BenchmarkRunner Layer-1 concurrency", () => {
     const records = await collect(runner);
     const stalled = records.find((r) => r.taskId === "repo-state");
     assert.ok(stalled.agentError, "stalled cell must record an agentError");
-    // The run completed: every task produced a record.
+    // The run completed. Every task produced a record.
     assert.ok(records.length >= 4);
-    // A fast cell finished before the slow one — the stall held one slot only.
+    // A fast cell finished before the slow one. The stall held one slot only.
     assert.ok(
       completionOrder.indexOf("repo-state") > 0,
       "a non-stalled cell should complete before the stalled one",

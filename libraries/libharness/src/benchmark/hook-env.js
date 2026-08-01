@@ -1,12 +1,13 @@
 /**
- * Shared environment builder for the benchmark hook scripts (`preflight.sh` and
- * `invariants.sh`). Keeping both spawns on one helper guarantees they expose the
- * same variable set, so hook authors never have to wonder which vars a given
- * hook receives.
+ * Shared environment builder for the benchmark hook scripts (`preflight.sh`
+ * and `invariants.sh`). One helper serves both spawns, so both expose the
+ * same variable set. Hook authors never have to wonder which vars a hook
+ * receives.
  *
  * Path vars (TASK_DIR, FAMILY_DIR, HOOKS_DIR) let hooks reference real
- * locations instead of reconstructing them from `$0`. They are paths, not
- * secrets, so they need no redaction allowlist entry.
+ * locations. Hooks do not have to rebuild the locations from `$0`. They are
+ * paths. They are not secrets, so they need no entry in the redaction
+ * allowlist.
  */
 
 /**
@@ -27,9 +28,10 @@ export function buildHookEnv(
 ) {
   return {
     ...baseEnv,
-    // The agent CWD itself — hooks reference emitted files as `$AGENT_CWD/<path>`.
-    // Distinct from the `invariants` CLI's `--run-dir` (the parent that
-    // *contains* `cwd/`), so the two are never confused.
+    // The agent CWD itself. Hooks reference emitted files as
+    // `$AGENT_CWD/<path>`. This var is distinct from the `invariants` CLI's
+    // `--run-dir` (the parent that *contains* `cwd/`), so the two are never
+    // confused.
     AGENT_CWD: cwd,
     PORT: String(port),
     TASK_ID: taskId,

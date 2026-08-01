@@ -50,7 +50,7 @@ describe("findTeamById", () => {
     assert.strictEqual(team?.name, "Alpha");
   });
 
-  test("returns null for missing id", () => {
+  test("returns null for a missing id", () => {
     const ast = makeAst();
     assert.strictEqual(findTeamById(ast, "nope"), null);
   });
@@ -84,13 +84,13 @@ describe("findDepartmentForTeam", () => {
 });
 
 describe("findMostRecentScenarioForTeam", () => {
-  test("picks the scenario with max timerange_start; ties broken by id ASC (max-id wins)", () => {
+  test("picks the scenario with max timerange_start and breaks ties by id ASC (max-id wins)", () => {
     const ast = makeAst();
     const s = findMostRecentScenarioForTeam(ast, "alpha");
     assert.strictEqual(s?.id, "s3");
   });
 
-  test("picks the single matching scenario for a team", () => {
+  test("picks the single scenario that matches a team", () => {
     const ast = makeAst();
     const s = findMostRecentScenarioForTeam(ast, "beta");
     assert.strictEqual(s?.id, "s2");

@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    Forward Impact Engineering — Brand Layer
-   Tokens, fonts, and brand-specific surfaces. Loaded after the shared
-   base/layout/components stylesheets so brand rules win the cascade.
+   Tokens, fonts, and brand-specific surfaces. The page loads them after the
+   shared base/layout/components stylesheets, so brand rules win the cascade.
    ══════════════════════════════════════════════════════════════════ */
 
 @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400&family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif&display=swap");
@@ -105,7 +105,7 @@
   background-size: 400px 400px;
 }
 
-/* Philosophy section — italic display-serif quote, fit reads as field-journal voice. */
+/* Philosophy section — italic display-serif quote. fit reads as field-journal voice. */
 .section-philosophy {
   text-align: center;
 }

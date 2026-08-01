@@ -1,7 +1,7 @@
 /**
- * Sharding coverage: `selectShard` is an exact, balanced, deterministic
- * partition, and a `--shard` runner pass writes a self-contained partial ledger
- * (including the deliberately-empty high-index shard).
+ * Shard coverage. `selectShard` is an exact, balanced, deterministic
+ * partition. A `--shard` runner pass writes a self-contained partial ledger,
+ * and that includes the deliberately-empty high-index shard.
  */
 
 import { describe, test } from "node:test";
@@ -91,9 +91,9 @@ describe("selectShard — exact partition", () => {
 
   test("balanced: each task's run indexes spread across shards (N ≤ runs)", () => {
     const N = 5;
-    // For each shard, which tasks contributed a cell. With task-major ordering
-    // and p%N, a task's 5 runs land on 5 distinct shards — no shard owns a whole
-    // task while another gets none.
+    // The check below asks which tasks contributed a cell to each shard. With
+    // task-major order and p%N, a task's 5 runs land on 5 distinct shards. No
+    // shard owns a whole task while another gets none.
     for (let i = 1; i <= N; i++) {
       const shard = selectShard(cells, i, N);
       const taskIds = new Set(shard.map((c) => c.task.id));
@@ -149,10 +149,10 @@ describe("BenchmarkRunner --shard partial ledger", () => {
     );
   });
 
-  test("a deliberately-empty high-index shard writes an empty ledger, yields nothing", {
+  test("a deliberately-empty high-index shard writes an empty ledger and yields nothing", {
     timeout: 30_000,
   }, async () => {
-    // 5 tasks × 2 runs = 10 cells; shard 50/50 selects none.
+    // 5 tasks × 2 runs = 10 cells. Shard 50/50 selects none.
     const { records, out } = await runShard({ index: 50, total: 50 });
     assert.strictEqual(records.length, 0);
     const names = await readdir(out);
@@ -163,9 +163,10 @@ describe("BenchmarkRunner --shard partial ledger", () => {
 });
 
 describe("zero-record exit guard (the relaxed-shard branch)", () => {
-  // resolveZeroRecordOutcome is the exact decision runBenchmarkRunCommand makes
-  // when a run streams zero records — exercised directly so the exit-0-vs-exit-1
-  // fork is covered without the handler's config/SDK setup.
+  // resolveZeroRecordOutcome is the exact decision runBenchmarkRunCommand
+  // makes when a run streams zero records. These tests exercise it directly,
+  // so they cover the exit-0-vs-exit-1 fork without the handler's config/SDK
+  // setup.
   function fakeRuntime() {
     const errs = [];
     return {

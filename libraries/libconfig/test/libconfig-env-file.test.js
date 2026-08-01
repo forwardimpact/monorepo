@@ -8,7 +8,7 @@ import { createConfig } from "../src/index.js";
 import { createMockStorage, spy } from "@forwardimpact/libmock";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-describe("libconfig - .env file loading", () => {
+describe("libconfig - loads the .env file", () => {
   const testDir = path.join(tmpdir(), `libconfig-env-test-${process.pid}`);
   const envPath = path.join(testDir, ".env");
 
@@ -37,7 +37,7 @@ describe("libconfig - .env file loading", () => {
     writeFileSync(envPath, content, "utf8");
   }
 
-  test("loads allowed keys from .env file", async () => {
+  test("loads allowed keys from the .env file", async () => {
     writeEnvFile("GITHUB_TOKEN=from-env-file\nANTHROPIC_API_KEY=sk-ant-test\n");
 
     const config = await createConfig(
@@ -53,7 +53,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(token, "sk-ant-test");
   });
 
-  test("process.env takes precedence over .env file", async () => {
+  test("process.env overrides the .env file", async () => {
     writeEnvFile("GITHUB_TOKEN=file-value\n");
 
     const config = await createConfig(
@@ -67,7 +67,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.ghToken(), "env-value");
   });
 
-  test("GH_TOKEN from .env file is treated as a credential", async () => {
+  test("Config treats GH_TOKEN from the .env file as a credential", async () => {
     writeEnvFile("GH_TOKEN=gh-cli-value\n");
 
     const runtime = createRuntime();
@@ -105,15 +105,15 @@ describe("libconfig - .env file loading", () => {
     );
   });
 
-  test(".env file overwrites inherited process.env for non-credential keys", async () => {
+  test("the .env file overwrites inherited process.env for non-credential keys", async () => {
     writeEnvFile("SERVICE_SECRET=from-file\n");
 
     const runtime = createRuntime({ SERVICE_SECRET: "from-env" });
     await createConfig("test", "svc", {}, runtime, mockStorageFn);
 
     // .env is the persistent source of truth. Supervised child processes
-    // inherit stale values from svscan — always applying the .env value
-    // ensures edits take effect on restart.
+    // inherit stale values from svscan. Config always applies the .env
+    // value, so edits take effect on restart.
     assert.strictEqual(runtime.proc.env.SERVICE_SECRET, "from-file");
   });
 
@@ -133,7 +133,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.ghToken(), "secret-value");
   });
 
-  test("strips surrounding quotes from values", async () => {
+  test("strips the quotes around values", async () => {
     writeEnvFile(
       "GITHUB_TOKEN=\"double-quoted\"\nANTHROPIC_API_KEY='single-quoted'\n",
     );
@@ -151,7 +151,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(token, "single-quoted");
   });
 
-  test("handles values containing equals signs", async () => {
+  test("handles values that contain equals signs", async () => {
     writeEnvFile("GITHUB_TOKEN=abc=def=ghi\n");
 
     const config = await createConfig(
@@ -165,9 +165,9 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.ghToken(), "abc=def=ghi");
   });
 
-  test("continues gracefully when .env file does not exist", async () => {
+  test("continues gracefully when the .env file does not exist", async () => {
     mkdirSync(testDir, { recursive: true });
-    // No .env file written
+    // The test writes no .env file
 
     const config = await createConfig(
       "test",
@@ -181,7 +181,8 @@ describe("libconfig - .env file loading", () => {
   });
 
   test("throws on non-ENOENT errors (e.g. permission denied)", async () => {
-    // Cannot enforce file permissions as root — early return acts as skip.
+    // The test cannot enforce file permissions as root. The early return
+    // acts as a skip.
     if (process.getuid?.() === 0) return;
 
     writeEnvFile("GITHUB_TOKEN=secret\n");
@@ -207,12 +208,12 @@ describe("libconfig - .env file loading", () => {
       mockStorageFn,
     );
 
-    // These should only be accessible via getter methods, not as properties
+    // Only the getter methods expose these. They are not properties.
     assert.strictEqual(config.GITHUB_TOKEN, undefined);
     assert.strictEqual(config.ANTHROPIC_API_KEY, undefined);
   });
 
-  test("reset clears .env overrides", async () => {
+  test("reset clears the .env overrides", async () => {
     writeEnvFile("GITHUB_TOKEN=from-file\n");
 
     const config = await createConfig(
@@ -226,7 +227,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.ghToken(), "from-file");
     config.reset();
 
-    // After reset, .env overrides are cleared and no process env either
+    // reset() clears the .env overrides. No process env value remains.
     assert.throws(() => config.ghToken(), /GH_TOKEN not found in environment/);
   });
 
@@ -252,7 +253,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.mcpToken(), "mcp-tok");
   });
 
-  test("values do not leak via Object.keys or JSON.stringify", async () => {
+  test("values do not leak through Object.keys or JSON.stringify", async () => {
     writeEnvFile("GITHUB_TOKEN=token\nANTHROPIC_API_KEY=secret\n");
 
     const config = await createConfig(
@@ -270,7 +271,7 @@ describe("libconfig - .env file loading", () => {
     assert.ok(!serialized.includes("secret"));
   });
 
-  test("Supabase secret keys are credential-isolated from process.env", async () => {
+  test("Config isolates Supabase secret keys from process.env", async () => {
     writeEnvFile(
       [
         "SUPABASE_URL=http://127.0.0.1:54321",
@@ -293,7 +294,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(config.supabaseServiceRoleKey(), "service-role-jwt");
     assert.strictEqual(config.supabaseJwtSecret(), "signing-secret");
 
-    // SUPABASE_URL is non-credential; it must remain on process.env so
+    // SUPABASE_URL is non-credential. It must remain on process.env so
     // docker-compose's ${SUPABASE_URL} interpolation works at the shell
     // level (design § Key Decisions row 7).
     assert.strictEqual(runtime.proc.env.SUPABASE_URL, "http://127.0.0.1:54321");
@@ -305,7 +306,7 @@ describe("libconfig - .env file loading", () => {
     assert.strictEqual(runtime.proc.env.JWT_SECRET, undefined);
   });
 
-  test("strips export prefix on keys", async () => {
+  test("strips the export prefix on keys", async () => {
     writeEnvFile("export GITHUB_TOKEN=exported-value\n");
 
     const config = await createConfig(

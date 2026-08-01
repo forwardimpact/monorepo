@@ -1,15 +1,15 @@
 /**
- * Safeguard-and-write logic behind the `gemba-selfedit` bin: write content
- * to a path that .claude/settings.json permits Edit on, while on a non-main
- * git branch. See libraries/libharness/README.md § gemba-selfedit for the
- * full rationale.
+ * Safeguard-and-write logic behind the `gemba-selfedit` bin. It writes
+ * content to a path that .claude/settings.json permits Edit on. The write
+ * happens only on a non-main git branch. See
+ * libraries/libharness/README.md § gemba-selfedit for the full rationale.
  */
 
 import { resolve, relative, dirname } from "node:path";
 
 import { minimatch } from "minimatch";
 
-/** A safeguard violation — callers map it to exit code 2. */
+/** A safeguard violation. Callers map it to exit code 2. */
 export class SelfeditError extends Error {
   /** @param {string} message failure description */
   constructor(message) {
@@ -21,18 +21,18 @@ export class SelfeditError extends Error {
 /**
  * Check every safeguard for a selfedit write, then perform it.
  *
- * Safeguards (checked in order):
+ * The function checks these safeguards in order:
  * 1. The nearest .claude/settings.json must contain an Edit(<glob>) rule in
  *    permissions.allow[] that resolves to the target path.
  * 2. HEAD must not be detached and the current branch must not be 'main'.
  * 3. The target's parent directory must exist.
  *
- * @param {string} targetArg target path as given on the command line
+ * @param {string} targetArg target path from the command line
  * @param {Buffer} content bytes to write
  * @param {{ runtime: object }} deps runtime bag (fsSync, proc, subprocess,
- *   finder); targetArg resolves against `runtime.proc.cwd()`
+ *   finder). targetArg resolves against `runtime.proc.cwd()`
  * @returns {{ bytes: number, relativeTarget: string, matchedPattern: string,
- *   branch: string }} what was written and which rule allowed it
+ *   branch: string }} what the function wrote and which rule allowed it
  * @throws {SelfeditError} on any safeguard violation
  */
 export function runSelfeditCommand(targetArg, content, { runtime }) {
@@ -41,7 +41,7 @@ export function runSelfeditCommand(targetArg, content, { runtime }) {
   const absoluteTarget = resolve(cwd, targetArg);
 
   // Safeguard 1: settings.json must grant Edit() on this path. Resolve the
-  // finder off the runtime bag rather than constructing a Finder here.
+  // finder off the runtime bag. Do not construct a Finder here.
   const settingsPath = finder.findUpward(
     dirname(absoluteTarget),
     ".claude/settings.json",
@@ -49,7 +49,7 @@ export function runSelfeditCommand(targetArg, content, { runtime }) {
   );
   if (!settingsPath) {
     throw new SelfeditError(
-      `no .claude/settings.json found walking upward from ${dirname(absoluteTarget)}`,
+      `no .claude/settings.json found upward from ${dirname(absoluteTarget)}`,
     );
   }
 
@@ -89,25 +89,25 @@ export function runSelfeditCommand(targetArg, content, { runtime }) {
     );
   }
 
-  // Safeguard 2: branch must not be main and HEAD must not be detached.
+  // Safeguard 2: the branch must not be main and HEAD must not be detached.
   const git = subprocess.runSync("git", ["rev-parse", "--abbrev-ref", "HEAD"], {
     cwd,
   });
   if (git.exitCode !== 0) {
     throw new SelfeditError(
-      "failed to read current git branch (not inside a git repository?)",
+      "failed to read the current git branch (this may not be a git repository)",
     );
   }
   const branch = git.stdout.trim();
 
   if (branch === "HEAD") {
     throw new SelfeditError(
-      "HEAD is detached — refusing (check out a non-main branch first)",
+      "will not write while HEAD is detached. Check out a non-main branch first",
     );
   }
   if (branch === "main") {
     throw new SelfeditError(
-      "refusing to write while on branch 'main' — switch to a feature branch",
+      "will not write while on branch 'main'. Switch to a feature branch",
     );
   }
 

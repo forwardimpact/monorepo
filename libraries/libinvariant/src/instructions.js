@@ -23,12 +23,12 @@ const ITEM_SPLIT_RE = /^\s*-\s*\[[ xX]\]\s*/m;
 const lineCount = (text) => (text.match(/\n/g) || []).length;
 const wordCount = (text) => (text.match(/\S+/g) || []).length;
 
-// A leading YAML frontmatter block carries metadata, not instruction prose:
-// a skill's `name`/`description`, plus the `license` and `metadata` fields the
-// publish pipeline injects. Exclude it from the line/word budget so a published
-// copy of a layer counts the same as its in-repo source. Only a fenced block
-// that opens on the first line is stripped; the closing fence is the first
-// `---` line that follows.
+// A leading YAML frontmatter block carries metadata. It does not carry
+// instruction prose. It holds a skill's `name`/`description`, plus the
+// `license` and `metadata` fields the publish pipeline injects. Exclude it from
+// the line/word budget so a published copy of a layer counts the same as its
+// in-repo source. This strips only a fenced block that opens on the first line.
+// The closing fence is the first `---` line that follows.
 const FRONTMATTER_RE = /^---[ \t]*\r?\n[\s\S]*?\r?\n---[ \t]*\r?\n?/;
 const stripFrontmatter = (text) => text.replace(FRONTMATTER_RE, "");
 
@@ -81,16 +81,16 @@ async function findByName(root, name, kind, fs) {
 }
 
 // A `.claude/agents/*.md` file is a profile when it carries both `name` and
-// `description` frontmatter — the same test Claude Code's agent loader applies
-// to decide what loads as an agent — and a reference otherwise. This replaces
+// `description` frontmatter. Otherwise it is a reference. Claude Code's agent
+// loader applies the same test to decide what loads as an agent. This replaces
 // the old references-subdirectory marker, which APM flattens away.
 const isProfile = (text) =>
   /^name:[ \t]*\S/m.test(text) && /^description:[ \t]*\S/m.test(text);
 
 /**
  * Partition the flat `agents/*.md` listing into profiles (L3) and references
- * (L4) by frontmatter. Reads each file once and shares the read between the
- * two layers, replacing the former separate directory walks.
+ * (L4) by frontmatter. This reads each file once and shares the read between
+ * the two layers. It replaces the former separate directory walks.
  */
 async function partitionAgents(root, claudeDirs, fs) {
   const profiles = [];
@@ -198,14 +198,14 @@ async function buildLayers(root, fs) {
         id: "L4",
         name: "memory-protocol agent reference",
         // Larger than the L4 default to absorb the two durable surfaces this
-        // one reference is the sole home for: the boot-digest routing contract
-        // (materialized agent-experiments surface with provenance fields and a
-        // last-successful-sync freshness bound, plus the verbatim
-        // standing-carries digest field) and the canonical Carry Surface
-        // section (a durable per-Assess obligation surface kept off the summary
-        // budget, beside the On-Boot Read Set it extends). Both are load-bearing
-        // memory-protocol concepts. Sized to the current content, not
-        // open-ended.
+        // one reference is the sole home for. The first is the boot-digest
+        // routing contract. It is a materialized agent-experiments surface with
+        // provenance fields and a last-successful-sync freshness bound, plus
+        // the verbatim standing-carries digest field. The second is the
+        // canonical Carry Surface section. It is a durable per-Assess
+        // obligation surface kept off the summary budget, beside the On-Boot
+        // Read Set it extends. Both are load-bearing memory-protocol concepts.
+        // This limit fits the current content. It is not open-ended.
         maxLines: 216,
         maxWords: 1588,
         files: agentReferences.filter((p) =>
@@ -225,11 +225,11 @@ async function buildLayers(root, fs) {
         id: "L5",
         name: "kata-release-merge skill procedure",
         // Larger than the L5 default to absorb four consolidated merge-gate
-        // rule sets that govern adjacent corners of one gate: phase-PR review
+        // rule sets. They govern adjacent corners of one gate: phase-PR review
         // transfer (pin-based head coverage), post-panel coverage (folded into
-        // the pin mechanism rather than duplicated), the spec-less
-        // experiment-PR approval path, and the block-comment re-ping cadence.
-        // Sized to the consolidated content, not open-ended.
+        // the pin mechanism rather than duplicated), the approval path for a
+        // spec-less experiment PR, and the block-comment re-ping cadence.
+        // This limit fits the consolidated content. It is not open-ended.
         maxLines: 320,
         maxWords: 2304,
         files: skillDirs
@@ -263,7 +263,7 @@ async function buildFileSubjects(root, layers, fs) {
     for (const relPath of layer.files) {
       const text = await readText(root, relPath, fs);
       if (text == null) continue;
-      // Budget the instruction prose only — metadata frontmatter is exempt.
+      // Budget the instruction prose only. Metadata frontmatter is exempt.
       const body = stripFrontmatter(text);
       subjects.push({
         path: resolve(root, relPath),
@@ -303,7 +303,7 @@ async function buildChecklistSubjects(root, sources, fs) {
 }
 
 const HINT_LAYER_BUDGET =
-  "trim prose to fit the layer cap — see JIDOKA.md for the layered-instruction model";
+  "trim prose to fit the layer cap, and see JIDOKA.md for the layered-instruction model";
 
 // -- Rule catalogue ------------------------------------------------------
 
@@ -357,18 +357,18 @@ export const INSTRUCTION_RULES = [
     },
     message: (s, r) =>
       `checklist #${s.blockIndex} (${s.type}) item ${r.itemIndex} has ${r.words} words (max ${r.max})`,
-    hint: "rewrite the item more concisely — checklist items are pointers, not explanations",
+    hint: "rewrite the item more concisely, because a checklist item is a pointer and does not explain",
   },
 ];
 
 // -- Public entry --------------------------------------------------------
 
 /**
- * Walk the repo rooted at `root`, applying the L1–L7 caps from JIDOKA.md.
- * Each layer is gated by a line cap AND a word cap; either breach fails.
+ * Walk the repo rooted at `root` and apply the L1–L7 caps from JIDOKA.md.
+ * A line cap AND a word cap gate each layer. Either breach fails.
  *
  * @param {{ root: string, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
- * @returns {Promise<Finding[]>} Structured findings; empty when conformant.
+ * @returns {Promise<Finding[]>} Structured findings, empty when conformant.
  *   Each Finding is `{ id, level, path, lineNo?, message, hint? }` for use
  *   with `emitFindingsText` / `emitFindingsJson` from libutil.
  */

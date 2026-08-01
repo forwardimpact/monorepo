@@ -13,7 +13,7 @@ describe("appendHistory", () => {
     ]);
   });
 
-  test("drops oldest entries once maxEntries is exceeded", () => {
+  test("drops the oldest entries once the history exceeds maxEntries", () => {
     const history = [];
     for (let i = 0; i < 12; i++) {
       appendHistory(history, { role: "user", text: `m${i}` });

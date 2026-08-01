@@ -2,26 +2,27 @@
 name: fit-pack
 description: >
   Distribute a skill pack so agents and engineers can install it through their
-  package manager. Use when publishing skills and agents to a shared repository,
-  when a bare install pulls skills but silently drops agents, or when you need
-  the install to land in APM's conventional layout. Stages skills, agents, and
-  references into one repository tree with a generated manifest and README.
+  package manager. Use when you publish skills and agents to a shared
+  repository. Use when a bare install pulls skills but silently drops agents.
+  Use when you need the install to land in APM's conventional layout. It stages
+  skills, agents, and references into one repository tree with a generated
+  manifest and README.
 ---
 
 # Distribute Skill Packs
 
-`fit-pack` stages a set of skills and agent profiles into a repository in the
-layout package managers expect, then you commit and push that repository as the
-installable pack. It exists so one tested code path owns the layout — the same
-shape an installer reads, every time.
+`fit-pack` stages a set of skills and agent profiles into a repository. It uses
+the layout package managers expect. You then commit and push that repository as
+the installable pack. It exists so one tested code path owns the layout. An
+installer reads the same shape every time.
 
 ## When this matters
 
 A pack repository whose skills sit in a root `skills/` directory installs its
-skills fine, but agents placed in a sibling `agents/` directory install for
-nobody: the installer never scans there. Agents must live under `.apm/agents/`
-with an `.agent.md` suffix, and skills under `.apm/skills/`. `fit-pack` writes
-exactly that layout so a bare `apm install <owner>/<repo>` pulls skills and
+skills fine. But agents in a sibling `agents/` directory install for nobody.
+The installer never scans there. Agents must live under `.apm/agents/` with an
+`.agent.md` suffix. Skills must live under `.apm/skills/`. `fit-pack` writes
+exactly that layout. A bare `apm install <owner>/<repo>` then pulls skills and
 agents together.
 
 ## Layout it produces
@@ -43,27 +44,29 @@ npx fit-pack stage \
 
 It writes into `<target-repo>`:
 
-- `.apm/skills/<name>/` — every `skills/<pack>-*` directory from `--from`, with
-  `license` and a `metadata` version block injected into each `SKILL.md`.
-- `.apm/agents/<name>.agent.md` — each `agents/*.md` profile, renamed to the
-  `.agent.md` suffix the installer discovers (only with `--with-agents`).
+- `.apm/skills/<name>/` — every `skills/<pack>-*` directory from `--from`.
+  `fit-pack` injects `license` and a `metadata` version block into each
+  `SKILL.md`.
+- `.apm/agents/<name>.agent.md` — each `agents/*.md` profile. `fit-pack`
+  renames it to the `.agent.md` suffix the installer discovers. This happens
+  only with `--with-agents`.
 - `.apm/agents/x-<name>.md` — shared reference files that skills and profiles
-  cite, shipped flat for every pack (no `references/` subdir).
+  cite. Every pack ships them flat, with no `references/` subdir.
 - `apm.yml` — the package manifest (`name`, `version`, `description`).
 - `README.md` — install command and a table of the staged skills and agents.
 
 ## Sequence
 
 1. **Check out the target repository** you publish the pack from. `fit-pack`
-   writes into its working tree; it does not commit or push.
+   writes into its working tree. It does not commit or push.
 2. **Stage** with `npx fit-pack stage`. Pass `--prefix` to select which skills
    ship (`--prefix kata` selects `skills/kata-*`). Omit `--with-agents` for a
-   skills-only pack; references still ship.
+   skills-only pack. References still ship.
 3. **Review** the generated `.apm/` tree, `apm.yml`, and `README.md`.
-4. **Commit and push** the target repository, then tag the release.
+4. **Commit and push** the target repository. Then tag the release.
 
-Re-staging retires any earlier flat `skills/` or `agents/` layout, so migrating
-an existing pack repository is a single run.
+When you stage again, `fit-pack` retires any earlier flat `skills/` or
+`agents/` layout. One run migrates an existing pack repository.
 
 ## Documentation
 

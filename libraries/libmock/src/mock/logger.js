@@ -1,6 +1,6 @@
 import { spy } from "./spy.js";
 /**
- * Creates a mock logger with call tracking
+ * Creates a mock logger that tracks calls
  * @param {object} options - Logger options
  * @param {boolean} options.captureOutput - Whether to capture log output
  * @returns {object} Mock logger

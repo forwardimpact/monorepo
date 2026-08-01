@@ -37,8 +37,8 @@ function seedCtx(participants) {
 
 /**
  * Pop the *oldest* pending Ask addressed to `from` and route the answer
- * back through it. Mirrors how the agent would pick up the next [ask#N]
- * tag from its inbox.
+ * back through it. Mirrors how the agent picks up the next [ask#N] tag
+ * from its inbox.
  */
 function answerDispatcherInOrder(ctx, from, messages) {
   const handler = createAnswerHandler(ctx, { from });
@@ -62,14 +62,15 @@ describe("Facilitator - duplicate-Ask resilience (regression for run 26336965189
       defaultTo: undefined,
     });
 
-    // The facilitator deliberately Asks twice in a row — the broadcast-
-    // then-individual pattern that previously orphaned a queue message.
-    // Both Asks are issued in the same assistant turn and dispatched in
-    // parallel. Under the auto-resume model the lead ends its turn after
-    // the two Asks. The agent answers each ask in its own turn (a
-    // synthetic reminder unblocks the second), so the lead may wake twice
-    // — once per answer. Conclude only runs once both Asks are cleared;
-    // the second wake-up that has nothing pending is a no-op turn.
+    // The facilitator deliberately Asks twice in a row. That is the
+    // broadcast-then-individual pattern that previously orphaned a queue
+    // message. The lead issues both Asks in the same assistant turn and
+    // dispatches them in parallel. Under the auto-resume model the lead
+    // ends its turn after the two Asks. The agent answers each ask in
+    // its own turn. A synthetic reminder unblocks the second. So the
+    // lead may wake twice, once per answer. Conclude only runs after
+    // both Asks clear. A second wake-up with nothing pending is a no-op
+    // turn.
     const facilitatorRunner = createMockRunner(
       [
         { text: "Asking twice" },
@@ -92,9 +93,9 @@ describe("Facilitator - duplicate-Ask resilience (regression for run 26336965189
       },
     );
 
-    // Agent answers both, in order — turn 1 answers ask#1, turn 2 (resume
-    // when ask#2 lands) answers ask#2. This proves the two asks coexist
-    // without overwriting each other.
+    // The agent answers both, in order. Turn 1 answers ask#1. Turn 2
+    // resumes when ask#2 lands and answers ask#2. This proves the two
+    // asks coexist and never overwrite each other.
     const agent1Runner = createMockRunner(
       [{ text: "First" }, { text: "Second" }],
       [[answerMsgPlaceholder("1")], [answerMsgPlaceholder("2")]],
@@ -124,7 +125,7 @@ describe("Facilitator - duplicate-Ask resilience (regression for run 26336965189
     assert.strictEqual(
       ctx.pendingAsks.size,
       0,
-      "both pending entries should clear; neither leaks as a phantom",
+      "both pending entries should clear, and neither leaks as a phantom",
     );
   });
 });

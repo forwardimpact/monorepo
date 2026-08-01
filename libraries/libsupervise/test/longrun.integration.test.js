@@ -6,9 +6,10 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { LongrunProcess } from "../src/longrun.js";
 
-// Real-process supervision: spawns an actual bash child and drives it through
-// the real runtime.subprocess.spawn streaming contract (real pid, real exit,
-// real process-group kill). Lives in *.integration.test.js because it spawns.
+// Real-process supervision. The test spawns an actual bash child and drives
+// it through the real runtime.subprocess.spawn streaming contract (real pid,
+// real exit, real process-group kill). Lives in *.integration.test.js
+// because it spawns.
 
 describe("LongrunProcess integration", () => {
   let mockStdout;
@@ -21,7 +22,7 @@ describe("LongrunProcess integration", () => {
     runtime = createDefaultRuntime();
   });
 
-  test("start and stop short-lived process", async () => {
+  test("starts and stops a short-lived process", async () => {
     const longrun = new LongrunProcess("quick", "echo hello && exit 0", {
       runtime,
       stdout: mockStdout,
@@ -39,7 +40,7 @@ describe("LongrunProcess integration", () => {
 
     await longrun.start();
 
-    // Wait for process to spawn and emit up event
+    // Wait for the process to spawn and emit the up event
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Stop the process

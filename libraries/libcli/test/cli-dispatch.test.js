@@ -63,7 +63,7 @@ describe("Cli", () => {
       assert.strictEqual(Object.isFrozen(ctx.args), true);
     });
 
-    test("omits missing trailing positionals from args", () => {
+    test("omits from args any positional that argv does not supply", () => {
       const proc = createProc();
       const received = [];
       const def = {
@@ -111,7 +111,7 @@ describe("Cli", () => {
       assert.deepStrictEqual(result.positionals, ["run", "main.js"]);
     });
 
-    test("throws when no matching subcommand", () => {
+    test("throws when no subcommand matches", () => {
       const proc = createProc();
       const def = {
         name: "fit-test",
@@ -191,7 +191,7 @@ describe("Cli", () => {
       assert.strictEqual(Object.isFrozen(ctx.deps), true);
     });
 
-    test("works unchanged when only data is supplied (deps undefined)", () => {
+    test("works unchanged when the caller supplies only data (deps undefined)", () => {
       const proc = createProc();
       const received = [];
       const helpRenderer = new HelpRenderer({ process: proc });
@@ -205,7 +205,7 @@ describe("Cli", () => {
 
   // createCli(definition, { runtime }) routes process I/O through
   // the injected runtime.proc instead of the global process.
-  describe("createCli runtime wiring", () => {
+  describe("createCli with an injected runtime", () => {
     test("error output routes through runtime.proc.stderr", () => {
       const runtime = createTestRuntime();
       const cli = createRealCli(definition, { runtime });

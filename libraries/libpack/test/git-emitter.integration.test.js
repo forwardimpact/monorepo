@@ -77,7 +77,7 @@ describe("GitEmitter", () => {
     expect(content).toBe("hello\n");
   });
 
-  test("version tag is present", async () => {
+  test("the version tag is present", async () => {
     const stagedDir = await createStagedDir();
     const outDir = await makeTempDir();
     const repoPath = join(outDir, "test.git");
@@ -212,7 +212,7 @@ describe("GitEmitter", () => {
         return;
       }
 
-      // Smart HTTP upload-pack — route by POST body content
+      // Smart HTTP upload-pack. Route on the POST body content
       if (url.pathname === "/git-upload-pack" && req.method === "POST") {
         const bodyChunks = [];
         req.on("data", (c) => bodyChunks.push(c));

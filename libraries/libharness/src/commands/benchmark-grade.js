@@ -1,10 +1,10 @@
 /**
  * `gemba-benchmark grade` — run both check-row producers (the hidden test
- * suite and the invariants script) against a post-run workdir directory and
- * grade the merged rows with the same derivation the benchmark runner uses.
- * No agent and no judge run, so authors validate a task's grading material
- * against fixtures without paying for agent sessions; the process exit
- * mirrors the graded verdict.
+ * suite and the invariants script) against a post-run workdir directory.
+ * Grade the merged rows with the same derivation the benchmark runner uses.
+ * No agent runs and no judge runs. So an author validates the material that
+ * grades a task against fixtures, and pays for no agent session. The process
+ * exit mirrors the graded verdict.
  */
 
 import { join, resolve } from "node:path";
@@ -46,12 +46,12 @@ export async function runBenchmarkGradeCommand(ctx) {
       runInvariants,
       runHiddenTests,
     });
-  // Same effective-score rule as the runner, minus the judge (none runs
-  // here): an unhealthy grader or a failing gate zeroes the score, so a
-  // crashed hook can never mint marks from the rows it emitted before dying.
-  // Unlike a runner record — where `grade.score` stays the raw fraction and
-  // the zeroing lands on the top-level `score` — this record has no second
-  // field, so `grade.score` carries the effective value here.
+  // The effective-score rule matches the runner, minus the judge (none runs
+  // here). An unhealthy grader or a gate that fails zeroes the score. So a
+  // crashed hook can never mint marks from the rows it emitted before it
+  // died. A runner record keeps the raw fraction in `grade.score` and zeroes
+  // the top-level `score` instead. This record has no second field, so
+  // `grade.score` carries the effective value here.
   if (grade.score !== undefined && !(healthy && grade.gatesPass)) {
     grade.score = 0;
   }
@@ -65,7 +65,8 @@ export async function runBenchmarkGradeCommand(ctx) {
         ...(engineError && { error: engineError.message }),
       },
     }),
-    // Mirrors the script for diagnosis; the graded verdict drives the exit.
+    // This mirrors the script for diagnosis. The graded verdict drives the
+    // exit.
     exitCode: invariants.exitCode,
   };
   validateGradeRecord(record);

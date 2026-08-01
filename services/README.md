@@ -1,9 +1,9 @@
 # Services
 
-The packages under `services/` are internal microservices that back products —
-exposing domain capabilities over gRPC (and MCP) for composition by any
-product. Agent-friendly interfaces, observable operations, and protocol bridges
-that let agents consume backend functionality natively.
+The packages under `services/` are internal microservices that back the
+products. They expose domain capabilities over gRPC and MCP, so any product can
+compose them. They give agent-friendly interfaces, observable operations, and
+protocol bridges that let agents use backend functionality natively.
 
 ## Catalog
 

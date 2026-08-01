@@ -1,17 +1,18 @@
 # Plan 1160-a-07 — Web surface
 
-Build the Next.js App Router web frontend under `products/polaris/site/`,
-styled with Tailwind + shadcn/ui, dispatching to shared handlers via
-`@forwardimpact/libui`.
+Build the Next.js App Router web frontend under `products/polaris/site/`.
+Style it with Tailwind + shadcn/ui. It dispatches to the shared handlers
+through `@forwardimpact/libui`.
 
 All paths are inside `bionova-apps/`. The read-only surfaces source their
-patient-facing copy from the terrain-generated prose seed tables (condition
-explainers, trial FAQs, consent summaries, site descriptions, patient stories,
-therapy descriptions) — no hand-authored text.
+patient-facing copy from the prose seed tables that terrain generates. Those
+tables hold condition explainers, trial FAQs, consent summaries, site
+descriptions, patient stories, and therapy descriptions. The copy contains
+no hand-authored text.
 
 ## Step 1 — Scaffold Next.js project
 
-Created: `products/polaris/site/` initialized via
+Created: `products/polaris/site/`. Initialize it with these commands:
 
 ```sh
 cd products/polaris/site
@@ -22,13 +23,13 @@ rm -f package-lock.json
 cd "$(git rev-parse --show-toplevel)" && bun install
 ```
 
-If `create-next-app`'s flag surface has shifted at implementation time
-(check `npx create-next-app@14.2 --help`), follow the published prompts
-for `TypeScript=Yes`, `ESLint=Yes`, `Tailwind=Yes`, `src/=Yes`,
-`App Router=Yes`, `import alias=@/*`; document the chosen answers in the
+Check `npx create-next-app@14.2 --help`. If the flag surface of
+`create-next-app` changed at implementation time, follow the published
+prompts for `TypeScript=Yes`, `ESLint=Yes`, `Tailwind=Yes`, `src/=Yes`,
+`App Router=Yes`, and `import alias=@/*`. Document the chosen answers in the
 part-07 PR description.
 
-Resulting layout:
+The scaffold produces this layout:
 
 ```text
 products/polaris/site/
@@ -55,12 +56,13 @@ Edit `package.json` to add workspace deps:
 ```
 
 Add `output: "standalone"` to `next.config.mjs` so the Dockerfile builds a
-minimal runtime image, plus `experimental.outputFileTracingRoot` pointing at the
-monorepo root (`fileURLToPath(new URL("../../../", import.meta.url))`). Without
-the tracing root Next infers the app directory as the root and emits a flat
-`server.js`; with it the standalone output nests the server under
-`products/polaris/site/` (with `node_modules` at the bundle root), which is
-where the Dockerfile runner copies and runs it.
+minimal runtime image. Also add `experimental.outputFileTracingRoot` and point
+it at the monorepo root
+(`fileURLToPath(new URL("../../../", import.meta.url))`). Without the tracing
+root, Next infers the app directory as the root and emits a flat `server.js`.
+With the tracing root, the standalone output nests the server under
+`products/polaris/site/` and puts `node_modules` at the bundle root. The
+Dockerfile runner copies the server from there and runs it.
 
 Verify: `cd products/polaris/site && bun install && bun run build` exits 0.
 
@@ -71,7 +73,8 @@ cd products/polaris/site
 npx shadcn@latest init
 ```
 
-shadcn init is interactive at current versions; expected answers:
+shadcn init is interactive at current versions. These are the expected
+answers:
 
 | Prompt | Answer |
 | --- | --- |
@@ -81,7 +84,7 @@ shadcn init is interactive at current versions; expected answers:
 | `components.json` location | repo default (`./components.json`) |
 | Components directory | `@/components` (matches the `src/` layout) |
 
-Add core components used across routes:
+Add the core components that the routes use:
 
 ```sh
 npx shadcn@latest add button card input badge dialog form label select textarea table toast
@@ -90,8 +93,8 @@ npx shadcn@latest add button card input badge dialog form label select textarea 
 Document any prompt divergence (e.g., the rebrand from `shadcn-ui` to
 `shadcn`) in the part-07 PR description.
 
-Verify: `src/components/ui/` populated with shadcn components; `bun run
-build` still exits 0.
+Verify: `src/components/ui/` holds the shadcn components. `bun run build`
+still exits 0.
 
 ## Step 3 — Author routes
 
@@ -105,16 +108,16 @@ Created (one `page.tsx` per route + `layout.tsx`):
 | `/trials/[id]/eligibility` | `src/app/trials/[id]/eligibility/page.tsx` | `checkEligibility` (POST handler in `route.ts`) |
 | `/conditions/[id]` | `src/app/conditions/[id]/page.tsx` | `showCondition` (condition + its explainer text from the `condition_explainers` seed table) |
 | `/sites` | `src/app/sites/page.tsx` | `listSites` (also renders each site's `description`) |
-| `/stories` | `src/app/stories/page.tsx` | `listStories` (patient stories from the `patient_stories` seed table; supports `?condition=` filter) |
+| `/stories` | `src/app/stories/page.tsx` | `listStories` (patient stories from the `patient_stories` seed table, and it accepts the `?condition=` filter) |
 | `/about` | `src/app/about/page.tsx` | `showAbout` (also renders therapy descriptions from the `therapies` list) |
 | `/admin/trials/[id]` | `src/app/admin/trials/[id]/page.tsx` | `manageTrial` |
 
-JSON variants of every read handler are exposed via sibling Route Handlers
-under `src/app/api/`. A Server Component **cannot** legally return a bare
-`Response` in Next 14 App Router (it must return a React element), so the
-JSON surface lives at a distinct URL path that the smoke script (plan-a-08
-SC4) calls. Ordinary browsers continue to hit the page routes; the API
-routes are an implementer surface for parity testing and the CLI.
+Sibling Route Handlers under `src/app/api/` expose JSON variants of every
+read handler. A Server Component **cannot** legally return a bare `Response`
+in Next 14 App Router. It must return a React element. So the JSON surface
+lives at a distinct URL path. The smoke script (plan-a-08 SC4) calls that
+path. Ordinary browsers continue to hit the page routes. The API routes are
+an implementer surface for parity tests and for the CLI.
 
 Created (one `route.ts` per read handler, beside `src/app/api/`):
 
@@ -141,30 +144,30 @@ export async function GET(request: NextRequest) {
 }
 ```
 
-(`/api/trials/[id]` receives `{ params: { id } }` as the second argument
-and threads it into `buildCtxFromRequest(request, { id })`.)
+`/api/trials/[id]` receives `{ params: { id } }` as the second argument. It
+threads that argument into `buildCtxFromRequest(request, { id })`.
 
-No page Server Component returns a `Response` — the JSON surface and the
-HTML surface are distinct routes that share the handler and `buildCtx`.
+No page Server Component returns a `Response`. The JSON surface and the HTML
+surface are distinct routes. They share the handler and `buildCtx`.
 
-`src/app/layout.tsx`: imports Tailwind base, wraps children in shadcn
-Toaster + a header with nav (Home, Search, Sites, About). Admin pages add
-a sidebar.
+`src/app/layout.tsx` imports the Tailwind base. It wraps children in the
+shadcn Toaster and a header with nav (Home, Search, Sites, About). Admin
+pages add a sidebar.
 
 Each page is a Server Component that:
 
 1. Constructs the `data` context (PostgREST client bound to the request's
    anon/staff JWT)
 2. Calls the matching handler
-3. Renders via shadcn primitives (NOT libformat HTML, since React already
-   renders — libformat HTML output is for non-React contexts)
+3. Renders with shadcn primitives. Do NOT use libformat HTML, because React
+   already renders. The libformat HTML output is for non-React contexts.
 
-Created: `src/lib/build-ctx.ts` — three shared bootstraps so pages,
-admin pages, and API routes do not duplicate wiring. The staff JWT is
-read from the `sb-staff-jwt` cookie (set by GoTrue's email/password
-flow); when absent, `ctx.data.token` is `undefined` and `manageTrial`
-will throw the documented "manageTrial requires ctx.data.token"
-error rather than silently performing an anon PATCH.
+Created: `src/lib/build-ctx.ts`. It holds three shared bootstraps, so pages,
+admin pages, and API routes do not duplicate the setup. The bootstraps read
+the staff JWT from the `sb-staff-jwt` cookie, which GoTrue's email/password
+flow sets. When the cookie is absent, `ctx.data.token` is `undefined`. Then
+`manageTrial` throws the documented "manageTrial requires ctx.data.token"
+error. It does not silently perform an anon PATCH.
 
 ```ts
 import { cookies } from "next/headers";
@@ -237,8 +240,8 @@ export function buildCtxFromRequest(request: NextRequest, args: Record<string, s
 ```
 
 `createDataContext(env, { token })` is the existing handlers entry point
-from plan-a-05 — extended in this part to take an optional second
-argument that the PostgREST client uses as the `Authorization: Bearer`
+from plan-a-05. This part extends it to take an optional second argument.
+The PostgREST client uses that argument as the `Authorization: Bearer`
 header for the bound session.
 
 Example `src/app/search/page.tsx`:
@@ -264,18 +267,19 @@ export default async function SearchPage({ searchParams }: { searchParams: Recor
 ```
 
 `src/app/conditions/[id]/page.tsx` follows the same shape with `showCondition`
-and `args: { id }`, rendering the condition plus its `explainer` text.
-`src/app/stories/page.tsx` follows the search-page shape with `listStories`,
-threading `?condition=` through `ctx.options` to render the filtered stories.
+and `args: { id }`. It renders the condition and its `explainer` text.
+`src/app/stories/page.tsx` follows the search-page shape with `listStories`.
+It threads `?condition=` through `ctx.options` to render the filtered stories.
 
-Admin page `src/app/admin/trials/[id]/page.tsx` uses `buildAdminCtx`
-instead, so `manageTrial` sees the staff JWT and RLS applies the staff
-role; the page renders an unauthorized state if the cookie is absent.
+The admin page `src/app/admin/trials/[id]/page.tsx` uses `buildAdminCtx`
+instead. So `manageTrial` sees the staff JWT, and RLS applies the staff
+role. The page renders an unauthorized state if the cookie is absent.
 
-Verify: `bun run build` exits 0; `bun run dev` and visiting
-`/search?condition=diabetes` renders the diabetes trial list;
-`/api/search?condition=diabetes` returns JSON; `/admin/trials/<id>` 200s when
-the staff cookie is set and 401-redirects when it is not (success criteria #2 +
+Verify: `bun run build` exits 0. `bun run dev` and a visit to
+`/search?condition=diabetes` render the diabetes trial list.
+`/api/search?condition=diabetes` returns JSON. `/admin/trials/<id>` returns
+200 when the staff cookie is set. It 401-redirects when the cookie is absent
+(success criteria #2 +
 
 ## 5)
 
@@ -286,16 +290,17 @@ Created under `products/polaris/site/src/components/`:
 | Component | File | Purpose |
 | --- | --- | --- |
 | `TrialCard` | `trial-card.tsx` | shadcn `Card` with trial summary, link to `/trials/[id]` |
-| `SearchForm` | `search-form.tsx` | shadcn `Input` + `Select` filters; client component |
-| `EligibilityScreener` | `eligibility-screener.tsx` | shadcn `Form` rendering questions from `criteria.custom[]`; POSTs to `/trials/[id]/eligibility` (App Router handler — no `.ts` extension in URL) |
+| `SearchForm` | `search-form.tsx` | shadcn `Input` + `Select` filters (a client component) |
+| `EligibilityScreener` | `eligibility-screener.tsx` | shadcn `Form` that renders questions from `criteria.custom[]`. It POSTs to `/trials/[id]/eligibility`, an App Router handler with no `.ts` extension in the URL |
 | `SiteList` | `site-list.tsx` | shadcn `Table` of sites |
 | `MatchScoreBadge` | `match-score-badge.tsx` | colored `Badge` per score |
 | `Nav` | `nav.tsx` | top header |
 | `AdminSidebar` | `admin-sidebar.tsx` | admin nav |
-| `InterestSignalSummary` | `interest-signal-summary.tsx` | aggregate counts panel for admin |
+| `InterestSignalSummary` | `interest-signal-summary.tsx` | panel of aggregate counts for admin |
 
-Each component is self-contained; styling via Tailwind + shadcn primitives
-only (no global CSS beyond `src/app/globals.css` from create-next-app).
+Each component is self-contained. Style it with Tailwind and shadcn
+primitives only. Add no global CSS beyond `src/app/globals.css` from
+create-next-app.
 
 Verify: `bun run lint && bun run build` exits 0 with no Tailwind purge
 warnings.
@@ -304,18 +309,18 @@ warnings.
 
 POST handler that:
 
-1. Receives form data (parsed via `request.formData()`)
+1. Receives the form data, which `request.formData()` parses
 2. Builds InvocationContext with `args: { id }`, `options: <answers>`
 3. Calls `checkEligibility`
 4. Redirects (303) to `/trials/[id]/eligibility?signal=<id>&score=<score>`
 
-Verify: form submission inserts `interest_signals` row and redirects with
-score in query string; success criterion #3.
+Verify: when you submit the form, it inserts an `interest_signals` row. The
+redirect carries the score in the query string. This is success criterion #3.
 
 ### Step 6 — Dockerfile + healthcheck
 
 Edit `products/polaris/site/Dockerfile`. Compose builds this with
-`context: .` (repo root — set in part 01 step 4); all COPY paths below
+`context: .`, the repo root, which part 01 step 4 sets. All COPY paths below
 are repo-root-relative:
 
 ```dockerfile
@@ -341,15 +346,15 @@ EXPOSE 3000
 CMD ["node", "products/polaris/site/server.js"]
 ```
 
-Use plain `bun install` (not `--production=false`, which bun 1.2 rejects — bun
-installs devDependencies by default). The builder resolves the `workspace:*` dep
-`@bionova/polaris-handlers` because both directories are present under `/app/`.
-The `experimental.outputFileTracingRoot` set in Step 1 is what makes the runner
-COPY/CMD paths (`products/polaris/site/server.js`) line up with the standalone
-output. The compose service also sets
+Use plain `bun install`. Do not use `--production=false`, which bun 1.2
+rejects. Bun installs devDependencies by default. The builder resolves the
+`workspace:*` dep `@bionova/polaris-handlers` because both directories are
+present under `/app/`. The `experimental.outputFileTracingRoot` from Step 1
+makes the runner COPY/CMD paths (`products/polaris/site/server.js`) line up
+with the standalone output. The compose service also sets
 `POLARIS_ABOUT_PATH=/app/products/polaris/handlers/data/about.yaml` so the about
-handler reads the bundled YAML (the bundler rewrites the handler's
-`new URL(import.meta.url)` path to an unreadable asset URL — see part 05).
+handler reads the bundled YAML. The bundler rewrites the handler's
+`new URL(import.meta.url)` path to an unreadable asset URL. See part 05.
 
 Add `src/app/api/health/route.ts`:
 
@@ -357,11 +362,11 @@ Add `src/app/api/health/route.ts`:
 export const GET = () => new Response("ok");
 ```
 
-(A useful app-level liveness route; the container healthcheck itself is a `bash`
-`/dev/tcp` TCP probe because the runtime image ships neither `curl` nor `wget` —
-see part 01.)
+This is a useful app-level liveness route. The container healthcheck itself
+is a `bash` `/dev/tcp` TCP probe, because the runtime image ships neither
+`curl` nor `wget`. See part 01.
 
-Verify: `docker compose up -d polaris-site` reaches `(healthy)` within 60s;
+Verify: `docker compose up -d polaris-site` reaches `(healthy)` within 60s.
 `curl http://localhost:3001/` returns the homepage HTML.
 
 ### Step 7 — Tests
@@ -370,11 +375,11 @@ Created: `products/polaris/site/src/__tests__/`:
 
 | Test file | Coverage |
 | --- | --- |
-| `search.test.tsx` | Server-component renders trial list with mocked handler |
+| `search.test.tsx` | The server component renders the trial list with a mocked handler |
 | `trial-detail.test.tsx` | Shows trial fields + sites + conditions |
-| `eligibility.test.tsx` | Form submits, score badge renders |
-| `sites.test.tsx` | Site filter dropdown updates list |
-| `admin-trial.test.tsx` | Requires staff cookie; redirects to `/login` if absent |
+| `eligibility.test.tsx` | The form submits. The score badge renders |
+| `sites.test.tsx` | The site filter dropdown updates the list |
+| `admin-trial.test.tsx` | Requires a staff cookie. Redirects to `/login` if the cookie is absent |
 
 Test runner: `vitest` (added to devDeps) with `@testing-library/react`.
 
@@ -390,8 +395,8 @@ git push -u origin products/polaris-site
 gh pr create --title "products: bionova-polaris web (Next.js + Tailwind + shadcn)" --body "Implements plan-a-07 of spec 1160. App Router dispatches to shared handlers; admin routes gated by staff JWT in Supabase cookie."
 ```
 
-Verify: PR CI green (lint + build + vitest); preview link (if Vercel
-preview enabled, else local Docker compose smoke documented).
+Verify: the PR CI is green (lint + build + vitest). Add the preview link if
+Vercel preview is enabled. If not, document the local Docker compose smoke.
 
 ### Verification (end of part 07)
 
@@ -401,13 +406,14 @@ preview enabled, else local Docker compose smoke documented).
       (success criterion #2).
 - [ ] `/trials/[id]` shows the trial FAQ and consent summary.
 - [ ] `/conditions/<id>` shows the condition explainer.
-- [ ] `/stories` lists patient stories; `/stories?condition=<id>` filters them.
-- [ ] `/trials/[id]/eligibility` form submits to route handler, inserts interest
-      signal, shows score badge (success criterion #3).
-- [ ] `/sites?specialty=oncology` filters site list and shows each site's
+- [ ] `/stories` lists patient stories. `/stories?condition=<id>` filters them.
+- [ ] The `/trials/[id]/eligibility` form submits to the route handler. It
+      inserts an interest signal. It shows the score badge (success criterion
+      #3).
+- [ ] `/sites?specialty=oncology` filters the site list and shows each site's
       description.
-- [ ] `/admin/trials/[id]` returns 401 without staff JWT; returns admin view
-      with signal aggregates with staff JWT.
+- [ ] `/admin/trials/[id]` returns 401 without a staff JWT. With a staff JWT it
+      returns the admin view with the signal aggregates.
 - [ ] `vitest run` exits 0.
 - [ ] `docker compose up -d polaris-site` reaches `(healthy)` within 60s.
 

@@ -3,7 +3,7 @@ import { createStorage } from "@forwardimpact/libstorage";
 import { GraphIndex } from "./index/graph.js";
 
 /**
- * Standard RDF namespace prefixes used throughout the graph system
+ * The graph system uses these standard RDF namespace prefixes
  */
 export const RDF_PREFIXES = {
   schema: "https://schema.org/",
@@ -15,7 +15,7 @@ export const RDF_PREFIXES = {
 };
 
 /**
- * Checks if a value should be treated as a wildcard in graph queries
+ * Checks if a value is a wildcard in graph queries
  * @param {any} value - The value to check
  * @returns {boolean} True if the value represents a wildcard
  */
@@ -78,6 +78,8 @@ export function createGraphIndex(prefix, clock) {
   });
 }
 
-// GraphIndex is NOT exported to avoid circular dependency - import from ./index/graph.js
-// OntologyProcessor is NOT exported to avoid unnecessary dependencies - import from ./processor/ontology.js
+// This module does NOT export GraphIndex. That avoids a circular dependency.
+// Import it from ./index/graph.js
+// This module does NOT export OntologyProcessor. That avoids unnecessary
+// dependencies. Import it from ./processor/ontology.js
 export { ShaclSerializer } from "./serializer.js";

@@ -1,13 +1,13 @@
 /**
- * Handles service definition generation from protobuf files
- * Specializes in gRPC service definition creation for runtime registration
+ * Generates the service definitions from the protobuf files
+ * Creates the gRPC service definitions that the runtime registers
  */
 export class CodegenDefinitions {
   #base;
 
   /**
    * Creates a new definitions generator with base functionality
-   * @param {object} base - CodegenBase instance providing shared utilities
+   * @param {object} base - CodegenBase instance that provides shared utilities
    */
   constructor(base) {
     if (!base) throw new Error("CodegenBase instance is required");
@@ -43,7 +43,7 @@ export class CodegenDefinitions {
   }
 
   /**
-   * Generate definitions exports file with all service definitions
+   * Generate the definitions exports file with all the service definitions
    * @param {string} generatedPath - Path to generated code directory
    * @returns {Promise<void>}
    */

@@ -41,7 +41,8 @@ npx fit-landmark voice --manager <email>      # Engineer voice from GetDX commen
 npx fit-landmark voice --email <email>        # Individual voice
 ```
 
-`--manager` takes the team lead's own email. When signed in, `readiness`,
+`--manager` takes the team lead's own email. When you sign in, `readiness`,
 `timeline`, `coverage`, `sources`, and `voice` (with no flags) default
-`--email` to your identity; `evidence` stays explicit — omitting
-`--email` deliberately shows the broadest view your access allows.
+`--email` to your identity. `evidence` stays explicit. If you omit
+`--email`, `evidence` deliberately shows the broadest view your access
+allows.

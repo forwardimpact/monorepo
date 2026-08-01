@@ -1,9 +1,9 @@
 # Conditions
 
 Reference for `extract-entities` Step 7d. Conditions are time-bound
-organizational states (hiring freezes, reorgs, budget holds, leadership
-transitions) that affect multiple entities simultaneously — the "weather" of the
-knowledge graph.
+organizational states that affect multiple entities at the same time (hiring
+freezes, reorgs, budget holds, leadership transitions). They are the "weather"
+of the knowledge graph.
 
 ## Detection signals
 
@@ -18,18 +18,18 @@ same constraint or state, suspect a Condition.
 | "waiting on", "pending approval from"    | "Waiting on leadership decision" | Leadership Decision Pending |
 | "new CTO", "leadership change"           | "New CTO starting next month"    | Leadership Transition       |
 
-## Creating a Condition
+## Create a Condition
 
 1. Check existing: `ls Knowledge/Conditions/ 2>/dev/null`.
-2. **No match:** create a new Condition note using
-   [templates-conditions.md](templates-conditions.md). Name descriptively
-   ("Hiring Freeze Q2", "Division Reorg").
+2. **No match:** create a new Condition note with
+   [templates-conditions.md](templates-conditions.md). Give it a descriptive
+   name ("Hiring Freeze Q2", "Division Reorg").
 3. **Match exists:** update with new activity and any changes to status,
    blocker, or affected entities.
 
-## Updating affected entities
+## Update affected entities
 
-When a Condition is created or updated:
+When you create or update a Condition:
 
 1. Add `[[Conditions/{Condition}]]` to the `## Affects` section of affected
    Priorities.
@@ -39,9 +39,9 @@ When a Condition is created or updated:
 4. Log the Condition reference in activity entries:
    `- **YYYY-MM-DD** ({source}): {update}. See [[Conditions/{Condition}]]`.
 
-## Resolving Conditions
+## Resolve Conditions
 
-Source content indicates the Condition has ended: "approved", "freeze lifted",
+Source content indicates the Condition ended: "approved", "freeze lifted",
 "reorg complete", "back on track".
 
 - Set `**Status:** resolved`, `**Resolved:** {date}`.
@@ -51,5 +51,6 @@ Source content indicates the Condition has ended: "approved", "freeze lifted",
 ## Conservatism
 
 Only create Conditions for genuinely cross-cutting states that affect 3+
-entities. A single project being "on hold" is a project status change, **not** a
-Condition. A hiring freeze affecting 20 roles across 5 teams **is** a Condition.
+entities. A single project that goes "on hold" is a project status change. It is
+**not** a Condition. A hiring freeze that affects 20 roles across 5 teams **is**
+a Condition.

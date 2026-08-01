@@ -3,8 +3,9 @@ import assert from "node:assert";
 import { expect } from "../src/expect/index.js";
 
 // Per-matcher anti-vacuity property. For every matcher in the shim's usage
-// surface, a passing case must NOT throw and a deliberately-wrong case MUST
-// throw. A no-op matcher body would pass the "wrong" case and is caught here.
+// surface, the case that passes must NOT throw. A deliberately-wrong case MUST
+// throw. A no-op matcher body would pass the "wrong" case. This test catches
+// that.
 const MATCHER_CASES = [
   { name: "toBe", pass: [1, 1], fail: [1, 2] },
   { name: "toEqual", pass: [{ a: 1 }, { a: 1 }], fail: [{ a: 1 }, { a: 2 }] },
@@ -36,7 +37,7 @@ const MATCHER_CASES = [
 
 describe("expect shim — per-matcher anti-vacuity property", () => {
   for (const { name, pass, fail } of MATCHER_CASES) {
-    test(`${name}: passing case does not throw`, () => {
+    test(`${name}: the case that passes does not throw`, () => {
       const [actual, ...args] = pass;
       assert.doesNotThrow(() => expect(actual)[name](...args));
     });
@@ -47,7 +48,7 @@ describe("expect shim — per-matcher anti-vacuity property", () => {
   }
 });
 
-describe("expect shim — .not is genuinely inverting", () => {
+describe("expect shim — .not genuinely inverts", () => {
   test(".not passes when the positive would fail", () => {
     assert.doesNotThrow(() => expect(1).not.toBe(2));
   });
@@ -59,14 +60,14 @@ describe("expect shim — .not is genuinely inverting", () => {
 });
 
 describe("expect shim — async negatives", () => {
-  test("rejects.toThrow() on a non-rejecting promise must fail", async () => {
-    // An unawaited / passthrough `rejects` chain passes green; this asserts the
-    // shim actually fails when the promise does not reject.
+  test("rejects.toThrow() must fail on a promise that does not reject", async () => {
+    // An unawaited / passthrough `rejects` chain passes green. This test
+    // asserts that the shim actually fails when the promise does not reject.
     await assert.rejects(async () => {
       await expect(Promise.resolve(1)).rejects.toThrow();
     });
   });
-  test("rejects.toThrow() on a genuinely rejecting promise passes", async () => {
+  test("rejects.toThrow() passes on a promise that genuinely rejects", async () => {
     await assert.doesNotReject(async () => {
       await expect(Promise.reject(new Error("nope"))).rejects.toThrow("nope");
     });
@@ -82,7 +83,7 @@ describe("expect shim — async negatives", () => {
 });
 
 describe("expect shim — expect.any asymmetric matcher", () => {
-  test("toEqual with expect.any(String) passes on a string, fails otherwise", () => {
+  test("toEqual with expect.any(String) passes on a string and fails otherwise", () => {
     assert.doesNotThrow(() =>
       expect({ id: "x" }).toEqual({ id: expect.any(String) }),
     );

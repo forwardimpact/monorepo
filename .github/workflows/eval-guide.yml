@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       task-amend:
-        description: "Additional text appended to the task prompt for steering"
+        description: "Extra text appended to the task prompt to steer the run"
         required: false
         type: string
 
@@ -18,8 +18,8 @@ permissions:
 jobs:
   eval-guide:
     runs-on: ubuntu-latest
-    # Per-matrix-case ceiling. Observed max wall-clock ~13 min over the last
-    # 20 runs; 30 min gives >2x headroom while staying under the ~1h App
+    # Per-matrix-case ceiling. The observed max wall-clock is ~13 min over the
+    # last 20 runs. 30 min gives >2x headroom and stays under the ~1h App
     # token TTL, so the job-start token cannot outlive the job.
     timeout-minutes: 30
     strategy:
@@ -33,7 +33,7 @@ jobs:
               and 'broad'. List ONLY the skills assigned to the 'core' tier.
               Do not include any supporting-tier or broad-tier skills." The
               agent has MCP tools to query the engineering standard. Ground
-              your conclusion only in data/synthetic/story.dsl — read that
+              your conclusion only in data/synthetic/story.dsl. Read that
               file directly to verify (line 622: `core [data_integration,
               data_modeling, performance_optimization]`). Conclude with
               verdict="success" only if the agent's answer contains exactly
@@ -41,16 +41,16 @@ jobs:
               data_modeling, performance_optimization. If the agent includes
               any supporting or broad skill (e.g. architecture_design,
               cloud_platforms, stakeholder_management, regulatory_compliance),
-              Conclude with verdict="failure" and call out the leak.
+              conclude with verdict="failure" and call out the leak.
 
           - id: capability-skills
             task: >-
               Ask the agent: "Which skills make up the Reliability capability?"
               The agent has MCP tools to query the engineering standard. Ground
-              your conclusion only in data/synthetic/story.dsl — read that file
+              your conclusion only in data/synthetic/story.dsl. Read that file
               directly to verify the agent's answer. Conclude with verdict="success" only if
               the agent lists exactly: sre_practices, incident_management,
-              observability, change_management. Otherwise, Conclude with verdict="failure"
+              observability, change_management. Otherwise, conclude with verdict="failure"
               and explain.
 
           - id: job-title
@@ -58,33 +58,34 @@ jobs:
               Ask the agent: "Use the DescribeJob tool to look up the job at
               discipline=software_engineering, level=J080. What is the full
               job title that DescribeJob returns?" Ground your conclusion only
-              in data/synthetic/story.dsl — read that file directly. The
+              in data/synthetic/story.dsl. Read that file directly. The
               expected answer is "Lead Engineer Software Engineer", composed
               from the level title at J080 ("Lead Engineer", line 574) and
               the software_engineering discipline's roleTitle ("Software
               Engineer", line 612). Conclude with verdict="success" only if
               the agent's answer contains both parts in that order.
-              Otherwise, Conclude with verdict="failure".
+              Otherwise, conclude with verdict="failure".
 
           - id: project-team-managers
             task: >-
               Ask the agent: "Which teams work on the MolecularForge project,
               and who manages each of those teams?" The agent has MCP tools to
               query the knowledge graph. Ground your conclusion only in
-              data/synthetic/story.dsl — read that file directly to verify.
+              data/synthetic/story.dsl. Read that file directly to verify.
               Conclude with verdict="success" only if the agent identifies both teams (Platform
               Engineering and Data Science & AI) and both managers (Athena and
-              Prometheus). Otherwise, Conclude with verdict="failure" and explain.
+              Prometheus). Otherwise, conclude with verdict="failure" and explain.
 
           - id: nonexistent-discipline
             task: >-
               Ask the agent: "Describe the Security Engineering discipline in
               the engineering standard — what are its core skills and
               responsibilities?" Ground your conclusion only in
-              data/synthetic/story.dsl — read that file directly to verify. The
+              data/synthetic/story.dsl. Read that file directly to verify. The
               standard defines exactly five disciplines: software_engineering,
               data_engineering, engineering_management, clinical_informatics,
-              and quality_engineering. "security" is a track, not a discipline.
+              and quality_engineering. "security" is a track. It is not a
+              discipline.
               Conclude with verdict="success" only if the agent reports that no Security
               Engineering discipline exists in the standard. Conclude with
               verdict="failure" if the agent fabricates skills,
@@ -109,8 +110,9 @@ jobs:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
-          # gemba-harness (the eval run) needs gemba-harness + gemba-trace on PATH;
-          # the gemba-wiki push step needs gemba-wiki. All resolve as binaries.
+          # gemba-harness (the eval run) needs gemba-harness + gemba-trace on
+          # PATH. The gemba-wiki push step needs gemba-wiki. All resolve as
+          # binaries.
           clis: gemba-harness gemba-trace gemba-wiki
 
       - name: Build data pipeline
@@ -125,8 +127,8 @@ jobs:
         run: node -e "const m = await import('./products/guide/src/commands/init.js'); await m.runInitCommand();"
 
       # SearchContent depends on the vector index, which `just process-fast`
-      # skips because building embeddings is heavy. Strip the tool here so the
-      # eval doesn't expose a wired-up tool that has no data behind it. The
+      # skips because the embeddings are heavy to build. Strip the tool here so
+      # the eval doesn't expose a wired-up tool that has no data behind it. The
       # starter config keeps SearchContent for normal users who run the full
       # `just process` pipeline.
       - name: Strip SearchContent from eval config

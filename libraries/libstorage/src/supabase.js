@@ -32,8 +32,9 @@ export class SupabaseStorage extends S3Storage {
 
   /**
    * Check if the Supabase storage service is reachable.
-   * Uses the Supabase Storage REST API status endpoint instead of S3 HeadBucket,
-   * since Supabase's S3 compatibility layer may not properly handle HeadBucket.
+   * Uses the status endpoint of the Supabase Storage REST API instead of S3
+   * HeadBucket. Supabase's S3 compatibility layer may not handle HeadBucket
+   * correctly.
    * @returns {Promise<boolean>} True if storage service is reachable
    */
   async isHealthy() {
@@ -49,7 +50,7 @@ export class SupabaseStorage extends S3Storage {
   }
 
   /**
-   * Ensures the storage bucket exists using Supabase REST API.
+   * Ensures the storage bucket exists. Uses the Supabase REST API.
    * Supabase doesn't support S3 CreateBucketCommand.
    * @returns {Promise<boolean>} True if bucket was created
    */
@@ -63,7 +64,7 @@ export class SupabaseStorage extends S3Storage {
       body: JSON.stringify({ name: this._bucket, public: false }),
     });
 
-    // Success - bucket was created
+    // Success. Supabase created the bucket.
     if (response.ok) {
       return true;
     }
@@ -81,7 +82,7 @@ export class SupabaseStorage extends S3Storage {
         return false;
       }
     } catch {
-      // Not JSON, continue to throw
+      // The body is not JSON. Continue to throw.
     }
 
     throw new Error(

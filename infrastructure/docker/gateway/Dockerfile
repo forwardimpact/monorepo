@@ -1,4 +1,4 @@
-# Gateway container for egress proxy using Tinyproxy
+# Gateway container that runs Tinyproxy as the egress proxy
 FROM alpine:3.19
 
 RUN apk add --no-cache tinyproxy

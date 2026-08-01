@@ -59,8 +59,8 @@ engineering role.
 | Agent                 | Question it answers                                                |
 | --------------------- | ------------------------------------------------------------------ |
 | **Staff Engineer**    | What is the next experiment, and how do we run it?                 |
-| **Release Engineer**  | Is the line moving, and is the next release ready to ship?         |
-| **Security Engineer** | Is the floor safe — supply chain, dependencies, secrets?           |
+| **Release Engineer**  | Does the line move, and is the next release ready to ship?         |
+| **Security Engineer** | Is the floor safe across supply chain, dependencies, and secrets?  |
 | **Product Manager**   | What enters the line, and what is ready to merge into main?        |
 | **Technical Writer**  | Is the manual accurate, and does the wiki reflect what we learned? |
 | **Improvement Coach** | What is the current condition, and what did we learn yesterday?    |
@@ -305,9 +305,8 @@ back to the trace artifact.
 Daily storyboard files (`wiki/storyboard/{YYYY-MM-DD}.md`) and per-agent wiki
 summaries (`wiki/{persona}.md`) follow a fixed Kata template. The template
 applies the brand's typographic discipline to plain markdown. Persona name as
-H1, current
-condition as a blockquote, target condition as a level-2 heading, the five kata
-questions as level-3 subsections, metrics as a mono-table.
+H1, current condition as a blockquote, target condition as a level-2 heading,
+the five kata questions as level-3 subsections, metrics as a mono-table.
 
 ### Warm/Cool Section Rhythm
 

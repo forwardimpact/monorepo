@@ -31,7 +31,7 @@ describe("composeSystemPrompt", () => {
     );
   });
 
-  test("orders trailer, hoisted section, then amend inside <session_protocol>", () => {
+  test("orders the trailer, the hoisted section, then amend inside <session_protocol>", () => {
     const result = composeSystemPrompt({
       role: "agent",
       profile: "with-session-protocol",
@@ -50,7 +50,7 @@ describe("composeSystemPrompt", () => {
     );
   });
 
-  test("wraps the protocol even when no profile is supplied", () => {
+  test("wraps the protocol even when the caller supplies no profile", () => {
     const result = composeSystemPrompt({
       role: "agent",
       profilesDir: FIXTURES,
@@ -66,7 +66,7 @@ describe("composeSystemPrompt", () => {
     );
   });
 
-  test("lead role returns a wrapped plain string", () => {
+  test("the lead role returns a wrapped plain string", () => {
     const result = composeSystemPrompt({
       role: "lead",
       profilesDir: FIXTURES,
@@ -82,7 +82,7 @@ describe("composeSystemPrompt", () => {
 });
 
 describe("composeLeadPrompt", () => {
-  test("wraps profile and trailer as parallel sections", () => {
+  test("wraps the profile and the trailer as parallel sections", () => {
     const result = composeLeadPrompt({
       profile: "with-frontmatter",
       profilesDir: FIXTURES,
@@ -97,7 +97,7 @@ describe("composeLeadPrompt", () => {
     );
   });
 
-  test("emits only <session_protocol> when no profile is supplied", () => {
+  test("emits only <session_protocol> when the caller supplies no profile", () => {
     const result = composeLeadPrompt({
       profilesDir: FIXTURES,
       trailer: "LEAD_PROTOCOL",
@@ -128,7 +128,7 @@ describe("composeLeadPrompt", () => {
     );
   });
 
-  test("throws when trailer is missing", () => {
+  test("throws when the trailer is missing", () => {
     assert.throws(
       () => composeLeadPrompt({ profilesDir: FIXTURES, runtime: RT }),
       /trailer is required/,

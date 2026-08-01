@@ -172,7 +172,7 @@ describe("LocalStorage", () => {
     assert.strictEqual(mockFs.mkdir.mock.callCount(), 0);
   });
 
-  test("ensureBucket returns true when directory is created", async () => {
+  test("ensureBucket returns true when it creates the directory", async () => {
     mockFs.access = spy(() => Promise.reject(new Error("Not found")));
 
     const created = await localStorage.ensureBucket();

@@ -12,10 +12,10 @@ import {
   pickTraceArtifact,
 } from "@forwardimpact/libharness";
 
-// Manifest shape for a Kata matrix run: six participants, each emits one
+// Manifest shape for a Kata matrix run. Six participants each emit one
 // `trace--<participant>` artifact. The `.raw` / `.agent` suffixes live on
-// files inside the zip, not on the artifact name — disambiguation must
-// happen on the artifact-name level here.
+// files inside the zip. The artifact name does not carry them. So the code
+// must disambiguate at the artifact-name level here.
 const MATRIX_RUN_ARTIFACTS = [
   { id: 1, name: "trace--improvement-coach" },
   { id: 2, name: "trace--release-engineer" },
@@ -110,14 +110,14 @@ describe("detectRepoSlug", () => {
     const result = await withEnv({ GITHUB_REPOSITORY: undefined }, () =>
       detectRepoSlug(RT),
     );
-    // We're running inside this monorepo, so origin should resolve.
+    // The test runs inside this monorepo, so origin resolves.
     assert.ok(result.owner);
     assert.ok(result.repo);
   });
 });
 
 describe("pickTraceArtifact", () => {
-  test("throws disambiguation error against the run 27053185454 matrix manifest", () => {
+  test("throws a disambiguation error for the matrix manifest of run 27053185454", () => {
     assert.throws(
       () => pickTraceArtifact(MATRIX_RUN_ARTIFACTS, undefined, 27053185454),
       (err) => {
@@ -189,8 +189,8 @@ describe("pickTraceArtifact", () => {
 });
 
 describe("listRuns default pattern", () => {
-  // The prior default "agent" missed every Kata workflow name because
-  // none of them contain "agent" — "Kata: Shift", "Kata: Dispatch", etc.
+  // The prior default "agent" missed every Kata workflow name because none
+  // of them contain "agent", for example "Kata: Shift" and "Kata: Dispatch".
   // The new default keeps the legacy "agent" matcher and adds "Kata".
   const KATA_WORKFLOW_NAMES = [
     "Kata: Shift",
@@ -300,7 +300,7 @@ describe("participant-keyed discovery", () => {
   };
 
   // Matrix host (run 100): per-participant artifact names.
-  // Dispatch host (run 200): one shared artifact; participant lives in members.
+  // Dispatch host (run 200): one shared artifact. Members name the participant.
   // Candidate host (run 300): no artifacts yet.
   function jsonResponse(body) {
     return { ok: true, status: 200, statusText: "OK", json: async () => body };
@@ -323,8 +323,8 @@ describe("participant-keyed discovery", () => {
     };
   }
 
-  // A TraceGitHub whose downloadTrace is stubbed to return the dispatch host's
-  // extracted member filenames — no real download, names only.
+  // Build a TraceGitHub whose downloadTrace stub returns the dispatch host's
+  // extracted member filenames. It returns names only. It downloads nothing.
   function ghWithDispatchMembers(members) {
     const gh = new TraceGitHub({
       token: "t",
@@ -349,7 +349,7 @@ describe("participant-keyed discovery", () => {
     assert.strictEqual(matrix.match, "confirmed");
   });
 
-  test("listRuns confirms a dispatch-host lane via downloaded member names (criterion 1)", async () => {
+  test("listRuns confirms a dispatch-host lane through downloaded member names (criterion 1)", async () => {
     stubFetch();
     const gh = ghWithDispatchMembers([
       "trace--default--release-engineer.agent.ndjson",
@@ -361,7 +361,7 @@ describe("participant-keyed discovery", () => {
     assert.strictEqual(dispatch.match, "confirmed");
   });
 
-  test("listRuns labels an in-progress candidate, never drops it (criterion 2)", async () => {
+  test("listRuns labels an in-progress candidate and never drops it (criterion 2)", async () => {
     stubFetch();
     const gh = ghWithDispatchMembers([]);
     const runs = await gh.listRuns({ participant: "release-engineer" });
@@ -390,10 +390,10 @@ describe("participant-keyed discovery", () => {
     );
   });
 
-  test("attribution never reads trace content — an echo-contaminated body is irrelevant (criterion 8)", async () => {
+  test("attribution never reads trace content, so an echo-contaminated body is irrelevant (criterion 8)", async () => {
     stubFetch();
-    // The dispatch member files name release-engineer; their bodies (never
-    // read) could quote any run id. Resolution depends only on the filename.
+    // The dispatch member files name release-engineer. Their bodies could
+    // quote any run id. The code never reads them. It uses the filename only.
     const gh = ghWithDispatchMembers([
       "trace--default--release-engineer.agent.ndjson",
     ]);
@@ -409,7 +409,7 @@ describe("participant-keyed discovery", () => {
 });
 
 describe("createTraceGitHub", () => {
-  test("throws a clear error when called without a runtime", async () => {
+  test("throws a clear error when the caller omits the runtime", async () => {
     await assert.rejects(() => createTraceGitHub(), /runtime is required/);
   });
 

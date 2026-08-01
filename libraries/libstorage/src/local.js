@@ -13,7 +13,10 @@ import {
 /** Sentinel epoch value used as a fallback sort key (equivalent to new Date(0)). */
 const EPOCH = { getTime: () => 0 };
 
-/** Reserved infix in tmp sibling filenames; consumers must not produce keys containing this literal. */
+/**
+ * Reserved infix in tmp sibling filenames. Consumers must not produce keys
+ * that contain this literal.
+ */
 const TMP_SENTINEL = /\.libstorage-tmp\./;
 
 /**
@@ -33,7 +36,7 @@ export class LocalStorage {
    * Creates a new LocalStorage instance
    * @param {string} prefix - Base path for all storage operations
    * @param {object} fs - File system operations object
-   * @param {() => string} [nonce] - Source of collision-free tokens for tmp sibling filenames during `put`. Defaults to `libsecret.generateUUID`; tests may pass a deterministic stub.
+   * @param {() => string} [nonce] - Source of collision-free tokens for tmp sibling filenames during `put`. Defaults to `libsecret.generateUUID`. Tests may pass a deterministic stub.
    */
   constructor(prefix, fs, nonce = () => generateUUID()) {
     this.#prefix = prefix;
@@ -78,12 +81,12 @@ export class LocalStorage {
   async get(key) {
     const content = await this.#fs.readFile(this.path(key));
 
-    // Parse JSON Lines format if file has .jsonl extension
+    // Parse JSON Lines format if the file has a .jsonl extension
     if (key.endsWith(".jsonl")) {
       return fromJsonLines(content);
     }
 
-    // Parse JSON format if file has .json extension
+    // Parse JSON format if the file has a .json extension
     if (key.endsWith(".json")) {
       return fromJson(content);
     }
@@ -101,9 +104,9 @@ export class LocalStorage {
   }
 
   /**
-   * Check if key exists
+   * Check if the key exists
    * @param {string} key - Storage key identifier
-   * @returns {Promise<boolean>} True if key exists
+   * @returns {Promise<boolean>} True if the key exists
    */
   async exists(key) {
     try {
@@ -128,7 +131,7 @@ export class LocalStorage {
 
     await this.#fs.mkdir(dirToCreate, { recursive: true });
 
-    // Always append with newline for JSON-ND format consistency
+    // Always append with a newline to keep the JSON-ND format consistent
     const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
     await this.#fs.appendFile(fullPath, dataWithNewline);
   }
@@ -146,7 +149,7 @@ export class LocalStorage {
           const data = await this.get(key);
           results[key] = data;
         } catch (error) {
-          // If key doesn't exist, skip it (don't add to results)
+          // If the key doesn't exist, skip it (don't add it to results)
           if (error.code !== "ENOENT") {
             throw error;
           }
@@ -156,7 +159,7 @@ export class LocalStorage {
     return results;
   }
 
-  // Search and Listing Operations
+  // Search and List Operations
 
   /**
    * Lists all keys in storage
@@ -167,7 +170,7 @@ export class LocalStorage {
   }
 
   /**
-   * Find keys with specified prefix
+   * Find keys with the specified prefix
    * @param {string} prefix - Key prefix to match
    * @param {string} [delimiter] - Optional delimiter to group results by directory-like segments
    * @returns {Promise<string[]>} Array of matching keys
@@ -177,7 +180,7 @@ export class LocalStorage {
       filename.startsWith(prefix),
     );
     if (delimiter) {
-      // Group keys by delimiter, return unique prefixes
+      // Group the keys by delimiter. Return the unique prefixes.
       const groups = new Set();
       for (const key of keys) {
         const idx = key.indexOf(delimiter, prefix.length);
@@ -193,7 +196,7 @@ export class LocalStorage {
   }
 
   /**
-   * Find keys with specified extension
+   * Find keys with the specified extension
    * @param {string} extension - File extension to search for
    * @returns {Promise<string[]>} Array of keys with the extension
    */
@@ -210,7 +213,7 @@ export class LocalStorage {
    */
   path(key = ".") {
     if (key.startsWith("/")) {
-      return key; // Use absolute path directly for local filesystem
+      return key; // Use the absolute path directly for the local filesystem
     }
     return join(this.#prefix, key);
   }
@@ -218,22 +221,22 @@ export class LocalStorage {
   // Bucket/Directory Management
 
   /**
-   * Ensures the storage bucket/directory exists
-   * @returns {Promise<boolean>} True if directory was created
+   * Makes sure the storage bucket/directory exists
+   * @returns {Promise<boolean>} True if this method created the directory
    */
   async ensureBucket() {
     try {
       await this.#fs.access(this.#prefix);
-      return false; // Directory already exists
+      return false; // The directory already exists
     } catch {
       await this.#fs.mkdir(this.#prefix, { recursive: true });
-      return true; // Directory was created
+      return true; // This method created the directory
     }
   }
 
   /**
    * Checks if the storage bucket/directory exists
-   * @returns {Promise<boolean>} True if directory exists
+   * @returns {Promise<boolean>} True if the directory exists
    */
   async bucketExists() {
     try {
@@ -247,8 +250,8 @@ export class LocalStorage {
   // Private Helper Methods
 
   /**
-   * Serialize a value for storage based on the key's extension. Objects
-   * targeting `.json`/`.jsonl` keys are stringified; everything else
+   * Serialize a value for storage based on the key's extension. This method
+   * stringifies objects that target `.json`/`.jsonl` keys. Everything else
    * passes through unchanged.
    * @param {string} key - Storage key identifier
    * @param {string|Buffer|object} data - Data to serialize
@@ -261,8 +264,8 @@ export class LocalStorage {
   }
 
   /**
-   * Best-effort unlink used by `put`'s failure arms. Cleanup errors are
-   * swallowed so the originating put error propagates.
+   * Best-effort unlink for `put`'s failure arms. This method swallows the
+   * cleanup errors so the original put error propagates.
    * @param {string} path - Absolute path to unlink
    * @returns {Promise<void>}
    */
@@ -275,7 +278,7 @@ export class LocalStorage {
   }
 
   /**
-   * Recursively traverse directories to find files matching a filter
+   * Recursively traverse directories to find files that match a filter
    * @private
    * @param {Function|null} fileFilter - Optional filter function for files
    * @returns {Promise<string[]>} Array of relative file paths sorted by creation timestamp (oldest first)
@@ -310,7 +313,7 @@ export class LocalStorage {
 
     /**
      * Recursively traverse directories
-     * @param {string} currentDir - Current directory being traversed
+     * @param {string} currentDir - The directory that this call traverses
      * @param {string} relativePath - Relative path from base path
      */
     const traverse = async (currentDir, relativePath = "") => {
@@ -323,7 +326,7 @@ export class LocalStorage {
           await processEntry(entry, currentDir, relativePath);
         }
       } catch (error) {
-        // Ignore directories that can't be read (permission issues, etc.)
+        // Ignore directories the process can't read (permission issues, etc.)
         if (error.code !== "ENOENT" && error.code !== "EACCES") {
           throw error;
         }

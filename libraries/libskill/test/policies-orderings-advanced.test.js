@@ -50,7 +50,7 @@ describe("orderings - advanced", () => {
   });
 
   describe("sortSkillsByCapability", () => {
-    test("sorts by capability then name without mutating input", () => {
+    test("sorts by capability then name and does not mutate input", () => {
       const capabilities = [
         { id: "scale", ordinalRank: 2 },
         { id: "delivery", ordinalRank: 1 },
@@ -63,7 +63,7 @@ describe("orderings - advanced", () => {
       const original = [...skills];
       const sorted = sortSkillsByCapability(skills, capabilities);
 
-      // Original is not mutated
+      // The sort does not mutate the original
       assert.deepStrictEqual(skills, original);
 
       assert.deepStrictEqual(
@@ -78,7 +78,7 @@ describe("orderings - advanced", () => {
   });
 
   describe("compareByOrder", () => {
-    test("creates comparator from an ordering array and accessor", () => {
+    test("creates comparator from an order array and accessor", () => {
       const order = ["high", "medium", "low"];
       const comparator = compareByOrder(order, (item) => item.priority);
       const items = [
@@ -231,7 +231,7 @@ describe("orderings - advanced", () => {
 
   describe("sort stability", () => {
     test("equal elements preserve original order", () => {
-      // All same proficiency, should preserve insertion order
+      // All entries share one proficiency, so the sort keeps insertion order
       const items = [
         skill({ skillName: "First", proficiency: "working" }),
         skill({ skillName: "Second", proficiency: "working" }),

@@ -107,7 +107,7 @@ function createTestHarness({
   return { files, dirs, copied, builder };
 }
 
-test("PagesBuilder writes markdown companion with title prepend", async () => {
+test("PagesBuilder prepends the title to the markdown companion", async () => {
   const sourceFiles = new Map([
     ["src/index.md", "---\ntitle: Home\n---\nWelcome content"],
     ["src/about.md", "---\ntitle: About\n---\nAbout content"],

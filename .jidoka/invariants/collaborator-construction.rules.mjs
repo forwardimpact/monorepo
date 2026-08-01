@@ -81,8 +81,8 @@ export default {
       severity: "fail",
       when: (s) => !s.parseError,
       check: (s) => {
-        // In test files only `new Finder(` is flagged; the leaf factories
-        // may be wired deliberately by a test.
+        // In test files this check flags only `new Finder(`. A test may
+        // wire the leaf factories deliberately.
         const flagged = [...s.tags]
           .filter((tag) => !s.isTest || tag === "Finder")
           .sort();

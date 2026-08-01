@@ -1,7 +1,7 @@
 name: "Kata: Shift"
 
-# Sequential agent team. The matrix below is the roster — add or remove an
-# agent by editing one line. Agents run in declaration order, one at a time
+# Sequential agent team. The matrix below is the roster. Edit one line to add
+# or remove an agent. Agents run in declaration order, one at a time
 # (`max-parallel: 1`), on every scheduled or manual invocation. KATA.md
 # describes the rhythm.
 
@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       task-amend:
-        description: "Additional text appended to the task prompt for steering"
+        description: "Extra text appended to the task prompt to steer the run"
         required: false
         type: string
 

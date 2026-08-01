@@ -7,16 +7,16 @@ import { createTerminalFormatter } from "@forwardimpact/libformat";
 /**
  * REPL application configuration
  * @typedef {object} ReplApp
- * @property {string} [prompt="> "] - Prompt string displayed to the user
- * @property {(line: string, state: object, output: import("stream").Writable) => Promise<void>} [onLine] - Handler for input lines that writes to output stream
- * @property {(state: object) => Promise<void>} [beforeLine] - Handler called before each line is processed
- * @property {(state: object) => Promise<void>} [afterLine] - Handler called after each line is processed
- * @property {(state: object) => Promise<void>} [setup] - Setup function to run before starting the REPL
- * @property {{[key: string]: {usage: string, handler: (args: string[], state: object) => Promise<string|false>, type?: string, cli?: boolean}}} [commands] - Custom command definitions with usage, handler (returns false to exit early in CLI mode), optional type ("boolean" for no args), and optional cli flag (false to hide from CLI usage)
+ * @property {string} [prompt="> "] - Prompt string the REPL shows to the user
+ * @property {(line: string, state: object, output: import("stream").Writable) => Promise<void>} [onLine] - Handler for input lines that writes to the output stream
+ * @property {(state: object) => Promise<void>} [beforeLine] - Handler that runs before the REPL processes each line
+ * @property {(state: object) => Promise<void>} [afterLine] - Handler that runs after the REPL processes each line
+ * @property {(state: object) => Promise<void>} [setup] - Setup function to run before the REPL starts
+ * @property {{[key: string]: {usage: string, handler: (args: string[], state: object) => Promise<string|false>, type?: string, cli?: boolean}}} [commands] - Custom command definitions. Each entry has a usage string and a handler. The handler returns false to exit early in CLI mode. An optional type of "boolean" marks a command that takes no args. An optional cli flag of false hides the command from the CLI usage.
  * @property {string} [usage] - Static help text to show before the command list
- * @property {Array<{title: string, url: string, description?: string}>} [documentation] - External documentation links rendered after the command list (mirrors the `## Documentation` section of the matching SKILL.md so agents reaching the REPL via `--help` get the same progressive-disclosure links)
- * @property {{[key: string]: any}} [state] - Definition of state and its initial values
- * @property {import("@forwardimpact/libstorage").StorageInterface} [storage] - Storage interface for state persistence
+ * @property {Array<{title: string, url: string, description?: string}>} [documentation] - External documentation links. The REPL renders them after the command list. They mirror the `## Documentation` section of the matching SKILL.md. An agent that reaches the REPL with `--help` then gets the same progressive-disclosure links.
+ * @property {{[key: string]: any}} [state] - The state keys and their initial values
+ * @property {import("@forwardimpact/libstorage").StorageInterface} [storage] - Storage interface that persists the state
  * @property {string} [indent=""] - String to prefix each line of output (e.g. "  " for two-space indent)
  */
 
@@ -35,7 +35,7 @@ export class Repl {
    * Creates a REPL instance with injected dependencies
    * @param {ReplApp} app - REPL application configuration
    * @param {Function} formatterFn - Factory function that creates a formatter instance
-   * @param {object} readlineModule - Readline module for creating interfaces
+   * @param {object} readlineModule - Readline module that creates interfaces
    * @param {object} processModule - Process object for stdin/stdout and exit
    * @param {object} osModule - OS module for system information
    */
@@ -96,24 +96,24 @@ export class Repl {
     };
     this.#rl = null;
 
-    // Get system UID for state persistence
+    // Get the system UID that identifies the stored state
     this.#uid = osModule.userInfo().uid;
 
-    // Initialize state from app configuration
+    // Initialize the state from the app configuration
     this.state = { ...this.#app.state };
 
-    // Sort commands alphabetically for consistent help display
+    // Sort the commands alphabetically to keep the help output consistent
     this.#app.commands = Object.fromEntries(
       Object.entries(this.#app.commands).sort(([a], [b]) => a.localeCompare(b)),
     );
   }
 
   /**
-   * Resets state to initial values from app configuration
+   * Resets the state to the initial values from the app configuration
    * @returns {Promise<void>}
    */
   async #clearState() {
-    // Only reset keys that are defined in the app's initial state
+    // Only reset the keys that the app's initial state defines
     for (const key of Object.keys(this.#app.state)) {
       this.state[key] = this.#app.state[key];
     }
@@ -135,7 +135,8 @@ export class Repl {
 
   /**
    * Resolves the handler arguments for a command flag.
-   * Returns the args array and the number of extra argv positions consumed.
+   * Returns the args array and the number of extra argv positions it
+   * consumes.
    * @param {object} command - Command definition
    * @param {string|null} inlineValue - Inline value from --key=value form
    * @param {string[]} args - Full argv array
@@ -151,9 +152,10 @@ export class Repl {
   }
 
   /**
-   * Parses command line arguments: `--flag` args run their command
-   * handlers (overriding state values), every other arg is collected as
-   * a positional. Positionals are always prompt text, never commands.
+   * Parses command line arguments. A `--flag` arg runs its command
+   * handler. That handler overrides the state value. Every other arg
+   * becomes a positional. Positionals are always prompt text. They are
+   * never commands.
    * @returns {Promise<{shouldExit: boolean, positionals: string[]}>}
    *   `shouldExit` is true when a flag handler requested an early exit.
    */
@@ -185,7 +187,7 @@ export class Repl {
   }
 
   /**
-   * Loads state from storage if available
+   * Loads the state from storage if storage is available
    * @returns {Promise<void>}
    */
   async #loadState() {
@@ -201,7 +203,7 @@ export class Repl {
   }
 
   /**
-   * Saves current state to storage if available
+   * Saves the current state to storage if storage is available
    * @returns {Promise<void>}
    */
   async #saveState() {
@@ -212,7 +214,7 @@ export class Repl {
   }
 
   /**
-   * Applies indent to the first chunk, skipping the very first line.
+   * Applies the indent to the first chunk. Skips the very first line.
    * @param {string} formatted - Formatted text
    * @param {string} indent - Indent prefix
    * @returns {{ text: string, pastFirstLine: boolean }}
@@ -266,7 +268,7 @@ export class Repl {
     const trimmed = line.trim();
     if (!trimmed) return;
 
-    // Call beforeLine handler if provided
+    // Call the beforeLine handler if the app provides one
     if (this.#app.beforeLine) {
       await this.#app.beforeLine(this.state);
     }
@@ -289,19 +291,20 @@ export class Repl {
       try {
         await this.#app.onLine(trimmed, this.state, outputStream);
       } catch {
-        // Error is already logged by libtelemetry logger in the service layer
+        // The libtelemetry logger in the service layer already logs the
+        // error
       } finally {
         outputStream.end();
         await outputPromise.catch(() => {});
       }
     }
 
-    // Call afterLine handler if provided
+    // Call the afterLine handler if the app provides one
     if (this.#app.afterLine) {
       await this.#app.afterLine(this.state);
     }
 
-    // Save state after processing the line
+    // Save the state after each line
     await this.#saveState();
   }
 
@@ -319,12 +322,13 @@ export class Repl {
     if (command && command.handler) {
       try {
         const result = await command.handler(args, this.state);
-        // Only output if result is a stream (ignore boolean/null)
+        // Only output if the result is a stream (ignore boolean/null)
         if (result && typeof result.on === "function") {
           await this.#output(result);
         }
       } catch {
-        // Error is already logged by libtelemetry logger if handler uses it
+        // The libtelemetry logger already logs the error if the handler
+        // uses it
       }
     } else {
       await this.#showHelp();
@@ -332,13 +336,13 @@ export class Repl {
   }
 
   /**
-   * Shows usage message with available commands
+   * Shows the usage message with the available commands
    * @returns {Promise<void>}
    */
   async #showHelp() {
     let output = "";
 
-    // Add custom usage message if provided
+    // Add the custom usage message if the app provides one
     if (this.#app.usage) {
       output += this.#app.usage + "\n\n";
     }
@@ -363,7 +367,7 @@ export class Repl {
       output += `\`/${name}\` ${usage}\n`;
     }
 
-    // Documentation section — mirrors the matching SKILL.md
+    // The documentation section mirrors the matching SKILL.md
     if (this.#app.documentation && this.#app.documentation.length > 0) {
       output += "\n**Documentation:**\n\n";
       for (const entry of this.#app.documentation) {
@@ -380,22 +384,22 @@ export class Repl {
    * @returns {Promise<void>}
    */
   async start() {
-    // Load state from storage first
+    // Load the state from storage first
     await this.#loadState();
 
-    // Parse command line arguments (exits early if any command returns
-    // false — flags win over positionals). These override loaded state
-    // values.
+    // Parse command line arguments. The parse exits early if any command
+    // returns false. Flags win over positionals. The arguments override
+    // the loaded state values.
     const { shouldExit, positionals } = await this.#parseArgs();
     if (shouldExit) return;
 
-    // Run setup if provided
+    // Run setup if the app provides it
     if (this.#app.setup) {
       await this.#app.setup(this.state);
     }
 
-    // One-shot mode - positional args are a single prompt line,
-    // equivalent to piping the same line via stdin
+    // One-shot mode. Positional args are a single prompt line. The same
+    // line piped through stdin gives the same result.
     if (positionals.length > 0) {
       const line = positionals.join(" ");
       this.#process.stdout.write(`${this.#app.prompt}${line}\n`);
@@ -404,7 +408,7 @@ export class Repl {
       return;
     }
 
-    // Non-interactive mode - process stdin
+    // Non-interactive mode. Process stdin
     if (!this.#process.stdin.isTTY) {
       let input = "";
       this.#process.stdin.setEncoding("utf8");
@@ -415,7 +419,7 @@ export class Repl {
 
       const lines = input.trim().split("\n");
       for (const line of lines) {
-        // Print the prompt and user input before processing
+        // Print the prompt and the user input, then process the line
         this.#process.stdout.write(`${this.#app.prompt}${line}\n`);
         await this.#handleLine(line);
       }
@@ -424,7 +428,7 @@ export class Repl {
       return;
     }
 
-    // Interactive mode - setup readline
+    // Interactive mode. Set up readline
     this.#rl = this.#readline.createInterface({
       input: this.#process.stdin,
       output: this.#process.stdout,

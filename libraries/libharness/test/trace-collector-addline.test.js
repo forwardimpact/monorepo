@@ -5,7 +5,7 @@ import { TraceCollector } from "@forwardimpact/libharness";
 
 describe("TraceCollector", () => {
   describe("addLine", () => {
-    test("extracts metadata from system init event", () => {
+    test("extracts the metadata from the system init event", () => {
       const collector = new TraceCollector();
       collector.addLine(
         JSON.stringify({
@@ -95,7 +95,7 @@ describe("TraceCollector", () => {
       assert.strictEqual(trace.turns[0].content, "file listing output");
     });
 
-    test("extracts summary from result event", () => {
+    test("extracts the summary from the result event", () => {
       const collector = new TraceCollector();
       collector.addLine(
         JSON.stringify({
@@ -123,7 +123,7 @@ describe("TraceCollector", () => {
       assert.strictEqual(trace.summary.tokenUsage.inputTokens, 5000);
     });
 
-    test("accumulates summary across multiple result events", () => {
+    test("accumulates the summary across multiple result events", () => {
       const collector = new TraceCollector();
       collector.addLine(
         JSON.stringify({
@@ -200,7 +200,7 @@ describe("TraceCollector", () => {
       assert.strictEqual(summary.tokenUsage.outputTokens, 50);
     });
 
-    test("unwraps combined supervised trace format {source, seq, event}", () => {
+    test("unwraps the combined format for supervised traces {source, seq, event}", () => {
       const collector = new TraceCollector();
 
       // System init wrapped in supervisor envelope
@@ -294,8 +294,8 @@ describe("TraceCollector", () => {
         }),
       );
 
-      // Orchestrator summaries unwrap to { type: "summary" } which
-      // hits the default case — silently skipped.
+      // Orchestrator summaries unwrap to { type: "summary" }, which hits
+      // the default case. The collector skips them silently.
       assert.strictEqual(collector.toJSON().turns.length, 0);
     });
 
@@ -344,7 +344,7 @@ describe("TraceCollector", () => {
       assert.strictEqual(collector.toJSON().turns.length, 0);
     });
 
-    test("uses event timestamp when present in system init", () => {
+    test("uses the event timestamp when the system init event has one", () => {
       const collector = new TraceCollector();
       collector.addLine(
         JSON.stringify({

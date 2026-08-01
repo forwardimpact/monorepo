@@ -1,11 +1,12 @@
 // The enumeration-drift engine: assert that every registered consumer's fenced
-// enumeration block matches its source-of-truth set. This is the reusable
-// mechanism the invariant kit injects — `kit.enumDrift.build/seed` and the
-// `enumDriftRules` rule set — so a repository's rule module carries only the
+// enumeration block matches its source-of-truth set. The invariant kit injects
+// this reusable mechanism as `kit.enumDrift.build/seed` and the
+// `enumDriftRules` rule set. A repository's rule module then carries only the
 // registry (a topics file) and a one-line delegation. The grammar (probes,
-// extractors, consumer parser) lives in enum-drift-grammar.js and is re-exported
-// here so a single import reaches the whole engine. Filesystem access is passed
-// in by the kit (`fsSync`), keeping this clean under the ambient-deps invariant.
+// extractors, consumer parser) lives in enum-drift-grammar.js. This module
+// re-exports the grammar, so a single import reaches the whole engine. The kit
+// passes filesystem access in (`fsSync`), which keeps this module clean under
+// the ambient-deps invariant.
 
 import { join } from "node:path";
 
@@ -28,8 +29,8 @@ export {
   VALID_PROPERTIES,
 } from "./enum-drift-grammar.js";
 
-// A topics file is expected to name itself this way beside the rule module;
-// used only as the display path on a registry-error finding.
+// The engine expects a topics file to use this name beside the rule module.
+// This label appears only as the display path on a registry-error finding.
 const REGISTRY_LABEL = "enumeration-drift.topics.yml";
 
 function expandProperty(property) {
@@ -50,8 +51,8 @@ function indexConsumers(topic, propsByConsumer) {
   }
 }
 
-// Walk the registry topics, probing each source and indexing per-consumer
-// required properties; collects probe errors as registry subjects.
+// Walk the registry topics. Probe each source and index the per-consumer
+// required properties. Collect probe errors as registry subjects.
 function indexRegistry(topics, root, fsSync, registrySubjects) {
   const expectedByTopic = new Map();
   const propsByConsumer = new Map();
@@ -78,8 +79,8 @@ function indexRegistry(topics, root, fsSync, registrySubjects) {
   return { expectedByTopic, propsByConsumer, knownTopics };
 }
 
-// Emit assertion subjects for one consumer: the registry property is a required
-// minimum, and beyond that every well-formed fence found is asserted.
+// Emit assertion subjects for one consumer. The registry property is a
+// required minimum. Beyond that, it asserts every well-formed fence it finds.
 function consumerAssertions(cp, topicMap, records, expectedByTopic) {
   const out = [];
   for (const [topicId, props] of topicMap) {
@@ -130,8 +131,8 @@ function fenceSubjects(cp, records, knownTopics) {
 /**
  * Build subjects from a parsed registry: assertions (consumer×property),
  * fences, and registry errors. `registry` is the parsed topics object (e.g. the
- * kit's `config(topicsFile)`); a missing or malformed registry yields a single
- * registry-error subject rather than throwing.
+ * kit's `config(topicsFile)`). A missing or malformed registry yields a single
+ * registry-error subject. It does not throw.
  *
  * @param {{ registry: { topics?: object[] }|null, root: string, fsSync: object }} options
  * @returns {{ subjects: { assertion: object[], fence: object[], registry: object[] } }}
@@ -242,7 +243,7 @@ function symDiff(observed, expected) {
 }
 
 /**
- * The enumeration-drift rule set, injected into a rule module via the rule kit
+ * The enumeration-drift rule set. The rule kit injects it into a rule module
  * as `enumDriftRules`. The rules render the subjects `buildSubjects` produces.
  */
 export const ENUM_DRIFT_RULES = [
@@ -261,7 +262,7 @@ export const ENUM_DRIFT_RULES = [
     when: (s) => s.fenceAbsent,
     check: (s) => ({ topic: s.topic, property: s.property }),
     message: (s, r) => `${r.topic}:${r.property} :: required fence not found`,
-    hint: "wrap the enumeration in <!-- enum:TOPIC:PROPERTY --> … <!-- /enum -->; seed the body with `jidoka invariants --seed enumeration-drift`",
+    hint: "wrap the enumeration in <!-- enum:TOPIC:PROPERTY --> … <!-- /enum -->, and seed the body with `jidoka invariants --seed enumeration-drift`",
   },
   {
     id: "enum.unknown-topic",
@@ -270,7 +271,7 @@ export const ENUM_DRIFT_RULES = [
     when: (s) => !s.malformed && s.topic !== null,
     check: (s) => (s.known ? null : { topic: s.topic }),
     message: (s, r) =>
-      `${r.topic} :: unknown topic; remove the fence or add the topic to the registry`,
+      `${r.topic} :: unknown topic, so remove the fence or add the topic to the registry`,
     hint: "fence TOPIC must be one of the registry topic ids in the enumeration-drift topics file",
   },
   {
@@ -280,7 +281,7 @@ export const ENUM_DRIFT_RULES = [
     when: (s) => Boolean(s.malformed),
     check: (s) => ({ reason: s.malformed }),
     message: (s, r) => `malformed fence (${r.reason})`,
-    hint: "fences are <!-- enum:TOPIC:count|list --> … <!-- /enum -->; close every open fence and put a number in a count span",
+    hint: "write fences as <!-- enum:TOPIC:count|list --> … <!-- /enum -->, close every open fence, and put a number in a count span",
   },
   {
     id: "enum.list-drift",
@@ -296,7 +297,7 @@ export const ENUM_DRIFT_RULES = [
     },
     message: (s, r) =>
       `${r.topic}:list :: missing=[${r.missing.join(", ")}] extra=[${r.extra.join(", ")}]`,
-    hint: "update the fenced list to match the source set; seed with `jidoka invariants --seed enumeration-drift`",
+    hint: "update the fenced list to match the source set, and seed with `jidoka invariants --seed enumeration-drift`",
   },
   {
     id: "enum.count-drift",
@@ -310,6 +311,6 @@ export const ENUM_DRIFT_RULES = [
         : { topic: s.topic, actual: s.observed, expected: s.expected.size },
     message: (s, r) =>
       `${r.topic}:count :: actual=${r.actual} expected=${r.expected}`,
-    hint: "update the fenced count to match the source set size; seed with `jidoka invariants --seed enumeration-drift`",
+    hint: "update the fenced count to match the source set size, and seed with `jidoka invariants --seed enumeration-drift`",
   },
 ];

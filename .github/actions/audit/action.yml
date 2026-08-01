@@ -1,24 +1,24 @@
 name: Security Audit
-description: Run npm audit and gitleaks secret scanning
+description: Run npm audit and scan for secrets with gitleaks
 
 inputs:
   vulnerability-scanning:
-    description: Run dependency vulnerability scanning
+    description: Scan the dependencies for vulnerabilities
     required: false
     default: "true"
   secret-scanning:
-    description: Run secret scanning on the repository
+    description: Scan the repository for secrets
     required: false
     default: "false"
   working-directory:
-    description: Directory containing package.json
+    description: The directory that holds package.json
     required: false
     default: "."
 
 runs:
   using: composite
   steps:
-    - name: Vulnerability scanning
+    - name: Scan for vulnerabilities
       if: inputs.vulnerability-scanning == 'true'
       shell: bash
       working-directory: ${{ inputs.working-directory }}
@@ -36,7 +36,7 @@ runs:
       if: inputs.secret-scanning == 'true'
       uses: ./.github/actions/install-gitleaks
 
-    - name: Secret scanning
+    - name: Scan for secrets
       if: inputs.secret-scanning == 'true'
       shell: bash
       working-directory: ${{ inputs.working-directory }}

@@ -115,7 +115,7 @@ describe("Parser", () => {
     };
 
     const existingQuads = [quad1];
-    const newQuads = [quad1, quad2]; // quad1 is duplicate
+    const newQuads = [quad1, quad2]; // quad1 is a duplicate
 
     const merged = parser.unionQuads(existingQuads, newQuads);
 
@@ -123,7 +123,8 @@ describe("Parser", () => {
   });
 
   test("unionQuads handles literals with different datatypes", () => {
-    // Same value but different datatypes should be treated as different quads
+    // The parser should treat the same value with different datatypes as
+    // different quads
     const quad1 = {
       subject: { value: "https://example.com/item" },
       predicate: { value: "https://schema.org/value" },
@@ -156,7 +157,8 @@ describe("Parser", () => {
   });
 
   test("unionQuads handles literals with different languages", () => {
-    // Same value but different languages should be treated as different quads
+    // The parser should treat the same value with different languages as
+    // different quads
     const quad1 = {
       subject: { value: "https://example.com/item" },
       predicate: { value: "https://schema.org/name" },
@@ -260,7 +262,7 @@ describe("Parser", () => {
   });
 
   test("round-trip conversion preserves data (quads → N-Quads → quads)", async () => {
-    // Create properly formatted N3 quads
+    // Create N3 quads with the correct format
     const { DataFactory } = await import("n3");
     const { namedNode, literal, quad } = DataFactory;
 

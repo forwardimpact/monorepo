@@ -1,7 +1,7 @@
 import assert from "node:assert";
 
 /**
- * Asserts that a function throws with a matching message
+ * Asserts that a function throws with a message that matches the pattern
  * @param {Function} fn - Function to test
  * @param {RegExp|string} pattern - Pattern to match
  * @param {string} message - Assertion message
@@ -15,7 +15,8 @@ export function assertThrowsMessage(fn, pattern, message) {
 }
 
 /**
- * Asserts that an async function rejects with a matching message
+ * Asserts that an async function rejects with a message that matches the
+ * pattern
  * @param {Function} fn - Async function to test
  * @param {RegExp|string} pattern - Pattern to match
  * @param {string} message - Assertion message
@@ -29,7 +30,7 @@ export async function assertRejectsMessage(fn, pattern, message) {
 }
 
 /**
- * Creates a deferred promise for async testing
+ * Creates a deferred promise for async tests
  * @returns {object} Object with promise, resolve, and reject
  */
 export function createDeferred() {

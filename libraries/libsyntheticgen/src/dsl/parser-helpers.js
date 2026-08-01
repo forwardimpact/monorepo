@@ -17,21 +17,24 @@ export function createDispatchHelpers(helpers) {
   const { peek, advance, expect, parseArray } = helpers;
 
   /**
-   * Consume brace-delimited keyword fields using a dispatch map.
+   * Consume brace-delimited keyword fields with a dispatch map.
    *
-   * Loops over tokens until RBRACE, dispatching each keyword through the
-   * handler map. Throws on any keyword not present in the map.
+   * The loop reads tokens until RBRACE. It dispatches each keyword
+   * through the handler map. It throws on any keyword that the map does
+   * not hold.
    *
    * @param {Record<string, (kw: any) => void>} handlers — dispatch table
    * @param {string} blockName — label for error messages
    * @param {{ target?: object, consumeRBrace?: boolean }} [options]
-   * @param {object} [options.target] — when provided, created internally and
-   *   returned; each handler receives the target as its first argument.
-   *   When omitted, handlers receive the keyword token (legacy mode).
-   * @param {boolean} [options.consumeRBrace] — when true the trailing RBRACE
-   *   token is consumed before returning. Defaults to false.
+   * @param {object} [options.target] — when provided, created internally
+   *   and returned. Each handler receives the target as its first
+   *   argument. When omitted, handlers receive the keyword token (legacy
+   *   mode).
+   * @param {boolean} [options.consumeRBrace] — when true, the function
+   *   consumes the trailing RBRACE token before it returns. Defaults to
+   *   false.
    * @returns {object|undefined} The target object when `options.target` is
-   *   provided; otherwise undefined.
+   *   provided. Otherwise undefined.
    */
   function consumeFields(handlers, blockName, options) {
     const target = options?.target;

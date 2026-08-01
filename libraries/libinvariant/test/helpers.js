@@ -1,6 +1,6 @@
 // Shared setup for the enumeration-drift test siblings: a scratch-repo factory
 // and the sync filesystem surface the probes take. At runtime the invariant kit
-// injects runtime.fsSync; in tests node:fs supplies the same surface directly.
+// injects runtime.fsSync. In tests node:fs supplies the same surface directly.
 import {
   existsSync,
   mkdirSync,
@@ -16,7 +16,7 @@ import { join } from "node:path";
 export const fsSync = { existsSync, readFileSync, readdirSync, statSync };
 
 /**
- * Create a scratch repo whose layout the fs-glob probe walks; the caller
+ * Create a scratch repo whose layout the fs-glob probe walks. The caller
  * removes it (rmSync) when done.
  *
  * @param {Record<string, string>} layout - relative path → file content.

@@ -1,7 +1,7 @@
 /**
- * `gemba-benchmark run` — run every task in a family for N runs, stream each
- * ResultRecord to stdout (one JSON line per record), and append to the
- * canonical `<output>/results.jsonl` for the report subcommand.
+ * `gemba-benchmark run` — run every task in a family for N runs. Stream each
+ * ResultRecord to stdout (one JSON line per record). Append each record to
+ * the canonical `<output>/results.jsonl` for the report subcommand.
  */
 
 import { resolve } from "node:path";
@@ -30,15 +30,15 @@ export async function runBenchmarkRunCommand(ctx) {
   }
   const config = await createConfig("script", "benchmark");
   runtime.proc.env.ANTHROPIC_API_KEY = await config.anthropicToken();
-  // The benchmark agent runs via createBenchmarkRunner, not the supervise
-  // command, so the active-tracker env must land here before the runner
-  // spawns the subprocess that inherits process.env.
+  // The benchmark agent runs through createBenchmarkRunner. The supervise
+  // command does not run it. So the active-tracker env must land here before
+  // the runner spawns the subprocess that inherits process.env.
   runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   // The Claude Agent SDK spawns a `claude` subprocess that inherits
-  // process.env. NODE_EXTRA_CA_CERTS causes undici (the HTTP client
-  // inside that subprocess) to fail with UND_ERR_INVALID_ARG on
-  // Node 22+, aborting every API call after 10 retries. Strip it
+  // process.env. NODE_EXTRA_CA_CERTS makes undici (the HTTP client
+  // inside that subprocess) fail with UND_ERR_INVALID_ARG on Node 22+.
+  // Undici then aborts every API call after 10 retries. Strip it
   // before the SDK loads so the subprocess gets a clean environment.
   delete runtime.proc.env.NODE_EXTRA_CA_CERTS;
 
@@ -57,13 +57,14 @@ export async function runBenchmarkRunCommand(ctx) {
 }
 
 /**
- * Decide the exit outcome when a run streamed zero records. A run that emits no
- * records normally did nothing (no tasks discovered, or the agent never
- * produced output) — a failure, surfaced loudly so CI does not go green on an
- * empty benchmark. The one exception is a deliberately-empty shard: a
- * high-index `--shard=i/N` with `N > cell count` legitimately selects zero
- * cells, so it exits 0 with a stderr note. Exported so the relaxed-guard branch
- * is testable without the full handler's config/SDK setup.
+ * Decide the exit outcome when a run streamed zero records. A run that emits
+ * no records normally did nothing. Either it discovered no tasks, or the
+ * agent never produced output. That is a failure. The command surfaces it
+ * loudly so CI does not go green on an empty benchmark. A deliberately-empty
+ * shard is the one exception. A high-index `--shard=i/N` with
+ * `N > cell count` legitimately selects zero cells, so it exits 0 with a
+ * stderr note. This function is exported so a test can reach the
+ * relaxed-guard branch without the full handler's config and SDK setup.
  * @param {{shard: {index: number, total: number} | null}} opts
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {{ok: true} | {ok: false, code: number, error: string}}
@@ -79,16 +80,17 @@ export function resolveZeroRecordOutcome(opts, runtime) {
     ok: false,
     code: 1,
     error:
-      "benchmark produced no result records — no task ran to completion; check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
+      "benchmark produced no result records. No task ran to completion. Check the family's tasks/, apm install, and agent availability (ANTHROPIC_API_KEY / claude CLI / IS_SANDBOX)",
   };
 }
 
 /**
- * Parse and validate benchmark run options. Exported so tests can verify
- * defaults, including the resolved work tracker.
+ * Parse and validate benchmark run options. This function is exported so a
+ * test can verify the defaults and the resolved work tracker.
  * @param {Record<string, string|undefined>} values - Parsed option values
- * @param {Record<string, string|undefined>} [env] - Process environment, read
- *   for the `LIBHARNESS_WORK_TRACKER` fallback when `--work-tracker` is absent.
+ * @param {Record<string, string|undefined>} [env] - Process environment. The
+ *   parser reads it for the `LIBHARNESS_WORK_TRACKER` fallback when
+ *   `--work-tracker` is absent.
  * @returns {object}
  */
 export function parseRunOptions(values, env = {}) {
@@ -132,7 +134,8 @@ function parseMaxTurns(raw) {
 
 /**
  * Parse a `--shard=<i>/<N>` selector into `{index, total}` (1-based), or `null`
- * for an unsharded run. Validates `1 ≤ index ≤ total` with integer parts.
+ * for an unsharded run. Validate that the parts are integers and that
+ * `1 ≤ index ≤ total`.
  * @param {string|undefined} raw
  * @returns {{index: number, total: number} | null}
  */
@@ -147,17 +150,17 @@ export function parseShard(raw) {
   return { index, total };
 }
 
-// Conservative because each cell spawns ~3 agent subprocesses (lead +
-// agent-under-test + judge); a low ceiling keeps a single runner from
-// thrashing. The bulk of the CI speedup comes from Layer-2 sharding across
-// machines, not from raising this in-job default.
+// The ceiling is conservative because each cell spawns ~3 agent subprocesses
+// (lead + agent-under-test + judge). A low ceiling makes sure that a single
+// runner does not thrash. Most of the CI speedup comes from Layer-2 shards
+// across machines. It does not come from a higher in-job default.
 const CONCURRENCY_CEILING = 4;
 
 /**
  * Resolve the cell concurrency: `--concurrency` flag > the
  * `LIBHARNESS_BENCHMARK_CONCURRENCY` env var > a CPU-aware default of
- * `min(CONCURRENCY_CEILING, max(2, ⌊cores/2⌋))`. The default is `> 1` so
- * concurrency is on transparently without any consumer opting in.
+ * `min(CONCURRENCY_CEILING, max(2, ⌊cores/2⌋))`. The default is `> 1`, so
+ * concurrency is on transparently. No consumer needs to opt in.
  * @param {Record<string, string|undefined>} values
  * @param {Record<string, string|undefined>} [env]
  * @returns {number}

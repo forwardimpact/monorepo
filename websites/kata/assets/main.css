@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════
    Kata — Brand Layer
-   Tokens, fonts, brand-specific surfaces, and scroll-section styles.
-   Loaded after the shared base/layout/components stylesheets.
+   This file holds tokens, fonts, brand-specific surfaces, and
+   scroll-section styles. The page loads it after the shared base,
+   layout, and components stylesheets.
    ══════════════════════════════════════════════════════════════════ */
 
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap");
@@ -16,7 +17,7 @@
   --bg-hover: #e4e1d9;
   --bg-inverted: #161513;
 
-  /* Hanko (warm signal — stamp ink) */
+  /* Hanko (warm signal, stamp ink) */
   --ink-50: #fbf3f1;
   --ink-100: #f4ddd7;
   --ink-200: #e8b8ac;

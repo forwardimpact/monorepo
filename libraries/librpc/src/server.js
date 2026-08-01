@@ -8,7 +8,7 @@ import {
 import { healthDefinition, createHealthHandlers } from "./health.js";
 
 /**
- * gRPC Server class using pre-compiled service definitions
+ * gRPC Server class that uses pre-compiled service definitions
  * Takes a service instance and creates a gRPC server around it
  */
 export class Server extends Rpc {
@@ -47,7 +47,7 @@ export class Server extends Rpc {
 
   /** Starts the gRPC server */
   async start() {
-    // Configure server with keepalive for long-running streams
+    // Configure the server with keepalive for long-running streams
     // https://github.com/grpc/grpc-node/blob/master/doc/keepalive.md
     this.#server = new (this.grpc().Server)({
       "grpc.keepalive_time_ms": 30000, // Send keepalive ping every 30 seconds
@@ -57,19 +57,19 @@ export class Server extends Rpc {
       "grpc.http2.max_pings_without_data": 0, // Unlimited pings without data
     });
 
-    // Get pre-compiled service definition
+    // Get the pre-compiled service definition
     const serviceName = capitalizeFirstLetter(this.config.name);
     const definition = this.getServiceDefinition(serviceName);
 
-    // Get handlers from the service instance
+    // Get the handlers from the service instance
     const handlers = this.#service.getHandlers();
 
-    // Wrap handlers with auth/error handling
+    // Wrap the handlers so they authenticate and handle errors
     const wrappedHandlers = this.#wrapHandlers(handlers, definition);
 
     this.#server.addService(definition, wrappedHandlers);
 
-    // Register standard gRPC health check (no auth, no observer wrapping)
+    // Register the standard gRPC health check (no auth wrap, no observer wrap)
     this.#server.addService(
       healthDefinition,
       createHealthHandlers(serviceName),
@@ -82,7 +82,7 @@ export class Server extends Rpc {
   }
 
   /**
-   * Wraps handlers with auth and error handling
+   * Wraps the handlers so they authenticate and handle errors
    * @param {object} handlers - Service method handlers
    * @param {object} definition - Service definition
    * @returns {object} Wrapped handlers
@@ -101,7 +101,8 @@ export class Server extends Rpc {
   }
 
   /**
-   * Wraps a streaming handler with tracing, authentication, and error handling via Observer
+   * Wraps a streaming handler with tracing, authentication, and error
+   * handling through Observer
    * @param {string} methodName - Method name for tracing
    * @param {Function} handler - Streaming handler function
    * @returns {Function} Wrapped handler
@@ -142,7 +143,8 @@ export class Server extends Rpc {
   }
 
   /**
-   * Wraps a unary handler with tracing, authentication, and error handling via Observer
+   * Wraps a unary handler with tracing, authentication, and error handling
+   * through Observer
    * @param {string} methodName - Method name for tracing
    * @param {Function} handler - Unary handler function
    * @returns {Function} Wrapped handler
@@ -185,7 +187,7 @@ export class Server extends Rpc {
   }
 
   /**
-   * Binds server to the specified URI
+   * Binds the server to the specified URI
    * @param {string} uri - Server URI to bind to
    * @returns {Promise<number>} Bound port number
    */
@@ -213,7 +215,7 @@ export class Server extends Rpc {
     const shutdown = async () => {
       this.observer().logger()?.info("Server", "Shutting down...");
 
-      // Call service shutdown if it exists
+      // Call the service shutdown if it exists
       if (typeof this.#service.shutdown === "function") {
         await this.#service.shutdown();
       }

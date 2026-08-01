@@ -9,11 +9,16 @@ export class Cli {
   #proc;
   #helpRenderer;
 
-  /** Build a CLI from a definition, wiring in the process handle and help renderer; throws if the deprecated top-level `options` key is present or if any command option name collides with a global option. */
+  /**
+   * Build a CLI from a definition. Wire in the process handle and the help
+   * renderer. Throws when the definition carries the deprecated top-level
+   * `options` key. Throws when a command option name collides with a global
+   * option.
+   */
   constructor(definition, { process, helpRenderer }) {
     if (definition.options) {
       throw new Error(
-        `${definition.name}: "options" is no longer supported. ` +
+        `${definition.name}: libcli no longer supports "options". ` +
           `Use "globalOptions" for shared options and per-command "options" ` +
           `for command-specific options.`,
       );
@@ -45,7 +50,10 @@ export class Cli {
     return this.#definition.name;
   }
 
-  /** Parse argv into values and positionals, handling --help and --version; returns null when help or version is printed. */
+  /**
+   * Parse argv into values and positionals. Handle --help and --version.
+   * Returns null when the CLI prints the help text or the version.
+   */
   parse(argv) {
     const command = this.#findCommand(argv);
     const options = this.#buildOptions(command);
@@ -135,7 +143,11 @@ export class Cli {
     return null;
   }
 
-  /** Match parsed positionals to a subcommand and invoke its handler with a frozen invocation context. `deps` carries host-injected collaborators (the runtime bag); `data` carries host-loaded domain values. */
+  /**
+   * Match parsed positionals to a subcommand and invoke its handler with a
+   * frozen invocation context. `deps` carries host-injected collaborators (the
+   * runtime bag). `data` carries host-loaded domain values.
+   */
   dispatch(parsed, { data, deps } = {}) {
     const command = this.#findCommand(parsed.positionals);
     if (!command) {
@@ -143,7 +155,7 @@ export class Cli {
     }
     if (typeof command.handler !== "function") {
       throw new Error(
-        `${this.#definition.name}: subcommand "${command.name}" lacks a handler — ` +
+        `${this.#definition.name}: subcommand "${command.name}" lacks a handler. ` +
           `dispatch() requires { args: string[], handler: (ctx) => any }`,
       );
     }
@@ -186,9 +198,10 @@ export class Cli {
  * @param {object} definition - The CLI definition.
  * @param {object} options
  * @param {import('@forwardimpact/libutil/runtime').Runtime} options.runtime
- * @param {URL|string} [options.packageJsonUrl] - When provided and the definition
- *   carries no explicit `version`, resolve it via {@link resolveVersion} so every
- *   bin shares one compile-time version literal. Explicit `definition.version` wins.
+ * @param {URL|string} [options.packageJsonUrl] - Pass this when the definition
+ *   carries no explicit `version`. {@link resolveVersion} then resolves the
+ *   version, so every bin shares one compile-time version literal. An explicit
+ *   `definition.version` wins.
  * @returns {Cli}
  */
 export function createCli(definition, { runtime, packageJsonUrl } = {}) {

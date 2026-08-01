@@ -8,9 +8,9 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 import { createBuildKit, RULE_KIT } from "../src/index.js";
 
-// A real temp repo + the production runtime: the kit routes fs through
-// runtime.fsSync and ripgrep through runtime.subprocess, so exercising it
-// against an on-disk fixture tests the wiring end to end.
+// A real temp repo plus the production runtime. The kit routes fs through
+// runtime.fsSync and ripgrep through runtime.subprocess. So a run against an
+// on-disk fixture tests the wiring end to end.
 function fixture(files) {
   const root = mkdtempSync(join(tmpdir(), "invkit-"));
   for (const [rel, body] of Object.entries(files)) {
@@ -55,7 +55,7 @@ describe("build kit — pure helpers", () => {
 });
 
 describe("build kit — filesystem", () => {
-  test("scan collects matching files with rel + text; under restricts to a subdir", () => {
+  test("scan returns rel + text for every file that matches, and under restricts to a subdir", () => {
     const root = fixture({
       "libraries/a/src/x.js": "export const x = 1;\n",
       "libraries/a/src/nested/y.js": "export const y = 2;\n",
@@ -76,7 +76,7 @@ describe("build kit — filesystem", () => {
     ]);
   });
 
-  test("scanAst merges extract(ast); a parse failure becomes parseError", () => {
+  test("scanAst merges extract(ast), and a parse failure becomes parseError", () => {
     const root = fixture({
       "libraries/a/src/ok.js": "import 'node:fs';\n",
       "libraries/a/src/bad.js": "this is ) not js(",
@@ -123,8 +123,8 @@ describe("build kit — filesystem", () => {
 });
 
 describe("build kit — grep", () => {
-  // Scans are over directories: ripgrep omits the filename for a single explicit
-  // file, which is why the line-restating modules avoid grep for one file.
+  // Scans run over directories. ripgrep omits the filename for a single
+  // explicit file. So the modules that restate lines avoid grep for one file.
   test("matches carry an absolute path, lineNo, and text", () => {
     const root = fixture({ "src/a.txt": "TODO one\nkeep two\nTODO three\n" });
     const hits = kitFor(root).grep({ pattern: "TODO", paths: ["src"] });
@@ -181,7 +181,7 @@ describe("build kit — restatementDrift", () => {
         },
       ],
     });
-    assert.equal(subjects.length, 2); // missing file is skipped
+    assert.equal(subjects.length, 2); // the probe skips the missing file
     const ok = subjects.find((s) => s.path === ".env.example");
     const bad = subjects.find((s) => s.path === "stale.env");
     assert.deepEqual(
@@ -194,7 +194,7 @@ describe("build kit — restatementDrift", () => {
 });
 
 describe("rule kit", () => {
-  test("parseError fires only on subjects carrying parseError", () => {
+  test("parseError fires only on subjects that carry parseError", () => {
     const rule = RULE_KIT.parseError("thing");
     assert.equal(rule.id, "thing.parse-error");
     assert.deepEqual(rule.check({ parseError: "boom" }), { msg: "boom" });
@@ -207,7 +207,7 @@ describe("rule kit", () => {
     assert.equal(rule.hint, "fix it");
   });
 
-  test("failAll fires on every subject, gated by an optional when", () => {
+  test("failAll fires on every subject, and an optional when gates it", () => {
     const rule = RULE_KIT.failAll("s", {
       id: "s.bad",
       message: (subject) => `bad: ${subject.name}`,

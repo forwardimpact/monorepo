@@ -53,7 +53,7 @@ describe("isValidJobCombination", () => {
     assert.strictEqual(result, false);
   });
 
-  test("tracked job with validTracks containing only null rejects tracks", () => {
+  test("tracked job with only null in validTracks is invalid", () => {
     const discipline = makeDiscipline({ validTracks: [null] });
     const level = makeLevel();
     const track = makeTrack({ id: "platform" });
@@ -128,7 +128,7 @@ describe("isValidJobCombination", () => {
     assert.strictEqual(result, true);
   });
 
-  test("invalidCombinations rule rejects matching combo", () => {
+  test("invalidCombinations rule rejects a combo that matches", () => {
     const discipline = makeDiscipline({ validTracks: ["platform"] });
     const level = makeLevel();
     const track = makeTrack({ id: "platform" });
@@ -170,7 +170,7 @@ describe("isValidJobCombination", () => {
     assert.strictEqual(result, false);
   });
 
-  test("invalidCombinations non-matching combo allows it", () => {
+  test("invalidCombinations allows a combo that does not match", () => {
     const discipline = makeDiscipline({ validTracks: ["platform"] });
     const level = makeLevel();
     const track = makeTrack({ id: "platform" });

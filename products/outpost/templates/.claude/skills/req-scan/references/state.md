@@ -40,7 +40,7 @@ node scripts/state.mjs failure increment mastodon_hachyderm
 node scripts/state.mjs failure reset github_open_to_work
 ```
 
-## Logging
+## Logs
 
 ```bash
 node scripts/state.mjs log-wake github_open_to_work "Primary query: 'open to work' location:UK — 30 results, 2 new prospects"

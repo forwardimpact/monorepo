@@ -4,53 +4,54 @@ description: >
   See what's expected at your level, configure agents to meet your
   organization's engineering standard, and make staffing decisions you can
   defend. Use when expectations are unclear and you need role definitions
-  by discipline, track, and level, when agents follow generic practices
-  instead of your standard, when analyzing career progression gaps, or
-  when generating job definitions, interview questions, or a published
-  engineering standard site.
+  by discipline, track, and level. Use when agents follow generic practices
+  instead of your standard. Use when you analyze career progression gaps.
+  Use when you generate job definitions, interview questions, or a
+  published engineering standard site.
 ---
 
 # Pathway Package
 
-Web application, CLI, and formatters for career progression, job definitions,
-and agent profile generation. Two audiences use `fit-pathway` differently:
+Pathway provides a web application, a CLI, and formatters for career
+progression, job definitions, and agent-profile generation. Two audiences use
+`fit-pathway` differently:
 
-| Audience          | Goal                                                             | How they run it                                 |
-| ----------------- | ---------------------------------------------------------------- | ----------------------------------------------- |
-| **Organizations** | Publish a agent-aligned engineering standard for their engineers | `npx fit-pathway build` in a standalone project |
-| **Engineers**     | Explore jobs, skills, and career progression                     | `npx fit-pathway` installed in their project    |
+| Audience          | Goal                                                              | How they run it                                 |
+| ----------------- | ----------------------------------------------------------------- | ----------------------------------------------- |
+| **Organizations** | Publish an agent-aligned engineering standard for their engineers | `npx fit-pathway build` in a standalone project |
+| **Engineers**     | Explore jobs, skills, and career progression                      | `npx fit-pathway` installed in their project    |
 
 ## When to Use
 
 **Understand what's expected at your level:**
 
-- Looking up role expectations — `npx fit-pathway job <discipline> <level>`
-- Understanding proficiency and autonomy at each level —
+- Look up role expectations — `npx fit-pathway job <discipline> <level>`
+- Understand proficiency and autonomy at each level —
   `npx fit-pathway level <id>`
-- Analyzing career progression gaps —
+- Analyze career progression gaps —
   `npx fit-pathway progress <discipline> <level> --compare=<target>`
-- Exploring skills, behaviours, and drivers — `npx fit-pathway skill <id>`,
+- Explore skills, behaviours, and drivers — `npx fit-pathway skill <id>`,
   `npx fit-pathway behaviour <id>`
 
 **Configure agents to meet your engineering standard:**
 
-- Generating agent configurations —
+- Generate agent configurations —
   `npx fit-pathway agent <discipline> --track=<track> --output=./agents`
-- Previewing what an agent profile includes —
+- Preview what an agent profile includes —
   `npx fit-pathway agent <discipline> --track=<track>`
 
 **Make staffing decisions you can defend:**
 
-- Generating or comparing job definitions —
+- Generate or compare job definitions —
   `npx fit-pathway job <discipline> <level> --track=<track>`
-- Selecting interview questions for a role —
+- Select interview questions for a role —
   `npx fit-pathway interview <discipline> <level>`
 
 **Publish and maintain your engineering standard:**
 
-- Setting up a standard project — `npx fit-map init`
-- Building a static site — `npx fit-pathway build`
-- Previewing changes — `npx fit-pathway dev`
+- Set up a standard project — `npx fit-map init`
+- Build a static site — `npx fit-pathway build`
+- Preview changes — `npx fit-pathway dev`
 
 ---
 
@@ -58,57 +59,58 @@ and agent profile generation. Two audiences use `fit-pathway` differently:
 
 ### Job Derivation
 
-A job is derived in real-time from three inputs: **discipline**, **level**, and
-optionally **track**. For each skill in the discipline:
+Pathway derives a job in real time from three inputs: **discipline**,
+**level**, and optionally **track**. For each skill in the discipline:
 
 1. The skill's tier in the discipline — core, supporting, or broad
-2. The level's base proficiency for that tier sets the starting point (e.g.
+2. The level's base proficiency for that tier gives the initial value (e.g.
    "foundational" for core skills at J060)
-3. Track modifiers shift proficiency up or down **per capability** — a platform
+3. Track modifiers shift proficiency up or down **per capability**. A platform
    track with `scale: +1` raises all skills in the scale capability by one
-   level, while `delivery: -1` lowers delivery skills
-4. Positive modifiers are capped at the level's maximum base proficiency;
-   results are clamped to the valid range (awareness → expert)
+   level. A `delivery: -1` modifier lowers delivery skills
+4. The level's maximum base proficiency caps positive modifiers. Pathway clamps
+   results to the valid range (awareness → expert)
 
-Behaviours follow the same pattern: base maturity from the level, then
-discipline and track modifiers stacked and clamped.
+Behaviours follow the same pattern. They take base maturity from the level.
+Pathway then stacks and clamps the discipline and track modifiers.
 
-Skills from capabilities the track modifies positively — but that aren't in the
-base discipline — are added as broad-type "track-added" skills.
+Some capabilities take a positive track modifier but are not in the base
+discipline. Pathway adds their skills as broad-type "track-added" skills.
 
 ### Agent Derivation
 
 Agent profiles reuse job derivation with three additions:
 
-1. **Reference level** is auto-selected — the first level where core skills
-   reach "practitioner", falling back to "working", then the middle level
-2. **Skill filtering** removes `isHumanOnly` skills (physical presence,
+1. **Reference level** — Pathway selects it automatically. It takes the first
+   level where core skills reach "practitioner". If no level qualifies, it
+   falls back to "working", then to the middle level
+2. **Skill filter** — Pathway removes `isHumanOnly` skills (physical presence,
    emotional judgment)
-3. **Skill focusing** limits the matrix to the most relevant skills per stage,
-   sorted by tier (core → supporting → broad → track-added)
+3. **Skill focus** — Pathway limits the matrix to the most relevant skills per
+   stage and sorts them by tier (core → supporting → broad → track-added)
 
-Working styles are derived from the top behaviours by maturity — behaviours with
-positive track modifiers become personality traits that shape the agent's
-approach.
+Pathway derives working styles from the top behaviours by maturity. Behaviours
+with positive track modifiers become personality traits. Those traits shape the
+agent's approach.
 
 ### Tool Derivation
 
-Tools come from `toolReferences` in skill definitions. Derivation collects all
-tool references from the job's highest-proficiency skills, deduplicates by name,
-and sorts alphabetically. Each tool tracks which skills reference it.
+Tools come from `toolReferences` in skill definitions. Pathway collects all tool
+references from the job's highest-proficiency skills. It deduplicates them by
+name. It sorts them alphabetically. Each tool tracks which skills reference it.
 
 ### Interview Questions
 
-Questions are selected from question banks organized by skill/behaviour ID, role
-type, and proficiency/maturity. Three interview types exist: mission fit (skill
-questions), decomposition (capability questions), and stakeholder simulation
-(behaviour questions). Selection prioritizes by skill type and fills a time
-budget.
+Pathway selects questions from question banks. Those banks organize questions by
+skill/behaviour ID, role type, and proficiency/maturity. Three interview types
+exist: mission fit (skill questions), decomposition (capability questions), and
+stakeholder simulation (behaviour questions). Pathway prioritizes by skill type
+and fills a time budget.
 
 ### Career Progression
 
-Progression compares two job derivations (current vs target level) and
-calculates deltas — skill proficiency changes, gained/lost skills, and behaviour
+Progression compares two job derivations (current vs target level). It
+calculates deltas: skill proficiency changes, gained/lost skills, and behaviour
 maturity changes.
 
 ---
@@ -131,11 +133,11 @@ See [`references/cli.md`](references/cli.md) for full command listings.
 The CLI resolves the data directory in this order:
 
 1. `--data=<path>` flag (explicit override)
-2. Upward traversal from CWD — looks for `data/` (up to 3 parents)
+2. Upward traversal from CWD — the CLI looks for `data/` (up to 3 parents)
 3. `~/.fit/data/` (user-global fallback)
 
-Use `npx fit-map init` to create a local `./data/` directory with starter
-standard data to get started.
+Run `npx fit-map init` to create a local `./data/` directory with starter
+standard data.
 
 ---
 
@@ -148,8 +150,8 @@ npx fit-pathway serve                            # Serve public/ (port 3000)
 npx fit-pathway serve ./dist --port=8080         # Custom dir and port
 ```
 
-`serve` enables git smart HTTP so `apm install` (which uses
-`git clone --depth=1`) works against the pack repos.
+`serve` turns on git smart HTTP. `apm install` uses `git clone --depth=1`. It
+then works against the pack repos.
 
 ## Verification
 

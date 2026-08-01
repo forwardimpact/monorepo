@@ -1,11 +1,11 @@
 /**
- * FHIR microdata HTML renderer — emits one `Person` main-item HTML file per
- * Synthea-generated Patient (with inline `MedicalCondition` /
+ * HTML renderer for FHIR microdata — emits one `Person` main-item HTML file
+ * per Synthea-generated Patient (with inline `MedicalCondition` /
  * `MedicalProcedure` / `DrugPrescription` items) plus a single `index.html`.
  *
- * Pure module: no filesystem I/O, no logger. Pipeline wiring lives in
- * `libterrain/src/nodes.js`. Vocabulary splits across the Schema.org and
- * fit: namespaces.
+ * This module is pure. It does no filesystem I/O. It uses no logger. The
+ * pipeline wires it in `libterrain/src/nodes.js`. Vocabulary splits across
+ * the Schema.org and fit: namespaces.
  */
 
 import { dirname, join } from "node:path";
@@ -34,17 +34,18 @@ const PRED = {
  * @property {Map<string, Set<string>>} siteIdToPatientIris
  * @property {Map<string, Set<string>>} trialIriToPatientIris
  *
- * Immutability contract: the returned object is frozen with
- * `Object.freeze`. The inner Maps and Sets are not frozen (JS provides no
- * shallow path), so consumers must read-only — never `.set`/`.add` into
- * them. `skeleton` and `fhir-microdata-html` both consume the same
+ * Immutability contract: `buildFhirCrossRef` freezes the returned object
+ * with `Object.freeze`. The inner Maps and Sets stay unfrozen (JS provides
+ * no shallow path). So consumers must only read them. Never `.set`/`.add`
+ * into them. `skeleton` and `fhir-microdata-html` both consume the same
  * instance per pipeline run.
  */
 
 /**
  * Normalize a Condition.code.display to the DSL `clinical.conditions[].id`
- * shape: lowercase, whitespace replaced by underscore. Mirrors
- * `filterByConditions` in synthea.js so matching stays consistent.
+ * shape. Make it lowercase. Replace whitespace with an underscore. This
+ * function mirrors `filterByConditions` in synthea.js to keep the matches
+ * consistent.
  */
 function normalizeConditionDisplay(display) {
   if (!display) return "";
@@ -105,8 +106,8 @@ function invertPatientToTrials(patientToTrialIris) {
 }
 
 /**
- * Build the cross-ref index linking FHIR Patient records to DSL-declared
- * trials, conditions, and sites. Pure function.
+ * Build the cross-ref index that links FHIR Patient records to DSL-declared
+ * trials, conditions, and sites. This function is pure.
  *
  * @param {{ patients: object[], conditions: object[], clinical: object, domain: string }} args
  * @returns {CrossRefIndex}

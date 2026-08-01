@@ -4,15 +4,15 @@
  * Filters that operate on entire arrays of skill/behaviour entries.
  * Unlike predicates (single entry → boolean), these transform arrays.
  *
- * Naming convention: filter* for functions that reduce/transform arrays.
- * Matrix filters are tagged with matrixFilter() so applyFilters can
- * distinguish them from predicates without runtime probing.
+ * Name a function filter* when it reduces or transforms arrays.
+ * Tag matrix filters with matrixFilter(). Then applyFilters can
+ * distinguish them from predicates without a runtime probe.
  */
 
 import { getSkillProficiencyIndex } from "../levels.js";
 
 // =============================================================================
-// Matrix filter tagging
+// Matrix filter tags
 // =============================================================================
 
 const MATRIX_FILTER = Symbol("matrix-filter");
@@ -34,7 +34,7 @@ export function matrixFilter(fn) {
 /**
  * Filter matrix to keep only skills at the highest derived level
  *
- * After track modifiers are applied, some skills will be at higher levels
+ * Track modifiers apply first. Some skills then sit at higher levels
  * than others. This filter keeps only the skills at the maximum level.
  *
  * @param {Array} matrix - Skill matrix entries with derived levels
@@ -61,7 +61,7 @@ export const filterHighestLevel = matrixFilter(
  * like responsibilities derivation.
  *
  * @param {Array} matrix - Skill matrix entries
- * @returns {Array} Filtered matrix excluding awareness skills
+ * @returns {Array} Filtered matrix without awareness skills
  */
 export const filterAboveAwareness = matrixFilter(
   function filterAboveAwareness(matrix) {
@@ -94,8 +94,8 @@ export function filterBy(predicate) {
  * Apply multiple filter operations in sequence
  *
  * Each operation can be either:
- * - A predicate function (entry → boolean): used with Array.filter()
- * - A matrix filter tagged with matrixFilter(): applied directly
+ * - A predicate function (entry → boolean): applyFilters uses Array.filter()
+ * - A matrix filter tagged with matrixFilter(): applyFilters calls it directly
  *
  * @param {Array} matrix - Initial items
  * @param {...Function} operations - Predicates or matrix filters
@@ -113,7 +113,7 @@ export function applyFilters(matrix, ...operations) {
 /**
  * Compose filter operations into a single filter function
  *
- * Useful for creating reusable composed policies.
+ * Use this to create reusable composed policies.
  *
  * @param {...Function} operations - Predicates or matrix filters
  * @returns {(matrix: Array) => Array} Composed filter function

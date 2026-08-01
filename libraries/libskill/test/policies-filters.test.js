@@ -40,7 +40,7 @@ describe("filters", () => {
       );
     });
 
-    test("returns all entries when all at same level", () => {
+    test("returns all entries when all are at the same level", () => {
       const matrix = [
         skill({ skillName: "A", proficiency: "working" }),
         skill({ skillName: "B", proficiency: "working" }),
@@ -76,7 +76,7 @@ describe("filters", () => {
       );
     });
 
-    test("returns all entries when none at awareness", () => {
+    test("returns all entries when none is at awareness", () => {
       const matrix = [
         skill({ proficiency: "working" }),
         skill({ proficiency: "expert" }),
@@ -186,7 +186,7 @@ describe("filters", () => {
       assert.strictEqual(result[0].skillName, "A");
     });
 
-    test("composed filter can be reused on different inputs", () => {
+    test("reuses a composed filter on different inputs", () => {
       const onlyCore = composeFilters(isCore);
 
       const matrix1 = [skill({ type: "core" }), skill({ type: "broad" })];

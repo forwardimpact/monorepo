@@ -4,8 +4,8 @@ import { buildZodSchema } from "./schema.js";
 
 /**
  * Normalizes raw MCP tool params against field metadata.
- * Repeated fields become arrays; scalar fields default to empty string.
- * @param {object} params - Raw params from MCP tool call
+ * Repeated fields become arrays. Scalar fields default to an empty string.
+ * @param {object} params - Raw params from an MCP tool call
  * @param {object} fields - Field metadata from codegen
  * @returns {object} Normalized params
  */
@@ -23,12 +23,12 @@ function normalizeParams(params, fields) {
 }
 
 /**
- * Register MCP tools from config endpoints using codegen metadata.
+ * Register MCP tools from config endpoints with codegen metadata.
  *
  * @param {import("@modelcontextprotocol/sdk/server/mcp.js").McpServer} server
  * @param {object} config - Config instance with .tools (from createServiceConfig("mcp"))
  * @param {object} clients - gRPC clients keyed by package name (e.g. { graph, vector, pathway })
- * @param {object} [resourceIndex] - Optional ResourceIndex for resolving identifiers to content
+ * @param {object} [resourceIndex] - Optional ResourceIndex that resolves identifiers to content
  */
 export function registerToolsFromConfig(
   server,
@@ -87,8 +87,8 @@ export function registerToolsFromConfig(
 }
 
 /**
- * Resolves resource identifiers to full content via ResourceIndex.
- * Falls back to JSON.stringify when no resourceIndex is provided.
+ * Resolves resource identifiers to full content through ResourceIndex.
+ * Falls back to JSON.stringify when the caller provides no resourceIndex.
  * @param {object[]} identifiers - Array of resource identifiers
  * @param {object|null} resourceIndex - ResourceIndex instance or null
  * @returns {Promise<string>} Resolved content or JSON fallback

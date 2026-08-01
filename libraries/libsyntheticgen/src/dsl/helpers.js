@@ -1,8 +1,8 @@
 /**
- * DSL AST navigation helpers — pure lookups over the AST shape emitted by
- * `createDslParser().parse(source)`. The substrate persona-enricher consumes
- * these to recover team, department, and scenario context from
- * `data/synthetic/story.dsl` at query time.
+ * Navigation helpers for the DSL AST — pure lookups over the AST shape
+ * that `createDslParser().parse(source)` emits. The substrate
+ * persona-enricher consumes these helpers to recover team, department,
+ * and scenario context from `data/synthetic/story.dsl` at query time.
  *
  * @module libsyntheticgen/dsl/helpers
  */
@@ -34,10 +34,11 @@ export function findDepartmentForTeam(ast, team) {
 }
 
 /**
- * Find the most-recent scenario block whose `affects` clause names the team
- * id. "Most recent" maximises `(timerange_start, id)` under string compare;
- * the DSL emits `YYYY-MM` date tokens which collate correctly under lex
- * order. Ties on `timerange_start` break on `id` ascending (max-id wins).
+ * Find the most-recent scenario block whose `affects` clause names the
+ * team id. "Most recent" maximises `(timerange_start, id)` under string
+ * compare. The DSL emits `YYYY-MM` date tokens. They collate correctly
+ * under lex order. Ties on `timerange_start` break on `id` ascending
+ * (max-id wins).
  *
  * @param {object} ast - parsed terrain AST
  * @param {string} teamId

@@ -19,7 +19,7 @@ const ISSUES_OPENED = JSON.stringify({
 /**
  * Build a runtime over an in-memory fs seeded with `files` and a
  * test-controlled env map. `resolveTaskContent` loads `--task-file` /
- * `--task-event` via `runtime.fsSync.readFileSync`.
+ * `--task-event` with `runtime.fsSync.readFileSync`.
  */
 function makeRuntime({ env = {}, files = {} } = {}) {
   return {
@@ -29,7 +29,7 @@ function makeRuntime({ env = {}, files = {} } = {}) {
 }
 
 describe("resolveTaskContent mutual exclusion", () => {
-  test("none of the three set throws", () => {
+  test("throws when none of the three is set", () => {
     assert.throws(
       () => resolveTaskContent({}, makeRuntime()),
       /one of --task-file, --task-text, --task-event is required/,

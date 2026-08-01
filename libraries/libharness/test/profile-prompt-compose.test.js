@@ -7,7 +7,7 @@ import { composeProfilePrompt } from "@forwardimpact/libharness";
 import { RT, FIXTURES, LIVE_PROFILES } from "./profile-prompt-helpers.js";
 
 describe("composeProfilePrompt", () => {
-  test("returns preset-shaped object", () => {
+  test("returns a preset-shaped object", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
       runtime: RT,
@@ -49,7 +49,7 @@ describe("composeProfilePrompt", () => {
     assert.ok(result.append.endsWith("\n</agent_profile>"));
   });
 
-  test("uses entire body when frontmatter is absent", () => {
+  test("uses the entire body when frontmatter is absent", () => {
     const result = composeProfilePrompt("no-frontmatter", {
       profilesDir: FIXTURES,
       runtime: RT,
@@ -79,7 +79,7 @@ describe("composeProfilePrompt", () => {
     );
   });
 
-  test("the two sections are siblings — neither nests in the other", () => {
+  test("the two sections are siblings. Neither nests in the other", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
       runtime: RT,
@@ -92,7 +92,7 @@ describe("composeProfilePrompt", () => {
     );
   });
 
-  test("omits the <session_protocol> section when no trailer is provided", () => {
+  test("omits the <session_protocol> section when the caller gives no trailer", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
       runtime: RT,
@@ -101,7 +101,7 @@ describe("composeProfilePrompt", () => {
     assert.ok(result.append.endsWith("</agent_profile>"));
   });
 
-  test("treats empty trailer as omitted", () => {
+  test("treats an empty trailer as omitted", () => {
     const result = composeProfilePrompt("with-frontmatter", {
       profilesDir: FIXTURES,
       runtime: RT,
@@ -110,7 +110,7 @@ describe("composeProfilePrompt", () => {
     assert.ok(!result.append.includes("<session_protocol>"));
   });
 
-  test("throws ENOENT for missing profile", () => {
+  test("throws ENOENT for a missing profile", () => {
     assert.throws(
       () =>
         composeProfilePrompt("does-not-exist", {
@@ -121,7 +121,7 @@ describe("composeProfilePrompt", () => {
     );
   });
 
-  test("every live .claude/agents profile is loadable (SC#1)", () => {
+  test("composeProfilePrompt loads every live .claude/agents profile (SC#1)", () => {
     const entries = readdirSync(LIVE_PROFILES, { withFileTypes: true });
     const profileFiles = entries
       .filter((e) => e.isFile() && e.name.endsWith(".md"))
@@ -224,11 +224,11 @@ describe("composeProfilePrompt — hoisted ## Session Protocol", () => {
     );
     assert.ok(
       protocolBody.includes("### Routing"),
-      "a ### subsection does not terminate the hoist",
+      "a ### subsection does not end the hoist",
     );
   });
 
-  test("orders trailer, then hoisted section, within <session_protocol>", () => {
+  test("orders the trailer, then the hoisted section, within <session_protocol>", () => {
     const result = composeProfilePrompt("with-session-protocol", {
       profilesDir: FIXTURES,
       runtime: RT,

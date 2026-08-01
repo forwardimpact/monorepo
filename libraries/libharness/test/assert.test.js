@@ -5,9 +5,10 @@ import { createMockFs } from "@forwardimpact/libmock";
 
 import { evaluateAssertion, runAssertCommand } from "../src/commands/assert.js";
 
-// A single in-memory fs accumulates every seeded input file; `evaluateAssertion`
-// reads inputs via this sync surface (`existsSync` / `readFileSync`). Each
-// helper writes to a fresh path so seeds never collide across cases.
+// A single in-memory fs accumulates every seeded input file.
+// `evaluateAssertion` reads inputs through this sync surface (`existsSync` /
+// `readFileSync`). Each helper writes to a fresh path so seeds never collide
+// across cases.
 const fs = createMockFs();
 let seq = 0;
 
@@ -311,7 +312,7 @@ describe("gemba-trace assert", () => {
   });
 
   describe("output shape", () => {
-    test("no message field when passing", () => {
+    test("no message field when the assertion passes", () => {
       const file = tmpFile("## Problem");
       const result = evaluateAssertion(
         { grep: "^## Problem" },
@@ -322,7 +323,7 @@ describe("gemba-trace assert", () => {
       assert.strictEqual("message" in result, false);
     });
 
-    test("message field present when failing", () => {
+    test("message field present when the assertion fails", () => {
       const file = tmpFile("no heading");
       const result = evaluateAssertion(
         { grep: "^## Problem" },

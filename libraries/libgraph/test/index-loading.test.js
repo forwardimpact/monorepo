@@ -129,7 +129,7 @@ describe("GraphIndex - Constructor and Data Loading", () => {
         "Should read existing file",
       );
 
-      // Verify data was loaded into index
+      // Verify that loadData put the data into the index
       assert.strictEqual(
         await graphIndex.has("common.Message.msg1"),
         true,
@@ -141,7 +141,7 @@ describe("GraphIndex - Constructor and Data Loading", () => {
         "Should load second item",
       );
 
-      // Verify graph was populated
+      // Verify that loadData populated the graph
       const quads = n3Store.getQuads(null, null, null);
       assert.strictEqual(quads.length, 2, "Should populate graph with quads");
     });
@@ -162,7 +162,7 @@ describe("GraphIndex - Constructor and Data Loading", () => {
       assert.strictEqual(graphIndex.loaded, true, "Should remain loaded");
     });
 
-    test("loadData clears and reloads graph when reloading", async () => {
+    test("loadData clears and reloads graph on a reload", async () => {
       // First load: add initial data
       const initialData = [
         {
@@ -220,7 +220,7 @@ describe("GraphIndex - Constructor and Data Loading", () => {
       assert.strictEqual(
         quads.length,
         1,
-        "Should clear old graph data before loading new data",
+        "Should clear old graph data before it loads new data",
       );
       assert.strictEqual(
         quads[0].subject.value,

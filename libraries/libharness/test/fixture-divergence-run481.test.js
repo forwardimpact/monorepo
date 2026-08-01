@@ -2,17 +2,18 @@
  * Guards the run-481 divergence fixture.
  *
  * The fixture is a release-engineer agent lane from dispatch run
- * 27401632821 — the first wild trace where per-message accounting
- * cannot reach zero residual against the result event: per-message
+ * 27401632821. It is the first wild trace where per-message accounting
+ * cannot reach zero residual against the result event. The per-message
  * sums exceed it by exactly +2 input / +68,799 cacheRead / +693
- * cacheCreation. Surfacing exactly this kind of divergence is part of
- * the stats contract, so this test pins the fixture's intrinsic
- * property — not any stats behavior — to catch accidental perturbation.
+ * cacheCreation. The stats contract must surface exactly this kind of
+ * divergence, so this test pins the fixture's intrinsic property to
+ * catch accidental perturbation. The test does not pin any stats
+ * behavior.
  *
- * The fixture is scrubbed to a skeleton: all message/tool content
- * stripped to structure; message ids, usage blocks, and the result
- * event kept byte-exact. A scrub that perturbs the figures has
- * destroyed the fixture's job.
+ * The scrub reduced the fixture to a skeleton. It stripped all
+ * message/tool content to structure. It kept message ids, usage blocks,
+ * and the result event byte-exact. A scrub that perturbs the figures
+ * destroys the fixture's job.
  */
 
 import { describe, test } from "node:test";
@@ -34,7 +35,7 @@ const events = fs
   .split("\n")
   .map((line) => JSON.parse(line));
 
-describe("run-481 divergence fixture integrity", () => {
+describe("integrity of the run-481 divergence fixture", () => {
   test("28 unique message ids with byte-identical usage per duplicate set", () => {
     const usageById = new Map();
     for (const ev of events) {

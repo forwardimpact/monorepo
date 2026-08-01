@@ -7,9 +7,9 @@
  * runAgent → invariants → judge → teardown.
  *
  * Filesystem, subprocess, clock, and process-signal access all route through
- * the injected `runtime` bag. Only raw TCP plumbing (`node:net`) stays direct —
- * it is not an ambient-dependency smell and the runtime bag models no socket
- * surface.
+ * the injected `runtime` bag. Only raw TCP plumbing (`node:net`) stays
+ * direct. It is not an ambient-dependency smell, and the runtime bag models
+ * no socket surface.
  */
 
 import { createServer } from "node:net";
@@ -27,7 +27,7 @@ const DEFAULT_TERM_GRACE_MS = 5_000;
  * @property {string} runDir - Parent of `cwd`; holds trace/log siblings.
  * @property {number} port - Allocated TCP port for the agent.
  * @property {number} pgid - Process-group id captured from the preflight child.
- * @property {*} scaffold - Reserved per design § Components; v1 sets null.
+ * @property {*} scaffold - Reserved per design § Components. v1 sets null.
  * @property {string} agentTracePath
  * @property {string} supervisorTracePath
  * @property {string} judgeTracePath
@@ -59,8 +59,8 @@ export class WorkdirManager {
     this.termGraceMs = termGraceMs ?? DEFAULT_TERM_GRACE_MS;
     this.familyRootPath = familyRootPath ?? null;
     this.runtime = runtime;
-    // One registry per manager: hands out distinct, bindable ports under a lock
-    // so concurrent cells can never be handed the same number.
+    // One registry per manager. It hands out distinct, bindable ports under a
+    // lock, so two concurrent cells never get the same number.
     this.ports = new PortRegistry();
   }
 
@@ -77,9 +77,10 @@ export class WorkdirManager {
     const cwd = join(runDir, "cwd");
     await fs.mkdir(cwd, { recursive: true });
 
-    // Family-level shared fixtures: convention-over-configuration, copied if
-    // present. They form the shared base; the per-task workdir/specs below
-    // overlay on top (fs.cp defaults to force:true, so a per-task file wins).
+    // Family-level shared fixtures follow convention over configuration. The
+    // manager copies them if they are present. They form the shared base. The
+    // per-task workdir/specs below overlay on top (fs.cp defaults to
+    // force:true, so a per-task file wins).
     if (this.familyRootPath) {
       await fs
         .cp(join(this.familyRootPath, "workdir"), cwd, { recursive: true })
@@ -162,7 +163,7 @@ export class WorkdirManager {
       try {
         proc.kill(-workdir.pgid, "SIGTERM");
       } catch {
-        // Process group already gone — fine.
+        // The process group is already gone. That is fine.
       }
       await clock.sleep(this.termGraceMs);
       try {
@@ -170,17 +171,17 @@ export class WorkdirManager {
       } catch {
         // Already exited.
       }
-      // Poll briefly until the process group is empty — SIGKILL returns
-      // before the kernel finishes reaping descendants.
+      // Poll briefly until the process group is empty. SIGKILL returns
+      // before the kernel reaps every descendant.
       await waitFor(
         this.runtime,
         async () => (await countDescendants(this.runtime, workdir.pgid)) === 0,
         2_000,
       );
     }
-    // Release the reservation in a finally so a throwing probe cannot leak the
-    // number from the in-use set; release after the port-free probe so a freed
-    // number can be re-handed to a waiting cell.
+    // Release the reservation in a finally, so a probe that throws cannot leak
+    // the number from the in-use set. Release after the port-free probe, so the
+    // registry can hand a freed number to a cell that waits.
     try {
       const portFree = await isPortFree(workdir.port);
       const descendants = await countDescendants(this.runtime, workdir.pgid);
@@ -196,10 +197,10 @@ export class WorkdirManager {
  * close-then-return allocator whose allocate→bind window let two concurrent
  * cells receive the same number.
  *
- * The reservation is the *number*, not a held socket — a held socket could not
- * be bound by the agent later. `acquire` serializes through a one-slot promise
- * chain and re-probes if the OS hands back a number already in the live in-use
- * set, so no two in-flight cells share a port.
+ * The reservation is the *number*. The registry holds no socket, because the
+ * agent could not bind a held socket later. `acquire` serializes through a
+ * one-slot promise chain. It re-probes if the OS hands back a number already
+ * in the live in-use set, so no two in-flight cells share a port.
  */
 export class PortRegistry {
   #inUse = new Set();
@@ -216,7 +217,7 @@ export class PortRegistry {
       return port;
     });
     // Keep the chain alive even if one acquire rejects, so later acquires
-    // still run; swallow here, surface the rejection on `next`.
+    // still run. Swallow the rejection here. Surface it on `next`.
     this.#tail = next.catch(() => {});
     return next;
   }
@@ -231,8 +232,8 @@ export class PortRegistry {
  * Spawn preflight. Stays detached so we can SIGTERM the whole process group.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} script
- * @param {string} cwd - Agent CWD passed via $AGENT_CWD.
- * @param {number} port - Free TCP port passed via $PORT.
+ * @param {string} cwd - Agent CWD, passed in $AGENT_CWD.
+ * @param {number} port - Free TCP port, passed in $PORT.
  * @param {{taskId: string, taskDir: string, hooksDir: string, familyDir: string|null}} vars - Extra hook env vars.
  * @returns {Promise<{pgid: number, error?: {phase: string, message: string, exitCode: number}}>}
  */
@@ -269,8 +270,9 @@ async function runPreflight(runtime, script, cwd, port, vars) {
 }
 
 /**
- * Allocate a free TCP port by binding to 0 and releasing it. Shared with the
- * `grade` subcommand, which needs a plausible `$PORT` for the hook env.
+ * Allocate a free TCP port. Bind to port 0, then release it. The `grade`
+ * subcommand shares this function, because it needs a plausible `$PORT` for
+ * the hook env.
  * @returns {Promise<number>}
  */
 export function probeFreePort() {
@@ -340,7 +342,7 @@ async function waitFor(runtime, predicate, timeoutMs) {
 }
 
 /**
- * Factory function — wires real dependencies.
+ * Factory function. Wires the real dependencies.
  * @param {ConstructorParameters<typeof WorkdirManager>[0]} deps
  * @returns {WorkdirManager}
  */

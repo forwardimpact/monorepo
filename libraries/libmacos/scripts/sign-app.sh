@@ -5,20 +5,20 @@ set -euo pipefail
 #
 # Usage: sign-app.sh <app-path> <entitlements-path>
 #
-# The signing identity is chosen by the MACOS_SIGN_IDENTITY environment
-# variable:
+# The MACOS_SIGN_IDENTITY environment variable chooses the signing identity:
 #   - unset/empty → ad-hoc signing ("-"), used for local and PR builds.
 #   - a Developer ID Application identity (e.g. "Developer ID Application:
 #     Example Inc (AB12CD34EF)") → real signing with a secure timestamp, the
-#     prerequisite for notarization. Set only in the publish workflows, from
+#     prerequisite for notarization. Only the publish workflows set it, from
 #     environment-scoped secrets.
 #
-# Signs inside-out (nested Mach-O executables first, then the bundle) — Apple's
-# recommended order for notarized apps, and deterministic, so the bundle's
-# cdhash is stable across rebuilds and TCC grants survive upgrades.
+# The script signs inside-out. It signs the nested Mach-O executables first,
+# then the bundle. Apple recommends this order for notarized apps. The order is
+# also deterministic. So the bundle's cdhash stays stable across rebuilds. TCC
+# grants survive upgrades.
 #
 # Requires codesign (Xcode command-line tools). Exits non-zero on failure
-# unless CODESIGN_ALLOW_FAIL=1 is set (for Linux CI where codesign is absent).
+# unless you set CODESIGN_ALLOW_FAIL=1 (for Linux CI where codesign is absent).
 
 APP_PATH="${1:?Usage: sign-app.sh <app-path> <entitlements-path>}"
 ENTITLEMENTS="${2:?Usage: sign-app.sh <app-path> <entitlements-path>}"

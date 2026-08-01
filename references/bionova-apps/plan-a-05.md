@@ -2,12 +2,12 @@
 
 Implement the eight surface-agnostic handlers under
 `products/polaris/handlers/` that both CLI (part 06) and web (part 07)
-dispatch into. Handlers accept a frozen `InvocationContext` and return
-plain data; rendering is the surface's job (libformat for CLI, JSX/libui
-for web). Every prose surface reads a terrain-generated seed table:
-`showTrial` includes the trial FAQ and consent summary, `showCondition`
-the condition explainer, `listSites` each site's description, `listStories`
-patient stories, and `showAbout` the therapy descriptions.
+dispatch into. Handlers accept a frozen `InvocationContext` and return plain
+data. The surface renders the data (libformat for CLI, JSX/libui for web).
+Every prose surface reads a terrain-generated seed table. `showTrial` includes
+the trial FAQ and consent summary. `showCondition` includes the condition
+explainer. `listSites` includes each site's description. `listStories`
+includes patient stories. `showAbout` includes the therapy descriptions.
 
 All paths are inside `bionova-apps/`.
 
@@ -19,7 +19,7 @@ Created:
 | --- | --- |
 | `products/polaris/handlers/package.json` | `@bionova/polaris-handlers`, ESM, exports `.` (index) + `./context` (createDataContext) + `./templates` (template-dir path constant) |
 | `products/polaris/handlers/src/index.js` | re-exports each handler |
-| `products/polaris/handlers/src/context.js` | Exports `createDataContext(env)` — returns `{ db: <postgrest client>, embeddings: <tei client>, edgeFunctions: <kong client> }` for handlers to read from |
+| `products/polaris/handlers/src/context.js` | Exports `createDataContext(env)`. It returns `{ db: <postgrest client>, embeddings: <tei client>, edgeFunctions: <kong client> }` for handlers to read from |
 | `products/polaris/handlers/src/templates-dir.js` | Exports `TEMPLATES_DIR = new URL("../templates/", import.meta.url).pathname` — surface-agnostic resolved template directory |
 | `products/polaris/handlers/src/clients/postgrest.js` | thin fetch wrapper around Kong's `/rest/v1/*` |
 | `products/polaris/handlers/src/clients/tei.js` | thin fetch wrapper around `/embed` for client-side semantic queries |
@@ -45,12 +45,11 @@ Created:
 }
 ```
 
-`libformat` is NOT a handler dependency: handlers return surface-agnostic
-data; rendering (ANSI for CLI, JSX for web) belongs to the surface. Only
-`libtemplate` is used to fill markdown templates that the surface then
-formats.
+`libformat` is NOT a handler dependency. Handlers return surface-agnostic data.
+The surface owns the render step (ANSI for CLI, JSX for web). Handlers use only
+`libtemplate`. It fills markdown templates that the surface then formats.
 
-Verify: `bun install` resolves;
+Verify: `bun install` resolves.
 `bun run --filter='./products/polaris/handlers' test` exits 0 (no tests yet).
 
 ## Step 2 — Implement `searchTrials`
@@ -71,7 +70,7 @@ export async function searchTrials(ctx) {
 }
 ```
 
-Vector search SQL (via PostgREST RPC `match_conditions`):
+Vector search SQL (through the PostgREST RPC `match_conditions`):
 
 Created as a hand-written migration *owned by this part*:
 `products/polaris/site/supabase/migrations/20260601000004_match_function.sql`
@@ -90,10 +89,10 @@ BEGIN
 END; $$;
 ```
 
-This file is included in part-05's `git add` (Step 10 below) and lands in
-the same supabase migrations directory; it sorts after the part-04
-schedule migration and applies cleanly because `condition_embeddings` is
-already created by terrain.
+Part-05's `git add` includes this file (Step 10 below). The file lands in the
+same supabase migrations directory. It sorts after the part-04 schedule
+migration. It applies cleanly, because terrain already creates
+`condition_embeddings`.
 
 Verify: `searchTrials({ options: { condition: "high blood sugar" } })`
 returns trials whose primary condition is diabetes (success criterion #2).
@@ -115,8 +114,9 @@ export async function showTrial(ctx) {
 ```
 
 Verify: `showTrial({ args: { id: <seed-trial-id> } })` returns the same
-nested shape as the design's `manageTrial` parent shape, minus admin-only
-fields, plus `faq` and `consentSummary` strings from the prose tables.
+nested shape as the design's `manageTrial` parent shape. The result drops the
+admin-only fields. It adds `faq` and `consentSummary` strings from the prose
+tables.
 
 ## Step 4 — Implement `showCondition`
 
@@ -168,7 +168,7 @@ export async function listSites(ctx) {
 ```
 
 Verify: `listSites({ options: {} })` returns all 5 seeded sites, each with a
-`description` from `site_descriptions`;
+`description` from `site_descriptions`.
 `listSites({ options: { specialty: "oncology" } })` returns only sites
 with `oncology` in `specialties`.
 
@@ -187,9 +187,9 @@ export async function listStories(ctx) {
 }
 ```
 
-Verify: `listStories({ options: {} })` returns all seeded patient stories;
+Verify: `listStories({ options: {} })` returns all seeded patient stories.
 `listStories({ options: { condition: <condition-id> } })` returns only that
-condition's stories ordered by `story_index`.
+condition's stories in `story_index` order.
 
 ## Step 8 — Implement `showAbout`
 
@@ -229,7 +229,7 @@ Two-mode handler:
 - **Read mode** (`ctx.options.update` absent): same as `showTrial`, plus
   an `interest_signals` aggregate.
 - **Patch mode** (`ctx.options.update` is a JSON string): parses to an
-  object, PATCHes the row via PostgREST using the staff JWT, returns the
+  object. PATCHes the row through PostgREST with the staff JWT. Returns the
   updated trial.
 
 ```js
@@ -265,29 +265,30 @@ export async function manageTrial(ctx) {
 ```
 
 The allowlist for `safe` (`status`, `current_enrollment`,
-`estimated_end_date`, `arms`) keeps the admin surface bounded — adding
-new fields requires a code change, which gets reviewed.
+`estimated_end_date`, `arms`) keeps the admin surface bounded. A new field
+needs a code change, and that change is reviewed.
 
 Verify:
 
-- with staff JWT and no `--update`, returns the trial with `signals`
-  aggregate; counts equal `interest_signals` row count grouped by score.
-- with staff JWT and `--update '{"status":"completed"}'`, the row is
-  updated, the response reflects `status: "completed"`, and re-reading
-  via anon also shows the new status.
-- with anon JWT, the call fails with 401 (RLS denies UPDATE; SELECT works
-  for read mode but the handler still requires `ctx.data.token`).
+- with staff JWT and no `--update`, the call returns the trial with the
+  `signals` aggregate. The counts equal the `interest_signals` row count per
+  score.
+- with staff JWT and `--update '{"status":"completed"}'`, the handler updates
+  the row. The response reflects `status: "completed"`. A re-read through anon
+  also shows the new status.
+- with anon JWT, the call fails with 401. RLS denies UPDATE. SELECT works for
+  read mode, but the handler still requires `ctx.data.token`.
 
 ## Step 10 — Author shared markdown templates
 
-The CLI (part 06) uses these templates with `libtemplate` and renders the
-output with `libformat`'s `createTerminalFormatter`. The web surface
-(part 07) does NOT use these templates — it renders React components
-directly via shadcn primitives, because Next.js already owns rendering.
-This is a deliberate deviation from the design's "libformat for both
-surfaces" line; the design's note was aspirational, and reconciling it
-here keeps the plan implementable. The CLI surface still demonstrates
-the libformat path end-to-end.
+The CLI (part 06) uses these templates with `libtemplate`. It renders the
+output with `libformat`'s `createTerminalFormatter`. The web surface (part 07)
+does NOT use these templates. It renders React components directly with shadcn
+primitives, because Next.js already owns the render step. This is a deliberate
+deviation from the design's "libformat for both surfaces" line. The design's
+note was aspirational. This plan reconciles the note, so the plan stays
+implementable. The CLI surface still demonstrates the libformat path
+end-to-end.
 
 Created templates under `products/polaris/handlers/templates/`:
 
@@ -300,10 +301,9 @@ Created templates under `products/polaris/handlers/templates/`:
 - `show-about.md`
 - `manage-trial.md`
 
-Each template is a Mustache template rendering the handler's data shape.
-Handlers do NOT include a pre-rendered `markdown` field in their return
-value — the surface that wants markdown calls `libtemplate` with the
-handler's data:
+Each template is a Mustache template that renders the handler's data shape.
+Handlers do NOT include a pre-rendered `markdown` field in their return value.
+The surface that wants markdown calls `libtemplate` with the handler's data:
 
 ```js
 // CLI usage (part 06):
@@ -323,13 +323,13 @@ Created: per-handler test file under `products/polaris/handlers/test/`.
 
 Each test:
 
-- Mocks PostgREST + edge-function clients via
+- Mocks the PostgREST and edge-function clients with
   `createDataContext({ stub: true })`
-- Asserts handler returns expected shape
+- Asserts the handler returns the expected shape
 - Asserts no PII leaks in `searchTrials`, `showTrial`, `listSites` (no `email`
-  field in result)
-- Asserts `manageTrial` rejects non-staff JWT
-- Asserts `searchTrials` falls back to ILIKE when embeddings client throws
+  field in the result)
+- Asserts `manageTrial` rejects a non-staff JWT
+- Asserts `searchTrials` falls back to ILIKE when the embeddings client throws
 
 Test fixtures in `products/polaris/handlers/test/fixtures/`:
 
@@ -354,22 +354,22 @@ Verify: PR CI green.
 
 ## Verification (end of part 05)
 
-- [ ] All 8 handlers exported from `products/polaris/handlers/src/index.js`
-      (including `showCondition` and `listStories`).
+- [ ] `products/polaris/handlers/src/index.js` exports all 8 handlers. The
+      list covers `showCondition` and `listStories`.
 - [ ] Each handler accepts a frozen `{ data, args, options }` context (assert
       `Object.isFrozen(ctx)` in test).
 - [ ] `searchTrials("high blood sugar")` returns diabetes trials (assertion
       against seeded data).
-- [ ] Prose fields surface from their seed tables: `showTrial` returns `faq`
-      (`trial_faqs`) and `consentSummary` (`consent_summaries`); `showCondition`
-      returns `explainer` (`condition_explainers`); `listSites` sites carry
-      `description` (`site_descriptions`); `listStories` returns
-      `patient_stories` rows; `showAbout` returns `therapies`
-      (`therapy_descriptions`).
+- [ ] Prose fields surface from their seed tables. `showTrial` returns `faq`
+      (`trial_faqs`) and `consentSummary` (`consent_summaries`).
+      `showCondition` returns `explainer` (`condition_explainers`).
+      `listSites` sites carry `description` (`site_descriptions`).
+      `listStories` returns `patient_stories` rows. `showAbout` returns
+      `therapies` (`therapy_descriptions`).
 - [ ] `checkEligibility` inserts an `interest_signals` row with `match_score`
-      from edge-function response.
-- [ ] `manageTrial` enforces staff role via PostgREST RLS (verified by
-      integration test).
+      from the edge-function response.
+- [ ] `manageTrial` enforces the staff role through PostgREST RLS. The
+      integration test verifies this.
 - [ ] `bun test products/polaris/handlers/` exits 0.
 
 — Staff Engineer 🛠️

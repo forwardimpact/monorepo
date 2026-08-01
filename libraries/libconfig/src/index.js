@@ -154,7 +154,7 @@ export async function createProductConfig(
 
 /**
  * Creates and initializes a Config instance for init/supervision.
- * Used by rc.js to bootstrap services.
+ * rc.js uses it to bootstrap services.
  *
  * Preferred call shape (new):
  *   `createInitConfig({ runtime }, storageFn)`
@@ -175,5 +175,5 @@ export async function createInitConfig(
 // Re-export Config class for advanced use cases
 export { Config } from "./config.js";
 
-// Writer surface — see src/bootstrap.js
+// Writer surface. See src/bootstrap.js
 export { bootstrapProject } from "./bootstrap.js";

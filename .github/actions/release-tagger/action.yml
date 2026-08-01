@@ -1,10 +1,11 @@
 name: Release Tagger
 description: >
-  Create append-only release tags on a target repo and, for action releases
-  (`v<major>.<minor>.<patch>`), move the `v<major>` alias forward per the
-  monorepo's v1-move policy. Deterministic and idempotent: an existing release
-  tag is never moved, and the major alias only ever moves forward to a commit
-  that carries the release tag and is reachable from the default branch.
+  Create append-only release tags on a target repo. For action releases
+  (`v<major>.<minor>.<patch>`), also move the `v<major>` alias forward. The
+  monorepo's v1-move policy governs that move. The action is deterministic and
+  idempotent. It never moves an existing release tag. The major alias only ever
+  moves forward to a commit that carries the release tag and that the default
+  branch can reach.
 
 inputs:
   owner:
@@ -17,14 +18,14 @@ inputs:
     description: Whitespace/comma-separated release tags to create.
     required: true
   sha:
-    description: Commit to tag; defaults to the target repo's default-branch tip.
+    description: Commit to tag. It defaults to the target repo's default-branch tip.
     required: false
     default: ""
   token:
     description: >
       Token with `contents: write` on the target repo (an App installation
-      token scoped to that repo). Minted by the caller — composite actions
-      cannot read secrets.
+      token scoped to that repo). The caller mints it, because composite
+      actions cannot read secrets.
     required: true
 
 runs:
@@ -40,10 +41,10 @@ runs:
       run: |
         set -euo pipefail
 
-        # Work in a throwaway clone of the TARGET repo so this action can tag
-        # any org repo, not just the one it runs in. blob:none keeps the full
-        # commit graph + tags (needed for ancestry and alias checks) without
-        # fetching file contents.
+        # Work in a throwaway clone of the TARGET repo. Then this action can
+        # tag any org repo. It is not limited to the repo it runs in.
+        # blob:none keeps the full commit graph + tags (needed for ancestry
+        # and alias checks) and does not fetch file contents.
         work="$(mktemp -d)"
         git clone --quiet --filter=blob:none \
           "https://x-access-token:${TAG_TOKEN}@github.com/${OWNER}/${REPO}.git" "$work"
@@ -53,18 +54,19 @@ runs:
 
         default_ref="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
 
-        # Resolve and validate the target commit: a full SHA reachable from the
-        # default branch (a reviewed commit), never an arbitrary ref.
+        # Resolve and validate the target commit. It must be a full SHA that
+        # the default branch can reach (a reviewed commit). It must never be
+        # an arbitrary ref.
         target="${SHA_INPUT:-$(git rev-parse "$default_ref")}"
         if ! printf '%s' "$target" | grep -Eq '^[0-9a-f]{40}$'; then
           echo "::error::sha must be a full 40-char commit (got '$target')"; exit 1
         fi
         if ! git merge-base --is-ancestor "$target" "$default_ref"; then
-          echo "::error::target $target is not reachable from ${default_ref#origin/}"; exit 1
+          echo "::error::${default_ref#origin/} cannot reach target $target"; exit 1
         fi
 
-        # Normalize separators, then validate every tag's shape up front so a
-        # bad entry fails before anything is pushed.
+        # Normalize the separators. Then validate every tag's shape up front,
+        # so a bad entry fails before the action pushes anything.
         tags="$(printf '%s' "$TAGS" | tr ',\n\r\t' '    ')"
         n=0
         for t in $tags; do
@@ -78,9 +80,9 @@ runs:
         [ "$n" -gt 0 ] || { echo "::error::no tags supplied"; exit 1; }
 
         for t in $tags; do
-          # Append-only: create the release tag if absent, never move it.
+          # Append-only. Create the release tag if it is absent. Never move it.
           if git rev-parse -q --verify "refs/tags/$t^{commit}" >/dev/null 2>&1; then
-            echo "$t already exists — leaving in place"
+            echo "$t already exists. This run leaves it in place"
           else
             git tag "$t" "$target"
             git push --quiet origin "refs/tags/$t"
@@ -88,18 +90,19 @@ runs:
           fi
           tag_commit="$(git rev-parse "refs/tags/$t^{commit}")"
 
-          # v1-move: only for exact v<major>.<minor>.<patch> action releases.
-          # The major alias always tracks the latest release commit — NOT
-          # forward-only. Subtree-split projections are periodically re-seeded
-          # (an upstream history rewrite orphans older projected commits), so a
-          # new release legitimately lands off the previous alias lineage; an
-          # ancestor check would wedge the alias permanently. Safety is the
-          # lighter guard below: the target carries this release tag and is on
-          # the default branch (never an arbitrary or off-branch SHA).
+          # v1-move applies only to exact v<major>.<minor>.<patch> action
+          # releases. The major alias always tracks the latest release commit.
+          # It is NOT forward-only. Subtree-split projections are re-seeded
+          # periodically (an upstream history rewrite orphans older projected
+          # commits), so a new release legitimately lands off the previous
+          # alias lineage. An ancestor check would wedge the alias permanently.
+          # The lighter guard below gives the safety. The target carries this
+          # release tag and sits on the default branch (never an arbitrary or
+          # off-branch SHA).
           printf '%s' "$t" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' || continue
           major="${t%%.*}"
           if ! git merge-base --is-ancestor "$tag_commit" "$default_ref"; then
-            echo "::error::$t ($tag_commit) is not on ${default_ref#origin/}; refusing to move $major"; exit 1
+            echo "::error::$t ($tag_commit) is not on ${default_ref#origin/}. This run refuses to move $major"; exit 1
           fi
           if [ "$(git rev-parse -q --verify "refs/tags/$major^{commit}" 2>/dev/null || true)" = "$tag_commit" ]; then
             echo "$major already at $tag_commit"

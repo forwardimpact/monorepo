@@ -9,7 +9,7 @@ export class Policy {
 
   /**
    * Creates a new Policy instance
-   * @param {import("@forwardimpact/libstorage").StorageInterface} storage - Storage backend for policy loading
+   * @param {import("@forwardimpact/libstorage").StorageInterface} storage - Storage backend to load policies from
    */
   constructor(storage) {
     if (!storage) {
@@ -19,21 +19,21 @@ export class Policy {
   }
 
   /**
-   * Initialize policy engine and load policies from storage
+   * Initialize the policy engine and load policies from storage
    * @returns {Promise<void>}
    */
   async load() {
     // TODO: Future implementation will load policies from storage
-    // Check if storage is available for future policy loading
+    // Check that storage is available so a future version can load policies
     await this.#storage.bucketExists();
   }
 
   /**
-   * Evaluate policy for given input parameters
+   * Evaluate the policy for the given input parameters
    * @param {object} input - Policy evaluation input
    * @param {string} input.actor - Actor identifier (URI format)
    * @param {string[]} input.resources - Array of resource identifiers (URI format)
-   * @returns {Promise<boolean>} True if access is allowed, false otherwise
+   * @returns {Promise<boolean>} True if the policy allows access, false otherwise
    */
   async evaluate(input) {
     if (!input) {
@@ -54,7 +54,7 @@ export class Policy {
 
 /**
  * Creates a new policy instance
- * @param {import("@forwardimpact/libstorage").StorageInterface} storage - Optional storage backend for policy loading
+ * @param {import("@forwardimpact/libstorage").StorageInterface} storage - Optional storage backend to load policies from
  * @returns {Policy} New Policy instance
  */
 export function createPolicy(storage = null) {

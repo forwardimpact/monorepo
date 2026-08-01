@@ -65,7 +65,7 @@ describe("S3Storage - operations", () => {
     assert.deepStrictEqual(keys, ["file1.txt", "file2.txt"]);
   });
 
-  test("handles absolute paths by removing leading slash", async () => {
+  test("removes leading slash from absolute paths", async () => {
     await s3Storage.put("/absolute/file.txt", "content");
 
     assert.deepStrictEqual(
@@ -82,7 +82,7 @@ describe("S3Storage - operations", () => {
     assert.strictEqual(mockCommands.CreateBucketCommand.mock.callCount(), 0);
   });
 
-  test("ensureBucket returns true when bucket is created", async () => {
+  test("ensureBucket returns true when it creates the bucket", async () => {
     const error = new Error("Not found");
     error.name = "NotFound";
 
@@ -92,10 +92,10 @@ describe("S3Storage - operations", () => {
     mockClient.send = spy(() => {
       callCount++;
       if (callCount === 1) {
-        // First call is HeadBucketCommand - bucket doesn't exist
+        // First call is HeadBucketCommand. The bucket doesn't exist.
         return Promise.reject(error);
       } else {
-        // Second call is CreateBucketCommand - create bucket
+        // Second call is CreateBucketCommand. It creates the bucket.
         return Promise.resolve();
       }
     });

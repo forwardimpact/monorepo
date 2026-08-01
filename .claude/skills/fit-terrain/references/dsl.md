@@ -1,7 +1,7 @@
 # Terrain DSL
 
 Terrain files define a complete synthetic environment. A minimal reference DSL
-ships with the package; projects supply their own DSL file via `--story=path`.
+ships with the package. Projects supply their own DSL file with `--story=path`.
 
 ## Top-Level Blocks
 
@@ -36,12 +36,12 @@ terrain Name {
 | `org` / `department` / `team` | Hierarchy with headcounts, managers, repos |
 | `people` | Count, name theme, level + discipline distributions |
 | `project` | Cross-team initiatives with timelines and prose topics |
-| `snapshots` | GetDX snapshot generation (quarterly intervals) |
+| `snapshots` | GetDX snapshots (quarterly intervals) |
 | `scenario` | Time-bounded team effects (commit volume, DX trajectories, evidence) |
 | `standard` | Pathway engineering standard: levels, capabilities, behaviours, disciplines, tracks, drivers |
 | `content` | Article/blog/FAQ counts, persona configs, briefing counts |
-| `clinical` | Optional patient-and-trial domain — see § Clinical Block |
-| `dataset` / `output` | Faker, Synthea, SDV inputs and rendered formats — see [`datasets.md`](datasets.md) |
+| `clinical` | Optional patient-and-trial domain. See § Clinical Block |
+| `dataset` / `output` | Faker, Synthea, SDV inputs and rendered formats. See [`datasets.md`](datasets.md) |
 
 ---
 
@@ -99,9 +99,9 @@ clinical {
 - **condition** — ICD-10, synonyms, `synthea_module` (so `dataset.conditions`
   resolves to a Synthea module), optional `prose_topic` / `prose_tone`.
 - **site** — `org` references an org id from the parent terrain.
-- **trial** — `principal_investigator @name` references a `people` manager;
-  `project` optionally references a project id; `conditions` and `sites` are
-  ids from this block; `criteria { inclusion {} exclusion {} }` declares
+- **trial** — `principal_investigator @name` references a `people` manager.
+  `project` optionally references a project id. `conditions` and `sites` are
+  ids from this block. `criteria { inclusion {} exclusion {} }` declares
   eligibility.
 - **content** — Counts accept a number or one of `per_condition`,
   `per_trial`, `per_site` (scales with declared entities).
@@ -119,9 +119,9 @@ clinical {
 
 A `clinical {}` block adds seven HTML files under the knowledge output
 directory (`condition-explainers`, `therapy-descriptions`, `trial-faqs`,
-`consent-summaries`, `site-descriptions`, `patient-stories`, `trial-cards`),
-each carrying Schema.org microdata (`MedicalCondition`, `MedicalTrial`,
-`MedicalClinic`, `MedicalTherapy`) the Guide knowledge-graph ingest crawls.
+`consent-summaries`, `site-descriptions`, `patient-stories`, `trial-cards`).
+Each file carries Schema.org microdata (`MedicalCondition`, `MedicalTrial`,
+`MedicalClinic`, `MedicalTherapy`) that the Guide knowledge-graph ingest crawls.
 
-Patient-facing prose uses a medical-communications system prompt; the
-existing `generate` verb and prose cache cover it without extra flags.
+Patient-facing prose uses a medical-communications system prompt. The existing
+`generate` verb and prose cache cover it without extra flags.

@@ -1,6 +1,6 @@
 # Plan 1160-a-06 — CLI surface
 
-Build the `bionova-polaris` CLI under `products/polaris/cli/` using
+Build the `bionova-polaris` CLI under `products/polaris/cli/` with
 `@forwardimpact/libcli`. Every subcommand dispatches into the
 corresponding handler from part 05.
 
@@ -15,8 +15,8 @@ Created:
 | `products/polaris/cli/package.json` | `bionova-polaris`, `bin: { "bionova-polaris": "bin/bionova-polaris.js" }`, deps on libcli, librepl, libformat, libtemplate, handlers workspace |
 | `products/polaris/cli/bin/bionova-polaris.js` | `#!/usr/bin/env node` entry, parses argv, dispatches |
 | `products/polaris/cli/src/definition.js` | libcli definition object: commands, args, options, handlers, documentation |
-| `products/polaris/cli/src/repl.js` | librepl session wiring for `bionova-polaris repl` |
-| `products/polaris/cli/test/cli.test.js` | end-to-end argv parsing tests |
+| `products/polaris/cli/src/repl.js` | librepl session setup for `bionova-polaris repl` |
+| `products/polaris/cli/test/cli.test.js` | end-to-end tests that parse argv |
 | `products/polaris/cli/README.md` | Usage examples (search, eligibility, admin) |
 
 `package.json`:
@@ -37,8 +37,8 @@ Created:
 }
 ```
 
-Verify: `bun install` resolves workspace dep; `bunx bionova-polaris --help`
-prints CLI help (after step 2 lands).
+Verify: `bun install` resolves the workspace dep.
+`bunx bionova-polaris --help` prints the CLI help (after step 2 lands).
 
 ## Step 2 — Author libcli definition
 
@@ -159,7 +159,7 @@ export function createBionovaCli({ data }) {
 }
 ```
 
-Verify: `bunx bionova-polaris --help` lists all 9 commands;
+Verify: `bunx bionova-polaris --help` lists all 9 commands.
 `bunx bionova-polaris search --help` shows the four options.
 
 ## Step 3 — Author bin entry
@@ -198,8 +198,8 @@ Make executable: `chmod +x products/polaris/cli/bin/bionova-polaris.js`.
 
 Verify:
 `./products/polaris/cli/bin/bionova-polaris.js search --condition=diabetes`
-(against running stack) prints a list of diabetes trials in ANSI-formatted
-output.
+prints a list of diabetes trials in ANSI-formatted output. Run it against
+the live stack.
 
 ## Step 4 — Implement REPL
 
@@ -208,19 +208,19 @@ Created: `products/polaris/cli/src/repl.js`
 Per librepl's real API (verified against
 `libraries/librepl/src/index.js:268,316`):
 
-- Commands are invoked by typing `/<command>` (leading slash required);
-  bare input falls through to the `onLine` handler.
+- Type `/<command>` to invoke a command. The leading slash is mandatory.
+  Bare input falls through to the `onLine` handler.
 - Commands are objects shaped `{ usage, handler, type? }`. The handler
   signature is `(args: string[], state) => Promise<string|false>`.
 - librepl only writes output to the readline stream if the handler
-  returns a value with `.on()` (a Readable stream). Returning a plain
-  string is ignored — the handler must write to the REPL's output
-  itself OR return a Readable.
+  returns a value with `.on()` (a Readable stream). librepl ignores a
+  plain string. The handler must write to the REPL's output itself OR
+  return a Readable.
 - Built-ins: `/help`, `/clear`, `/exit`.
 
-The handler pattern: take `args + state`, do the work, write the
-formatted result to `state.output` (a writable stream librepl injects),
-return `false` (signal "I handled output").
+The handler follows this pattern. Take `args + state`. Do the work. Write
+the formatted result to `state.output`, a writable stream that librepl
+injects. Return `false` to signal "I handled output".
 
 ```js
 import { Readable } from "stream";
@@ -300,8 +300,9 @@ bionova> /help
 bionova> /exit
 ```
 
-Verify: `bunx bionova-polaris repl` opens an interactive prompt; `search
---condition=diabetes` then `trial 0` shows the first trial's details.
+Verify: `bunx bionova-polaris repl` opens an interactive prompt. Type
+`search --condition=diabetes`, then `trial 0`. The REPL shows the first
+trial's details.
 
 ## Step 5 — Tests
 
@@ -309,17 +310,18 @@ Created: `products/polaris/cli/test/cli.test.js`
 
 Tests:
 
-- `cli.parse(["search","--condition=diabetes"])` returns expected parsed shape
-- `cli.parse(["admin","trial","abc-123"])` resolves nested subcommand
-- `cli.parse(["--help"])` returns null with help message
-- handler dispatch goes through frozen InvocationContext (asserts
+- `cli.parse(["search","--condition=diabetes"])` returns the expected parsed
+  shape
+- `cli.parse(["admin","trial","abc-123"])` resolves the nested subcommand
+- `cli.parse(["--help"])` returns null with the help message
+- handler dispatch goes through a frozen InvocationContext (asserts
   `Object.isFrozen`)
-- output formatting uses ANSI (assert ESC sequences present in result)
+- the output format uses ANSI (assert that ESC sequences are in the result)
 
-Verify: `bun test products/polaris/cli/` exits 0; mocked handler context
-asserts work.
+Verify: `bun test products/polaris/cli/` exits 0. The asserts on the mocked
+handler context work.
 
-## Step 6 — End-to-end smoke against running stack
+## Step 6 — End-to-end smoke against the live stack
 
 Created: `products/polaris/cli/test/e2e.sh`
 
@@ -356,27 +358,28 @@ git push -u origin products/polaris-cli
 gh pr create --title "products: bionova-polaris CLI" --body "Implements plan-a-06 of spec 1160. CLI dispatches into shared handlers; REPL subcommand wired via librepl."
 ```
 
-Verify: PR CI green (lint + bun test); manual smoke against local stack
-documented in PR description.
+Verify: the PR CI is green (lint + bun test). The PR description documents
+the manual smoke against the local stack.
 
 ## Verification (end of part 06)
 
 - [ ] `bunx bionova-polaris --help` lists all 9 commands.
-- [ ] `bionova-polaris search --condition=diabetes` returns trials matching
-      diabetes (success criterion #4 partial — matches web search result; full
-      match deferred to part 08).
-- [ ] `bionova-polaris condition <id>` shows the condition and its explainer;
+- [ ] `bionova-polaris search --condition=diabetes` returns trials that match
+      diabetes (success criterion #4, partial). It matches the web search
+      result. Part 08 covers the full match.
+- [ ] `bionova-polaris condition <id>` shows the condition and its explainer.
       `bionova-polaris stories --condition=<id>` lists that condition's patient
       stories.
-- [ ] `bionova-polaris repl` opens librepl-based session. Typing
-      `/search --condition=diabetes` then `/trial 0` shows trial detail. (Bare
-      `search` without slash prefix triggers `/help` per librepl convention.)
+- [ ] `bionova-polaris repl` opens a librepl-based session. Type
+      `/search --condition=diabetes`, then `/trial 0`. The REPL shows the trial
+      detail. Bare `search` without the slash prefix triggers `/help`, per the
+      librepl convention.
 - [ ] `bionova-polaris admin trial <id>` fails without `--token` or
       `SUPABASE_SERVICE_ROLE_KEY` env.
-- [ ] `bionova-polaris admin trial <id>` with service role succeeds and shows
-      interest signal aggregates (success criterion #5 partial — verified
-      end-to-end in part 08).
+- [ ] `bionova-polaris admin trial <id>` with the service role succeeds. It
+      shows the interest signal aggregates (success criterion #5, partial).
+      Part 08 verifies it end-to-end.
 - [ ] `bun test products/polaris/cli/` exits 0.
-- [ ] `bash products/polaris/cli/test/e2e.sh` exits 0 against running stack.
+- [ ] `bash products/polaris/cli/test/e2e.sh` exits 0 against the live stack.
 
 — Staff Engineer 🛠️

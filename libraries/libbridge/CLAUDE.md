@@ -1,7 +1,7 @@
 # libbridge
 
-Channel-agnostic primitives shared by `services/ghbridge` and
-`services/msbridge`.
+`services/ghbridge` and `services/msbridge` share these channel-agnostic
+primitives.
 
 ## Invariants
 
@@ -9,32 +9,33 @@ Channel-agnostic primitives shared by `services/ghbridge` and
   channel-specific SDK from this package. Channel adapters own the SDKs.
 - **No GraphQL or REST strings.** Never compose `addDiscussionComment` or
   `addReaction` mutations, or any channel-specific URL beyond the
-  workflow-dispatch endpoint (GitHub-Actions-shaped, not channel-shaped).
+  workflow-dispatch endpoint. That endpoint is GitHub-Actions-shaped. It is
+  not channel-shaped.
 - **Caller-injected clock.** `evaluateTrigger(trigger, observed, now)` takes
-  `now` as a parameter; never call `Date.now()` from trigger evaluation.
+  `now` as a parameter. Never call `Date.now()` from trigger evaluation.
 
-Audit-time invariants (applied by security audits covering libbridge):
+Security audits that cover libbridge apply these audit-time invariants:
 
 - **Bridge-parity.** Every surface registered in `IDENTITY_CONTRACTS`
   (`services/ghuser/src/identity-contracts.js`) beyond `github-discussions`
   carries a contract at least as strong as the `bridgePendingDispatchProof`
-  default — a weaker contract (e.g. equality-only) bypasses the
-  `putPendingDispatch` proof while still issuing dispatch. Flag unless the
+  default. A weaker contract (e.g. equality-only) bypasses the
+  `putPendingDispatch` proof and still issues dispatch. Flag unless the
   bridge README documents an explicit opt-out rationale.
 - **Timing-parity.** Any `CallbackRegistry` (or sibling registry) lookup that
-  scans a stored collection maintains a secondary index so hits and misses
-  share an O(1) path, or carries an explicit `scan-by-design` comment with
-  security review of response-shape parity.
+  scans a stored collection maintains a secondary index. Hits and misses then
+  share an O(1) path. The lookup may instead carry an explicit
+  `scan-by-design` comment with a security review of response-shape parity.
 
 ## Bridge contract
 
 A "bridge" relays human messages from a channel (GitHub Discussions,
-Microsoft Teams, …) to the Kata dispatch workflow and posts the workflow's
-reply back. Every bridge composes the same libbridge primitives in the same
-order. To add `xbridge`, implement four pieces:
+Microsoft Teams, …) to the Kata dispatch workflow. The bridge posts the
+workflow's reply back. Every bridge composes the same libbridge primitives in
+the same order. To add `xbridge`, implement four pieces:
 
 1. **Channel intake** — `onWebhook: (c) => Response`. Verify the inbound
-   request is authentic and extract `(threadId, text, ackTarget)`. For
+   request is authentic. Extract `(threadId, text, ackTarget)`. For
    SDK-driven intake (e.g. Bot Framework's `adapter.process`), wrap the
    SDK in `services/xbridge/src/<channel>.js` so `index.js` never sees the
    express/HTTP shim.
@@ -44,23 +45,23 @@ order. To add `xbridge`, implement four pieces:
    The channel's "I received your message" reaction. The `target` shape is
    opaque to libbridge.
 
-3. **Typing adapter** *(optional)* — `{ send(target, text) -> void }`. Only
-   if your channel benefits from filler "Crafting..." messages while the
+3. **Typing adapter** *(optional)* — `{ send(target, text) -> void }`. Add it
+   only if your channel benefits from filler "Crafting..." messages while the
    workflow runs. `Acknowledgement` owns the verb pool and cadence.
 
-4. **Reply handler** — `handleReply(ctx, payload, meta) -> void`. Posts
-   `payload.replies`, appends them to `ctx.history`, and applies the
+4. **Reply handler** — `handleReply(ctx, payload, meta) -> void`. It posts
+   `payload.replies`. It appends them to `ctx.history`. It applies the
    verdict (`adjourned` / `failed` / `recessed`). Throw
    `CallbackHandlerError(status, message)` to short-circuit. If the bridge
-   supports `recessed`, plug in `ResumeScheduler` and call
-   `enterRecess` / `cancelRecess` from the verdict branches.
+   supports `recessed`, plug in `ResumeScheduler`. Call `enterRecess` /
+   `cancelRecess` from the verdict branches.
 
-Once those exist, composition is mechanical — instantiate
-`Acknowledgement` with your adapters, construct a `Dispatcher` over a
-`CallbackRegistry` and a host-supplied object satisfying the `DiscussionAdapter`
-typedef — see `services/bridge`, wire `createBridgeServer`
+Once those exist, the composition is mechanical. Instantiate
+`Acknowledgement` with your adapters. Construct a `Dispatcher` over a
+`CallbackRegistry` and a host-supplied object that satisfies the
+`DiscussionAdapter` typedef. See `services/bridge`. Wire `createBridgeServer`
 with `onWebhook` and `createCallbackHandler({ channel, handleReply, ...})`.
-See `services/ghbridge/src/index.js` for the canonical wiring.
+`services/ghbridge/src/index.js` shows the canonical way to wire a bridge.
 
 Inside channel intake, the only dispatch call is:
 
@@ -71,25 +72,24 @@ await dispatcher.dispatch({
 });
 ```
 
-`Dispatcher.dispatch` owns the rest: register the callback token, start the
-acknowledgement, fire the workflow, append history, push the dispatch
-timestamp, flush the store, and on failure roll back.
+`Dispatcher.dispatch` owns the rest. It registers the callback token, starts
+the acknowledgement, fires the workflow, appends history, pushes the dispatch
+timestamp, and flushes the store. On failure it rolls back.
 
 ## Configuration
 
 Every bridge consumes the canonical `BridgeConfig` JSDoc typedef from
-`src/index.js`. Channel-specific fields extend it — see each bridge's
-README for the channel-specific surface.
+`src/index.js`. Channel-specific fields extend it. See each bridge's README
+for the channel-specific surface.
 
 ## Suspend/resume
 
 When a workflow returns `verdict: "recessed"` with a `trigger`, the
-conversation waits. The trigger kind names the lead's intent:
-`missing_input` (resume when N new replies have arrived on the
-dispatching thread), `elapsed` (resume after an ISO-8601 duration), or
-`escalation_needed` (reserved for future signal-based resume; the
-scheduler throws if it sees this kind today). `ResumeScheduler` owns
-that lifecycle:
+conversation waits. The trigger kind names the lead's intent. `missing_input`
+resumes when N new replies arrive on the thread that dispatched. `elapsed`
+resumes after an ISO-8601 duration. `escalation_needed` is reserved for
+future signal-based resume. The scheduler throws if it sees that kind today.
+`ResumeScheduler` owns that lifecycle:
 
 ```js
 const resume = new ResumeScheduler({

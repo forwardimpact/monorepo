@@ -1,6 +1,7 @@
 /**
- * Decide whether a link points outside the site being built.
- * Relative links and absolute links matching baseUrl's host are internal.
+ * Decide whether a link points outside the site that the build produces.
+ * A relative link is internal. An absolute link is internal when its host
+ * matches the host of baseUrl.
  * @param {string} url - Link target
  * @param {string|undefined} baseUrl - Base URL of the site
  * @returns {boolean}
@@ -32,7 +33,7 @@ export function rewriteMarkdownPath(path, fragment) {
 
 /**
  * Transform internal .md links to match the HTML output structure.
- * External links (different host than baseUrl) are left untouched.
+ * Leave external links (different host than baseUrl) unchanged.
  * @param {string} html - HTML content to transform
  * @param {string|undefined} baseUrl - Base URL of the site
  * @returns {string} HTML with transformed links
@@ -46,7 +47,7 @@ export function transformMarkdownLinks(html, baseUrl) {
 
 /**
  * Transform internal markdown-syntax links from .md references to directory-style URLs.
- * External links (different host than baseUrl) are left untouched.
+ * Leave external links (different host than baseUrl) unchanged.
  * @param {string} markdown - Markdown content to transform
  * @param {string|undefined} baseUrl - Base URL of the site
  * @returns {string} Markdown with transformed links
@@ -76,7 +77,7 @@ export function generateToc(html) {
 
 /**
  * Compute URL path from a markdown file's relative path.
- * Strips a trailing `index.md` segment, then folds the rest into `/path/`.
+ * Strip a trailing `index.md` segment. Then fold the rest into `/path/`.
  * @param {string} mdFile - Relative path to markdown file
  * @returns {string} URL path (e.g. "/docs/pathway/")
  */
@@ -145,7 +146,7 @@ export function classifyPagesIntoSections(pages) {
 }
 
 /**
- * Insert page links after matching H2 headings
+ * Insert page links after each H2 heading that matches a section
  * @param {string[]} lines - Original llms.txt lines
  * @param {Object<string, Array>} sections - Classified page buckets
  * @param {Function} linkLine - Formats a page as a markdown link line
@@ -170,7 +171,7 @@ export function insertSectionLinks(lines, sections, linkLine) {
 }
 
 /**
- * Build hero section template variables from front matter
+ * Build the template variables for the hero section from front matter
  * @param {object} frontMatter - Parsed front matter
  * @returns {object} Hero-related template variables
  */

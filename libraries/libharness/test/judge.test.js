@@ -65,7 +65,7 @@ describe("Judge - construction", () => {
 });
 
 describe("Judge.run", () => {
-  test("returns success when Conclude is called with verdict='success'", async () => {
+  test("returns success when the judge calls Conclude with verdict='success'", async () => {
     const { ctx } = seedJudge();
     const concludeHandler = createConcludeHandler(ctx);
     const runner = createMockRunner(
@@ -81,7 +81,7 @@ describe("Judge.run", () => {
     assert.strictEqual(result.summary, "looks good");
   });
 
-  test("returns failure when Conclude is called with verdict='failure'", async () => {
+  test("returns failure when the judge calls Conclude with verdict='failure'", async () => {
     const { ctx } = seedJudge();
     const concludeHandler = createConcludeHandler(ctx);
     const runner = createMockRunner(
@@ -119,7 +119,7 @@ describe("Judge.run", () => {
     runner.onLine = (line) => judge.emitLine(line);
     await judge.run("Grade this.");
     const lines = (output.read()?.toString() ?? "").split("\n").filter(Boolean);
-    // Every assistant line emitted via onLine should have source: "judge".
+    // Every assistant line that onLine emits should have source: "judge".
     const judgeLines = lines.filter((l) => l.includes('"source":"judge"'));
     assert.ok(
       judgeLines.length > 0,
@@ -132,7 +132,7 @@ describe("Judge.run", () => {
     assert.match(summary, /"verdict":"success"/);
   });
 
-  test("taskAmend is appended to the task before delivery", async () => {
+  test("the Judge appends taskAmend to the task before delivery", async () => {
     const { ctx } = seedJudge();
     const runner = createMockRunner([{ text: "ok" }]);
     let receivedTask = null;
@@ -155,9 +155,9 @@ describe("Judge.run", () => {
 });
 
 describe("createJudge", () => {
-  test("composes JUDGE_SYSTEM_PROMPT as the system-prompt trailer when no profile is supplied", () => {
+  test("composes JUDGE_SYSTEM_PROMPT as the system-prompt trailer when the caller supplies no profile", () => {
     let capturedParams = null;
-    // biome-ignore lint/correctness/useYield: AgentRunner only needs an async iterable; an empty generator is sufficient for capturing the spawn args.
+    // biome-ignore lint/correctness/useYield: AgentRunner only needs an async iterable. An empty generator is enough to capture the spawn args.
     const mockQuery = async function* (params) {
       capturedParams = params;
     };
@@ -185,10 +185,10 @@ describe("createJudge", () => {
     });
   });
 
-  test("registers the judge orchestration MCP server with only Conclude", () => {
+  test("registers the orchestration MCP server for the judge with only Conclude", () => {
     const output = new PassThrough();
     let capturedParams = null;
-    // biome-ignore lint/correctness/useYield: AgentRunner only needs an async iterable; an empty generator is sufficient for capturing the spawn args.
+    // biome-ignore lint/correctness/useYield: AgentRunner only needs an async iterable. An empty generator is enough to capture the spawn args.
     const mockQuery = async function* (params) {
       capturedParams = params;
     };
@@ -202,8 +202,9 @@ describe("createJudge", () => {
     return judge.runner.run("noop").then(() => {
       const orchestration = capturedParams.options.mcpServers?.orchestration;
       assert.ok(orchestration, "orchestration MCP server must be registered");
-      // The MCP SDK creates an Sdk server; tools are discoverable via its
-      // internals. Just assert that exactly the orchestration server is wired.
+      // The MCP SDK creates an Sdk server. You can discover the tools
+      // through its internals. Just assert that createJudge wires exactly
+      // the orchestration server.
       assert.deepStrictEqual(Object.keys(capturedParams.options.mcpServers), [
         "orchestration",
       ]);
@@ -213,7 +214,7 @@ describe("createJudge", () => {
   test("defaults to read-only allowedTools (Read, Glob, Grep, Bash)", () => {
     const output = new PassThrough();
     let capturedParams = null;
-    // biome-ignore lint/correctness/useYield: AgentRunner only needs an async iterable; an empty generator is sufficient for capturing the spawn args.
+    // biome-ignore lint/correctness/useYield: AgentRunner only needs an async iterable. An empty generator is enough to capture the spawn args.
     const mockQuery = async function* (params) {
       capturedParams = params;
     };

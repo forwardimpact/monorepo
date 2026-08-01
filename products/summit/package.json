@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/summit",
   "version": "0.1.31",
-  "description": "Model team capability as a system — staffing decisions backed by evidence, not intuition.",
+  "description": "Model team capability as a system — base staffing decisions on evidence instead of intuition.",
   "keywords": [
     "team",
     "capability",
@@ -22,12 +22,12 @@
     {
       "user": "Engineering Leaders",
       "goal": "Staff Teams to Succeed",
-      "trigger": "A post-mortem surfaces the same skill gap that caused the last incident — nobody saw it before staffing.",
+      "trigger": "A post-mortem surfaces the same skill gap that caused the last incident. Nobody saw it before staffing.",
       "bigHire": "make staffing decisions I can defend by seeing what each role requires.",
       "littleHire": "spot capability gaps and check whether a candidate fills them.",
       "competesWith": "résumé screening; gut feel; copying a team that seems to work; accepting gaps as inevitable",
       "forces": {
-        "push": "Capability gaps appear as incidents, never in advance.",
+        "push": "Capability gaps appear as incidents. They never appear in advance.",
         "pull": "Confidence that a staffing change strengthens the team as a system.",
         "habit": "Hiring on résumés and gut rather than team composition analysis.",
         "anxiety": "Modeling human capability feels reductive."

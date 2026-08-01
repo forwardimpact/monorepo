@@ -1,8 +1,8 @@
 # Step → Status Mapping
 
 Reference for `req-workday` Step 3. Map the **Step / Disposition** column to the
-`req-track` pipeline status. Do **not** use the Stage column for status — Stage
-is only used for row detection (stop condition).
+`req-track` pipeline status. Do **not** use the Stage column for status. Use
+Stage only for row detection (stop condition).
 
 | Workday Step / Disposition             | Pipeline status    |
 | -------------------------------------- | ------------------ |
@@ -25,10 +25,10 @@ is only used for row detection (stop condition).
 
 Empty or unrecognized step → default to `new`.
 
-## Preserving the raw step
+## Preserve the raw step
 
-The raw `step` value is always preserved in the parser's JSON output and must be
-stored in the candidate brief's `## Pipeline` section, e.g.
+The parser always preserves the raw `step` value in its JSON output. Store that
+value in the candidate brief's `## Pipeline` section, e.g.
 
 ```text
 - **2026-02-10**: Applied via LinkedIn — Step: Manager Request to Move Forward (HS)

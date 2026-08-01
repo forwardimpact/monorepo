@@ -1,6 +1,7 @@
 /**
- * SequenceCounter — global monotonic counter shared across all participants
- * in a session. Single-threaded JS means no synchronization needed.
+ * SequenceCounter — global monotonic counter. All participants in a session
+ * share one counter. Single-threaded JS means the counter needs no
+ * synchronization.
  */
 /** Monotonic counter that assigns globally ordered sequence numbers within a session. */
 export class SequenceCounter {
@@ -15,7 +16,7 @@ export class SequenceCounter {
   }
 }
 
-/** Create a new SequenceCounter starting at zero. */
+/** Create a new SequenceCounter that starts at zero. */
 export function createSequenceCounter() {
   return new SequenceCounter();
 }

@@ -25,8 +25,8 @@ Compare the coverage diff from each scenario to see which addresses more gaps.
 npx fit-summit growth platform --evidenced --outcomes
 ```
 
-Returns recommendations ranked by team impact, filtered by what the engineer has
-already demonstrated, and weighted by organizational driver scores.
+The command returns recommendations ranked by team impact, filtered by what the
+engineer already demonstrated, and weighted by organizational driver scores.
 
 ### "How has the team changed over time?"
 
@@ -34,5 +34,5 @@ already demonstrated, and weighted by organizational driver scores.
 npx fit-summit trajectory platform --quarters 8
 ```
 
-Shows quarterly coverage snapshots with per-skill trend classification and
-roster changes (joins, leaves, promotions).
+The command shows quarterly coverage snapshots with per-skill trend
+classification and roster changes (joins, leaves, promotions).

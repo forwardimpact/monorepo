@@ -4,10 +4,10 @@ GitHub composite action that runs a [`gemba-wiki`](https://github.com/forwardimp
 agent-memory command in CI.
 
 Long agent jobs outlive the one-hour lifetime of the GitHub App installation
-token minted at job start, so pushing the wiki back during cleanup fails
+token minted at job start. So a push of the wiki during cleanup fails
 authentication. This action mints a **fresh** installation token immediately
-before running the command, and runs as an ordinary `always()` step after the
-agent — so memory is flushed reliably regardless of run length or outcome.
+before it runs the command. It runs as an ordinary `always()` step after the
+agent. It flushes memory reliably, whatever the run length or outcome.
 
 ## Usage
 
@@ -35,7 +35,7 @@ Read-only / local commands need no credentials:
 
 | Input | Required | Default | Description |
 |---|---|---|---|
-| `command` | yes | — | `gemba-wiki` subcommand and args, appended to the `gemba-wiki` gear binary on `PATH` |
-| `app-id` | no | `""` | GitHub App ID; with `app-private-key`, mints a fresh token as `GH_TOKEN` |
-| `app-private-key` | no | `""` | GitHub App private key for fresh-token minting |
+| `command` | yes | — | `gemba-wiki` subcommand and args that the action appends to the `gemba-wiki` gear binary on `PATH` |
+| `app-id` | no | `""` | GitHub App ID. With `app-private-key` it mints a fresh token as `GH_TOKEN` |
+| `app-private-key` | no | `""` | GitHub App private key the action uses to mint a fresh token |
 | `wiki-path` | no | `wiki` | Path to the checked-out wiki working copy |

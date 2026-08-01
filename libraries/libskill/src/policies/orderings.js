@@ -1,10 +1,11 @@
 /**
  * Orderings and Comparator Functions
  *
- * Canonical orderings for entity types and comparator functions for sorting.
+ * This module defines canonical orderings for entity types. It also
+ * defines comparator functions that sort them.
  *
- * Naming conventions:
- * - ORDER_* - canonical ordering arrays
+ * Conventions for names:
+ * - ORDER_* - arrays that hold a canonical order
  * - compareBy* - comparator functions for Array.sort()
  */
 
@@ -19,8 +20,9 @@ import {
 // =============================================================================
 
 /**
- * Skill tier ordering (T-shaped profile: core → broad)
- * Core skills first, then supporting, broad, and track-added skills.
+ * Skill tier order (T-shaped profile: core → broad)
+ * This order puts core skills first, then supporting, broad, and
+ * track-added skills.
  */
 export const ORDER_SKILL_TYPE = ["core", "supporting", "broad", "track"];
 
@@ -79,10 +81,10 @@ export function compareByName(a, b) {
 /**
  * Compare skills by level (desc), then type (asc), then name (asc)
  *
- * Standard priority ordering for skill display:
+ * This comparator gives the standard priority order to display skills:
  * - Higher levels first
- * - Within same level, core before supporting before broad
- * - Within same tier, alphabetical by name
+ * - Within the same level, core first, then supporting, then broad
+ * - Within the same tier, alphabetical by name
  *
  * @param {Object} a - First skill entry
  * @param {Object} b - Second skill entry
@@ -109,9 +111,9 @@ export function compareBySkillPriority(a, b) {
 /**
  * Compare skills by level (desc), then type (asc), then capabilityRank (asc)
  *
- * Used for agent profile skill focusing where capability ordinalRank
- * determines tie-breaking instead of alphabetical name. Requires
- * capabilityRank on each skill matrix entry (set by deriveSkillMatrix).
+ * Use this comparator when you focus the skills in an agent profile. The
+ * capability ordinalRank breaks a tie instead of the alphabetical name.
+ * Each skill matrix entry needs capabilityRank. deriveSkillMatrix sets it.
  *
  * @param {Object} a - First skill entry (with capabilityRank)
  * @param {Object} b - Second skill entry (with capabilityRank)
@@ -136,9 +138,9 @@ export function compareBySkillFocusPriority(a, b) {
 /**
  * Compare skills by type (asc), then name (asc)
  *
- * Standard ordering for job skill matrix display:
+ * This comparator gives the standard order to display the job skill matrix:
  * - Core skills first, then supporting, then broad, then track
- * - Within same tier, alphabetical by name
+ * - Within the same tier, alphabetical by name
  *
  * @param {Object} a - First skill entry
  * @param {Object} b - Second skill entry
@@ -195,9 +197,9 @@ export function compareByBehaviourName(a, b) {
 /**
  * Compare behaviours by maturity (desc), then name (asc)
  *
- * Standard priority ordering for behaviour display:
+ * This comparator gives the standard priority order to display behaviours:
  * - Higher maturity first
- * - Within same maturity, alphabetical by name
+ * - Within the same maturity, alphabetical by name
  *
  * @param {Object} a - First behaviour entry
  * @param {Object} b - Second behaviour entry
@@ -216,10 +218,10 @@ export function compareByBehaviourPriority(a, b) {
 // =============================================================================
 
 /**
- * Create a comparator for sorting by capability ordinal rank
+ * Create a comparator that sorts by capability ordinal rank
  *
- * The returned comparator uses ordinalRank from loaded capability data,
- * making the ordering data-driven rather than hardcoded.
+ * The returned comparator uses ordinalRank from the loaded capability
+ * data. The order is data-driven. The code does not hardcode it.
  *
  * @param {Object[]} capabilities - Loaded capabilities array
  * @returns {(a: Object, b: Object) => number} Comparator function
@@ -256,7 +258,7 @@ export function sortSkillsByCapability(skills, capabilities) {
 // =============================================================================
 
 /**
- * Create comparator from an ordering array
+ * Create a comparator from an order array
  *
  * @param {string[]} order - Canonical order
  * @param {(item: Object) => string} accessor - Extract value to compare
@@ -269,7 +271,8 @@ export function compareByOrder(order, accessor) {
 /**
  * Chain multiple comparators together
  *
- * Returns first non-zero result, or 0 if all comparators return 0.
+ * The chained comparator returns the first non-zero result. If all
+ * comparators return 0, it returns 0.
  *
  * @param {...Function} comparators - Comparator functions
  * @returns {(a: Object, b: Object) => number}
@@ -289,9 +292,11 @@ export function chainComparators(...comparators) {
 // =============================================================================
 
 /**
- * Compare skill changes by change magnitude (largest first), then type, then name
+ * Compare skill changes by change magnitude (largest first), then type,
+ * then name
  *
- * Used for career progression analysis where biggest changes are most important.
+ * Use this comparator for career progression analysis. The biggest changes
+ * matter most.
  *
  * @param {Object} a - First skill change
  * @param {Object} b - Second skill change
@@ -313,7 +318,7 @@ export function compareBySkillChange(a, b) {
 /**
  * Compare behaviour changes by change magnitude (largest first), then name
  *
- * Used for career progression analysis.
+ * Use this comparator for career progression analysis.
  *
  * @param {Object} a - First behaviour change
  * @param {Object} b - Second behaviour change

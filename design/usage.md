@@ -81,10 +81,9 @@ Components inherited from [index.md § 5](index.md#5-components) must reference
 the family **semantic tokens** (`--bg-page`, `--bg-warm`, `--text-primary`,
 `--border-strong`, `--accent-warm-200`, `--accent-warm-400`, etc.). They must
 never reference the brand-specific palette tokens (`--sand-200`, `--ink-400`,
-…). Each brand exposes
-its warm-signal ramp both under a brand-specific name (for use inside that
-brand's docs and worked examples) **and** under the family alias
-`--accent-warm-{50,100,200,400,600}`. Shared component code that targets
+…). Each brand exposes its warm-signal ramp both under a brand-specific name
+(for use inside that brand's docs and worked examples) **and** under the family
+alias `--accent-warm-{50,100,200,400,600}`. Shared component code that targets
 `--accent-warm-*` then renders correctly under any brand's `:root`.
 
 ### File structure

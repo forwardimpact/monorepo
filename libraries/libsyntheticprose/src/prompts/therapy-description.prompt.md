@@ -1,6 +1,6 @@
 Write {{length}} of {{tone}} content about: {{topic}}.
 
-Provide a treatment overview for patients and caregivers. Cover: what the
+Write a treatment overview for patients and caregivers. Cover: what the
 therapy involves, how it works, common side effects, and what to expect
 during treatment. Do not give medical advice or make comparative claims.
 

@@ -37,7 +37,7 @@ describe("OrchestrationToolkit - Ask", () => {
     });
   });
 
-  test("Ask with defaultTo uses it when `to` is omitted", async () => {
+  test("Ask with defaultTo uses it when the caller omits `to`", async () => {
     const ctx = createOrchestrationContext();
     ctx.participants = [
       { name: "facilitator", role: "facilitator" },
@@ -77,7 +77,7 @@ describe("OrchestrationToolkit - Ask", () => {
     assert.strictEqual(new Set(askIds).size, 2);
   });
 
-  test("Two Asks to the same addressee coexist — each has its own askId, neither overwrites the other", async () => {
+  test("Two Asks to the same addressee coexist. Each has its own askId. Neither overwrites the other", async () => {
     const ctx = createOrchestrationContext();
     ctx.participants = [
       { name: "facilitator", role: "facilitator" },
@@ -127,7 +127,7 @@ describe("OrchestrationToolkit - Ask", () => {
 });
 
 describe("OrchestrationToolkit - Answer", () => {
-  test("Answer with matching askId routes the reply on the bus and clears the pending entry", async () => {
+  test("Answer routes the reply on the bus and clears the pending entry when askId matches", async () => {
     const ctx = createOrchestrationContext();
     ctx.messageBus = stubBus();
     ctx.pendingAsks.set(7, {
@@ -150,7 +150,7 @@ describe("OrchestrationToolkit - Answer", () => {
     assert.strictEqual(answer.text, "yes");
   });
 
-  test("Answer without askId and no pending ask is routed as Announce", async () => {
+  test("Answer without askId and no pending ask routes as Announce", async () => {
     const ctx = createOrchestrationContext();
     ctx.messageBus = stubBus();
     const result = await createAnswerHandler(ctx, { from: "agent-1" })({
@@ -220,7 +220,7 @@ describe("OrchestrationToolkit - Answer", () => {
     assert.ok(result.content[0].text.includes("999"));
   });
 
-  test("Answer from the wrong participant returns isError; pending entry remains", async () => {
+  test("Answer from the wrong participant returns isError and the pending entry remains", async () => {
     const ctx = createOrchestrationContext();
     ctx.messageBus = stubBus();
     ctx.pendingAsks.set(7, {

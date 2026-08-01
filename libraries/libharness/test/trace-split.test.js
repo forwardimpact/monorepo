@@ -10,7 +10,7 @@ const DIR = "/traces";
 
 /**
  * Invoke the split handler with an InvocationContext-shaped object backed by an
- * in-memory fs. `values` are the parsed flags; `file` is the positional;
+ * in-memory fs. `values` are the parsed flags. `file` is the positional.
  * `fsSync` is the seeded fs the command reads and writes through.
  */
 function split(values, [file], fsSync) {
@@ -136,7 +136,7 @@ describe("gemba-trace split", () => {
   });
 
   describe("run mode", () => {
-    test("emits a single agent file using the unified convention", () => {
+    test("emits a single agent file with the unified convention", () => {
       const event = {
         type: "assistant",
         message: { content: [{ type: "text", text: "hi" }] },
@@ -175,7 +175,7 @@ describe("gemba-trace split", () => {
   });
 
   describe("invalid agent names filtered", () => {
-    test("sources not matching [a-z][a-z0-9-]* are skipped", () => {
+    test("the split skips sources that do not match [a-z][a-z0-9-]*", () => {
       const validEvent = {
         type: "assistant",
         message: { content: [{ type: "text", text: "valid" }] },
@@ -215,7 +215,7 @@ describe("gemba-trace split", () => {
   });
 
   describe("resilience", () => {
-    test("empty lines and parse errors are skipped gracefully", () => {
+    test("the split skips empty lines and parse errors gracefully", () => {
       const event = {
         type: "assistant",
         message: { content: [{ type: "text", text: "hello" }] },
@@ -250,7 +250,7 @@ describe("gemba-trace split", () => {
       assert.strictEqual(supervisorLines.length, 1);
     });
 
-    test("lines without envelope format are skipped", () => {
+    test("the split skips lines without envelope format", () => {
       const dir = DIR;
       const file = path.join(dir, "trace--demo.raw.ndjson");
       const content = [
@@ -274,7 +274,7 @@ describe("gemba-trace split", () => {
   });
 
   describe("orchestrator events skipped", () => {
-    test("source=orchestrator lines are excluded from output", () => {
+    test("the split excludes source=orchestrator lines from output", () => {
       const agentEvent = {
         type: "assistant",
         message: { content: [{ type: "text", text: "work" }] },
@@ -369,7 +369,7 @@ describe("gemba-trace split", () => {
   });
 
   describe("discuss mode", () => {
-    test("is accepted and buckets by source like facilitate", () => {
+    test("the split accepts discuss and buckets by source like facilitate", () => {
       const event = {
         type: "assistant",
         message: { content: [{ type: "text", text: "hi" }] },

@@ -10,7 +10,7 @@ export const FIXTURES = fileURLToPath(
   new URL("./fixtures/profile-prompt", import.meta.url),
 );
 
-/** Live `.claude/agents` directory used by the SC#1 loadability sweep. */
+/** The SC#1 loadability sweep reads this live `.claude/agents` directory. */
 export const LIVE_PROFILES = fileURLToPath(
   new URL("../../../.claude/agents", import.meta.url),
 );

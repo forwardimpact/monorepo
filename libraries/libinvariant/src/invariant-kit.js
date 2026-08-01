@@ -1,14 +1,16 @@
-// The invariant authoring kit: the mechanism an invariant rule module needs to
-// turn the repository into subjects and findings, so the module itself carries
-// only policy. The engine injects a *build kit* into every module's `build`
-// (and `seed`), and a *rule kit* into a module's `rules` when it is written as
-// a function. Modules never import this file — the host (invariants.js) binds a
-// kit per run and passes it in, the same way the rest of the monorepo threads
-// the `runtime` bag instead of importing ambient collaborators.
+// The invariant kit: the mechanism an invariant rule module needs to turn the
+// repository into subjects and findings, so the module itself carries only
+// policy. The engine injects a *build kit* into every module's `build` (and
+// `seed`). It injects a *rule kit* into a module's `rules` when the module
+// exports `rules` as a function. Modules never import this file. The host
+// (invariants.js) binds a kit per run and passes it in. The rest of the
+// monorepo threads the `runtime` bag the same way and does not import ambient
+// collaborators.
 //
 // Filesystem and subprocess access route through the injected `runtime`
-// (`runtime.fsSync`, `runtime.subprocess`) so this module — which lives under
-// libraries/<pkg>/src — stays clean under the repo's own ambient-deps invariant.
+// (`runtime.fsSync`, `runtime.subprocess`). This module lives under
+// libraries/<pkg>/src, so it stays clean under the repo's own ambient-deps
+// invariant.
 
 import { isAbsolute, join, relative, resolve } from "node:path";
 
@@ -20,7 +22,7 @@ import { buildSubjects, ENUM_DRIFT_RULES, seedBodies } from "./enum-drift.js";
 // -- AST -----------------------------------------------------------------
 
 /**
- * Parse an ES module, wrapping acorn's error with the offending path.
+ * Parse an ES module. Wrap acorn's error with the offending path.
  *
  * @param {string} source - Module source text.
  * @param {string} filePath - Path used in parse-error messages.
@@ -41,10 +43,10 @@ export function parse(source, filePath, { locations = false } = {}) {
 }
 
 /**
- * Depth-first visit of every typed node in an acorn AST.
+ * Visit every typed node in an acorn AST, depth first.
  *
  * @param {object|object[]} node - AST node (or array of nodes).
- * @param {(node: object) => void} visit - Called once per typed node.
+ * @param {(node: object) => void} visit - Runs once per typed node.
  */
 export function walk(node, visit) {
   if (!node || typeof node !== "object") return;
@@ -78,7 +80,7 @@ export function lineAt(text, offset) {
 }
 
 /**
- * Compile a minimal path glob to a `RegExp`. `**` matches any path segments;
+ * Compile a minimal path glob to a `RegExp`. `**` matches any path segments.
  * `*` matches a non-slash run.
  *
  * @param {string} pattern - The glob.
@@ -94,7 +96,7 @@ export function glob(pattern) {
   );
 }
 
-// -- Filesystem walking (over runtime.fsSync) ----------------------------
+// -- Filesystem walk (over runtime.fsSync) -------------------------------
 
 function collectFiles(fsSync, dir, skip, match) {
   const out = [];
@@ -151,7 +153,7 @@ function dedupeRows(rows, dedupe) {
   });
 }
 
-// A grep row carries `rel`/`raw` for dedupe; the subject keeps only the
+// A grep row carries `rel`/`raw` for dedupe. The subject keeps only the
 // reportable fields (plus `reason` when the matching entry supplied one).
 function toGrepSubject({ path, lineNo, text, reason }) {
   const subject = { path, lineNo, text };
@@ -162,9 +164,10 @@ function toGrepSubject({ path, lineNo, text, reason }) {
 // -- The build kit -------------------------------------------------------
 
 /**
- * Build the kit injected into a rule module's `build` and `seed`. Every
- * collaborator is bound to `root` (the repository root), `dir` (the module's
- * own directory, for co-located config), and `runtime` (the ambient bag).
+ * Build the kit that the engine injects into a rule module's `build` and
+ * `seed`. This binds every collaborator to `root` (the repository root), `dir`
+ * (the module's own directory, for co-located config), and `runtime` (the
+ * ambient bag).
  *
  * @param {{ root: string, dir: string, runtime: import('@forwardimpact/libutil/runtime').Runtime }} options
  * @returns {object} The build kit.
@@ -227,7 +230,7 @@ export function createBuildKit({ root, dir, runtime }) {
 
   function assertRg() {
     if (subprocess.runSync("rg", ["--version"]).exitCode !== 0) {
-      throw new Error("ripgrep (rg) is required by the invariant rule modules");
+      throw new Error("the invariant rule modules require ripgrep (rg)");
     }
   }
 
@@ -252,15 +255,15 @@ export function createBuildKit({ root, dir, runtime }) {
   /**
    * Scan the repo with ripgrep and return matches as subjects. Accepts one
    * `pattern` or a list of `patterns` (strings, or `{ pattern, reason?, globs?,
-   * caseSensitive?, onlyMatching?, exclude? }`); per-entry options override the
-   * call defaults, and a per-entry `exclude` RegExp drops matches whose raw
-   * line it tests true (a false-positive filter). `dedupe` is `false`, `true`
-   * (key on the raw line), or a key function over `{ path, rel, lineNo, text,
-   * raw, reason }`.
+   * caseSensitive?, onlyMatching?, exclude? }`). Per-entry options override the
+   * call defaults. A per-entry `exclude` RegExp drops matches whose raw line it
+   * tests true (a false-positive filter). `dedupe` is `false`, `true` (key on
+   * the raw line), or a key function over `{ path, rel, lineNo, text, raw,
+   * reason }`.
    *
    * Each subject is `{ path, lineNo, text }`, plus `reason` when the matching
    * entry carries one. The repo-relative `rel` and full `raw` line are
-   * available to the `dedupe` key function but are not part of the subject.
+   * available to the `dedupe` key function. They are not part of the subject.
    *
    * @param {object} options
    * @returns {Array<{ path: string, lineNo: number, text: string, reason?: string }>}
@@ -303,7 +306,7 @@ export function createBuildKit({ root, dir, runtime }) {
   }
 
   /**
-   * Read and parse a repo JSON file, returning `null` when missing or invalid.
+   * Read and parse a repo JSON file. Return `null` when missing or invalid.
    *
    * @param {string} path - Relative to the repo root, or absolute.
    * @returns {object|null}
@@ -319,9 +322,9 @@ export function createBuildKit({ root, dir, runtime }) {
   }
 
   /**
-   * Read a config file co-located with the rule module (`<dir>/<name>`),
-   * parsed by extension (`.json` / `.yml` / `.yaml`). Returns `fallback` when
-   * the file is missing, empty, or unparseable.
+   * Read a config file co-located with the rule module (`<dir>/<name>`). The
+   * extension (`.json` / `.yml` / `.yaml`) selects the parser. Returns
+   * `fallback` when the file is missing, empty, or unparseable.
    *
    * @param {string} name - File name beside the module.
    * @param {*} [fallback] - Value when absent or unreadable (default `null`).
@@ -343,15 +346,16 @@ export function createBuildKit({ root, dir, runtime }) {
   /**
    * The shared "single source restated across consumers" check. For every
    * registry `entry` (`{ key, expected, consumers: [{ path, pattern }] }`),
-   * scan each consumer file line by line for `pattern` and emit one subject
-   * per match: the restated value (capture group 1, else the whole match,
-   * trimmed) paired with the entry's `expected` value and an `ok` verdict from
-   * `equal(restated, expected, key)`. The module supplies the domain pieces
-   * (how `expected` is computed, what `equal` means); the kit owns the scan.
+   * scan each consumer file line by line for `pattern`. Emit one subject per
+   * match. The subject holds the restated value (capture group 1, else the
+   * whole match, trimmed), the entry's `expected` value, and an `ok` verdict
+   * from `equal(restated, expected, key)`. The module supplies the domain
+   * pieces (how it computes `expected`, what `equal` means). The kit owns the
+   * scan.
    *
-   * Native line-by-line matching, not ripgrep: the surfaces carry URLs and
-   * other colon-bearing values that ripgrep's single-file output corrupts, and
-   * look-around is sometimes needed.
+   * This matches line by line and does not use ripgrep. The surfaces carry
+   * URLs and other colon-bearing values that ripgrep's single-file output
+   * corrupts. Look-around is sometimes necessary.
    *
    * @param {object} options
    * @param {Array<{ key: string, expected: *, consumers: Array<{ path: string, pattern: RegExp|string }> }>} options.entries
@@ -387,7 +391,7 @@ export function createBuildKit({ root, dir, runtime }) {
   }
 
   /**
-   * List the entries of a repo directory by name, returning `[]` when missing.
+   * List the entries of a repo directory by name. Return `[]` when missing.
    *
    * @param {string} path - Relative to the repo root, or absolute.
    * @param {{ dirsOnly?: boolean, filesOnly?: boolean }} [options]
@@ -409,7 +413,7 @@ export function createBuildKit({ root, dir, runtime }) {
 
   // The enumeration-drift engine, bound to this run's root and filesystem. A
   // rule module passes its parsed registry (e.g. `config(topicsFile)`) to
-  // `build`/`seed`; the matching rule set is on the rule kit as
+  // `build`/`seed`. The rule kit carries the matching rule set as
   // `enumDriftRules`.
   const enumDrift = {
     build: (registry) => buildSubjects({ registry, root, fsSync }),
@@ -440,19 +444,19 @@ export function createBuildKit({ root, dir, runtime }) {
 
 /**
  * Helpers a rule module receives when it exports `rules` as a function. They
- * build the two recurring rule shapes so the module declares only policy.
+ * build the two rule shapes that recur, so the module declares only policy.
  */
 export const RULE_KIT = {
   /**
    * The enumeration-drift rule set, paired with the build kit's `enumDrift`. A
-   * rule module that delegates to `kit.enumDrift` exposes these via
+   * rule module that delegates to `kit.enumDrift` exposes these through
    * `rules: (kit) => kit.enumDriftRules`.
    */
   enumDriftRules: ENUM_DRIFT_RULES,
 
   /**
-   * The standard parse-error rule: fails any subject carrying a `parseError`
-   * string (as produced by the build kit's `scanAst`).
+   * The standard parse-error rule. It fails any subject that carries a
+   * `parseError` string. The build kit's `scanAst` produces that string.
    *
    * @param {string} scope - The subject scope to guard.
    * @param {{ id?: string, hint?: string }} [options]
@@ -465,13 +469,13 @@ export const RULE_KIT = {
       severity: "fail",
       check: (s) => (s.parseError ? { msg: s.parseError } : null),
       message: (_s, r) => r.msg,
-      hint: hint ?? "fix the syntax error so the file can be parsed",
+      hint: hint ?? "fix the syntax error so the parser can read the file",
     };
   },
 
   /**
    * A rule that fails every subject in `scope` (optionally gated by `when`).
-   * The build step has already decided each subject is a violation; the rule
+   * The build step already decided that each subject is a violation. The rule
    * only renders it.
    *
    * @param {string} scope

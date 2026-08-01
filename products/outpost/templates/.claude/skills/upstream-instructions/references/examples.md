@@ -2,8 +2,8 @@
 
 Reference output for `upstream-instructions` Step 5. There is **one** root
 `CHANGELOG.md` with reverse-chronological entries. Each entry's **Scope** names
-the surface(s) it touched — `CLAUDE.md`, `agent:<name>`, `skill:<name>` — and a
-single entry may span several.
+the surfaces it touched: `CLAUDE.md`, `agent:<name>`, `skill:<name>`. A single
+entry may span several surfaces.
 
 ## Cross-surface change (one change, many files)
 

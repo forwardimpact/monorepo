@@ -8,16 +8,18 @@ on:
   pull_request_target:
     types: [labeled, closed]
   # NOTE: `pull_request_review_comment` is intentionally NOT a trigger.
-  # A review submission fires N `pull_request_review_comment.created` events plus one
-  # `pull_request_review.submitted` event in the same instant — all share the per-PR
-  # concurrency group below, and with `cancel-in-progress: false` the cascade of
-  # "newly pending cancels previously pending" cancels every run before any reaches
-  # `in_progress` when concurrent review-comment events race and zero facilitators run.
-  # The `pull_request_review.submitted` payload already carries every inline diff
-  # comment in the batch, so the facilitator can read them via the API — adding the
-  # comment trigger back would reintroduce the race without adding any reachable
-  # information. Standalone inline comments / thread replies are wrapped in an
-  # auto-created `state: COMMENTED` review by GitHub, which also fires `submitted`.
+  # A review submission fires N `pull_request_review_comment.created` events
+  # plus one `pull_request_review.submitted` event in the same instant. All of
+  # them share the per-PR concurrency group below. With
+  # `cancel-in-progress: false`, concurrent review-comment events race. Each
+  # newly pending run cancels the previously pending one. The cascade cancels
+  # every run before any run reaches `in_progress`, so zero facilitators run.
+  # The `pull_request_review.submitted` payload already carries every inline
+  # diff comment in the batch, so the facilitator can read them through the
+  # API. If you add the comment trigger back, the race returns and the trigger
+  # gives no reachable information. GitHub wraps standalone inline comments and
+  # thread replies in an auto-created `state: COMMENTED` review, which also
+  # fires `submitted`.
   pull_request_review:
     types: [submitted]
   workflow_dispatch:
@@ -39,52 +41,59 @@ on:
         required: false
         type: string
       resume_context:
-        description: "Serialized prior state when resuming a recessed run (JSON string)"
+        description: "Serialized prior state for a resumed recessed run (JSON string)"
         required: false
         type: string
       inbox_url:
-        description: "Long-poll URL for injecting messages into a live run (optional)"
+        description: "Long-poll URL to inject messages into a live run (optional)"
         required: false
         type: string
 
 permissions:
   contents: write
 
-# Coalesce simultaneous events on the same target so the recursion guard sees a stable thread.
-# Triage flows fire `opened` plus several `labeled` events within ~1s; without this, each one
-# spawns an independent facilitator → independent agent → independent PR.
+# Coalesce simultaneous events on the same target so the recursion guard sees
+# a stable thread. Triage flows fire `opened` plus several `labeled` events
+# within ~1s. Without this group, each event spawns an independent facilitator
+# → independent agent → independent PR.
 #
-# `cancel-in-progress: false` is load-bearing: facilitator runs routinely last 30+ minutes
-# (e.g. staff engineer doing implementation work). A new label or comment arriving mid-run
-# must NOT cancel that work, so flipping this to `true` is not an acceptable fix for any
-# downstream race condition — adjust the trigger surface instead (see the `on:` block).
+# `cancel-in-progress: false` is load-bearing. Facilitator runs routinely last
+# 30+ minutes (e.g. a staff engineer at implementation work). A new label or
+# comment that arrives mid-run must NOT cancel that work. Do not flip this
+# value to `true` as a fix for any downstream race condition. Adjust the
+# trigger surface instead (see the `on:` block).
 concurrency:
   group: kata-dispatch-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
   kata:
-    # Bot-authored content is allowed so this workflow can serve as an agent-to-agent coordination channel;
-    # the task text contains a recursion guard that stops the facilitator when the latest activity is already
-    # a participant agent's response.
+    # This workflow allows bot-authored content so it can serve as an
+    # agent-to-agent coordination channel. The task text contains a recursion
+    # guard. The guard stops the facilitator when the latest activity is
+    # already a participant agent's response.
     #
-    # Label scoping: `labeled` fires once per label, and the product-manager bot applies several labels
-    # in rapid succession on triage. Only react to labels that carry routing or approval semantics —
-    # `agent:*` (routing) and `*:approved` (gate). Classification labels like `bug`, `triaged`, `experiment`
-    # don't add new requests for the facilitator to act on, so they should not fire a run.
+    # Label scope: `labeled` fires once per label, and the product-manager bot
+    # applies several labels in rapid succession on triage. Only react to
+    # labels that carry routing or approval semantics: `agent:*` (routing) and
+    # `*:approved` (gate). Classification labels like `bug`, `triaged`, and
+    # `experiment` add no new request for the facilitator to act on. They
+    # should not fire a run.
     #
-    # PR close scoping: `closed` fires on both merge and abandon — only react when `merged: true` so
-    # abandoned PRs don't fire a run.
+    # PR close scope: `closed` fires on both merge and abandon. Only react when
+    # `merged: true` so abandoned PRs do not fire a run.
     #
-    # Trigger surface: this `if:` must stay aligned with the `on:` block above. There is intentionally
-    # no `pull_request_review_comment` clause — see the NOTE on that trigger in `on:` for why adding one
-    # back reintroduces the cancel-in-progress race.
+    # Trigger surface: this `if:` must stay aligned with the `on:` block above.
+    # There is intentionally no `pull_request_review_comment` clause. The NOTE
+    # on that trigger in `on:` says why a re-added clause reintroduces the
+    # cancel-in-progress race.
     if: >-
       github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && ((github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event.action == 'closed' && github.event.pull_request.merged == true))) || github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
     steps:
-      # Killswitch first: fail before any token minting or agent work so one
-      # repository variable halts every kata-* workflow at once.
+      # Run the killswitch first. Fail before the job mints a token or runs
+      # agent work. One repository variable then halts every kata-* workflow
+      # at once.
       - name: Kata killswitch
         shell: bash
         env:
@@ -102,18 +111,20 @@ jobs:
           app-id: ${{ secrets.KATA_APP_ID }}
           private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 
-      # Capture mint time and pair it with the issuing job execution's identity
-      # into a single stamp env var. Travels on the same step env as GH_TOKEN
-      # (below) so no carried/resumed session state can pair a token with
-      # another token's stamp. The create-github-app-token action exports no
-      # expiry, so `exp` is derived from the ~1h (3600s) installation-token TTL.
-      # `mint` is captured here, one step AFTER the token mint, so it trails the
-      # token's true mint by the inter-step latency; to keep `exp` a conservative
-      # UNDER-estimate of true expiry (the accounting must never report a dead
-      # token as alive in the boundary), `exp` = mint + 3600 − 120s margin. Run
-      # id + run attempt make "issuing job execution ≠ current ⇒ presumed
-      # revoked" a local comparison (a re-run attempt shares GITHUB_RUN_ID but
-      # revokes attempt 1's token). Consumed by the auth-anomaly playbook.
+      # Capture the mint time. Pair it with the identity of the job execution
+      # that issued the token, in a single stamp env var. The stamp travels on
+      # the same step env as GH_TOKEN (below), so no carried or resumed session
+      # state can pair a token with another token's stamp. The
+      # create-github-app-token action exports no expiry, so `exp` derives from
+      # the ~1h (3600s) installation-token TTL. This step captures `mint` one
+      # step AFTER the token mint, so `mint` trails the token's true mint by
+      # the inter-step latency. `exp` = mint + 3600 − 120s margin. The 120s
+      # margin keeps `exp` a conservative UNDER-estimate of the true expiry.
+      # The accounting must never report a dead token as alive in the
+      # boundary. Run id + run attempt make "issuing job execution ≠ current ⇒
+      # presumed revoked" a local comparison (a re-run attempt shares
+      # GITHUB_RUN_ID but revokes attempt 1's token). The auth-anomaly playbook
+      # consumes the stamp.
       - name: Stamp installation token
         run: |
           set -euo pipefail
@@ -130,34 +141,35 @@ jobs:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
           app-id: ${{ secrets.KATA_APP_ID }}
-          # gemba-harness (the Assess and Act step), the cost/callback steps, and
-          # the gemba-wiki push step all run their binaries straight off PATH —
-          # no bunx fallback.
+          # gemba-harness (the Assess and Act step), the cost/callback steps,
+          # and the gemba-wiki push step all run their binaries straight off
+          # PATH. There is no bunx fallback.
           clis: gemba-harness gemba-trace gemba-wiki
 
-      # Select discuss mode when a discussion_id is supplied (the bridge
-      # path resuming or starting a threaded conversation); otherwise run a
-      # one-shot facilitate. The discuss / facilitate / supervise modes all
-      # take the same lead-profile + agent-profiles pair after the libharness
-      # consolidation that landed alongside discuss mode.
+      # Select discuss mode when the caller supplies a discussion_id. That is
+      # the bridge path, which resumes or starts a threaded conversation.
+      # Otherwise run a one-shot facilitate. The discuss / facilitate /
+      # supervise modes all take the same lead-profile + agent-profiles pair
+      # after the libharness consolidation that landed alongside discuss mode.
       #
-      # Task composition lives inside libharness (libraries/libharness/src/events/
-      # github.js) — the workflow just hands the runner's native event JSON
-      # to the action. `GITHUB_EVENT_NAME` is exported automatically by the
-      # runner, so the composer can pick the right template without any
-      # extra wiring. Untrusted dispatch inputs (discussion_id,
-      # resume_context, dispatch prompt) flow as `with:` inputs; the
-      # composite action env-wraps them before they reach any shell, so
-      # this surface preserves the same template-injection-safe contract.
+      # libharness composes the task (libraries/libharness/src/events/
+      # github.js). The workflow just hands the runner's native event JSON
+      # to the action. The runner exports `GITHUB_EVENT_NAME` automatically,
+      # so the composer can pick the right template with no extra wiring.
+      # Untrusted dispatch inputs (discussion_id, resume_context, dispatch
+      # prompt) flow as `with:` inputs. The composite action env-wraps them
+      # before they reach any shell, so this surface preserves the same
+      # template-injection-safe contract.
       - name: Assess and Act
         id: assess
         uses: forwardimpact/harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-          # Token freshness stamp — rides the same step env as GH_TOKEN so the
-          # accounting can never pair a token with another token's stamp. See
-          # the "Stamp installation token" step and .claude/agents/x-auth-anomaly.md.
+          # Token freshness stamp. It rides the same step env as GH_TOKEN so
+          # the accounting can never pair a token with another token's stamp.
+          # See the "Stamp installation token" step and
+          # .claude/agents/x-auth-anomaly.md.
           KATA_GH_TOKEN_STAMP: ${{ env.KATA_GH_TOKEN_STAMP }}
           CLAUDE_CODE_USE_BEDROCK: "0"
           CALLBACK_URL: ${{ inputs.callback_url }}
@@ -172,7 +184,8 @@ jobs:
           discussion-id: ${{ inputs.discussion_id }}
           resume-context: ${{ inputs.resume_context }}
 
-      # gemba-trace cost tolerates a missing trace, so no file guard is needed.
+      # gemba-trace cost tolerates a missing trace, so this step needs no file
+      # guard.
       - name: Report run cost
         if: always()
         shell: bash
@@ -180,8 +193,8 @@ jobs:
           TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
         run: gemba-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
 
-      # Push agent memory back with a freshly minted token — the token from
-      # job start expires after an hour and this run can take up to five.
+      # Push agent memory back with a freshly minted token. The token from
+      # job start expires after an hour, and this run can take up to five.
       - name: Push wiki changes
         if: always()
         uses: forwardimpact/wiki@ad0042953508240d061ecfb288ce6990247cbd9d # v1.0.2
@@ -191,11 +204,11 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 
       # Deliver the facilitator's conclusion to an external caller (e.g. the
-      # MS Teams bridge or GitHub Discussions bridge) when one is specified
-      # via workflow_dispatch. Skipped on issue/PR events where inputs is
-      # null. Runs on both success and failure of the assess step so
-      # callers always get a verdict — even when no trace was produced, we
-      # POST a failure placeholder so the caller is never stranded.
+      # MS Teams bridge or GitHub Discussions bridge) when workflow_dispatch
+      # names one. This step skips on issue/PR events, where inputs is null.
+      # It runs on both success and failure of the assess step, so callers
+      # always get a verdict. When the run produced no trace, this step POSTs
+      # a failure placeholder so the caller is never stranded.
       - name: Deliver callback
         if: github.event_name == 'workflow_dispatch' && always() && inputs.callback_url != ''
         env:
@@ -207,7 +220,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
-            echo "Using trace file: $TRACE_FILE"
+            echo "Trace file: $TRACE_FILE"
             gemba-harness callback \
               --trace-file="$TRACE_FILE" \
               --callback-url="$CALLBACK_URL" \
@@ -215,12 +228,12 @@ jobs:
               --run-url="$RUN_URL" \
               --discussion-id="$DISCUSSION_ID"
           else
-            echo "::warning::No trace file found — posting failure placeholder so the caller is not stranded"
+            echo "::warning::No trace file found. This run POSTs a failure placeholder so the caller is not stranded"
             curl -fsS -X POST "$CALLBACK_URL" \
               -H 'Content-Type: application/json' \
               -d "$(jq -n \
                 --arg cid "$CORRELATION_ID" \
                 --arg run "$RUN_URL" \
                 --arg did "$DISCUSSION_ID" \
-                '{correlation_id: $cid, kind: "terminal", verdict: "failed", summary: "Facilitator session did not produce a trace; see run log.", run_url: $run, discussion_id: $did, replies: []}')"
+                '{correlation_id: $cid, kind: "terminal", verdict: "failed", summary: "Facilitator session did not produce a trace. See the run log.", run_url: $run, discussion_id: $did, replies: []}')"
           fi

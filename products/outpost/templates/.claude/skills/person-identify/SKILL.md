@@ -1,14 +1,14 @@
 ---
 name: person-identify
-description: Look up the current user's identity (real name, company, job title, department, email, employee ID, and manager) from the corporate directory via LDAP, authenticated with the existing Kerberos ticket. Use to establish who the knowledge base belongs to, when CLAUDE.md needs the user's identity, or when the user asks "who am I" / for their own directory record. To look up someone *other* than the current user, use the sibling `person-lookup` skill instead.
+description: Look up the current user's identity (real name, company, job title, department, email, employee ID, and manager) from the corporate directory through LDAP. The bind uses the existing Kerberos ticket. Use to establish who the knowledge base belongs to, when CLAUDE.md needs the user's identity, or when the user asks "who am I" / for their own directory record. To look up someone *other* than the current user, use the sibling `person-lookup` skill instead.
 ---
 
 # Person Identify
 
 Resolve the current user's identity from the corporate Active Directory over
 LDAP. This is the canonical way to establish **who the knowledge base belongs
-to** — replacing any static identity file. Results reflect the live directory,
-so a job change or reorg is picked up automatically.
+to**. It replaces any static identity file. Results reflect the live
+directory, so the skill picks up a job change or a reorg automatically.
 
 ## Trigger
 
@@ -20,12 +20,12 @@ so a job change or reorg is picked up automatically.
 
 - A valid **Kerberos ticket** for the user (`klist` shows a principal).
   If absent, get one with `kinit <user>@<REALM>`.
-- Network reachability to a domain controller (on-site or via VPN).
-- `ldapsearch` and `dig` — both ship with macOS; nothing to install.
+- Network access to a domain controller (on-site or through VPN).
+- `ldapsearch` and `dig` — both ship with macOS. You install nothing.
 
-Nothing is hardcoded: the username, realm, base DN, and domain controller are
-all derived at runtime from the ticket and DNS. No password is ever entered —
-the bind uses SASL/GSSAPI against the existing ticket.
+Nothing is hardcoded. The script derives the username, realm, base DN, and
+domain controller at runtime from the ticket and DNS. You never enter a
+password. The bind uses SASL/GSSAPI against the existing ticket.
 
 ## Usage
 
@@ -38,10 +38,11 @@ writes the result to the identity cache (below).
 
 ## Identity cache
 
-The script writes `~/.cache/fit/outpost/state/identity.md` — the **canonical
-identity source** for the rest of the knowledge base, replacing the old static
-`USER.md`. It is auto-generated markdown with `Name`, `Email`, and `Domain`
-fields (plus title, department, company, employee ID, office, and manager):
+The script writes `~/.cache/fit/outpost/state/identity.md`. That file is the
+**canonical identity source** for the rest of the knowledge base. It replaces
+the old static `USER.md`. It is auto-generated markdown with `Name`, `Email`,
+and `Domain` fields (plus title, department, company, employee ID, office, and
+manager):
 
 ```markdown
 - **Name:** Jane Doe
@@ -51,9 +52,9 @@ fields (plus title, department, company, employee ID, office, and manager):
 
 Other skills (e.g. `extract-entities`, `anarlog-process`, `req-track`,
 `req-workday`, `candidate-report`, `sync-teams`) read this file for the user's
-name/email/domain — for self-exclusion and author attribution. They run this
-skill first if the cache is missing or stale. Never hand-edit the cache; re-run
-the skill to refresh it.
+name/email/domain. They use it for self-exclusion and author attribution. They
+run this skill first if the cache is missing or stale. Never hand-edit the
+cache. Run the skill again to refresh it.
 
 ## How it works
 
@@ -76,8 +77,9 @@ ldapsearch -Y GSSAPI -LLL -o ldif-wrap=no -H "ldap://$dc" -b "$base" \
   "(sAMAccountName=$user)" displayName company title department employeeID mail manager
 ```
 
-The `manager` attribute is a DN that may live in another domain, so the script
-resolves it against the **Global Catalog** (port 3268), which is forest-wide.
+The `manager` attribute is a DN that may live in another domain. So the script
+resolves it against the **Global Catalog** (port 3268). The Global Catalog is
+forest-wide.
 
 ## Output
 
@@ -96,9 +98,9 @@ Key attributes returned (names per Active Directory schema):
 
 ## Notes
 
-- To look up **someone else**, use the sibling `person-lookup` skill — it takes
-  free-text input (email or name), searches the Global Catalog forest-wide
-  (`ldap://$dc:3268 -b ''`), handles multiple matches, and does **not** touch
+- To look up **someone else**, use the sibling `person-lookup` skill. It takes
+  free-text input (email or name). It searches the Global Catalog forest-wide
+  (`ldap://$dc:3268 -b ''`). It handles multiple matches. It does **not** touch
   the identity cache.
-- Not Active Directory? The same `ldapsearch -Y GSSAPI` shape works against any
-  Kerberos-backed LDAP directory; only the attribute names differ.
+- Active Directory is not required. The same `ldapsearch -Y GSSAPI` shape works
+  against any Kerberos-backed LDAP directory. Only the attribute names differ.

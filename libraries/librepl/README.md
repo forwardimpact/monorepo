@@ -32,12 +32,12 @@ Three equivalent input sources:
 - **Interactive readline** — a TTY session delivers one `onLine` call
   per entered line.
 
-**Flags win.** `--flag` args run their command handlers before any
-positional is processed; a handler returning `false` exits without
-touching the positionals (`mycli --status "hello"` never reaches
+**Flags win.** `--flag` args run their command handlers before the CLI
+processes any positional. A handler that returns `false` exits and
+leaves the positionals untouched (`mycli --status "hello"` never reaches
 `onLine`).
 
-**Positionals are prompt text, never commands.** `mycli status` sends
-the word "status" to `onLine`; operations are always flags
-(`--status`). Consumers document their own usage; the mechanism lives
+**Positionals are prompt text. They are never commands.** `mycli status`
+sends the word "status" to `onLine`. Operations are always flags
+(`--status`). Consumers document their own usage. The mechanism lives
 here.

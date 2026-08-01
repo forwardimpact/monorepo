@@ -1,10 +1,10 @@
 // Keep the kata-implement route taxonomy in
 // .claude/skills/kata-implement/references/route-decision.md aligned with
 // the single source of truth, ROUTES in libraries/libxmr/src/routes.js. The
-// recorder, validator, and analyze reader consume ROUTES by direct import,
-// so their alignment is structural (a removed id is a build/test error at
-// the import site). The published doc is prose and cannot import, so this
-// rule parses its id → route table and fails when an id or label drifts
+// recorder, validator, and analyze reader consume ROUTES by direct import.
+// So their alignment is structural. A removed id is a build/test error at
+// the import site. The published doc is prose and cannot import. So this
+// rule parses its id → route table. It fails when an id or label drifts
 // from ROUTES in either direction.
 
 import { resolve } from "node:path";
@@ -13,8 +13,8 @@ import { pathToFileURL } from "node:url";
 const ROUTES_PATH = "libraries/libxmr/src/routes.js";
 const DOC_PATH = ".claude/skills/kata-implement/references/route-decision.md";
 
-// Markdown table rows shaped `| <id> | <route> |`, restricted to numeric
-// ids so the header and separator rows are skipped.
+// Markdown table rows shaped `| <id> | <route> |`. The regex accepts
+// numeric ids only, so it skips the header and separator rows.
 const TABLE_ROW = /^\|\s*(\d+)\s*\|\s*([^|]+?)\s*\|\s*$/;
 
 function parseDocRoutes(text) {
@@ -36,7 +36,7 @@ export default {
     const docPath = resolve(root, DOC_PATH);
 
     const problems = [];
-    // Every source id must appear in the doc with a matching label.
+    // Every source id must appear in the doc with a label that matches.
     for (const [id, label] of Object.entries(ROUTES)) {
       const doc = docRoutes[id];
       if (!doc) {
@@ -59,7 +59,7 @@ export default {
         problems.push({
           path: docPath,
           line: doc.line,
-          message: `route ${id} in the route table is not declared in ${ROUTES_PATH}`,
+          message: `route ${id} in the route table does not appear in ${ROUTES_PATH}`,
         });
       }
     }

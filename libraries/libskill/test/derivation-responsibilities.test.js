@@ -271,7 +271,7 @@ describe("deriveJob", () => {
     assert.strictEqual(job.expectations.autonomyExpectation, "independently");
   });
 
-  test("includes derived responsibilities when capabilities provided", () => {
+  test("includes derived responsibilities when the caller provides capabilities", () => {
     const discipline = makeDiscipline();
     const level = makeLevel();
     const skills = makeSkills();
@@ -301,7 +301,7 @@ describe("deriveJob", () => {
     assert.deepStrictEqual(job.derivedResponsibilities, []);
   });
 
-  test("validates via validationRules", () => {
+  test("validates with validationRules", () => {
     const discipline = makeDiscipline({ validTracks: ["platform"] });
     const level = makeLevel();
     const track = makeTrack({ id: "platform" });

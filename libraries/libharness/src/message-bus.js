@@ -1,17 +1,18 @@
 /**
  * MessageBus — in-memory per-participant message queues.
  *
- * Four message kinds, each pushed onto the addressee's queue:
+ * Four message kinds exist. The bus pushes each one onto the addressee's
+ * queue:
  *
- * - `ask(from, to, text, askId)` — direct question; the toolkit owns the
- *   pending-ask state separately. Fan-out (broadcast Ask) happens at the
- *   handler level by calling `ask()` once per addressee.
+ * - `ask(from, to, text, askId)` — direct question. The toolkit owns the
+ *   pending-ask state separately. The handler level does the fan-out
+ *   (broadcast Ask). It calls `ask()` once per addressee.
  * - `answer(from, to, text, askId)` — direct reply to the original asker.
  *   The orchestrator may inject synthetic answers (`from === "@orchestrator"`)
  *   when an Ask times out.
- * - `announce(from, text)` — broadcast, no reply expected; lands on every
- *   participant's queue except the sender's.
- * - `synthetic(to, text)` — orchestrator-only reminder injection.
+ * - `announce(from, text)` — broadcast. It expects no reply. It lands on
+ *   every participant's queue except the sender's.
+ * - `synthetic(to, text)` — the orchestrator alone injects a reminder.
  *
  * Follows OO+DI: constructor injection, factory function, tests bypass factory.
  */
@@ -40,9 +41,9 @@ export class MessageBus {
   }
 
   /**
-   * Reply to a pending ask. `from === "@orchestrator"` is allowed for
-   * synthetic null answers — the orchestrator is not a real participant
-   * but it routes through the bus.
+   * Reply to a pending ask. The bus allows `from === "@orchestrator"` for
+   * synthetic null answers. The orchestrator is not a real participant. It
+   * still routes through the bus.
    */
   answer(from, to, text, askId) {
     this.#assertParticipant(to);
@@ -71,7 +72,7 @@ export class MessageBus {
     this.#resolveWaiter(to);
   }
 
-  /** Check whether a participant has pending messages without draining them. */
+  /** Check whether a participant has pending messages. Drain nothing. */
   hasPending(participant) {
     this.#assertParticipant(participant);
     return this.queues.get(participant).length > 0;

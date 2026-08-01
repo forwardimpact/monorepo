@@ -1,8 +1,8 @@
 /**
  * runExports prunes generated/services dirs whose proto no longer
- * exists — the generated tree is machine-owned, so a proto rename is
- * fixed by re-running codegen alone instead of leaving the old dir to
- * poison exports.js.
+ * exists. The generated tree is machine-owned. So codegen alone fixes a
+ * proto rename when you run it again. Without the prune, the old dir
+ * stays and poisons exports.js.
  */
 
 import { test, describe, beforeEach } from "node:test";
@@ -18,9 +18,9 @@ import { CodegenBase, CodegenServices } from "@forwardimpact/libcodegen";
 import { resetEmbeddedAssets } from "@forwardimpact/libcli";
 import { createTestRuntime } from "@forwardimpact/libmock";
 
-describe("CodegenServices.runExports pruning", () => {
+describe("CodegenServices.runExports prunes stale dirs", () => {
   // Earlier test files in the same bun process may leave the module-global
-  // embedded-assets registry active (see base.test.js) — loadTemplate must
+  // embedded-assets registry active (see base.test.js). loadTemplate must
   // resolve the on-disk templates here.
   beforeEach(() => {
     resetEmbeddedAssets();
@@ -64,8 +64,8 @@ describe("CodegenServices.runExports pruning", () => {
     try {
       await services.runExports(generated);
 
-      assert.ok(!fs.existsSync(staleDir), "stale dir should be removed");
-      assert.ok(fs.existsSync(demoDir), "proto-backed dir should survive");
+      assert.ok(!fs.existsSync(staleDir), "the stale dir should not survive");
+      assert.ok(fs.existsSync(demoDir), "the proto-backed dir should survive");
       const exportsSource = fs.readFileSync(
         path.join(generated, "services", "exports.js"),
         "utf-8",

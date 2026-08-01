@@ -1,5 +1,5 @@
 /**
- * Creates a mock service callbacks object for agent testing
+ * Creates a mock service-callbacks object for agent tests
  * @param {object} overrides - Method overrides per service
  * @returns {object} Service callbacks object
  */

@@ -2,8 +2,8 @@ name: "Website"
 
 # One reusable publisher for every docs site. A caller workflow declares its
 # own `on: push paths` trigger and calls this with `site:` (and `copy-schema:`
-# for fit). Everything else — build src, artifact name, CNAME path, deploy
-# dispatch repo, concurrency group — derives from `site`.
+# for fit). The value of `site` derives everything else: build src, artifact
+# name, CNAME path, deploy dispatch repo, and concurrency group.
 on:
   workflow_call:
     inputs:

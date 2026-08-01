@@ -22,17 +22,17 @@ describe("libpolicy", () => {
       policy = new Policy(mockStorage);
     });
 
-    test("creates Policy with storage instance", () => {
+    test("creates a Policy with a storage instance", () => {
       assert.ok(policy instanceof Policy);
     });
 
-    test("throws error when storage is null", () => {
+    test("throws an error when storage is null", () => {
       assert.throws(() => new Policy(null), {
         message: "storage is required",
       });
     });
 
-    test("throws error when storage is undefined", () => {
+    test("throws an error when storage is undefined", () => {
       assert.throws(() => new Policy(undefined), {
         message: "storage is required",
       });
@@ -41,7 +41,7 @@ describe("libpolicy", () => {
     test("load method completes successfully", async () => {
       await policy.load();
 
-      // Verify that bucketExists was called
+      // Verify that load called bucketExists
       assert.strictEqual(mockStorage.bucketExists.mock.callCount(), 1);
     });
 
@@ -67,19 +67,19 @@ describe("libpolicy", () => {
       assert.strictEqual(result, true);
     });
 
-    test("evaluate throws error when input is null", async () => {
+    test("evaluate throws an error when input is null", async () => {
       await assert.rejects(() => policy.evaluate(null), {
         message: "input is required",
       });
     });
 
-    test("evaluate throws error when input is undefined", async () => {
+    test("evaluate throws an error when input is undefined", async () => {
       await assert.rejects(() => policy.evaluate(undefined), {
         message: "input is required",
       });
     });
 
-    test("evaluate throws error when actor is missing", async () => {
+    test("evaluate throws an error when actor is missing", async () => {
       const input = {
         resources: ["common.Conversation.hash0001/common.Message.hash0002"],
       };
@@ -89,7 +89,7 @@ describe("libpolicy", () => {
       });
     });
 
-    test("evaluate throws error when actor is empty string", async () => {
+    test("evaluate throws an error when actor is an empty string", async () => {
       const input = {
         actor: "",
         resources: ["common.Conversation.hash0001/common.Message.hash0002"],
@@ -100,7 +100,7 @@ describe("libpolicy", () => {
       });
     });
 
-    test("evaluate throws error when actor is not string", async () => {
+    test("evaluate throws an error when actor is not a string", async () => {
       const input = {
         actor: 123,
         resources: ["common.Conversation.hash0001/common.Message.hash0002"],
@@ -111,7 +111,7 @@ describe("libpolicy", () => {
       });
     });
 
-    test("evaluate throws error when resources is missing", async () => {
+    test("evaluate throws an error when resources is missing", async () => {
       const input = {
         actor: "common.Assistant.hash0000",
       };
@@ -121,7 +121,7 @@ describe("libpolicy", () => {
       });
     });
 
-    test("evaluate throws error when resources is not array", async () => {
+    test("evaluate throws an error when resources is not an array", async () => {
       const input = {
         actor: "common.Assistant.hash0000",
         resources: "not-an-array",
@@ -132,7 +132,7 @@ describe("libpolicy", () => {
       });
     });
 
-    test("evaluate handles empty resources array", async () => {
+    test("evaluate handles an empty resources array", async () => {
       const input = {
         actor: "common.Assistant.hash0000",
         resources: [],

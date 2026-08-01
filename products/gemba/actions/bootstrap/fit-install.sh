@@ -1,53 +1,55 @@
 #!/usr/bin/env bash
 # Install the FIT environment: external CLI tools and/or pre-compiled fit-*/gemba-*
-# binaries. One code path for every environment — CI (fit-bootstrap), Claude
+# binaries. One code path serves every environment. CI (fit-bootstrap), Claude
 # session hooks, and `just install` all run this.
 #
-# Two install channels, chosen by platform, favouring official packaging where
-# one exists:
+# The platform chooses between two install channels. Each channel prefers
+# official packages where one exists:
 #
 #   Darwin  — Homebrew. Standard homebrew-core formulae (just, gh, ripgrep,
-#             gitleaks) and the forwardimpact/homebrew-tap `fit-gear` cask (which
-#             ships every fit-*/gemba-* CLI and jidoka). Versions track what brew and
-#             the tap publish. `brew --prefix`/bin is already on PATH.
-#   Linux   — pinned, SHA256-verified upstream archives into $HOME/.local. Every
-#             third-party version + SHA lives here; fit-*/gemba-* binaries are pinned by
-#             release tag (FIT_GEAR_RELEASE) and verified against a .sha256
-#             sidecar. This is the reproducible, cacheable path.
+#             gitleaks) and the forwardimpact/homebrew-tap `fit-gear` cask.
+#             The cask ships every fit-*/gemba-* CLI and jidoka. Versions
+#             track what brew and the tap publish. `brew --prefix`/bin is
+#             already on PATH.
+#   Linux   — pinned, SHA256-verified upstream archives into $HOME/.local.
+#             Every third-party version + SHA lives here. A release tag
+#             (FIT_GEAR_RELEASE) pins the fit-*/gemba-* binaries. A .sha256
+#             sidecar verifies them. This is the reproducible, cacheable path.
 #
-# When the reproducible channel is unreachable — notably a Claude Code web
-# session, whose network policy blocks github.com entirely (release assets
-# included, for every repo) while allowing package registries — each tool falls
-# back to a trusted registry: apt for the distro CLIs (ripgrep, just, gh,
-# gitleaks) and the npm registry for our own gear CLIs (published as node
-# launchers). claude already downloads from the npm registry, so it needs no
-# fallback. apm has no trusted-registry build, so a blocked web session skips it
-# rather than failing. See the CHANNELS section below.
+# Sometimes the reproducible channel is unreachable. A Claude Code web session
+# is the notable case. Its network policy blocks github.com entirely (release
+# assets included, for every repo) and allows package registries. Each tool
+# then falls back to a trusted registry: apt for the distro CLIs (ripgrep,
+# just, gh, gitleaks) and the npm registry for our own gear CLIs (published
+# as node launchers). claude already downloads from the npm registry, so it
+# needs no fallback. apm has no trusted-registry build, so a blocked web
+# session skips it and does not fail. See the CHANNELS section below.
 #
-# Two tools stay on the pinned download path on BOTH platforms (no brew): `claude`
-# is the SDK-embedded Claude Code CLI whose version must track
-# @anthropic-ai/claude-agent-sdk in libraries/libharness/package.json, and `apm`
-# is pinned here as the single source of its version — the benchmark action
-# installs it via `--only apm`. Moving either onto brew later is a one-line
-# TOOL_TABLE edit.
+# Two tools stay on the pinned download path on BOTH platforms (no brew).
+# `claude` is the SDK-embedded Claude Code CLI. Its version must track
+# @anthropic-ai/claude-agent-sdk in libraries/libharness/package.json. This
+# file pins `apm` as the single source of its version. The benchmark action
+# installs it with `--only apm`. To move either onto brew later, edit one
+# line of TOOL_TABLE.
 #
-# This file is published verbatim as a GitHub Release asset (fit-install.sh),
-# so any environment can bootstrap with a single line, no repo checkout needed:
+# A GitHub Release publishes this file verbatim as the fit-install.sh asset.
+# Any environment can then bootstrap with a single line and no repo checkout:
 #
 #   curl -fsSL <release-url>/fit-install.sh | bash -s -- gemba-trace gemba-wiki
 #
 # Usage:
 #   fit-install.sh [--paths] [--only] [NAME ...]
 #
-#   NAME   An external tool (apm, just, gh, rg, gitleaks, claude) or a gear binary —
-#          any fit-*/gemba-* CLI (gemba-trace, gemba-harness, gemba-wiki, …) or jidoka.
-#          With no NAME, installs the default dev/CI tool set.
+#   NAME   An external tool (apm, just, gh, rg, gitleaks, claude) or a gear
+#          binary. A gear binary is any fit-*/gemba-* CLI (gemba-trace,
+#          gemba-harness, gemba-wiki, …) or jidoka. With no NAME, the script
+#          installs the default dev/CI tool set.
 #   --paths  Print the cache paths the requested names manage, one per line,
-#            and exit. Consumed by fit-bootstrap to scope its actions/cache.
+#            and exit. fit-bootstrap consumes this to scope its actions/cache.
 #            On Darwin, brew-managed tools emit nothing (brew installs globally
-#            and is idempotent); only the $HOME/.local download tools are cached.
-#   --only   Install only the named tools, skipping the default set. For a job
-#            that needs a single CLI without the dev/CI toolchain (e.g. a
+#            and is idempotent). Only the $HOME/.local download tools cache.
+#   --only   Install only the named tools and skip the default set. Use it for
+#            a job that needs a single CLI without the dev/CI toolchain (e.g. a
 #            report-only merge job). Requires at least one NAME.
 set -euo pipefail
 
@@ -55,22 +57,22 @@ PREFIX="${INSTALL_PREFIX:-$HOME/.local}"
 BIN_DIR="$PREFIX/bin"
 LIB_DIR="$PREFIX/lib"
 
-# Default dev/CI tool set, in install order — the third-party external tools
-# every job needs (scripts/bootstrap.sh runs `just`), `claude` (the Claude Code
-# native CLI the Agent SDK spawns — gemba-harness/gemba-benchmark point at it via
-# pathToClaudeCodeExecutable), plus our own gear binaries: jidoka, which the
-# instruction checks run, and the gemba-*/fit-* CLIs the kata-* skills invoke.
-# This set is ALWAYS installed; any named gear CLIs add to it. The same list
-# drives `--paths`.
+# Default dev/CI tool set, in install order. It holds the third-party external
+# tools every job needs (scripts/bootstrap.sh runs `just`), `claude` (the
+# Claude Code native CLI the Agent SDK spawns), plus our own gear binaries:
+# jidoka, which the instruction checks run, and the gemba-*/fit-* CLIs the
+# kata-* skills invoke. gemba-harness and gemba-benchmark point at `claude`
+# with pathToClaudeCodeExecutable. The script ALWAYS installs this set. Any
+# named gear CLIs add to it. The same list drives `--paths`.
 DEFAULT_TOOLS=(apm just gh rg gitleaks claude jidoka
   gemba-wiki gemba-xmr gemba-trace fit-doc fit-terrain)
 
 # ── gear binary release coordinates (Linux download path) ────────
 # Every installable gear binary (gemba-trace, gemba-wiki, gemba-harness, …, plus
 # jidoka) ships in the gear bundle, so one release tag carries them all. The
-# publish step stamps the live tag into the released copy of this script; any
-# caller may override via the environment to pin a different release. On Darwin
-# the fit-gear cask supersedes this — the tap versions the gear set there.
+# publish step stamps the live tag into the released copy of this script. Any
+# caller may override it through the environment to pin a different release. On
+# Darwin the fit-gear cask supersedes this. The tap versions the gear set there.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
 FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.3.2}"
 
@@ -93,9 +95,9 @@ pkg_token() {
 # above). Everything else is a gear binary, apm, or claude.
 is_system_tool() { pkg_token "$1" >/dev/null 2>&1; }
 
-# The gear cask ships ALL gear CLIs (every fit-*/gemba-* plus jidoka) via `binary`
-# stanzas that symlink each one onto brew's bin. The fully-qualified name
-# auto-adds the tap, so no separate `brew tap` step is needed.
+# The gear cask ships ALL gear CLIs (every fit-*/gemba-* plus jidoka) through
+# `binary` stanzas that symlink each one onto brew's bin. The fully-qualified
+# name auto-adds the tap, so this needs no separate `brew tap` step.
 GEAR_CASK="forwardimpact/homebrew-tap/fit-gear"
 
 ARCH=$(uname -m)
@@ -105,17 +107,18 @@ IS_DARWIN=0
 
 # Raw gear-binary download channel. The release compiles raw per-CLI gear
 # assets only for linux-x64 (the one Linux target the bootstrap installer
-# consumes); Darwin gets them from the fit-gear cask. linux-aarch64 has NO raw
-# gear asset — arm64 gear ships via Homebrew (spec 2190), and the arm64 release
-# runner builds every gear CLI from source, so it never needs a pre-built one.
-# So on linux-aarch64 the gear-binary install is skipped rather than hard-failed,
-# which is what lets a `ubuntu-24.04-arm` build runner bootstrap at all.
+# consumes). Darwin gets them from the fit-gear cask. linux-aarch64 has NO
+# raw gear asset. arm64 gear ships through Homebrew (spec 2190). The arm64
+# release runner builds every gear CLI from source, so it never needs a
+# pre-built one. So on linux-aarch64 the script skips the gear-binary install
+# and does not hard-fail. That lets a `ubuntu-24.04-arm` build runner
+# bootstrap at all.
 GEAR_DOWNLOAD=0
 [ "$OS-$ARCH" = "linux-x86_64" ] && GEAR_DOWNLOAD=1
 
 # Bun compile target for the gear-binary download channel. Raw per-CLI assets
-# exist only for linux-x64 and darwin-arm64; the dispatcher only calls this on a
-# supported target (GEAR_DOWNLOAD gates it), and other platforms fall back to the
+# exist only for linux-x64 and darwin-arm64. The dispatcher only calls this on
+# a supported target (GEAR_DOWNLOAD gates it). Other platforms fall back to the
 # npm channel (node launchers).
 fit_target() {
   case "$(uname -s)-$(uname -m)" in
@@ -125,16 +128,17 @@ fit_target() {
   esac
 }
 
-# A "gear binary" is one of our own bun-compiled CLIs: every fit-*/gemba-* CLI plus
-# jidoka. On Darwin they all come from the fit-gear cask; on Linux each is a
-# bare {name}-{target} file in the gear release beside a .sha256 sidecar.
+# A "gear binary" is one of our own bun-compiled CLIs: every fit-*/gemba-* CLI
+# plus jidoka. On Darwin they all come from the fit-gear cask. On Linux each is
+# a bare {name}-{target} file in the gear release beside a .sha256 sidecar.
 is_gear_binary() { case "$1" in fit-*|gemba-*|jidoka) return 0 ;; *) return 1 ;; esac; }
 
 # ── --paths / argument parsing ───────────────────────────────────
-# The default set is ALWAYS installed; named gear CLIs add to it (deduped). So
-# `clis: fit-doc` yields the external tools plus fit-doc, never fit-doc alone —
-# bootstrap.sh still finds `just`. --only inverts this: install nothing but the
-# named tools, for a job that needs one CLI without the toolchain.
+# The script ALWAYS installs the default set. Named gear CLIs add to it
+# (deduped). So `clis: fit-doc` yields the external tools plus fit-doc. The
+# result is never fit-doc alone. bootstrap.sh still finds `just`. --only
+# inverts this. It installs only the named tools, for a job that needs one
+# CLI without the toolchain.
 PRINT_PATHS=0
 SOFT=0
 ONLY=0
@@ -143,7 +147,7 @@ for arg in "$@"; do
   case "$arg" in
     --paths) PRINT_PATHS=1 ;;
     --soft)  SOFT=1 ;;         # best-effort: report unavailable tools, still exit 0
-    --only)  ONLY=1 ;;         # skip the default set; install only the named tools
+    --only)  ONLY=1 ;;         # skip the default set and install only the named tools
     *)       EXTRA+=("$arg") ;;
   esac
 done
@@ -169,13 +173,14 @@ if [ "$PRINT_PATHS" = "1" ]; then
   # Emit only the cache paths each name manages so the cache holds nothing
   # unrelated that shares the prefix.
   #
-  #   Linux — external tools cache as a lib dir + bin symlink; gear binaries are
-  #           single files in BIN_DIR.
-  #   Darwin — brew-managed tools (formulae + the gear cask) emit NOTHING: brew
-  #           installs globally into its own prefix and is idempotent, so the
-  #           bootstrap action re-runs `brew install` each time rather than
-  #           caching brittle Cellar/Caskroom symlinks. Only the download tools
-  #           (apm, claude) live in $HOME/.local and are worth caching.
+  #   Linux — external tools cache as a lib dir + bin symlink. Gear binaries
+  #           are single files in BIN_DIR.
+  #   Darwin — brew-managed tools (formulae + the gear cask) emit NOTHING.
+  #           brew installs globally into its own prefix and is idempotent, so
+  #           the bootstrap action re-runs `brew install` each time. It does
+  #           not cache brittle Cellar/Caskroom symlinks. Only the download
+  #           tools (apm, claude) live in $HOME/.local, so only they are worth
+  #           the cache.
   for name in "${NAMES[@]}"; do
     if is_gear_binary "$name"; then
       [ "$IS_DARWIN" = 1 ] && continue        # gear cask — not cached on Darwin
@@ -233,7 +238,7 @@ extract_archive() {
 
 # install_tool NAME VERSION URL SHA256 BINARY_PATH [STRIP]
 #
-# Extracts the archive into $LIB_DIR/$NAME and symlinks the binary at
+# Extracts the archive into $LIB_DIR/$NAME. Symlinks the binary at
 # $LIB_DIR/$NAME/$BINARY_PATH to $BIN_DIR/$NAME. Every external tool follows
 # this same layout so the cache paths are predictable.
 install_tool() {
@@ -261,11 +266,11 @@ install_tool() {
 
 # install_gear_binary NAME
 #
-# Download a pre-compiled gear binary (any fit-*/gemba-* CLI or jidoka) from its
-# pinned gear release, verify it against the published .sha256 sidecar, and
-# install it straight into BIN_DIR. Returns non-zero on any failure (missing
+# Download a pre-compiled gear binary (any fit-*/gemba-* CLI or jidoka) from
+# its pinned gear release. Verify it against the published .sha256 sidecar.
+# Install it straight into BIN_DIR. Returns non-zero on any failure (missing
 # asset, blocked network) so the dispatcher can fall back to the npm channel.
-# Linux only; on Darwin the fit-gear cask supersedes this.
+# Linux only. On Darwin the fit-gear cask supersedes this.
 install_gear_binary() {
   local name="$1"
   local target release base
@@ -293,10 +298,10 @@ install_gear_binary() {
 
 # ── Helpers (brew path, Darwin) ──────────────────────────────────
 
-# Ensure `brew` is callable, sourcing its shellenv from the standard prefixes if
-# it is installed but not yet on PATH (fresh shells, some CI images). Returns
-# non-zero when brew is genuinely absent, so the caller's channel can step aside
-# — the release channel resolves these tools on Darwin too.
+# Make sure `brew` is callable. Source its shellenv from the standard prefixes
+# if brew is installed but not yet on PATH (fresh shells, some CI images).
+# Returns non-zero when brew is genuinely absent, so the caller's channel can
+# step aside. The release channel resolves these tools on Darwin too.
 require_brew() {
   if ! command -v brew &>/dev/null; then
     local p
@@ -318,8 +323,9 @@ brew_install_formula() {
   echo "Installed $name $("$name" --version 2>/dev/null | head -1)"
 }
 
-# brew_install_cask TOKEN NAME — the general single-tool cask case. Unused today
-# (kept for when a download tool moves to a cask), mirrors the formula helper.
+# brew_install_cask TOKEN NAME — the general single-tool cask case. Nothing
+# uses it today. It stays for when a download tool moves to a cask. It
+# mirrors the formula helper.
 brew_install_cask() {
   local token="$1" name="$2"
   require_brew || return 1
@@ -328,7 +334,7 @@ brew_install_cask() {
 }
 
 # brew_install_gear — install the fit-gear cask once. One cask provisions every
-# gear CLI, so the latch stops us re-running brew for each gear name in a run.
+# gear CLI. The latch stops a repeat brew run for each gear name in one run.
 _GEAR_CASK_DONE=0
 brew_install_gear() {
   [ "$_GEAR_CASK_DONE" = 1 ] && return 0
@@ -341,8 +347,8 @@ brew_install_gear() {
 # ── Platform resolution (download path) ──────────────────────────
 #
 # Each resolve_* function declares the same locals (version, target, sha256,
-# binary_path, strip), resolves platform in the case block, builds the URL,
-# and hands everything to install_tool.
+# binary_path, strip). It resolves the platform in the case block. It builds
+# the URL. It hands everything to install_tool.
 
 resolve_apm() {
   local version="0.12.4"
@@ -353,7 +359,8 @@ resolve_apm() {
       target="${OS}-${ARCH}"
       sha256="a9be6afb9f33f63598d11a7de1029722fd2601aa2ecaebfe82f4903e12a23a52" ;;
     linux-aarch64)
-      # apm names its arm64 asset apm-linux-arm64, not the uname -m "aarch64".
+      # apm names its arm64 asset apm-linux-arm64 instead of the uname -m
+      # "aarch64" value.
       target="linux-arm64"
       sha256="4b64ff40b2b70ae3c97eb64a608cadcb06c4713cd878708c9685a12394278ca0" ;;
     darwin-x86_64)
@@ -470,16 +477,18 @@ resolve_gitleaks() {
 resolve_claude() {
   # The Claude Code native CLI the Agent SDK spawns. It ships inside the SDK's
   # platform-specific optional dependency (@anthropic-ai/claude-agent-sdk-<plat>),
-  # which `bun build --compile` does NOT embed — so a compiled gemba-harness /
-  # gemba-benchmark cannot self-resolve it. We install the version-matched binary
-  # here and libharness points the SDK at it via pathToClaudeCodeExecutable.
+  # which `bun build --compile` does NOT embed. So a compiled gemba-harness or
+  # gemba-benchmark cannot self-resolve it. We install the version-matched
+  # binary here. libharness points the SDK at it with
+  # pathToClaudeCodeExecutable.
   #
   # VERSION MUST TRACK @anthropic-ai/claude-agent-sdk in
-  # libraries/libharness/package.json — a Dependabot bump there requires a
-  # matching version + sha256 bump here, or the spawned CLI drifts from the SDK
-  # protocol. This is why claude stays on the pinned download path (no brew) on
-  # both platforms. The tarball is the npm platform package (top-level `package/`,
-  # so strip=1); its sole exported binary is `package/claude`.
+  # libraries/libharness/package.json. A Dependabot bump there requires a
+  # matching version + sha256 bump here. Without it the spawned CLI drifts
+  # from the SDK protocol. This is why claude stays on the pinned download
+  # path (no brew) on both platforms. The tarball is the npm platform package
+  # (top-level `package/`, so strip=1). Its sole exported binary is
+  # `package/claude`.
   local version="0.3.170"
   local pkg sha256 binary_path="claude" strip=1
 
@@ -505,38 +514,40 @@ resolve_claude() {
 
 # ── Install ──────────────────────────────────────────────────────
 #
-# Each tool resolves through an ordered list of CHANNELS; the first that
-# succeeds wins. This is what makes one script correct on every platform AND in
-# the restricted web-session sandbox. A channel returns 0 on success, or
-# non-zero when it is inapplicable here or its install failed — so the loop
-# moves to the next one. Channels run in `if`/`||` context, which disables
-# errexit for the whole call chain, so an internal curl/apt failure is caught
-# rather than aborting the script.
+# Each tool resolves through an ordered list of CHANNELS. The first channel
+# that succeeds wins. This is what makes one script correct on every platform
+# AND in the restricted web-session sandbox. A channel returns 0 on success. It
+# returns non-zero when it is inapplicable here or its install failed, so the
+# loop moves to the next one. Channels run in `if`/`||` context, which disables
+# errexit for the whole call chain. That context catches an internal curl/apt
+# failure, and the script does not abort.
 #
 #   release      pinned, SHA-verified download into $HOME/.local (resolve_<name>).
-#                Reproducible; the CI/local default. github-hosted tools are
-#                gated on github reachability, since a web-session policy blocks
-#                github.com outright — the download can never succeed there.
+#                Reproducible. The CI/local default. The script gates
+#                github-hosted tools on github reachability, because a
+#                web-session policy blocks github.com outright. The download
+#                can never succeed there.
 #   brew         Homebrew formula/cask (macOS only). The native macOS channel.
 #   apt          Debian/Ubuntu package (Linux only). The trusted fallback when
-#                github is blocked; archive.ubuntu.com is on every web allowlist.
+#                github is blocked. archive.ubuntu.com is on every web allowlist.
 #   npm          global install from the npm registry (any platform). Always
 #                allowlisted, so it is the universal fallback for our gear CLIs
 #                (published as node launchers).
 #
-# claude's "release" is an npm-registry tarball, not github, so it is NOT gated
-# and works in web sessions as-is. apm has no channel but its github release, so
-# a blocked web session skips it (reported, not fatal under --soft).
+# claude's "release" is an npm-registry tarball instead of a github one, so it
+# is NOT gated and works in web sessions as-is. apm has no channel but its
+# github release, so a blocked web session skips it. The script reports the
+# skip, and --soft keeps it non-fatal.
 
 PRESENT=()      # already on PATH
-INSTALLED=()    # freshly installed this run, via any channel
-SKIPPED=()      # no channel could provide it (reported; fatal unless --soft)
+INSTALLED=()    # freshly installed this run, through any channel
+SKIPPED=()      # no channel could provide it (reported, fatal unless --soft)
 
-# Probe github.com once, caching the verdict. Web-session network policies allow
-# the npm/apt registries but block github.com, so github-hosted release assets
-# — third-party or our own gear, whatever the repo — simply cannot download
-# there. Detecting this lets the release channel step aside for a trusted one
-# instead of dying on a raw `curl: (56)`.
+# Probe github.com once and cache the verdict. Web-session network policies
+# allow the npm/apt registries but block github.com. So github-hosted release
+# assets cannot download there, whether they are third-party or our own gear
+# and whatever the repo. This probe lets the release channel step aside for a
+# trusted one. The channel then does not die on a raw `curl: (56)`.
 GITHUB_NET=""   # "" (unprobed) | "ok" | "blocked"
 github_reachable() {
   if [ -z "$GITHUB_NET" ]; then
@@ -544,18 +555,18 @@ github_reachable() {
       GITHUB_NET=ok
     else
       GITHUB_NET=blocked
-      echo "note: github.com unreachable (network policy?) — using package registries (apt/npm) instead"
+      echo "note: github.com unreachable (network policy?), so the script uses the package registries (apt/npm) instead"
     fi
   fi
   [ "$GITHUB_NET" = ok ]
 }
 
 # Every release download is github-hosted EXCEPT claude, whose pinned tarball
-# comes from the (always-allowlisted) npm registry — so it is never gated.
+# comes from the (always-allowlisted) npm registry. Nothing gates it.
 github_hosted() { [ "$1" != claude ]; }
 
-# apt plumbing (Linux fallback): one guarded `apt-get update` per run, executed
-# as root directly or via sudo when available.
+# apt plumbing (Linux fallback): one guarded `apt-get update` per run. The
+# script runs it as root directly, or through sudo when sudo is available.
 AS_ROOT=""
 [ "$(id -u)" != 0 ] && command -v sudo &>/dev/null && AS_ROOT="sudo"
 _APT_UPDATED=0
@@ -590,11 +601,11 @@ ch_apt() {
 }
 
 ch_npm() {
-  # Our gear CLIs publish to npm as node launchers; a global install puts the
+  # Our gear CLIs publish to npm as node launchers. A global install puts the
   # command on PATH (npm's global bin is already there). jidoka has no bare
-  # launcher — the bare npm name belongs to an unrelated third-party package,
-  # which this mapping must never install — so it resolves via its scoped
-  # product package. A CLI not yet published 404s and falls through.
+  # launcher. The bare npm name belongs to an unrelated third-party package,
+  # which this mapping must never install. So jidoka resolves through its
+  # scoped product package. A CLI not yet published 404s and falls through.
   local pkg="$1"
   [ "$1" = jidoka ] && pkg="@forwardimpact/jidoka"
   npm install -g "$pkg" >/dev/null 2>&1 || return 1
@@ -602,20 +613,20 @@ ch_npm() {
 }
 
 # channels_for NAME — the ordered channel list for a tool on this platform.
-# macOS resolves via its first channel (brew) since github is reachable there
-# anyway; Linux CI/local hits `release` (pinned, reproducible); a blocked Linux
-# web session falls through to the trusted registry.
+# macOS resolves through its first channel (brew) because github is reachable
+# there anyway. Linux CI/local hits `release` (pinned, reproducible). A blocked
+# Linux web session falls through to the trusted registry.
 channels_for() {
   if is_gear_binary "$1"; then
     echo "brew_gear release_gear npm"
   elif is_system_tool "$1"; then
     echo "brew release apt"
   else
-    echo "release"        # apm, claude — pinned download only (claude via npm)
+    echo "release"        # apm, claude — pinned download only (claude through npm)
   fi
 }
 
-# install_one NAME — try each channel in order; first success wins.
+# install_one NAME — try each channel in order. The first success wins.
 install_one() {
   local name="$1" ch
   if command -v "$name" &>/dev/null; then
@@ -636,14 +647,14 @@ for name in "${NAMES[@]}"; do
 done
 
 # ── Summary ──────────────────────────────────────────────────────
-# Steady state on one line; explicit lists for what changed or is missing. A
-# warm session stays near-silent; a degraded one names exactly what it lacks.
+# Steady state on one line. Explicit lists show what changed or is missing. A
+# warm session stays near-silent. A degraded one names exactly what it lacks.
 [ "${#PRESENT[@]}" -gt 0 ]   && echo "tools ready (${#PRESENT[@]}): ${PRESENT[*]}"
 [ "${#INSTALLED[@]}" -gt 0 ] && echo "tools installed (${#INSTALLED[@]}): ${INSTALLED[*]}"
 if [ "${#SKIPPED[@]}" -gt 0 ]; then
   echo "tools unavailable: ${SKIPPED[*]}" >&2
   if [ "$SOFT" = "1" ]; then
-    echo "note: continuing without them (--soft); published gear CLIs still run via 'bunx <name>'" >&2
+    echo "note: the script continues without them (--soft). Published gear CLIs still run with 'bunx <name>'" >&2
   else
     echo "::error::no install channel succeeded for: ${SKIPPED[*]}" >&2
     exit 1

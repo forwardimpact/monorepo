@@ -103,7 +103,7 @@ describe("loadEnv", () => {
     );
   });
 
-  test("merges family and task dirs, family loaded first", async () => {
+  test("merges family and task dirs, and loads family first", async () => {
     const rt = makeRuntime({
       files: {
         [`${FAMILY_DIR}/.env`]: "SHARED=from-family\nFAM_ONLY=1\n",
@@ -115,7 +115,7 @@ describe("loadEnv", () => {
     assert.ok(names.includes("SHARED"));
     assert.ok(names.includes("FAM_ONLY"));
     assert.ok(names.includes("TASK_ONLY"));
-    // Family dir loaded first, so its value wins for SHARED
+    // loadEnv loads the family dir first, so its value wins for SHARED
     assert.strictEqual(rt.env.SHARED, "from-family");
 
     // Rendered .env merges keys from both dirs with resolved values

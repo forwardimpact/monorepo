@@ -123,7 +123,7 @@ describe("TraceQuery", () => {
 
       assert.strictEqual(results.length, 1);
       assert.ok(results[0].context.length > 0);
-      // Context should include adjacent turns (index 7 and 9)
+      // The context includes the adjacent turns (index 7 and 9)
       const contextIndexes = results[0].context.map((t) => t.index);
       assert.ok(contextIndexes.includes(7));
       assert.ok(contextIndexes.includes(9));

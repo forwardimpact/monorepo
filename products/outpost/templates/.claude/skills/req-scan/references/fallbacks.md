@@ -1,16 +1,16 @@
 # Fallback Strategies
 
 Reference for `req-scan` when a primary source query yields zero new prospects
-after filtering. Try at most **3 alternatives per wake** to stay within rate
-limits.
+after the filters run. Try at most **3 alternatives per wake** to stay within
+rate limits.
 
 ## Strategy 1 — alternative search terms
 
 ### HN
 
 - Check the **previous** month's "Who Wants to Be Hired?" thread.
-- Search for `"Who is hiring"` threads (candidates sometimes post in the wrong
-  thread; comments may link to candidate profiles).
+- Search for `"Who is hiring"` threads. (Candidates sometimes post in the wrong
+  thread. Comments may link to candidate profiles.)
 - Try
   `https://hn.algolia.com/api/v1/search?query=%22freelancer+available%22&tags=comment`.
 
@@ -47,9 +47,9 @@ WebFetch URL: https://dev.to/api/articles?tag=career&per_page=25
 If geography eliminated everyone, re-scan without the location filter. Mark
 unmatched-location prospects as "location unconfirmed" in the prospect note.
 
-If skill alignment filtered everyone out: lower the bar from 2 standard skills
-to 1; consider transferable skills (strong Python ⇒ likely data integration
-capability); accept adjacent indicators ("machine learning" implies data
+If skill alignment filtered everyone out, lower the bar from 2 standard skills
+to 1. Consider transferable skills (strong Python ⇒ likely data integration
+capability). Accept adjacent indicators ("machine learning" implies data
 skills).
 
 ## Strategy 3 — cross-reference
@@ -57,11 +57,11 @@ skills).
 When a source yields very few results, enrich what you do find:
 
 - A GitHub profile that links to a blog/portfolio → WebFetch it for more detail
-  before deciding skill fit.
+  before you decide skill fit.
 - An HN post that mentions a GitHub username → fetch their GitHub profile for
   richer signal.
 
-## Logging alternatives
+## Log the alternatives
 
 Log every alternative in `log.md`:
 

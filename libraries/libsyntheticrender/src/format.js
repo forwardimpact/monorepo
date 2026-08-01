@@ -1,5 +1,5 @@
 /**
- * Format generated content with Prettier before writing to disk.
+ * Format generated content with Prettier before you write it to disk.
  *
  * @module libterrain/format
  */
@@ -19,10 +19,12 @@ const PARSER_BY_EXT = {
  * Format a single file's content with Prettier.
  *
  * @param {Function} prettierFn - Prettier format function
- * @param {string} filePath - Relative or absolute file path (used to infer parser)
+ * @param {string} filePath - Relative or absolute file path. The extension
+ *   selects the parser.
  * @param {string} content - File content to format
- * @param {Set<string>} [skipParsers] - Parsers whose content is already canonical
- *   (e.g. machine-serialized JSON/YAML); these are passed through unformatted.
+ * @param {Set<string>} [skipParsers] - Parsers whose content is already
+ *   canonical (e.g. machine-serialized JSON/YAML). This function passes that
+ *   content through unformatted.
  * @returns {Promise<string>} Formatted content
  */
 async function formatOne(prettierFn, filePath, content, skipParsers) {
@@ -41,7 +43,8 @@ async function formatOne(prettierFn, filePath, content, skipParsers) {
 /**
  * Format a single file's content with the default Prettier format function.
  *
- * @param {string} filePath - Relative or absolute file path (used to infer parser)
+ * @param {string} filePath - Relative or absolute file path. The extension
+ *   selects the parser.
  * @param {string} content - File content to format
  * @returns {Promise<string>} Formatted content
  */
@@ -70,8 +73,8 @@ export class ContentFormatter {
    * @param {Map<string, string>} files
    * @param {{ skipParsers?: Set<string> }} [options] - `skipParsers` lists
    *   parsers whose content is already canonical (e.g. machine-serialized
-   *   JSON/YAML), so a second Prettier pass is redundant work and they are
-   *   written through unchanged.
+   *   JSON/YAML). A second Prettier pass is redundant work. This method
+   *   writes that content through unchanged.
    * @returns {Promise<Map<string, string>>}
    */
   async format(files, { skipParsers } = {}) {

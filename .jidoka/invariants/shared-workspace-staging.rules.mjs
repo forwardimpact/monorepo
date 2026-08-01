@@ -1,26 +1,27 @@
 // Invariant: shared-checkout commit paths must stage their own artifacts by
-// explicit path, never by a whole-tree sweep. The one whole-tree staging method
-// on the shared GitClient is `commitAll` (`git add -A`); `commitPaths` is the
-// scoped path. This rule flags every *caller* of `commitAll` in non-test
-// commit-path source, deny-by-default: a caller not in
-// shared-workspace-staging.allow.json fails, so a newly-added or overlooked
-// sweep surfaces as a violation rather than silently escaping the closed set.
+// explicit path, never by a whole-tree sweep. On the shared GitClient,
+// `commitAll` (`git add -A`) is the one method that stages the whole tree.
+// `commitPaths` is the scoped path. This rule flags every *caller* of
+// `commitAll` in non-test commit-path source. It denies by default. A caller
+// that shared-workspace-staging.allow.json omits fails the rule. So a new or
+// overlooked sweep surfaces as a violation. It never escapes the closed set
+// in silence.
 //
-// Scope is JS/MJS source only — the AST scan cannot parse shell or YAML, so
-// shell commit paths (e.g. a `gemba-wiki push` shell wrapper) are governed by the
-// same allow-listed deferral their JS twin carries, not by this rule. CI sweeps
-// that run in a separate checkout (not the shared session checkout) are out of
-// scope by construction.
+// The scope is JS/MJS source only. The AST scan cannot parse shell or YAML.
+// So this rule does not govern shell commit paths (e.g. a `gemba-wiki push`
+// shell wrapper). The same allow-listed deferral their JS twin carries governs
+// them. CI sweeps that run in a separate checkout are out of scope by
+// construction. That checkout is not the shared session checkout.
 //
-// The `commitAll` *definition* (the GitClient itself) and its mock are excluded:
-// they define/mock the primitive, they are not commit paths.
+// This rule excludes the `commitAll` *definition* (the GitClient itself) and
+// its mock. They define and mock the primitive. They are not commit paths.
 //
 // Completeness boundary: the rule keys on the `commitAll` callee. A future
-// commit path that sweeps via a raw subprocess argv (e.g.
-// `run("git", ["add", "-A"])`) built from fragments is a different shape and
-// would escape this rule. The corpus has no such caller today; if one appears,
-// extend SWEEP_METHOD coverage with a JS-scoped argv-literal scan rather than
-// loosening the allowlist.
+// commit path could sweep with a raw subprocess argv built from fragments
+// (e.g. `run("git", ["add", "-A"])`). That is a different shape. It would
+// escape this rule. The corpus has no such caller today. If one appears,
+// extend SWEEP_METHOD coverage with a JS-scoped argv-literal scan. Do not
+// loosen the allowlist.
 //
 // Refresh the violator list:
 //   bunx jidoka invariants --seed shared-workspace-staging
@@ -29,7 +30,7 @@ const SCOPE_DIRS = ["libraries", "products", "services"];
 const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp", "test"];
 const SWEEP_METHOD = "commitAll";
 
-// Files that define or mock the primitive — not commit paths.
+// Files that define or mock the primitive. They are not commit paths.
 const EXCLUDE_RELS = new Set(["libraries/libutil/src/git-client.js"]);
 const EXCLUDE_PREFIXES = ["libraries/libmock/"];
 
@@ -86,7 +87,7 @@ export default {
     };
   },
 
-  // Print the current violators, for seeding shared-workspace-staging.allow.json.
+  // Print the current violators, to seed shared-workspace-staging.allow.json.
   seed(kit) {
     const violators = buildSubjects(kit)
       .filter((s) => s.sweeps)
@@ -108,7 +109,7 @@ export default {
       check: (s, c) => (s.sweeps && !c.allow.has(s.rel) ? {} : null),
       message: (s) =>
         `shared-checkout commit path stages by whole-tree sweep (${SWEEP_METHOD}): ${s.rel}`,
-      hint: "stage own artifacts by explicit path (commitPaths), or add the path to shared-workspace-staging.allow.json with a reason",
+      hint: "stage your own artifacts by explicit path (commitPaths), or add the path to shared-workspace-staging.allow.json with a reason",
     },
   ],
 };

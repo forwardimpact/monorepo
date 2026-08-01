@@ -95,7 +95,7 @@ describe("loadTaskFamily", () => {
   });
 });
 
-describe("hidden test suite discovery", () => {
+describe("discovery of the hidden test suite", () => {
   async function makeSuiteFamily() {
     const dir = await mkdtemp(join(tmpdir(), "benchmark-suite-"));
     await mkdir(join(dir, "tasks/t1/tests"), { recursive: true });

@@ -21,8 +21,9 @@ export async function runOutputCommand(ctx) {
     now: () => isoTimestamp(runtime.clock.now()),
   });
 
-  // `runtime.proc.stdin` is an AsyncIterable of UTF-8 lines (newline-split by
-  // the runtime), so each yielded value is exactly one NDJSON record.
+  // `runtime.proc.stdin` is an AsyncIterable of UTF-8 lines. The runtime
+  // splits them on newlines. So each yielded value is exactly one NDJSON
+  // record.
   for await (const line of runtime.proc.stdin) {
     collector.addLine(line);
   }

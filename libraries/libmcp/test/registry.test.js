@@ -16,7 +16,7 @@ function createMockServer() {
   };
 }
 
-/** Config with all 10 tools matching the starter config.json */
+/** Config with all 10 tools that match the starter config.json */
 function createTestConfig() {
   return {
     tools: {
@@ -171,7 +171,7 @@ describe("registerToolsFromConfig", () => {
     assert.ok(result.content[0].text.includes("id2"));
   });
 
-  test("handler resolves identifiers via resourceIndex", async () => {
+  test("handler resolves identifiers through resourceIndex", async () => {
     const mockResourceIndex = {
       get: spy(() =>
         Promise.resolve([
@@ -326,7 +326,7 @@ describe("buildZodSchema", () => {
     };
     const schema = buildZodSchema(fields);
     assert.ok(schema.input);
-    // The Zod type is wrapped in optional + union; verify it exists
+    // buildZodSchema wraps the Zod type in optional + union. Verify it exists
     assert.ok(schema.input._def);
   });
 });

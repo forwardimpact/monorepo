@@ -7,7 +7,7 @@
  */
 
 /**
- * Builds a tool-use message envelope as emitted by the agent SDK.
+ * Builds a tool-use message envelope in the shape the agent SDK emits.
  * Replaces per-file concludeMsg / redirectMsg / tellMsg / shareMsg helpers.
  *
  * @param {string} name - Tool name, e.g. "Conclude", "Redirect", "Tell", "Share".
@@ -33,7 +33,8 @@ export function createToolUseMsg(name, input, { id } = {}) {
 }
 
 /**
- * Builds an assistant text message envelope as emitted by the agent SDK.
+ * Builds an envelope for an assistant text message, in the shape the agent
+ * SDK emits.
  * @param {string} text - Text content.
  * @returns {object} Assistant message with a single text content block.
  */
@@ -76,7 +77,8 @@ export function stripAnsi(s) {
 }
 
 /**
- * Writes each line followed by a newline to the writer, then ends it.
+ * Writes each line to the writer with a newline after it. Then ends the
+ * writer.
  * @param {import("node:stream").Writable} writer
  * @param {string[]} lines
  * @returns {Promise<void>}
@@ -120,15 +122,15 @@ export function createTestTrace(overrides = {}) {
 }
 
 /**
- * Creates an async-generator agent query stub. The shape of `messages`
+ * Creates an async-generator stub for an agent query. The shape of `messages`
  * determines per-call behaviour:
- *  - Flat array of message objects: yielded on every invocation.
- *  - Array of arrays (batches): the Nth invocation yields messages from the
- *    Nth batch. Subsequent calls past the last batch repeat the last one.
+ *  - Flat array of message objects: the stub yields them on every call.
+ *  - Array of arrays (batches): the Nth call yields messages from the Nth
+ *    batch. Later calls past the last batch repeat the last batch.
  *
  * @param {object[] | object[][]} messages
- * @param {(params: object) => void} [onParams] - Invoked with call params.
- * @returns {Function} Async generator mimicking `query({...})`.
+ * @param {(params: object) => void} [onParams] - Receives the call params.
+ * @returns {Function} Async generator that mimics `query({...})`.
  */
 export function createMockAgentQuery(messages, onParams) {
   const isBatched = Array.isArray(messages[0]);

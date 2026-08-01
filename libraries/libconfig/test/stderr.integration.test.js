@@ -24,8 +24,8 @@ afterEach(async () => {
   }
 });
 
-describe("bootstrapProject — refusal stderr greppability", () => {
-  test("child process exit non-zero; stderr names leaf path and overwrite surface", async () => {
+describe("bootstrapProject — refusal stderr is greppable", () => {
+  test("child process exits non-zero. stderr names the leaf path and the overwrite surface", async () => {
     await fs.mkdir(path.join(testDir, "config"));
     await fs.writeFile(
       path.join(testDir, "config", "config.json"),
@@ -56,11 +56,11 @@ describe("bootstrapProject — refusal stderr greppability", () => {
     assert.equal(code, 1);
     assert.ok(
       stderr.includes("product.x.foo"),
-      `stderr did not include leaf path: ${stderr}`,
+      `stderr did not include the leaf path: ${stderr}`,
     );
     assert.ok(
       stderr.includes("overwrites.config"),
-      `stderr did not include overwrite surface: ${stderr}`,
+      `stderr did not include the overwrite surface: ${stderr}`,
     );
   });
 });

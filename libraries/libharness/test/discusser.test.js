@@ -19,7 +19,10 @@ function readLines(stream) {
   return () => buffer.split("\n").filter((line) => line.trim());
 }
 
-/** Minimal stand-in for OrchestrationLoop — emits one summary line and reports turns. */
+/**
+ * Minimal stand-in for OrchestrationLoop. It emits one summary line and
+ * reports turns.
+ */
 function fakeLoop({ output, verdict, summary, turns, redactor }) {
   return {
     leadTurns: turns,
@@ -40,7 +43,7 @@ function fakeLoop({ output, verdict, summary, turns, redactor }) {
 }
 
 describe("Discusser orchestration", () => {
-  test("emits the meta header before any other line when a discussion_id is set", async () => {
+  test("emits the meta header before any other line when the caller sets a discussion_id", async () => {
     const output = new PassThrough();
     const getLines = readLines(output);
     const redactor = createNoopRedactor();
@@ -78,7 +81,7 @@ describe("Discusser orchestration", () => {
     assert.strictEqual(result.turns, 3);
   });
 
-  test("recess verdict is treated as suspended (success=false) and carries the trigger forward", async () => {
+  test("the Discusser treats a recess verdict as suspended (success=false) and carries the trigger forward", async () => {
     const output = new PassThrough();
     const getLines = readLines(output);
     const redactor = createNoopRedactor();
@@ -113,7 +116,8 @@ describe("Discusser orchestration", () => {
     });
     assert.strictEqual(result.replies.length, 1);
 
-    // The last summary line is the discuss-augmented one; it carries replies and trigger.
+    // The last summary line is the discuss-augmented one. It carries the
+    // replies and the trigger.
     const lines = getLines();
     const last = JSON.parse(lines[lines.length - 1]);
     assert.strictEqual(last.event.type, "summary");
@@ -125,7 +129,7 @@ describe("Discusser orchestration", () => {
     assert.strictEqual(last.event.replies.length, 1);
   });
 
-  test("adjourned verdict is reported as success=true with replies aggregated on the summary", async () => {
+  test("the Discusser reports an adjourned verdict as success=true and aggregates replies on the summary", async () => {
     const output = new PassThrough();
     const getLines = readLines(output);
     const redactor = createNoopRedactor();
@@ -168,7 +172,7 @@ describe("Discusser orchestration", () => {
 });
 
 describe("Discusser - summary shape", () => {
-  test("the recessed summary no longer carries pending_asks (in-flight sync Asks were resolved at Recess time)", async () => {
+  test("the recessed summary no longer carries pending_asks because Recess resolved the in-flight sync Asks", async () => {
     const output = new PassThrough();
     const getLines = readLines(output);
     const redactor = createNoopRedactor();
@@ -223,7 +227,7 @@ describe("createDiscusser - advisor wiring", () => {
   const registeredTools = (runner) =>
     Object.keys(runner.mcpServers.orchestration.instance._registeredTools);
 
-  test("with advisorModel the agent carries the Advisor tool and guidance; the lead carries neither", () => {
+  test("with advisorModel the agent carries the Advisor tool and guidance. The lead carries neither", () => {
     const d = createDiscusser(factoryOpts({ advisorModel: "adv-model" }));
     const agent = d.loop.agents[0];
     assert.ok(registeredTools(agent.runner).includes("Advisor"));
@@ -259,7 +263,7 @@ describe("createDiscusser - advisor wiring", () => {
       d.loop.agents[0].runner.mcpServers.orchestration.instance._registeredTools
         .Advisor;
     const pending = advisor.handler({ question: "Q" }, {});
-    // #stop() aborts this controller; trigger the same path directly.
+    // #stop() aborts this controller. Trigger the same path directly.
     d.loop.abortController.abort();
     const result = await pending;
     assert.match(result.content[0].text, /advisor is unavailable/);

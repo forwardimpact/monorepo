@@ -55,9 +55,9 @@ function parseLines(output) {
 /**
  * Build an Answer tool_use that quotes the askId of the *only* pending ask
  * targeted at `addressee`. The mock runner dispatches tool_uses inside the
- * scripted assistant message body, but the askId isn't known until the
- * sync Ask handler has run — so we resolve it lazily by snapshotting the
- * ctx at dispatch time via a custom dispatcher entry.
+ * scripted assistant message body. The sync Ask handler must run before the
+ * askId exists. So the helper resolves it lazily. It snapshots the ctx at
+ * dispatch time through a custom dispatcher entry.
  */
 function makeAnswerDispatcher(ctx, addressee, message) {
   const handler = createAnswerHandler(ctx, { from: addressee });
@@ -66,7 +66,7 @@ function makeAnswerDispatcher(ctx, addressee, message) {
       (e) => e.addresseeName === addressee,
     );
     if (!owed) {
-      // No pending ask — let the handler surface the error.
+      // No pending ask. Let the handler surface the error.
       return handler({ message });
     }
     return handler({ askId: owed.askId, message });
@@ -74,7 +74,7 @@ function makeAnswerDispatcher(ctx, addressee, message) {
 }
 
 describe("Pending-ask registry — handler transitions", () => {
-  test("Sync Ask sets a pending entry; Answer clears it; Announce leaves it untouched", async () => {
+  test("Sync Ask sets a pending entry. Answer clears it. Announce leaves it untouched", async () => {
     const { ctx } = seedFacilitated(["facilitator", "agent-1"]);
     const ask = createAskHandler(ctx, {
       from: "facilitator",
@@ -194,7 +194,7 @@ describe("Pending-ask enforcement — facilitated mode", () => {
     assert.strictEqual(violations.length, 0);
   });
 
-  test("violation path: two ignored detections emit exactly one protocol_violation and the session advances", async () => {
+  test("violation path: two ignored detections emit exactly one protocol_violation. The session advances", async () => {
     const { ctx, messageBus } = seedFacilitated(["facilitator", "agent-1"]);
     const askHandler = createAskHandler(ctx, {
       from: "facilitator",
@@ -213,7 +213,7 @@ describe("Pending-ask enforcement — facilitated mode", () => {
         },
       },
     );
-    // Agent never Answers — two silent turns in a row.
+    // Agent never Answers. Two silent turns in a row.
     const agentRunner = createMockRunner(
       [{ text: "silence" }, { text: "still silent" }],
       [
@@ -247,8 +247,9 @@ describe("Pending-ask enforcement — facilitated mode", () => {
 describe("Pending-ask enforcement — supervised mode", () => {
   test("supervisor → agent Ask: agent ignores twice → protocol_violation, session advances", async () => {
     const { ctx, messageBus } = seedSupervise();
-    // Supervise is now sync Ask like facilitate/discuss — supervisor Ask
-    // blocks until agent answers; reminder/violation logic is shared.
+    // Supervise is now sync Ask like facilitate/discuss. Supervisor Ask
+    // blocks until the agent answers. Both modes share the reminder and
+    // violation logic.
     const supAskHandler = createAskHandler(ctx, {
       from: "supervisor",
       defaultTo: "agent",
@@ -270,7 +271,7 @@ describe("Pending-ask enforcement — supervised mode", () => {
       },
     );
 
-    // Agent never Answers — turn 1 silent, turn 2 (post-reminder) still silent.
+    // Agent never Answers. Turn 1 silent, turn 2 (post-reminder) still silent.
     const agentRunner = createMockRunner(
       [{ text: "thinking" }, { text: "still thinking" }],
       [
@@ -301,7 +302,7 @@ describe("Pending-ask enforcement — supervised mode", () => {
 });
 
 describe("Pending-ask enforcement — broadcast Ask", () => {
-  test("one non-answering participant yields exactly one protocol_violation; others clear", async () => {
+  test("one participant that does not answer yields exactly one protocol_violation. Others clear", async () => {
     const { ctx, messageBus } = seedFacilitated(["facilitator", "a", "b", "c"]);
     const askHandler = createAskHandler(ctx, {
       from: "facilitator",
@@ -309,9 +310,9 @@ describe("Pending-ask enforcement — broadcast Ask", () => {
     });
     const concludeHandler = createConcludeHandler(ctx);
 
-    // Lead turn 0: broadcast Ask. Turn 1: a/b answers arrive while c is
-    // still ignoring; lead just acknowledges and waits. Turn 2: c's
-    // synthetic [no answer] lands after its reminder cycle; concludes.
+    // Lead turn 0: broadcast Ask. Turn 1: a/b answers arrive while c still
+    // ignores. The lead only acknowledges and waits. Turn 2: c's synthetic
+    // [no answer] lands after its reminder cycle. The lead concludes.
     const facilitatorRunner = createMockRunner(
       [
         { text: "Asking all" },

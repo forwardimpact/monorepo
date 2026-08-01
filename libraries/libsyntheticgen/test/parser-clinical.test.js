@@ -245,7 +245,7 @@ describe("clinical block", () => {
     ]);
   });
 
-  test("per_* sentinels parse as strings, not numbers", () => {
+  test("per_* sentinels parse as strings. They do not parse as numbers", () => {
     const ast = parseDsl(`terrain test {
       clinical {
         content {

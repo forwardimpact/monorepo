@@ -23,18 +23,18 @@ export const clients = exports.clients || {};
 
 /**
  * Creates a tracer instance for a service
- * This factory should be called at startup in server.js files or when creating clients
- * @param {string} serviceName - Name of the service being traced
+ * Call this factory at startup in server.js files or when you create clients
+ * @param {string} serviceName - Name of the service to trace
  * @returns {Promise<Tracer>} Configured tracer instance
- * @throws {Error} If span service configuration cannot be loaded
+ * @throws {Error} If the factory cannot load the span service configuration
  */
 export async function createTracer(serviceName) {
   const spanConfig = await createServiceConfig("span");
   const { SpanClient } = clients;
-  // createTracer is a composition-root factory; it builds the production
-  // runtime as its DI root, threads it into the SpanClient (so the client's
-  // auth reads SERVICE_SECRET off the bag) and into the Tracer (and thus every
-  // Span) via its clock.
+  // createTracer is a composition-root factory. It builds the production
+  // runtime as its DI root. It threads the runtime into the SpanClient, so the
+  // client's auth reads SERVICE_SECRET off the bag. It also threads the runtime
+  // clock into the Tracer, and so into every Span.
   const runtime = createDefaultRuntime();
   const spanClient = new SpanClient(spanConfig, runtime);
   return new Tracer({
@@ -46,7 +46,7 @@ export async function createTracer(serviceName) {
 }
 
 /**
- * Factory function to create a client instance with optional logging and tracing
+ * Factory function to create a client instance with an optional logger and tracer
  * @param {string} name - Service name (e.g., "memory", "llm", "tool")
  * @param {object} [logger] - Optional logger instance
  * @param {import("@forwardimpact/libtelemetry").Tracer} [tracer] - Optional tracer instance for distributed tracing
@@ -64,10 +64,10 @@ export async function createClient(name, logger = null, tracer = null) {
     );
   }
 
-  // Create config for the service
+  // Create the config for the service
   const config = await createServiceConfig(name);
 
-  // createClient is a composition-root factory; build the production runtime
+  // createClient is a composition-root factory. Build the production runtime
   // here and thread it so the client's auth reads SERVICE_SECRET off the bag.
   const runtime = createDefaultRuntime();
 

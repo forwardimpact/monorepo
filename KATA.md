@@ -6,23 +6,23 @@
 >
 > — Mike Rother, _Toyota Kata_
 
-The Kata Agent Team is an autonomous, continuously improving agent team that
-operates across six surfaces — IDE, scheduled shifts, GitHub Issues, GitHub PRs,
-GitHub Discussions, and Microsoft Teams — using the same harness (`libharness`),
-the same shared memory (`libwiki`), the same agent profiles, and the same
-skills. All execution runs securely inside GitHub Actions. The team is organized
-as a daily **Plan-Do-Study-Act** (PDSA) cycle where agents plan by writing
-specs, ship features, study their own traces, and act on findings.
+The Kata Agent Team is an autonomous agent team that continuously improves. It
+operates across six surfaces: IDE, scheduled shifts, GitHub Issues, GitHub PRs,
+GitHub Discussions, and Microsoft Teams. Every surface uses the same harness
+(`libharness`), the same shared memory (`libwiki`), the same agent profiles, and
+the same skills. All execution runs securely inside GitHub Actions. The team
+runs a daily **Plan-Do-Study-Act** (PDSA) cycle. Agents write specs to plan.
+They ship features. They study their own traces. They act on findings.
 
-Kata is an implementation of two upstream standards: the repository structure
-in [MONOREPO.md](MONOREPO.md) and the instruction architecture in
+Kata implements two upstream standards: the repository structure in
+[MONOREPO.md](MONOREPO.md) and the instruction architecture in
 [JIDOKA.md](JIDOKA.md). Everything below assumes both.
 
 Kata runs on [Gemba](https://www.forwardimpact.team/gemba/), the
-agent-runtime platform: the `gemba-*` command family and the
+agent-runtime platform. The `gemba-*` command family and the
 bootstrap/harness/wiki/benchmark CI actions are the substrate every shift
-executes on. Kata is the platform's reference tenant — the daily proof that
-the substrate is generic and another team could run on it.
+executes on. Kata is the platform's reference tenant. Kata is the daily proof
+that the substrate is generic and that another team could run on it.
 
 ## Architecture
 
@@ -32,7 +32,7 @@ graph LR
     H --> M["Memory<br/>libwiki + wiki/"]
 ```
 
-**Surfaces** are the entry points — IDE sessions, cron schedules, GitHub
+**Surfaces** are the entry points: IDE sessions, cron schedules, GitHub
 events, and bridge-relayed messages. The **Harness** (`libharness`) provides the
 orchestration loop, async coordination primitives (`Ask`/`Answer`/`Announce`),
 role-based tool surfaces, and NDJSON trace capture. **Agents** define persona,
@@ -58,23 +58,23 @@ Seven composite actions are co-located in the monorepo (under
 - `kata-interview` — JTBD switching interview run
 <!-- /enum -->
 
-Publish, pinning, and release mechanics live in
-[`.github/CLAUDE.md`](.github/CLAUDE.md); run `kata-setup` to generate
+Publish, pin, and release mechanics live in
+[`.github/CLAUDE.md`](.github/CLAUDE.md). Run `kata-setup` to generate
 workflows interactively.
 
 ## Simplicity
 
-A differentiating factor of the Kata Agent Team is its simplicity.
+Simplicity sets the Kata Agent Team apart.
 
 - **Curated skills**, each under 3k tokens
-  (~200 lines of text). Small enough to read in full, audit in minutes.
+  (~200 lines of text). You can read one in full and audit it in minutes.
 - **No additional infrastructure.** All core surfaces work with only skills and
-  GitHub Actions — no databases, no queues, no custom servers.
-- **Minimal harness.** The orchestration layer is built around the Claude SDK —
-  simple yet incredibly capable.
-- **Minimal runtime dependencies.** Plain JavaScript throughout — the harness
-  (`libharness`) depends on the Claude Agent SDK plus a few small utilities;
-  memory (`libwiki`) pulls in no third-party packages.
+  GitHub Actions. They need no databases, no queues, and no custom servers.
+- **Minimal harness.** The orchestration layer builds on the Claude SDK. The
+  SDK is simple and incredibly capable.
+- **Minimal runtime dependencies.** The code is plain JavaScript throughout.
+  The harness (`libharness`) depends on the Claude Agent SDK plus a few small
+  utilities. Memory (`libwiki`) pulls in no third-party packages.
 
 ## Surfaces
 
@@ -94,46 +94,48 @@ bridge-dispatched workflow.
 **Direct invocation** — IDE sessions run agents locally against the same
 profiles and skills.
 
-**Scheduled workflows** — `kata-shift` runs the full roster three times daily;
-`kata-storyboard` runs the daily meeting; `kata-coaching` runs on demand.
+**Scheduled workflows** — `kata-shift` runs the full roster three times daily.
+`kata-storyboard` runs the daily meeting. `kata-coaching` runs on demand.
 
 **Event-triggered workflows** — `kata-dispatch` fires on issue and PR activity
 (opened, labeled, commented, reviewed, merged).
 
-**Bridge-dispatched workflows** — `ghbridge` fronts GitHub Discussion webhooks;
+**Bridge-dispatched workflows** — `ghbridge` fronts GitHub Discussion webhooks.
 `msbridge` fronts Microsoft Teams conversations. Both build on `libbridge` for
 the shared callback registry, durable per-thread state, and resume-trigger
-contract. The bridge acknowledges on the channel, fires `kata-dispatch` via
-`workflow_dispatch`, and posts the agent's reply back to the thread. Suspended
-conversations (`Recess` in `libharness` discuss mode) resume when the trigger
-condition is met.
+contract. The bridge acknowledges on the channel. It fires `kata-dispatch`
+through `workflow_dispatch`. It posts the agent's reply back to the thread.
+Suspended conversations (`Recess` in `libharness` discuss mode) resume when the
+trigger condition holds.
 
 ## The PDSA Loop
 
 Every workflow belongs to a PDSA phase. Findings from Study always re-enter
-the loop — nothing is observed without downstream action.
+the loop. Every observation leads to downstream action.
 
 ```mermaid
 graph LR
     P["Plan"] --> D["Do"] --> S["Study"] --> A["Act"] --> P
 ```
 
-- **Plan** — Turn approved `spec.md` (WHAT/WHY) into `design-a.md` (WHICH/WHERE)
-  then `plan-a.md` (HOW/WHEN) with steps, files, sequencing, risks.
-- **Do** — Execute plans via implementation PRs; run scheduled workflows that
-  harden, release, and maintain. Every run captures a trace.
+- **Plan** — Turn an approved `spec.md` (WHAT/WHY) into `design-a.md`
+  (WHICH/WHERE). Then turn that into `plan-a.md` (HOW/WHEN) with steps, files,
+  order, and risks.
+- **Do** — Execute plans through implementation PRs. Run scheduled workflows
+  that harden, release, and maintain. Every run captures a trace.
 - **Study** — Analyze Do outputs across four streams: security audits, external
   feedback triage, one-topic-deep doc review, one-trace-deep grounded theory.
-- **Act** — Mechanical findings become **pushed fix PRs**; structural findings
-  become `spec.md` documents on **pushed spec branches** — classify each per
+- **Act** — Mechanical findings become **pushed fix PRs**. Structural findings
+  become `spec.md` documents on **pushed spec branches**. Classify each finding
+  per
   [work-definition.md § Classification tests](.claude/agents/x-work-definition.md#classification-tests).
-  A local commit is not a PR — the URL is the only valid completion signal.
+  A local commit is not a PR. The URL is the only valid completion signal.
   `fix/` and `spec/` branches never mix.
 
 ## Agents
 
-Eight personas with explicit scope constraints — when a finding exceeds scope,
-the agent writes a spec rather than attempting the fix.
+Eight personas carry explicit scope constraints. When a finding exceeds scope,
+the agent writes a spec. The agent does not attempt the fix.
 
 | Agent                 | Phase          | Purpose                                                                 |
 | --------------------- | -------------- | ----------------------------------------------------------------------- |
@@ -146,7 +148,7 @@ the agent writes a spec rather than attempting the fix.
 | **archivist**         | Study, Act     | Retire stale logs, storyboards, and terminal specs once their signal is preserved |
 | **improvement-coach** | Study          | Facilitate storyboard meetings and 1-on-1 coaching sessions             |
 
-Each agent selects work via
+Each agent selects work through
 [on-boot routing](.claude/agents/x-memory-protocol.md#on-boot-routing):
 owned priorities → active claims → storyboard deliverables → domain checks →
 cross-cutting fallback.
@@ -166,26 +168,27 @@ The four PDSA workflows:
 
 <!-- /enum -->
 
-A separate `workflow_dispatch`-only utility, **kata-interview**
-(product-manager, supervises 1 interview agent), runs JTBD product-testing
-interviews outside the PDSA cycle.
+**kata-interview** is a separate `workflow_dispatch`-only utility. The
+product-manager runs it and supervises 1 interview agent. It runs JTBD
+interviews that test the products, outside the PDSA cycle.
 
-**kata-shift** runs the roster sequentially (`max-parallel: 1`, `fail-fast:
-false`). **kata-dispatch** is the event-driven counterpart — the release
-engineer facilitates and routes to the best-suited agent. For bridge-dispatched
-messages, `libharness` discuss mode enables multi-turn threaded conversations
-spanning days via `Recess`/`Adjourn`. kata-dispatch groups concurrency per
-artifact (issue/PR) with `cancel-in-progress: false` so cascaded events stack;
-storyboard, coaching, and interview each use a single global group. All
-workflows support `workflow_dispatch`.
+**kata-shift** runs the roster sequentially
+(`max-parallel: 1`, `fail-fast: false`). **kata-dispatch** is the event-driven
+counterpart. The release engineer facilitates it and routes to the best-suited
+agent. For bridge-dispatched messages, `libharness` discuss mode lets
+multi-turn threaded conversations span days through `Recess`/`Adjourn`.
+kata-dispatch groups concurrency per artifact (issue/PR) with
+`cancel-in-progress: false`, so cascaded events stack. Storyboard, coaching,
+and interview each use a single global group. All workflows support
+`workflow_dispatch`.
 
 **Killswitch** — every `kata-*` workflow checks the `KATA_KILLSWITCH`
-repository (or org) Actions variable as its first step and fails fast when it
-holds a truthy value (anything other than empty, `0`, `false`, `no`, or `off`).
-Set it from the repository's Settings → Secrets and variables → Actions →
-Variables to halt all kata automation at once — scheduled shifts, the
-event-driven dispatcher, and manual dispatches — without disabling each workflow
-individually. Clear or unset it to resume.
+repository (or org) Actions variable as its first step. The workflow fails fast
+when the variable holds a truthy value (anything other than empty, `0`,
+`false`, `no`, or `off`). Set it from the repository's Settings → Secrets and
+variables → Actions → Variables. That halts all kata automation at once:
+scheduled shifts, the event-driven dispatcher, and manual dispatches. You do not
+need to disable each workflow individually. Clear or unset it to resume.
 
 ## Skills
 
@@ -220,10 +223,10 @@ for utilities).
 
 ## Shared Memory
 
-Agents share persistent state via the **GitHub wiki** at `wiki/`, managed by
-`libwiki` and the `gemba-wiki` CLI. The wiki is a separate checkout (not a
-submodule) — `wiki/` is gitignored, cloned on demand, synced by `just
-wiki-pull` on session start and `just wiki-push` on stop.
+Agents share persistent state through the **GitHub wiki** at `wiki/`. `libwiki`
+and the `gemba-wiki` CLI manage it. The wiki is a separate checkout (not a
+submodule). `wiki/` is gitignored and cloned on demand. `just wiki-pull` syncs
+it on session start. `just wiki-push` syncs it on stop.
 
 Memory is the same regardless of which surface triggered the run. A
 scheduled shift, a bridge-dispatched Discussion reply, and an IDE session all
@@ -238,22 +241,22 @@ read and write the same wiki files.
 
 **Cross-agent state:**
 
-- **MEMORY.md** — cross-cutting priorities and active claims (who is working on
+- **MEMORY.md** — cross-cutting priorities and active claims (who works on
   what target, branch, and PR).
 - **STATUS.md** — canonical approval record for every spec (see § Approval
   Signal).
 - **Storyboard** (`storyboard-{YYYY}-M{NN}.md`) — monthly storyboard with
-  per-agent deliverables and experiment tracking.
+  per-agent deliverables. It also tracks experiments.
 - **Metrics** (`metrics/{skill}/{YYYY}.csv`) — per-skill run metrics.
 
-The canonical read-summary, append-log, update-summary cadence is defined in
-[memory-protocol.md](.claude/agents/x-memory-protocol.md). Read
+[memory-protocol.md](.claude/agents/x-memory-protocol.md) defines the canonical
+read-summary, append-log, update-summary cadence. Read
 contract: `Read wiki/MEMORY.md` + `Bash: gemba-wiki boot --agent <self>`.
 
 ## Coordination
 
-Four channels, governed by
-[coordination-protocol.md](.claude/agents/x-coordination-protocol.md):
+[coordination-protocol.md](.claude/agents/x-coordination-protocol.md) governs
+four channels:
 
 | Channel               | Use for                                          | Lifetime                              | Mechanism                    |
 | --------------------- | ------------------------------------------------ | ------------------------------------- | ---------------------------- |
@@ -262,15 +265,16 @@ Four channels, governed by
 | **PR / issue thread** | Real-time response on a specific artifact        | Lives with the artifact               | `kata-dispatch` workflow     |
 | **Sub-agent**         | Specialized inline work within one run           | Ephemeral (one task)                  | `Agent` tool, skill spawning |
 
-Discussions must terminate into a spec, wiki note, or close. PR/issue threads
-are scoped to one artifact; cross-cutting questions belong in a Discussion.
-Sub-agents don't carry state across runs — that's the wiki's job.
+Discussions must end in a spec, a wiki note, or a close. PR/issue threads
+cover one artifact. Cross-cutting questions belong in a Discussion.
+Sub-agents don't carry state across runs. That's the wiki's job.
 
 ## Trust Boundary
 
 The release engineer is the sole external merge point. The product manager
-gates spec quality via PR-comment findings; trusted humans translate those
-into `wiki/STATUS.md` writes that the release engineer reads at merge time.
+gates spec quality through PR-comment findings. Trusted humans translate those
+findings into `wiki/STATUS.md` writes. The release engineer reads those writes
+at merge time.
 
 ```mermaid
 graph TD
@@ -291,19 +295,19 @@ graph TD
 | `spec`           | Specification document only     | Trusted agents, never the contributor |
 | Everything else  | Nothing — requires human review | N/A                                   |
 
-Top-7 contributors pass the trust gate; `kata-agent-team` PRs are trusted by
-identity.
+Top-7 contributors pass the trust gate. The gate trusts `kata-agent-team` PRs
+by identity.
 
-**Retention PRs** preserve this boundary: the archivist opens a
-`retention(specs)` PR to remove terminal spec directories but never pushes to
-`main`; the product manager approves once every target is terminal and its
-durable signal is preserved; the release engineer merges. The release engineer
-stays the sole `main`-push agent.
+**Retention PRs** preserve this boundary. The archivist opens a
+`retention(specs)` PR to remove terminal spec directories. The archivist never
+pushes to `main`. The product manager approves once every target is terminal
+and its durable signal is preserved. The release engineer merges. The release
+engineer stays the sole `main`-push agent.
 
 ## Approval Signal
 
-Approval state is recorded in `wiki/STATUS.md` — a tab-separated file, one
-row per spec: `{id}\t{phase}\t{status}`. STATUS is the canonical record;
+`wiki/STATUS.md` records approval state. It is a tab-separated file with one
+row per spec: `{id}\t{phase}\t{status}`. STATUS is the canonical record.
 `kata-release-merge` reads it to decide which phase PRs may merge.
 
 | Signal | Source | Captured by |
@@ -316,44 +320,45 @@ row per spec: `{id}\t{phase}\t{status}`. STATUS is the canonical record;
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 | retention-PR approval | `product-manager` (retention PRs only) | `kata-release-merge` at the gate |
 
-Agents never autonomously originate `spec approved` or `design approved` —
-they only propagate signals from trusted humans. A human merging a PR is one of
-those signals: when STATUS does not record it, reconcile the row to what was
-merged. A `kata-release-merge` merge is not — the gate merges only what STATUS
-already authorized. Plans may be approved by
-`staff-engineer` after `kata-plan` review; the product manager may originate a
-retention-PR approval, read by `kata-release-merge` at the gate rather than from
-a STATUS row. See
+Agents never autonomously originate `spec approved` or `design approved`. They
+only propagate signals from trusted humans. When a human merges a PR, that
+merge is one of those signals. When STATUS does not record it, reconcile the
+row to what the human merged. A `kata-release-merge` merge is not a signal. The
+gate merges only what STATUS already authorized. `staff-engineer` may approve
+plans after a `kata-plan` review. The product manager may originate a
+retention-PR approval. `kata-release-merge` reads that approval at the gate
+rather than from a STATUS row. See
 [approval-signals.md](.claude/agents/x-approval-signals.md).
 
 ## Metrics
 
 End-to-end skills record per-run counts as CSV rows in
-`wiki/metrics/{skill}/{YYYY}.csv`. The storyboard reads these via `gemba-xmr`
+`wiki/metrics/{skill}/{YYYY}.csv`. The storyboard reads these with `gemba-xmr`
 for control limits.
 
-Every metrics CSV row carries a `host_run` field — `$GITHUB_RUN_ID` when the
-row is written in CI, the literal `local` otherwise — so a row resolves to the
-workflow run that produced it by keyed lookup, not a forensic time-window
-sweep. `gemba-xmr record` fills it automatically. Narrative log entries are
-exempt; they are prose memory, recoverable through the keyed rows they
-accompany.
+Every metrics CSV row carries a `host_run` field. The field holds
+`$GITHUB_RUN_ID` when CI writes the row. Otherwise it holds the literal
+`local`. So a row resolves by keyed lookup to the workflow run that produced
+it. A forensic time-window sweep is not needed. `gemba-xmr record` fills the
+field automatically. Narrative log entries are exempt. They are prose memory.
+The keyed rows they accompany make them recoverable.
 
 ## Design Principles
 
-- **Simplicity over machinery.** Fewer moving parts, fewer failure modes, easier
-  to audit.
+- **Simplicity over machinery.** The system has fewer parts and fewer failure
+  modes. You can audit it more easily.
 - **PDSA over pipeline.** Findings from Study always re-enter the loop.
 - **Fix-or-spec discipline.** Mechanical fixes and structural improvements never
   share a PR.
 - **Explicit scope constraints.** Each agent knows what it must _not_ do.
-- **Trace-driven accountability.** Every run captures a trace; the improvement
+- **Trace-driven accountability.** Every run captures a trace. The improvement
   coach quotes specific evidence. Use `gemba-trace` to query.
 - **Least privilege.** The workflow-level `permissions:` block restricts only
-  `GITHUB_TOKEN`. The App token carries coordination-channel permissions via
-  installation settings.
-- **Surface-agnostic agents.** The same profiles and skills operate identically
-  whether triggered by cron, a GitHub event, or a bridge-relayed message.
+  `GITHUB_TOKEN`. The App token carries coordination-channel permissions
+  through installation settings.
+- **Surface-agnostic agents.** The same profiles and skills operate
+  identically. Cron, a GitHub event, or a bridge-relayed message can trigger
+  them.
 - **App-based auth.** GitHub App `kata-agent-team` with 1-hour installation
   tokens (no PAT). See
   [`github-app.md`](.claude/skills/kata-setup/references/github-app.md).

@@ -1,7 +1,7 @@
 # Discovery Search Recipes
 
-Reference for `req-forget` Step 1. Run every recipe; record every match into the
-inventory.
+Reference for `req-forget` Step 1. Run every recipe. Record every match into
+the inventory.
 
 ## Knowledge base — direct notes
 

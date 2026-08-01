@@ -47,7 +47,11 @@ describe("CellScheduler", () => {
     for await (const r of scheduler.run(makeCells(M))) seen.push(r.taskId);
 
     assert.strictEqual(seen.length, M);
-    assert.strictEqual(new Set(seen).size, M, "no record yielded twice");
+    assert.strictEqual(
+      new Set(seen).size,
+      M,
+      "the scheduler yields no record twice",
+    );
   });
 
   test("a high concurrency over few cells caps in-flight at the cell count", async () => {
@@ -69,7 +73,7 @@ describe("CellScheduler", () => {
     assert.strictEqual(highWater, M);
   });
 
-  test("a rejecting runCell cannot wedge the drain (defensive guard)", async () => {
+  test("a runCell that rejects cannot wedge the drain (defensive guard)", async () => {
     const runCell = async (cell) => {
       if (cell.task.id === "t1") throw new Error("boom");
       return { taskId: cell.task.id, runIndex: cell.runIndex, verdict: "pass" };

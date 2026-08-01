@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/map",
   "version": "0.15.64",
-  "description": "Validate, store, and publish agent-aligned engineering standards so expectations are operational, not tribal.",
+  "description": "Validate, store, and publish agent-aligned engineering standards so expectations are operational instead of tribal.",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
@@ -14,9 +14,9 @@
     {
       "user": "Engineering Leaders",
       "goal": "Define the Engineering Standard",
-      "trigger": "Two managers disagree on what 'senior' means — neither can point to a written definition.",
+      "trigger": "Two managers disagree on what 'senior' means. Neither can point to a written definition.",
       "bigHire": "define what good engineering means so roles have clear, defensible expectations.",
-      "littleHire": "define or update a role's expectations knowing structural mistakes get caught.",
+      "littleHire": "define or update a role's expectations and know that structural mistakes get caught.",
       "competesWith": "tribal knowledge; borrowed frameworks; per-manager intuition; tolerating the ambiguity",
       "forces": {
         "push": "Inconsistent expectations produce contested promotions.",

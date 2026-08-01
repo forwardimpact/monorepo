@@ -37,7 +37,7 @@ describe("aggregate", () => {
     assert.deepStrictEqual(report.tasks[0].passAtK[3], { error: "k > n" });
   });
 
-  test("schema-invalid records are skipped and counted under totals.skipped", async () => {
+  test("aggregate skips schema-invalid records and counts them under totals.skipped", async () => {
     const good = baseRecord({ taskId: "x", runIndex: 0 });
     const bad = { taskId: "x", runIndex: 1 }; // missing required fields
     const runtime = jsonlRuntime([good, bad]);
@@ -347,8 +347,9 @@ describe("renderTextReport (full report)", () => {
 });
 
 describe("renderTextReport (compact report)", () => {
-  // Without includeRuns the report carries no per-run detail, so renderTextReport
-  // selects the compact path — the shape a sharded run's per-shard summary uses.
+  // Without includeRuns the report carries no per-run detail. So
+  // renderTextReport selects the compact path. A sharded run's per-shard
+  // summary uses that shape.
   test("renders status header and pass@k table without per-task detail", async () => {
     const records = [
       baseRecord({ taskId: "alpha", runIndex: 0, verdict: "pass" }),

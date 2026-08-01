@@ -124,7 +124,7 @@ describe("TraceQuery", () => {
 
       assert.strictEqual(results.length, 1);
       assert.ok(results[0].context.length > 0);
-      // Context should include adjacent turns (index 7 and 9)
+      // The context includes the adjacent turns (index 7 and 9)
       const contextIndexes = results[0].context.map((t) => t.index);
       assert.ok(contextIndexes.includes(7));
       assert.ok(contextIndexes.includes(9));
@@ -150,11 +150,11 @@ describe("TraceQuery", () => {
   });
 
   describe("tool", () => {
-    test("returns tool_use and matching tool_result turns", () => {
+    test("returns tool_use turns with their paired tool_result turns", () => {
       const q = new TraceQuery(buildTrace());
       const turns = q.tool("Bash");
 
-      // Should include both Bash tool_use turns and their results
+      // The list includes both Bash tool_use turns and their results
       assert.strictEqual(turns.length, 4);
       assert.strictEqual(turns[0].role, "assistant");
       assert.strictEqual(turns[1].role, "tool_result");
@@ -337,7 +337,7 @@ describe("TraceQuery", () => {
       );
     });
 
-    test("regex filter restricts emission", () => {
+    test("regex filter keeps only the commands it matches", () => {
       const q = new TraceQuery(buildTrace());
       const cmds = q.commands("^npm");
       assert.strictEqual(cmds.length, 1);
@@ -349,12 +349,12 @@ describe("TraceQuery", () => {
     test("frequency-sorts distinct Read/Edit/Write paths", () => {
       const q = new TraceQuery(buildTrace());
       const paths = q.paths();
-      // /app/config.json touched by Read + Edit = count 2
+      // Read + Edit both touch /app/config.json = count 2
       assert.strictEqual(paths[0].path, "/app/config.json");
       assert.strictEqual(paths[0].count, 2);
     });
 
-    test("prefix filter restricts emission", () => {
+    test("prefix filter keeps only the paths it matches", () => {
       const q = new TraceQuery(buildTrace());
       assert.strictEqual(q.paths("/etc").length, 0);
       assert.ok(q.paths("/app").length > 0);
@@ -386,7 +386,8 @@ describe("TraceQuery", () => {
     test("buckets reconcile to result-event totals when they diverge from per-turn sums", () => {
       // Result-event sums are the authoritative population and can differ from
       // the per-turn usage sums (880/100). The buckets must reconcile to the
-      // headline totals exactly, not to the raw per-turn re-count.
+      // headline totals exactly. They must not reconcile to the raw per-turn
+      // re-count.
       const trace = buildTrace({
         summary: {
           tokenUsage: {

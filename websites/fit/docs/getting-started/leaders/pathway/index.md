@@ -3,14 +3,14 @@ title: "Getting Started: Pathway for Leaders"
 description: "Preview your agent-aligned engineering standard in the browser, generate job definitions, and create interview question sets."
 ---
 
-Pathway is your interface to the agent-aligned engineering standard — browse
-roles, generate job definitions, and preview everything in the browser.
+Pathway is your interface to the agent-aligned engineering standard. Use it to
+browse roles, generate job definitions, and preview everything in the browser.
 
 ## Prerequisites
 
 - Node.js 22+
 - npm
-- Standard data initialized via `npx fit-map init` (see
+- Standard data initialized with `npx fit-map init` (see
   [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/)
   for the full setup)
 
@@ -34,8 +34,8 @@ Browse disciplines, levels, and skills to verify everything looks correct.
 
 ## Generate job definitions
 
-Generate a complete job definition by combining a discipline, level, and
-optional track:
+Combine a discipline, level, and optional track to generate a complete job
+definition:
 
 ```sh
 npx fit-pathway job software-engineering J060 --track=platform

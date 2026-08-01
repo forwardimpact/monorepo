@@ -129,15 +129,15 @@ is the canvas. Each utility is a pocket.
 
 ## Icon System Rules
 
-| Rule        | Specification                                                 |
-| ----------- | ------------------------------------------------------------- |
-| Grid        | 24×24px with 2px padding (20px live area)                     |
-| Stroke      | 2px, round caps, round joins                                  |
-| Fill        | None, except Guide's compass needle (north half)              |
-| Color       | `--gray-900` default, `--gray-400` when inactive              |
-| Ground line | 1px stroke at bottom (Pathway, Landmark, Summit, Outpost)     |
-| Style       | Hand-drawn feel: slightly imperfect corners, micro-variation  |
-| Sizes       | 24px (inline), 32px (nav), 48px (cards), 96px (marketing)     |
+| Rule        | Specification                                                |
+| ----------- | ------------------------------------------------------------ |
+| Grid        | 24×24px with 2px padding (20px live area)                    |
+| Stroke      | 2px, round caps, round joins                                 |
+| Fill        | None, except Guide's compass needle (north half)             |
+| Color       | `--gray-900` default, `--gray-400` when inactive             |
+| Ground line | 1px stroke at bottom (Pathway, Landmark, Summit, Outpost)    |
+| Style       | Hand-drawn feel: slightly imperfect corners, micro-variation |
+| Sizes       | 24px (inline), 32px (nav), 48px (cards), 96px (marketing)    |
 
 ## Combined Icon: The Suite Mark
 

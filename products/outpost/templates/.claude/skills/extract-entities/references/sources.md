@@ -19,11 +19,11 @@ Calendar events. Internal-only meetings still enrich Project and Topic notes
 (decisions, agenda items). Only skip all-day placeholders with no attendees and
 no description (e.g. "Block", "OOO").
 
-**Stub guard:** calendar attendance alone never creates a People note — calendar
-events only *enrich* existing notes (see the table below). An attendee who is
-only on the invite list, with no interaction or decision attributed to them, is
-not profiled. If they matter, they go in the Organization's `## Contacts`. Never
-write a placeholder profile; see the
+**Stub guard:** calendar attendance alone never creates a People note. Calendar
+events only *enrich* existing notes (see the table below). Do not profile an
+attendee who is only on the invite list, with no interaction or decision
+attributed to them. If they matter, they go in the Organization's `## Contacts`.
+Never write a placeholder profile. See the
 [minimum content bar](resolution.md#minimum-content-bar--no-stubs).
 
 ## Skip entirely
@@ -54,9 +54,9 @@ write a placeholder profile; see the
 If an email is a warm introduction from someone with a note, and they introduce
 a new person, **create** a note for the introduced person.
 
-Signals: subject contains "Intro:", "Introduction:", "Meet", "Connecting"; body
-contains "introduce you to", "want to connect", "meet [Name]"; new person is
-CC'd.
+Signals: the subject contains "Intro:", "Introduction:", "Meet", or
+"Connecting". The body contains "introduce you to", "want to connect", or
+"meet [Name]". The sender CCs the new person.
 
 ## Self-exclusion
 

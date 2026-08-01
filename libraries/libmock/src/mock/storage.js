@@ -1,8 +1,8 @@
 import { spy } from "./spy.js";
 /**
- * Creates a mock storage instance with tracking
+ * Creates a mock storage instance that tracks data
  * @param {object} overrides - Method overrides
- * @returns {object} Mock storage with data tracking
+ * @returns {object} Mock storage that tracks data
  */
 export function createMockStorage(overrides = {}) {
   const data = new Map();
@@ -78,7 +78,7 @@ export class MockStorage {
   }
 
   /**
-   * Alias for put - stores a value by key
+   * Alias for put. Stores a value by key
    * @param {string} key - The storage key
    * @param {*} value - The value to store
    * @returns {Promise<void>}
@@ -101,7 +101,7 @@ export class MockStorage {
   /**
    * Checks if a key exists
    * @param {string} key - The storage key
-   * @returns {Promise<boolean>} True if key exists
+   * @returns {Promise<boolean>} True if the key exists
    */
   async exists(key) {
     return this.data.has(key);

@@ -1,13 +1,13 @@
 /**
- * Handles service and client generation from protobuf files
- * Specializes in gRPC service base classes and client generation
+ * Generates the services and the clients from the protobuf files
+ * Specializes in gRPC service base classes and in gRPC clients
  */
 export class CodegenServices {
   #base;
 
   /**
    * Creates a new services generator with base functionality
-   * @param {object} base - CodegenBase instance providing shared utilities
+   * @param {object} base - CodegenBase instance that provides shared utilities
    */
   constructor(base) {
     if (!base) throw new Error("CodegenBase instance is required");
@@ -35,7 +35,7 @@ export class CodegenServices {
   }
 
   /**
-   * Generate services exports file with all service bases and clients
+   * Generate the services exports file with all the service bases and clients
    * @param {string} generatedPath - Path to generated code directory
    * @returns {Promise<void>}
    */
@@ -95,9 +95,9 @@ export class CodegenServices {
 
   /**
    * Remove generated service dirs whose proto no longer exists. The
-   * generated tree is fully machine-owned, so pruning is safe; without
-   * it a proto rename leaves the old dir behind and re-enters it into
-   * exports.js on every regeneration.
+   * generated tree is fully machine-owned, so the prune is safe. Without
+   * the prune, a proto rename leaves the old dir behind. Every
+   * regeneration then re-enters that dir into exports.js.
    * @param {string} serviceDir - Path to generated/services
    */
   #pruneStaleDirs(serviceDir) {

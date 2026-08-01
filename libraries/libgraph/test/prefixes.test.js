@@ -17,7 +17,7 @@ describe("RDF_PREFIXES", () => {
     );
   });
 
-  test("preserves the existing schema, rdf, rdfs, foaf, and ex prefixes", () => {
+  test("preserves the schema, rdf, rdfs, foaf, and ex prefixes", () => {
     assert.strictEqual(RDF_PREFIXES.schema, "https://schema.org/");
     assert.strictEqual(
       RDF_PREFIXES.rdf,
@@ -36,9 +36,10 @@ describe("GraphIndex prefix resolution", () => {
   let graphIndex;
 
   beforeEach(() => {
-    // The default mock storage rejects on missing keys; #getTypesWithSynonyms
-    // calls storage.get("ontology.ttl") and any rejection bubbles up.  We
-    // don't need ontology synonyms here, so return an empty string instead.
+    // The default mock storage rejects a key it does not hold.
+    // #getTypesWithSynonyms calls storage.get("ontology.ttl"). Any rejection
+    // bubbles up. We do not need ontology synonyms here. Return an empty
+    // string instead.
     ({ graphIndex } = createGraphIndexFixture({
       GraphIndex,
       Store,

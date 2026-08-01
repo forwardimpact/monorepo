@@ -5,24 +5,24 @@ description: >
   hire. Uses WebFetch to read public APIs (HN Algolia, GitHub, dev.to).
   Writes prospect notes to Knowledge/Prospects/. Maintains
   cursor/dedup state in ~/.cache/fit/outpost/head-hunter/. Use when the
-  head-hunter agent is woken or when the user asks to scan for open candidates.
+  scheduler wakes the head-hunter agent or when the user asks to scan for open
+  candidates.
 ---
 
 # Scan Open Candidates
 
 Fetch and filter publicly available candidate posts from platforms where people
-**explicitly indicate** they are open for hire. This skill handles fetching,
-filtering, deduplication, benchmarking, prospect-note writing, and memory
-updates.
+**explicitly indicate** they are open for hire. This skill fetches, filters,
+deduplicates, benchmarks, writes prospect notes, and updates memory.
 
 ## Trigger
 
-- The head-hunter agent is woken by the scheduler.
+- The scheduler wakes the head-hunter agent.
 - The user asks to scan for open candidates or prospects.
 
 ## Prerequisites
 
-- `WebFetch` tool available (Claude Code built-in — no curl/wget).
+- `WebFetch` tool available (a Claude Code built-in, no curl/wget).
 - `fit-pathway` CLI available (`bunx fit-pathway`).
 - Memory directory `~/.cache/fit/outpost/head-hunter/`.
 
@@ -40,18 +40,18 @@ updates.
 
 <do_confirm_checklist goal="Verify the wake produced a clean, ethical scan">
 
-- [ ] Selected the least-recently-checked, non-suspended source.
-- [ ] Fetched via `WebFetch` (never curl/wget).
-- [ ] Applied all 5 filters in order; passed candidates have ≥ 2
+- [ ] Select the least-recently-checked source that is not suspended.
+- [ ] Fetch with `WebFetch` (never curl/wget).
+- [ ] Apply all 5 filters in order. Confirm each passed candidate has ≥ 2
       standard-relevant skills.
-- [ ] Deduplicated against `seen.tsv` before processing.
-- [ ] Benchmarked each prospect against a real `bunx fit-pathway job`.
-- [ ] Prospect notes follow the template (no fabricated names).
-- [ ] All state mutations went through `node scripts/state.mjs` — cursor, seen,
-      prospects, failures, log.
-- [ ] Triage report written to the state directory; alternative queries (if any)
-      logged.
-- [ ] Failures recorded; sources with ≥ 3 consecutive failures suspended.
+- [ ] Deduplicate against `seen.tsv` before you process a candidate.
+- [ ] Benchmark each prospect against a real `bunx fit-pathway job`.
+- [ ] Follow the template for every prospect note (no fabricated names).
+- [ ] Route every state mutation through `node scripts/state.mjs`: cursor,
+      seen, prospects, failures, log.
+- [ ] Write the triage report to the state directory. Log any alternative
+      queries.
+- [ ] Record every failure. Suspend a source at ≥ 3 consecutive failures.
 
 </do_confirm_checklist>
 
@@ -75,12 +75,12 @@ follow [references/filters.md](references/filters.md#failure-handling).
 ### 3. Filter
 
 Apply the 5-filter pipeline in
-[references/filters.md](references/filters.md#filter-pipeline) — signal, dedup,
+[references/filters.md](references/filters.md#filter-pipeline): signal, dedup,
 geographic, skill alignment, experience level.
 
 ### 3b. Fallback — zero new prospects
 
-If filtering eliminates every candidate, try up to **3 alternatives** per wake
+If the filters eliminate every candidate, try up to **3 alternatives** per wake
 from [references/fallbacks.md](references/fallbacks.md). Log every alternative
 in `log.md`.
 
@@ -99,7 +99,7 @@ Classify match strength:
 - **moderate** — some overlap, level roughly right, minor gaps.
 - **weak** — few matching signals, significant gaps.
 
-Write notes for **strong** and **moderate** matches only, using the template in
+Write notes for **strong** and **moderate** matches only. Use the template in
 [references/template.md](references/template.md).
 
 ```bash
@@ -108,8 +108,8 @@ mkdir -p "Knowledge/Prospects"
 
 ### 5. Update state
 
-All state changes go through `node scripts/state.mjs` — full command reference:
-[references/state.md](references/state.md). Each wake:
+All state changes go through `node scripts/state.mjs`. The full command
+reference is [references/state.md](references/state.md). Each wake:
 
 1. Update the cursor (`cursor set`).
 2. Reset failure count on success or increment on failure.

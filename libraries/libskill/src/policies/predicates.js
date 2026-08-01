@@ -1,12 +1,12 @@
 /**
  * Entry-Level Predicate Functions
  *
- * Pure predicates that operate on single skill/behaviour matrix entries.
- * Each predicate takes one entry and returns boolean.
+ * This module holds pure predicates that operate on single skill/behaviour
+ * matrix entries. Each predicate takes one entry and returns a boolean.
  *
- * Naming conventions:
+ * Conventions for names:
  * - is* - checks a boolean condition
- * - has* - checks presence of a value
+ * - has* - checks the presence of a value
  * - allOf/anyOf/not - combinators
  */
 
@@ -16,7 +16,7 @@ import { getSkillProficiencyIndex } from "../levels.js";
 // Identity Predicates
 // =============================================================================
 
-/** Always returns true (identity predicate for optional filtering) */
+/** Always returns true (identity predicate for optional filters) */
 export const isAny = () => true;
 
 /** Always returns false (null predicate) */
@@ -27,14 +27,14 @@ export const isNone = () => false;
 // =============================================================================
 
 /**
- * Returns true if skill is marked as human-only
+ * Returns true if the skill is marked as human-only
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
 export const isHumanOnly = (entry) => entry.isHumanOnly === true;
 
 /**
- * Returns true if skill is NOT human-only (agent-eligible)
+ * Returns true if the skill is NOT human-only (agent-eligible)
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
@@ -45,35 +45,35 @@ export const isAgentEligible = (entry) => !entry.isHumanOnly;
 // =============================================================================
 
 /**
- * Returns true if skill tier is core
+ * Returns true if the skill tier is core
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
 export const isCore = (entry) => entry.type === "core";
 
 /**
- * Returns true if skill tier is supporting
+ * Returns true if the skill tier is supporting
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
 export const isSupporting = (entry) => entry.type === "supporting";
 
 /**
- * Returns true if skill tier is broad
+ * Returns true if the skill tier is broad
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
 export const isBroad = (entry) => entry.type === "broad";
 
 /**
- * Returns true if skill tier is track
+ * Returns true if the skill tier is track
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
 export const isTrack = (entry) => entry.type === "track";
 
 /**
- * Returns true if skill is in the deep tier (core or supporting)
+ * Returns true if the skill is in the deep tier (core or supporting)
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
@@ -81,7 +81,7 @@ export const isDeep = (entry) =>
   entry.type === "core" || entry.type === "supporting";
 
 /**
- * Returns true if skill is in the breadth tier (broad or track)
+ * Returns true if the skill is in the breadth tier (broad or track)
  * @param {Object} entry - Skill matrix entry
  * @returns {boolean}
  */
@@ -93,7 +93,7 @@ export const isBreadth = (entry) =>
 // =============================================================================
 
 /**
- * Create predicate for skills at or above a minimum level
+ * Create a predicate for skills at or above a minimum level
  * @param {string} minLevel - Minimum skill proficiency
  * @returns {(entry: Object) => boolean}
  */
@@ -103,7 +103,7 @@ export function hasMinLevel(minLevel) {
 }
 
 /**
- * Create predicate for skills at exactly a specific level
+ * Create a predicate for skills at exactly a specific level
  * @param {string} level - Exact skill proficiency to match
  * @returns {(entry: Object) => boolean}
  */
@@ -113,8 +113,8 @@ export function hasLevel(level) {
 }
 
 /**
- * Create predicate for skills below a level threshold
- * @param {string} maxLevel - Level that must NOT be reached
+ * Create a predicate for skills below a level threshold
+ * @param {string} maxLevel - Level the skill must NOT reach
  * @returns {(entry: Object) => boolean}
  */
 export function hasBelowLevel(maxLevel) {
@@ -127,7 +127,7 @@ export function hasBelowLevel(maxLevel) {
 // =============================================================================
 
 /**
- * Create predicate for skills in a specific capability
+ * Create a predicate for skills in a specific capability
  * @param {string} capability - Capability to match
  * @returns {(entry: Object) => boolean}
  */
@@ -136,7 +136,7 @@ export function isInCapability(capability) {
 }
 
 /**
- * Create predicate for skills in any of the specified capabilities
+ * Create a predicate for skills in any of the specified capabilities
  * @param {string[]} capabilities - Capabilities to match
  * @returns {(entry: Object) => boolean}
  */

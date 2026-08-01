@@ -1,12 +1,12 @@
 /**
- * Test-only mock factory for AgentRunner. Yields pre-scripted responses
- * and dispatches any embedded `tool_use` blocks through `toolDispatcher`
- * so orchestration tests can exercise the Ask / Answer / Announce
- * flow without a real SDK.
+ * Test-only mock factory for AgentRunner. It yields pre-scripted
+ * responses. It dispatches any embedded `tool_use` blocks through
+ * `toolDispatcher`. Orchestration tests can then exercise the Ask /
+ * Answer / Announce flow without a real SDK.
  *
- * Intentionally a regular module (not a `.test.js` file) so describe /
- * test blocks here would not run. Lives under test/ to make its scope
- * explicit.
+ * This file is deliberately a regular module and not a `.test.js` file.
+ * So describe and test blocks here do not run. It lives under test/ to
+ * make its scope explicit.
  */
 
 import { PassThrough } from "node:stream";
@@ -30,12 +30,13 @@ async function dispatchTools(toolDispatcher, message) {
  *
  * @param {Array<{text: string, success?: boolean}>} responses
  * @param {object[][]} [messages] - Per-call message arrays. Each entry
- *   is the list of SDK messages the runner emits for that call. If
- *   omitted, a single `{type:"assistant", content: resp.text}` is
- *   synthesised per call.
+ *   is the list of SDK messages the runner emits for that call. If you
+ *   omit it, the factory synthesises a single
+ *   `{type:"assistant", content: resp.text}` per call.
  * @param {object} [opts]
  * @param {Record<string, function>} [opts.toolDispatcher] - Map of tool
- *   name to handler. Called for every `tool_use` block in the script.
+ *   name to handler. The runner calls it for every `tool_use` block in
+ *   the script.
  */
 export function createMockRunner(responses, messages, { toolDispatcher } = {}) {
   const output = new PassThrough();

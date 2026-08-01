@@ -5,7 +5,7 @@ import { formatHeader, formatSubheader } from "./format.js";
 export class HelpRenderer {
   #proc;
 
-  /** Store the process handle for stdout access and color detection. */
+  /** Store the process handle so the renderer can write to stdout and detect color. */
   constructor({ process }) {
     this.#proc = process;
   }

@@ -1,9 +1,9 @@
 /**
  * Enricher — Pass 2 LLM enrichment of prose blocks.
  *
- * Finds all elements with `data-enrich` attributes in Pass 1 HTML,
- * calls ProseGenerator to generate rich prose with inline microdata,
- * and replaces placeholder content.
+ * The enricher finds all elements with `data-enrich` attributes in Pass 1
+ * HTML. It calls ProseGenerator to generate rich prose with inline
+ * microdata. It then replaces the placeholder content.
  *
  * @module libterrain/render/enricher
  */
@@ -180,7 +180,7 @@ function buildEnrichContext(enrichKey, linked) {
 }
 
 /**
- * Build the LLM prompt for enriching a prose block.
+ * Build the LLM prompt that enriches a prose block.
  * @param {object} ctx - Context from buildEnrichContext
  * @param {string} placeholder - Current placeholder text
  * @param {string} domain - Terrain domain for IRI constraint
@@ -191,23 +191,23 @@ function buildEnrichMessages(ctx, placeholder, domain) {
     .map((m) => `- ${m.type}: ${m.name} (${m.iri})`)
     .join("\n");
 
-  const system = `You are a technical writer producing HTML content with Schema.org microdata for a pharmaceutical company knowledge base.
-Output only the inner HTML content — no wrapper tags, no markdown fences.
-Write 300-500 words of detailed, rich prose across multiple paragraphs. Mention entities using inline Schema.org microdata spans.
+  const system = `You are a technical writer. You produce HTML content with Schema.org microdata for the knowledge base of a pharmaceutical company.
+Output only the inner HTML content. Do not add wrapper tags. Do not add markdown fences.
+Write 300-500 words of detailed, rich prose across multiple paragraphs. Mention entities with inline Schema.org microdata spans.
 Only use the exact IRIs provided. Do not invent new IRIs. All itemid values must start with "https://${domain}/id/".`;
 
   const user = `Rewrite this text block for a ${ctx.entityType} document about "${ctx.entityName}".
 
 Current text: "${placeholder}"
 
-Write 300-500 words of detailed prose across 3-5 paragraphs. Naturally mention these entities using Schema.org microdata:
+Write 300-500 words of detailed prose across 3-5 paragraphs. Naturally mention these entities with Schema.org microdata:
 
 ${mentionList}
 
 Use this pattern for inline mentions:
 <span itemprop="mentions" itemscope itemtype="https://schema.org/{{type}}" itemid="{{iri}}"><span itemprop="name">{{name}}</span></span>
 
-Output only the HTML content for the block — no wrapper tags.`;
+Output only the HTML content for the block. Do not add wrapper tags.`;
 
   return [
     { role: "system", content: system },
@@ -246,7 +246,7 @@ function stripOffDomainIris(html, domain) {
 
 /**
  * Close any unclosed HTML tags in LLM-generated prose.
- * Tracks open/close tags and appends missing closing tags.
+ * This function tracks open/close tags. It appends the missing closing tags.
  * @param {string} html
  * @returns {string}
  */
@@ -288,7 +288,7 @@ function balanceTags(html) {
 }
 
 /**
- * Enrich all prose blocks in HTML documents via LLM.
+ * Enrich all prose blocks in HTML documents with an LLM.
  * @param {Map<string, string>} htmlFiles - filename → HTML content from Pass 1
  * @param {object} linked - LinkedEntities from link-assigner
  * @param {import('@forwardimpact/libsyntheticprose').ProseGenerator} proseGenerator

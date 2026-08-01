@@ -1,14 +1,14 @@
 ---
 name: doc-create
-description: Generate PDF documents from user requests using Playwright to render HTML to A4 PDF. Use when the user asks to create a document, proposal, report, or any multi-page PDF that is not a slide deck. Pulls context from the knowledge base for company info, project details, and people.
+description: Generate PDF documents from user requests. Playwright renders the HTML to an A4 PDF. Use when the user asks to create a document, proposal, report, or any multi-page PDF that is not a slide deck. Pulls context from the knowledge base for company info, project details, and people.
 compatibility: Requires Node.js installed. Playwright is installed on first use.
 ---
 
 # Create Documents
 
-Generate multi-page A4 PDF documents from user requests. Uses Playwright to
-render self-contained HTML to PDF. Can pull context from the knowledge base for
-company info, project details, and people.
+Generate multi-page A4 PDF documents from user requests. This skill uses
+Playwright to render self-contained HTML to PDF. It can pull context from the
+knowledge base for company info, project details, and people.
 
 ## Trigger
 
@@ -18,7 +18,7 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 ## Prerequisites
 
 - Node.js installed
-- Playwright will be installed on first use
+- Playwright installs on first use
 
 ## Inputs
 
@@ -36,21 +36,21 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 
 1. Check `Knowledge/` for relevant context about the company, product, team,
    projects, or people mentioned.
-2. Ensure Playwright is installed:
+2. Make sure Playwright is installed:
    `bun install playwright && bunx playwright install chromium`
 3. Create a self-contained HTML file with all CSS inlined. The HTML must handle
-   its own page layout — see **HTML Document Rules** below.
+   its own page layout. See **HTML Document Rules** below.
 4. Run the conversion script:
 
    ```text
     node .claude/skills/doc-create/scripts/convert-to-pdf.mjs <input.html> [output.pdf]
    ```
 
-   If output is omitted, the PDF is written alongside the HTML file with the
-   same name.
+   If you omit the output path, the script writes the PDF next to the HTML file
+   with the same name.
 5. Read the PDF back to visually verify it renders correctly. Check each page
-   for overflow, clipped content, and correct page breaks. Fix and re-render if
-   needed.
+   for overflow, clipped content, and correct page breaks. If you find a
+   problem, fix it and re-render.
 
 **Do NOT show HTML code to the user. Just create the PDF and deliver it.**
 
@@ -60,8 +60,9 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 
 - Each page is a `<div class="page">` sized to exactly 210mm × 297mm (A4)
 - Use `page-break-after: always` on every `.page` except the last
-- Handle margins with padding inside `.page`, not with PDF margin settings
-- The PDF is rendered with zero margins — the HTML owns all spacing
+- Handle margins with padding inside `.page` rather than with PDF margin
+  settings
+- Playwright renders the PDF with zero margins, so the HTML owns all spacing
 
 **Print colours:**
 
@@ -70,16 +71,16 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 
 **Fonts:**
 
-- Use system fonts only — no external font loading
+- Use system fonts only, and do not load an external font
 - Monospace stack: `'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace`
 - Sans-serif stack:
   `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`
 
-**Content fitting:**
+**Fit the content:**
 
 - After the first render, visually check every page for overflow
-- Content must not bleed past the `.page` boundary — if it does, reduce spacing
-  or font sizes and re-render
+- Content must not bleed past the `.page` boundary. If it does, reduce spacing
+  or font sizes, then re-render
 - Page numbers, if used, must not overlap with content. Position them in a
   corner that has whitespace
 
@@ -93,14 +94,14 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 
 - Use absolute `file://` paths for local images
 - Inline small images as base64 data URIs when possible
-- Verify images appear in the rendered PDF — Playwright can fail silently on
-  missing images
+- Verify images appear in the rendered PDF, because Playwright can fail silently
+  on missing images
 
 ## Design Principles
 
 - Clean, professional typography with clear hierarchy
 - Use monospace for section headers and numbers for a technical/engineering feel
-- Tables should be compact and readable — right-align monetary values
+- Keep tables compact and readable, and right-align monetary values
 - Use colour sparingly: one accent colour, one dark, lots of white space
 - Dark-background panels (timelines, hero sections) create visual contrast
 - Callout boxes with left borders draw attention to key statements

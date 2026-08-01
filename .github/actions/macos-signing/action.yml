@@ -1,11 +1,12 @@
 name: macOS signing setup
 description: >
-  Import Developer ID signing certificates into a temporary keychain so
-  codesign/productbuild can sign with a real identity. No-ops (enabled=false)
-  when no certificate is supplied, so builds fall back to ad-hoc signing.
-  Accepts the Application cert, the Installer cert, or both. On success,
-  exports MACOS_SIGN_IDENTITY and/or MACOS_INSTALLER_IDENTITY to the job
-  environment for sign-app.sh and build-pkg.sh to consume.
+  Import the Developer ID signing certificates into a temporary keychain, so
+  codesign and productbuild can sign with a real identity. The action does
+  nothing (enabled=false) when the caller supplies no certificate, so builds
+  fall back to ad-hoc signing. The action accepts the Application cert, the
+  Installer cert, or both. On success it exports MACOS_SIGN_IDENTITY,
+  MACOS_INSTALLER_IDENTITY, or both to the job environment. sign-app.sh and
+  build-pkg.sh then consume them.
 
 inputs:
   app-cert-base64:
@@ -27,7 +28,7 @@ inputs:
 
 outputs:
   enabled:
-    description: "true when a signing certificate was imported"
+    description: "true when the action imported a signing certificate"
     value: ${{ steps.setup.outputs.enabled }}
   app-identity:
     description: Developer ID Application identity name
@@ -50,7 +51,7 @@ runs:
         set -euo pipefail
 
         if [ -z "$APP_CERT_B64" ] && [ -z "$INSTALLER_CERT_B64" ]; then
-          echo "No Developer ID certificate supplied — falling back to ad-hoc signing."
+          echo "The caller supplied no Developer ID certificate. The build falls back to ad-hoc signing."
           echo "enabled=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
@@ -78,8 +79,8 @@ runs:
           import_cert "$INSTALLER_CERT_B64" "$INSTALLER_CERT_PW"
         fi
 
-        # Let codesign/productbuild use the private keys without an interactive
-        # prompt, and put this keychain in the user search list.
+        # Let codesign and productbuild use the private keys without an
+        # interactive prompt. Put this keychain in the user search list.
         security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PW" "$KEYCHAIN" >/dev/null
         security list-keychains -d user -s "$KEYCHAIN" \
           $(security list-keychains -d user | sed -e 's/^[[:space:]]*//' -e 's/"//g')
@@ -88,7 +89,7 @@ runs:
           APP_IDENTITY="$(security find-identity -v -p codesigning "$KEYCHAIN" \
             | sed -n 's/.*"\(Developer ID Application:[^"]*\)".*/\1/p' | head -1)"
           if [ -z "$APP_IDENTITY" ]; then
-            echo "::error::Developer ID Application identity not found after import"
+            echo "::error::the keychain has no Developer ID Application identity after import"
             exit 1
           fi
           echo "MACOS_SIGN_IDENTITY=$APP_IDENTITY" >> "$GITHUB_ENV"
@@ -99,7 +100,7 @@ runs:
           INSTALLER_IDENTITY="$(security find-identity -v "$KEYCHAIN" \
             | sed -n 's/.*"\(Developer ID Installer:[^"]*\)".*/\1/p' | head -1)"
           if [ -z "$INSTALLER_IDENTITY" ]; then
-            echo "::error::Developer ID Installer identity not found after import"
+            echo "::error::the keychain has no Developer ID Installer identity after import"
             exit 1
           fi
           echo "MACOS_INSTALLER_IDENTITY=$INSTALLER_IDENTITY" >> "$GITHUB_ENV"
@@ -107,4 +108,4 @@ runs:
         fi
 
         echo "enabled=true" >> "$GITHUB_OUTPUT"
-        echo "Imported Developer ID identities into a temporary keychain."
+        echo "The action imported the Developer ID identities into a temporary keychain."

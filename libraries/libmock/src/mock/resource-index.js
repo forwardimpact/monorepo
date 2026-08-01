@@ -72,9 +72,9 @@ export function createMockResourceIndex(options = {}) {
     },
 
     /**
-     * Find resources by prefix
+     * Finds resources by prefix
      * @param {string} prefix - Prefix to search for
-     * @returns {Promise<string[]>} List of matching keys
+     * @returns {Promise<string[]>} List of keys that match
      */
     async findByPrefix(prefix) {
       const keys = [];

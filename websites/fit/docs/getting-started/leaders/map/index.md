@@ -6,15 +6,15 @@ description: "Initialize your agent-aligned engineering standard, validate again
 Map is the data product at the centre of every other tool. It has two layers
 that you set up in order:
 
-1. **Standard layer** — YAML files defining your skills, behaviours, levels,
-   disciplines, and tracks. Validated locally with `npx fit-map validate`. This
-   is what Pathway, Outpost, and `libskill` consume.
+1. **Standard layer** — YAML files that define your skills, behaviours, levels,
+   disciplines, and tracks. Validate them locally with `npx fit-map validate`.
+   Pathway, Outpost, and `libskill` consume this layer.
 2. **Activity layer** — A Supabase database that stores your organization
-   roster, GitHub activity, evidence, and GetDX snapshots. Powers Landmark and
-   Summit, and lets Guide write skill evidence back against agent-aligned
-   engineering standard markers.
+   roster, GitHub activity, evidence, and GetDX snapshots. It powers Landmark
+   and Summit. It also lets Guide write skill evidence back against markers in
+   the agent-aligned engineering standard.
 
-The standard layer is required. The activity layer is optional but unlocks
+The standard layer is required. The activity layer is optional. It unlocks
 everything Landmark and Summit do.
 
 ## Prerequisites
@@ -30,20 +30,19 @@ npm install @forwardimpact/map
 
 ## Agent-Aligned Engineering Standard: initialize starter data
 
-Bootstrap a complete agent-aligned engineering standard skeleton with editable
-YAML files:
+Bootstrap a complete skeleton of the agent-aligned engineering standard with
+editable YAML files:
 
 ```sh
 npx fit-map init
 ```
 
 This creates `./data/pathway/` with starter definitions for levels, disciplines,
-capabilities, skills, behaviours, drivers, and tracks, plus a
-`./config/config.json` so subsequent `fit-map` commands anchor their
-configuration at the project root. The starter data is a working
-agent-aligned engineering standard you can customize to match your
-organization. Re-running `npx fit-map init` against an existing project is
-a no-op — already-copied files are preserved.
+capabilities, skills, behaviours, drivers, and tracks. It also creates a
+`./config/config.json`, so later `fit-map` commands anchor their configuration
+at the project root. The starter data is a working agent-aligned engineering
+standard you can customize to match your organization. `npx fit-map init` is a
+no-op against an existing project. It keeps the files it already copied.
 
 ## Agent-Aligned Engineering Standard: validate
 
@@ -53,7 +52,7 @@ Run the validator to check your YAML files against the schema:
 npx fit-map validate
 ```
 
-Fix any errors the validator reports before moving on.
+Fix any errors the validator reports before you continue.
 
 ## Agent-Aligned Engineering Standard: customize
 
@@ -89,8 +88,8 @@ baseline expectations for skill proficiency and behaviour maturity.
 
 ### Capabilities and skills
 
-Edit files under `data/pathway/capabilities/` to define capability groups
-containing skills. Each skill needs a `human:` section with proficiency
+Edit files under `data/pathway/capabilities/` to define capability groups that
+contain skills. Each skill needs a `human:` section with proficiency
 descriptions at all five levels.
 
 ```yaml
@@ -142,8 +141,8 @@ After each change, re-validate with `npx fit-map validate`.
 
 The activity layer runs on Supabase. You need the Supabase CLI to start a local
 instance and to deploy migrations and edge functions to a hosted project.
-`fit-map` wraps the CLI for every activity workflow and will find it whether you
-install it via Homebrew or as an npm package.
+`fit-map` wraps the CLI for every activity workflow. It finds the CLI whether
+you install it with Homebrew or as an npm package.
 
 ```sh
 # macOS via Homebrew (recommended if you have brew)
@@ -155,9 +154,9 @@ npm install supabase
 # Linux / Windows — see https://supabase.com/docs/guides/local-development
 ```
 
-`fit-map` prefers a `supabase` binary on your `PATH` and falls back to
-`npx supabase` (resolving from your project's `node_modules`) if one is not
-found, so the npm-local install works without any PATH setup.
+`fit-map` prefers a `supabase` binary on your `PATH`. If it finds none, it falls
+back to `npx supabase` and resolves it from your project's `node_modules`. So
+the npm-local install works without any PATH setup.
 
 Verify the install:
 
@@ -169,9 +168,10 @@ npx supabase --version
 
 ## Activity: start the database
 
-Map ships its full Supabase project — `config.toml`, migrations, edge functions,
-and `kong.yml` — inside the npm package. `fit-map activity start` runs
-`supabase start` against the bundled project so you don't need to `cd` anywhere:
+Map ships its full Supabase project inside the npm package. The project holds
+`config.toml`, migrations, edge functions, and `kong.yml`.
+`fit-map activity start` runs `supabase start` against the bundled project, so
+you don't need to `cd` anywhere:
 
 ```sh
 npx fit-map activity start
@@ -179,9 +179,9 @@ npx fit-map activity start
 
 The CLI prints a one-line ready confirmation when the stack is up. Every
 ingestion command reads `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`
-from `.env` — `just env-setup` (for monorepo contributors) or your
-hosted Supabase project's API settings provide them. No export step
-is needed.
+from `.env`. `just env-setup` (for monorepo contributors) or your
+hosted Supabase project's API settings provide them. You do not need
+an export step.
 
 To stop the local instance:
 
@@ -189,15 +189,15 @@ To stop the local instance:
 npx fit-map activity stop
 ```
 
-To check whether the local stack is running and the activity schema is
+To check that the local stack is up and the activity schema is
 reachable:
 
 ```sh
 npx fit-map activity status
 ```
 
-For a hosted deployment, link the project once, push the migrations, and deploy
-all four edge functions:
+For a hosted deployment, link the project once. Push the migrations. Deploy all
+four edge functions:
 
 ```sh
 supabase link --project-ref <your-project-ref>
@@ -221,7 +221,8 @@ Additional evolutionary migrations under `products/map/supabase/migrations/`
 extend the schema (driver columns, RLS policies, evidence keys). All bundled
 migrations apply in lexical order on first start.
 
-To re-apply migrations against a clean local database (this drops your data):
+This command re-applies migrations against a clean local database. It drops your
+data:
 
 ```sh
 npx fit-map activity migrate
@@ -253,21 +254,21 @@ Create a `people.yaml` file with your roster:
   manager_email: null
 ```
 
-CSV is also supported. Use the same column names as the YAML keys.
+Map also supports CSV. Use the same column names as the YAML keys.
 
 ### Step 1: validate locally
 
 `fit-map people validate` checks the file against your agent-aligned engineering
-standard — every `discipline`, `level`, and `track` must exist in
+standard. Every `discipline`, `level`, and `track` must exist in
 `data/pathway/`. It does not talk to Supabase. Treat this as a fast pre-flight
-check before pushing to the database.
+check before you push to the database.
 
 ```sh
 npx fit-map people validate ./people.yaml
 ```
 
-The CLI reports validation errors row by row. Fix them in `people.yaml` and
-re-run until you see a clean result.
+The CLI reports validation errors row by row. Fix them in `people.yaml`. Re-run
+the command until you see a clean result.
 
 ### Step 2: push to Supabase
 
@@ -277,16 +278,16 @@ Once validation passes, push the roster into the activity database:
 npx fit-map people push ./people.yaml
 ```
 
-`fit-map people push` stores the file in the `raw` bucket for audit, then
-upserts it into `activity.organization_people`. People without a manager are
-inserted before people with one, so the `manager_email` foreign key always
-resolves. Re-run the command any time your roster changes — it upserts on
-`email`, so it's safe to run repeatedly.
+`fit-map people push` stores the file in the `raw` bucket for audit. It then
+upserts the file into `activity.organization_people`. The command inserts people
+without a manager before people with one, so the `manager_email` foreign key
+always resolves. Re-run the command any time your roster changes. It upserts on
+`email`, so you can run it repeatedly.
 
 Behind the scenes, `fit-map people push` talks to the same extract and transform
-helpers that the `people-upload` edge function uses. If you prefer to run the
-upload server-side, for example from a form or an admin workflow, POST the
-file to the hosted function instead:
+helpers that the `people-upload` edge function uses. To run the upload
+server-side, for example from a form or an admin workflow, POST the file to the
+hosted function instead:
 
 ```sh
 curl -X POST \
@@ -298,24 +299,24 @@ curl -X POST \
 
 ## Activity: provision auth users
 
-Landmark's row-level security admits a request based on the JWT's `email` claim,
-and Supabase Auth only issues a JWT for an `auth.users` row that already exists.
-After pushing the roster, reconcile `auth.users` against the roster:
+Landmark's row-level security admits a request based on the JWT's `email` claim.
+Supabase Auth only issues a JWT for an `auth.users` row that already exists.
+After you push the roster, reconcile `auth.users` against the roster:
 
 ```sh
 npx fit-terrain substrate provision
 ```
 
 The command prints a per-action summary (`created`, `restored`,
-`decommissioned`, `unchanged`) and is safe to re-run — it upserts on email and
-preserves `auth.users.id` across decommission and rejoin. See
+`decommissioned`, `unchanged`). You can re-run it safely. It upserts on email
+and preserves `auth.users.id` across decommission and rejoin. See
 [Provision Engineer Auth Users](/docs/products/provisioning-engineers/) for
 the full operator workflow.
 
-Provisioning ensures every engineer's email maps to an authenticable identity.
-Once provisioned, leaders and engineers sign in to Landmark with
-`fit-landmark login`, which walks Supabase's magic-link flow and stores the
-session in your platform's config directory
+The command makes sure every engineer's email maps to an authenticable identity.
+Leaders and engineers then sign in to Landmark with `fit-landmark login`. That
+command walks Supabase's magic-link flow. It stores the session in your
+platform's config directory
 (`~/.config/landmark/credentials.json` on Linux). See
 [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
 end-to-end flow, or
@@ -324,12 +325,12 @@ the Landmark guide for the short version.
 
 ## Activity: ingest GitHub activity
 
-Map ships a `github-webhook` edge function that receives GitHub webhook events,
-stores the raw payload in the `raw` bucket, and extracts normalized artifacts
-into `activity.github_artifacts`. Pull requests, reviews, and pushes are all
-handled out of the box.
+Map ships a `github-webhook` edge function. The function receives GitHub webhook
+events. It stores the raw payload in the `raw` bucket. It extracts normalized
+artifacts into `activity.github_artifacts`. It handles pull requests, reviews,
+and pushes out of the box.
 
-With the local Supabase running, the function URL is:
+When the local Supabase runs, the function URL is:
 
 ```text
 http://127.0.0.1:54321/functions/v1/github-webhook
@@ -341,26 +342,26 @@ For a hosted deployment, the URL is:
 https://<project-ref>.supabase.co/functions/v1/github-webhook
 ```
 
-In your GitHub organization or repository settings, add a webhook pointing at
-that URL with these events selected:
+In your GitHub organization or repository settings, add a webhook that points at
+that URL. Select these events:
 
 - Pull requests
 - Pull request reviews
 - Pushes
 
-Set the content type to `application/json`. Each delivery is stored under
-`raw/github/<delivery-id>.json` and processed into `activity.github_events` and
-`activity.github_artifacts`. The function joins each artifact to a person via
-`github_username`, so make sure your `people.yaml` rows have GitHub usernames
-filled in for the engineers you want to track.
+Set the content type to `application/json`. The function stores each delivery
+under `raw/github/<delivery-id>.json`. It processes each delivery into
+`activity.github_events` and `activity.github_artifacts`. The function joins
+each artifact to a person through `github_username`. Make sure your
+`people.yaml` rows have GitHub usernames for the engineers you want to track.
 
 ## Activity: ingest GetDX snapshots
 
 If your organization uses GetDX, Map can pull snapshot results into the same
 database so Landmark can correlate survey scores with marker evidence.
 
-Get a GetDX API token from your GetDX admin. Then run the sync — either locally
-with the CLI, or on a schedule by POSTing to the `getdx-sync` edge function.
+Get a GetDX API token from your GetDX admin. Then run the sync. Run it locally
+with the CLI, or on a schedule with a POST to the `getdx-sync` edge function.
 
 ### Ad-hoc or one-shot sync
 
@@ -369,11 +370,11 @@ GETDX_API_TOKEN=<your getdx api token> npx fit-map getdx sync
 ```
 
 `fit-map getdx sync` fetches `teams.list`, `snapshots.list`, and
-`snapshots.info` for every undeleted snapshot, stores each response under
-`raw/getdx/`, and upserts:
+`snapshots.info` for every undeleted snapshot. It stores each response under
+`raw/getdx/`. It then upserts:
 
-- `activity.getdx_teams` — the GetDX team hierarchy, bridged to your roster via
-  `manager_email`
+- `activity.getdx_teams` — the GetDX team hierarchy, bridged to your roster
+  through `manager_email`
 - `activity.getdx_snapshots` — quarterly survey metadata
 - `activity.getdx_snapshot_team_scores` — factor and driver scores per team per
   snapshot, with `vs_prev`, `vs_org`, and percentile comparisons
@@ -384,9 +385,9 @@ finishes.
 ### Scheduled sync
 
 For continuous ingestion, set the GetDX token as a secret on your hosted
-Supabase project and schedule the `getdx-sync` edge function on any cron that
-can send an HTTP POST — GitHub Actions `schedule:` jobs, a Nomad periodic, or
-`cron.d`:
+Supabase project. Then schedule the `getdx-sync` edge function on any cron that
+can send an HTTP POST. Examples are GitHub Actions `schedule:` jobs, a Nomad
+periodic, or `cron.d`:
 
 ```sh
 supabase secrets set GETDX_API_TOKEN=<your getdx api token>
@@ -396,30 +397,30 @@ curl -X POST \
   https://<project-ref>.supabase.co/functions/v1/getdx-sync
 ```
 
-Once a quarter is typical — match your GetDX survey cadence. The edge function
-and the CLI run the same extract-and-transform code, so switching between them
-is purely a deployment choice.
+Once a quarter is typical. Match your GetDX survey cadence. The edge function
+and the CLI run the same extract-and-transform code. Your choice between them is
+purely a deployment choice.
 
 The driver IDs in `data/pathway/drivers.yaml` are the same IDs as
-`getdx_snapshot_team_scores.item_id` — GetDX assigns those IDs, and you mirror
-them when authoring `drivers.yaml`. That shared namespace is what lets Landmark
-juxtapose a driver's GetDX score against the marker evidence for its
-contributing skills.
+`getdx_snapshot_team_scores.item_id`. GetDX assigns those IDs. You mirror them
+when you author `drivers.yaml`. That shared namespace lets Landmark juxtapose a
+driver's GetDX score against the marker evidence for the skills that contribute
+to it.
 
 ## Activity: re-run transforms
 
-To reprocess every raw document in storage from scratch — for example after
-restoring a database, after upgrading Map to pick up a transform fix, or to
-backfill from raw payloads — ask `fit-map` to re-run every transform against the
-`raw` bucket:
+To reprocess every raw document in storage from scratch, ask `fit-map` to re-run
+every transform against the `raw` bucket. Do this after you restore a database,
+after you upgrade Map to pick up a transform fix, or to backfill from raw
+payloads:
 
 ```sh
 npx fit-map activity transform
 ```
 
-The command reads people, GetDX, and GitHub raw documents in dependency order,
-then derives artifact-interpreted evidence rows from the ingested GitHub
-artifacts. Every step upserts on natural keys, so it is safe to re-run. To
+The command reads people, GetDX, and GitHub raw documents in dependency order.
+It then derives artifact-interpreted evidence rows from the ingested GitHub
+artifacts. Every step upserts on natural keys, so you can re-run it safely. To
 reprocess a single target instead of all of them:
 
 ```sh
@@ -440,9 +441,9 @@ curl -X POST \
 
 ## Trying the activity layer with synthetic data
 
-If you want to explore the activity layer before connecting real data sources,
-Map can populate the database with synthetic data — a realistic roster, GitHub
-events, and GetDX snapshots generated from a template.
+You can explore the activity layer before you connect real data sources. Map
+populates the database with synthetic data. The data is a realistic roster,
+GitHub events, and GetDX snapshots generated from a template.
 
 First, generate synthetic data (requires the `@forwardimpact/libterrain`
 package):
@@ -457,25 +458,25 @@ Then seed the activity database:
 npx fit-map activity seed
 ```
 
-This uploads the generated roster and raw documents, runs all transforms, and
-verifies the result. The database will contain realistic but fictional data you
+This uploads the generated roster and raw documents. It runs all transforms. It
+verifies the result. The database then holds realistic but fictional data you
 can query with Landmark or Summit. When you are ready to switch to real data,
-push your actual roster with `npx fit-map people push` — it overwrites the
-synthetic entries.
+push your actual roster with `npx fit-map people push`. That command overwrites
+the synthetic entries.
 
 ## Activity: verify the data
 
-Once people are pushed and at least one data source is available — either from
-real ingestion commands above or from `activity seed` — verify the database:
+Push people first. Make at least one data source available, either with the real
+ingestion commands above or with `activity seed`. Then verify the database:
 
 ```sh
 npx fit-map activity verify
 ```
 
 `fit-map activity verify` reads `activity.organization_people` and at least one
-derived table (`getdx_snapshots` or `github_events`), prints the row counts it
-found, and exits 0 if both are populated. If either is empty it exits non-zero
-with a message pointing at the step that didn't run.
+derived table (`getdx_snapshots` or `github_events`). It prints the row counts
+it found. It exits 0 if both hold rows. If either is empty, it exits non-zero
+with a message that points at the step that didn't run.
 
 If verification passes, your activity layer is ready for Landmark, Summit, and
 Guide.

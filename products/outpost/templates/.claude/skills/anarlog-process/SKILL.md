@@ -1,26 +1,26 @@
 ---
 name: anarlog-process
-description: Process Anarlog meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes, creating or updating Obsidian-compatible notes in Knowledge/. Use when the user asks to process meeting notes or after Anarlog sessions.
+description: Process Anarlog meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes. Creates or updates Obsidian-compatible notes in Knowledge/. Use when the user asks to process meeting notes or after Anarlog sessions.
 ---
 
 # Process Anarlog
 
 Process meeting sessions from Anarlog (a local AI meeting-notes app) into the
 knowledge graph. Anarlog records meetings, transcribes them, and generates AI
-summaries; this skill reads that output and feeds it into `Knowledge/` — the
-same way `extract-entities` processes emails and calendar events.
+summaries. This skill reads that output and feeds it into `Knowledge/`.
+`extract-entities` processes emails and calendar events in the same way.
 
 ## Trigger
 
 - The user asks to process meeting notes or Anarlog sessions.
-- New meetings have been recorded.
+- Anarlog recorded new meetings.
 - The user asks to update the knowledge base from recent meetings.
 
 ## Prerequisites
 
-- Anarlog installed; sessions at
+- Anarlog installed. Sessions live at
   `~/Library/Application Support/anarlog/sessions/`.
-- User identity from running the `person-identify` skill, which writes
+- The user identity. The `person-identify` skill writes it to
   `~/.cache/fit/outpost/state/identity.md`.
 
 ## Inputs
@@ -31,7 +31,7 @@ same way `extract-entities` processes emails and calendar events.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (TSV,
   shared with `extract-entities`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
-  (written by the `person-identify` skill).
+  (the `person-identify` skill writes it).
 
 ## Outputs
 
@@ -43,17 +43,18 @@ same way `extract-entities` processes emails and calendar events.
 
 <do_confirm_checklist goal="Verify each session was processed correctly">
 
-- [ ] Empty / test / onboarding sessions skipped (per skip rules).
-- [ ] Both `_memo.md` and `_summary.md` read (when present); transcript
-      consulted only for disambiguation.
-- [ ] "Would I prep?" test applied to each person; self excluded.
-- [ ] Interview sessions wrote to `Knowledge/Candidates/`, not
-      `Knowledge/People/`.
-- [ ] All links use absolute paths `[[Folder/Name]]`.
-- [ ] Activity entries describe relationship, not communication method.
-- [ ] No new `Priorities/` auto-created (user-set only); any
-      referenced priority had its progress updated.
-- [ ] `graph_processed` updated for every processed file (memo + summary).
+- [ ] Skip the empty, test, and onboarding sessions (per the skip rules).
+- [ ] Read both `_memo.md` and `_summary.md` (when present). Consult the
+      transcript only for disambiguation.
+- [ ] Apply the "Would I prep?" test to each person. Exclude the user.
+- [ ] Write interview sessions to `Knowledge/Candidates/`. Never write them
+      to `Knowledge/People/`.
+- [ ] Use an absolute path in every link (`[[Folder/Name]]`).
+- [ ] Describe the relationship in each activity entry. Leave out the
+      communication method.
+- [ ] Auto-create no new `Priorities/` note (the user sets these). Update the
+      progress on every priority the content references.
+- [ ] Update `graph_processed` for every processed file (memo + summary).
 
 </do_confirm_checklist>
 
@@ -72,12 +73,13 @@ node .claude/skills/anarlog-process/scripts/scan.mjs
 Flags: `--changed` (also detect changed memo/summary hashes), `--json`
 (programmatic output), `--count` (count only), `--limit N` (default 20).
 
-A session needs processing when its `_memo.md` is not in `graph_processed`, or
-its hash has changed (`--changed`), or its `_summary.md` exists and is not in
-`graph_processed` (or has changed).
+Process a session when its `_memo.md` is not in `graph_processed`. Also process
+it when the memo hash changed (`--changed`). Also process it when its
+`_summary.md` exists and is not in `graph_processed`, or when the summary
+changed.
 
 Process all unprocessed sessions in one run. **Don't write bespoke scan
-scripts** — this script handles the edge cases (empty memos, missing summaries,
+scripts.** This script handles the edge cases (empty memos, missing summaries,
 metadata fallback).
 
 ### 1. Build the knowledge index
@@ -95,8 +97,8 @@ as `extract-entities` Step 0).
 
 For each unprocessed session, read in this order: `_meta.json`, `_memo.md`,
 `_summary.md` (if present), `transcript.json` (only when disambiguation requires
-it). File shapes and skip rules:
-[references/sessions.md](references/sessions.md).
+it). See [references/sessions.md](references/sessions.md) for the file shapes
+and the skip rules.
 
 ### 3. Classify the source
 
@@ -104,19 +106,20 @@ Anarlog sessions are **meetings** and follow the meeting rules from
 `extract-entities`:
 
 - **Can create** People, Organization, Project, and Topic notes.
-- **Can update** existing notes — including Priorities, which are
-  user-set and never auto-created.
+- **Can update** existing notes, including Priorities. The user sets a
+  Priority. Nothing auto-creates one.
 - **Can detect** state changes.
 
 Apply the "Would I prep for this person?" test from `extract-entities` Step 5
-before creating a person note.
+before you create a person note.
 
 ### 4. Extract entities and content
 
-Combine memo and summary content (prefer summary when both exist). Extraction
-signals — entity types, decisions, commitments, key facts, activity-line format,
-interview-note rules, and linking rules — live in
-[references/extraction.md](references/extraction.md).
+Combine the memo and the summary content (prefer the summary when both exist).
+The extraction signals live in
+[references/extraction.md](references/extraction.md). They cover entity types,
+decisions, commitments, key facts, the activity-line format, the interview-note
+rules, and the linking rules.
 
 ### 5. Write updates
 
@@ -125,7 +128,7 @@ For **new** entities, use the templates in
 sessions, use the candidate brief template from `req-track` (under
 `Knowledge/Candidates/`).
 
-For **existing** entities, apply targeted edits — never rewrite the file:
+For **existing** entities, never rewrite the file. Apply targeted edits:
 
 - Add the new activity entry at the **top** of `## Activity`.
 - Update `Last seen` / `Last activity`.

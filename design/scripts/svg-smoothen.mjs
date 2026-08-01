@@ -2,9 +2,9 @@
 
 // Cut chip artifacts off dark strokes in auto-traced SVGs.
 //
-// Chips are small protrusions hanging off what should be smooth outlines.
-// Detects where each chip departs the main stroke and where it returns,
-// then cuts it off by connecting those two points directly.
+// Chips are small protrusions that hang off what should be smooth outlines.
+// This script detects where each chip departs the main stroke and where it
+// returns. It then cuts the chip off. It connects those two points directly.
 //
 // Usage:
 //   node design/scripts/svg-smoothen.mjs [--level 1-5] <file ...>
@@ -104,9 +104,9 @@ function hexBrightness(hex) {
 }
 
 // Per-command segment-builders. Each handler reads its operand stride from
-// `n`, pushes the appropriate segments onto `state.segments`, and updates the
-// current point. Splitting per-command keeps applyCommand below the lint
-// complexity threshold.
+// `n`. Each handler pushes the appropriate segments onto `state.segments`.
+// Each handler updates the current point. One handler per command keeps
+// applyCommand below the lint complexity threshold.
 const SEGMENT_HANDLERS = {
   M(state, n, ax, ay) {
     for (let i = 0; i < n.length; i += 2) {

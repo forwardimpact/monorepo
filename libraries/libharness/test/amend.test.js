@@ -50,8 +50,9 @@ describe("systemPromptAmend delivery (SC 7 a)", () => {
     });
     const append = facilitator.agents[0].runner.systemPrompt.append;
     assert.ok(append.includes(FACILITATED_AGENT_SYSTEM_PROMPT));
-    // The amendment is folded transparently into the <session_protocol>
-    // section — after the protocol trailer, before the closing tag.
+    // createFacilitator folds the amendment transparently into the
+    // <session_protocol> section. It lands after the protocol trailer and
+    // before the closing tag.
     const amendAt = append.indexOf("<TEST_MARKER>");
     assert.ok(
       append.indexOf(FACILITATED_AGENT_SYSTEM_PROMPT) < amendAt,

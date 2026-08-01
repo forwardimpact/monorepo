@@ -6,9 +6,9 @@ import { fileURLToPath } from "node:url";
 
 import * as libmock from "../src/index.js";
 
-// Drift detection: every field on the production `Runtime` typedef
-// must have a canonical libmock fake. Adding a field to `Runtime` without a
-// fake (or an alias entry pointing at a real export) fails this test.
+// Drift detection. Every field on the production `Runtime` typedef must have
+// a canonical libmock fake. This test fails if you add a field to `Runtime`
+// without a fake, or without an alias entry that points at a real export.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RUNTIME_SRC = path.resolve(__dirname, "../../libutil/src/runtime.js");
@@ -25,8 +25,8 @@ const FIELD_TO_FACTORY = {
 
 function runtimeFields() {
   const src = readFileSync(RUNTIME_SRC, "utf8");
-  // Scope to the `Runtime` typedef block: from `@typedef ... Runtime` to the
-  // closing `*/` of that comment.
+  // Scope to the `Runtime` typedef block. It runs from `@typedef ... Runtime`
+  // to the final `*/` of that comment.
   const block = src.match(/@typedef\s+\{Object\}\s+Runtime[\s\S]*?\*\//);
   assert.ok(block, "Runtime typedef block not found in libutil/src/runtime.js");
   const fields = [];
@@ -44,7 +44,7 @@ describe("Runtime completeness", () => {
       const factory = FIELD_TO_FACTORY[field];
       assert.ok(
         factory,
-        `Runtime field "${field}" has no libmock fake mapping — add it to FIELD_TO_FACTORY and libmock`,
+        `Runtime field "${field}" maps to no libmock fake. Add it to FIELD_TO_FACTORY and libmock`,
       );
       assert.strictEqual(
         typeof libmock[factory],
@@ -57,7 +57,7 @@ describe("Runtime completeness", () => {
   test("createTestRuntime returns every Runtime field non-null", () => {
     const rt = libmock.createTestRuntime();
     for (const field of runtimeFields()) {
-      assert.ok(rt[field] != null, `createTestRuntime missing "${field}"`);
+      assert.ok(rt[field] != null, `createTestRuntime has no "${field}"`);
     }
     assert.ok(Object.isFrozen(rt), "test runtime should be frozen");
   });
@@ -68,9 +68,9 @@ describe("Runtime completeness", () => {
     assert.strictEqual(rt.clock, sentinel);
   });
 
-  // This covers every declared collaborator surface, not only the runtime-bag
-  // fields — the typed clients (GitClient/GhClient) documented in the README
-  // Collaborators section must also have exported fakes.
+  // This covers every declared collaborator surface. It covers more than the
+  // runtime-bag fields. The typed clients (GitClient/GhClient) documented in
+  // the README Collaborators section must also have exported fakes.
   test("declared non-bag collaborator surfaces have exported fakes", () => {
     for (const factory of ["createMockGitClient", "createMockGhClient"]) {
       assert.strictEqual(

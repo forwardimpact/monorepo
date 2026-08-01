@@ -27,8 +27,8 @@ function childOf({ exitCode = 0, stderr = "" } = {}) {
 }
 
 /**
- * A scripted `spawn`: `script(cmd, args, opts)` returns the child for each
- * call; every call is recorded on `.calls`.
+ * A scripted `spawn`. `script(cmd, args, opts)` returns the child for each
+ * call. The stub records every call on `.calls`.
  */
 function scriptedSubprocess(script) {
   const calls = [];
@@ -76,7 +76,7 @@ function ctxFor(cwd) {
 }
 
 describe("runHiddenTests", () => {
-  test("suite-less task yields empty details without touching subprocess", async () => {
+  test("suite-less task yields empty details and never touches the subprocess", async () => {
     const sub = scriptedSubprocess(() => childOf());
     const runtime = realRuntimeWithSubprocess(sub);
     const result = await runHiddenTests(
@@ -127,13 +127,13 @@ describe("runHiddenTests", () => {
       assert.strictEqual(call.opts.cwd, cwd);
       assert.strictEqual(call.opts.env.AGENT_CWD, cwd);
       assert.strictEqual(call.opts.env.TASK_ID, "t1");
-      // An inherited NODE_TEST_CONTEXT would make a failing child `node
-      // --test` exit 0 — the engine must never pass it through.
+      // An inherited NODE_TEST_CONTEXT would make a child `node --test`
+      // exit 0 even when it fails. The engine must never pass it through.
       assert.ok(!("NODE_TEST_CONTEXT" in call.opts.env));
     }
   });
 
-  test("a failing check's message carries the stderr tail", async () => {
+  test("a check that fails carries the stderr tail in its message", async () => {
     const { cwd, testsRoot } = await makeDirs();
     const check = await writeSuiteFile(testsRoot, "x.test.js", "// check");
     const task = makeTask(testsRoot, [{ name: "x", gate: false, ...check }]);
@@ -150,11 +150,11 @@ describe("runHiddenTests", () => {
     });
   });
 
-  test("a deleted scaffold becomes a failing row, never a throw", async () => {
+  test("a deleted scaffold becomes a failed row instead of a throw", async () => {
     const { cwd, testsRoot } = await makeDirs();
     const check = await writeSuiteFile(testsRoot, "app/x.test.js", "// check");
-    // The agent replaced the app/ directory with a file: staging cannot
-    // create the parent directory.
+    // The agent replaced the app/ directory with a file. The stage step
+    // cannot create the parent directory.
     await writeFile(join(cwd, "app"), "not a directory");
     const task = makeTask(testsRoot, [{ name: "x", gate: false, ...check }]);
     const sub = scriptedSubprocess(() => childOf());
@@ -208,7 +208,7 @@ describe("runHiddenTests", () => {
     assert.strictEqual(existsSync(join(cwd, "graders")), false);
   });
 
-  test("support files are staged for the whole pass and gone after", async () => {
+  test("runHiddenTests stages support files for the whole pass and removes them after", async () => {
     const { cwd, testsRoot } = await makeDirs();
     const check = await writeSuiteFile(testsRoot, "app/x.test.js", "// check");
     const helper = await writeSuiteFile(
@@ -234,7 +234,7 @@ describe("runHiddenTests", () => {
     assert.strictEqual(existsSync(join(cwd, "app/x.test.js")), false);
   });
 
-  test("a hung check is SIGKILLed and fails with a timeout message", async () => {
+  test("runHiddenTests SIGKILLs a hung check and fails it with a timeout message", async () => {
     const { cwd, testsRoot } = await makeDirs();
     const check = await writeSuiteFile(testsRoot, "slow.test.js", "// hang");
     const task = makeTask(testsRoot, [{ name: "slow", gate: false, ...check }]);

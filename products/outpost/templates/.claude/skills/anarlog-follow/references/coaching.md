@@ -45,19 +45,19 @@ Suggested topics:
 
 | Dimension               | What to watch for                                                                  |
 | ----------------------- | ---------------------------------------------------------------------------------- |
-| **Skills demonstrated** | Candidate shows (not just claims) standard skills                                  |
+| **Skills demonstrated** | Candidate shows standard skills. A claim alone does not count.                     |
 | **Behaviour signals**   | Own the Outcome, Think in Systems, Communicate with Precision, Polymath, Curiosity |
 | **Level signals**       | Autonomy, scope, complexity handling, mentoring                                    |
-| **Coverage gaps**       | Focus areas from screening that haven't been touched yet                           |
+| **Coverage gaps**       | Focus areas from screening that you did not touch yet                              |
 | **Red flags**           | Contradictions with CV, vague answers, deflection                                  |
-| **Time awareness**      | Are you running out of time with uncovered areas?                                  |
+| **Time awareness**      | Time runs out while areas stay uncovered                                           |
 
 ### General meetings
 
 | Dimension             | What to watch for                                    |
 | --------------------- | ---------------------------------------------------- |
-| **Open items**        | Were pending items raised and addressed?             |
-| **Decisions**         | What was decided? Who owns next steps?               |
+| **Open items**        | Someone raised and addressed the pending items       |
+| **Decisions**         | The decisions made, and who owns the next steps      |
 | **New commitments**   | Track who committed to what                          |
 | **Unasked questions** | Topics the user should raise before the meeting ends |
 | **Tone/dynamics**     | Shifts in energy, resistance, enthusiasm             |
@@ -81,30 +81,31 @@ Capture: decision made on {topic} — {who} will {what}
 
 - **Standard-grounded.** Every nudge ties to standard skills/behaviours. Don't
   coach on vibes.
-- **Evidence over claims.** Flag _claims_ vs. _demonstrations_; push for
+- **Evidence over claims.** Flag _claims_ vs. _demonstrations_. Push for
   specific examples.
-- **Coverage-aware.** Track which screening focus areas have been explored and
-  nudge before time runs out.
-- **Level-calibrated.** Know what the target level expects; flag
+- **Coverage-aware.** Track which screening focus areas you explored. Nudge
+  before time runs out.
+- **Level-calibrated.** Know what the target level expects. Flag
   below-/above-level answers.
-- **Don't lead.** Suggest open-ended probes, never loaded or leading questions.
+- **Don't lead.** Suggest open-ended probes. Never suggest a loaded or leading
+  question.
 
 ### General meetings
 
 - **Agenda-aware.** Track coverage of known topics or open items.
 - **Decision-focused.** Flag decisions and capture owners.
-- **Commitment-tracking.** Note who said they'd do what; surface unresolved
-  commitments from prior meetings.
-- **Time-conscious.** Nudge when the meeting is running long and key topics
-  aren't raised.
+- **Commitment-tracking.** Note who said they would do what. Surface unresolved
+  commitments from earlier meetings.
+- **Time-conscious.** Nudge when the meeting runs long and nobody raises the key
+  topics.
 
 ### Universal
 
-- **Be quiet when things are going well.** Speak only when actionable.
-- **Channel awareness.** Channel 0 = user; channel 1+ = guest(s). Reference what
-  the _guest_ said — the user already knows what they said.
+- **Be quiet when things go well.** Speak only when actionable.
+- **Channel awareness.** Channel 0 = user. Channel 1+ = guest(s). Reference what
+  the _guest_ said. The user already knows what they said.
 - **Never interrupt flow.** Hold nudges for the next natural pause.
-- **Respect the user.** Coach at the margin, don't patronise.
+- **Respect the user.** Coach at the margin. Do not patronise.
 
 ## Constraints
 
@@ -113,6 +114,6 @@ Capture: decision made on {topic} — {who} will {what}
   `req-assess`, or `anarlog-process`. Offer them after.
 - **Channel 0 = user.** Always.
 - **Transcription noise.** Live transcripts are messy. Don't coach from a single
-  ambiguous word — wait for context.
-- **Privacy.** Coaching may appear on a shared screen — keep nudges generic
-  enough that they don't reveal confidential assessment detail.
+  ambiguous word. Wait for context.
+- **Privacy.** Coaching may appear on a shared screen. Keep nudges generic. They
+  must not reveal confidential assessment detail.

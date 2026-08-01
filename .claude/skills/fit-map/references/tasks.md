@@ -4,14 +4,14 @@
 
 ### JSON Schema (`@forwardimpact/libskill` `schema/json/`)
 
-Validates YAML structure. One schema per entity type.
+JSON Schema validates the YAML structure. One schema per entity type.
 
 ### RDF/SHACL (map's `schema/rdf/`)
 
 Semantic representation for linked data interoperability.
 
-**Schema synchronization:** When adding or modifying properties, update both
-libskill's `schema/json/` and map's `schema/rdf/` in the same commit — the
+**Schema synchronization:** When you add or modify properties, update both
+libskill's `schema/json/` and map's `schema/rdf/` in the same commit. The
 sync crosses packages. The two formats must stay in sync.
 
 ---
@@ -20,13 +20,13 @@ sync crosses packages. The two formats must stay in sync.
 
 ### Add a Skill
 
-1. Add skill to capability file:
+1. Add the skill to the capability file:
    `data/pathway/capabilities/{capability_id}.yaml`
-2. Add skill object with `id`, `name`, and `human:` section
+2. Add a skill object with `id`, `name`, and `human:` section
 3. Include level descriptions for all five proficiency levels
-4. Reference skill in disciplines (coreSkills/supportingSkills/broadSkills)
+4. Reference the skill in disciplines (coreSkills/supportingSkills/broadSkills)
 5. Add questions: `data/pathway/questions/skills/{skill_id}.yaml`
-6. Optionally add `agent:` section for AI coding agent support
+6. Optionally add an `agent:` section to support AI coding agents
 7. Run `npx fit-map validate`
 
 ### Add Interview Questions
@@ -46,7 +46,7 @@ Required properties:
 
 ### Add Agent Skill Section
 
-Add `agent:` section to skill in capability file:
+Add an `agent:` section to the skill in the capability file:
 
 ```yaml
 agent:
@@ -66,7 +66,7 @@ agent:
 
 ### Add Tool Reference
 
-Add `toolReferences:` to skill in capability file:
+Add `toolReferences:` to the skill in the capability file:
 
 ```yaml
 toolReferences:

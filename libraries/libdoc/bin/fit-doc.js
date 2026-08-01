@@ -101,7 +101,7 @@ function runPreBuildHook(pagesDir) {
     logger.info("  ✓ pre-build hook complete");
   } catch (err) {
     if (err.code === "ENOENT") {
-      logger.warn("  ⚠ just not found — skipping pre-build hook");
+      logger.warn("  ⚠ just not found, skipping pre-build hook");
       return;
     }
     throw new Error(

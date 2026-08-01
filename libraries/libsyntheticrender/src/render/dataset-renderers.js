@@ -118,7 +118,7 @@ async function renderParquet(dataset, config, runtime) {
     parquetModule = await import("parquet-wasm/esm/parquet_wasm.js");
   } catch {
     throw new Error(
-      "Parquet rendering requires apache-arrow and parquet-wasm. " +
+      "The Parquet renderer requires apache-arrow and parquet-wasm. " +
         "Install with: bun add apache-arrow parquet-wasm",
     );
   }

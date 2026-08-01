@@ -10,7 +10,7 @@ description: >
 # Hiring Decision
 
 Synthesize all available evidence for a candidate into a final hiring
-recommendation. This is the culmination of the hiring pipeline — every prior
+recommendation. This is the culmination of the hiring pipeline. Every prior
 assessment feeds in.
 
 This is **Stage 3** of the three-stage pipeline:
@@ -42,7 +42,7 @@ This is **Stage 3** of the three-stage pipeline:
   manager, domain lead). Check the `**Status:**` field to distinguish active
   from historical reqs.
 - `Knowledge/Priorities/*.md` — strategic context.
-- Other active candidates at the same level — relative positioning.
+- Other active candidates at the same level — relative position.
 
 ## Outputs
 
@@ -53,17 +53,20 @@ This is **Stage 3** of the three-stage pipeline:
 <do_confirm_checklist goal="Verify the recommendation is grounded and
 audit-ready">
 
-- [ ] Every skill rating traces to a specific evidence source (stage + detail).
-- [ ] Evidence hierarchy respected — interview evidence outranks CV.
-- [ ] Level recommendation grounded in standard progression criteria.
-- [ ] Track recommendation cites interview evidence, not just CV.
-- [ ] Decision rules applied strictly; match % and gap counts verified.
-- [ ] Risk assessment is honest — concerns not minimised to justify a hire.
-- [ ] "Do not hire" written with the same rigour as "Hire" (GDPR Article 15:
-      candidate may request access).
-- [ ] Brief updated with `[Hiring Recommendation](./recommendation.md)` and a
-      final pipeline entry.
-- [ ] Recommendation could be shown to the candidate without embarrassment.
+- [ ] Trace every skill rating to a specific evidence source (stage + detail).
+- [ ] Respect the evidence hierarchy. Interview evidence outranks CV.
+- [ ] Ground the level recommendation in standard progression criteria.
+- [ ] Cite interview evidence for the track recommendation. A CV alone is not
+      enough.
+- [ ] Apply the decision rules strictly. Verify the match % and the gap counts.
+- [ ] Keep the risk assessment honest. Do not minimise a concern to justify a
+      hire.
+- [ ] Write "Do not hire" with the same rigour as "Hire" (GDPR Article 15 lets
+      the candidate request access).
+- [ ] Update the brief with `[Hiring Recommendation](./recommendation.md)` and
+      a final pipeline entry.
+- [ ] Write a recommendation you could show to the candidate without
+      embarrassment.
 
 </do_confirm_checklist>
 
@@ -86,9 +89,10 @@ bunx fit-pathway job {discipline} {level} --track={track} --skills
 bunx fit-pathway progress {discipline} {level} --track={track}
 ```
 
-For each skill in the target job, pick the highest-fidelity evidence using the
-[evidence hierarchy](references/rubric.md#evidence-hierarchy). Record final
-rating, best evidence source, trajectory, confidence.
+For each skill in the target job, use the
+[evidence hierarchy](references/rubric.md#evidence-hierarchy) to pick the
+highest-fidelity evidence. Record final rating, best evidence source,
+trajectory, confidence.
 
 ### 3. Build the final behaviour profile
 
@@ -120,9 +124,8 @@ cat "Knowledge/Roles/{matching file}"
 ```
 
 Check the `**Status:**` field. Capture remaining positions, hiring manager,
-domain lead, goal alignment, other
-candidates on the same req, and channel (hr / vendor). Frame the recommendation
-in terms of strategic impact.
+domain lead, goal alignment, other candidates on the same req, and channel
+(hr / vendor). Frame the recommendation in terms of strategic impact.
 
 ### 6. Assess against the active pipeline
 
@@ -146,8 +149,8 @@ Apply the [decision rules](references/rubric.md#decision-rules) and run the
 
 ### 8. Write the recommendation
 
-Save to `Knowledge/Candidates/{Name}/recommendation.md` using the template in
-[references/template.md](references/template.md). Carry the **advisory-only**
+Use the template in [references/template.md](references/template.md). Save to
+`Knowledge/Candidates/{Name}/recommendation.md`. Carry the **advisory-only**
 banner. Cite specific evidence in skill, behaviour, level, and track sections.
 
 ### 9. Update brief and insights
@@ -158,8 +161,8 @@ Update `brief.md`:
 - Append `- [Hiring Recommendation](./recommendation.md)`.
 - Add the final pipeline entry with date and outcome.
 
-Update `Knowledge/Candidates/Insights.md` only when there's a cross-candidate
-observation worth keeping (strongest at level, sourcing channel pattern,
-level-adjustment implications).
+Update `Knowledge/Candidates/Insights.md` only when a cross-candidate
+observation deserves a record (strongest at level, a pattern in the sourcing
+channel, level-adjustment implications).
 
-Use targeted Edit operations — never rewrite entire files.
+Use targeted Edit operations. Never rewrite entire files.

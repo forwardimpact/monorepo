@@ -1,15 +1,15 @@
 /**
  * Snapshot-comment ProseActivity — binds the snapshot-comment output to
- * the three pipeline stages: deterministic generation, prose-context
- * construction, and output rendering.
+ * three pipeline stages. The stages generate deterministic data, build
+ * the prose context, and render the output.
  *
  * Compared to the pre-820 implementation, `generate` carries the full
- * team-affect driver array on each comment-key (instead of collapsing
- * to the top driver only). The top driver is still used as the *topic*
- * driver for shuffle ordering and as the human-readable `driver_name`
- * scalar consumed by the render layer, but the array is preserved end
- * to end so `proseKeys` can populate `ProseContext.drivers` uniformly
- * with what the webhook activity already emits.
+ * team-affect driver array on each comment-key. It does not collapse
+ * the array to the top driver only. The top driver still sets the
+ * shuffle order as the *topic* driver. The top driver also gives the
+ * human-readable `driver_name` scalar that the render layer consumes.
+ * The code keeps the whole array end to end. So `proseKeys` can fill
+ * `ProseContext.drivers` to match what the webhook activity emits.
  *
  * @module libsyntheticgen/activity/comment
  */
@@ -44,11 +44,11 @@ function findActiveScenarios(scenarios, snapDate) {
 /**
  * Collect candidates from a single affect's team members.
  *
- * Carries the FULL team-affect driver array on each candidate (sorted
- * by `|magnitude|` descending so `drivers[0]` is the topic driver).
- * The top driver continues to drive shuffle ordering by trajectory and
- * the render-time `driver_name` scalar; the rest of the array crosses
- * unchanged into `ProseContext.drivers` for the LLM prompt.
+ * Each candidate carries the FULL team-affect driver array, sorted by
+ * `|magnitude|` descending so `drivers[0]` is the topic driver. The top
+ * driver still sets the shuffle order by trajectory and the render-time
+ * `driver_name` scalar. The rest of the array crosses unchanged into
+ * `ProseContext.drivers` for the LLM prompt.
  *
  * @param {object} affect
  * @param {object} scenario
@@ -85,7 +85,7 @@ function collectAffectCandidates(affect, scenario, people, teams, driverMap) {
 }
 
 /**
- * Collect candidates from active scenarios for comment generation.
+ * Collect candidates from active scenarios to generate comments.
  * @param {object[]} activeScenarios
  * @param {object[]} people
  * @param {object[]} teams
@@ -98,9 +98,9 @@ function collectCandidates(activeScenarios, people, teams, driverMap) {
       collectAffectCandidates(affect, scenario, people, teams, driverMap),
     ),
   );
-  // Stable order so a downstream shuffle is reproducible regardless of how
-  // upstream phases (people generation, scenario parsing) ordered their
-  // outputs across platforms.
+  // Sort into a stable order so a downstream shuffle stays reproducible.
+  // Upstream phases (people, scenarios) can order their outputs
+  // differently across platforms.
   candidates.sort((a, b) => {
     const ka = `${a.scenario.id} ${a.team.id} ${a.person.email} ${a.topic_driver_id}`;
     const kb = `${b.scenario.id} ${b.team.id} ${b.person.email} ${b.topic_driver_id}`;
@@ -112,10 +112,10 @@ function collectCandidates(activeScenarios, people, teams, driverMap) {
 /**
  * Generate snapshot-comment keys.
  *
- * The shared `rng` is intentionally ignored — an isolated RNG seeded
- * from `ast.seed` is used so the comment key set does not drift when
- * an unrelated upstream phase (scores, evidence, initiatives) consumes
- * a different number of random values across platforms.
+ * This function ignores the shared `rng` on purpose. It uses an
+ * isolated RNG seeded from `ast.seed`. The comment key set then does
+ * not drift across platforms when an unrelated upstream phase (scores,
+ * evidence, initiatives) consumes a different number of random values.
  *
  * @param {object} ctx
  * @param {import('../dsl/parser.js').TerrainAST} ctx.ast
@@ -133,10 +133,11 @@ function generateComment(ctx) {
   const commentsPerSnapshot = ast.snapshots?.comments_per_snapshot || 0;
   if (commentsPerSnapshot === 0) return { keys: [] };
 
-  // Use an isolated RNG seeded from ast.seed so the comment key set does
-  // not drift when an unrelated upstream phase (scores, evidence,
-  // initiatives) consumes a different number of random values across
-  // platforms. The shared `rng` parameter is kept for signature stability.
+  // Use an isolated RNG seeded from ast.seed. The comment key set then
+  // does not drift across platforms when an unrelated upstream phase
+  // (scores, evidence, initiatives) consumes a different number of
+  // random values. The shared `rng` parameter stays so the signature
+  // does not change.
   void ctx.rng;
   const commentRng = createSeededRNG(`${ast.seed}:comments`);
 
@@ -219,10 +220,10 @@ function* commentProseKeys(output, { domain, orgName }) {
 /**
  * Render snapshot-comment JSON files into the storage map.
  *
- * Falls back to a substring match when the prose map's exact key is
- * not present — the same fallback that lived in the pre-820
- * `renderGetDXComments` helper. The substring fallback exists for
- * cache-key drift; do not "tidy" it into a direct `.get()`.
+ * The function falls back to a substring match when the prose map does
+ * not hold the exact key. The pre-820 `renderGetDXComments` helper used
+ * the same fallback. The substring fallback exists for cache-key drift.
+ * Do not "tidy" it into a direct `.get()`.
  *
  * @param {{ keys: object[] }} output
  * @param {Map<string,string>} files
@@ -249,8 +250,9 @@ function renderComment(output, files, proseMap) {
           }
         }
       }
-      // Note: if text is still null, prose generation was not run for this key.
-      // The prose map uses hashed keys, so fallback iteration is not feasible.
+      // Note: if text is still null, the pipeline did not generate prose
+      // for this key. The prose map uses hashed keys, so a fallback loop
+      // is not feasible.
 
       return {
         snapshot_id: ck.snapshot_id,
@@ -258,7 +260,7 @@ function renderComment(output, files, proseMap) {
         driver_name: ck.driver_name,
         text:
           text ||
-          `[${ck.driver_name} — ${ck.topic_trajectory}] Comment pending prose generation.`,
+          `[${ck.driver_name} — ${ck.topic_trajectory}] This comment waits for prose.`,
         timestamp: ck.timestamp,
         team_id: ck.team_id,
       };

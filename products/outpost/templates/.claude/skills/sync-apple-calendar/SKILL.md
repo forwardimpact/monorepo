@@ -7,8 +7,8 @@ compatibility: Requires macOS with Apple Calendar configured and Full Disk Acces
 # Sync Apple Calendar
 
 Sync calendar events from the macOS Calendar app's local SQLite database into
-`~/.cache/fit/outpost/apple_calendar/` as JSON files. This is an automated data
-pipeline skill — it ingests raw calendar data that other skills (like
+`~/.cache/fit/outpost/apple_calendar/` as JSON files. This is an automated skill
+in the data pipeline. It ingests raw calendar data that other skills (like
 `extract-entities` and `meeting-prep`) consume downstream.
 
 ## Trigger
@@ -38,8 +38,8 @@ their calendar.
 ## Implementation
 
 Run the sync as a single Node.js script with embedded SQLite. This avoids N+1
-process invocations (one per event for attendees) and handles all data
-transformation in one pass:
+process invocations (one per event for attendees). It also transforms all the
+data in one pass:
 
 ```text
 node scripts/sync.mjs [--days N]
@@ -60,8 +60,9 @@ The script:
 ## Database Schema
 
 See [references/SCHEMA.md](references/SCHEMA.md) for the complete Apple Calendar
-SQLite schema including table structures, column names, and important caveats
-(e.g., Identity uses `address` not `email`, Participant has no `display_name`).
+SQLite schema. It gives the table structures, the column names, and the
+important caveats. For example, Identity uses `address` and has no `email`
+column. Participant has no `display_name`.
 
 ## Output Format
 
@@ -98,10 +99,10 @@ Each `{event_id}.json` file:
 - Database locked → wait 2 seconds, retry once
 - Skip events with no summary (likely cancelled or placeholder)
 
-## Querying Events
+## Query Events
 
-After syncing, use the query script to filter events by date or time window.
-**Agents should use this script instead of writing bespoke calendar parsers.**
+After the sync, use the query script to filter events by date or time window.
+**Agents should use this script. Do not write bespoke calendar parsers.**
 
 ```text
 node scripts/query.mjs [options]
@@ -109,13 +110,13 @@ node scripts/query.mjs [options]
 
 ### Time filters (combinable)
 
-| Flag                            | Description                                               |
-| ------------------------------- | --------------------------------------------------------- |
-| `--today`                       | Events starting today (default if no filter given)        |
-| `--tomorrow`                    | Events starting tomorrow                                  |
-| `--upcoming 2h`                 | Events starting within interval (e.g., `2h`, `30m`, `1d`) |
-| `--date 2026-03-09`             | Events on a specific date                                 |
-| `--range 2026-03-09 2026-03-11` | Events between two dates (inclusive)                      |
+| Flag                            | Description                                                     |
+| ------------------------------- | --------------------------------------------------------------- |
+| `--today`                       | Events that start today (default if no filter given)            |
+| `--tomorrow`                    | Events that start tomorrow                                      |
+| `--upcoming 2h`                 | Events that start within the interval (e.g., `2h`, `30m`, `1d`) |
+| `--date 2026-03-09`             | Events on a specific date                                       |
+| `--range 2026-03-09 2026-03-11` | Events between two dates (inclusive)                            |
 
 ### Output options
 
@@ -144,6 +145,6 @@ node scripts/query.mjs --today --json | node -e "process.stdin.on('data',d=>cons
 ## Constraints
 
 - Open database read-only (`readOnly: true`)
-- This sync is stateless — always queries the current sliding window
-- All-day events may have null end times — use start date as end date
-- All-day events have timezone `_float` — omit timezone from output
+- This sync is stateless. It always queries the current sliding window
+- All-day events may have null end times. Use the start date as the end date
+- All-day events have timezone `_float`. Omit the timezone from the output

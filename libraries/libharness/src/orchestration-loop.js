@@ -1,22 +1,22 @@
 /**
- * OrchestrationLoop — N agent sessions coordinated by one lead LLM session.
+ * OrchestrationLoop — one lead LLM session coordinates N agent sessions.
  *
- * Ask is **async**: the tool returns immediately, the actual reply arrives
+ * Ask is **async**. The tool returns immediately. The actual reply arrives
  * on a later turn as `[answer#N] participant: …` on the asker's bus queue.
- * Pending state keys by `askId` (visible in the `[ask#N]` tag), so duplicate
- * Asks to the same addressee coexist without overwriting each other, and
- * the asker can map each reply unambiguously back to its question.
+ * Pending state keys by `askId` (visible in the `[ask#N]` tag). Duplicate
+ * Asks to the same addressee then coexist and never overwrite each other.
+ * The asker can map each reply unambiguously back to its question.
  *
- * Both lead and participants follow the same outer pattern: drain the bus
- * queue, run / resume the LLM with the drained messages, then settle any
+ * Both lead and participants follow the same outer pattern. Drain the bus
+ * queue. Run or resume the LLM with the drained messages. Then settle any
  * unanswered Asks the participant owes. They differ only in how the first
- * turn starts (the lead receives the task; participants wait for traffic).
+ * turn starts. The lead receives the task. Participants wait for traffic.
  *
  * Termination signals:
  * - `ctx.concluded` — explicit Conclude / Adjourn / Recess.
- * - `stopped` — broader: also true on lead error, agent crash, or any
- *   other abort path. Loops watch `stopped`; `ctx.concluded` is only used
- *   for the summary's success/verdict.
+ * - `stopped` — broader. It is also true on lead error, agent crash, or any
+ *   other abort path. Loops watch `stopped`. The code uses `ctx.concluded`
+ *   only for the summary's success and verdict.
  */
 import { SequenceCounter } from "./sequence-counter.js";
 import {
@@ -26,10 +26,10 @@ import {
 } from "./orchestration-toolkit.js";
 import { formatMessages } from "./orchestrator-helpers.js";
 
-/** Default per-session lead-turn budget — accommodates multi-round injected conversations. */
+/** Default per-session lead-turn budget. It fits multi-round injected conversations. */
 const DEFAULT_MAX_LEAD_TURNS = 200;
 
-/** Orchestrate N agent sessions coordinated by a single lead LLM session. */
+/** Coordinate N agent sessions from a single lead LLM session. */
 export class OrchestrationLoop {
   /**
    * @param {object} deps
@@ -42,7 +42,7 @@ export class OrchestrationLoop {
    * @param {object} deps.ctx - Orchestration context (from `createOrchestrationContext()`).
    * @param {object} deps.redactor
    * @param {number} [deps.maxLeadTurns] - Cap on lead resumes per session (default 200).
-   * @param {string} [deps.taskAmend] - Appended to the task before delivery.
+   * @param {string} [deps.taskAmend] - The loop appends it to the task before delivery.
    * @param {import("./inbox-poller.js").InboxPoller} [deps.inboxPoller]
    * @param {AbortController} [deps.abortController]
    */
@@ -90,7 +90,7 @@ export class OrchestrationLoop {
     this.#signalDone = resolveDone;
   }
 
-  /** Internal — resolved when `stopped` flips true so waiters unblock. */
+  /** Internal. Resolves when `stopped` flips true so waiters unblock. */
   #signalDone;
 
   /**
@@ -112,9 +112,9 @@ export class OrchestrationLoop {
       this.#stop();
     };
 
-    // Start agent loops in parallel. Wrapped so a crash flips `stopped`
-    // but the wrapper itself resolves — Promise.allSettled below never
-    // sees an unhandled rejection.
+    // Start agent loops in parallel. The wrapper makes a crash flip `stopped`
+    // and still resolves itself. Promise.allSettled below then never sees an
+    // unhandled rejection.
     const agentPromises = this.agents.map((a) =>
       this.#runAgent(a).catch(abort),
     );
@@ -153,14 +153,14 @@ export class OrchestrationLoop {
   }
 
   /**
-   * Lead loop. The lead's first turn carries the task; every subsequent
-   * turn is a resume triggered by something landing on its inbox.
+   * Lead loop. The lead's first turn carries the task. Every later turn is
+   * a resume, and something that lands on its inbox triggers it.
    *
    * `messages.length === 0` from `#drainOrWait` means the session ended
-   * before any message arrived — that's the natural exit. If
-   * `drainOrWait` returned messages, deliver them even if the session
-   * concluded in the microtask window between wake-up and this check;
-   * the inbox already has them and they deserve to be seen.
+   * before any message arrived. That is the natural exit. If `drainOrWait`
+   * returned messages, deliver them even when the session concluded in the
+   * microtask window between wake-up and this check. The inbox already holds
+   * them, so the lead should see them.
    */
   async #runLead(initialTask) {
     this.leadTurns = 1;
@@ -190,8 +190,8 @@ export class OrchestrationLoop {
   }
 
   /**
-   * Agent loop. The first message off the inbox triggers `run()`; every
-   * subsequent batch triggers `resume()`. No turn budget — the agent
+   * Agent loop. The first message off the inbox triggers `run()`. Every
+   * later batch triggers `resume()`. The loop has no turn budget. The agent
    * runner's own `maxTurns` caps each SDK call.
    */
   async #runAgent({ name, runner }) {
@@ -235,10 +235,10 @@ export class OrchestrationLoop {
 
   /**
    * If `name` left a pending Ask unanswered, inject one synthetic reminder
-   * and resume once more. If still unanswered after the reminder, emit a
-   * `protocol_violation` event per outstanding ask and cancel them — the
-   * asker's queue gets a synthetic `[no answer: …]` so it doesn't deadlock
-   * on a participant that's silently ignoring its inbox.
+   * and resume once more. If it is still unanswered after the reminder, emit
+   * a `protocol_violation` event per outstanding ask and cancel them. The
+   * asker's queue then gets a synthetic `[no answer: …]`. The asker does not
+   * deadlock on a participant that silently ignores its inbox.
    */
   async #settleOwedAsks(name, runner) {
     if (pendingAsksOwedBy(this.ctx, name).length === 0) return;
@@ -267,9 +267,9 @@ export class OrchestrationLoop {
   }
 
   /**
-   * Emit one NDJSON line tagged with its source (participant name) and a
-   * monotonic seq, wrapped in the universal `{source, seq, event}` envelope.
-   * Called from each runner's `onLine` callback.
+   * Emit one NDJSON line in the universal `{source, seq, event}` envelope.
+   * Tag it with its source (the participant name) and a monotonic seq.
+   * Each runner's `onLine` callback calls this.
    * @param {string} source
    * @param {string} line - Raw NDJSON line from the SDK iterator.
    */
@@ -288,8 +288,7 @@ export class OrchestrationLoop {
 
   /**
    * Emit one orchestrator-source event (`session_start`, `agent_start`,
-   * `protocol_violation`, `lead_turn_limit`) wrapped in the universal
-   * envelope.
+   * `protocol_violation`, `lead_turn_limit`) in the universal envelope.
    * @param {object} event
    */
   emitOrchestratorEvent(event) {
@@ -306,7 +305,7 @@ export class OrchestrationLoop {
 
   /**
    * Emit the terminal summary line. `Discusser` emits its own discuss-
-   * augmented summary after this one; trace consumers keep the last
+   * augmented summary after this one. Trace consumers keep the last
    * summary they see.
    * @param {{success: boolean, verdict?: string|null, turns: number, summary?: string|null}} result
    */

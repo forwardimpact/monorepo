@@ -6,23 +6,25 @@ const HELP_TOKENS = new Set(["--help", "-h"]);
 const VERSION_TOKENS = new Set(["--version", "-V"]);
 
 /**
- * Strict first-token print-and-exit guard for long-running service binaries.
+ * Strict first-token print-and-exit guard for service binaries that run for a
+ * long time.
  *
- * Matches only `argv[0]`. When it is one of `--help`/`-h`/`--version`/`-V`, the
- * guard writes help or the version string and returns `true`; the caller skips
- * its server-start body and the event loop drains to exit 0 (no `process.exit`,
- * so piped stdout is never truncated). Any other first token — including a flag
- * in second position, `--port 8080`, or no arguments — returns `false` and the
- * caller proceeds to the untouched server-start path.
+ * The guard matches only `argv[0]`. When it is one of
+ * `--help`/`-h`/`--version`/`-V`, the guard writes help or the version string
+ * and returns `true`. The caller then skips its server-start body. The event
+ * loop drains to exit 0 (no `process.exit`, so piped stdout is never
+ * truncated). Any other first token returns `false`, and the caller proceeds
+ * to the untouched server-start path. That covers a flag in second position,
+ * `--port 8080`, and no arguments.
  *
  * @param {object} args
  * @param {string} args.name - binary name, e.g. "fit-svcgraph"
  * @param {string} args.description - one-line service summary for the help block
  * @param {URL|string} args.packageJsonUrl - `new URL("./package.json", import.meta.url)`
  * @param {string[]} args.argv - `process.argv.slice(2)`
- * @param {{ stdout: { write(s: string): unknown } }} [args.proc] - default: `process`; injected for tests
- * @param {object} [args.fsSync] - default: `node:fs`; wrapped as the `{ fsSync }` runtime bag `resolveVersion` expects
- * @returns {boolean} `true` when the token was handled, `false` otherwise
+ * @param {{ stdout: { write(s: string): unknown } }} [args.proc] - default: `process`, injected for tests
+ * @param {object} [args.fsSync] - default: `node:fs`, wrapped as the `{ fsSync }` runtime bag `resolveVersion` expects
+ * @returns {boolean} `true` when the guard handles the token, `false` otherwise
  */
 export function serverFlagsShortCircuit({
   name,

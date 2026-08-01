@@ -1,23 +1,23 @@
 ---
 name: gemba-benchmark
 description: >
-  Prove whether a skill-pack change made agents better at writing code.
-  Use when a single passing eval doesn't prove anything and you need
-  multi-run pass@k evidence, when grading coding tasks with hidden tests
-  the agent cannot see, or when comparing outcomes across skill-set
-  versions.
+  Prove whether a skill-pack change made agents write better code.
+  Use when a single eval that passes proves nothing and you need
+  multi-run pass@k evidence, when you grade coding tasks with hidden
+  tests the agent cannot see, or when you compare outcomes across
+  skill-set versions.
 ---
 
 # gemba-benchmark
 
 `gemba-benchmark` answers one question Platform Builders care about: did our
-skills make agents better at writing code? A single agent run is a coin
-flip. `gemba-benchmark` runs each coding task N times across a skill-set
-manifest, grades each run against checks that never enter the agent's
-working directory, and reports pass@k (plus a mechanical score in [0, 1]
-for scored tasks).
+skills make agents write better code? A single agent run is a coin flip.
+`gemba-benchmark` runs each coding task N times across a skill-set manifest.
+It grades each run against checks that never enter the agent's working
+directory. It reports pass@k, plus a mechanical score in [0, 1] for scored
+tasks.
 
-`gemba-harness` is the generic agent-evaluation plumbing; `gemba-benchmark` adds
+`gemba-harness` is the generic agent-evaluation plumbing. `gemba-benchmark` adds
 the opinionated layer: task-family format, hidden checks, judge, and pass@k.
 
 ## Task Family Format
@@ -42,22 +42,23 @@ You author these files:
     specs/ workdir/       # optional — copied into agent CWD (overlay family-level)
 ```
 
-`run` generates the rest — `.claude/`, `apm.lock.yaml` (hashed into
-`skillSetHash`), and `apm_modules/`: outputs, not sources — see
-[references/authoring.md](references/authoring.md) for what to commit. Task
-IDs are directory names under `tasks/`; local paths and git URLs both work.
+`run` generates the rest: `.claude/`, `apm.lock.yaml` (hashed into
+`skillSetHash`), and `apm_modules/`. These are outputs. They are not sources.
+See [references/authoring.md](references/authoring.md) for what to commit.
+Task IDs are directory names under `tasks/`. Local paths and git URLs both
+work.
 
 **Family-level shared fixtures.** A `<family>/workdir/` or `<family>/specs/`
-is copied into every task's agent CWD as a shared base; the per-task
+is copied into every task's agent CWD as a shared base. The per-task
 `workdir/`/`specs/` overlay on top. Use it to maintain one fixture (e.g. an
-app under test) across many tasks instead of duplicating it per task.
+app under test) across many tasks. Do not duplicate the fixture per task.
 
 ## Environment Variables
 
 The harness auto-discovers `.env`/`.env.local` in the family root and each
-task directory, merges them into `process.env` (which wins), renders the
+task directory. It merges them into `process.env` (which wins), renders the
 result into the agent CWD, and adds every discovered name to the redaction
-allowlist. Locally use `.env.local` (gitignored); in CI set env vars.
+allowlist. Locally use `.env.local` (gitignored). In CI set env vars.
 
 ## Lifecycle
 
@@ -68,36 +69,36 @@ For each `(task, runIndex)` the harness drives:
    CWD. Allocate a free TCP port. Run `hooks/preflight.sh`.
 2. **Agent** — run the coding agent on `agent.task.md` with a default
    tool allow-list (override with `--allowed-tools`).
-3. **Grade** — the check rows are authoritative: `hooks/invariants.sh` emits
-   structural rows on fd 3 (`$RESULTS_FD=3`); the harness runs each hidden test
+3. **Grade** — the check rows are authoritative. `hooks/invariants.sh` emits
+   structural rows on fd 3 (`$RESULTS_FD=3`). The harness runs each hidden test
    from `tests/`, one row per check. A row's role lives in its fields:
 
    | Row | Role | Grading effect |
    | --- | --- | --- |
-   | `{"test": …, "pass": …, "gate": true}` | **Gate** | Any failing gate → verdict `fail`, score 0. |
+   | `{"test": …, "pass": …, "gate": true}` | **Gate** | Any failed gate → verdict `fail`, score 0. |
    | `{"test": …, "pass": …}` or `"weight": w > 0` | **Scored** | Contributes `w` (default 1) to the weighted score. |
-   | `{"weight": 0, …}` | **Diagnostic** | Never graded; free-form detail. |
-   | Malformed or unparseable | **Malformed** | A failing scored check; surfaced in the report. |
+   | `{"weight": 0, …}` | **Diagnostic** | Never graded. Free-form detail. |
+   | Malformed or unparseable | **Malformed** | A failed scored check. The report surfaces it. |
 
-   A task with any scored row is a **scored task**: its record carries
+   A task with any scored row is a **scored task**. Its record carries
    `score = Σ weight(passing) / Σ weight(all scored)`. The script's exit code is
-   **script health only** — nonzero means the grader itself failed (verdict
-   `fail`, score 0); a well-formed hook ends `exit 0`.
-4. **Judge** — a separate session reads the grade and the agent trace and
+   **script health only**. Nonzero means the grader itself failed (verdict
+   `fail`, score 0). A well-formed hook ends `exit 0`.
+4. **Judge** — a separate session reads the grade and the agent trace. It
    calls `Conclude` with `success` or `failure`. The judge is a binary gate
-   protecting the score's validity, never a grade: a failing judge (like a
-   failing gate or an unhealthy grader) zeroes the record's score.
+   that protects the score's validity. It is never a grade. A failed judge
+   (like a failed gate or an unhealthy grader) zeroes the record's score.
 5. **Teardown** — SIGTERM/SIGKILL the per-task process group, verify
    the port is free, and reap descendants.
 
 ### Hook Environment Variables
 
-`preflight.sh` and `invariants.sh` both receive these (so hooks reference real
-paths instead of reconstructing them from `$0`):
+`preflight.sh` and `invariants.sh` both receive these, so hooks reference real
+paths and do not rebuild them from `$0`:
 
 | Var | Value |
 | --- | --- |
-| `AGENT_CWD` | Agent CWD (the per-task copy) — reference emitted files as `$AGENT_CWD/<path>`. |
+| `AGENT_CWD` | Agent CWD (the per-task copy). Reference emitted files as `$AGENT_CWD/<path>`. |
 | `PORT` | Allocated free TCP port. |
 | `TASK_ID` | Task name (directory under `tasks/`). |
 | `TASK_DIR` | Task directory on the host. |
@@ -107,10 +108,10 @@ paths instead of reconstructing them from `$0`):
 
 ## Hidden Test Suites
 
-A task opts in with a `tests/` directory beside `hooks/` — an overlay mirror
-of the agent CWD: a file's path under `tests/` is its staging path. Every
+A task opts in with a `tests/` directory beside `hooks/`, an overlay mirror
+of the agent CWD. The harness stages each file at its `tests/` path. Every
 `*.test.js` file is one check run with `node --test` (`*.gate.test.js` = a
-gate, others scored at weight 1, named by filename stem); other files are
+gate, others scored at weight 1, named by filename stem). Other files are
 support, staged but never graded. The harness restores the workdir
 afterward, so the judge grades the agent's work. An invalid tree fails the
 family load. Layout details in
@@ -118,8 +119,8 @@ family load. Layout details in
 
 ## CLI
 
-The full flag surface lives in [references/cli.md](references/cli.md);
-task-authoring guidance in
+The full flag surface lives in [references/cli.md](references/cli.md).
+Task-authoring guidance lives in
 [references/authoring.md](references/authoring.md).
 
 ## GitHub Action

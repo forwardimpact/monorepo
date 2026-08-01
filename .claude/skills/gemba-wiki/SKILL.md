@@ -3,9 +3,9 @@ name: gemba-wiki
 description: >
   Give agent teams stable memory that persists across sessions. Use when
   an agent finishes a session and its findings would vanish without shared
-  memory, when sending a memo to a teammate, when refreshing storyboard
-  XmR charts, when auto-fixing wiki audit findings after editing memory,
-  or when bootstrapping and syncing a wiki.
+  memory, when you send a memo to a teammate, when you refresh storyboard
+  XmR charts, when you auto-fix wiki audit findings after you edit memory,
+  or when you bootstrap and sync a wiki.
 ---
 
 # Wiki Operations
@@ -18,8 +18,8 @@ lifecycle.
 ## When to Use
 
 - **Cold boot** — `npx gemba-wiki boot --agent <self>` produces a JSON digest.
-- **Run-time write** — `log decision` opens the entry; `log note` appends
-  fields; `log done` closes.
+- **Run-time write** — `log decision` opens the entry. `log note` appends
+  fields. `log done` closes.
 - **In-flight work** — `claim` / `release` mark and clear `MEMORY.md ##
   Active Claims` rows.
 - **Inbox triage** — `inbox list / ack / promote / drop`.
@@ -27,9 +27,9 @@ lifecycle.
 - **Storyboard refresh** — `refresh` regenerates XmR and
   obstacle/experiment marker blocks.
 - **Bootstrap** — `init` clones the wiki and scaffolds Active Claims.
-- **Audit** — `audit` runs the gate; replaces `scripts/wiki-audit.sh`.
-- **Auto-fix** — `fix` clears `audit` findings via a Haiku technical-writer;
-  run after editing memory so the Stop-hook gate passes.
+- **Audit** — `audit` runs the gate. It replaces `scripts/wiki-audit.sh`.
+- **Auto-fix** — `fix` clears `audit` findings with a Haiku technical-writer.
+  Run it after you edit memory so the Stop-hook gate passes.
 - **Git lifecycle** — `push` / `pull`.
 
 ## Commands
@@ -42,7 +42,7 @@ npx gemba-wiki boot --agent staff-engineer [--format markdown]
 
 | Flag | Description |
 | --- | --- |
-| `--agent` | Required; no environment fallback |
+| `--agent` | Required, with no environment fallback |
 | `--format` | `json` (default) or `markdown` |
 | `--wiki-root` | Override wiki root |
 
@@ -51,8 +51,9 @@ Contract:
 
 ### `log decision | note | done` — Weekly-log append
 
-`decision` is required at the opening of each weekly-log entry. Rotation
-is implicit at the 500-line cap (sealed as `…-Www-partN.md`).
+`decision` must open each weekly-log entry. `log` rotates the file
+automatically at the 500-line cap. It seals the old file as
+`…-Www-partN.md`.
 
 ```sh
 npx gemba-wiki log decision --agent staff-engineer --surveyed "..." --chosen "..." --rationale "..."
@@ -62,10 +63,10 @@ npx gemba-wiki log done --agent staff-engineer
 
 ### `claim` / `release` — Active Claims
 
-`claim` refuses duplicates with exit 2 and defaults `expires_at` to
-`claimed_at + 1 day` — a claim is a short-lived "shipping this now" assertion,
-not a lease; override with `--expires-at`. `release --expired` clears every row
-past `expires_at` (so does `refresh`).
+`claim` refuses duplicates with exit 2. It defaults `expires_at` to
+`claimed_at + 1 day`. A claim is a short-lived assertion that you ship now. It
+is not a lease. Override the date with `--expires-at`. `release --expired`
+clears every row past `expires_at`. `refresh` clears them too.
 
 ```sh
 npx gemba-wiki claim --agent staff-engineer --target spec-NNNN --branch feat/x [--pr NNNN] [--expires-at YYYY-MM-DD]
@@ -84,7 +85,7 @@ npx gemba-wiki inbox promote --agent staff-engineer --index 0
 
 ### `rotate` — Force a weekly-log rotation
 
-Operator escape; seals the current file even when it is under the cap.
+This operator escape seals the current file even when it is under the cap.
 
 ### `audit` — Memory-protocol gate
 
@@ -98,12 +99,13 @@ npx gemba-wiki audit [--format json]
 npx gemba-wiki fix
 ```
 
-Audits, then deterministically rotates over-budget weekly logs and re-bisects
-over-budget sealed parts, hands the prose-judgment findings (including inserting
-a missing `### Decision`) to a Haiku technical-writer (re-auditing each round,
-max three), and flags anything irreducible — a lone day-section that alone
-exceeds the budget and cannot be split — for a human, exiting non-zero rather
-than touching it. Run after editing wiki files.
+`fix` audits first. It then rotates over-budget weekly logs deterministically.
+It re-bisects over-budget sealed parts. It hands the prose-judgment findings to
+a Haiku technical-writer. One such finding is a missing `### Decision` to
+insert. `fix` re-audits after each round, to a maximum of three rounds. It
+flags anything irreducible for a human. One example is a lone day-section that
+exceeds the budget on its own and cannot be split. `fix` exits non-zero. It
+does not change that file. Run `fix` after you edit wiki files.
 
 ### `memo` — Cross-team memo
 
@@ -120,9 +122,9 @@ npx gemba-wiki memo --from technical-writer --to all --message "new XmR baseline
 
 ### `refresh` — Regenerate storyboard charts, clear expired claims
 
-Scans for marker pairs and regenerates each, and sweeps every expired row from
-`MEMORY.md ## Active Claims`. Defaults to the current month's storyboard.
-Idempotent.
+`refresh` scans for marker pairs and regenerates each one. It sweeps every
+expired row from `MEMORY.md ## Active Claims`. It defaults to the current
+month's storyboard. `refresh` is idempotent.
 
 ```sh
 npx gemba-wiki refresh [storyboard-path]
@@ -130,9 +132,9 @@ npx gemba-wiki refresh [storyboard-path]
 
 ### `init` — Bootstrap a wiki tree
 
-Clones the wiki, scaffolds `MEMORY.md ## Active Claims`, and creates
-`wiki/metrics/<skill>/`. Idempotent. Set `FIT_WIKI_URL` to override default
-URL derivation.
+`init` clones the wiki, scaffolds `MEMORY.md ## Active Claims`, and creates
+`wiki/metrics/<skill>/`. `init` is idempotent. Set `FIT_WIKI_URL` to override
+how `init` derives the default URL.
 
 ```sh
 npx gemba-wiki init
@@ -140,7 +142,7 @@ npx gemba-wiki init
 
 ### `push` / `pull` — Git lifecycle
 
-Designed for Claude Code hooks (`SessionStart` → `pull`; `Stop` → `push`).
+Use these with Claude Code hooks (`SessionStart` → `pull`; `Stop` → `push`).
 
 ```sh
 npx gemba-wiki push
@@ -157,15 +159,15 @@ npx gemba-wiki pull
 
 ### Marker contract
 
-Storyboards carry these marker families recognized by `refresh`:
+`refresh` recognizes these marker families in storyboards:
 
 - `<!-- memo:inbox -->` — anchors `gemba-wiki memo` writes
 - `<!-- xmr:metric:csv-path --> ... <!-- /xmr -->` — XmR chart blocks
 - `<!-- obstacles:open|closed --> ... <!-- /obstacles -->` — issue lists
 - `<!-- experiments:open|closed --> ... <!-- /experiments -->` — issue lists
 
-Closed-state markers default to a 7-day window; a `:30d` suffix is
-reserved for future windows.
+Closed-state markers default to a 7-day window. A `:30d` suffix is reserved
+for future windows.
 
 ## Programmatic API
 

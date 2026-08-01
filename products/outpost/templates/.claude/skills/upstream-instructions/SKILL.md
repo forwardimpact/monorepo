@@ -1,13 +1,13 @@
 ---
 name: upstream-instructions
-description: Track changes made to this installation's instruction files — the root CLAUDE.md, agent profiles, and skills — and record them in a single root CHANGELOG.md so improvements can be contributed back to the upstream monorepo. Use when CLAUDE.md, agents, or skills have been modified, added, or removed locally and those changes should be documented for upstream.
+description: Track changes to this installation's instruction files: the root CLAUDE.md, agent profiles, and skills. Record them in a single root CHANGELOG.md so you can contribute improvements back to the upstream monorepo. Use when someone modified, added, or removed CLAUDE.md, agents, or skills locally and those changes need documentation for upstream.
 ---
 
 # Upstream Instructions
 
-Track changes to this installation's **instructions** and record them in one
-root `CHANGELOG.md` so improvements can be contributed back to the upstream
-monorepo. "Instructions" means all three surfaces, treated equally:
+Track changes to this installation's **instructions**. Record them in one root
+`CHANGELOG.md` so you can contribute improvements back to the upstream monorepo.
+"Instructions" means all three surfaces, and they carry equal weight:
 
 - **`CLAUDE.md`** (root) — installation-wide instructions.
 - **`.claude/agents/*.md`** — agent profiles.
@@ -16,9 +16,9 @@ monorepo. "Instructions" means all three surfaces, treated equally:
 ## Trigger
 
 - The user asks to prepare local instruction changes for upstream contribution.
-- The root `CLAUDE.md`, an agent profile, or a skill has been modified, added,
-  or removed.
-- The user wants to document what changed locally before syncing upstream.
+- Someone modified, added, or removed the root `CLAUDE.md`, an agent profile, or
+  a skill.
+- The user wants to document what changed locally before the sync upstream.
 
 ## Prerequisites
 
@@ -31,27 +31,26 @@ monorepo. "Instructions" means all three surfaces, treated equally:
 - `.claude/agents/*.md` — agent profiles.
 - `.claude/skills/*/SKILL.md` and reference files — skills.
 - `CHANGELOG.md` (root) — the existing changelog, for what's already recorded.
-- The changes made in the current working session — the source of truth for what
-  changed, since the KB lives on a synced filesystem and is not
-  version-controlled.
+- The changes you made in the current working session — the source of truth for
+  what changed. The KB lives on a synced filesystem. It has no version control.
 
 ## Outputs
 
-- `CHANGELOG.md` (root) — a **single** reverse-chronological changelog covering
-  all three surfaces. There are no per-skill or per-agent changelogs.
+- `CHANGELOG.md` (root) — a **single** reverse-chronological changelog that
+  covers all three surfaces. There are no per-skill or per-agent changelogs.
 
 <do_confirm_checklist goal="Verify the changelog is upstream-ready">
 
-- [ ] Exactly one root `CHANGELOG.md`; no stray per-skill / per-agent changelogs
-      left behind.
-- [ ] Every entry names its **Scope** (which surface(s) and file(s) it touched).
-- [ ] Each entry has **What**, **Why**, and **Details**.
-- [ ] Descriptions are specific enough for an upstream maintainer to act on (not
-      "updated CLAUDE.md" / "fixed stuff").
-- [ ] New skills/agents include a brief description of their purpose; removed
-      ones explain why.
-- [ ] Dates are the date the change was made, not guessed.
-- [ ] No duplicate entries for the same change.
+- [ ] Keep exactly one root `CHANGELOG.md`. Leave no stray per-skill or
+      per-agent changelog behind.
+- [ ] Name the **Scope** in every entry (the surfaces and files it touched).
+- [ ] Give each entry **What**, **Why**, and **Details**.
+- [ ] Make each description specific enough for an upstream maintainer to act
+      on. Never write "updated CLAUDE.md" or "fixed stuff".
+- [ ] Describe the purpose of each new skill or agent. Explain why you removed
+      each deleted one.
+- [ ] Use the real date of the change. Never guess a date.
+- [ ] Write no duplicate entry for the same change.
 
 </do_confirm_checklist>
 
@@ -65,15 +64,15 @@ head -20 CHANGELOG.md 2>/dev/null   # newest date already recorded, if any
 
 ### 2. Identify changed instructions
 
-Knowledge bases live on a synced filesystem, not in Git, so there is no commit
-history to diff. Identify what changed from the work just done **this session**:
-recall every edit, addition, removal, and rename made to `CLAUDE.md`,
-`.claude/agents/`, and `.claude/skills/` during the current conversation, and
-list them per surface.
+Knowledge bases live on a synced filesystem. They do not live in Git, so there
+is no commit history to diff. Identify what changed from the work you did **this
+session**. Recall every edit, addition, removal, and rename you made to
+`CLAUDE.md`, `.claude/agents/`, and `.claude/skills/` during the current
+conversation. List them per surface.
 
-Use `CHANGELOG.md` only to see what's already recorded so you don't duplicate an
-existing entry. If something was clearly changed but you can't reconstruct what
-or why from the session, flag it as needing review rather than guessing.
+Use `CHANGELOG.md` only to see what you already recorded. Then you do not
+duplicate an existing entry. If something clearly changed but you cannot
+reconstruct what or why from the session, flag it for review. Do not guess.
 
 ### 3. Classify each change
 
@@ -90,10 +89,10 @@ or why from the session, flag it as needing review rather than guessing.
 | `removed`  | Instruction file or directory deleted                  |
 | `renamed`  | File or directory renamed                              |
 
-A single change often spans surfaces (e.g. a KB-structure change touching
-`CLAUDE.md`, several agents, and several skills) — record it as **one entry**
-whose Scope lists every surface touched. Re-read the affected files to confirm
-the change landed as intended before describing it.
+A single change often spans surfaces. For example, a KB-structure change touches
+`CLAUDE.md`, several agents, and several skills. Record it as **one entry**
+whose Scope lists every surface it touched. Before you describe the change,
+re-read the affected files and confirm it landed as intended.
 
 ### 4. Describe each change
 
@@ -104,8 +103,8 @@ Every entry must answer:
 3. **Details** — a summary of the actual change (not a full diff).
 
 Good: "Agents now read `Knowledge/Priorities/` at the start of every wake and
-flag anything that threatens a priority — drafts and triage were ignoring
-strategic context."
+flag anything that threatens a priority. Drafts and triage ignored strategic
+context."
 
 Bad: "Updated the agents" / "Fixed stuff" / "Changed line 42".
 
@@ -139,8 +138,8 @@ Worked examples in [references/examples.md](references/examples.md).
 
 ## Notes
 
-- This skill **documents only** — it does not push or merge anything.
-- The single root `CHANGELOG.md` is consumed by the **downstream-instructions**
-  skill in the upstream monorepo.
-- When in doubt about whether a change is upstream-worthy, include it; the
+- This skill **documents only**. It does not push or merge anything.
+- The **downstream-instructions** skill in the upstream monorepo consumes the
+  single root `CHANGELOG.md`.
+- When in doubt about whether a change is upstream-worthy, include it. The
   upstream maintainer decides what to incorporate.

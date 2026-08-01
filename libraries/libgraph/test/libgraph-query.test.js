@@ -58,7 +58,7 @@ describe("GraphIndex - Essential Functionality", () => {
     }));
   });
 
-  test("multiple resources can be added and queried selectively", async () => {
+  test("GraphIndex adds resources and queries them selectively", async () => {
     const resources = [
       {
         identifier: resource.Identifier.fromObject({
@@ -131,13 +131,13 @@ describe("GraphIndex - Essential Functionality", () => {
     );
     assert(
       messageResults.some((r) => String(r) === "common.Message.user-message"),
-      "Should include user message",
+      "Should include the user message",
     );
     assert(
       messageResults.some(
         (r) => String(r) === "common.Message.assistant-message",
       ),
-      "Should include assistant message",
+      "Should include the assistant message",
     );
 
     const toolPattern = {
@@ -154,7 +154,7 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       String(toolResults[0]),
       "tool.ToolFunction.search-tool",
-      "Should find search tool",
+      "Should find the search tool",
     );
 
     const systemPattern = {
@@ -171,7 +171,7 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       String(systemResults[0]),
       "tool.ToolFunction.search-tool",
-      "Should find search tool created by system",
+      "Should find the search tool the system created",
     );
 
     const jsPattern = {
@@ -188,7 +188,7 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       String(jsResults[0]),
       "common.Message.user-message",
-      "Should find user message about JavaScript",
+      "Should find the user message about JavaScript",
     );
 
     const specificPattern = {
@@ -205,7 +205,7 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       String(specificResults[0]),
       "common.Message.user-message",
-      "Should find user message by ID",
+      "Should find the user message by ID",
     );
 
     const nonExistentPattern = {
@@ -246,12 +246,12 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       fullTypeResults.length,
       1,
-      "Should find resource using full RDF type predicate",
+      "Should find the resource with the full RDF-type predicate",
     );
     assert.strictEqual(
       String(fullTypeResults[0]),
       "common.Message.test-message",
-      "Should find correct resource using full predicate",
+      "Should find the correct resource with the full predicate",
     );
 
     const descPattern = {
@@ -263,12 +263,12 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       descResults.length,
       1,
-      "Should find resource by description predicate",
+      "Should find the resource by the description predicate",
     );
     assert.strictEqual(
       String(descResults[0]),
       "common.Message.test-message",
-      "Should find correct resource by description",
+      "Should find the correct resource by description",
     );
   });
 
@@ -289,28 +289,32 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       hasBeforeAdd,
       false,
-      "Should not have item before adding",
+      "Should not have the item before you add it",
     );
 
     const getBeforeAdd = await graphIndex.get([String(identifier)]);
     assert.strictEqual(
       getBeforeAdd.length,
       0,
-      "Should return empty array before adding",
+      "Should return an empty array before you add the item",
     );
 
     const quads = jsonldToQuads(jsonld);
     await graphIndex.add(identifier, quads);
 
     const hasAfterAdd = await graphIndex.has(String(identifier));
-    assert.strictEqual(hasAfterAdd, true, "Should have item after adding");
+    assert.strictEqual(
+      hasAfterAdd,
+      true,
+      "Should have the item after you add it",
+    );
 
     const getAfterAdd = await graphIndex.get([String(identifier)]);
     assert.strictEqual(getAfterAdd.length, 1, "Should return one item");
     assert.strictEqual(
       String(getAfterAdd[0]),
       String(identifier),
-      "Should return correct identifier after adding",
+      "Should return the correct identifier after you add it",
     );
   });
 
@@ -318,19 +322,19 @@ describe("GraphIndex - Essential Functionality", () => {
     assertThrowsMessage(
       () => new GraphIndex(null, new Store(), {}),
       /storage is required/,
-      "Should throw for missing storage",
+      "Should throw for absent storage",
     );
 
     assertThrowsMessage(
       () => new GraphIndex(mockStorage, null, {}),
       /store must be an N3 Store instance/,
-      "Should throw for missing store",
+      "Should throw for an absent store",
     );
 
     assertThrowsMessage(
       () => new GraphIndex(mockStorage, {}, {}),
       /store must be an N3 Store instance/,
-      "Should throw for invalid store",
+      "Should throw for an invalid store",
     );
   });
 
@@ -338,12 +342,12 @@ describe("GraphIndex - Essential Functionality", () => {
     assert.strictEqual(
       graphIndex.storage(),
       mockStorage,
-      "storage() should return storage instance",
+      "storage() should return the storage instance",
     );
     assert.strictEqual(
       graphIndex.indexKey,
       "test.jsonl",
-      "indexKey should return correct key",
+      "indexKey should return the correct key",
     );
   });
 });

@@ -4,8 +4,8 @@
  * The pre-refactor pipeline produced a known set of storage paths for
  * the `MINI_TERRAIN` activity fixture. The post-refactor pipeline must
  * produce the same set. File **contents** change for the in-scope
- * prose-bearing outputs (snapshot comments, GitHub webhooks); the path
- * set must not.
+ * outputs that carry prose (snapshot comments, GitHub webhooks). The
+ * path set must not change.
  *
  * The baseline JSON was captured before any contract refactor landed
  * (see `fixtures/README.md` for the regeneration command).
@@ -27,7 +27,7 @@ import { MINI_TERRAIN } from "./fixtures/mini-terrain.fixture.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 describe("file-path parity against pre-refactor baseline", () => {
-  test("post-refactor file paths match baseline", () => {
+  test("post-refactor file paths match the baseline", () => {
     const baselinePath = path.resolve(
       __dirname,
       "fixtures/file-path-baseline.json",
@@ -50,7 +50,7 @@ describe("file-path parity against pre-refactor baseline", () => {
     assert.deepStrictEqual(
       actual,
       baseline,
-      "post-refactor pipeline must produce the same file-path set as the captured baseline",
+      "the post-refactor pipeline must produce the same file-path set as the captured baseline",
     );
   });
 });

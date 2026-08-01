@@ -6,7 +6,7 @@ import { isWildcard } from "../index.js";
 const { namedNode, literal } = DataFactory;
 
 /**
- * GraphIndex class for managing RDF graph data with lazy loading
+ * The GraphIndex class manages RDF graph data with lazy loading
  * @implements {import("@forwardimpact/libindex").IndexInterface}
  */
 export class GraphIndex extends IndexBase {
@@ -40,7 +40,7 @@ export class GraphIndex extends IndexBase {
   }
 
   /**
-   * Adds quads to the index with identifier mapping
+   * Adds quads to the index and maps them to an identifier
    * @param {resource.Identifier} identifier - Resource identifier
    * @param {object[]} quads - Array of quad objects with subject, predicate, object
    * @returns {Promise<void>}
@@ -88,7 +88,7 @@ export class GraphIndex extends IndexBase {
   }
 
   /**
-   * Normalizes a query pattern by converting wildcards to null
+   * Normalizes a query pattern and converts wildcards to null
    * @param {object} pattern - Raw query pattern
    * @returns {object} Normalized pattern with wildcards converted to null
    * @private
@@ -123,7 +123,7 @@ export class GraphIndex extends IndexBase {
   }
 
   /**
-   * Extracts local name from a URI
+   * Extracts the local name from a URI
    * @param {string} uri - Full URI (e.g., "https://schema.org/Person")
    * @returns {string} Local name (e.g., "Person")
    * @private
@@ -134,7 +134,7 @@ export class GraphIndex extends IndexBase {
   }
 
   /**
-   * Gets type URIs including synonyms defined in ontology via skos:altLabel
+   * Gets type URIs and the synonyms the ontology defines with skos:altLabel
    * @param {string} type - The requested type (e.g., "schema:Person" or "https://schema.org/Person")
    * @returns {Promise<string[]>} Array of type URIs to query
    * @private
@@ -150,7 +150,7 @@ export class GraphIndex extends IndexBase {
     const ontologyContent = String((await storage.get("ontology.ttl")) || "");
     if (!ontologyContent) return types;
 
-    // Parse ontology to find skos:altLabel for this type
+    // Parse the ontology to find skos:altLabel for this type
     // Look for pattern: schema:TypeShape ... skos:altLabel "SynonymName"
     const typeName = this.#extractLocalName(typeUri);
     const altLabelPattern = new RegExp(
@@ -161,7 +161,8 @@ export class GraphIndex extends IndexBase {
     let match;
     while ((match = altLabelPattern.exec(ontologyContent)) !== null) {
       const synonymName = match[1];
-      // Construct full URI for synonym (e.g., "Individual" -> "https://schema.org/Individual")
+      // Construct the full URI for the synonym
+      // (e.g., "Individual" -> "https://schema.org/Individual")
       const synonymUri = `https://schema.org/${synonymName}`;
       types.push(synonymUri);
     }
@@ -214,7 +215,8 @@ export class GraphIndex extends IndexBase {
     const normalizedType = isWildcard(type) ? null : type;
 
     if (normalizedType) {
-      // Get all types to query (including synonyms from ontology via skos:altLabel)
+      // Get all types to query. The ontology defines synonyms with
+      // skos:altLabel
       const typesToQuery = await this.#getTypesWithSynonyms(normalizedType);
 
       // Query for each type (canonical + synonyms)
@@ -227,7 +229,7 @@ export class GraphIndex extends IndexBase {
         }
       }
     } else {
-      // No type filter - return all subjects with types
+      // Without a type filter, return all subjects with types
       const quads = this.#graph.getQuads(null, typeTerm, null);
       for (const quad of quads) {
         subjects.set(quad.subject.value, quad.object.value);
@@ -238,7 +240,7 @@ export class GraphIndex extends IndexBase {
   }
 
   /**
-   * Queries items from this graph index using SPARQL-like patterns
+   * Queries items from this graph index with SPARQL-like patterns
    * @param {object} pattern - Query pattern with subject, predicate, object (wildcards converted to null)
    * @param {import("@forwardimpact/libtype").tool.QueryFilter} filter - Filter object for query constraints
    * @returns {Promise<resource.Identifier[]>} Array of resource identifiers
@@ -246,10 +248,10 @@ export class GraphIndex extends IndexBase {
   async queryItems(pattern, filter = {}) {
     if (!this.loaded) await this.loadData();
 
-    // 1. Normalize query pattern
+    // 1. Normalize the query pattern
     const normalized = this.#normalizePattern(pattern);
 
-    // 2. Convert pattern terms to N3 terms, letting N3 handle prefix expansion
+    // 2. Convert pattern terms to N3 terms. N3 handles the prefix expansion
     const subjectTerm = normalized.subject
       ? this.#patternTermToN3Term(normalized.subject)
       : null;
@@ -260,14 +262,14 @@ export class GraphIndex extends IndexBase {
       ? this.#patternTermToN3Term(normalized.object)
       : null;
 
-    // 3. Query the N3 store for matching triples
+    // 3. Query the N3 store for triples that match
     const quads = this.#graph.getQuads(subjectTerm, predicateTerm, objectTerm);
 
     if (quads.length === 0) {
       return [];
     }
 
-    // 3. Collect matching subjects and find identifiers
+    // 3. Collect the subjects that match and find the identifiers
     const matchingSubjects = new Set();
     for (const quad of quads) {
       matchingSubjects.add(quad.subject.value);

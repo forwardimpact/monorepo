@@ -1,21 +1,21 @@
 ---
 name: sync-teams
-description: Sync recent Microsoft Teams chat messages into ~/.cache/fit/outpost/teams_chat/ as markdown files by reading the Teams IndexedDB cache from disk. Use on a schedule or when the user asks to sync their Teams chats. Requires macOS with the Teams desktop app installed.
+description: Sync recent Microsoft Teams chat messages into ~/.cache/fit/outpost/teams_chat/ as markdown files. The skill reads the Teams IndexedDB cache from disk. Use on a schedule or when the user asks to sync their Teams chats. Requires macOS with the Teams desktop app installed.
 compatibility: Requires macOS with Microsoft Teams desktop app (com.microsoft.teams2) installed
 ---
 
 # Sync Teams
 
 Sync recent Microsoft Teams chat messages into
-`~/.cache/fit/outpost/teams_chat/` as markdown files. This is an automated data
-pipeline skill — it ingests chat data that other skills (like
+`~/.cache/fit/outpost/teams_chat/` as markdown files. This is an automated skill
+in the data pipeline. It ingests chat data that other skills (like
 `extract-entities`) consume downstream.
 
-This skill reads the Teams IndexedDB cache directly from disk — no browser
-automation, no API tokens, no network access needed. The Teams desktop app
-(which uses Edge WebView2) stores conversations and messages in a LevelDB-backed
-IndexedDB at a known location. This skill parses those files, deserializes the
-V8-encoded records, and writes markdown.
+This skill reads the Teams IndexedDB cache directly from disk. It needs no
+browser automation, no API tokens, and no network access. The Teams desktop app
+uses Edge WebView2. The app stores conversations and messages in a
+LevelDB-backed IndexedDB at a known location. This skill parses those files,
+deserializes the V8-encoded records, and writes markdown.
 
 ## Trigger
 
@@ -59,7 +59,7 @@ The script:
 1. Reads all LevelDB `.ldb` (SSTable) and `.log` (write-ahead log) files from
    the Teams IndexedDB directory
 2. Decompresses Snappy-compressed blocks and deserializes V8-encoded values
-   using Node's built-in `v8.deserialize()`
+   with Node's built-in `v8.deserialize()`
 3. Extracts conversation records (with member lists, topics, chat type) and
    message records (with sender names, HTML content, timestamps)
 4. Groups messages by conversation, filters by date window, and converts HTML
@@ -69,7 +69,7 @@ The script:
 
 ### Architecture
 
-Three modules, following the same pattern as `sync-apple-mail`:
+Three modules follow the same pattern as `sync-apple-mail`:
 
 | Module                       | Purpose                                                                                                                     |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -87,17 +87,17 @@ data in LevelDB (the same way Chrome does). The key databases are:
 - **replychain-manager** — stores actual messages: sender display name, HTML
   content, timestamps, reactions, edit status
 
-Since LevelDB is an append-only format, files can be read while Teams is
-running. Newer `.ldb` files supersede older ones for the same records.
+LevelDB is an append-only format. You can read the files while Teams runs. Newer
+`.ldb` files supersede older ones for the same records.
 
 ### Name Resolution
 
-Teams conversation records don't store human-readable member names — only orgid
-identifiers. Display names are resolved from:
+Teams conversation records do not store human-readable member names. They store
+orgid identifiers only. Resolve display names from:
 
 1. **Conversation topic** (for named group chats)
-2. **Message sender names** (`imDisplayName` field) — for 1:1 chats, the chat is
-   named after the other participant(s)
+2. **Message sender names** (`imDisplayName` field) — a 1:1 chat takes the name
+   of the other participant(s)
 
 ## Output Format
 
@@ -144,14 +144,13 @@ Key conventions:
 
 - Messages in **chronological order** (oldest first)
 - **Normalize names** from Teams format ("Last, First") to "First Last"
-- **Platform** line distinguishes Teams from email in downstream processing
-- **Plain text only** — HTML is stripped, mentions are preserved as plain text
-- **Attachments are not extracted** — files/images on a message are dropped from
-  the markdown. They are hosted on SharePoint/OneDrive, not in the local cache.
-  However, the user has **often manually downloaded** them, so an attachment
-  usually exists under `~/Downloads/` with the **same file name** shown in
-  Teams. When a message references an attachment and you need its contents, look
-  there first.
+- The **Platform** line distinguishes Teams from email downstream
+- **Plain text only** — the script strips HTML. Mentions stay as plain text
+- **The script does not extract attachments** — it drops files and images from
+  the markdown. SharePoint or OneDrive hosts them. The local cache does not. But
+  the user **often downloads them manually**, so an attachment usually exists
+  under `~/Downloads/` with the **same file name** Teams shows. When a message
+  references an attachment and you need its contents, look there first.
 - Skip system messages (calls, member adds/removes, topic changes)
 
 ## Error Handling
@@ -161,29 +160,30 @@ Key conventions:
 - LevelDB file parse error → skip that file, continue with others
 - V8 deserialization failure → skip that record, continue
 - Snappy decompression failure → skip that block, continue
-- Empty chat (no messages in window) → skip, don't write a file
+- Empty chat (no messages in window) → skip, do not write a file
 - Always update sync state, even on partial success
 
 ## Constraints
 
-- **Read-only.** Never writes to the Teams IndexedDB or sends messages.
-- **Cache-dependent.** Only conversations cached locally by Teams are available.
-  This covers recently viewed chats, not full history.
-- **Both 1:1 and group chats** are synced (channels are excluded).
-- **No message limit per chat** — all cached messages within the `--days` window
-  are included.
+- **Read-only.** The script never writes to the Teams IndexedDB or sends
+  messages.
+- **Cache-dependent.** Only the conversations Teams caches locally are
+  available. This covers recently viewed chats. It does not cover full history.
+- **Both 1:1 and group chats.** The script syncs both and excludes channels.
+- **No message limit per chat** — the output holds every cached message within
+  the `--days` window.
 
 ## Limitations
 
-- The IndexedDB is a **cache, not an archive**. Only conversations the user has
-  recently opened in Teams will have cached message data. Older conversations
-  that haven't been opened may have conversation metadata but no messages.
-- Clearing the Teams cache (a common troubleshooting step) will temporarily
-  remove all local data until Teams rebuilds it from the server.
-- Some V8-serialized records (~17% in testing) use formats that
-  `v8.deserialize()` cannot decode. These are silently skipped — they are
-  typically IndexedDB metadata, not conversation or message records.
-- **Attachments (files/images) are never synced into the markdown** — only the
-  message text is captured. The binaries live on SharePoint/OneDrive, but the
-  user frequently downloads them, so the same-named file is usually already in
-  `~/Downloads/`. Check there before trying to fetch from SharePoint.
+- The IndexedDB is a **cache**. It is not an archive. Only the conversations the
+  user opened recently in Teams have cached message data. An older conversation
+  the user never opened may have conversation metadata but no messages.
+- If you clear the Teams cache (a common troubleshooting step), all local data
+  goes away until Teams rebuilds it from the server.
+- Some V8-serialized records (~17% in tests) use formats that `v8.deserialize()`
+  cannot decode. The script skips them silently. They are typically IndexedDB
+  metadata. They are not conversation or message records.
+- **The script never syncs attachments (files/images) into the markdown** — it
+  captures only the message text. The binaries live on SharePoint/OneDrive. But
+  the user downloads them often, so the same-named file is usually already in
+  `~/Downloads/`. Check there before you fetch from SharePoint.

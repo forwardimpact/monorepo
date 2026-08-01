@@ -105,7 +105,7 @@ describe("SummaryRenderer", () => {
     );
   });
 
-  test("renders extras after items and applies the same suppression", () => {
+  test("renders extras after items under the same suppression gate", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({ process: makeProc() });
     renderer.render(

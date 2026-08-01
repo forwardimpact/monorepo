@@ -1,6 +1,6 @@
 import { IndexBase } from "../src/index.js";
 
-/** Minimal concrete IndexBase subclass used across the sibling suites. */
+/** The sibling suites share this minimal concrete IndexBase subclass. */
 export class TestIndex extends IndexBase {
   /**
    * @param {object} storage
