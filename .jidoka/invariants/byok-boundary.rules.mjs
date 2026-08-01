@@ -1,21 +1,22 @@
 // Invariant: the hosted control plane never reads the customer's Anthropic
-// API key. BYOK (bring-your-own-key) is a constraint — every kata workflow
+// API key. BYOK (bring-your-own-key) is a constraint. Every kata workflow
 // runs in the customer's runner against the customer's ANTHROPIC_API_KEY
-// secret, and no control-plane process touches it.
+// secret. No control-plane process touches it.
 //
 // For every directory in the hosted control-plane manifest below, this check
 // asserts none of:
 //   - a top-level runtime dependency under `@anthropic-ai/*` in package.json
-//     (transitive deps are out of scope — the bun.lock audit covers them);
+//     (transitive deps are out of scope, because the bun.lock audit covers
+//     them);
 //   - a `.js` / `.mjs` import from `@anthropic-ai/*`;
 //   - a read of `process.env.ANTHROPIC_` or `process.env["ANTHROPIC_`.
 //
-// It also scans the hosted-path workflow YAML emitted by kata-setup (the
-// fenced blocks in .claude/skills/kata-setup/references/workflow-*.md) for the
-// same code-level patterns. `secrets.ANTHROPIC_API_KEY` in YAML is the
-// expected BYOK reference (the customer's runner reads its own secret) and is
-// NOT a violation — only `process.env.ANTHROPIC_` and `@anthropic-ai` imports
-// are flagged there.
+// It also scans the hosted-path workflow YAML that kata-setup emits, in the
+// fenced blocks of .claude/skills/kata-setup/references/workflow-*.md, for
+// the same code-level patterns. `secrets.ANTHROPIC_API_KEY` in YAML is the
+// expected BYOK reference, because the customer's runner reads its own
+// secret. That is NOT a violation. This check flags only
+// `process.env.ANTHROPIC_` and `@anthropic-ai` imports there.
 //
 // The manifest is the single source of truth for the hosted control-plane
 // directory list.
@@ -43,9 +44,9 @@ const ANTHROPIC_IMPORT = /@anthropic-ai\//;
 //   - single-quoted bracket access: process.env['ANTHROPIC_API_KEY']
 //   - destructuring of a named key: const { ANTHROPIC_API_KEY } = process.env
 //
-// The destructuring alternative is anchored to an `ANTHROPIC_`-prefixed name
-// inside the braces so a legitimate `const { port } = process.env` is not a
-// false positive (`s` flag lets the brace group span lines).
+// The destructuring alternative anchors to an `ANTHROPIC_`-prefixed name
+// inside the braces. A legitimate `const { port } = process.env` is then
+// not a false positive. The `s` flag lets the brace group span lines.
 const ANTHROPIC_ENV =
   /process\.env\.ANTHROPIC_|process\.env\[["']ANTHROPIC_|\{[^}]*\bANTHROPIC_[^}]*\}\s*=\s*process\.env/s;
 
@@ -149,7 +150,7 @@ export default {
     failAll("byok-violation", {
       id: "byok.boundary",
       message: (s) => `${s.reason} (BYOK boundary breach)`,
-      hint: "the hosted control plane never touches the customer's Anthropic key — move the key read to the customer-runner side",
+      hint: "the hosted control plane never touches the customer's Anthropic key. Move the key read to the customer-runner side",
     }),
   ],
 };

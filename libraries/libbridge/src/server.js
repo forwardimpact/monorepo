@@ -3,18 +3,20 @@ import { createHttpService } from "@forwardimpact/libhttp";
 /**
  * Create the channel-agnostic HTTP server that bridges (ghbridge, msbridge)
  * share. The server mounts two routes:
- *   - `OPTIONS|POST <webhookPath>` — channel-specific intake. The raw POST
- *     body is captured on `c.get("rawBody")` for signature verification.
+ *   - `OPTIONS|POST <webhookPath>` — channel-specific intake. The server
+ *     captures the raw POST body on `c.get("rawBody")` for signature
+ *     verification.
  *   - `POST /api/callback/:tenant_id/:token` — workflow → bridge reply
  *     intake. Single-tenant deployments hit the same route with the literal
- *     `default` segment; multi-tenant deployments with the resolved tenant.
+ *     `default` segment. Multi-tenant deployments hit it with the resolved
+ *     tenant.
  *
- * Handlers receive Hono's context `c` (matching the monorepo standard) and
- * return a `Response` (or use `c.json` / `c.text` / `c.body`). The caller
- * owns lifecycle (start/stop). Returning the `app` exposes the underlying
- * Hono instance so adapters can mount additional health or diagnostic
- * routes. `address()` returns the bound `{ port }` once started (useful for
- * tests that bind to port 0).
+ * Handlers receive Hono's context `c`, which matches the monorepo standard.
+ * Handlers return a `Response`, or they use `c.json` / `c.text` / `c.body`.
+ * The caller owns the lifecycle (start/stop). The factory returns the
+ * `app`, which exposes the underlying Hono instance. Adapters can then
+ * mount extra health or diagnostic routes. `address()` returns the bound
+ * `{ port }` after the server starts. This helps tests that bind to port 0.
  *
  * @param {object} options
  * @param {{host?: string, port: number}} options.config - host/port
@@ -47,9 +49,10 @@ export function createBridgeServer({
     throw new Error("onCallback is required");
   }
 
-  // Lifecycle, security headers, body limit, and the health route are owned by
-  // `@forwardimpact/libhttp`. This factory only mounts the bridge routes (and
-  // the raw-body capture they depend on) through the `configure` callback.
+  // `@forwardimpact/libhttp` owns the lifecycle, the security headers, the
+  // body limit, and the health route. This factory only mounts the bridge
+  // routes through the `configure` callback. It also mounts the raw-body
+  // capture that those routes depend on.
   return createHttpService({
     name: "bridge",
     config,

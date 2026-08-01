@@ -22,10 +22,10 @@ export class RateLimiter {
   }
 
   /**
-   * Evaluate rate-limit state for a thread. Mutates `dispatches` to drop
-   * timestamps outside the window before measuring.
+   * Evaluate rate-limit state for a thread. The method mutates `dispatches`
+   * to drop timestamps outside the window. It measures after that drop.
    *
-   * @param {string} threadId - For diagnostic/host bookkeeping; unused here.
+   * @param {string} threadId - For diagnostic/host bookkeeping. Unused here.
    * @param {number[]} dispatches - Caller-owned timestamps in ms epoch.
    * @returns {{ allowed: boolean, retryAfterMs?: number }}
    */

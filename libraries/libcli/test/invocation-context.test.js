@@ -3,8 +3,9 @@ import assert from "node:assert";
 
 import { freezeInvocationContext } from "../src/invocation-context.js";
 
-// Fixture is intentionally identical to libraries/libui/test/invocation-context.test.js
-// to serve as a drift gate (design D1). Change both together.
+// This fixture is intentionally identical to
+// libraries/libui/test/invocation-context.test.js. It serves as a drift gate
+// (design D1). Change both together.
 const fixture = {
   data: { skills: ["a", "b"] },
   args: { id: "testing" },
@@ -46,7 +47,7 @@ describe("freezeInvocationContext", () => {
     }, TypeError);
   });
 
-  test("membership test works on frozen options", () => {
+  test("the membership test works on frozen options", () => {
     const ctx = freezeInvocationContext(fixture);
     assert.strictEqual("json" in ctx.options, true);
     assert.strictEqual("missing" in ctx.options, false);
@@ -71,14 +72,14 @@ describe("freezeInvocationContext", () => {
   });
 
   // The deps slot carries host-injected collaborators.
-  test("freezes deps when provided", () => {
+  test("freezes deps when the caller provides them", () => {
     const deps = { runtime: { clock: {} } };
     const ctx = freezeInvocationContext({ ...fixture, deps });
     assert.strictEqual(Object.isFrozen(ctx.deps), true);
     assert.strictEqual(ctx.deps.runtime, deps.runtime);
   });
 
-  test("deps defaults to undefined when omitted", () => {
+  test("deps defaults to undefined when the caller omits it", () => {
     const ctx = freezeInvocationContext(fixture);
     assert.strictEqual(ctx.deps, undefined);
   });

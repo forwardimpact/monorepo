@@ -1,22 +1,21 @@
 // Invariant: no module under libraries/products/services constructs a leaf
-// collaborator itself — `new Finder(...)`, `createDefaultProc(...)`,
-// `createDefaultClock(...)`, or `createDefaultSubprocess(...)`. Every consumer
-// receives those off the injected `runtime` bag; only `libutil` constructs
-// them. `createDefaultRuntime(...)` is the sanctioned composition-root factory
-// and is NOT flagged.
+// collaborator itself: `new Finder(...)`, `createDefaultProc(...)`,
+// `createDefaultClock(...)`, or `createDefaultSubprocess(...)`. Every
+// consumer receives those off the injected `runtime` bag. Only `libutil`
+// constructs them. `createDefaultRuntime(...)` is the sanctioned
+// composition-root factory. This check does NOT flag it.
 //
 // This generalises the Finder-lives-only-in-libutil rule to the whole DI
-// pattern. It is deliberately SEPARATE from the ambient-deps module: that
-// checker scans `src/` only and skips `bin/`, `test/`, and package-root entry
-// files (they are allowed ambient deps), whereas every
-// collaborator-construction violation lives in exactly those locations — and
-// this is a hard no-grandfathering rule, not the ambient-deps monotone
-// deny-list model.
+// pattern. It is deliberately SEPARATE from the ambient-deps module. That
+// checker scans `src/` only. It skips `bin/`, `test/`, and package-root
+// entry files, which may use ambient deps. Every collaborator-construction
+// violation lives in exactly those locations. This rule also grandfathers
+// nothing. It does not use the ambient-deps monotone deny-list model.
 //
-// Prod-strict / test-lenient: a file under a `test/` directory is flagged only
-// for `new Finder(` (Finder must be gone everywhere); a test may wire a real
-// `createDefaultProc/Clock/Subprocess` deliberately. Every other file (`src/`,
-// `bin/`, package roots) is flagged for all four.
+// Prod-strict / test-lenient: in a file under a `test/` directory, this
+// check flags only `new Finder(`. Finder must be gone everywhere. A test may
+// wire a real `createDefaultProc/Clock/Subprocess` deliberately. In every
+// other file (`src/`, `bin/`, package roots), this check flags all four.
 
 const SCOPE_DIRS = ["libraries", "products", "services"];
 const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];

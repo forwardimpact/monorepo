@@ -1,12 +1,12 @@
 # Forward Impact Engineering — Brand Implementation
 
-> The Forward Impact Engineering realization of the
-> [shared design language](../index.md): a monochrome, character-driven design
-> system for seven open-source products — **Map**, **Pathway**, **Guide**,
-> **Landmark**, **Summit**, **Outpost**, and **Gear** — built around the
-> metaphor of engineers deployed "in the field." Three characters — the
-> Engineer, the AI Agent, and the Business Stakeholder — collaborate at the
-> boundary between technology and the real world.
+> This is the Forward Impact Engineering realization of the
+> [shared design language](../index.md). It is a monochrome, character-driven
+> design system for seven open-source products: **Map**, **Pathway**,
+> **Guide**, **Landmark**, **Summit**, **Outpost**, and **Gear**. It builds on
+> the metaphor of engineers deployed "in the field." Three characters
+> collaborate at the boundary between technology and the real world: the
+> Engineer, the AI Agent, and the Business Stakeholder.
 >
 > The design embodies Deming's principle: improve the performance of developers
 > and agents, improve quality, increase output, and bring pride of workmanship
@@ -17,12 +17,13 @@ characters and the scene grammar that frames them, the reusable base scenes,
 the seven products, the concrete color palette, the typography choices, the
 type scale, the layout patterns, the product visual language, and the CSS
 design tokens. The product scenes and product icons live alongside in
-[scenes.md](scenes.md) and [icons.md](icons.md). For the abstract design
-language — color, typography, spacing, components, motion, and accessibility
-— see [../index.md](../index.md).
+[scenes.md](scenes.md) and [icons.md](icons.md). See
+[../index.md](../index.md) for the abstract design language. It covers color,
+typography, spacing, components, motion, and accessibility.
 
 The three characters and the scene grammar are a Forward Impact brand asset.
-Other brands derive from the shared design language without inheriting them.
+Other brands derive from the shared design language. They do not inherit the
+characters or the scene grammar.
 
 ---
 
@@ -30,121 +31,128 @@ Other brands derive from the shared design language without inheriting them.
 
 "The field" draws from three simultaneous meanings:
 
-1. **Expedition**: Forward deployed — operating with autonomy in unfamiliar
+1. **Expedition**: Forward deployed. You operate with autonomy in unfamiliar
    terrain. The Map shows the territory. The Pathway is how you advance. The
    Guide keeps you oriented. The Summit is the peak the team aims to reach
    together. Outpost is where you prepare. Gear is what you carry.
-2. **Scientific fieldwork**: Engineers embedded with business units and domain
-   experts — working where the problems live.
+2. **Scientific fieldwork**: Engineers embed with business units and domain
+   experts. They work where the problems live.
 3. **Topographic/landscape**: Contour maps, trail markers, compass roses,
-   cairns, and mountain peaks — tools humans use to navigate unfamiliar ground.
+   cairns, and mountain peaks. Humans use these tools to navigate unfamiliar
+   ground.
 
-The name **Forward Impact Engineering** captures all three: "Forward" from
-forward deployed, "Impact" from the mission to change outcomes where they
-happen, and "Engineering" as the discipline practiced collaboratively —
-engineer, AI, and business working together.
+The name **Forward Impact Engineering** captures all three. "Forward" comes from
+forward deployed. "Impact" comes from the mission to change outcomes where they
+happen. "Engineering" is the discipline that the engineer, the AI, and the
+business carry out together.
 
 The metaphor surfaces in illustration and iconography. The UI itself is clean
-and functional, not themed like an outdoor gear catalog.
+and functional. It is not themed like an outdoor gear catalog.
 
 ---
 
 ## 2. The Three Characters in the Field
 
-This section is the complete specification for generating the three characters.
-It contains everything needed to produce them as standalone illustrations. Once
-generated, characters appear in scenes governed by [§ 3](#3-scene-grammar).
+This section specifies in full how to generate the three characters. It contains
+everything you need to produce them as standalone illustrations. After you
+generate the characters, they appear in scenes.
+[§ 3](#3-scene-grammar) governs those scenes.
 
 ### Rendering
 
-Characters use exactly four values — white, black, and one or two grays. No
-other colors, no gradients.
+Characters use exactly four values: white, black, and one or two grays. They use
+no other colors and no gradients.
 
 | Property   | Specification                                                                                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Palette    | White for all primary surfaces. Black for all lines and strokes. One or two neutral grays for secondary surfaces (clothing, hair, accessories). No other values. |
 | Stroke     | 2px, pure black. No brown-black, no warm black, no dark-gray strokes.                                                                                            |
 | Fills      | Flat only. No gradients, no soft shading, no drop shadows, no gradient fills.                                                                                    |
-| Style      | Hand-drawn line art — like a working notebook sketch. Slightly irregular strokes, not vector-perfect.                                                            |
-| Background | Transparent or pure white. Characters are drawn without scene context when generated as a character sheet.                                                       |
+| Style      | Hand-drawn line art, like a sketch in a work notebook. The strokes are slightly irregular. They are not vector-perfect.                                          |
+| Background | Transparent or pure white. Draw the characters without scene context when you generate a character sheet.                                                        |
 | Color      | None. Zero hue. Strictly achromatic. No brown, no tan, no ochre, no sepia, no cream, no beige, no warm tone of any kind.                                         |
 
-The hand-drawn voice reads, in this brand, as a _field notebook sketch_ —
-something an engineer might draw in the margin of a logbook between
-deployments.
+In this brand, the hand-drawn voice reads as a _field notebook sketch_. An
+engineer might draw it in the margin of a logbook between deployments.
 
 ### Shared Traits
 
-- Round heads, simple dot eyes — expressive through posture, not facial detail
-- Roughly 2:3 proportions (wide:tall), slightly cartoonish but not childish
-- Same height — no hierarchy of size
-- Always shown together — working side by side, consulting, collaborating. They
-  replace the solo hero with a team.
+- Round heads and simple dot eyes. Posture carries the expression. Facial
+  detail does not.
+- Roughly 2:3 proportions (wide:tall). The style is slightly cartoonish. It is
+  not childish.
+- Same height. Size creates no hierarchy.
+- Always show them together. They work side by side, consult, and collaborate.
+  They replace the solo hero with a team.
 
 ### The Engineer
 
-- Animal-eared hoodie (bunny or fox ears on the hood) — the signature element.
-  The hoodie signals hacker/builder culture. Hair visible under the hoodie.
-- Visible backpack — the constant from the field metaphor: they carry their
-  tools wherever they're deployed.
-- Laptop with a round citrus fruit sticker (resembles Apple logo, but a citrus
-  fruit instead).
-- Posture: leaning in, engaged, slightly informal.
-- **Identifier constraint:** never remove the hoodie ears — key identifier at
-  all sizes.
+- Animal-eared hoodie (bunny or fox ears on the hood). This is the signature
+  element. The hoodie signals hacker/builder culture. Hair is visible under the
+  hoodie.
+- Visible backpack. It is the constant from the field metaphor. They carry
+  their tools wherever they are deployed.
+- Laptop with a round citrus fruit sticker. The sticker resembles the Apple
+  logo, but it shows a citrus fruit instead.
+- Posture: leans in, engaged, slightly informal.
+- **Identifier constraint:** never remove the hoodie ears. They are the key
+  identifier at all sizes.
 
 ### The AI Agent
 
 - Round circle head, two large dot eyes, small curved smile.
-- Headphones wrapping around the head — suggests active listening.
-- Small backpack like the others — deployed alongside humans, not above them.
-- Simple geometric body — more geometric than the human characters.
+- Headphones wrap around the head. They suggest that the Agent listens
+  actively.
+- Small backpack like the others. The Agent is deployed alongside humans. It is
+  not above them.
+- Simple geometric body. It is more geometric than the human characters.
 - Laptop (pixel-art skull or space-invader sticker optional).
 - Posture: upright, attentive, slightly turned toward others.
-- **Identifier constraint:** never make the AI Agent visually dominant — equal
-  partner, same height, not floating above.
+- **Identifier constraint:** never make the AI Agent visually dominant. It is an
+  equal partner at the same height. It never floats above.
 
 ### The Business Stakeholder
 
 - Business attire: collared shirt, tie, blazer. Neat hair, formal posture.
-- **No backpack** — the domain expert who already knows the territory.
-  Represents leadership and domain experts who define what good looks like —
-  product owners, engineering managers, and business stakeholders engineers
-  are embedded with. In this brand, the absent backpack reads as "the
-  territory is theirs already."
+- **No backpack** — the domain expert who already knows the territory. The
+  Stakeholder represents leadership and domain experts who define what good
+  looks like: product owners, engineering managers, and the business
+  stakeholders that engineers embed with. In this brand, the absent backpack
+  reads as "the territory is theirs already."
 - Laptop with a Claude Code sticker.
 - Posture: engaged but composed, professional.
-- **Identifier constraint:** never put a backpack on the Stakeholder — absence
-  is their trait.
+- **Identifier constraint:** never put a backpack on the Stakeholder. The
+  absence is their trait.
 
 ### Group Dynamic
 
-- Seated shoulder to shoulder, each on their own laptop — equals collaborating.
+- Seated shoulder to shoulder, each on their own laptop. They are equals who
+  collaborate.
 - Emotional tone: "We're figuring this out together."
-- Candid sketch of a working session, not a posed team photo.
+- A candid sketch of a work session. It is not a posed team photo.
 - Close enough that elbows might bump.
 - Together, the three characters embody the heart of forward deployed
-  engineering — engineer, AI, and business working at the boundary between
+  engineering. Engineer, AI, and business work at the boundary between
   technology and the real world.
 
 ### Scale
 
-48px (small inline) to 400px+ (hero). At small sizes, reduce to silhouettes
-preserving key identifiers: hoodie ears, round robot head, tie.
+48px (small inline) to 400px+ (hero). At small sizes, reduce to silhouettes that
+preserve the key identifiers: hoodie ears, round robot head, tie.
 
 ---
 
 ## 3. Scene Grammar
 
-This section defines the rules for composing any scene with the characters from
+This section defines how to compose any scene with the characters from
 [§ 2](#2-the-three-characters-in-the-field). Individual scene prompts
 ([§ 4](#4-reusable-base-scenes) and [scenes.md](scenes.md)) describe specific
-poses, objects, and interactions — they should not restate these rules.
+poses, objects, and interactions. They should not restate these rules.
 
 The entire scene uses the same small palette as the character sheet in
 [§ 2](#2-the-three-characters-in-the-field): white for primary surfaces, black
-for lines, and one or two neutral grays for secondary surfaces. No other
-values, no gradients.
+for lines, and one or two neutral grays for secondary surfaces. The scene uses
+no other values and no gradients.
 
 ### Scene Rendering
 
