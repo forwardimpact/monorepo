@@ -497,7 +497,7 @@ export async function runCompareCommand(ctx) {
 // --- Split command ---
 
 /**
- * A valid source name starts with a lowercase letter. The rest is lowercase
+ * A valid source name starts with a lowercase letter. The rest uses lowercase
  * alphanumeric characters or hyphens.
  */
 const VALID_SOURCE_NAME = /^[a-z][a-z0-9-]*$/;

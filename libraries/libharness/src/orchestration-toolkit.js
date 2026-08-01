@@ -19,7 +19,7 @@
  * question to the addressee's bus queue. The reply arrives on the asker's
  * next turn as `[answer#N] <participant>: <text>`. The toolkit keys pending
  * state by `askId` (visible in `[ask#N]` tags). Duplicate Asks to the same
- * addressee coexist. Neither one overwrites the other.
+ * addressee then coexist and never overwrite each other.
  *
  * **Answer's `askId` is optional.** With a matching askId, the reply
  * routes to that specific asker. Without one, the handler auto-picks when

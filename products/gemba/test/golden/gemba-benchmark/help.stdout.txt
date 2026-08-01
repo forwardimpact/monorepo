@@ -4,8 +4,8 @@ Usage: gemba-benchmark <command> [options]
 
 Commands:
   run     Run every task in a family for N runs and emit one result record per (task, runIndex).
-  grade   Grade a single task against a post-run workdir without invoking an agent: run the hidden test suite and the invariants script, then derive the verdict from the check rows (the exit mirrors it).
-  report  Aggregate result records into pass@k via the OpenAI HumanEval estimator.
+  grade   Grade a single task against a post-run workdir with no agent. Run the hidden test suite and the invariants script. Then derive the verdict from the check rows (the exit mirrors it).
+  report  Aggregate result records into pass@k with the OpenAI HumanEval estimator.
 
 Options:
   --help, -h  Show this help
