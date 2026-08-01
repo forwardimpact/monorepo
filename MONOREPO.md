@@ -47,13 +47,13 @@ Three directories support the shippable code and never ship themselves:
 
 ## Co-Developed Action Repositories
 
-An optional concern beyond the six directories above. A repository may ship a
-composite GitHub Action as its own published sibling repo. That repository may
-keep the action's **canonical source in the monorepo**, co-located with the
-unit it belongs to. It then publishes the action verbatim to the sibling with a
-deterministic subtree split. The contributor keeps the monorepo's context and
-quality gates when they edit CI actions. The source also stays reachable in
-single-repo environments.
+An optional concern beyond the six directories above. Some repositories ship a
+composite GitHub Action as their own published sibling repo. Such a repository
+may keep that action's **canonical source in the monorepo**, co-located with
+the unit it belongs to. It may then publish the action verbatim to the sibling
+with a deterministic subtree split. The contributor keeps the monorepo's
+context and quality gates when they edit CI actions. The source also stays
+reachable in single-repo environments.
 
 - **Home.** The action's source lives beside the unit that owns it. A library's
   action lives under `libraries/<lib>/actions/<name>/`. A product's action

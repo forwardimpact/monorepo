@@ -7,7 +7,7 @@ import { parseYamlPeople } from "@forwardimpact/map/activity/parse-people";
 
 const parser = createDslParser();
 
-// Minimal DSL with standard levels matching distribution keys.
+// Minimal DSL whose standard levels match the distribution keys.
 const MINI_DSL = `
   terrain integration_test {
     domain "Testing"

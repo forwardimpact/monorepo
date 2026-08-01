@@ -33,14 +33,14 @@ What a team rehearses locally is exactly what runs on every push.
 | Step | Command | What it does |
 | --- | --- | --- |
 | Stand up | `fit-install.sh` / bootstrap | Install the pinned toolchain and the platform CLIs |
-| Run | `gemba-harness` | Run agents and capture NDJSON traces — single agent or multi-agent sessions |
+| Run | `gemba-harness` | Run agents and capture NDJSON traces from single-agent or multi-agent sessions |
 | See | `gemba-trace` | Download, query, and analyze the traces `gemba-harness` produced |
 | Remember | `gemba-wiki` | Persistent wiki memory: boot digests, claims, memos, integrity audits |
 | Measure | `gemba-xmr` | Wheeler/Vacanti XmR control charts over the team's metric CSVs |
 
-Two more commands round out the family: `gemba-benchmark` proves whether an
-agent change helped with pass@k evidence, and `gemba-selfedit` gives a
-sandboxed agent a narrow, audited path to edit its own instruction files.
+Two more commands round out the family. `gemba-benchmark` proves whether an
+agent change helped with pass@k evidence. `gemba-selfedit` gives a sandboxed
+agent a narrow, audited path to edit its own instruction files.
 
 Every command installs with the platform package and runs standalone:
 
@@ -54,12 +54,12 @@ npx gemba-xmr analyze wiki/metrics/team/2026.csv
 ### The CI actions
 
 The same loop runs in GitHub Actions through four published composite
-actions, each pinned by SHA in consuming workflows:
+actions. Workflows pin each action by SHA:
 
 | Step | Action | What it does |
 | --- | --- | --- |
 | Stand up | [`forwardimpact/bootstrap`](https://github.com/forwardimpact/bootstrap) | The FIT environment: Bun, cached workspace, wiki checkout, pinned CLI binaries |
-| Run | [`forwardimpact/harness`](https://github.com/forwardimpact/harness) | Execute an agent task via `gemba-harness` and upload the trace |
+| Run | [`forwardimpact/harness`](https://github.com/forwardimpact/harness) | Execute an agent task with `gemba-harness` and upload the trace |
 | Remember | [`forwardimpact/wiki`](https://github.com/forwardimpact/wiki) | Run a `gemba-wiki` memory command with a freshly minted token |
 | Measure | [`forwardimpact/benchmark`](https://github.com/forwardimpact/benchmark) | Run `gemba-benchmark` families across machines and merge reports |
 
@@ -69,26 +69,26 @@ actions, each pinned by SHA in consuming workflows:
 
 Stand up and operate an agent team on one platform: bootstrap the
 environment, run sessions, inspect traces, persist memory, and measure
-outcomes. The evidence never evaporates — every session leaves a trace, every
-finding lands in shared memory, and every metric lands on a control chart
-that separates real change from fluctuation.
+outcomes. The evidence never evaporates. Every session leaves a trace. Every
+finding lands in shared memory. Every metric lands on a control chart that
+separates real change from fluctuation.
 
 ### For Platform Builders
 
-The platform is a consumer of published runtime libraries, never a wrapper
-around them. When you need the components rather than the commands, import
-the libraries directly — `@forwardimpact/libharness` for sessions and
-traces, `@forwardimpact/libwiki` for memory, `@forwardimpact/libxmr` for
-control charts. Gemba adds no importable API of its own; see the
+The platform consumes published runtime libraries. It never wraps them. When
+you need the components rather than the commands, import the libraries
+directly. Use `@forwardimpact/libharness` for sessions and traces,
+`@forwardimpact/libwiki` for memory, and `@forwardimpact/libxmr` for control
+charts. Gemba adds no importable API of its own. See the
 [library guides](/docs/libraries/) for the API surface.
 
 ## Kata: the reference tenant
 
-[Kata](https://www.kata.team) — the autonomous agent team that plans specs,
-ships features, studies its traces, and acts on findings — runs on exactly
-this platform, daily. Kata proves the substrate is generic: its skills invoke
-the same `gemba-*` commands and its workflows pin the same four actions any
-other team would. Nothing in the platform knows Kata exists.
+[Kata](https://www.kata.team) runs on exactly this platform, daily. Kata is
+the autonomous agent team that plans specs, ships features, studies its
+traces, and acts on findings. Kata proves the substrate is generic. Its skills
+invoke the same `gemba-*` commands. Its workflows pin the same four actions
+any other team would pin. Nothing in the platform knows Kata exists.
 
 ## Getting Started
 
@@ -100,7 +100,7 @@ The bring-up layer is the `bootstrap` action and its installer. In CI:
     clis: gemba-harness gemba-trace gemba-wiki
 ```
 
-On a workstation, the same installer bootstraps with one line — substitute
+On a workstation, the same installer bootstraps with one line. Substitute
 the newest `gear@v*` tag from the
 [releases page](https://github.com/forwardimpact/monorepo/releases):
 
@@ -115,6 +115,6 @@ npm install -g @forwardimpact/gemba
 gemba-harness --help
 ```
 
-Contributors working inside a Forward Impact-style monorepo get the same
-environment from `scripts/bootstrap.sh`, which the bootstrap action also
-runs in CI.
+Contributors who work inside a Forward Impact-style monorepo get the same
+environment from `scripts/bootstrap.sh`. The bootstrap action also runs that
+script in CI.

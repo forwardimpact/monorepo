@@ -42,9 +42,9 @@ describe("hosted getdx-sync handler", () => {
       baseUrl: "https://api.getdx.example",
     });
 
-    // The clock-dependent extract and transform ran to completion: a missing
-    // runtime would throw a TypeError before reaching here, and a swallowed
-    // failure would surface in the errors arrays.
+    // The clock-dependent extract and transform ran to completion. A missing
+    // runtime would throw a TypeError before this point. A swallowed failure
+    // would surface in the errors arrays.
     assert.strictEqual(body.ok, true);
     assert.ok(Array.isArray(body.extract.files));
     assert.deepStrictEqual(body.extract.errors, []);

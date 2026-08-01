@@ -129,7 +129,7 @@ async function refreshSession(creds, config, runtime, env, createClient) {
   if (error || !data?.session) {
     await clearCredentials(runtime, env);
     throw new IdentityUnresolvedError(
-      "session expired and refresh failed. Run `fit-landmark login` again",
+      "session expired and refresh failed — run `fit-landmark login` again",
     );
   }
   const next = {
@@ -177,7 +177,7 @@ export async function resolveIdentity({
   const creds = await readCredentials(runtime, env);
   if (!creds)
     throw new IdentityUnresolvedError(
-      "no session found. Run `fit-landmark login`",
+      "no session found — run `fit-landmark login`",
     );
 
   if (
