@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 // Golden-output capture. Before a CLI's refactor PR touches any
 // source, the first commit captures byte-exact stdout/stderr/exitCode for a
-// representative set of invocations; the refactor must replay identically.
+// representative set of invocations. The refactor must replay them
+// identically.
 //
 // Cases live in `<golden-dir>/cases.json`:
 //   [{ name?, args: string[], env?: {}, exitCode: number,
 //      stdoutFile: string, stderrFile: string,
 //      transform?: [{ pattern: string, replacement: string }] }]
-// `transform` regexes (applied with the `g` flag) normalise non-deterministic
-// output (timestamps, ids) so snapshots stay stable.
+// The script applies each `transform` regex with the `g` flag. The regexes
+// normalise non-deterministic output (timestamps, ids) so snapshots stay
+// stable.
 //
 // Usage:
 //   node scripts/capture-cli-golden.mjs --bin <name> [--exec <path>] [--golden-dir <dir>]
@@ -32,8 +34,8 @@ function parseFlags(argv) {
 }
 
 /**
- * Resolve `<golden-dir>` for a bin. Defaults to the cwd convention
- * `test/golden/<bin>` so a library runs it from its own package root.
+ * Resolve `<golden-dir>` for a bin. The default is the cwd convention
+ * `test/golden/<bin>`, so a library runs it from its own package root.
  */
 function resolveGoldenDir(flags) {
   if (flags.goldenDir) return resolve(flags.goldenDir);
@@ -140,7 +142,8 @@ function main() {
   }
 }
 
-// Export internals for the regression test; only run when invoked directly.
+// Export internals for the regression test. Run main only when this file is
+// the entry script.
 export { applyTransforms, runCase, resolveGoldenDir, capture, verify };
 
 if (resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {

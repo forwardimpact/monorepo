@@ -1,20 +1,22 @@
 #!/usr/bin/env node
-// Re-divergence guard: fail CI on any `bun:test` module-specifier statement
-// anywhere in the repo, except the sanctioned paths in EXEMPT_PATHS. The whole
-// suite is converged onto `node:test`, so the baseline is one sanctioned file —
-// "zero repo-wide bar one governed exemption" is simpler and strictly safer than
-// scoping to the gate set, and keeps the gate runner able to load every file it
-// is asked to run.
+// Re-divergence guard. It fails CI on any `bun:test` module-specifier
+// statement anywhere in the repo, except the sanctioned paths in EXEMPT_PATHS.
+// The whole suite now runs on `node:test`, so the baseline is one sanctioned
+// file. The rule "zero repo-wide bar one governed exemption" is simpler and
+// strictly safer than a rule scoped to the gate set. It also keeps the gate
+// runner able to load every file it must run.
 //
-// Matches static import, re-export, `require()`, and dynamic `import()` of
-// `bun:test` — NOT comment or doc-string mentions. `node --test` cannot resolve
-// a `bun:` specifier (ERR_UNSUPPORTED_ESM_URL_SCHEME), so an import is the only
-// thing that breaks the gate; a comment mention is harmless and must not trip.
+// The pattern matches a static import, a re-export, a `require()`, and a
+// dynamic `import()` of `bun:test`. It does NOT match a comment or a
+// doc-string mention. `node --test` cannot resolve a `bun:` specifier
+// (ERR_UNSUPPORTED_ESM_URL_SCHEME), so an import is the only thing that breaks
+// the gate. A comment mention is harmless and must not trip the guard.
 //
-// Wired as a dedicated required-workflow step (mirroring check-dependabot.mjs),
-// not routed through the local-only `bun run check`/`context` aggregate.
+// CI runs this as a dedicated required-workflow step, the same way it runs
+// check-dependabot.mjs. It does not route through the local-only
+// `bun run check`/`context` aggregate.
 //
-// Exits 0 on a clean tree; exits 1 listing every offending `file:line`.
+// Exits 0 on a clean tree. Exits 1 and lists every offending `file:line`.
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, resolve } from "node:path";

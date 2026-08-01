@@ -27,8 +27,8 @@ import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
  * @param {object} params
  * @param {import("../aggregation/coverage.js").ResolvedTeam} params.team
  * @param {number} [params.lookbackMonths=12]
- * @param {object} params.clock - Clock collaborator (`now()`); supplied by the
- *   caller from `runtime.clock` (the bin is the sole construction site).
+ * @param {object} params.clock - Clock collaborator (`now()`). The caller
+ *   supplies it from `runtime.clock`. The bin is the sole construction site.
  * @param {(client: object, options?: object) => Promise<Array<object>>} [params.fetchEvidence]
  * @returns {Promise<EvidenceMap>}
  */
@@ -57,9 +57,9 @@ export async function loadEvidence(supabase, params) {
 }
 
 /**
- * Normalize a raw evidence row into `{ skillId, email }` or return
- * null when the row should be discarded (unmatched, outside lookback,
- * missing fields, or outside the target team).
+ * Normalize a raw evidence row into `{ skillId, email }`. Return null
+ * when the row does not qualify (unmatched, outside lookback, missing
+ * fields, or outside the target team).
  */
 function normalizeEvidenceRow(row, cutoff, teamEmails) {
   if (!row.matched) return null;
@@ -100,16 +100,16 @@ export function decorateCoverageWithEvidence(coverage, evidence) {
 }
 
 /**
- * Re-assess risks given evidence-informed depth.
+ * Re-assess risks with evidence-informed depth.
  *
- * A skill with evidencedDepth === 1 is treated as an SPOF even if the
- * derivation says more people hold it. A skill with evidencedDepth ===
- * 0 becomes a critical gap.
+ * This function treats a skill with evidencedDepth === 1 as an SPOF,
+ * even if the derivation says more people hold it. A skill with
+ * evidencedDepth === 0 becomes a critical gap.
  *
- * `evidencedDepth` is intersected with team members — evidence rows
- * from outside the team are ignored. Without this intersection an
- * evidence row from a non-team member could silently flip a skill's
- * risk state.
+ * The function intersects `evidencedDepth` with the team members. It
+ * ignores evidence rows from outside the team. Without this
+ * intersection an evidence row from a non-team member could silently
+ * flip a skill's risk state.
  *
  * @param {import("../aggregation/risks.js").TeamRisks} risks
  * @param {import("../aggregation/coverage.js").TeamCoverage} coverage
@@ -141,9 +141,9 @@ export function decorateRisksWithEvidence(risks, coverage, evidence) {
     }
 
     if (evidencedDepth === 0 && !gapById.has(skillId)) {
-      // Only escalate to critical gap when derivation also shows zero —
-      // otherwise this is a "practiced capability divergence" signal,
-      // not a structural gap.
+      // Only escalate to critical gap when derivation also shows zero.
+      // Otherwise this is a "practiced capability divergence" signal.
+      // It is not a structural gap.
       if (skill.headcountDepth === 0) {
         criticalGaps.push({
           skillId,

@@ -38,7 +38,7 @@ const standard = { title: "Engineering Pathway" };
 
 /**
  * Silence console.log for the duration of a callback. generatePacks logs
- * progress lines; tests don't need to see them.
+ * progress lines. The tests do not need to see them.
  */
 async function silent(fn) {
   const original = console.log;
@@ -161,7 +161,7 @@ describe("generatePacks", () => {
     assert.strictEqual(apmArchives.length, validCombinations.length);
   });
 
-  test("staging directory _packs/ is cleaned up", () => {
+  test("the build cleans up the staging directory _packs/", () => {
     assert.strictEqual(existsSync(join(outputDir, "_packs")), false);
   });
 
@@ -356,7 +356,7 @@ describe("generatePacks", () => {
   });
 
   test("pack contents match CLI agent output for the same combination", async () => {
-    // Generate agent files via the CLI path into a tmp dir
+    // Generate agent files through the CLI path into a tmp dir
     const loader = createDataLoader(createDefaultRuntime());
     const templateLoader = createTemplateLoader(
       join(__dirname, "..", "templates"),
@@ -381,7 +381,7 @@ describe("generatePacks", () => {
         }),
       );
 
-      // Extract the matching pack archive
+      // Extract the archive for that pack
       const extractDir = mkdtempSync(join(tmpdir(), "fit-pathway-pack-"));
       try {
         execFileSync("tar", [

@@ -30,7 +30,7 @@ teams:
   const task = diff.capabilityChanges.find(
     (c) => c.skillId === "task-completion",
   );
-  // Alice (J060) is at working, Bob (J040) is below working.
+  // Alice (J060) is at working. Bob (J040) is below working.
   assert.equal(task.direction, "down");
 });
 

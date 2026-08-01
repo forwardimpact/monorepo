@@ -116,7 +116,7 @@ describe("writeSkillReferences", () => {
     assert.strictEqual(runbooks, "# Runbooks\n\nBody A.\n");
   });
 
-  test("wipes pre-existing references/ before it writes (criterion 6)", async () => {
+  test("wipes the references/ directory that already exists before it writes (criterion 6)", async () => {
     const refDir = join(skillDir, "references");
     await mkdir(refDir, { recursive: true });
     await writeFile(join(refDir, "stale.md"), "leftover", "utf-8");

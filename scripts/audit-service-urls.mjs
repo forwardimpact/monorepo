@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// A one-off audit, independent of the service-url-drift gate's assertion code,
-// that reads each service's manifest-produced URL and tabulates every
-// registered consumer's restated value against it. Shares only the
-// expected-url AST helper with the gate; it owns its own consumer reader and
-// table emit, and never calls the rules.
+// A one-off audit. It is independent of the service-url-drift gate's
+// assertion code. It reads each service's manifest-produced URL. It then
+// tabulates every registered consumer's restated value against that URL. It
+// shares only the expected-url AST helper with the gate. It owns its own
+// consumer reader and table emit. It never calls the rules.
 //
 // Usage: node scripts/audit-service-urls.mjs
-// Exits 0 always — it reports, it does not gate.
+// Always exits 0. It reports. It does not gate.
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -27,7 +27,8 @@ function valueRe(service) {
   return new RegExp(`${key}[=:][ \\t]*"?((?:grpc|http)://[^"'\\s,]+)`);
 }
 
-// Independent line-scanner (not rgMatches): find each consumer's restated URL.
+// This line-scanner is independent of rgMatches. It finds each consumer's
+// restated URL.
 function restated(root, service, consumer) {
   const text = readFileSync(resolve(root, consumer.path), "utf8");
   const re =
