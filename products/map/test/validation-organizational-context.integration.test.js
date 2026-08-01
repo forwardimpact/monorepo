@@ -2,10 +2,10 @@
  * Integration tests for SchemaValidator against the
  * organizational-context.yaml slot.
  *
- * Stages a temp data dir on disk, then invokes the real validator with
- * real fs/ajv dependencies — same approach as `bunx fit-map validate`
- * uses end-to-end. The slot has no referential integrity to other
- * entities, so we exercise only the schema branch.
+ * Each test stages a temp data dir on disk. It then invokes the real
+ * validator with real fs/ajv dependencies. This is the same approach that
+ * `bunx fit-map validate` uses end-to-end. The slot has no referential
+ * integrity to other entities, so we exercise only the schema branch.
  */
 
 import { test, describe } from "node:test";

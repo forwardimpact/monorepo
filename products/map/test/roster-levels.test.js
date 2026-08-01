@@ -1,7 +1,7 @@
 /**
- * Unit tests for the seeding invariant: every seeded level must exist
- * in the installed standard's levels.yaml, and the check is vacuous
- * (skipped) when no standard is installed.
+ * Unit tests for the seed invariant. Every seeded level must exist in the
+ * installed standard's levels.yaml. The check is vacuous (skipped) when no
+ * standard is installed.
  */
 
 import { test, describe } from "node:test";
@@ -21,7 +21,7 @@ function orgClient(people) {
 const STARTER_LEVELS = "- id: J040\n- id: J060\n";
 
 describe("assertSeededLevelsCovered", () => {
-  test("throws naming each missing level once, sorted", async () => {
+  test("throws and names each missing level once, sorted", async () => {
     const runtime = createTestRuntime({
       fs: createMockFs({ "/work/data/pathway/levels.yaml": STARTER_LEVELS }),
     });
@@ -42,7 +42,7 @@ describe("assertSeededLevelsCovered", () => {
     );
   });
 
-  test("passes when every seeded level is installed; null levels ignored", async () => {
+  test("passes when every seeded level is installed and ignores null levels", async () => {
     const runtime = createTestRuntime({
       fs: createMockFs({ "/work/data/pathway/levels.yaml": STARTER_LEVELS }),
     });
@@ -54,7 +54,7 @@ describe("assertSeededLevelsCovered", () => {
     });
   });
 
-  test("skips without querying when no standard is installed", async () => {
+  test("skips the query when no standard is installed", async () => {
     const runtime = createTestRuntime({ fs: createMockFs({}) });
     const neverQueried = {
       from: () => {

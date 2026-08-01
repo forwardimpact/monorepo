@@ -140,8 +140,8 @@ runs:
         agent_dir=$(mktemp -d)
 
         # Build synthetic data so the supervisor can stage the right subset into
-        # the agent CWD per the chosen product. The skill's table decides what
-        # the supervisor copies.
+        # the agent CWD per the chosen product. The skill's staging table
+        # decides what the supervisor copies.
         fit-terrain build
 
         # Install the Supabase CLI globally. supabase's postinstall script
@@ -151,8 +151,8 @@ runs:
         echo "dir=$agent_dir" >> "$GITHUB_OUTPUT"
 
     # Substrate bring-up is a consumer-supplied command. A non-empty value
-    # gates it. It is not a hardcoded product name. It must emit
-    # SUPABASE_URL / SUPABASE_ANON_KEY to $GITHUB_ENV for the run below.
+    # gates the step. No hardcoded product name gates it. The command must
+    # emit SUPABASE_URL / SUPABASE_ANON_KEY to $GITHUB_ENV for the run below.
     - name: Substrate setup
       id: substrate-setup
       if: inputs.substrate-setup-command != ''

@@ -58,7 +58,7 @@ Apply § Citation integrity before you propagate them.
 An in-scope surface is an Issue, PR, or comment body, or wiki file content.
 Before an authoring path publishes a body on one, every existence-asserting
 SHA-shaped token it cites must resolve on its referenced repository. An
-unresolved token blocks the publish loudly. The block records it in
+unresolved token blocks the publish loudly. The block appends a record to
 `wiki/citation-blocks.md`. The three properties and the resolution procedure
 live in [citation-integrity.md](x-citation-integrity.md).
 
@@ -123,7 +123,7 @@ looks.
    absence evidence alone. A false "nothing exists" mints duplicate work with
    no concurrency required. Change-existence probes use `list` (per-tracker
    shape in the [matrix](x-work-trackers.md#the-matrix)). Branch existence is a
-   canonical-state read, and no tracker operation covers it:
+   canonical-state read. No tracker operation covers it:
    - **Branch existence:** `git ls-remote origin "refs/heads/<branch>"` —
      exact ref only. Glob refspecs fail silent on a miss.
    - **Change existence:** `list` changes by head branch, across **all**

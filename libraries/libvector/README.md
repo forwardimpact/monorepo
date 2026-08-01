@@ -24,5 +24,5 @@ import { calculateDotProduct } from '@forwardimpact/libvector';
 ## Internal CLIs
 
 The `fit-process vectors` build step (in [`librag`](../librag/README.md)) turns
-resources into vector embeddings while it populates the index. It is not an
-agent-facing tool.
+resources into vector embeddings as one step that populates the index. It is
+not an agent-facing tool.

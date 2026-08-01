@@ -132,7 +132,7 @@ gate-comparable execution plan.
 | State | Meaning | Writer |
 |---|---|---|
 | `registered` | Registered with a code-shipping plan, no approval yet. Pin `-`. | Owning agent (bookkeeping) |
-| `approved` | The agent observed a trusted human's PR-side signal. Pin: the head SHA at signal time. | `kata-dispatch` or in-session agent |
+| `approved` | A trusted human gave a PR-side signal. Pin: the head SHA at signal time. | `kata-dispatch` or in-session agent |
 | `cancelled` | Adjudicated FAIL or VOID, or retired. Pin stays if ever approved, else `-`. | Owning agent (bookkeeping) |
 
 `registered` and `cancelled` are bookkeeping states the owning agent writes. The

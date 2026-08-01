@@ -1,11 +1,12 @@
 /**
  * Unit test for `fit-map substrate stage --emit-env`.
  *
- * Every phase collaborator is stubbed (init, copy-activity, seed, provision,
- * smoke, config reload) and a fake Supabase CLI returns a scripted
- * `status --output json`, so the test isolates the `url-discovery` phase and
- * asserts that `--emit-env` appends the two `KEY=value` lines — the same emit
- * shape as `fit-terrain substrate up`. All other phases stay untouched.
+ * The test stubs every phase collaborator (init, copy-activity, seed,
+ * provision, smoke, config reload). A fake Supabase CLI returns a scripted
+ * `status --output json`. So the test isolates the `url-discovery` phase.
+ * It asserts that `--emit-env` appends the two `KEY=value` lines. That is
+ * the same emit shape as `fit-terrain substrate up`. All other phases stay
+ * untouched.
  */
 
 import { test, describe } from "node:test";
@@ -74,7 +75,7 @@ describe("fit-map substrate stage --emit-env", () => {
 });
 
 describe("fit-map substrate stage phase errors", () => {
-  test("rethrows the original error with the phase prefixed", async () => {
+  test("rethrows the original error and prefixes the phase", async () => {
     const runtime = createTestRuntime();
     const deps = stubDeps(
       JSON.stringify({ API_URL: "http://u", ANON_KEY: "k" }),

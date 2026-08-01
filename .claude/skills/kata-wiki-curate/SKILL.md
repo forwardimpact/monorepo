@@ -38,11 +38,11 @@ With limited time, run `contract-audit` to completion. Then prioritize
 
 ## Write-time invariants
 
-**Verify state before you write.** Some agent-summary entries name a PR or
-Issue (Watching-list, "Recently merged", Open Blockers, Observations to
-Teammates). When you add or edit one, `read` the work item's state at write
-time ([work-trackers.md](../../agents/x-work-trackers.md)). Never infer it from
-teammate summaries, memos, or prior curation entries, which may be stale by
+**Verify state before you write.** Four agent-summary entries name a PR or
+Issue: Watching-list, "Recently merged", Open Blockers, and Observations to
+Teammates. Before you add or edit any of them, `read` the work item's state at
+write time ([work-trackers.md](../../agents/x-work-trackers.md)). Never infer it
+from teammate summaries, memos, or prior curation entries, which may be stale by
 hours. The same rule applies when a cross-agent correction triggers an edit.
 Re-verify the named artifact. Do not transcribe it verbatim.
 

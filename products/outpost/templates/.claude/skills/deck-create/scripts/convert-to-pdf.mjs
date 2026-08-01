@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
 /**
- * Convert HTML slides to PDF using Playwright.
+ * Convert HTML slides to PDF with Playwright.
  *
- * Renders an HTML file containing slide markup (1280x720px per slide) into a
- * PDF document. Each slide is sized to exactly 1280x720 pixels with background
- * colours and images preserved. Defaults to reading from /tmp and writing to
- * ~/Desktop when no arguments are given.
+ * This script renders an HTML file that contains slide markup (1280x720px per
+ * slide) into a PDF document. Each slide measures exactly 1280x720 pixels. The
+ * PDF keeps the background colours and the images. Without arguments, the
+ * script reads from /tmp and writes to ~/Desktop.
  *
  * Requires: bun install playwright && bunx playwright install chromium
  */
@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { resolve } from "node:path";
 import { homedir } from "node:os";
 
-const HELP = `convert-to-pdf — render HTML slides to PDF via Playwright
+const HELP = `convert-to-pdf — render HTML slides to PDF with Playwright
 
 Usage: bun scripts/convert-to-pdf.mjs [input.html] [output.pdf] [-h|--help]
 

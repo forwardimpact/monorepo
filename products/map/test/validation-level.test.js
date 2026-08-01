@@ -41,7 +41,7 @@ describe("checkProfessionalTitleShape", () => {
 
 describe("checkProfessionalTitleDisjoint", () => {
   const disciplines = [{ id: "swe", roleTitle: "Software Engineer" }];
-  test("rejects shared token", () => {
+  test("rejects a shared token", () => {
     const r = checkProfessionalTitleDisjoint(
       { professionalTitle: "Engineer" },
       disciplines,
@@ -49,7 +49,7 @@ describe("checkProfessionalTitleDisjoint", () => {
     assert.equal(r.ok, false);
     assert.match(r.reason, /"engineer"/);
   });
-  test("accepts disjoint single word", () => {
+  test("accepts a disjoint single word", () => {
     assert.equal(
       checkProfessionalTitleDisjoint(
         { professionalTitle: "Senior" },
@@ -58,7 +58,7 @@ describe("checkProfessionalTitleDisjoint", () => {
       true,
     );
   });
-  test("ignores literal Level when tokenising", () => {
+  test("ignores the literal Level when it tokenises", () => {
     const ds = [{ id: "swe", roleTitle: "Software Engineer Level" }];
     assert.equal(
       checkProfessionalTitleDisjoint({ professionalTitle: "Level I" }, ds).ok,

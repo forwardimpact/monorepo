@@ -51,7 +51,7 @@ npx gemba-wiki log done     --agent X
 ```
 
 `log` appends to `wiki/<agent>-YYYY-WVV.md`. It auto-rotates to `*-partN.md`
-when the entry would exceed the line budget.
+when the log would exceed the line budget.
 
 ### `claim` / `release` — coordinate work
 

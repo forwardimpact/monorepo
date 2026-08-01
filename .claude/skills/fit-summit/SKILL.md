@@ -1,7 +1,8 @@
 ---
 name: fit-summit
 description: >
-  Make staffing decisions you can defend. Model team capability as a system.
+  Make staffing decisions you can defend. To do this, model team capability
+  as a system.
   Use when a post-mortem surfaces the same skill gap again. Use when you
   evaluate whether a hire, transfer, or promotion strengthens the team. Use
   when you detect structural risks like single points of failure. Use when

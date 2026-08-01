@@ -1,11 +1,12 @@
 /**
- * Locate the Map data directory for the running process.
+ * Locate the Map data directory for the current process.
  *
- * If `providedPath` is given, resolve it against the current cwd and verify
- * it exists. Otherwise walk upward from the cwd using the shared `Finder`
- * helper, returning the `pathway/` subdirectory of whatever `data/` root is
- * found. Callers downstream of `findDataDir` (seed, transform) that need the
- * `data/` root use `path.dirname(findDataDir(...))`.
+ * If the caller gives `providedPath`, resolve it against the current cwd
+ * and verify it exists. Otherwise walk upward from the cwd with the
+ * shared `Finder` helper. Return the `pathway/` subdirectory of whatever
+ * `data/` root the helper finds. Callers downstream of `findDataDir`
+ * (seed, transform) that need the `data/` root use
+ * `path.dirname(findDataDir(...))`.
  */
 
 import { join, resolve } from "node:path";

@@ -142,7 +142,8 @@ npx gemba-wiki init
 
 ### `push` / `pull` — Git lifecycle
 
-Use these with Claude Code hooks (`SessionStart` → `pull`; `Stop` → `push`).
+These commands exist for Claude Code hooks (`SessionStart` runs `pull`, `Stop`
+runs `push`).
 
 ```sh
 npx gemba-wiki push
