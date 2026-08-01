@@ -65,7 +65,7 @@ export async function runVoiceCommand({
       q,
     });
   }
-  // Self mode: no flags — default the subject to the signed-in identity.
+  // Self mode has no flags. Default the subject to the signed-in identity.
   return runEmailVoice({
     email: resolveSubjectEmail(options, identity),
     supabase,
@@ -101,7 +101,7 @@ async function runEmailVoice({
       meta: {
         format,
         emptyState: EMPTY_STATES.NO_COMMENTS_EMPTY,
-        hint: "No comments in scope — try broadening the --email filter.",
+        hint: "No comments in scope. Try a broader --email filter.",
       },
     };
   }
@@ -160,7 +160,7 @@ async function runManagerVoice({ managerEmail, supabase, mapData, format, q }) {
       meta: {
         format,
         emptyState: EMPTY_STATES.NO_COMMENTS_EMPTY,
-        hint: "No comments in scope — try broadening the --manager filter.",
+        hint: "No comments in scope. Try a broader --manager filter.",
       },
     };
   }
@@ -197,8 +197,8 @@ function countThemeMatches(comments, themes) {
   }
 }
 
-// Higher-ranked themes claim representative snippets first so a multi-keyword
-// comment doesn't display identically under every matching theme.
+// Higher-ranked themes claim representative snippets first. A multi-keyword
+// comment then does not display identically under every theme it matches.
 function claimUniqueSnippets(theme, keyword, comments, claimed) {
   for (const c of comments) {
     if (theme.snippets.length >= 2) return;
@@ -209,8 +209,8 @@ function claimUniqueSnippets(theme, keyword, comments, claimed) {
   }
 }
 
-// Fallback when every matching comment is already claimed — accept duplicates
-// rather than emit an empty snippet list.
+// Fallback when another theme already claimed every comment that matches.
+// Accept duplicates rather than emit an empty snippet list.
 function fillSnippetsWithRemainders(theme, keyword, comments) {
   for (const c of comments) {
     if (theme.snippets.length >= 2) return;
@@ -220,7 +220,7 @@ function fillSnippetsWithRemainders(theme, keyword, comments) {
   }
 }
 
-/** Bucket comments by theme keywords and return sorted by count. */
+/** Bucket comments by theme keywords. Return them sorted by count. */
 function bucketCommentsByTheme(comments) {
   const themes = new Map();
   for (const keyword of THEME_KEYWORDS) {
@@ -245,7 +245,7 @@ function bucketCommentsByTheme(comments) {
   }));
 }
 
-/** Find health signals that score below 50th percentile. */
+/** Find health signals that score below the 50th percentile. */
 async function findHealthAlignment(q, supabase, managerEmail, mapData) {
   try {
     const snapshots = await q.listSnapshots(supabase);

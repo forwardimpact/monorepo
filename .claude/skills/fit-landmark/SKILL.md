@@ -109,7 +109,7 @@ See [`references/workflows.md`](references/workflows.md) for worked examples.
 ## Prerequisites
 
 - GetDX account with API access
-- Map activity database prepared — one of `npx fit-map substrate stage`
+- Map activity database prepared — one of: `npx fit-map substrate stage`
   (one-shot CI/interview pipeline), `npx fit-map activity start` +
   `npx fit-map activity seed` (dev flow), or `npx fit-map activity migrate`
   plus your own ingest (migrations only). The `fit-map` skill documents all

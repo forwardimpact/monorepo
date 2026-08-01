@@ -171,7 +171,7 @@ describe("WikiSync (real git)", () => {
     assert.equal(
       git(wikiDir, "rev-parse", "HEAD"),
       headBefore,
-      "no new commit object should be created when the tree is clean",
+      "commitAndPush must not create a commit when the tree is clean",
     );
     assert.equal(git(wikiDir, "diff", "origin/master"), "");
     assert.equal(
@@ -207,7 +207,7 @@ describe("WikiSync (real git)", () => {
     assert.match(status, /^\?\? residue\.md$/m);
   });
 
-  test("bare commitAndPush commits the session's own dirty set via commitPaths (1850 D3/KD6)", async () => {
+  test("bare commitAndPush commits the session's own dirty set through commitPaths (1850 D3/KD6)", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "bare-dirtyset");
     git(wikiDir, "checkout", "master");
     writeFileSync(join(wikiDir, "MEMORY.md"), "# Memory\n");
@@ -218,8 +218,8 @@ describe("WikiSync (real git)", () => {
     // Under the canonical per-session isolated checkout (KD6) the working tree
     // holds only the session's own writes: a modified tracked file and a new
     // file. The bare landing attributes that dirty set from real
-    // `git status --porcelain` (#dirtyPaths) and commits it pathspec-scoped —
-    // the whole-tree `add -A` sweep that carried the eraser never runs.
+    // `git status --porcelain` (#dirtyPaths) and commits it pathspec-scoped.
+    // The whole-tree `add -A` sweep that carried the eraser never runs.
     writeFileSync(join(wikiDir, "MEMORY.md"), "# Memory\nclaim row\n");
     writeFileSync(join(wikiDir, "staff-engineer.md"), "session log\n");
 
@@ -288,7 +288,7 @@ describe("WikiSync (real git)", () => {
     );
   });
 
-  test("commitAndPush fails loud on a conflicting divergence — never -X ours", async () => {
+  test("commitAndPush fails loud when a divergence conflicts and never uses -X ours", async () => {
     const { wikiDir: w1 } = cloneRepo(bare, "merge1");
     const { parent: p2, wikiDir: w2 } = cloneRepo(bare, "merge2");
     git(w1, "checkout", "master");
@@ -300,14 +300,15 @@ describe("WikiSync (real git)", () => {
     git(w1, "push", "origin", "master");
     const remoteTip = git(w1, "rev-parse", "HEAD");
 
-    // w2 edits the same file: a textually overlapping divergence ⇒ loud conflict.
+    // w2 edits the same file. The two edits overlap textually, so the
+    // divergence gives a loud conflict.
     writeFileSync(join(w2, "README.md"), "local wins");
     await assert.rejects(
       () => makeSync(w2, p2).commitAndPush("wiki: local update"),
       (err) => err instanceof WikiPushFailure && err.reason === "conflict",
     );
-    // The remote side was never mechanically discarded: origin tip unchanged,
-    // and no merge commit landed locally.
+    // commitAndPush never discarded the remote side mechanically. The origin
+    // tip is unchanged, and no merge commit landed locally.
     assert.equal(
       git(w1, "rev-parse", "origin/master").trim() || remoteTip,
       remoteTip,

@@ -9,7 +9,7 @@ import { padRight, renderHeader } from "./shared.js";
 
 function belowFloorBanner(coverage) {
   const pct = (coverage.ratio * 100).toFixed(1);
-  return `Coverage below floor (${pct}% < ${floorPercentText()}) — interpret the breakdown as a producer-skew diagnostic, not a confidence statement.`;
+  return `Coverage below floor (${pct}% < ${floorPercentText()}). Interpret the breakdown as a producer-skew diagnostic. It is not a confidence statement.`;
 }
 
 /** Render coverage metrics as indented plain text with per-type breakdowns. */

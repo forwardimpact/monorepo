@@ -177,8 +177,8 @@ unregistered. To add a type, add an entry to `defaultRegistry` in
 
 When a `justfile` exists in the source directory with a `build` recipe,
 `fit-doc` runs `just build` before it renders the pages. This lets sites
-generate or copy assets as part of the build pipeline. If `just` is missing,
-the hook logs a warning and continues.
+generate or copy assets as part of the build pipeline. If `just` is not
+installed, the hook logs a warning and continues.
 
 ## Documentation
 

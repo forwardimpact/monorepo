@@ -24,9 +24,9 @@ wiki file content.
    `wiki/citation-blocks.md`. That surface is durable and does not rotate. It
    stays distinct from the weekly logs that rotate, so it survives the trial
    verdict. The record carries at minimum the token at fault, the repository
-   checked, the authoring path that originated it (skill or profile routine),
-   the identifier of the blocked surface, the block time, and enough context
-   around it to re-judge later.
+   checked, and the authoring path that originated it (skill or profile
+   routine). It also carries the identifier of the blocked surface, the block
+   time, and enough context around it to re-judge later.
 
 **Resolution procedure.** For each token that asserts existence, infer the
 referenced repository from context. Then resolve it through the host's

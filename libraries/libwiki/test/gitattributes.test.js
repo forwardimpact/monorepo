@@ -23,7 +23,7 @@ describe("ensureMetricsCsvMergeAttribute", () => {
     assert.equal(fs.data.get(FILE), original, "bytes unchanged");
   });
 
-  test("appends the line, preserving unrelated existing lines", () => {
+  test("appends the line and keeps the unrelated lines", () => {
     const existing = "*.png binary\nproducts/x/* text eol=lf\n";
     const fs = createMockFs({ [FILE]: existing });
     const result = ensureMetricsCsvMergeAttribute(WIKI, fs);
@@ -31,7 +31,7 @@ describe("ensureMetricsCsvMergeAttribute", () => {
     assert.equal(fs.data.get(FILE), `${existing}${ATTR}\n`);
   });
 
-  test("adds a missing trailing newline before appending", () => {
+  test("adds a missing trailing newline before it appends", () => {
     const fs = createMockFs({ [FILE]: "*.png binary" });
     ensureMetricsCsvMergeAttribute(WIKI, fs);
     assert.equal(fs.data.get(FILE), `*.png binary\n${ATTR}\n`);
