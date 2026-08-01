@@ -3,7 +3,7 @@
  *
  * Check rows are the one authoritative input to the grade. Every row is a
  * check by default. A row declares its role with its own fields. The
- * classifier reads the fields in this order:
+ * classifier checks the roles in this order:
  *
  *   1. Gate       — `gate` is exactly `true`, `pass` is boolean, and no
  *                   `weight` key is present. A gate that fails sets

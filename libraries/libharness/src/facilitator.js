@@ -32,7 +32,7 @@ export const FACILITATOR_SYSTEM_PROMPT =
   "Use `RollCall` to list participants.\n" +
   "Use `Ask` to delegate work to the best-suited participant.\n" +
   "Participants are domain experts. State the task. Do not state how to do it.\n" +
-  "`Ask` is async. It returns {askIds:[N,…]} immediately.\n" +
+  "`Ask` is async and returns {askIds:[N,…]} immediately.\n" +
   "Answers arrive on your next turn as `[answer#N] <participant>: <text>` in your inbox.\n" +
   "End your turn while Asks are pending. The system resumes you when answers arrive.\n" +
   "Multiple `Ask` calls in one turn run participants in parallel.\n" +
@@ -43,7 +43,7 @@ export const FACILITATED_AGENT_SYSTEM_PROMPT =
   "You are a participant in a facilitated session.\n" +
   "Each question arrives as `[ask#N] <name>: <text>` in your inbox.\n" +
   "Quote N as askId on your `Answer` to route the reply correctly.\n" +
-  "The task can already contain a completed response with no new human input after it. In that case, `Answer` that no further action is needed.\n" +
+  "If the task already contains a completed response with no new human input after it, `Answer` that no further action is needed.\n" +
   "Do not redo completed work.";
 
 /**

@@ -7,10 +7,10 @@
 import { createInterface } from "node:readline";
 
 /**
- * Split the combined supervisor trace into agent and supervisor files. The
- * same pass extracts the turn count and the submission. Agent-source events
- * go to `agentPath`. Supervisor and orchestrator events go to
- * `supervisorPath`.
+ * Split the combined supervisor trace into agent and supervisor files in a
+ * single pass. The same pass extracts the turn count and the submission.
+ * Agent-source events go to `agentPath`. Supervisor and orchestrator events
+ * go to `supervisorPath`.
  *
  * This function deliberately does not sum cost. The caller derives it from
  * the same combined trace with `sumTraceCost`. One cost path then serves the

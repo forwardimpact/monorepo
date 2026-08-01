@@ -15,7 +15,7 @@
  * order. A single drain loop is the sole writer of
  * `<output>/results.jsonl`. It appends each record the moment its cell
  * settles. That incremental append is the durability and crash-safety
- * mechanism. A killed run keeps every completed cell, and there is no sidecar
+ * mechanism, so a killed run keeps every completed cell. There is no sidecar
  * ledger. The iterator mirrors the same stream to CLI stdout.
  */
 

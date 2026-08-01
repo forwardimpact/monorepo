@@ -155,9 +155,9 @@ function buildRunDetail(r, acc) {
 
 /**
  * Render an aggregate report as markdown. When the report contains per-run
- * detail (from `includeRuns: true`), it renders a full report. That report
- * has a summary, a pass@k table, and per-task detail sections. Otherwise it
- * falls back to the compact pass@k table.
+ * detail (from `includeRuns: true`), the renderer produces a full report.
+ * That report has a summary, a pass@k table, and per-task detail sections.
+ * Otherwise the renderer falls back to the compact pass@k table.
  * @param {Awaited<ReturnType<typeof aggregate>>} report
  * @param {number[]} kValues
  * @returns {string}

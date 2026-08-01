@@ -72,7 +72,7 @@ export class MessageBus {
     this.#resolveWaiter(to);
   }
 
-  /** Check whether a participant has pending messages. Drain nothing. */
+  /** Check whether a participant has pending messages. It does not drain them. */
   hasPending(participant) {
     this.#assertParticipant(participant);
     return this.queues.get(participant).length > 0;

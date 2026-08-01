@@ -171,7 +171,7 @@ describe("Skill Modifiers", () => {
   });
 
   describe("deriveSkillProficiency with capability modifiers", () => {
-    it("applies capability modifier with a skills array (capped at level max)", () => {
+    it("applies capability modifier when the caller provides a skills array (capped at level max)", () => {
       const trackWithCapabilityModifier = {
         ...testTrack,
         skillModifiers: { scale: 1 },

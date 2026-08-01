@@ -49,7 +49,7 @@ export function runSelfeditCommand(targetArg, content, { runtime }) {
   );
   if (!settingsPath) {
     throw new SelfeditError(
-      `no .claude/settings.json found upward from ${dirname(absoluteTarget)}`,
+      `no .claude/settings.json found walking upward from ${dirname(absoluteTarget)}`,
     );
   }
 

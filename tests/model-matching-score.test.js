@@ -44,7 +44,7 @@ describe("Matching", () => {
       assert.strictEqual(match.gaps.length, 0);
     });
 
-    it("uses the weights the track defines", () => {
+    it("uses track matching weights", () => {
       const match = calculateJobMatch(
         {
           skillProficiencies: {

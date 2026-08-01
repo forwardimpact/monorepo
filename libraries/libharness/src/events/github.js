@@ -141,7 +141,7 @@ function pickTemplate(payload, eventName) {
  * for real events, or the empty string for `workflow_dispatch`. `amend` comes
  * from `payload.inputs?.prompt`. An ad-hoc dispatcher (workflow_dispatch
  * trigger or bridge) can then layer instructions on top. The workflow does not
- * wire `--task-amend` separately. The runner combines them through the
+ * need to wire `--task-amend` separately. The runner combines them through the
  * existing taskAmend path.
  *
  * Throws on an unknown (event_name, action) pair so a typo does not silently

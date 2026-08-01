@@ -61,7 +61,7 @@ describe("Validation", () => {
       assert.ok(result.errors.some((e) => e.type === "INVALID_REFERENCE"));
     });
 
-    it("detects invalid match weights", () => {
+    it("detects invalid matching weights", () => {
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
@@ -356,7 +356,7 @@ describe("Validation", () => {
       assert.ok(result.errors.some((e) => e.type === "DUPLICATE_ID"));
     });
 
-    it("detects invalid skill capability references when capabilities exist", () => {
+    it("detects invalid skill capability references when the caller provides capabilities", () => {
       const skillsWithInvalidCapability = [
         { ...testSkills[0], capability: "nonexistent_capability" },
       ];

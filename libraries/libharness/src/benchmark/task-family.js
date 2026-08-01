@@ -260,8 +260,8 @@ async function fileExecutable(fs, path) {
 
 /**
  * Canonical-tree hash per design § Family revision algorithm:
- *   list regular files (skip .git/ and node_modules/)
- *   resolve symlinks before you read them
+ *   list regular files (excluding .git/, node_modules/)
+ *   resolve symlinks before reading
  *   sort by NFC-normalised POSIX-style root-relative path
  *   row = <rel-path>\0<hex-sha256>\n
  *   sha256(concat(rows))

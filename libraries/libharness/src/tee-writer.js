@@ -8,9 +8,9 @@
  * source labels on content lines.
  *
  * The pure modules under `./render/` render the human text, so the live
- * stream and the offline `TraceCollector.toText()` replay format the text
- * the same way. The NDJSON that goes to `fileStream` stays untouched. Only
- * what reaches `textStream` changes.
+ * stream and the offline `TraceCollector.toText()` replay share one format
+ * path. The NDJSON that goes to `fileStream` stays untouched. Only what
+ * reaches `textStream` changes.
  *
  * Follows OO+DI: constructor injection, factory function, tests bypass factory.
  */

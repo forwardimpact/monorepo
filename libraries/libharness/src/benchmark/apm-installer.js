@@ -199,8 +199,8 @@ export function createApmInstaller(deps) {
  * @param {import("./task-family.js").TaskFamily} family
  * @param {string} outputDir
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
- * @param {object} [options] - Options for `ApmInstaller.install` (e.g.
- *   `{ skillsFrom }`).
+ * @param {object} [options] - This function forwards these to
+ *   `ApmInstaller.install` (e.g. `{ skillsFrom }`).
  */
 export function installApm(family, outputDir, runtime, options = {}) {
   return new ApmInstaller({ runtime }).install(family, outputDir, options);

@@ -169,10 +169,10 @@ export class Redactor {
         out = out.split(secret).join(ENV_PLACEHOLDER(name));
       }
       // Standard-base64 form at any byte offset. The order among the three
-      // needles does not matter. Once a replacement puts the placeholder over
-      // a region, those bytes are gone, so a later needle cannot re-match
-      // them. The placeholder shares no base64 run with any needle. The floor
-      // keeps every needle ≥ 8 chars.
+      // needles does not matter. The placeholder shares no base64 run with
+      // any needle. Once a replacement puts the placeholder over a region,
+      // those bytes are gone, so a later needle cannot re-match them. The
+      // floor keeps every needle ≥ 8 chars.
       for (const needle of needles) {
         if (out.includes(needle)) {
           out = out.split(needle).join(ENV_PLACEHOLDER(name));
