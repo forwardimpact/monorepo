@@ -74,7 +74,7 @@ never reach the control plane.
 
 | Surface | Hosted | Self-hosted |
 | --- | --- | --- |
-| `ANTHROPIC_API_KEY` storage | Customer's GitHub Actions secret. The hosted control plane has no mechanism to read, proxy, or substitute it. | Customer's GitHub Actions secret. The shape is the same. |
+| `ANTHROPIC_API_KEY` storage | Customer's GitHub Actions secret. The hosted control plane has no provision to read, proxy, or substitute it. | Customer's GitHub Actions secret. The shape is the same. |
 | Prompt construction | The agent process builds the prompt on the customer's runner. | On the customer's runner. |
 | Anthropic request transit | Customer's runner → Anthropic's API endpoint. The request does **not** transit the control plane. | Customer's runner → Anthropic's API endpoint. |
 | Anthropic response | Anthropic returns it to the customer's runner. The response does **not** transit the control plane. | Anthropic returns it to the customer's runner. |

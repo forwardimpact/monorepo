@@ -71,7 +71,7 @@ Simplicity sets the Kata Agent Team apart.
 - **No additional infrastructure.** All core surfaces work with only skills and
   GitHub Actions. They need no databases, no queues, and no custom servers.
 - **Minimal harness.** The orchestration layer builds on the Claude SDK. The
-  SDK is simple and incredibly capable.
+  layer is simple and incredibly capable.
 - **Minimal runtime dependencies.** The code is plain JavaScript throughout.
   The harness (`libharness`) depends on the Claude Agent SDK plus a few small
   utilities. Memory (`libwiki`) pulls in no third-party packages.
@@ -127,8 +127,7 @@ graph LR
   feedback triage, one-topic-deep doc review, one-trace-deep grounded theory.
 - **Act** — Mechanical findings become **pushed fix PRs**. Structural findings
   become `spec.md` documents on **pushed spec branches**. Classify each finding
-  per
-  [work-definition.md § Classification tests](.claude/agents/x-work-definition.md#classification-tests).
+  per [work-definition.md § Classification tests](.claude/agents/x-work-definition.md#classification-tests).
   A local commit is not a PR. The URL is the only valid completion signal.
   `fix/` and `spec/` branches never mix.
 
@@ -356,9 +355,8 @@ The keyed rows they accompany make them recoverable.
 - **Least privilege.** The workflow-level `permissions:` block restricts only
   `GITHUB_TOKEN`. The App token carries coordination-channel permissions
   through installation settings.
-- **Surface-agnostic agents.** The same profiles and skills operate
-  identically. Cron, a GitHub event, or a bridge-relayed message can trigger
-  them.
+- **Surface-agnostic agents.** The same profiles and skills operate identically
+  for every trigger: cron, a GitHub event, or a bridge-relayed message.
 - **App-based auth.** GitHub App `kata-agent-team` with 1-hour installation
   tokens (no PAT). See
   [`github-app.md`](.claude/skills/kata-setup/references/github-app.md).

@@ -1,12 +1,12 @@
 ---
 title: Landmark
-description: Show engineering progress without making individuals feel surveilled — evidence, trends, and engineer voice grounded in your engineering standard.
+description: Show engineering progress and do not make individuals feel surveilled. Use evidence, trends, and engineer voice grounded in your engineering standard.
 layout: product
 toc: false
 hero:
   image: /assets/scene-landmark.svg
   alt: An engineer, an AI robot, and a business professional stand on a rocky outcrop, scanning the horizon for signals
-  subtitle: Check the cairn. Landmark shows what the signals say about how engineering is functioning — marker evidence, practice patterns, and snapshot trends assessed by Guide against your engineering standard.
+  subtitle: Check the cairn. Landmark shows what the signals say about how engineering functions. It shows marker evidence, practice patterns, and snapshot trends that Guide assesses against your engineering standard.
   cta:
     - label: View on GitHub
       href: https://github.com/forwardimpact/monorepo/tree/main/products/landmark
@@ -15,32 +15,34 @@ hero:
       secondary: true
 ---
 
-Quarterly review is due and the only data is ticket counts — singling out
-individuals, not illuminating the system. Career conversations feel subjective
-with no shared evidence base. Landmark resolves both by surfacing marker
-evidence — assessed by Guide against your engineering standard — alongside
-developer-experience outcomes, presented without blaming individuals.
+Quarterly review is due and the only data is ticket counts. Ticket counts
+single out individuals. They do not illuminate the system. Career conversations
+feel subjective with no shared evidence base. Landmark resolves both. It
+surfaces marker evidence alongside developer-experience outcomes. Guide
+assesses that evidence against your engineering standard. Landmark presents it
+and does not blame individuals.
 
 ## What becomes possible
 
 ### For Engineering Leaders
 
-Demonstrate engineering progress without making individuals feel surveilled.
-See system-level trends that show direction, tell whether culture investments
-are working before the next budget cycle, and ground quarterly reviews in
-evidence rather than impressions.
+Demonstrate engineering progress and do not make individuals feel surveilled.
+See system-level trends that show direction. Tell whether culture investments
+work before the next budget cycle. Ground quarterly reviews in evidence rather
+than impressions.
 
-- Team health dashboards combining evidence, driver scores, and engineer voice
+- Team health dashboards that combine evidence, driver scores, and engineer
+  voice
 - GetDX snapshot trends and quarterly comparisons
-- Practice pattern analysis showing which skills are actively exercised
+- Practice pattern analysis that shows which skills are actively exercised
 
 ### For Empowered Engineers
 
-See what your recent work demonstrates against the standard, and how it adds
+See what your recent work demonstrates against the standard. See how it adds
 up over time. When Guide recommends a growth area, Landmark is where the proof
 of progress shows up.
 
-- Marker evidence linking GitHub artifacts to skill definitions
+- Marker evidence that links GitHub artifacts to skill definitions
 - Promotion readiness and growth timeline views
 - Skill coverage analysis against standard markers
 
@@ -92,8 +94,8 @@ npx fit-landmark practice [--skill <id>] [--manager <email>]
 npx fit-landmark sources [--email <email>]
 ```
 
-Inventory of activity row classes Landmark retains about an engineer —
-transparency view for the engineer asking what data the system holds.
+Inventory of activity row classes Landmark retains about an engineer. It is a
+transparency view for the engineer who asks what data the system holds.
 
 #### Health
 
@@ -102,9 +104,9 @@ npx fit-landmark health [--manager <email>]
 npx fit-landmark health [--manager <email>] --verbose
 ```
 
-Default output is a compact table of drivers with one anchor per row; pass
-`--verbose` for the full per-driver paragraph layout including all percentile
-anchors, GetDX comments, and contributing-skill evidence.
+Default output is a compact table of drivers with one anchor per row. Pass
+`--verbose` for the full per-driver paragraph layout. That layout includes all
+percentile anchors, GetDX comments, and contributing-skill evidence.
 
 Sample default output:
 
@@ -138,8 +140,8 @@ All commands support `--format text|json|markdown`.
 
 Landmark reads from Map's activity layer:
 
-1. `organization_people` for hierarchy and team slicing
-2. `github_artifacts` + `evidence` for marker analysis — Guide assesses
+1. `organization_people` for hierarchy and team slices
+2. `github_artifacts` + `evidence` for marker analysis. Guide assesses
    artifacts against your standard's markers and writes results to Map
 3. `getdx_snapshots` + `getdx_snapshot_team_scores` for quarterly outcomes
 4. `getdx_snapshot_comments` for engineer voice
@@ -150,8 +152,8 @@ GitHub + GetDX → Map (ingest + store) → Landmark (present)
               Guide (marker analysis)    Summit (recommendations)
 ```
 
-Health works without Summit — it shows driver scores, evidence, and comments.
-Growth recommendations appear when Summit is installed.
+Health works without Summit. It shows driver scores, evidence, and comments.
+Growth recommendations appear after you install Summit.
 
 ---
 

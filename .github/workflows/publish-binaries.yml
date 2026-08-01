@@ -5,8 +5,8 @@ name: "Publish: Binaries"
 # release. It then signs and notarizes the .app and (for outpost) the .pkg on a
 # single macOS runner. Finally it updates the Homebrew tap. Everything runs on
 # the tag ref in one observable run. A mid-pipeline failure fails the release
-# visibly. The pipeline is generic: add its tag below to fold in a future cask
-# product.
+# visibly. The pipeline is generic. To fold in a future cask product, add its
+# tag below.
 on:
   push:
     tags:
@@ -248,9 +248,9 @@ jobs:
           # special-case.
           bash ../main/build/render-cask-binaries.sh "$CASK_FILE" "$BUNDLE"
           ruby -c "$CASK_FILE"
-          # Linux formula: this script renders it in full from the manifest +
-          # cask each release (the tap ships no formula skeleton, unlike the
-          # cask). So the first release of any bundle creates
+          # Linux formula: render-formula.sh renders it in full from the
+          # manifest + cask each release (the tap ships no formula skeleton,
+          # unlike the cask). So the first release of any bundle creates
           # Formula/<token>.rb, and a new bundle folds in with no hand-seeded
           # tap file.
           FORMULA_FILE="Formula/${CASK}.rb"

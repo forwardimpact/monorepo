@@ -24,4 +24,4 @@ the GitHub releases (macOS installer).
 ## Out of Scope
 
 - Self-hosted instances that run unsupported or modified versions
-- Issues in upstream dependencies. Report those to the upstream project.
+- Issues in upstream dependencies (report those to the upstream project)

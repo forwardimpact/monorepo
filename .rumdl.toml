@@ -33,8 +33,8 @@ exclude = [
 # MD046: code-block style. rumdl's "consistent" detection misclassifies fenced
 #        blocks indented as list children. It reads the 4-space indent as an
 #        indented block, so it flags correct fenced blocks. A pinned single
-#        style would instead churn published skill files, which carry jidoka
-#        line/word budgets, and tool-generated enum blocks. The repo is already
+#        style would instead churn published skill files (which carry jidoka
+#        line/word budgets) and tool-generated enum blocks. The repo is already
 #        consistently fenced where it matters.
 # MD001: heading-increment. A strict one-level-at-a-time hierarchy is the wrong
 #        constraint for documents with a presentational structure. Their

@@ -11,8 +11,8 @@ name: "Release: Tag"
 # It creates append-only release tags. It also moves a forward-only `v<major>`
 # alias for action releases (v<major>.<minor>.<patch>), per .github/CLAUDE.md
 # § Moving a sibling's v1 tag. This job pushes tags with the App token. It does
-# not use GITHUB_TOKEN. A tagged publish workflow in the target repo then still
-# fires.
+# not push them with GITHUB_TOKEN. A tagged publish workflow in the target repo
+# then still fires.
 on:
   workflow_dispatch:
     inputs:

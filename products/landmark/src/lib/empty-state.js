@@ -3,7 +3,7 @@
  *
  * Every entry corresponds to a row in spec § Empty States and Error
  * Behavior. Commands set `meta.emptyState` to one of these values when
- * a data source is missing or empty.
+ * a data source is absent or empty.
  */
 
 export const EMPTY_STATES = {

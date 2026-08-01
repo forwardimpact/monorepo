@@ -1,12 +1,12 @@
 ---
 title: Outpost
-description: Walk into every meeting already oriented — scheduled AI tasks assemble your context and keep your knowledge organized.
+description: Walk into every meeting already oriented. Scheduled AI tasks assemble your context and keep your knowledge organized.
 layout: product
 toc: false
 hero:
   image: /assets/scene-outpost.svg
   alt: An engineer, an AI robot, and a business professional setting up an A-frame tent together
-  subtitle: Set up camp. Outpost keeps you prepared — a team of scheduled agents syncs your email, calendar, and chat, builds a knowledge graph, prepares meeting briefs, and drafts responses in the background while you work.
+  subtitle: Set up camp. Outpost keeps you prepared. A team of scheduled agents syncs your email, calendar, and chat. The agents build a knowledge graph, prepare meeting briefs, and draft responses in the background while you work.
   cta:
     - label: View on GitHub
       href: https://github.com/forwardimpact/monorepo/tree/main/products/outpost
@@ -15,17 +15,18 @@ hero:
       secondary: true
 ---
 
-Walking into a meeting cold because context was scattered across email, Slack,
-and last week's notes. Outpost assembles and maintains that context so you
+You walk into a meeting cold because context was scattered across email, Slack,
+and last week's notes. Outpost assembles and maintains that context. You then
 arrive already oriented.
 
 ## What becomes possible
 
 ### For Empowered Engineers
 
-Keep track of people, projects, and threads without depending on memory. Walk
-into every meeting already oriented. Set it up once and a team of agents keeps
-working in the background — continuous awareness without continuous effort.
+Keep track of people, projects, and threads. You do not depend on memory. Walk
+into every meeting already oriented. Set it up once. A team of agents then
+works in the background. You get continuous awareness without continuous
+effort.
 
 - A team of scheduled agents that sync mail, calendar, and Teams chat while you
   work
@@ -35,7 +36,7 @@ working in the background — continuous awareness without continuous effort.
 - Meeting briefs assembled before every call from attendee history and open
   threads
 - Drafted email replies, chat messages, documents, and slide decks grounded in
-  your context — when you opt into drafting
+  your context, when you opt into drafting
 - Optional recruitment agents that screen candidates against your engineering
   standard
 
@@ -45,8 +46,9 @@ working in the background — continuous awareness without continuous effort.
 
 Outpost is not a single assistant you chat with. It runs a **team of agents**,
 each with a job, that wake on their own schedule. Every wake, an agent observes
-what changed, decides the most useful action, and does it — then goes back to
-sleep. You configure the team once; it keeps working while you don't.
+what changed, decides the most useful action, and does it. The agent then goes
+back to sleep. You configure the team once. It continues to work while you do
+not.
 
 ### Your agent team
 
@@ -63,19 +65,19 @@ schedule you can edit or disable in `~/.fit/outpost/scheduler.json`.
 | **head-hunter**    | Scans public sources for open candidates, never contacts them | each morning       | restricted |
 
 Each agent writes a short note per wake. The **chief-of-staff** reads all of
-them to assemble the daily briefing, so nothing has to be pieced together by
-hand. `full` and `restricted` refer to macOS access — see
+them to assemble the daily briefing. Nobody has to piece it together by hand.
+`full` and `restricted` refer to macOS access. See
 [macOS Privacy and Security](#macos-privacy-and-security) below. The recruitment
 agents (`recruiter`, `head-hunter`) ground their judgments in your
-[Pathway](/pathway/) engineering standard; leave them disabled if you are not
-hiring.
+[Pathway](/pathway/) engineering standard. Leave them disabled if you do not
+hire.
 
 ### What your agents can do
 
-The team's abilities come from skills — self-contained capabilities the agents
-load as needed. The default install ships these, grouped by what they are for.
-Composing skills (marked **draft**) only run once you opt into the
-[`brief+draft` posture](#choosing-your-posture).
+The team's abilities come from skills. Skills are self-contained capabilities
+the agents load as needed. The default install ships these, grouped by what
+they are for. Skills that compose content (marked **draft**) only run once you
+opt into the [`brief+draft` posture](#choosing-your-posture).
 
 | Area                       | Skills                                                                       |
 | -------------------------- | ---------------------------------------------------------------------------- |

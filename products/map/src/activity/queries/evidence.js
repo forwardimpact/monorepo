@@ -1,7 +1,7 @@
 /**
  * Evidence Queries
  *
- * Query functions for skill evidence written by Guide.
+ * Query functions for the skill evidence that Guide writes.
  */
 
 /**
