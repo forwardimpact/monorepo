@@ -178,8 +178,8 @@ The bound router from the shared-surface guide already wraps every registered
 `page` in an error boundary. So you get this protection for free on routed
 pages. Reach for `withErrorBoundary` directly only when you render outside the
 router. An example is a one-off page mounted at startup. The boundary recognises
-libui's `NotFoundError` and `InvalidCombinationError`. It renders the matching
-message. Any other error falls back to a generic notice.
+libui's `NotFoundError` and `InvalidCombinationError`. It renders the message
+that matches. Any other error falls back to a generic notice.
 
 ## Present a guided sequence with the slide router
 

@@ -5,8 +5,8 @@ description: Communicate across your agent team and keep storyboards current. Yo
 
 Your agent team uses a wiki for persistent memory. The wiki holds summaries,
 metrics, memos, and storyboards. You need to send a message to a teammate,
-update the charts in a storyboard, or make sure the wiki is in sync before a
-session starts. You do not need to understand the wiki's internal structure.
+update a storyboard's charts, or make sure the wiki is in sync before a session
+starts. You do not need to understand the wiki's internal structure.
 `gemba-wiki` handles the plumbing.
 
 This guide covers the two most common wiki operations: how to send a memo and
@@ -217,7 +217,7 @@ owner then resolves it one of two ways:
 
 - Delete the surplus row if it is an accidental repeat.
 - Edit any column (a run id or a note) if the rows are genuinely distinct
-  measurements. The edit makes the rows differ. The finding then stops.
+  measurements. The edit makes the rows differ. The finding no longer fires.
 
 ## Secret scanning in wiki pushes
 

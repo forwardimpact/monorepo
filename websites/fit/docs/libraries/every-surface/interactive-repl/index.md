@@ -89,7 +89,7 @@ notes> /list
 notes>
 ```
 
-You type commands with a leading `/`. Anything else is a line for `onLine`.
+You type commands with a `/` in front. Anything else is a line for `onLine`.
 
 **Non-interactive** — every command is also a `--flag`, so an agent can invoke
 the same operations without a prompt:

@@ -73,9 +73,9 @@ describe("classifyPath — rejections (the defect class)", () => {
   });
 
   test("standalone bare-year basename rejected", () => {
-    // `8080.md` is a lone four-digit segment — a bare-year token matching no
-    // exact shape. (The spec's "not a token" example is `8080` *inside* a
-    // longer segment; see the admit case below.)
+    // `8080.md` is a lone four-digit segment. It is a bare-year token that
+    // matches no exact shape. (The spec's "not a token" example is `8080`
+    // *inside* a longer segment. See the admit case below.)
     assert.equal(admitted("8080.md"), "rejected");
     assert.equal(admitted("roadmap-2026.md"), "rejected");
   });
@@ -85,8 +85,8 @@ describe("classifyPath — rejections (the defect class)", () => {
   });
 });
 
-describe("hasCalendarToken — boundary anchoring", () => {
-  test("multi-segment tokens detected (not just bare year)", () => {
+describe("hasCalendarToken — anchors on boundaries", () => {
+  test("detects multi-segment tokens as well as the bare year", () => {
     assert.equal(hasCalendarToken("foo-2026-W24"), true); // week
     assert.equal(hasCalendarToken("foo-2026-M06"), true); // month
     assert.equal(hasCalendarToken("foo-2026-06-11"), true); // date
@@ -96,7 +96,7 @@ describe("hasCalendarToken — boundary anchoring", () => {
   test("digits inside a longer segment are not a token", () => {
     assert.equal(hasCalendarToken("release8080-notes"), false);
     assert.equal(hasCalendarToken("v2026x"), false);
-    // The matching summary filename is therefore admitted.
+    // So classifyPath admits the summary filename that matches.
     assert.equal(admitted("release8080-notes.md"), "admitted");
   });
 });
@@ -111,7 +111,7 @@ describe("classifyPath — directories", () => {
     assert.equal(admitted("metrics/protocol-2026-06-11.md"), "admitted");
   });
 
-  test("<agent>/ sidecar admitted when agent has a root summary", () => {
+  test("<agent>/ sidecar admitted when the agent has a root summary", () => {
     assert.equal(admitted("product-manager/exp-51.csv"), "admitted");
     assert.equal(admitted("release-engineer/README.md"), "admitted");
   });
@@ -129,7 +129,7 @@ describe("classifyPath — directories", () => {
 });
 
 describe("rootSummaryStem", () => {
-  test("summary file yields its stem; ledgers and tokened names do not", () => {
+  test("a summary file yields its stem. Ledgers and tokened names do not", () => {
     assert.equal(rootSummaryStem("staff-engineer.md"), "staff-engineer");
     assert.equal(rootSummaryStem("MEMORY.md"), null);
     assert.equal(rootSummaryStem("staff-engineer-2026-W24.md"), null);

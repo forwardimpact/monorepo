@@ -1,15 +1,15 @@
 ---
 title: "Configure Agents to Meet Your Engineering Standard"
-description: "End the cycle of rejecting agent output for following generic practices — configure agents to meet the expectations the organization holds for humans."
+description: "End the cycle where you reject agent output that follows generic practices. Configure agents to meet the expectations the organization holds for humans."
 ---
 
-An agent's work was rejected -- not because the code was wrong, but because it
-followed generic practices instead of the organization's standards. The problem
-is configuration: the agent has no access to the skills, behaviours, and
-conventions your engineering standard defines. This guide walks you through
-configuring agents against that standard so their output reflects what the
-organization expects from any contributor, human or AI. For the other half of
-this job, seeing what the standard expects of you, see
+An agent's work was rejected. The code was not wrong. The work followed generic
+practices instead of the organization's standards. The problem is the
+configuration. The agent has no access to the skills, behaviours, and
+conventions your engineering standard defines. This guide shows you how to
+configure agents against that standard. Their output then reflects what the
+organization expects from any contributor, human or AI. The other half of this
+job is to see what the standard expects of you. For that half, see
 [See What's Expected at Your Level](/docs/products/career-paths/).
 
 ## Prerequisites
@@ -20,15 +20,15 @@ Complete these guides before continuing:
   -- install Pathway and initialize a `data/pathway/` directory with starter
   content or your organization's standard data.
 - [Authoring Agent-Aligned Engineering Standards](/docs/products/authoring-standards/)
-  -- if your organization has not yet defined its standard, start there. This
+  -- if your organization does not yet define its standard, start there. This
   guide assumes a standard exists and `npx fit-pathway discipline --list`
   returns your disciplines.
 
 ## Identify the role to configure
 
-Every agent configuration in Pathway maps to a **discipline** and **track** --
-the same coordinates used for human role definitions. Before generating an
-agent, identify which discipline and track describe the work the agent will do.
+Every agent configuration in Pathway maps to a **discipline** and a **track**.
+Human role definitions use the same coordinates. Before you generate an agent,
+identify which discipline and track describe the work the agent will do.
 
 List the available discipline and track combinations:
 
@@ -47,7 +47,7 @@ de-platform data-engineering platform, Data Engineering (Platform Engineering)
 
 Each row shows a short ID, the discipline ID, the track ID, and a human-readable
 description. Note the discipline and track values for the role you want to
-configure -- you will use them in the next step.
+configure. You use them in the next step.
 
 If the combination you need is missing, the standard data does not define an
 agent section for that discipline or track. See
@@ -56,14 +56,14 @@ to add one.
 
 ## Preview the agent configuration
 
-Before writing files, preview what Pathway will generate. Run the `agent`
+Before you write files, preview what Pathway will generate. Run the `agent`
 command without `--output` to see the full configuration on screen:
 
 ```sh
 npx fit-pathway agent software-engineering --track=platform
 ```
 
-The output has three sections, each corresponding to a layer in the generated
+The output has three sections. Each section matches a layer in the generated
 agent team:
 
 1. **Team Instructions** (`.claude/CLAUDE.md`) -- cross-cutting context every
@@ -74,19 +74,19 @@ agent team:
 3. **Required Skills** (`.claude/skills/*/SKILL.md`) -- which skills the agent
    will load, with descriptions so the agent knows when each applies.
 
-Review the output and confirm it reflects your organization's expectations:
+Review the output. Confirm it reflects your organization's expectations:
 
-- Does the team instructions section capture the platform and conventions the
-  agent needs to know?
-- Does the identity describe the right specialization?
-- Do the working style entries reflect the behaviours your standard emphasizes?
-- Do the constraints match the boundaries you expect the agent to observe?
-- Is the skill list appropriate for the discipline and track?
+- Confirm the team instructions section captures the platform and conventions
+  the agent needs to know.
+- Confirm the identity describes the right specialization.
+- Confirm the working style entries reflect the behaviours your standard
+  emphasizes.
+- Confirm the constraints match the boundaries you expect the agent to observe.
+- Confirm the skill list suits the discipline and track.
 
-If the content looks wrong, the fix is in the standard data, not in the
-generated output. The configuration is derived from the same YAML files that
-define human roles -- update the source, and the agent configuration updates
-with it.
+If the content looks wrong, fix the standard data. Do not fix the generated
+output. Pathway derives the configuration from the same YAML files that define
+human roles. Update the source. The agent configuration updates with it.
 
 ### Calibrate the agent's level
 

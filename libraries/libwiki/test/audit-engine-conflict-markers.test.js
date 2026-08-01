@@ -32,8 +32,9 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed (MEMORY.md + the current-month storyboard for `today`),
-// overlaid with `extra`. buildContext reads these via runtime.fsSync.
+// The clean-wiki seed holds MEMORY.md and the current-month storyboard for
+// `today`. `extra` overlays it. buildContext reads these through
+// runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();
@@ -56,7 +57,7 @@ function audit(seed, today = "2026-05-24") {
 
 const idsOf = (findings) => findings.map((f) => f.id);
 
-// -- conflict.markers audit rule: structural conflict-block detection --
+// -- conflict.markers audit rule: detects structural conflict blocks --
 
 describe("runRules — conflict.markers", () => {
   const OPEN = "<<<<<<< HEAD";
@@ -104,9 +105,9 @@ describe("runRules — conflict.markers", () => {
   });
 
   test("C1: split block across two sealed parts fires on EACH file", () => {
-    // Reproduces wiki repair 7c281c59: seal rotation severs one block — the
-    // open marker only in part 27, the separator + close only in part 28. A
-    // complete-in-file-block matcher would miss both.
+    // This reproduces wiki repair 7c281c59. Seal rotation severs one block.
+    // Part 27 holds only the open marker. Part 28 holds only the separator and
+    // the close. A complete-in-file-block matcher would miss both.
     const part27 = [
       "# Staff Engineer — 2026-W21 (part 27 of 28)",
       "",
@@ -138,8 +139,9 @@ describe("runRules — conflict.markers", () => {
 
   test("C2: does not fire on the quoted-rider shape (fenced + spans)", () => {
     // The W24 rider quotes both label forms in backtick code spans inside a
-    // fenced block, including a column-1 wrapped close and an in-span
-    // separator. Anchored by content shape, not filename.
+    // fenced block. It also holds a column-1 wrapped close and an in-span
+    // separator. The rule anchors on content shape. It does not anchor on the
+    // filename.
     const rider = summaryWith(
       "The corruption deposited markers documented below:",
       "",
@@ -179,7 +181,7 @@ describe("runRules — conflict.markers", () => {
     assert.deepEqual(conflictFindings(audit(seed)), []);
   });
 
-  test("C4: fires inside STATUS.md's fenced row table (data, not prose)", () => {
+  test("C4: fires inside STATUS.md's fenced row table (data rather than prose)", () => {
     const status = [
       "# Spec Status",
       "",
@@ -213,8 +215,8 @@ describe("runRules — conflict.markers", () => {
   });
 
   test("C6: marker finding co-occurs with the word-budget finding", () => {
-    // #1668 event 2 peaked at 2158/2048 words while carrying a marker block;
-    // the size breach alone misattributed the defect. Both must now fire.
+    // #1668 event 2 peaked at 2158/2048 words with a marker block present.
+    // The size breach alone misattributed the defect. Both must now fire.
     const filler = Array(7000).fill("word").join(" ");
     const log = [
       "# Staff Engineer — 2026-W21",

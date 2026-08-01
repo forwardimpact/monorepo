@@ -765,12 +765,13 @@ export class WikiSync {
   /**
    * Scan the content introduced by `origin/master..HEAD` for unresolved
    * conflict-marker blocks (Guard 3). Runs after the fetch + rebase/merge
-   * resolve, so the diff is against the freshly-fetched origin tip; pre-existing
-   * origin corruption is on the base side, never the added side, so an unrelated
-   * writer's push is not blocked. A throw from the scan (unresolvable ref on a
-   * shallow clone) refuses with a reason — never a silent pass.
-   * @returns {Promise<{pushed: false, reason: string}|null>} A refusal result, or
-   *   null when nothing introduced would publish a marker.
+   * resolve, so the diff is against the freshly-fetched origin tip.
+   * Pre-existing origin corruption is on the base side. It is never on the
+   * added side, so the guard does not block an unrelated writer's push. A
+   * throw from the scan (unresolvable ref on a shallow clone) refuses with a
+   * reason. It never passes silently.
+   * @returns {Promise<{pushed: false, reason: string}|null>} A refusal result,
+   *   or null when nothing introduced would publish a marker.
    */
   async #refuseIfIntroducedMarkers() {
     let introduced;
@@ -793,10 +794,11 @@ export class WikiSync {
   }
 
   /**
-   * Tier-1 post-push integrity probe: re-fetch the origin tip and verify the
-   * just-pushed delta — the full delta including shared surfaces —
-   * is still content-present, returning detections for any absence. Reads only;
-   * any error degrades to no detections so the probe never gates the push.
+   * Tier-1 post-push integrity probe: re-fetch the origin tip and verify that
+   * the just-pushed delta is still content-present. That delta is the full
+   * delta, and it covers shared surfaces. The probe returns detections for any
+   * absence. It only reads. Any error degrades to no detections, so the probe
+   * never gates the push.
    * @param {string|null} pushedDelta - `diffRange` text of the pushed delta.
    * @returns {Promise<object[]>}
    */
@@ -835,13 +837,13 @@ export class WikiSync {
 
   /**
    * Re-apply a registered singleton operation against the fresh remote tip,
-   * bounded by `maxReapply` rounds. The caller has already aborted the rebase.
+   * bounded by `maxReapply` rounds. The caller already aborted the rebase.
    * Each round: refresh the tip, drop the stale local commit (`resetSoft`,
    * working tree untouched so foreign residue survives), reset only the
-   * registered file to the tip (`checkoutPaths`, tolerating a tip that lacks
-   * it), re-derive via `reapply`, and — when the op still changes the tip —
-   * re-commit and push. A rejected push (the tip moved again) loops; an
-   * unchanged op is already satisfied; bound exhaustion throws.
+   * registered file to the tip (`checkoutPaths`, which tolerates a tip that
+   * lacks it), re-derive through `reapply`, and re-commit and push when the op
+   * still changes the tip. A rejected push (the tip moved again) loops. An
+   * unchanged op is already satisfied. Bound exhaustion throws.
    */
   async #reapplyLoop(message, paths, reapply, maxReapply) {
     const filePath = path.join(this.#wikiDir, paths[0]);
@@ -849,9 +851,9 @@ export class WikiSync {
       await this.fetch();
       await this.#git.resetSoft("origin/master", { cwd: this.#wikiDir });
       // Reset only the registered file to the tip. `resetSoft` leaves the
-      // working tree (so the dropped commit's copy of the file may linger), so
-      // a non-zero checkout — the tip lacks the file (a founding write) — means
-      // the fresh base is empty, NOT the lingering local copy.
+      // working tree, so the dropped commit's copy of the file may linger. A
+      // non-zero checkout means the tip lacks the file (a founding write). The
+      // fresh base is then empty. It is not the local copy that lingered.
       const checkout = await this.#git.checkoutPaths("origin/master", paths, {
         cwd: this.#wikiDir,
         allowMissing: true,
@@ -863,7 +865,7 @@ export class WikiSync {
           : "";
       const newText = reapply(freshText);
       if (newText === null) {
-        // The op is already satisfied on the tip; HEAD now equals the tip.
+        // The op is already satisfied on the tip. HEAD now equals the tip.
         return { pushed: false, reason: "already-satisfied" };
       }
       this.#runtime.fsSync.writeFileSync(filePath, newText);
@@ -872,10 +874,10 @@ export class WikiSync {
         await this.#authed().push("origin", "master", { cwd: this.#wikiDir });
         return { pushed: true, reason: "reapplied" };
       } catch (err) {
-        // Only a rejected push (the tip moved again) is a retry signal. An auth
-        // or network failure is not contention: rethrow it so the caller
-        // degrades to "saved locally" rather than burning the budget and
-        // misreporting a conflict that never happened.
+        // Only a rejected push (the tip moved again) is a retry signal. An
+        // auth or network failure is not contention. Rethrow it so the caller
+        // degrades to "saved locally". The loop must not burn the budget and
+        // misreport a conflict that never happened.
         if (!isPushRejection(err)) throw err;
       }
     }
@@ -887,7 +889,7 @@ export class WikiSync {
    * Returns a refusal envelope to short-circuit the push, or `null` to proceed
    * (clean, or an override that wrote its audit record). An override appends a
    * secret-free line to `secret-overrides.log` and commits it into the push
-   * range before returning `null`.
+   * range before the method returns `null`.
    *
    * @returns {Promise<{pushed: false, reason: "secret-detected"|"scanner-unavailable", findings?: Array<{file: string, line: number, rule: string}>}|null>}
    */
@@ -932,20 +934,19 @@ export class WikiSync {
   }
 
   /**
-   * Refuse before mutating when a rebase is mid-flight (D7). The other D7
-   * fixture — a detached HEAD — is deferred to the ancestry guard
-   * ({@link #assertPublishable}), where it surfaces as an `AncestryRefusal`
-   * ("unverifiable"): the two refusals collapse to one observable refusal, and
-   * the ancestry guard owns the reason naming for that fixture. This guard owns
-   * only the rebase-in-progress residual, which the ancestry guard does not
-   * cover.
+   * Refuse before any mutation when a rebase is mid-flight (D7). The ancestry
+   * guard ({@link #assertPublishable}) takes the other D7 fixture, a detached
+   * HEAD. There it surfaces as an `AncestryRefusal` ("unverifiable"). The two
+   * refusals collapse to one observable refusal, and the ancestry guard names
+   * the reason for that fixture. This guard owns only the rebase-in-progress
+   * residual, which the ancestry guard does not cover.
    */
   async #assertPreconditions() {
     if (this.#rebaseInProgress()) {
       throw new WikiPushFailure(
         PUSH_REASONS.PRECONDITION,
         "gemba-wiki: refusing to act — a rebase is in progress. Resolve or " +
-          "abort it before retrying; your uncommitted edit is preserved.",
+          "abort it before you retry. Your uncommitted edit is preserved.",
       );
     }
   }
@@ -970,12 +971,12 @@ export class WikiSync {
     }
   }
 
-  /** Whether HEAD is contained in `tip` (grounded nothing-to-push). */
+  /** Whether `tip` contains HEAD (grounded nothing-to-push). */
   async #headContainedIn(tip) {
     return this.#git.isAncestor("HEAD", tip, { cwd: this.#wikiDir });
   }
 
-  /** Fetch, returning whether it succeeded (feeds the rejected-vs-transport split). */
+  /** Fetch and return whether it succeeded (feeds the rejected-vs-transport split). */
   async #fetchObserved() {
     try {
       await this.#authed().fetch(REMOTE, BRANCH, { cwd: this.#wikiDir });
@@ -994,16 +995,17 @@ export class WikiSync {
   }
 
   /**
-   * The paths dirty in the working tree — the session's own write-set when no
-   * explicit pathspec was supplied. Each porcelain v1 line is `XY <path>` or,
-   * for a rename, `XY <orig> -> <new>`; the destination is the path that exists
-   * in the tree and is the one emitted (a `git mv` source no longer exists, so
-   * adding it to the pathspec would fault). A `"`-quoted path (a name with a
-   * space or non-ASCII byte) is unquoted so the pathspec matches the
-   * working-tree entry. Under the canonical per-session isolated checkout this
-   * set holds no foreign content, so committing exactly it stages the session's
-   * own work and nothing else; wiki session writes are edits and appends, not
-   * renames, so the destination-only scope covers the real workload.
+   * The paths dirty in the working tree. This is the session's own write-set
+   * when the caller supplied no explicit pathspec. Each porcelain v1 line is
+   * `XY <path>` or, for a rename, `XY <orig> -> <new>`. The destination is the
+   * path that exists in the tree, and the method emits that one (a `git mv`
+   * source no longer exists, so a pathspec that named it would fault). The
+   * method unquotes a `"`-quoted path (a name with a space or non-ASCII byte),
+   * so the pathspec matches the working-tree entry. Under the canonical
+   * per-session isolated checkout this set holds no foreign content. So a
+   * commit of exactly this set stages the session's own work and nothing else.
+   * Wiki session writes are edits and appends. They are not renames, so the
+   * destination-only scope covers the real workload.
    */
   async #dirtyPaths() {
     const r = await this.#git.status({ cwd: this.#wikiDir });
@@ -1019,15 +1021,15 @@ export class WikiSync {
   }
 
   /**
-   * Refuse (`conservation`) when the would-be-pushed tree drops foreign content
-   * present at the observed remote tip, unless a deliberate removal carries it
-   * (D5). After a clean rebase HEAD descends from the remote tip, so the
-   * tip-first diff (`D`/`M`) is exactly the net effect of the pushed history:
-   * a `D` is a foreign file deleted; an `M` carries the pushed history's
-   * authored changes, where a row rewritten to a new state is an authored
-   * transition (passes) but a row removed without replacement is a drop
-   * (refuses). Row identity is the line's leading field, so a `plan approved`
-   * written over a foreign row keeps the row key and passes.
+   * Refuse (`conservation`) when the would-be-pushed tree drops foreign
+   * content present at the observed remote tip, unless a deliberate removal
+   * carries it (D5). After a clean rebase HEAD descends from the remote tip.
+   * So the tip-first diff (`D`/`M`) is exactly the net effect of the pushed
+   * history. A `D` is a foreign file deleted. An `M` carries the pushed
+   * history's authored changes. There, a row rewritten to a new state is an
+   * authored transition (passes), and a row removed without replacement is a
+   * drop (refuses). Row identity is the line's leading field, so a
+   * `plan approved` written over a foreign row keeps the row key and passes.
    *
    * @param {string} remoteTip - The observed remote tip SHA.
    * @param {string} message - The pushed commit message (carries release intent).
@@ -1040,12 +1042,13 @@ export class WikiSync {
     const status = await this.#git.diffNameStatus(remoteTip, "HEAD", {
       cwd: this.#wikiDir,
     });
-    // When HEAD does not descend from the observed remote tip, the pushed
-    // history was written from a stale base and never saw the remote's advance,
-    // so a surviving-key row whose value differs from the remote is a stale
-    // revert (no authored transition to the restored state in the pushed
-    // history), not an approval-propagating transition. Only a HEAD that
-    // descends from the remote tip can have authored a transition over it.
+    // When HEAD does not descend from the observed remote tip, the writer
+    // built the pushed history from a stale base and never saw the remote's
+    // advance. So a row whose key survives with a value that differs from the
+    // remote is a stale revert. The pushed history holds no authored
+    // transition to the restored state. It is not a transition that propagates
+    // an approval. Only a HEAD that descends from the remote tip can author a
+    // transition over it.
     const headAuthoredOverRemote = await this.#git.isAncestor(
       remoteTip,
       "HEAD",
@@ -1092,20 +1095,21 @@ export class WikiSync {
 
   /**
    * Whether the pushed tree drops foreign content present at the remote tip.
-   * A whole-file deletion drops it. Otherwise a remote line is dropped only
-   * when neither it **nor a line sharing its identity key** survives in HEAD —
-   * so a row rewritten to a new state (an authored transition) is conserved,
-   * while a row removed outright is a drop. The pusher's own additive edits
-   * never trip this because they remove no remote line.
+   * A whole-file deletion drops it. Otherwise the tree drops a remote line
+   * only when neither it **nor a line that shares its identity key** survives
+   * in HEAD. So the tree conserves a row rewritten to a new state (an authored
+   * transition), and a row removed outright is a drop. The pusher's own
+   * additive edits never trip this because they remove no remote line.
    *
-   * A surviving key with a changed value is an authored transition **only when
-   * the pushed history descends from the remote tip** (`headAuthoredOverRemote`).
-   * When it does not — a stale-base commit that never saw the remote's advance —
-   * the changed value restores a superseded state with no authoring commit, so
-   * it is a stale revert and counts as a drop (erases the foreign advance).
+   * A key that survives with a changed value is an authored transition **only
+   * when the pushed history descends from the remote tip**
+   * (`headAuthoredOverRemote`). When it does not, the commit has a stale base
+   * and never saw the remote's advance. The changed value then restores a
+   * superseded state with no commit that authored it. So it is a stale revert
+   * and counts as a drop (it erases the foreign advance).
    *
-   * `showFile` returns `null` for an absent blob; both `null` and `""` mean the
-   * file is gone at that ref.
+   * `showFile` returns `null` for an absent blob. Both `null` and `""` mean
+   * the file is gone at that ref.
    */
   #dropsForeignContent(remoteContent, headContent, headAuthoredOverRemote) {
     if (remoteContent == null || remoteContent === "") return false;
@@ -1118,29 +1122,31 @@ export class WikiSync {
       if (headSet.has(line)) return false; // exact line survives
       const key = this.#rowKey(line);
       if (key === null) {
-        // Unkeyed prose absent from HEAD. When the pushed history descends from
-        // the remote tip, the pusher saw this line and authored its edit — a
-        // legitimate prose change, not a foreign drop. Only a stale-base commit
-        // that never saw the line (a side-pick / clean-replay erasure) drops it.
+        // Unkeyed prose absent from HEAD. When the pushed history descends
+        // from the remote tip, the pusher saw this line and authored its edit.
+        // That is a legitimate prose change. It is not a foreign drop. Only a
+        // stale-base commit that never saw the line (a side-pick /
+        // clean-replay erasure) drops it.
         return !headAuthoredOverRemote;
       }
       if (!headKeys.has(key)) return true; // key gone outright ⇒ drop
-      // Key survives with a changed value: an authored transition only if the
-      // pushed history was built over the remote tip; otherwise a stale revert.
+      // The key survives with a changed value. This is an authored transition
+      // only if the writer built the pushed history over the remote tip.
+      // Otherwise it is a stale revert.
       return !headAuthoredOverRemote;
     });
   }
 
   /**
-   * The identity key of a structured row, used to tell an authored transition
-   * (same row, new state) from a drop (row gone). For a Markdown table row the
-   * key is the **first two cells** — the canonical Active Claims table is keyed
-   * by `(agent, target)`, and `agent` alone is non-unique (one agent holds many
-   * rows), so a single-cell key would let a real foreign-row drop masquerade as
-   * a transition. For a tab-delimited ledger row (e.g. STATUS
-   * `id<TAB>phase<TAB>status`) the key is the first field, whose later fields
-   * are the state that transitions. Unstructured prose has no stable key
-   * (`null`) and is conserved by exact-line match only.
+   * The identity key of a structured row. The caller uses it to tell an
+   * authored transition (same row, new state) from a drop (row gone). For a
+   * Markdown table row the key is the **first two cells**. The canonical
+   * Active Claims table has the key `(agent, target)`, and `agent` alone is
+   * non-unique (one agent holds many rows). So a single-cell key would let a
+   * real foreign-row drop masquerade as a transition. For a tab-delimited
+   * ledger row (e.g. STATUS `id<TAB>phase<TAB>status`) the key is the first
+   * field, whose later fields are the state that transitions. Unstructured
+   * prose has no stable key (`null`). An exact-line match alone conserves it.
    */
   #rowKey(line) {
     const trimmed = line.trim();
@@ -1160,13 +1166,13 @@ export class WikiSync {
   /** Whether the removal of `file` is declared deliberate (release/expiry/sidecar). */
   #removalDeclared(file, message, sidecar, headAuthoredOverRemote) {
     // A claim release/expiry records the deliberate act in the commit message,
-    // and a claim/release commit is pathspec-scoped to MEMORY.md — so the
-    // exemption is confined to that file, never a whole-tree trim. The blanket
-    // message exemption is honored only when HEAD descends from the remote tip:
-    // a release authored over current state drops exactly the row it released,
-    // but a stale-base release never saw a foreign row another writer added, so
-    // it must not blanket-exempt that collateral live-row drop (D5 — the
-    // deliberate act is the released row, not a file-level pass).
+    // and a claim/release commit is pathspec-scoped to MEMORY.md. So the
+    // exemption covers that file only. It never covers a whole-tree trim. The
+    // blanket message exemption holds only when HEAD descends from the remote
+    // tip. A release authored over current state drops exactly the row it
+    // released. A stale-base release never saw a foreign row another writer
+    // added, so it must not blanket-exempt that collateral live-row drop (D5).
+    // The deliberate act is the released row. It is not a file-level pass.
     if (
       headAuthoredOverRemote &&
       /^wiki: release\b/.test(message) &&
@@ -1180,10 +1186,10 @@ export class WikiSync {
 
   /**
    * Declare that the next push deliberately removes foreign content in `paths`
-   * (the cross-lane budget-trim shape, D5). The declaration is recorded
-   * clone-locally so it survives a stranded-push retry from the same clone, and
-   * is cleared only once a push lands (so the declaration never leaks into an
-   * unrelated later push).
+   * (the cross-lane budget-trim shape, D5). This method records the
+   * declaration clone-locally, so it survives a stranded-push retry from the
+   * same clone. A landed push clears it, so the declaration never leaks into
+   * an unrelated later push.
    * @param {string[]} paths - Files whose foreign-content removal is deliberate.
    */
   declareRemoval(paths) {
@@ -1225,12 +1231,13 @@ export class WikiSync {
   }
 
   /**
-   * Push once and classify the outcome, grounding *landed* in the
-   * remote-originated per-ref report or a post-push remote-tip read. Returns a
-   * verdict the retry loop reads (it carries the {@link WikiPushFailure} to
-   * throw on a terminal non-land so the loop owns the retry decision): a
-   * non-landed push is `rejected` when the fetch succeeded, `transport` when it
-   * failed or the push itself raised a transport error.
+   * Push once and classify the outcome. Ground *landed* in the
+   * remote-originated per-ref report or in a post-push remote-tip read.
+   * Returns a verdict the retry loop reads. The verdict carries the
+   * {@link WikiPushFailure} to throw on a terminal non-land, so the loop owns
+   * the retry decision. A non-landed push is `rejected` when the fetch
+   * succeeded. It is `transport` when the fetch failed or the push itself
+   * raised a transport error.
    * @param {boolean} fetched - Whether the pre-push fetch observed the remote.
    * @returns {Promise<{landed: boolean, reason: string, error?: WikiPushFailure}>}
    */
@@ -1248,7 +1255,7 @@ export class WikiSync {
         error: new WikiPushFailure(
           PUSH_REASONS.TRANSPORT,
           "gemba-wiki: push failed at transport (network or credentials). " +
-            "Your work is committed locally; retry when connectivity returns.",
+            "Your work is committed locally. Retry when connectivity returns.",
         ),
       };
     }
@@ -1278,10 +1285,10 @@ export class WikiSync {
   }
 
   /**
-   * Whether the push landed, grounded in observed remote state: the per-ref
-   * `--porcelain` report for `refs/heads/master` (flag ` `/`=` accepted, `!`
-   * rejected), falling back to a post-push remote-tip read when the report is
-   * unparseable.
+   * Whether the push landed. Observed remote state grounds the answer. That
+   * state is the per-ref `--porcelain` report for `refs/heads/master` (flag
+   * ` `/`=` accepted, `!` rejected). The method falls back to a post-push
+   * remote-tip read when it cannot parse the report.
    */
   async #pushLanded(result) {
     const verdict = this.#parsePorcelain(result.stdout);
@@ -1314,29 +1321,31 @@ export class WikiSync {
   }
 
   /**
-   * Refuse, before any commit or push, whenever the relationship between the
-   * history that would be published (the `master` branch ref, never bare HEAD)
-   * and the remote branch can be neither confirmed nor refuted. Implements the
-   * the ancestry decision table; throws {@link AncestryRefusal} on refusal and
-   * returns silently when publication is verified or the remote is positively
-   * empty. The emptiness probe runs only on the absent-tracking-ref path, so
-   * the healthy hot path adds no remote round-trip.
+   * Refuse, before any commit or push, whenever the guard can neither confirm
+   * nor refute the relationship between the remote branch and the history the
+   * push would publish (the `master` branch ref, never bare HEAD). Implements
+   * the ancestry decision table. Throws {@link AncestryRefusal} on refusal.
+   * Returns silently when the guard verifies the publication or finds the
+   * remote positively empty. The emptiness probe runs only on the
+   * absent-tracking-ref path, so the healthy hot path adds no remote
+   * round-trip.
    */
   async #assertPublishable() {
     const cwd = this.#wikiDir;
 
-    // 1. Detached HEAD: the push publishes the branch ref, not HEAD, so the
-    //    session's commits would be silently lost. Verify nothing — refuse.
+    // 1. Detached HEAD: the push publishes the branch ref. It does not publish
+    //    HEAD, so the session would silently lose its commits. Verify nothing.
+    //    Refuse.
     if ((await this.#git.headBranch({ cwd })) !== BRANCH) {
       throw new AncestryRefusal(
         "unverifiable",
-        "gemba-wiki: refusing to publish — HEAD is detached, so the configured " +
-          "branch would be pushed instead of your work. Re-clone the wiki.",
+        "gemba-wiki: refusing to publish — HEAD is detached, so the push would " +
+          "send the configured branch instead of your work. Re-clone the wiki.",
       );
     }
 
     // 2. Establish whether the remote branch is present. A resolvable local
-    //    remote-tracking ref is sufficient; otherwise probe the remote (the
+    //    remote-tracking ref is sufficient. Otherwise probe the remote (the
     //    only added round-trip, and only here).
     const branchPresent = await this.#git.refExists(REMOTE_BRANCH, { cwd });
     if (!branchPresent) {
@@ -1347,14 +1356,15 @@ export class WikiSync {
         throw new AncestryRefusal(
           "unverifiable",
           "gemba-wiki: refusing to publish — could not observe the remote to " +
-            "verify ancestry; the local change is not published.",
+            "verify ancestry. The local change is not published.",
         );
       }
       // Positive evidence the remote branch is absent ⇒ empty-new-wiki.
       if (!observed) return;
-      // Remote branch present but no local tracking ref: fetch it into the
-      // tracking ref so the unborn-HEAD and merge-base steps below judge
-      // against the probed branch tip rather than an unresolvable ref.
+      // The remote branch is present but there is no local tracking ref.
+      // Fetch it into the tracking ref, so the unborn-HEAD and merge-base
+      // steps below judge against the probed branch tip. They must not judge
+      // against an unresolvable ref.
       try {
         await this.#git.fetch(
           REMOTE,
@@ -1367,7 +1377,7 @@ export class WikiSync {
         throw new AncestryRefusal(
           "unverifiable",
           "gemba-wiki: refusing to publish — could not fetch the remote branch " +
-            "to verify ancestry; the local change is not published.",
+            "to verify ancestry. The local change is not published.",
         );
       }
     }
@@ -1399,7 +1409,7 @@ export class WikiSync {
       throw new AncestryRefusal(
         "unverifiable",
         "gemba-wiki: refusing to publish — could not deepen history to verify " +
-          "ancestry; the local change is not published.",
+          "ancestry. The local change is not published.",
       );
     }
     if (await this.#git.mergeBaseExists(REMOTE_BRANCH, "HEAD", { cwd })) return;

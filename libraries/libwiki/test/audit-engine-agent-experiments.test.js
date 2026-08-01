@@ -32,8 +32,9 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed (MEMORY.md + the current-month storyboard for `today`),
-// overlaid with `extra`. buildContext reads these via runtime.fsSync.
+// The clean-wiki seed holds MEMORY.md and the current-month storyboard for
+// `today`. `extra` overlays it. buildContext reads these through
+// runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();
@@ -74,7 +75,7 @@ describe("runRules — storyboard.markers-balanced.agent-experiments", () => {
     assert.equal(finding, undefined);
   });
 
-  test("agent-experiments markers: dangling-open detected", () => {
+  test("agent-experiments markers: the audit detects dangling-open", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",

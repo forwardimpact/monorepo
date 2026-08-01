@@ -3,21 +3,22 @@ title: Answer Relationship Questions from a Product
 description: Answer relationship questions from any product — triple patterns against the shared graph service, no join logic.
 ---
 
-You need to answer a relationship question from within a product -- which people
-belong to an organization, which projects reference a capability, which
-resources share a type. The graph service holds the RDF index in memory and
-exposes three RPCs: `QueryByPattern`, `GetSubjects`, and `GetOntology`. This
-page walks through each RPC with copy-pasteable examples.
+You need to answer a relationship question from within a product. Examples are
+which people belong to an organization, which projects reference a capability,
+and which resources share a type. The graph service holds the RDF index in
+memory and exposes three RPCs: `QueryByPattern`, `GetSubjects`, and
+`GetOntology`. This page walks through each RPC with copy-pasteable examples.
 
-For the full setup including connecting to both the graph and vector services,
-see [Ground Agents in Context](/docs/services/ground-agents/).
+For the full setup, see
+[Ground Agents in Context](/docs/services/ground-agents/). That guide shows how
+to connect to both the graph and vector services.
 
 ## Prerequisites
 
-- Completed the
-  [Ground Agents in Context](/docs/services/ground-agents/) guide --
-  you have `@forwardimpact/librpc` and `@forwardimpact/libtype` installed, the
-  graph service is running, and `createClient("graph")` connects successfully.
+- You completed the
+  [Ground Agents in Context](/docs/services/ground-agents/) guide. You
+  installed `@forwardimpact/librpc` and `@forwardimpact/libtype`. The graph
+  service runs. `createClient("graph")` connects successfully.
 - A populated graph index at `data/graphs/index.jsonl`.
 
 ## Connect
@@ -108,8 +109,9 @@ const result = await graphClient.QueryByPattern(query);
 
 ## List subjects
 
-`GetSubjects` returns all entity URIs in the graph, optionally filtered by RDF
-type. Each line in the response is a tab-separated subject URI and its type.
+`GetSubjects` returns all entity URIs in the graph. You can filter the result
+by RDF type. Each line in the response is a tab-separated subject URI and its
+type.
 
 ### All subjects
 
@@ -145,9 +147,9 @@ https://acme.example/people/alice	https://schema.org/Person
 https://acme.example/people/bob	https://schema.org/Person
 ```
 
-Type synonyms defined via `skos:altLabel` in the ontology are resolved
-automatically -- querying for `schema:Person` also returns entities typed as
-`schema:Individual` if the ontology maps them.
+The service resolves type synonyms automatically. The ontology defines these
+synonyms with `skos:altLabel`. A query for `schema:Person` also returns
+entities with the type `schema:Individual` if the ontology maps them.
 
 ## Read the ontology
 
@@ -160,19 +162,19 @@ const ontology = await graphClient.GetOntology(common.Empty.fromObject({}));
 console.log(ontology.content.substring(0, 300));
 ```
 
-The response is a Turtle RDF string containing SHACL shape definitions for
+The response is a Turtle RDF string that contains SHACL shape definitions for
 every observed type and predicate.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `QueryByPattern` with a subject/predicate/object pattern returns matching
   resource identifiers.
 - `GetSubjects` with a type filter returns only entities of that type.
 - `GetOntology` returns Turtle RDF that describes the available types and
   predicates.
-- Applying a `filter` with `limit` constrains the result count.
+- A `filter` with `limit` constrains the result count.
 
 ## What's next
 

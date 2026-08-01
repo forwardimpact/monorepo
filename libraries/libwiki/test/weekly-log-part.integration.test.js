@@ -14,10 +14,10 @@ import { tmpdir } from "node:os";
 import { rebisectOverBudgetPart } from "../src/weekly-log.js";
 import { WEEKLY_LOG_LINE_BUDGET } from "../src/constants.js";
 
-// rebisectOverBudgetPart's split branch seals via fs.renameSync, which the
-// in-memory libmock fs does not model. The non-writing branches (noop,
-// irreducible, malformed name) are unit-tested in weekly-log.test.js; the
-// renameSync-bearing split and rollback paths live here against the real fs.
+// The split branch of rebisectOverBudgetPart seals with fs.renameSync. The
+// in-memory libmock fs does not model that call. weekly-log.test.js unit-tests
+// the non-writing branches (noop, irreducible, malformed name). The split and
+// rollback paths that call renameSync live here against the real fs.
 describe("rebisectOverBudgetPart (part re-bisect)", () => {
   let wikiRoot;
   beforeEach(() => {
@@ -28,8 +28,8 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
   const SOURCE = "staff-engineer-2026-W21-part1.md";
   const PART_H1 = "# Staff Engineer — 2026-W21 (part 1 of 1)";
 
-  // A multi-day part over the line budget: each section is under the cap but
-  // jointly they overflow, so a re-bisect yields ≥2 conforming sub-parts.
+  // A multi-day part over the line budget. Each section is under the cap.
+  // Jointly they overflow, so a re-bisect yields ≥2 conforming sub-parts.
   function multiDayPart(sections = 4, linesPerSection = 150, h1 = PART_H1) {
     let text = `${h1}\n`;
     for (let s = 0; s < sections; s++) {

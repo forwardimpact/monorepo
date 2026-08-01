@@ -6,8 +6,8 @@ import { join } from "node:path";
 import { runAuditCommand } from "../src/commands/audit.js";
 import { git, makeRuntime, ctxFor, seedCleanWiki } from "./helpers.js";
 
-// Exercise the `admission` scope against a REAL git repo so the `git ls-files`
-// intersection is genuinely tested: only tracked files are in the universe.
+// Exercise the `admission` scope against a REAL git repo. This truly tests the
+// `git ls-files` intersection. Only tracked files are in the universe.
 describe("admission scope (real git)", () => {
   let wikiDir;
 
@@ -47,7 +47,7 @@ describe("admission scope (real git)", () => {
   });
 
   test("an untracked rogue is invisible (universe is the git index)", () => {
-    // Written but never `git add`ed — outside the tracked universe.
+    // Nothing runs `git add` on this file. It stays outside the universe.
     writeFileSync(
       join(wikiDir, "product-manager-2026-W24-history.md"),
       "# rogue\n",
@@ -55,7 +55,7 @@ describe("admission scope (real git)", () => {
     assert.deepEqual(admissionFindings(audit().parsed), []);
   });
 
-  test("the rogue is flagged once it is tracked", () => {
+  test("the audit flags the rogue once git tracks it", () => {
     writeFileSync(
       join(wikiDir, "product-manager-2026-W24-history.md"),
       "# rogue\n",
@@ -70,14 +70,14 @@ describe("admission scope (real git)", () => {
   });
 
   test("the .git directory itself is never part of the universe", () => {
-    // No admission finding for any .git/* path even though it is on disk.
+    // The audit reports no finding for a .git/* path, even though it is on disk.
     const flagged = admissionFindings(audit().parsed).map(
       (f) => f.path ?? f.message,
     );
     assert.ok(!flagged.some((m) => m.includes(".git/")));
   });
 
-  test("tracked sidecar and metrics files are admitted", () => {
+  test("the audit admits tracked sidecar and metrics files", () => {
     mkdirSync(join(wikiDir, "metrics", "kata-design"), { recursive: true });
     writeFileSync(join(wikiDir, "metrics", "kata-design", "2026.csv"), "ts\n");
     // staff-engineer.md is a root summary so staff-engineer/ is an admitted sidecar.

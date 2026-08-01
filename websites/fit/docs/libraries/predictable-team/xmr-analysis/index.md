@@ -34,7 +34,7 @@ date,metric,value,unit,run,note,event_type
 | Field        | Required | Notes                                                                |
 | ------------ | -------- | -------------------------------------------------------------------- |
 | `date`       | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                   |
-| `metric`     | yes      | Metric name. One CSV may carry many metrics. The command groups them. |
+| `metric`     | yes      | Metric name. One CSV may carry multiple metrics. The command groups them. |
 | `value`      | yes      | Numeric. `validate` rejects a non-numeric value.                     |
 | `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). Do not leave `unit` empty.  |
 | `run`        | no       | URL or identifier of the run that produced this observation.         |
@@ -146,8 +146,8 @@ that before you treat the flip as a new event.
 Before the rules mean anything, the centerline (μ) and average moving range (R̄)
 must come from a single process. A CSV can mix two processes, for example fast
 dispatch-boots interleaved with much slower shift-work. The command then
-computes μ and R̄ across the mixture, and the limits describe neither process.
-The rules still fire, but they fire on the mixture artifact. They do not fire on
+computes μ and R̄ across the mixture. The limits describe neither process. The
+rules still fire, but they fire on the mixture artifact. They do not fire on
 either underlying system.
 
 If your CSV mixes processes, split them into separate metrics (or separate CSVs)

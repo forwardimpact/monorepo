@@ -1,18 +1,18 @@
 ---
 title: Ship an HTTP Service Endpoint
-description: Mount Hono routes on a configured app and call start() — security headers, a health check, body limits, and graceful shutdown come for free.
+description: Mount Hono routes on a configured app and call start(). Security headers, a health check, body limits, and graceful shutdown come for free.
 ---
 
 Not every service speaks gRPC. An OAuth callback, a webhook receiver, or an SDK
 transport needs plain HTTP. The transport scaffolding is the same every time:
 security headers, a `/health` endpoint, a request-size limit, a consistent error
-response, port binding, and a clean shutdown. `@forwardimpact/libhttp` owns that
+response, a bound port, and a clean shutdown. `@forwardimpact/libhttp` owns that
 scaffolding so you write only your routes.
 
-`createHttpService` is the HTTP counterpart to the gRPC `Server` covered in
-[Ship a Service Endpoint](/docs/libraries/typed-contracts/ship-endpoint/). It
-wraps [Hono](https://hono.dev) and `@hono/node-server`: you mount routes through
-a `configure` callback, then call `start()`.
+`createHttpService` is the HTTP counterpart to the gRPC `Server` that
+[Ship a Service Endpoint](/docs/libraries/typed-contracts/ship-endpoint/)
+covers. It wraps [Hono](https://hono.dev) and `@hono/node-server`. You mount
+routes through a `configure` callback. Then you call `start()`.
 
 ## Prerequisites
 
@@ -50,16 +50,16 @@ await service.start();
 
 The `configure` callback runs *after* the standard middleware, so every route
 you mount inherits the security headers and body limit automatically. The second
-argument carries the injected `logger` and (when supplied) `tracer`, so handlers
-can log and open spans without reaching for module-level globals.
+argument carries the injected `logger` and the `tracer` (when you supply one).
+Handlers can then log and open spans without module-level globals.
 
 The returned service object has four members:
 
 | Member        | Purpose                                                       |
 | ------------- | ------------------------------------------------------------- |
 | `app`         | The underlying Hono instance, for tests or extra wiring       |
-| `start()`     | Binds the socket and resolves once the server is listening    |
-| `stop()`      | Graceful shutdown — runs `onStop`, then closes the socket     |
+| `start()`     | Binds the socket and resolves after the server listens        |
+| `stop()`      | Graceful shutdown. Runs `onStop`, then closes the socket      |
 | `address()`   | The bound `{ port }`, or `null` before `start()`              |
 
 Pass `port: 0` to let the OS pick a free port, then read it back with
@@ -80,15 +80,15 @@ request without any code in `configure`:
 | ------------------ | ---------------------------------------------------------- |
 | Security headers   | `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Cache-Control: no-store` |
 | Health check       | `GET /health` returns `{ "status": "ok" }`                |
-| Body limit         | Requests over the limit are rejected with `413`            |
+| Body limit         | The service rejects requests over the limit with `413`     |
 | Error envelope     | An uncaught handler error becomes `{ "error": "server_error" }` with status `500` |
 | Graceful shutdown  | `stop()` runs your `onStop`, then closes the socket        |
 
 ### Health check
 
-`GET /health` is mounted before your routes, so it resolves even if a route in
-`configure` registers a catch-all. A load balancer or orchestrator can poll it
-with no extra code:
+`createHttpService` mounts `GET /health` before your routes. The route resolves
+even if a route in `configure` registers a catch-all. A load balancer or an
+orchestrator can poll it with no extra code:
 
 ```sh
 curl -s http://127.0.0.1:8080/health
@@ -100,9 +100,9 @@ curl -s http://127.0.0.1:8080/health
 
 ### Body limit
 
-The default request-body limit is 1 MB — generous for JSON. Override it with
-`bodyLimit` (in bytes). A request whose body exceeds the limit is rejected with
-`413` before it reaches your handler:
+The default request-body limit is 1 MB. That is generous for JSON. Override it
+with `bodyLimit` (in bytes). The service rejects a request whose body exceeds
+the limit. It returns `413` before the request reaches your handler:
 
 ```js
 const service = createHttpService({
@@ -117,27 +117,27 @@ const service = createHttpService({
 ```
 
 Set `bodyLimit: 0` to disable the limit. Do this only when a handler reads the
-raw request stream itself — for example an SDK transport that consumes the body
-directly — since the body-limit middleware would otherwise drain it.
+raw request stream itself. An SDK transport that consumes the body directly is
+one example. The body-limit middleware would otherwise drain the stream.
 
 ### Error envelope
 
-Any error a handler throws is caught and returned as a 500 with a stable shape,
-and the error message is logged under the `{name}.error` tag:
+The service catches any error a handler throws. It returns a 500 with a stable
+shape. It logs the error message under the `{name}.error` tag:
 
 ```json
 { "error": "server_error" }
 ```
 
-To return a specific status instead, throw an `HTTPException` from Hono — it
-carries its own status and response, which the envelope renders directly. The
+To return a specific status instead, throw an `HTTPException` from Hono. It
+carries its own status and response. The envelope renders them directly. The
 `413` from the body limit works the same way.
 
 ## Shut down cleanly
 
-Signal handling lives at the entry point, not in the library — process-exit
-decisions belong at the composition root. Wire `SIGINT` and `SIGTERM` to
-`stop()` in your `server.js`:
+Signal handlers live at the entry point. They do not live in the library.
+Process-exit decisions belong at the composition root. Wire `SIGINT` and
+`SIGTERM` to `stop()` in your `server.js`:
 
 ```js
 for (const sig of ["SIGINT", "SIGTERM"]) {
@@ -145,9 +145,9 @@ for (const sig of ["SIGINT", "SIGTERM"]) {
 }
 ```
 
-`stop()` runs the optional `onStop` callback first, then closes the listening
-socket. Use `onStop` to release resources your routes acquired — close database
-sessions, clear timers, flush buffers:
+`stop()` runs the optional `onStop` callback first. Then it closes the socket it
+listens on. Use `onStop` to release the resources your routes acquired. Close
+database sessions, clear timers, and flush buffers:
 
 ```js
 const service = createHttpService({
@@ -165,8 +165,8 @@ const service = createHttpService({
 
 ## A complete, runnable example
 
-This service mounts one route, starts on an OS-assigned port, exercises the free
-`/health` endpoint and security headers, then shuts down:
+This service mounts one route. It starts on an OS-assigned port. It exercises
+the free `/health` endpoint and the security headers. Then it shuts down:
 
 ```js
 import { createHttpService } from "@forwardimpact/libhttp";
@@ -205,7 +205,7 @@ console.log("GET /greet/Ada ->", greet.status, await greet.json());
 await service.stop();
 ```
 
-Running it prints:
+When you run it, the script prints:
 
 ```text
 [info] greeter.server listening { host: '127.0.0.1', port: 51949 }
@@ -218,14 +218,14 @@ stopped cleanly
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
-- `start()` logs `listening` and `address()` returns the bound port.
+- `start()` logs `listening`. `address()` returns the bound port.
 - `GET /health` returns `200` with `{ "status": "ok" }`.
 - Every response carries `X-Content-Type-Options`, `X-Frame-Options`, and
   `Cache-Control` headers.
-- A request body over `bodyLimit` is rejected with `413`.
-- `stop()` runs `onStop` and the process exits without a hanging socket.
+- The service rejects a request body over `bodyLimit` with `413`.
+- `stop()` runs `onStop`. The process exits and leaves no open socket.
 
 ## What's next
 

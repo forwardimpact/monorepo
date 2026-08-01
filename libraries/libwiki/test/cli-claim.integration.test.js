@@ -351,7 +351,8 @@ describe("claim/release push integration (real git)", () => {
     git(wikiDir, "add", "-A");
     git(wikiDir, "commit", "-m", "seed se row");
     git(wikiDir, "push", "origin", "master");
-    // The sibling tip keeps only the foreign row. A sibling released the SE row.
+    // The sibling tip keeps only the foreign row. A sibling released the SE
+    // row there.
     const { wikiDir: sib } = cloneRepo(bare, "sib-release");
     git(sib, "checkout", "master");
     writeFileSync(

@@ -4,21 +4,22 @@ description: Find semantically related content from any product — shared vecto
 ---
 
 You need to find content related to a natural-language query from within a
-product -- semantically, not by keyword. The vector service holds the embedding
-index in memory, manages the embedding endpoint connection, and exposes a single
-RPC: `SearchContent`. Your product sends text; the service returns ranked
-resource identifiers. No embedding API calls, no vector storage, no scoring
-logic in the product.
+product. The search works on meaning. It does not work on keywords. The vector
+service holds the embedding index in memory. It manages the embedding endpoint
+connection. It exposes a single RPC: `SearchContent`. Your product sends text.
+The service returns ranked resource identifiers. The product makes no embedding
+API calls. It stores no vectors. It does not score results.
 
-For the full setup including connecting to both the graph and vector services,
-see [Ground Agents in Context](/docs/services/ground-agents/).
+For the full setup, see
+[Ground Agents in Context](/docs/services/ground-agents/). That guide shows how
+to connect to both the graph and vector services.
 
 ## Prerequisites
 
-- Completed the
-  [Ground Agents in Context](/docs/services/ground-agents/) guide --
-  you have `@forwardimpact/librpc` and `@forwardimpact/libtype` installed, the
-  vector service is running, and `createClient("vector")` connects successfully.
+- You completed the
+  [Ground Agents in Context](/docs/services/ground-agents/) guide. You
+  installed `@forwardimpact/librpc` and `@forwardimpact/libtype`. The vector
+  service runs. `createClient("vector")` connects successfully.
 - A populated vector index at `data/vectors/index.jsonl`.
 
 ## Connect
@@ -36,8 +37,8 @@ const vectorClient = await createClient("vector", logger, tracer);
 ## Search with a single query
 
 Pass one or more text strings to `SearchContent`. The service embeds each
-string, scores the resulting vectors against the index using dot-product
-similarity, and returns the ranked resource identifiers:
+string. It scores those vectors against the index with dot-product similarity.
+It then returns the ranked resource identifiers:
 
 ```js
 const query = vector.TextQuery.fromObject({
@@ -63,7 +64,7 @@ common.Message.m3n4o5p6
 common.Message.q7r8s9t0
 ```
 
-Identifiers are sorted by similarity score descending. The default limit
+The service sorts identifiers by similarity score descending. The default limit
 returns all matches above the threshold.
 
 ## Search with multiple queries
@@ -87,7 +88,7 @@ This avoids multiple round trips when the search intent spans several phrasings.
 
 ## Apply filters
 
-Constrain results using the optional `filter` field:
+Constrain results with the optional `filter` field:
 
 ```js
 const query = vector.TextQuery.fromObject({

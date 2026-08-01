@@ -37,8 +37,9 @@ package second:
 | 2     | `{defaultsDir}/{name}`        | Package default       |
 
 The first file that exists wins. A project overrides one template by name and
-does not touch the others. A missing template raises an error that lists every
-path checked. So a typo in a filename is easy to diagnose.
+does not touch the others. If a template does not exist, the loader raises an
+error that lists every path checked. So a typo in a filename is easy to
+diagnose.
 
 ## 1. Create the loader
 
@@ -126,7 +127,8 @@ with the formatters in the
 - [ ] A `render` call with no project directory returns the package default.
 - [ ] A same-named file under `{projectDir}/templates/` changes only that
       template's output.
-- [ ] A missing template name raises an error that lists every path checked.
+- [ ] A template name with no file raises an error that lists every path
+      checked.
 - [ ] A `renderWithPartials` call resolves each named partial project-first.
 
 ## What's next
