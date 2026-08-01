@@ -15,9 +15,9 @@ import { tmpdir } from "node:os";
 import { weeklyLogPath, rotateIfOverBudget } from "../src/weekly-log.js";
 import { WEEKLY_LOG_LINE_BUDGET } from "../src/constants.js";
 
-// rotateIfOverBudget seals via fs.renameSync, which the in-memory libmock fs
-// does not model (it ships async `rename` only). Until that sync surface
-// exists this stays an integration test against the real fs.
+// rotateIfOverBudget seals with fs.renameSync. The in-memory libmock fs does
+// not model that call (it ships async `rename` only). This stays an
+// integration test against the real fs until that sync surface exists.
 describe("rotateIfOverBudget", () => {
   let wikiRoot;
   beforeEach(() => {
@@ -28,8 +28,8 @@ describe("rotateIfOverBudget", () => {
   const AGENT = "staff-engineer";
   const WEEK = "2026-05-19"; // ISO 2026-W21
 
-  // A multi-day source over the line budget: each section is under the cap but
-  // jointly they overflow, so a bisecting seal yields ≥2 conforming parts.
+  // A multi-day source over the line budget. Each section is under the cap.
+  // Jointly they overflow, so a bisected seal yields ≥2 conforming parts.
   function multiDaySource(sections = 4, linesPerSection = 150) {
     let text = `# Staff Engineer — 2026-W21\n`;
     for (let s = 0; s < sections; s++) {
@@ -40,7 +40,7 @@ describe("rotateIfOverBudget", () => {
     return text;
   }
 
-  test("noop when file does not exist", () => {
+  test("noop when the file does not exist", () => {
     const r = rotateIfOverBudget(wikiRoot, AGENT, WEEK, 0, {}, nodeFs);
     assert.equal(r.status, "noop");
   });
@@ -88,7 +88,7 @@ describe("rotateIfOverBudget", () => {
     assert.ok(r.parts.length >= 2);
   });
 
-  test("force is a noop on a header-only log — no empty part minted (#1581)", () => {
+  test("force is a noop on a header-only log and mints no empty part (#1581)", () => {
     const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
     writeFileSync(filePath, "# Staff Engineer — 2026-W21\n");
     const r = rotateIfOverBudget(
@@ -146,7 +146,7 @@ describe("rotateIfOverBudget", () => {
     assert.equal(r.residue.section, "2026-05-19");
     assert.ok(
       r.parts.includes(r.residue.path),
-      "residue path is among the parts",
+      "the residue path is among the parts",
     );
     assert.ok(r.residue.lines > WEEKLY_LOG_LINE_BUDGET);
   });
@@ -157,8 +157,9 @@ describe("rotateIfOverBudget", () => {
     writeFileSync(filePath, original);
     const inodeBefore = statSync(filePath).ino;
 
-    // Wrap real fs but make the SECOND renameSync throw, so ≥1 slot is already
-    // committed when the failure hits — exercising the slot-unlink rollback.
+    // Wrap the real fs but make the SECOND renameSync throw. Then ≥1 slot is
+    // already committed when the failure hits. This exercises the slot-unlink
+    // rollback.
     let renames = 0;
     const flakyFs = {
       existsSync: nodeFs.existsSync,
@@ -198,8 +199,9 @@ describe("rotateIfOverBudget", () => {
     writeFileSync(filePath, original);
     const inodeBefore = statSync(filePath).ino;
 
-    // Fail on the SECOND part temp write — before any rename has run — so only
-    // the temp-cleanup rollback branch (no committed slots) is exercised.
+    // Fail on the SECOND part temp write, before any rename runs. The test
+    // then exercises only the temp-cleanup rollback branch (no committed
+    // slots).
     let writes = 0;
     const flakyFs = {
       existsSync: nodeFs.existsSync,
@@ -225,9 +227,10 @@ describe("rotateIfOverBudget", () => {
     assert.deepEqual(leftover, [], "no staged temps survive the rollback");
   });
 
-  test("never overwrites a pre-existing part when slot numbering has a gap", () => {
-    // A manually deleted middle part leaves part1 + part3; a multi-part seal
-    // must claim only free slots (part2, part4, …), never clobbering part3.
+  test("never overwrites a pre-existing part when the slot numbers have a gap", () => {
+    // A manually deleted middle part leaves part1 + part3. A multi-part seal
+    // must claim only free slots (part2, part4, …). It must never clobber
+    // part3.
     const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
     writeFileSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md"), "# p1\n");
     const part3 = join(wikiRoot, "staff-engineer-2026-W21-part3.md");
@@ -251,8 +254,8 @@ describe("rotateIfOverBudget", () => {
   test("force seals a word-only-over multi-day source into conforming parts", () => {
     const filePath = weeklyLogPath(wikiRoot, AGENT, WEEK);
     // 2 day-sections @ 200 lines × 20 words ≈ 8000 words > 6400, ~400 lines
-    // < 496 — only the word budget is breached. Drives the seal end-to-end
-    // through the primitive's atomic writer.
+    // < 496. The fixture breaches only the word budget. It drives the seal
+    // end-to-end through the primitive's atomic writer.
     let text = "# Staff Engineer — 2026-W21\n";
     for (let s = 0; s < 2; s++) {
       text += `## 2026-05-${String(19 + s).padStart(2, "0")}\n`;

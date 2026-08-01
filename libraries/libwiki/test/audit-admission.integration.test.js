@@ -70,7 +70,7 @@ describe("admission scope (real git)", () => {
   });
 
   test("the .git directory itself is never part of the universe", () => {
-    // The audit reports no finding for a .git/* path, even though it is on disk.
+    // No admission finding fires for a .git/* path, even though it is on disk.
     const flagged = admissionFindings(audit().parsed).map(
       (f) => f.path ?? f.message,
     );

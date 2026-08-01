@@ -3,14 +3,14 @@ title: "Authoring Agent-Aligned Engineering Standards"
 description: "Turn 'good engineering' into an operational definition so evaluations start from a shared foundation instead of private mental models."
 ---
 
-Two managers disagree on what "senior" means and neither can point to a written
-definition — this guide walks you through defining an engineering standard in
-YAML that Map validates and Pathway renders, giving the organization a shared
+Two managers disagree on what "senior" means. Neither can point to a written
+definition. This guide shows you how to define an engineering standard in YAML.
+Map validates that standard. Pathway renders it. The organization gets a shared
 foundation it can trust.
 
 ## Prerequisites
 
-Complete the Map and Pathway getting-started guides before continuing:
+Complete the Map and Pathway getting-started guides first:
 
 - [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/) --
   install Map and initialize a `data/pathway/` directory with starter content.
@@ -33,14 +33,14 @@ A standard is a set of YAML files that answer six questions:
 | How should engineers approach it? | Behaviour  | `behaviours/{id}.yaml`   |
 | What business outcomes result?    | Driver     | `drivers.yaml`           |
 
-Skills are defined inside capability files. Every entity carries a `human:`
-section for engineers, and most can include an `agent:` section for AI coding
-agents. Skills can also carry `instructions`, `references`, and
-`toolReferences` that flow into the generated SKILL.md files agents load at
-runtime. A discipline classifies skills into three tiers (`coreSkills`,
-`supportingSkills`, `broadSkills`), and a level sets the baseline proficiency
-expected at each tier (`core`, `supporting`, `broad`). When Pathway generates a
-role, these two dimensions combine into concrete expectations.
+You define skills inside capability files. Every entity carries a `human:`
+section for engineers. Most entities can also include an `agent:` section for
+AI coding agents. Skills can carry `instructions`, `references`, and
+`toolReferences`. These fields flow into the generated SKILL.md files that
+agents load at runtime. A discipline classifies skills into three tiers
+(`coreSkills`, `supportingSkills`, `broadSkills`). A level sets the baseline
+proficiency expected at each tier (`core`, `supporting`, `broad`). When Pathway
+generates a role, these two dimensions combine into concrete expectations.
 
 For complete field definitions, required vs. optional fields, and ID patterns,
 see the [YAML Schema Reference](/docs/reference/yaml-schema/).
@@ -87,7 +87,7 @@ Base proficiencies use the five-level skill scale:
 | `practitioner` | lead, mentor          | area (2--5 teams)        |
 | `expert`       | define, shape         | business unit / function |
 
-Validate after editing:
+Validate after you edit:
 
 ```sh
 npx fit-map validate
@@ -106,16 +106,17 @@ Data Summary
 
 ## Level field conventions
 
-Two fields on each level entry feed string composition in `fit-pathway job`
-and have an unstated shape contract. This section names both. Standards
-that violate either shape fail `fit-map validate` and `fit-pathway` startup
-with a `ContractViolationError` pointing back here.
+Two fields on each level entry feed the strings that `fit-pathway job`
+composes. Both fields have an unstated shape contract. This section names
+both. A standard that violates either shape fails `fit-map validate` and
+`fit-pathway` startup. The error is a `ContractViolationError` that points
+back here.
 
 ### `professionalTitle` — rank token
 
-`professionalTitle` is the **rank** the engineer sits at, not the role.
-The discipline supplies the role (e.g. `Software Engineer`); Pathway
-composes the two into the job title via two branches:
+`professionalTitle` is the **rank** the engineer sits at. It is not the role.
+The discipline supplies the role (e.g. `Software Engineer`). Pathway
+composes the two into the job title through two branches:
 
 - When `professionalTitle` starts with `Level`, the job title is
   `{roleTitle} {professionalTitle}` (e.g. `Software Engineer Level II`).
@@ -136,12 +137,12 @@ Compliant: `professionalTitle: Senior` against
 `discipline.roleTitle: Software Engineer` renders `Senior Software Engineer`.
 
 Non-compliant: `professionalTitle: "Engineer"` against the same discipline
-renders `Engineer Software Engineer` — `Engineer` is not disjoint from
+renders `Engineer Software Engineer`. `Engineer` is not disjoint from
 `Software Engineer`.
 
 ### `autonomyExpectation` — base-form verb opener
 
-`autonomyExpectation` is composed into the sentence `You will <value>`
+Pathway composes `autonomyExpectation` into the sentence `You will <value>`
 (with the value lower-cased). The first word must be a base-form/imperative
 verb so the sentence parses.
 
@@ -150,12 +151,12 @@ Compliant: `Work independently on familiar problems` →
 
 Non-compliant: `Works independently on routine tasks` →
 `You will works independently on routine tasks.` Third-person openers
-(`Works`, `Owns`, `Drives`, `Leads`, `Defines`) are rejected.
+(`Works`, `Owns`, `Drives`, `Leads`, `Defines`) are not valid.
 
 ## Step 2: Define capabilities and skills
 
 Capabilities group related skills. When a track modifier targets a capability,
-all skills in the group shift together -- they are a cohesive unit.
+all skills in the group shift together. They are a cohesive unit.
 
 Create one file per capability in `data/pathway/capabilities/`:
 
@@ -180,10 +181,11 @@ skills:
 
 Every skill requires a `human:` section with `description` and
 `proficiencyDescriptions` at all five levels. Use the proficiency scale from
-Step 1 to calibrate your descriptions -- "independently resolves incidents"
-belongs at `working`; "defines incident response strategy" belongs at `expert`.
+Step 1 to calibrate your descriptions. The phrase "independently resolves
+incidents" belongs at `working`. The phrase "defines incident response
+strategy" belongs at `expert`.
 
-### Adding agent content to skills
+### Add agent content to skills
 
 To make a skill available to AI coding agents, add an `agent:` section:
 
@@ -200,22 +202,23 @@ To make a skill available to AI coding agents, add an `agent:` section:
         - Code follows project conventions
 ```
 
-`readChecklist` is a read-do entry gate: the agent reads each item then acts on
-it before starting work. `confirmChecklist` is a do-confirm exit gate: the agent
-works from memory, then pauses to confirm each item before proceeding. Aim for
-5--7 items per list. Each item is a single action starting with a verb -- if it
-needs explanation, the `instructions` field is incomplete. Skills that cannot be
-automated can be marked `isHumanOnly: true`. For the full skill schema, see the
+`readChecklist` is a read-do entry gate. The agent reads each item and acts on
+it before work starts. `confirmChecklist` is a do-confirm exit gate. The agent
+works from memory. The agent then pauses to confirm each item before it
+continues. Aim for 5--7 items per list. Each item is a single action that
+starts with a verb. If an item needs explanation, the `instructions` field is
+incomplete. Mark a skill that nobody can automate with `isHumanOnly: true`. For
+the full skill schema, see the
 [YAML Schema Reference](/docs/reference/yaml-schema/).
 
-### Adding instructions to skills
+### Add instructions to skills
 
 When a skill needs a multi-step workflow beyond what the checklists convey, add
-an `instructions:` field. This is a top-level skill field (a sibling of
-`agent:`, not nested inside it) whose content renders directly into the
-SKILL.md body.
+an `instructions:` field. This is a top-level skill field. It is a sibling of
+`agent:`. It is not nested inside `agent:`. Its content renders directly into
+the SKILL.md body.
 
-`focus` is a one-line priority; checklists are entry and exit gates;
+`focus` is a one-line priority. Checklists are entry and exit gates.
 `instructions` is the procedural workflow the agent follows between those gates.
 
 ```yaml
@@ -236,11 +239,12 @@ SKILL.md body.
 
 Keep instructions imperative. Do not restate what the checklists already cover.
 
-### Adding references to skills
+### Add references to skills
 
-When a skill needs supporting documents the agent can consult -- runbooks,
-templates, glossaries, or decision criteria -- add a `references:` array. Each
-entry becomes a separate `references/{name}.md` file alongside the SKILL.md.
+When a skill needs documents the agent can consult, add a `references:` array.
+These documents include runbooks, templates, glossaries, and decision criteria.
+Each entry becomes a separate `references/{name}.md` file alongside the
+SKILL.md.
 
 Each entry requires three fields:
 

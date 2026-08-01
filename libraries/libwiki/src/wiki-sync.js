@@ -119,9 +119,9 @@ export class WikiSyncConflict extends Error {
  * builds that result object. `reason` is one of `mid-merge`,
  * `stranded-merge`, `would-publish-markers`, `introduced-scan-failed`.
  * `workAt` (only for `stranded-merge`) names where retained work lives. The
- * reason set is additive to the existing `clean` and `pushed` outcomes. So a
- * future refusal taxonomy on this flow can union new reasons in and leave the
- * existing ones unchanged.
+ * reason set is additive to the `clean` and `pushed` outcomes already
+ * defined. So a future refusal taxonomy on this flow can union new reasons in
+ * and leave those two unchanged.
  */
 export class WikiSyncRefusal {
   /** @type {readonly string[]} The recognized refusal reasons. */
@@ -337,8 +337,8 @@ export class WikiSync {
    *   report, or a post-push read of a remote tip that contains HEAD. The
    *   method never infers the outcome from the subprocess's exit or prose.
    * - Returns `{ landed: false, reason: "nothing-to-push" }` only when the
-   *   observed remote ref already contains local HEAD (never pre-fetch
-   *   arithmetic), so a stranded-resume tree re-pushes.
+   *   observed remote ref already contains local HEAD. The method never uses
+   *   pre-fetch arithmetic, so a stranded-resume tree re-pushes.
    * - Throws {@link WikiPushFailure} for every failure reason: `precondition`
    *   (rebase-in-progress / detached HEAD, before any mutation), `conflict`
    *   (a rebase conflict that the flow aborts, and it never mechanically
@@ -358,8 +358,8 @@ export class WikiSync {
    * Ancestry guard: the flow throws {@link AncestryRefusal} before the commit
    * and again before the push. It throws when it cannot positively confirm
    * the published history's relationship to `origin/master`. The unconfirmed
-   * cases are a detached HEAD, an unborn HEAD or unrelated history against an
-   * existing remote branch, and a remote it cannot observe. A new wiki's
+   * cases are a detached HEAD, an unborn HEAD or unrelated history against a
+   * remote branch that exists, and a remote it cannot observe. A new wiki's
    * first publication needs positive evidence that the remote branch is
    * absent (a non-swallowed `ls-remote`). Mere absence of the local
    * remote-tracking ref never grants it. The guard re-derives the allowance
@@ -378,25 +378,25 @@ export class WikiSync {
    * a commit-and-push that ensures nothing.
    *
    * **Singleton merge discipline.** The discipline applies when a rebase
-   * conflict arises for a *registered* row-structured singleton (the single
-   * committed path is in `SINGLETON_PATHS`) and the caller supplied a
-   * `reapply` operation. The flow then never resolves the contended hunk
-   * textually. It drops the conflicting local commit with `resetSoft`, which
-   * preserves the working tree. It resets only the registered file to the
-   * fresh tip with `checkoutPaths`. It re-derives the operation against that
-   * tip's content, re-commits it, and pushes, bounded by `maxReapply`. A
-   * rejected push (the tip moved again) drives the retry. Exhaustion fails
-   * loud with {@link WikiSyncConflict}. Foreign rows and untouched prose ride
-   * through from the tip. Without a `reapply` the conflict keeps the
-   * `-X ours` fallback, so prose surfaces and unregistered paths stay on the
-   * side-biased behavior.
+   * conflict arises for a *registered* row-structured singleton and the
+   * caller supplied a `reapply` operation. A registered singleton has its
+   * single committed path in `SINGLETON_PATHS`. The flow then never resolves
+   * the contended hunk textually. It uses `resetSoft` to drop the local commit
+   * that conflicts, which preserves the working tree. It resets only the
+   * registered file to the fresh tip with `checkoutPaths`. It re-derives the
+   * operation against that tip's content, re-commits it, and pushes, bounded
+   * by `maxReapply`. A rejected push (the tip moved again) drives the retry.
+   * Exhaustion fails loud with {@link WikiSyncConflict}. Foreign rows and
+   * untouched prose ride through from the tip. Without a `reapply` the
+   * conflict keeps the `-X ours` fallback. Prose surfaces and unregistered
+   * paths then stay on the side-biased behavior.
    *
    * **Fail-closed secret gate.** After the reconcile and before the push, the
    * gate secret-scans the content the push introduces (the commit range
    * `origin/master..HEAD`). The scan is fail-closed. A detected secret or an
    * unavailable scanner refuses the push with a distinct reason and no remote
-   * contact. The matching off-by-default override in the environment lifts
-   * that refusal. `FIT_WIKI_SECRET_OVERRIDE` permits a finding, and
+   * contact. The off-by-default environment override for that case lifts the
+   * refusal. `FIT_WIKI_SECRET_OVERRIDE` permits a finding, and
    * `FIT_WIKI_SCANNER_ABSENT_OK` permits a scanner absence. Each override
    * appends an audited line to the wiki tree's `secret-overrides.log` before
    * the push. A *network/credential* push failure is distinct. It still
@@ -998,8 +998,8 @@ export class WikiSync {
    * The paths dirty in the working tree. This is the session's own write-set
    * when the caller supplied no explicit pathspec. Each porcelain v1 line is
    * `XY <path>` or, for a rename, `XY <orig> -> <new>`. The destination is the
-   * path that exists in the tree, and the method emits that one (a `git mv`
-   * source no longer exists, so a pathspec that named it would fault). The
+   * path that exists in the tree, and the method emits that one. A `git mv`
+   * source no longer exists, so a pathspec that named it would fault. The
    * method unquotes a `"`-quoted path (a name with a space or non-ASCII byte),
    * so the pathspec matches the working-tree entry. Under the canonical
    * per-session isolated checkout this set holds no foreign content. So a
@@ -1028,7 +1028,7 @@ export class WikiSync {
    * history. A `D` is a foreign file deleted. An `M` carries the pushed
    * history's authored changes. There, a row rewritten to a new state is an
    * authored transition (passes), and a row removed without replacement is a
-   * drop (refuses). Row identity is the line's leading field, so a
+   * drop (refuses). Row identity is the line's first field, so a
    * `plan approved` written over a foreign row keeps the row key and passes.
    *
    * @param {string} remoteTip - The observed remote tip SHA.
@@ -1043,9 +1043,10 @@ export class WikiSync {
       cwd: this.#wikiDir,
     });
     // When HEAD does not descend from the observed remote tip, the writer
-    // built the pushed history from a stale base and never saw the remote's
-    // advance. So a row whose key survives with a value that differs from the
-    // remote is a stale revert. The pushed history holds no authored
+    // built the pushed history from a stale base. That history never saw the
+    // remote's advance. So a row that keeps its key but carries a value
+    // different from the remote is a stale revert. The pushed history holds
+    // no authored
     // transition to the restored state. It is not a transition that propagates
     // an approval. Only a HEAD that descends from the remote tip can author a
     // transition over it.
@@ -1321,14 +1322,14 @@ export class WikiSync {
   }
 
   /**
-   * Refuse, before any commit or push, whenever the guard can neither confirm
-   * nor refute the relationship between the remote branch and the history the
-   * push would publish (the `master` branch ref, never bare HEAD). Implements
-   * the ancestry decision table. Throws {@link AncestryRefusal} on refusal.
-   * Returns silently when the guard verifies the publication or finds the
-   * remote positively empty. The emptiness probe runs only on the
-   * absent-tracking-ref path, so the healthy hot path adds no remote
-   * round-trip.
+   * Refuse before any commit or push. Refuse whenever the guard can neither
+   * confirm nor refute the relationship between the remote branch and the
+   * history the push would publish. That history is the `master` branch ref,
+   * never bare HEAD. Implements the ancestry decision table. Throws
+   * {@link AncestryRefusal} on refusal. Returns silently when the guard
+   * verifies the publication or finds the remote positively empty. The
+   * emptiness probe runs only on the absent-tracking-ref path, so the healthy
+   * hot path adds no remote round-trip.
    */
   async #assertPublishable() {
     const cwd = this.#wikiDir;

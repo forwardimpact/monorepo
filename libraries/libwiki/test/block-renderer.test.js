@@ -15,14 +15,14 @@ function makeCSV(metric, values) {
   return [HEADER, ...rows].join("\n");
 }
 
-// Seed the CSV in an in-memory fs at `${ROOT}/test.csv`; renderBlock reads it
-// via the injected sync surface (join(projectRoot, csvPath)).
+// Seed the CSV in an in-memory fs at `${ROOT}/test.csv`. renderBlock reads it
+// through the injected sync surface (join(projectRoot, csvPath)).
 function csvFs(csv) {
   return createMockFs({ [`${ROOT}/test.csv`]: csv });
 }
 
 describe("renderBlock", () => {
-  test("predictable metric renders chart fenced code and Signals", () => {
+  test("a predictable metric renders fenced chart code and Signals", () => {
     const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10];
 
     const lines = renderBlock({
@@ -59,7 +59,7 @@ describe("renderBlock", () => {
     assert.ok(signalLine.includes("xRule1") || signalLine.includes("mrRule1"));
   });
 
-  test("insufficient_data metric shows insufficient message", () => {
+  test("insufficient_data metric shows the insufficient message", () => {
     const values = [10, 20, 30, 40, 50];
 
     const lines = renderBlock({
@@ -76,7 +76,7 @@ describe("renderBlock", () => {
   });
 
   // Fail-visible contract (#1702): a conflict-marker CSV must abort the
-  // render, not produce a chart from duplicated or junk rows.
+  // render. It must not produce a chart from duplicated or junk rows.
   test("propagates CSVIntegrityError from a conflict-marker CSV", () => {
     const corrupted = [
       HEADER,
@@ -101,7 +101,8 @@ describe("renderBlock", () => {
 
   test("surfaces recomputation-revealed vs new-point provenance with a prior-read anchor", () => {
     // #1692 shape: early high cluster (slots 6/7/8), then a favorable zero-run
-    // (slots 13..32) tightening limits. Slot 12 = anchor date 2026-01-12.
+    // (slots 13..32) that tightens the limits. Slot 12 = anchor date
+    // 2026-01-12.
     const values = [
       2, 3, 2, 3, 2, 9, 8, 9, 3, 2, 3, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0,
@@ -124,16 +125,17 @@ describe("renderBlock", () => {
     });
 
     const signalLine = lines[lines.length - 1];
-    // X Rule 1 fires only on the pre-anchor cluster — purely recomputation-revealed.
+    // X Rule 1 fires only on the pre-anchor cluster. It is purely
+    // recomputation-revealed.
     assert.ok(signalLine.includes("xRule1 (recomputation-revealed)"));
     // X Rule 2 fires on both the pre-anchor run and the post-anchor zero-run,
-    // so it carries both tags — the new-point tag is attached to xRule2.
+    // so it carries both tags. The new-point tag attaches to xRule2.
     assert.ok(
       signalLine.includes("xRule2 (recomputation-revealed, new-point)"),
     );
   });
 
-  test("renders bare rule names when no prior-read anchor is supplied", () => {
+  test("renders bare rule names when the caller supplies no prior-read anchor", () => {
     const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 50];
     const lines = renderBlock({
       metric: "outlier",
@@ -145,7 +147,7 @@ describe("renderBlock", () => {
     assert.ok(!signalLine.includes("("));
   });
 
-  test("throws BlockRenderError for missing metric", () => {
+  test("throws BlockRenderError for a missing metric", () => {
     assert.throws(
       () =>
         renderBlock({

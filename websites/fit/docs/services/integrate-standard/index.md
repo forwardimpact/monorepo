@@ -1,27 +1,27 @@
 ---
 title: Query the Engineering Standard from Any Product
-description: Products that access derived roles and profiles without embedding derivation logic — shared pathway gRPC service.
+description: Products that access derived roles and profiles and do not embed derivation logic — shared pathway gRPC service.
 ---
 
-You are building a product feature that needs career paths, skill matrices, or
-agent profiles derived from the engineering standard. The derivation logic --
-modifier resolution, proficiency clamping, tier classification, track
-specialization -- lives in `@forwardimpact/libskill`, and you do not want to
-embed that library in every product. The pathway gRPC service runs the
-derivation on a shared backend and returns Turtle RDF over a typed interface.
-Your product sends a discipline, level, and optional track; the service returns
-the full derived role or agent profile.
+You build a product feature that needs career paths, skill matrices, or agent
+profiles derived from the engineering standard. The derivation logic resolves
+modifiers, clamps proficiency, classifies tiers, and specializes tracks. That
+logic lives in `@forwardimpact/libskill`. You do not want to embed that library
+in every product. The pathway gRPC service runs the derivation on a shared
+backend. It returns Turtle RDF over a typed interface. Your product sends a
+discipline, level, and optional track. The service returns the full derived
+role or agent profile.
 
-This guide walks through connecting to the pathway service, calling its RPCs,
-and verifying the responses contain the derived data your feature needs.
+In this guide you connect to the pathway service. You call its RPCs. You then
+check that the responses contain the derived data your feature needs.
 
 ## Prerequisites
 
 - Node.js 18+
 - Generated client code available (run `npx fit-codegen generate --all` if not)
 - Services running (`npx fit-rc start`)
-- Standard data initialized at `data/pathway/`. If you have not done that yet,
-  run `npx fit-pathway init` and follow the prompts.
+- Standard data initialized at `data/pathway/`. If that data does not exist
+  yet, run `npx fit-pathway init`. Then follow the prompts.
 
 Install the transport and type packages:
 
@@ -32,9 +32,9 @@ npm install @forwardimpact/librpc @forwardimpact/libtype
 ## Architecture overview
 
 The pathway service is a thin gRPC transport over `@forwardimpact/libskill`.
-It loads the standard data once at startup, then serves derivation requests
-from any connected product. Products get derived data without importing the
-derivation library or loading YAML files themselves.
+It loads the standard data once at startup. It then serves derivation requests
+from any connected product. Products get derived data. They do not import the
+derivation library. They do not load YAML files themselves.
 
 ```text
 Product A ──┐                     ┌── data/pathway/disciplines/
@@ -56,12 +56,12 @@ The service exposes seven RPCs:
 | `ListJobSoftware`      | Derive the software toolkit for a role                     | `pathway.ListJobSoftwareRequest`      |
 | `GetMarkersForProfile` | List skill markers expected at a discipline/level/track    | `pathway.GetMarkersForProfileRequest` |
 
-All RPCs return `tool.ToolCallResult` with a `content` field containing Turtle
-RDF.
+All RPCs return `tool.ToolCallResult` with a `content` field that contains
+Turtle RDF.
 
 ## Connect to the pathway service
 
-Create a pathway client using the generated `PathwayClient` class:
+Create a pathway client with the generated `PathwayClient` class:
 
 ```js
 import { createClient, createTracer } from "@forwardimpact/librpc";
@@ -89,7 +89,7 @@ const result = await pathwayClient.ListJobs(request);
 console.log(result.content.substring(0, 300));
 ```
 
-The response is a Turtle RDF string listing each valid role. To filter by
+The response is a Turtle RDF string that lists each valid role. To filter by
 discipline:
 
 ```js
@@ -102,8 +102,9 @@ const result = await pathwayClient.ListJobs(request);
 
 ## Describe a specific role
 
-Derive the full role definition -- skill matrix, behaviour profile,
-responsibilities, expectations -- for a discipline, level, and optional track:
+Derive the full role definition for a discipline, level, and optional track.
+The definition holds the skill matrix, the behaviour profile, the
+responsibilities, and the expectations:
 
 ```js
 const request = pathway.DescribeJobRequest.fromObject({
@@ -133,12 +134,12 @@ Expected output (Turtle RDF, abbreviated):
 
 The Turtle content includes the full skill matrix, behaviour profile, and
 derived responsibilities. Parse it as RDF or extract fields with string
-matching, depending on your product's needs.
+matching, as your product needs.
 
 ### Invalid combinations
 
-If the combination is not valid (for example, a discipline that requires a
-track but is called without one), the service returns a gRPC error:
+If the combination is not valid, the service returns a gRPC error. For example,
+a discipline requires a track and the call omits it:
 
 ```js
 try {
@@ -155,10 +156,10 @@ try {
 
 ## Describe an agent profile
 
-Agent profiles follow the same derivation path as roles but apply
-agent-specific policies: human-only skills are excluded, only the
-highest-proficiency skills are kept, and skills and behaviours are sorted by
-strength descending. To derive one:
+Agent profiles follow the same derivation path as roles. They also apply
+agent-specific policies. The service excludes human-only skills. It keeps only
+the highest-proficiency skills. It sorts skills and behaviours by strength
+descending. To derive one:
 
 ```js
 const request = pathway.DescribeAgentProfileRequest.fromObject({
@@ -170,8 +171,8 @@ const result = await pathwayClient.DescribeAgentProfile(request);
 console.log(result.content.substring(0, 500));
 ```
 
-The `track` field is required for agent profiles. The level is derived
-automatically (the service uses the reference level for the standard).
+Agent profiles require the `track` field. The service derives the level
+automatically. It uses the reference level for the standard.
 
 ## Analyze career progression
 
@@ -194,7 +195,7 @@ gain maturity levels, and what new responsibilities appear at the target level.
 
 ## List the software toolkit
 
-Derive the software tools expected for a role based on its skill matrix:
+Derive the expected software tools for a role from its skill matrix:
 
 ```js
 const request = pathway.ListJobSoftwareRequest.fromObject({
@@ -207,12 +208,12 @@ const result = await pathwayClient.ListJobSoftware(request);
 console.log(result.content.substring(0, 300));
 ```
 
-The response is Turtle RDF listing each software tool, its category, and the
+The response is Turtle RDF that lists each software tool, its category, and the
 skills that reference it.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `createClient("pathway")` connects without error.
 - `ListJobs` returns Turtle RDF listing all valid role combinations.
@@ -221,11 +222,12 @@ You have reached the outcome of this guide when:
 - `DescribeAgentProfile` returns an agent-optimized profile for a discipline
   and track.
 - `DescribeProgression` returns the delta between two levels.
-- Invalid combinations produce a gRPC error, not a silent empty response.
+- Invalid combinations produce a gRPC error. They do not produce a silent
+  empty response.
 
-If any connection fails, confirm the services are running with
-`npx fit-rc status` and check that `config/config.json` lists the correct host
-and port for the pathway service.
+If any connection fails, confirm the services run with `npx fit-rc status`.
+Then check that `config/config.json` lists the correct host and port for the
+pathway service.
 
 ## What's next
 

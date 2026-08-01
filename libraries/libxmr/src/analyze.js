@@ -6,8 +6,8 @@ import { classify } from "./classify.js";
 import { round1, round2 } from "./format.js";
 
 // Apply the event-type slice and the optional route-decision partitions.
-// Each filter is inert unless its option is passed, so a plain analyze
-// returns the same series it always has.
+// Each filter is inert unless the caller passes its option. A plain
+// analyze returns the same series as before.
 function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
   let selected = rows;
   if (eventType !== "*") {

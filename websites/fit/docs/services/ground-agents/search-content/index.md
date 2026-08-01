@@ -127,13 +127,13 @@ Available filter fields:
 | `max_tokens` | Stop accumulating results when the token budget is exceeded |
 
 All filter values are strings in the protobuf definition. The service parses
-them internally. Filters apply in order: prefix, then scoring and threshold,
-then limit, then token budget.
+them internally. The service applies filters in this order: prefix, then score
+and threshold, then limit, then token budget.
 
 ## Resolve identifiers to content
 
-The service returns identifiers, not content. Resolve them through
-`libresource`:
+The service returns identifiers. It does not return content. Resolve them
+through `libresource`:
 
 ```js
 import { createResourceIndex } from "@forwardimpact/libresource";
@@ -149,19 +149,19 @@ for (const item of items) {
 }
 ```
 
-This two-step pattern keeps the vector service stateless: it scores and ranks;
-the calling product resolves as much content as it needs.
+This two-step pattern keeps the vector service stateless. The service scores
+and ranks. The product that calls it resolves as much content as it needs.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `SearchContent` with a single input string returns ranked resource
   identifiers.
-- Passing multiple input strings returns results scored against all queries.
-- Applying a `filter` with `limit` and `threshold` constrains the result set.
-- Resolving returned identifiers through `libresource` produces the expected
-  content.
+- Multiple input strings return results that the service scores against all
+  queries.
+- A `filter` with `limit` and `threshold` constrains the result set.
+- `libresource` resolves the returned identifiers to the expected content.
 
 ## What's next
 

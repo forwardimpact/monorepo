@@ -72,10 +72,10 @@ function composeTask(findings, wikiRoot, projectRoot) {
     ``,
     `Move history out of an over-budget summary into the agent's existing`,
     `weekly-log file or its current part (wiki/<agent>-YYYY-Www[-partN].md).`,
-    `Never add a new summary section. Never add a new file. The rotation tool`,
-    `owns when it creates part files, so do not mint filenames yourself. If the`,
-    `weekly log already holds the trimmed narrative, replace it in the summary`,
-    `with a pointer to that file. Do not copy it anywhere.`,
+    `Never write a new summary section, and never a new file. The rotation`,
+    `tool owns when it creates part files, so do not mint filenames yourself.`,
+    `If the trimmed narrative already exists in the weekly log, replace it in`,
+    `the summary with a pointer to that file instead of copying it anywhere.`,
     `Prefer a single Write over many Edits.`,
   ].join("\n");
 }

@@ -16,7 +16,7 @@ import {
 
 const WIKI_ROOT = "/wiki";
 
-// Build a `## YYYY-MM-DD` day-section of `lines` lines, each carrying
+// Build a `## YYYY-MM-DD` day-section of `lines` lines. Each line carries
 // `wordsPerLine` words, so a fixture can target the line- or word-budget
 // independently.
 function daySection(date, lines, wordsPerLine = 1) {
@@ -55,7 +55,7 @@ describe("isoWeek", () => {
     assert.equal(year, 2025);
     assert.equal(week, 1);
   });
-  test("2027-01-01 belongs to ISO 2026-W53 (year rolls back; 2026 has 53 ISO weeks)", () => {
+  test("2027-01-01 belongs to ISO 2026-W53 (year rolls back) because 2026 has 53 ISO weeks", () => {
     const { year, week } = isoWeek(new Date("2027-01-01T00:00:00Z"));
     assert.equal(year, 2026);
     assert.equal(week, 53);
@@ -79,7 +79,7 @@ describe("bisectWeeklyLog", () => {
   const bodyBelowH1 = (text) => text.slice(text.indexOf("\n") + 1);
 
   test("over the line budget across days → ≥2 conforming parts", () => {
-    // 4 × 150-line sections = 600 body lines > 496; each section < 496.
+    // 4 × 150-line sections = 600 body lines > 496. Each section < 496.
     const text = source(
       H1,
       daySection("2026-05-18", 150),
@@ -99,7 +99,7 @@ describe("bisectWeeklyLog", () => {
 
   test("over only the word budget across days → ≥2 conforming parts", () => {
     // 2 × 200-line sections @ 20 words/line ≈ 4000 words each > 6400 jointly,
-    // ~400 lines total < 496 — only the word budget is breached.
+    // ~400 lines total < 496. The fixture breaches only the word budget.
     const text = source(
       H1,
       daySection("2026-05-19", 200, 20),
@@ -117,7 +117,7 @@ describe("bisectWeeklyLog", () => {
     for (const p of parts) assert.ok(partConforms(p));
   });
 
-  test("loses and duplicates no content; cuts only at day seams", () => {
+  test("loses and duplicates no content, and cuts only at day seams", () => {
     const text = source(
       H1,
       "preamble line\n",
@@ -129,8 +129,8 @@ describe("bisectWeeklyLog", () => {
     const { parts } = bisectWeeklyLog(text, "staff-engineer", "2026-W21");
     // Concatenated part bodies equal the original body below its H1.
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
-    // The prologue rides with part 1; every other part starts at a day seam,
-    // and no day-section's count is lost or duplicated across parts.
+    // The prologue rides with part 1. Every other part starts at a day seam.
+    // No part loses or duplicates a day-section's count.
     assert.match(parts[0].body, /^preamble line\n## 2026-05-18/);
     for (const p of parts.slice(1)) {
       assert.match(p.body, /^## \d{4}-\d{2}-\d{2}/);
@@ -158,7 +158,7 @@ describe("bisectWeeklyLog", () => {
   });
 
   test("irreducible lone day-section → residue named with its date", () => {
-    // One 600-line section alone exceeds the line budget; the rest packs.
+    // One 600-line section alone exceeds the line budget. The rest packs.
     const text = source(
       H1,
       daySection("2026-05-18", 50),
@@ -170,10 +170,10 @@ describe("bisectWeeklyLog", () => {
       "staff-engineer",
       "2026-W21",
     );
-    assert.ok(residue, "an irreducible residue is reported");
+    assert.ok(residue, "bisectWeeklyLog reports an irreducible residue");
     assert.equal(residue.section, "2026-05-19");
     assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
-    // The residue's part carries that section; the rest conforms.
+    // The residue's part carries that section. The rest conforms.
     assert.match(parts[residue.partIndex].body, /^## 2026-05-19/);
     parts.forEach((p, i) => {
       if (i !== residue.partIndex) {
@@ -181,7 +181,7 @@ describe("bisectWeeklyLog", () => {
         assert.ok(countLines(rendered) <= WEEKLY_LOG_LINE_BUDGET);
       }
     });
-    // Content is still fully preserved.
+    // bisectWeeklyLog still preserves all the content.
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
   });
 
@@ -201,12 +201,12 @@ describe("bisectWeeklyLog", () => {
     );
     assert.ok(
       residue,
-      "the over-cap prologue is flagged, not shipped silently",
+      "bisectWeeklyLog flags the over-cap prologue and does not ship it silently",
     );
     assert.equal(residue.section, "prologue");
     assert.equal(residue.partIndex, 0);
     assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
-    // The prologue is part 0; content is still fully preserved.
+    // The prologue is part 0. bisectWeeklyLog still preserves all the content.
     assert.match(parts[0].body, /^preamble/);
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
   });
@@ -224,9 +224,9 @@ describe("bisectWeeklyLog", () => {
       "2026-W21",
     );
     // residue names the FIRST irreducible chunk (plan: "names the first such
-    // chunk"); the second over-cap section is still its own part in the list,
-    // so the caller's status is incomplete and the audit flags every over-cap
-    // part — none ships silently.
+    // chunk"). The second over-cap section is still its own part in the list.
+    // So the caller's status is incomplete. The audit flags every over-cap
+    // part. None ships silently.
     assert.equal(residue.section, "2026-05-18");
     const overCap = parts.filter(
       (p) => countLines(`${p.h1}\n${p.body}`) > WEEKLY_LOG_LINE_BUDGET,
@@ -249,9 +249,9 @@ describe("bisectWeeklyLog", () => {
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
   });
 
-  // Build a `## YYYY-MM-DD` day-section whose body is `blockCount` `### ` blocks
-  // of `linesPerBlock` lines each, so a single over-cap day is splittable at its
-  // block seams.
+  // Build a `## YYYY-MM-DD` day-section. Its body is `blockCount` `### `
+  // blocks of `linesPerBlock` lines each. A single over-cap day then splits at
+  // its block seams.
   function daySectionWithBlocks(date, blockCount, linesPerBlock) {
     const rows = [`## ${date}`];
     for (let b = 1; b <= blockCount; b++) {
@@ -262,7 +262,7 @@ describe("bisectWeeklyLog", () => {
   }
 
   test("lone over-cap day with multiple ### blocks → split at block seams (criteria 2, 4)", () => {
-    // One day-section ~600 lines (over the 496 line cap) made of 4 blocks; no
+    // One day-section ~600 lines (over the 496 line cap) made of 4 blocks. No
     // single block exceeds the cap, so it splits cleanly with no residue.
     const text = source(
       H1,
@@ -275,7 +275,7 @@ describe("bisectWeeklyLog", () => {
       "staff-engineer",
       "2026-W21",
     );
-    assert.equal(residue, null, "no residue — every block fits a part");
+    assert.equal(residue, null, "every block fits a part, so there is no residue");
     // Content-equal with the input (move-not-copy at the finer grain).
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
     // No part exceeds a cap.
@@ -288,9 +288,9 @@ describe("bisectWeeklyLog", () => {
     assert.ok(parts.some((p) => p.body.includes("## 2026-05-19\n### Block 1")));
   });
 
-  test("single ### block alone over cap → declared residue naming the block (criterion 3)", () => {
-    // A day with one 600-line `### ` block that itself busts the cap: the day
-    // splits, but that block remains an irreducible, declared residue.
+  test("single ### block alone over cap → declared residue that names the block (criterion 3)", () => {
+    // A day holds one 600-line `### ` block that itself busts the cap. The day
+    // splits. That block remains an irreducible, declared residue.
     const big = daySectionWithBlocks("2026-05-19", 1, 600);
     const text = source(H1, daySection("2026-05-18", 30), big);
     const { parts, residue } = bisectWeeklyLog(
@@ -298,7 +298,10 @@ describe("bisectWeeklyLog", () => {
       "staff-engineer",
       "2026-W21",
     );
-    assert.ok(residue, "the over-cap block is declared, not silently shipped");
+    assert.ok(
+      residue,
+      "bisectWeeklyLog declares the over-cap block and does not ship it silently",
+    );
     assert.equal(residue.section, "### Block 1");
     assert.ok(residue.lines > WEEKLY_LOG_LINE_BUDGET);
     assert.match(parts[residue.partIndex].body, /### Block 1/);
@@ -306,9 +309,10 @@ describe("bisectWeeklyLog", () => {
   });
 });
 
-// The split branch of rebisectOverBudgetPart uses fs.renameSync (not modelled
-// by the in-memory mock) and lives in weekly-log-part.integration.test.js. Only
-// the branches that read but never seal are exercised here.
+// The split branch of rebisectOverBudgetPart uses fs.renameSync (the in-memory
+// mock does not model it). That branch lives in
+// weekly-log-part.integration.test.js. This file exercises only the branches
+// that read but never seal.
 describe("rebisectOverBudgetPart — non-writing branches", () => {
   const PART = `${WIKI_ROOT}/staff-engineer-2026-W21-part1.md`;
   const PART_H1 = "# Staff Engineer — 2026-W21 (part 1 of 2)";
@@ -322,8 +326,8 @@ describe("rebisectOverBudgetPart — non-writing branches", () => {
   });
 
   test("noop and untouched when the filename is not a conforming part name", () => {
-    // A main-log path (no -partN suffix), over budget — still a noop: the part
-    // budgets do not own this file, the main-rotation pass does.
+    // A main-log path (no -partN suffix) over budget is still a noop. The
+    // main-rotation pass owns this file. The part budgets do not.
     const main = weeklyLogPath(WIKI_ROOT, "staff-engineer", "2026-05-19");
     const text = source(H1, daySection("2026-05-19", 600));
     const fs = createMockFs({ [main]: text });

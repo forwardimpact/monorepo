@@ -154,7 +154,7 @@ describe("revalidateBudgets", () => {
     assert.equal(surfaced[0].file, "a.md");
   });
 
-  test("exemption covers only summary predicates, not weekly-log on the same push", () => {
+  test("exemption covers only summary predicates. The gate still refuses weekly-log on the same push", () => {
     const WL = "weekly-log.word-budget";
     const { refusals, surfaced } = revalidateBudgets({
       outgoing: outgoing({
@@ -175,11 +175,11 @@ describe("revalidateBudgets", () => {
 });
 
 describe("measureRef", () => {
-  // A summary file body with `n` words; the H1 makes it classify as a summary
+  // A summary file body holds `n` words. The H1 makes it classify as a summary
   // for any caller that reads it, but measureRef counts the whole blob text.
   const showFileFor = (bodies) => async (_ref, file) => bodies[file] ?? null;
 
-  test("counts each budgeted file's blob and flags over-cap via the rule check", async () => {
+  test("counts each budgeted file's blob and flags over-cap with the rule check", async () => {
     const overCapWords = `${"word ".repeat(2049)}`; // > 2048 summary cap
     const measured = await measureRef(
       showFileFor({ "x.md": overCapWords }),
@@ -214,8 +214,8 @@ describe("measureRef", () => {
   });
 
   // Criterion 8, predicate-inheritance half: the gate's over-cap decision is
-  // the budget rule's own `check`. Tightening that predicate in RULES changes
-  // the gate's verdict for unchanged content with no gate-code change.
+  // the budget rule's own `check`. A tighter predicate in RULES changes the
+  // gate's verdict for unchanged content with no gate-code change.
   test("a tighter budget predicate flows through the gate with no gate change", async () => {
     const rule = RULES.find((r) => r.id === "summary.word-budget");
     const original = rule.check;

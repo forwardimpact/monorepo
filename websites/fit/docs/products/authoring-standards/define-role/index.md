@@ -1,25 +1,26 @@
 ---
 title: "Define a New Role"
-description: "Move from a blank slate to a well-structured role definition — built from existing disciplines and tracks, then customized to fit."
+description: "Move from a blank slate to a well-structured role definition. Build it from existing disciplines and tracks, then customize it to fit."
 ---
 
-You need to add a new role to your engineering standard -- Pathway can generate
-a starting point from your existing disciplines, levels, and tracks so you are
-not writing from scratch.
+You need to add a new role to your engineering standard. Pathway can generate a
+first draft from your existing disciplines, levels, and tracks. You do not write
+from scratch.
 
 ## Prerequisites
 
 Complete the
 [Authoring Agent-Aligned Engineering Standards](/docs/products/authoring-standards/)
-guide first. The steps below assume `npx fit-map validate` passes and your
-`data/pathway/` directory contains at least one discipline, one level, and one
-capability with skills.
+guide first. The steps below assume `npx fit-map validate` passes. They also
+assume your `data/pathway/` directory contains at least one discipline, one
+level, and one capability with skills.
 
 ## Step 1: Choose the building blocks
 
 A role is a combination of three entities: a **discipline** (the engineering
 specialty), a **level** (the career rung), and an optional **track** (a
-work-context modifier). Before creating anything new, check what already exists.
+work-context modifier). Before you create anything new, check what already
+exists.
 
 List your disciplines:
 
@@ -82,20 +83,20 @@ broadSkills:
 Required fields:
 
 - `specialization` -- the display name (e.g., "Site Reliability Engineering")
-- `roleTitle` -- the base title used in generated roles (e.g., "Site Reliability
-  Engineer")
-- `coreSkills` -- at least one skill ID; these map to the level's `core`
+- `roleTitle` -- the base title that generated roles use (e.g., "Site
+  Reliability Engineer")
+- `coreSkills` -- at least one skill ID. These map to the level's `core`
   proficiency
-- `validTracks` -- which tracks this discipline allows; include `null` to permit
+- `validTracks` -- which tracks this discipline allows. Include `null` to permit
   a generalist (trackless) configuration
 
 Every skill ID in `coreSkills`, `supportingSkills`, and `broadSkills` must
 reference a skill that exists in your `data/pathway/capabilities/` files. Run
 `npx fit-pathway skill --list` to see available IDs.
 
-For the full set of discipline fields -- including `human:` and `agent:`
-sections, `behaviourModifiers`, `minLevel`, and `hidden` -- see the
-[YAML Schema Reference](/docs/reference/yaml-schema/).
+See the [YAML Schema Reference](/docs/reference/yaml-schema/) for the full set
+of discipline fields. The set includes the `human:` and `agent:` sections,
+`behaviourModifiers`, `minLevel`, and `hidden`.
 
 ## Step 3: Create a track (optional)
 
@@ -113,10 +114,11 @@ behaviourModifiers:
   systems-thinking: 1
 ```
 
-Track `skillModifiers` target **capability IDs** (not individual skill IDs). A
-modifier of `+1` raises all skills in that capability by one proficiency level;
-`-1` lowers them by one. After creating the track, add its ID to the
-`validTracks` array in every discipline that should support it.
+Track `skillModifiers` target **capability IDs**. They do not target individual
+skill IDs. A modifier of `+1` raises all skills in that capability by one
+proficiency level. A modifier of `-1` lowers them by one. After you create the
+track, add its ID to the `validTracks` array in every discipline that should
+support it.
 
 ## Step 4: Generate and review the role
 
@@ -150,8 +152,9 @@ Add a track to see how modifiers shift expectations:
 npx fit-pathway job site_reliability J060 --track=platform
 ```
 
-The skill matrix will reflect the track's `skillModifiers` -- capabilities with
-a `+1` modifier appear one proficiency level higher, and `-1` one level lower.
+The skill matrix reflects the track's `skillModifiers`. Capabilities with a `+1`
+modifier appear one proficiency level higher. Capabilities with a `-1` modifier
+appear one level lower.
 
 ## Step 5: Customize and iterate
 
@@ -159,14 +162,14 @@ If the derived expectations do not match what the organization needs, adjust:
 
 - **Wrong proficiency levels?** -- Move skill IDs between `coreSkills`,
   `supportingSkills`, and `broadSkills`. Core inherits the highest baseline.
-- **Missing skills?** -- Add to a capability file, then reference in the
-  discipline.
+- **Missing skills?** -- Add the skill to a capability file. Then reference it
+  in the discipline.
 - **Track over- or under-corrects?** -- Adjust `skillModifiers` values.
 - **Behaviour emphasis wrong?** -- Update `behaviourModifiers` on the discipline
   or track.
 
 After each change, re-run `npx fit-map validate` to confirm the YAML is
-structurally correct, then regenerate the role to check the result.
+structurally correct. Then regenerate the role to check the result.
 
 ## Verify
 

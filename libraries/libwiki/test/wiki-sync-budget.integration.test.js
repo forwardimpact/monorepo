@@ -15,8 +15,8 @@ function makeSync(wikiDir, parentDir, resolveToken = () => null) {
 
 // A summary-class file body of exactly `words` whitespace-delimited tokens,
 // the H1 `# <Name> — Summary` included in the count. The audit's `countWords`
-// counts the H1's tokens ("#", "<Name>", "—", "Summary"), so the filler is
-// sized to hit the target precisely.
+// counts the H1's tokens ("#", "<Name>", "—", "Summary"). So this helper sizes
+// the filler to hit the target precisely.
 function summaryBody(name, words) {
   const h1 = `# ${name} — Summary`;
   const h1Words = h1.split(/\s+/).filter(Boolean).length;
@@ -24,7 +24,7 @@ function summaryBody(name, words) {
   return `${h1}\n\n${filler.join(" ")}\n`;
 }
 
-// A weekly-log-main body of `words` tokens with a matching H1.
+// A weekly-log-main body of `words` tokens with an H1 that matches.
 function weeklyBody(name, words) {
   const h1 = `# ${name} — 2026-W25`;
   const h1Words = h1.split(/\s+/).filter(Boolean).length;
@@ -49,19 +49,20 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
   }
 
   test("criterion 1: two under-cap inputs union over cap → refused, commits local", async () => {
-    // Both inputs are individually under cap; their non-conflicting union (each
-    // side appends a distinct region) lands the rebased HEAD over cap. The gate
-    // measures the post-rebase HEAD and refuses what neither author wrote alone.
+    // Both inputs are individually under cap. Their union does not conflict
+    // (each side appends a distinct region) and lands the rebased HEAD over
+    // cap. The gate measures the post-rebase HEAD. It refuses what neither
+    // author wrote alone.
     const bare = createBareRepo();
     // A base with a TOP slot and a BOTTOM slot separated by stable context, so
     // an edit to each slot 3-way-merges without conflict. Each side's edit
-    // stays under cap; their union exceeds the 2048 word cap.
+    // stays under cap. Their union exceeds the 2048 word cap.
     const context = Array.from({ length: 40 }, (_, i) => `ctx${i}`).join("\n");
     const baseBody = `# Staff — Summary\n\nTOP_SLOT\n\n${context}\n\nBOTTOM_SLOT\n`;
     seedBareRepo(bare, { files: { [SUMMARY]: baseBody } });
     const { parent, wikiDir } = cloneRepo(bare, "c1");
     git(wikiDir, "checkout", "master");
-    // Origin advances: a foreign lane fills the TOP slot with ~1000 words.
+    // Origin advances. A foreign lane fills the TOP slot with ~1000 words.
     const originSide = Array.from({ length: 1100 }, (_, i) => `o${i}`).join(
       " ",
     );
@@ -71,8 +72,8 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
       baseBody.replace("TOP_SLOT", originSide),
       "origin advance",
     );
-    // The writer fills the BOTTOM slot with ~1000 words (a distinct region), so
-    // the rebase merges cleanly and the union exceeds the word cap.
+    // The writer fills the BOTTOM slot with ~1000 words (a distinct region).
+    // The rebase then merges cleanly. The union exceeds the word cap.
     const writerSide = Array.from({ length: 1100 }, (_, i) => `m${i}`).join(
       " ",
     );
@@ -85,7 +86,8 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
       () => makeSync(wikiDir, parent).commitAndPush("wiki: append", [SUMMARY]),
       (err) => err instanceof WikiPushFailure && err.reason === "budget",
     );
-    // Commits are kept local: the writer's commit exists, the push did not land.
+    // The gate keeps commits local. The writer's commit exists. The push did
+    // not land.
     assert.notEqual(git(wikiDir, "rev-parse", "HEAD"), headBefore);
   });
 
@@ -104,7 +106,7 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
 
   test("criterion 3: deepening an existing breach → refused", async () => {
     const bare = createBareRepo();
-    // Origin already over cap; the writer adds more words to that same file.
+    // Origin is already over cap. The writer adds more words to that same file.
     seedBareRepo(bare, { files: { [SUMMARY]: summaryBody("Staff", 2060) } });
     const { parent, wikiDir } = cloneRepo(bare, "c3");
     git(wikiDir, "checkout", "master");
@@ -117,7 +119,7 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
 
   test("criterion 4: foreign pre-existing breach the writer did not worsen → pushed", async () => {
     const bare = createBareRepo();
-    // Origin carries an over-cap summary the writer never touches; the writer
+    // Origin carries an over-cap summary the writer never touches. The writer
     // lands an unrelated under-cap file. The breach must not block the push.
     seedBareRepo(bare, { files: { [SUMMARY]: summaryBody("Staff", 2200) } });
     const { parent, wikiDir } = cloneRepo(bare, "c4");
@@ -133,7 +135,8 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
 
   test("criterion 5: owner trim leaves breached file ≤ baseline → pushed", async () => {
     const bare = createBareRepo();
-    // Origin over cap; the writer trims the same file back under cap (improves).
+    // Origin is over cap. The writer trims the same file back under cap
+    // (improves).
     seedBareRepo(bare, { files: { [SUMMARY]: summaryBody("Staff", 2200) } });
     const { parent, wikiDir } = cloneRepo(bare, "c5");
     git(wikiDir, "checkout", "master");
@@ -175,18 +178,18 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
     assert.ok(caught instanceof WikiPushFailure);
     assert.equal(caught.reason, "budget");
     const entry = caught.refusals.find((r) => r.file === SUMMARY);
-    assert.ok(entry, "refusal names the offending file");
+    assert.ok(entry, "the refusal names the file at fault");
     assert.equal(entry.ruleId, "summary.word-budget");
     assert.ok(entry.value > entry.baseline, "outgoing exceeds baseline");
     assert.equal(entry.baseline, 1998);
   });
 
-  test("criterion 9: memo delivery into deficient headroom is surfaced, not refused", async () => {
+  test("criterion 9: the gate lands a memo delivery into deficient headroom and surfaces it", async () => {
     const bare = createBareRepo();
     seedBareRepo(bare, { files: { [SUMMARY]: summaryBody("Staff", 1998) } });
     const { parent, wikiDir } = cloneRepo(bare, "c9");
     git(wikiDir, "checkout", "master");
-    // A delivery takes the summary over cap; the caller exempts that file.
+    // A delivery takes the summary over cap. The caller exempts that file.
     writeFileSync(join(wikiDir, SUMMARY), summaryBody("Staff", 2100));
     const result = await makeSync(wikiDir, parent).commitAndPush(
       "wiki: deliver memo",
@@ -199,7 +202,7 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
       result.surfaced.some(
         (s) => s.file === SUMMARY && s.ruleId === "summary.word-budget",
       ),
-      "the breach is surfaced on the landed result",
+      "the gate surfaces the breach on the landed result",
     );
   });
 
@@ -214,12 +217,12 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
     ]);
     assert.equal(result.landed, true);
     assert.equal(result.reason, "landed");
-    // No surfaced breach on a clean sync — the field is absent, so the landed
+    // A clean sync surfaces no breach. The field is absent, so the landed
     // result is byte-identical to today's happy path.
     assert.equal(result.surfaced, undefined);
   });
 
-  test("autostash residue is excluded — the gate measures the committed HEAD, not the working dir", async () => {
+  test("the gate measures the committed HEAD and excludes autostash residue from the working dir", async () => {
     const bare = createBareRepo();
     seedBareRepo(bare, { files: { [SUMMARY]: summaryBody("Staff", 1500) } });
     const { parent, wikiDir } = cloneRepo(bare, "dirt");
@@ -235,7 +238,7 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
       "wiki: own edit",
       [SUMMARY],
     );
-    // The push lands: the over-cap dirt is uncommitted, never on HEAD.
+    // The push lands. The over-cap dirt is uncommitted and never on HEAD.
     assert.equal(result.landed, true);
     assert.equal(result.reason, "landed");
   });

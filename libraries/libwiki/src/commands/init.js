@@ -70,10 +70,7 @@ async function maybeCloneWiki(wikiSync, gitClient, projectRoot, runtime) {
   if (cloneResult.cloned) {
     await wikiSync.inheritIdentity();
   } else {
-    logger.warn(
-      "init",
-      "could not clone wiki, so only the local steps run",
-    );
+    logger.warn("init", "could not clone wiki, so only the local steps run");
   }
 }
 

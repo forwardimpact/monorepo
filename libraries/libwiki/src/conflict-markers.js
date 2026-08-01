@@ -29,8 +29,8 @@ const OPEN_RE = /^<{7}( |$)/;
 const CLOSE_RE = /^>{7}( |$)/;
 const SEPARATOR_RE = /^={7}\s*$/;
 // A fenced-code delimiter: three or more backticks or tildes, up to three
-// leading spaces of indentation (CommonMark). The info string after the run is
-// ignored — a delimiter line is never itself a marker.
+// leading spaces of indentation (CommonMark). The scanner ignores the info
+// string after the run. A delimiter line is never itself a marker.
 const FENCE_RE = /^\s{0,3}(`{3,}|~{3,})/;
 
 /**

@@ -91,17 +91,17 @@ human roles. Update the source. The agent configuration updates with it.
 ### Calibrate the agent's level
 
 The `--level` flag picks which level's expectations the generated agent
-encodes. Without it, Pathway selects a default level based on core-skill
+encodes. Without the flag, Pathway selects a default level from core-skill
 proficiency.
 
 ```sh
 npx fit-pathway agent software-engineering --track=platform --level=J060
 ```
 
-Set `--level` explicitly when generating agents that should meet different
-expectations -- for example, a J040 agent and a J060 agent on the same team
-need separate profiles. When omitted, the output is byte-identical to today's
-default-resolved behaviour.
+Set `--level` explicitly when you generate agents that should meet different
+expectations. For example, a J040 agent and a J060 agent on the same team need
+separate profiles. When you omit the flag, the output is byte-identical to
+today's default-resolved behaviour.
 
 ## Generate the agent team
 
@@ -111,8 +111,8 @@ Once the preview looks right, generate the files into your project:
 npx fit-pathway agent software-engineering --track=platform --output=.
 ```
 
-Pathway writes the following structure (the skill directories will match
-your discipline's tier arrays — the example below uses the starter):
+Pathway writes the following structure. The skill directories match your
+discipline's tier arrays. The example below uses the starter:
 
 ```text
 .claude/
@@ -126,9 +126,9 @@ your discipline's tier arrays — the example below uses the starter):
     incident-management/SKILL.md
 ```
 
-The agent name is derived from the discipline's `roleTitle`, suffixed with the
-track when one is set (e.g., `software-engineer--platform`). Generalist
-configurations without a track omit the suffix.
+Pathway derives the agent name from the discipline's `roleTitle`. It adds the
+track as a suffix when you set one (e.g., `software-engineer--platform`).
+Generalist configurations without a track omit the suffix.
 
 ## Confirm the generated skills
 
@@ -138,8 +138,8 @@ List the skill IDs the agent received to confirm they match the discipline:
 npx fit-pathway agent software-engineering --track=platform --skills
 ```
 
-Expected output (your organization's skills will differ — the starter ships
-this shape for `software-engineering --track=platform`):
+Expected output (your organization's skills will differ). The starter ships
+this shape for `software-engineering --track=platform`:
 
 ```text
 task-completion
@@ -157,19 +157,19 @@ consistently capable level across all skills.
 Your agents are configured against your organization's standard when you can
 confirm the following:
 
-- **The generated files exist in your project.** Running
-  `ls .claude/agents/*.md` shows the agent profile and
-  `ls .claude/skills/*/SKILL.md` shows the skill files.
-- **The team instructions reflect your platform.** Open `.claude/CLAUDE.md` and
-  verify it contains the conventions, environment, and coordination table your
+- **The generated files exist in your project.** Run `ls .claude/agents/*.md` to
+  see the agent profile. Run `ls .claude/skills/*/SKILL.md` to see the skill
+  files.
+- **The team instructions reflect your platform.** Open `.claude/CLAUDE.md`.
+  Verify it contains the conventions, environment, and coordination table your
   standard defines.
 - **The agent profile matches the role.** Open the agent profile under
-  `.claude/agents/` and verify the identity, working style, and constraints
+  `.claude/agents/`. Verify the identity, working style, and constraints
   describe the discipline and track you selected.
 - **The skills match the discipline.** The skill files under `.claude/skills/`
   correspond to the skills your standard assigns to this discipline and track.
-- **The configuration is derived, not hand-written.** Any adjustment you need
-  should be made in the standard YAML data, not by editing generated files
+- **Pathway derives the configuration. Nobody hand-writes it.** Make any
+  adjustment you need in the standard YAML data. Do not edit the generated files
   directly. See
   [Give Agents Organizational Context](/docs/products/agent-teams/organizational-context/)
   for where each type of guidance belongs and how to update agents when the

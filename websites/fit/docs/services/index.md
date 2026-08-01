@@ -65,5 +65,5 @@ toc: false
 
 </div>
 
-Looking for library-level utilities? See [Library Guides](/docs/libraries/).
+For library-level utilities, see [Library Guides](/docs/libraries/).
 For product workflows, see [Product Guides](/docs/products/).

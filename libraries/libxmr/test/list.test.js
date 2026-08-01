@@ -55,14 +55,14 @@ describe("list command", () => {
     assert.strictEqual(parsed.metrics.length, 1);
   });
 
-  test('json output carries the machine value "*" when unfiltered', () => {
+  test('json output carries the machine value "*" when no filter applies', () => {
     const { stdout } = runList({ format: "json", "event-type": "*" });
     const parsed = JSON.parse(stdout);
     assert.strictEqual(parsed.event_type, "*");
     assert.strictEqual(parsed.metrics.length, 2);
   });
 
-  test("missing file returns an error envelope", () => {
+  test("a missing file returns an error envelope", () => {
     const fsSync = createMockFs({});
     const rt = makeRuntime({ fsSync });
     const ctx = ctxFor({

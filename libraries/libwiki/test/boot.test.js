@@ -10,7 +10,7 @@ import { renderAgentExperiments } from "../src/issue-list-renderer.js";
 
 const ROOT = "/wiki";
 
-// Run buildDigest against an in-memory wiki seeded with `files`; it reads
+// Run buildDigest against an in-memory wiki that `files` seeds. It reads
 // `${wikiRoot}/<name>.md` through the injected sync surface and tolerates
 // absent files.
 function digestOf(files = {}) {
@@ -23,7 +23,7 @@ function digestOf(files = {}) {
 }
 
 describe("buildDigest", () => {
-  test("returns empty digest when wiki is empty", () => {
+  test("returns an empty digest when the wiki is empty", () => {
     const digest = digestOf();
     assert.equal(digest.summary, "");
     assert.deepEqual(digest.owned_priorities, []);
@@ -48,7 +48,7 @@ describe("buildDigest", () => {
     assert.equal(digest.inbox_count, 1);
   });
 
-  test("missing Active Claims section yields empty claims (silent tolerance)", () => {
+  test("a missing Active Claims section yields empty claims (silent tolerance)", () => {
     const digest = digestOf({
       [`${ROOT}/MEMORY.md`]:
         "## Cross-Cutting Priorities\n\n| Item | Agents | Owner | Status | Added |\n| --- | --- | --- | --- | --- |\n| *None* | — | — | — | — |\n",
@@ -65,10 +65,10 @@ describe("buildDigest", () => {
     assert.equal(digest.storyboard_items[0].threshold, "own item");
   });
 
-  test("h2 after the last agent section closes it — Notes bullets are not misattributed", () => {
-    // Mirrors the live storyboard format: the last-listed agent's section
-    // holds only an h4 metric and a fenced XmR block, then a team-wide
-    // `## Notes` h2 follows with bullets that belong to no agent.
+  test("an h2 after the last agent section closes it, so buildDigest does not misattribute Notes bullets", () => {
+    // This seed mirrors the live storyboard format. The last-listed agent's
+    // section holds only an h4 metric and a fenced XmR block. A team-wide
+    // `## Notes` h2 then follows with bullets that belong to no agent.
     const digest = digestOf({
       [`${ROOT}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
@@ -101,7 +101,7 @@ describe("buildDigest", () => {
     assert.deepEqual(digest.storyboard_items, []);
   });
 
-  test("filters out expired claims from digest", () => {
+  test("filters out expired claims from the digest", () => {
     const digest = digestOf({
       [`${ROOT}/MEMORY.md`]:
         "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| staff-engineer | old | feat/x | — | 2026-05-01 | 2026-05-10 |\n| staff-engineer | new | feat/y | — | 2026-05-19 | 2026-05-26 |\n",
@@ -147,7 +147,8 @@ describe("buildDigest", () => {
 
   test("absent files report near-full headroom (criterion 6)", () => {
     // The canonical countLines treats "" as one line, so an absent file reports
-    // 1 line / 0 words — effectively the full ceiling for a fresh surface.
+    // 1 line and 0 words. That is effectively the full ceiling for a fresh
+    // surface.
     const digest = digestOf();
     assert.equal(digest.summary_headroom.lines, 1);
     assert.equal(digest.summary_headroom.lines_remaining, 495);
@@ -157,7 +158,7 @@ describe("buildDigest", () => {
 
   const STORYBOARD = `${ROOT}/storyboard-2026-M05.md`;
 
-  test("materialized block yields an experiment item for the booting agent only", () => {
+  test("the materialized block yields an experiment item only for the agent that boots", () => {
     const digest = digestOf({
       [STORYBOARD]: [
         "# Storyboard — 2026-05",
@@ -220,8 +221,8 @@ describe("buildDigest", () => {
         "<!-- /agent-experiments -->",
       ].join("\n"),
     });
-    // exactly one bullet (the agent's own h3 bullet) + one experiment item;
-    // the team-wide note and the block bullet must NOT appear as h3 bullets.
+    // exactly one bullet (the agent's own h3 bullet) + one experiment item.
+    // The team-wide note and the block bullet must NOT appear as h3 bullets.
     const bullets = digest.storyboard_items.filter(
       (i) => i.source === "bullet",
     );
@@ -234,7 +235,7 @@ describe("buildDigest", () => {
     assert.equal(exp[0].issue, 1);
   });
 
-  test("standing carries delivered verbatim; absence yields empty; summary unchanged", () => {
+  test("delivers standing carries verbatim, yields empty on absence, and leaves the summary unchanged", () => {
     const withCarries = digestOf({
       [`${ROOT}/staff-engineer.md`]: [
         "# Staff Engineer — Summary",
@@ -261,16 +262,17 @@ describe("buildDigest", () => {
   });
 
   test("buildDigest needs only a filesystem surface (offline, fail-never)", () => {
-    // digestOf constructs buildDigest with `fs` only — no subprocess/network
-    // capability is injected, so the boot path cannot reach the tracker.
+    // digestOf constructs buildDigest with `fs` only. Nothing injects a
+    // subprocess or network capability, so the boot path cannot reach the
+    // tracker.
     const digest = digestOf();
     assert.deepEqual(digest.standing_carries, []);
     assert.deepEqual(digest.storyboard_items, []);
   });
 
   test("round-trip: boot consumes exactly what the renderer writes (criterion 7)", async () => {
-    // Render the block from issues via the real renderer (no hand-built
-    // lookalike), drop it into a storyboard file, then build the digest from
+    // Render the block from issues with the real renderer (no hand-built
+    // lookalike). Drop it into a storyboard file. Then build the digest from
     // that file. Renderer grammar and parser grammar must agree.
     const subprocess = createMockSubprocess({
       responses: {
