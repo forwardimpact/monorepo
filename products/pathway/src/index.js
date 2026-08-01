@@ -1,6 +1,6 @@
 // Public entry point for @forwardimpact/pathway.
-// The primary consumption mode is the CLI (fit-pathway) — this
-// re-export exists so the package conforms to the repo-wide layout
-// contract and so consumers who import @forwardimpact/pathway
-// directly receive the shared type definitions.
+// Most consumers use the CLI (fit-pathway). This re-export makes the
+// package conform to the repo-wide layout contract. It also gives the
+// shared type definitions to consumers who import @forwardimpact/pathway
+// directly.
 export * from "./types.js";

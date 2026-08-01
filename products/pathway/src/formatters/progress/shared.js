@@ -1,7 +1,8 @@
 /**
  * Progress presentation helpers
  *
- * Shared utilities for formatting career progression data across DOM and markdown outputs.
+ * These shared utilities format career progression data across DOM and
+ * markdown outputs.
  */
 
 import {
@@ -89,7 +90,7 @@ export function prepareCurrentJob({
  */
 
 /**
- * Prepare career progress builder preview for form validation
+ * Prepare the preview for the career progress builder to validate the form
  * @param {Object} params
  * @param {Object|null} params.discipline
  * @param {Object|null} params.level
@@ -139,7 +140,7 @@ export function prepareCareerProgressPreview({
   const title = generateJobTitle({ discipline, level, track });
   const nextLevel = getNextLevel({ level, levels });
 
-  // Find other valid tracks for comparison (exclude current track if any)
+  // Find other valid tracks for comparison. Exclude the current track if set.
   const validTracks = tracks.filter(
     (t) =>
       (!track || t.id !== track.id) &&

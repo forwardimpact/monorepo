@@ -31,9 +31,9 @@ if (!handled) {
   if (!config.tools || Object.keys(config.tools).length === 0) {
     logger.warn(
       "startup",
-      "No MCP tools configured — the server will expose zero tools and " +
-        "agents cannot query the standard. Define service.mcp.tools in " +
-        "your config.json; see " +
+      "No MCP tools configured. The server exposes zero tools. Agents " +
+        "cannot query the standard. Define service.mcp.tools in your " +
+        "config.json. See " +
         "https://www.forwardimpact.team/docs/getting-started/engineers/guide/index.md",
     );
   }

@@ -83,7 +83,7 @@ you provide no actor, the index skips the policy check entirely.
 
 ## Discover and check resources
 
-Three methods help you navigate the index and do not load the full content:
+Three methods help you navigate the index. They do not load the full content:
 
 ```js
 // Check whether a specific resource exists

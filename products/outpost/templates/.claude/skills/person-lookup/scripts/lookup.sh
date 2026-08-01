@@ -3,8 +3,8 @@
 # input (an email address, or a first / last / full name) and print their
 # directory record(s).
 #
-# Sibling to `person-identify`. This script looks up *other* people. It never
-# looks up the current user.
+# Sibling to `person-identify`. Use it for *other* people. Do not use it for
+# the current user:
 #   - Searches the Global Catalog (port 3268, base "") so it reaches EVERY
 #     domain in the forest from a single ticket. It finds colleagues in other
 #     regions. It does not stop at your own domain.

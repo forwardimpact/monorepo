@@ -1,6 +1,6 @@
 /**
  * Self-assessment results page
- * Displays job matches, gaps, and development recommendations
+ * This page displays job matches, gaps, and development recommendations
  */
 
 import {
@@ -44,7 +44,7 @@ export function renderAssessmentResults() {
     behaviours: assessmentState.behaviours,
   };
 
-  // Find matching jobs with realistic scoring
+  // Find the jobs that match and score them realistically
   const { matches, matchesByTier, estimatedLevel } = findRealisticMatches({
     selfAssessment,
     disciplines: data.disciplines,
@@ -68,7 +68,7 @@ export function renderAssessmentResults() {
       h1({ className: "page-title" }, "Your Job Matches"),
       p(
         { className: "page-description" },
-        "Based on your self-assessment, here are the roles that best match your current skills and behaviours.",
+        "These roles best match the current skills and behaviours in your self-assessment.",
       ),
     ),
 
@@ -124,7 +124,7 @@ function renderNoAssessment() {
         h1({}, "No Assessment Data"),
         p(
           {},
-          "You haven't completed a self-assessment yet. Complete the assessment to see your job matches.",
+          "You have no self-assessment yet. Complete the assessment to see your job matches.",
         ),
         a(
           { href: "#/self-assessment", className: "btn btn-primary btn-lg" },
@@ -206,7 +206,7 @@ function createStatBox(value, label, icon) {
 }
 
 /**
- * Calculate average level from array of levels
+ * Calculate the average level from an array of levels
  * @param {string[]} levels
  * @param {string[]} levelOrder
  * @returns {string}
@@ -238,7 +238,7 @@ function createMatchesSection(matches, matchesByTier, selfAssessment, data) {
       h2({}, "No Matches Found"),
       p(
         {},
-        "We couldn't find any suitable job matches. Try completing more of the assessment.",
+        "We couldn't find any suitable job matches. Try to complete more of the assessment.",
       ),
     );
   }
@@ -298,7 +298,7 @@ function createMatchesSection(matches, matchesByTier, selfAssessment, data) {
         4,
         "Aspirational",
         "gray",
-        "Long-term career goals requiring significant growth",
+        "Long-term career goals that need significant growth",
         matchesByTier[4].slice(0, 3),
         selfAssessment,
         data,
@@ -311,7 +311,7 @@ function createMatchesSection(matches, matchesByTier, selfAssessment, data) {
     h2({}, "Job Matches by Readiness"),
     p(
       { className: "text-muted" },
-      "Jobs are grouped by how ready you are for them based on your current skills and behaviours.",
+      "This page groups jobs by how ready you are for them. Your current skills and behaviours set that readiness.",
     ),
     ...tierSections,
   );

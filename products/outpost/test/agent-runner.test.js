@@ -1,8 +1,9 @@
 /**
  * AgentRunner unit tests
  *
- * Tests environment building and agent wake logic against injected mock
- * collaborators (runtime fs/proc/clock + a stubbed posix-spawn module).
+ * They test how the runner builds the environment and how it wakes an agent.
+ * They inject mock collaborators (runtime fs/proc/clock + a stubbed
+ * posix-spawn module).
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -33,8 +34,8 @@ describe("AgentRunner", () => {
     });
   });
 
-  describe("#buildSpawnEnv (via wake)", () => {
-    test("passes runtime.proc.env to spawned process by default", async () => {
+  describe("#buildSpawnEnv (through wake)", () => {
+    test("passes runtime.proc.env to the spawned process by default", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runner = new AgentRunner(
         spawnMod,
@@ -56,7 +57,7 @@ describe("AgentRunner", () => {
       assert.strictEqual(calls[0].env.PATH, "/usr/bin");
     });
 
-    test("merges allow-set configEnv into spawn environment", async () => {
+    test("merges allow-set configEnv into the spawn environment", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runner = new AgentRunner(
         spawnMod,
@@ -214,7 +215,7 @@ describe("AgentRunner", () => {
   });
 
   describe("killActiveChildren", () => {
-    test("sends SIGTERM via runtime.proc.kill to tracked children", async () => {
+    test("sends SIGTERM through runtime.proc.kill to tracked children", async () => {
       const { module: spawnMod } = createMockSpawn();
       const runtime = makeRuntime({ HOME: "/home/u" });
       const runner = new AgentRunner(
@@ -231,7 +232,7 @@ describe("AgentRunner", () => {
         { kb: TEST_KB, privilege: "full" },
         { agents: {} },
       );
-      // pid 999 was tracked during wake but removed on exit; force one in.
+      // pid 999 was tracked during wake but removed on exit. Force one in.
       runner.activeChildren.add(4242);
       runner.killActiveChildren();
 
@@ -241,7 +242,7 @@ describe("AgentRunner", () => {
     });
   });
 
-  describe("posture gate (via wake)", () => {
+  describe("posture gate (through wake)", () => {
     test("brief posture denies draft skills and injects the brief directive", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runtime = makeRuntime(
@@ -273,9 +274,9 @@ describe("AgentRunner", () => {
       assert.match(args[promptIdx + 1], /knowledge base/i);
     });
 
-    test("absent posture record defaults to brief", async () => {
+    test("an absent posture record defaults to brief", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
-      // No posture.json seeded — reads as null, effective = brief.
+      // No posture.json seeded. It reads as null, so effective = brief.
       const runner = new AgentRunner(
         spawnMod,
         createMockStateManager(),
@@ -294,7 +295,7 @@ describe("AgentRunner", () => {
       assert.ok(calls[0].args.includes("--disallowedTools"));
     });
 
-    test("brief+draft posture adds no gating flags", async () => {
+    test("brief+draft posture adds no gate flags", async () => {
       const { module: spawnMod, calls } = createMockSpawn();
       const runner = new AgentRunner(
         spawnMod,

@@ -1,5 +1,5 @@
 /**
- * Track formatting for DOM/web output
+ * Track formatters for DOM/web output
  */
 
 import { div, h1, p } from "../../lib/render.js";
@@ -20,7 +20,7 @@ import { prepareTrackDetail } from "./shared.js";
 import { createJsonLdScript, trackToJsonLd } from "../json-ld.js";
 
 /**
- * Format track detail as DOM elements
+ * Format the track detail as DOM elements
  * @param {Object} track - Raw track entity
  * @param {Object} context - Additional context
  * @param {Array} context.skills - All skills
@@ -35,7 +35,7 @@ export function trackToDOM(
 ) {
   const view = prepareTrackDetail(track, { skills, behaviours, disciplines });
   const emoji = getConceptEmoji(standard, "track");
-  // Build modifier sections - group them together for print layout
+  // Build the modifier sections. Group them together for the print layout.
   const hasSkillModifiers = view.skillModifiers.length > 0;
   const hasBehaviourModifiers = view.behaviourModifiers.length > 0;
 

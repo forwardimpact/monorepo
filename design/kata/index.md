@@ -59,7 +59,7 @@ engineering role.
 | Agent                 | Question it answers                                                |
 | --------------------- | ------------------------------------------------------------------ |
 | **Staff Engineer**    | What is the next experiment, and how do we run it?                 |
-| **Release Engineer**  | Does the line move, and is the next release ready to ship?         |
+| **Release Engineer**  | Is the line in motion, and is the next release ready to ship?      |
 | **Security Engineer** | Is the floor safe across supply chain, dependencies, and secrets?  |
 | **Product Manager**   | What enters the line, and what is ready to merge into main?        |
 | **Technical Writer**  | Is the manual accurate, and does the wiki reflect what we learned? |

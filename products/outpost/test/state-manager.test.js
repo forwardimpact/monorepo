@@ -109,7 +109,7 @@ describe("StateManager", () => {
       assert.deepStrictEqual(JSON.parse(savedContent), state);
     });
 
-    test("creates parent directory before writing", async () => {
+    test("creates parent directory before it writes", async () => {
       const sm = new StateManager("/data/outpost/state.json", runtime);
       await sm.save({ agents: {} });
 
@@ -147,8 +147,8 @@ describe("StateManager", () => {
       assert.ok(logs[0].includes("planner"));
     });
 
-    test("respects maxAge — skips agents not yet stale", async () => {
-      // Clock at a fixed virtual time; startedAt 1s before it.
+    test("respects maxAge and skips agents that are not yet stale", async () => {
+      // The clock sits at a fixed virtual time. startedAt is 1s before it.
       const now = 1_700_000_000_000;
       runtime = createTestRuntime({
         fs: mockFs,
@@ -170,7 +170,7 @@ describe("StateManager", () => {
       assert.strictEqual(state.agents.planner.status, "active");
     });
 
-    test("resets agents exceeding maxAge", async () => {
+    test("resets agents that exceed maxAge", async () => {
       const now = 1_700_000_000_000;
       runtime = createTestRuntime({ fs: mockFs, clock: createClockAt(now) });
       const oldStart = new Date(now - 120_000).toISOString();
@@ -189,7 +189,7 @@ describe("StateManager", () => {
       assert.strictEqual(state.agents.planner.status, "interrupted");
     });
 
-    test("saves state when agents are reset", async () => {
+    test("saves state when it resets agents", async () => {
       const state = { agents: { planner: { status: "active" } } };
 
       const sm = new StateManager("/tmp/state.json", runtime);
@@ -198,7 +198,7 @@ describe("StateManager", () => {
       assert.ok(mockFs.writeFile.mock.callCount() > 0);
     });
 
-    test("does not save when no agents are reset", async () => {
+    test("does not save when it resets no agents", async () => {
       const state = { agents: { planner: { status: "idle" } } };
 
       mockFs.writeFile.mock.resetCalls();
@@ -241,7 +241,7 @@ describe("StateManager", () => {
       assert.ok(agentState.lastWokeAt);
     });
 
-    test("uses truncated stdout when no Decision line found", async () => {
+    test("uses truncated stdout when it finds no Decision line", async () => {
       const agentState = {};
       const stdout = "Just some output without decision markers";
 
@@ -266,7 +266,7 @@ describe("StateManager", () => {
       assert.strictEqual(mockFs.data.get(outputPath), stdout);
     });
 
-    test("rejects a traversal agent name without writing the state file", async () => {
+    test("rejects a traversal agent name and writes no state file", async () => {
       const agentState = {};
       const stdout = "Decision: x\nAction: y";
       const logged = [];
@@ -280,15 +280,15 @@ describe("StateManager", () => {
         (l) => logged.push(l),
       );
 
-      // No state file was written for the traversal name.
+      // updateAgentState wrote no state file for the traversal name.
       const writtenPaths = [...mockFs.data.keys()].filter((p) =>
         p.includes("/tmp/cache/state/"),
       );
       assert.strictEqual(writtenPaths.length, 0);
-      // The in-memory state fields are still updated before the write guard.
+      // It still updates the in-memory state fields before the write guard.
       assert.strictEqual(agentState.status, "idle");
       assert.strictEqual(agentState.wakeCount, 1);
-      // One structured rejection record was logged.
+      // It logged one structured rejection record.
       const rejections = logged
         .map((l) => {
           try {

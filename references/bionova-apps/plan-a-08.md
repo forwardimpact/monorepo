@@ -62,9 +62,9 @@ postgres.
 ## Step 3 — Wire deploy workflow
 
 Edit `.github/workflows/deploy.yml` (skeleton from part 01). Detect the
-changed paths in the job. Run `railway up --service=<name>` for each changed
-service with Railway's own CLI. The CLI avoids a dependency on third-party
-actions that hold deploy tokens:
+changed paths in the job. Railway's own CLI avoids a dependency on
+third-party actions that hold deploy tokens. Run
+`railway up --service=<name>` for each changed service with that CLI:
 
 ```yaml
 name: deploy
@@ -131,8 +131,8 @@ jobs:
 Document the RAILWAY_TOKEN setup in `infrastructure/railway/README.md`. Use a
 project-scoped token from the Railway dashboard. Set it as a repo secret. If
 you have not linked a Railway project yet, gate the `deploy` job on a
-non-empty secret. The job then skips cleanly and does not report red. A red
-`deploy` should mean a genuine deploy failure.
+non-empty RAILWAY_TOKEN. The job then skips cleanly and does not report red.
+A red `deploy` should mean a genuine deploy failure.
 
 Verify: a no-op commit to `main` runs the `detect` job. The job emits an
 empty `services` array. The `deploy` job then skips. A commit that changes
@@ -541,9 +541,9 @@ merged-PR list, and the smoke result. Append a metrics row per
 `wiki/metrics/kata-plan/2026.csv` and `wiki/metrics/kata-implement/2026.csv`.
 
 The implementer **must** collect the eight merged PR URLs in bionova-apps and
-the URL of the green `bionova-apps@main` smoke-CI run. Do this before the
-trailing PR opens. Substitute the URLs into the body below. Use no
-placeholders. The PR body is the only signal the monorepo carries for what
+the URL of the green `bionova-apps@main` smoke-CI run. Substitute the URLs
+into the body below. Use no placeholders. Do all of this before the trailing
+PR opens. The PR body is the only signal the monorepo carries for what
 shipped. Bare branch names do not let an auditor or a release engineer verify
 the cross-repo handoff after the fact.
 

@@ -1,7 +1,7 @@
 /**
  * Driver presentation helpers
  *
- * Shared utilities for formatting driver data across DOM and markdown outputs.
+ * These shared utilities format driver data across DOM and markdown outputs.
  */
 
 import { truncate } from "../shared.js";

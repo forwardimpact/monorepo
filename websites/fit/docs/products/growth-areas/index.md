@@ -345,7 +345,7 @@ You reach the outcome of this guide when you can answer these questions:
 
 If any of these are unclear, revisit the relevant step. The readiness checklist
 is the most direct measure. When the missing markers from your first run show
-as evidenced, you made progress.
+as evidenced, you make progress.
 
 ## What's next
 

@@ -40,7 +40,7 @@ if (!handled) {
     app_webhook_secret: "",
     trusted_idp_origins: "",
     link_completion_ticket_secret: "",
-    // "single" (default, self-hosted) reads the App key in-process; "multi"
+    // "single" (default, self-hosted) reads the App key in-process. "multi"
     // (hosted) resolves the tenant per request and mints tokens through
     // services/ghserver. The data shape does not branch on this flag.
     tenancy_mode: "single",
@@ -72,7 +72,7 @@ if (!handled) {
 
   // Pick the tenant resolver and token source from the deployment mode.
   // Single-tenant builds an in-process App-key closure from the static
-  // installation id; multi-tenant mints repo-scoped tokens through
+  // installation id. Multi-tenant mints repo-scoped tokens through
   // services/ghserver and resolves tenants through services/tenancy.
   let tenantResolver;
   let ghserverClient;
@@ -106,8 +106,8 @@ if (!handled) {
 
   /**
    * Derive an installation token for the reply path. Single-tenant uses the
-   * in-process App-key closure; multi-tenant mints a repo-scoped token via
-   * services/ghserver for the per-request repo.
+   * in-process App-key closure. Multi-tenant mints a repo-scoped token
+   * through services/ghserver for the per-request repo.
    *
    * @param {{owner: string, name: string}} [repo]
    * @returns {Promise<string>}
@@ -129,10 +129,10 @@ if (!handled) {
 
   /**
    * Build a GraphQL client bound to a specific repository's installation
-   * token. Single-tenant callers pass the static `config.github_repo`;
-   * multi-tenant callers pass the per-request resolved tenant repo so the
-   * reply/reaction path authenticates as the App installation on the
-   * customer's repository, not an empty static repo.
+   * token. Single-tenant callers pass the static `config.github_repo`.
+   * Multi-tenant callers pass the tenant repo resolved for that request.
+   * The reply/reaction path then authenticates as the App installation on
+   * the customer's repository. It does not use an empty static repo.
    *
    * @param {{owner: string, name: string}} [repo]
    * @returns {(query: string, variables: object) => Promise<unknown>}
@@ -149,7 +149,7 @@ if (!handled) {
 
   // Single-tenant default client, bound to the static configured repo. In
   // multi-tenant mode the bridge builds a per-request client from the resolved
-  // tenant repo via `makeGraphqlClient`.
+  // tenant repo through `makeGraphqlClient`.
   const graphqlClient = makeGraphqlClient(parseRepo(config.github_repo));
 
   const ghuserConfig = await createServiceConfig("ghuser");

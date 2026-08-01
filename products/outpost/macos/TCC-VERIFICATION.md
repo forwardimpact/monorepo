@@ -47,8 +47,8 @@ inverted `disclaim = 1` would silently break the single-grant model. For a
 | Knowledge base       | `~/.local/share/fit/outpost/<kb>` | none (non-TCC location)     | n/a — a restricted agent reaches it with no grant |
 | Draft-side Mail send | Mail via AppleScript              | Automation (AppleEvents)    | `AppleEvents`                 |
 
-The procedure reads the Calendar store **as files** (Full Disk Access). This
-runbook does **not** exercise the distinct EventKit Calendar service. So a green
+Outpost reads the Calendar store **as files** (Full Disk Access). This runbook
+does **not** exercise the distinct EventKit Calendar service. So a green
 file-access result here does not prove Calendar-API coverage.
 
 ## Preconditions

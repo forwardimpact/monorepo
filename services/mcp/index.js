@@ -12,10 +12,10 @@ const SESSION_IDLE_MS = 30 * 60 * 1000;
 const SESSION_SWEEP_MS = 60_000;
 
 /**
- * Builds the MCP prompt by appending one routing line per (tool, statement)
- * pair. Tools omitted from config — including those stripped post-init for a
- * particular environment — contribute no lines, keeping the prompt in sync
- * with actual tool wiring.
+ * Builds the MCP prompt. It appends one routing line for each (tool,
+ * statement) pair. Tools that the config omits contribute no lines. This
+ * also covers tools that an environment strips after init. So the prompt
+ * stays in sync with the tools that the config wires.
  *
  * @param {string} systemPrompt - Static prompt text from config
  * @param {Record<string, { routing?: string[] }>} [tools] - Tool definitions
@@ -47,9 +47,10 @@ function sendInternalError(res, logger, err) {
 }
 
 /**
- * Constant-time comparison of an HTTP `Authorization: Bearer …` header against
- * the configured token. Avoids leaking the token via per-byte timing of
- * `===` short-circuit. The length-mismatch fast path is safe because the
+ * Compares an HTTP `Authorization: Bearer …` header against the configured
+ * token in constant time. A `===` comparison short-circuits at the first byte
+ * that differs. The time it takes then leaks the token. This function does
+ * not short-circuit. The length-mismatch fast path is safe because the
  * expected token's length is not itself a secret.
  *
  * @param {{ headers: { authorization?: unknown } }} req - Incoming HTTP request
@@ -99,14 +100,16 @@ async function dispatchNewSession(req, res, ctx) {
  * Creates a Guide MCP service instance.
  *
  * Each client session gets its own McpServer + transport pair, because the
- * MCP SDK's Protocol only supports one transport at a time. The system prompt
- * is read from config.system_prompt and served via the guide-default MCP prompt.
+ * MCP SDK's Protocol only supports one transport at a time. The service reads
+ * the system prompt from config.system_prompt. It serves that prompt through
+ * the guide-default MCP prompt.
  *
- * Transport boilerplate (security headers, `/health`, lifecycle) is owned by
- * `@forwardimpact/libhttp`. The MCP SDK's `StreamableHTTPServerTransport` drives
- * the raw Node request/response, so the catch-all route reaches them via
- * `c.env.incoming`/`c.env.outgoing` and returns the `RESPONSE_ALREADY_SENT`
- * sentinel; libhttp's body limit is disabled so the SDK reads an untouched body.
+ * `@forwardimpact/libhttp` owns the transport boilerplate (security headers,
+ * `/health`, lifecycle). The MCP SDK's `StreamableHTTPServerTransport` drives
+ * the raw Node request/response. So the catch-all route reaches them through
+ * `c.env.incoming`/`c.env.outgoing`. The route then returns the
+ * `RESPONSE_ALREADY_SENT` sentinel. The service turns off libhttp's body limit
+ * so the SDK reads an untouched body.
  *
  * @param {{ config: object, logger: object, tracer?: object, graphClient: object, vectorClient: object, pathwayClient: object, mapClient: object, resourceIndex: object, clock: import("@forwardimpact/libutil/runtime").Runtime["clock"] }} deps
  * @returns {{ app: import("hono").Hono, address: () => object|null, start: () => Promise<void>, stop: () => Promise<void> }}
@@ -141,7 +144,7 @@ export function createMcpService({
     );
     server.prompt(
       "guide-default",
-      "Scope and tool routing for agents using the engineering standard knowledge graph.",
+      "Scope and tool routing for agents that use the knowledge graph of the engineering standard.",
       () => ({
         messages: [
           { role: "user", content: { type: "text", text: promptText } },

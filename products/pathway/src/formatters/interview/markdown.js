@@ -1,5 +1,5 @@
 /**
- * Interview formatting for markdown/CLI output
+ * Interview formatter for markdown/CLI output
  */
 
 import { formatLevel } from "../../lib/render.js";

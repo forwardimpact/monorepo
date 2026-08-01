@@ -119,7 +119,7 @@ fixed: wiki audit is clean
 | Flag          | Anything destructive or irreducible                         | Reported for a human. Never touched.                                |
 
 The deterministic layer runs first because it never rewrites history. It only
-seals a log that overflows into a numbered part and opens a fresh one. The
+seals an over-budget log into a numbered part and opens a fresh one. The
 agent layer then handles the residual prose findings. The audit gives the
 verdict each round. The agent's self-report does not.
 

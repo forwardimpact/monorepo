@@ -124,7 +124,7 @@ Available filter fields:
 | `prefix`     | Only return identifiers starting with this string           |
 | `limit`      | Cap the number of results                                   |
 | `threshold`  | Minimum similarity score to include                         |
-| `max_tokens` | Stop accumulating results when the token budget is exceeded |
+| `max_tokens` | Stop results when they exceed the token budget              |
 
 All filter values are strings in the protobuf definition. The service parses
 them internally. The service applies filters in this order: prefix, then score

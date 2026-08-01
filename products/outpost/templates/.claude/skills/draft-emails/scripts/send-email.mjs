@@ -1,13 +1,15 @@
 #!/usr/bin/env bun
 /**
- * Send an email via Apple Mail using AppleScript.
+ * Send an email through Apple Mail with AppleScript.
  *
- * Builds an AppleScript command to create and send an outgoing message through
- * Apple Mail. The script writes a temporary .scpt file, executes it with
- * osascript, and cleans up afterwards. Mail.app must be running.
+ * The script builds an AppleScript command. That command creates an outgoing
+ * message and sends it through Apple Mail. The script writes a temporary
+ * .scpt file. It runs the file with osascript. It then deletes the file.
+ * Mail.app must run.
  *
- * The body should be plain text — no HTML. Do NOT include an email signature
- * or sign-off; Apple Mail appends the user's configured signature automatically.
+ * Use plain text for the body. Do not use HTML. Do NOT include an email
+ * signature or sign-off. Apple Mail appends the user's configured signature
+ * automatically.
  */
 
 import { execFileSync } from "node:child_process";
@@ -20,7 +22,7 @@ import {
 import { basename, join } from "node:path";
 import { tmpdir } from "node:os";
 
-const HELP = `send-email — send an email via Apple Mail
+const HELP = `send-email — send an email through Apple Mail
 
 Usage: node scripts/send-email.mjs --to <addrs> --subject <subj> --body <text> [options]
 
@@ -30,10 +32,10 @@ Options:
   --bcc <addrs>      Comma-separated BCC recipients
   --subject <subj>   Email subject line (required)
   --body <text>      Plain-text email body (required)
-  --draft <path>     Draft file — deleted after send, ID appended to Drafts/handled
+  --draft <path>     Draft file. The script deletes it and appends the ID to Drafts/handled
   -h, --help         Show this help message and exit
 
-Mail.app must be running. No signature or sign-off needed — Apple Mail appends it.`;
+Mail.app must run. You need no signature or sign-off. Apple Mail appends it.`;
 
 if (process.argv.includes("-h") || process.argv.includes("--help")) {
   console.log(HELP);

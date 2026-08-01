@@ -1,7 +1,7 @@
 /**
  * Questions JSON Formatter
  *
- * Formats questions as JSON for programmatic analysis.
+ * This formatter writes questions as JSON for programmatic analysis.
  */
 
 /**

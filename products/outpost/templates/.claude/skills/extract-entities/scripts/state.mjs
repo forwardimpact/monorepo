@@ -2,12 +2,13 @@
 /**
  * Manage graph_processed state for entity extraction.
  *
- * Tracks which source files (synced emails and calendar events) have already
- * been processed by the extract-entities skill. The `check` command lists files
- * that are new or changed since their last recorded hash; `update` marks files
- * as processed by storing their current SHA-256 hash.
+ * The script tracks which source files the extract-entities skill already
+ * processed. Those files are synced emails and calendar events. The `check`
+ * command lists files that are new or changed since their last recorded hash.
+ * The `update` command marks files as processed. It stores the current
+ * SHA-256 hash of each file.
  *
- * State is persisted as a TSV file at
+ * The script keeps the state in a TSV file at
  * ~/.cache/fit/outpost/state/graph_processed (path<TAB>hash).
  */
 
@@ -43,7 +44,7 @@ const SOURCE_DIRS = [
   join(HOME, ".cache/fit/outpost/teams_chat"),
 ];
 
-/** Compute SHA-256 hash of a file. */
+/** Compute the SHA-256 hash of a file. */
 function fileHash(filePath) {
   const data = readFileSync(filePath);
   return createHash("sha256").update(data).digest("hex");
@@ -74,7 +75,7 @@ function saveState(state) {
   writeFileSync(STATE_FILE, text);
 }
 
-/** Find source files that are new or have changed since last processing. */
+/** Find source files that are new or changed since the last run. */
 function check() {
   const state = loadState();
   const newFiles = [];
@@ -97,7 +98,7 @@ function check() {
   return newFiles.length;
 }
 
-/** Mark files as processed by updating their hashes in state. */
+/** Mark files as processed. Update their hashes in the state file. */
 function update(filePaths) {
   const state = loadState();
   for (const fp of filePaths) {

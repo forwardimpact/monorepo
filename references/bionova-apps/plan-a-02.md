@@ -91,7 +91,8 @@ each migration on the leading digits before the first underscore. So a suffixed
 `supabase db push` skips it silently. Nothing then creates the index, and the
 embed-seed upsert later fails with `42P10`. `20260601000005` sorts last among
 the hand-written migrations. That order is fine. The index only has to exist
-before `embed-seed` runs at setup time. No other migration depends on it.
+before `embed-seed` runs at setup time. It does not have to exist before any
+other migration.
 
 Verify: after `supabase db push`, `\d condition_embeddings` shows the
 unique index `condition_embeddings_condition_id_uidx`.

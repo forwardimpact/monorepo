@@ -18,7 +18,7 @@ export function renderCareerProgress() {
       title: "Career Progress",
       description:
         "Select your current role to visualize career progression. See what skills and behaviours " +
-        "change as you advance to the next level, or compare expectations across different tracks.",
+        "change as you advance to the next level. Compare expectations across different tracks.",
       formTitle: "Select Your Current Role",
       emptyPreviewText:
         "Select all three components to preview progression paths.",
@@ -44,7 +44,7 @@ export function renderCareerProgress() {
         },
         {
           label: "🔀 Track Comparison",
-          text: "Compare how expectations differ across tracks at the same level - useful for exploring lateral moves.",
+          text: "Compare how expectations differ across tracks at the same level. This helps you explore lateral moves.",
         },
         {
           label: "🎯 Development Focus",

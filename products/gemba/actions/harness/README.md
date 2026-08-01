@@ -155,7 +155,7 @@ reach disk. Two layers compose:
 Redaction is on by default. To disable it, set
 `LIBHARNESS_REDACTION_DISABLED=1` in the workflow `env:` block. A stderr
 warning then fires once per run. A reviewer can see this setting in the PR
-diff. The setting is **prohibited on public-repo CI**. Anyone can download
-workflow artifacts there through the retention window. A redaction-disabled
+diff. The setting is **prohibited on public-repo CI**. Workflow artifacts
+there stay downloadable through the retention window. A redaction-disabled
 trace could carry the workflow's `ANTHROPIC_API_KEY` and `GH_TOKEN` to anyone
 with read access.

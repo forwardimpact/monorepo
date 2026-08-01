@@ -37,7 +37,7 @@ Rationale for panels, sizes, and scope:
      path, spec path (for design/plan/diff), design path (for plan/diff), plan
      path (for diff), and branch name (for diff).
    - Is told not to invoke the parent skill (e.g., "do not invoke `kata-spec`").
-     This adds defense in depth to the structural recursion fix.
+     This adds defense in depth to the recursion fix.
 
 2. **Do not share a scratchpad or cross-feed reviewer output.** Correlated
    errors collapse the ensemble back to one reviewer's signal.
@@ -59,7 +59,7 @@ diffs, a commit hash replaces `file:line`.
 1. **Group semantically.** Merge findings that cite the same `file:line` (or
    nearby lines in the same hunk) and raise the same concern. Wording may
    differ. When in doubt, merge.
-2. **Record the vote count and the severity of each flag.**
+2. **Record the vote count and the severity each reviewer assigned.**
 3. **Pick severity by mode. Tie-break high.** Vote count reflects reach.
    Severity reflects seriousness.
 4. **Partition by vote count:**
@@ -79,7 +79,7 @@ diffs, a commit hash replaces `file:line`.
 - **Proceed. Do not pause.** Address every confirmed consensus
   **blocker**/**high**/**medium** finding in the same turn. Do not stop for
   user permission. Re-run the panel if the fix is substantial. Then advance.
-- **Low** findings are optional. Document any dismissal.
+- **Low** findings are optional. Document it if you dismiss one.
 - **False positives.** Record a one-line rationale in the commit message or
   artifact, then continue. Never dismiss one silently.
 - **Disagreement with a consensus blocker.** Revise the artifact to address the
@@ -90,7 +90,7 @@ diffs, a commit hash replaces `file:line`.
   must embed a run-unique token: `$GITHUB_RUN_ID` (or the workflow run URL) in
   CI sessions, a session-generated nonce otherwise. You are the announcer iff
   the announcement's token equals your run's token. On a mismatch **or an
-  absent token**, another run holds the route. Do not author a duplicate. The
+  absent token**, the route is already taken. Do not author a duplicate. The
   pin comment that names the revision head echoes the token, so the thread
   itself records announcer = pinner. Any other route checks the thread tail
-  first: pin present, verify against the pinned head.
+  before it authors: pin present, verify against the pinned head.

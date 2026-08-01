@@ -35,8 +35,8 @@ also carry a person name. When it does:
 2. Extract the **organizer**. If the organizer isn't the user (per
    `~/.cache/fit/outpost/state/identity.md`),
    they are likely the hiring manager.
-3. Confirm the role. Look up the organizer in `Knowledge/People/` for an
-   indication of a manager or HM role.
+3. Confirm the hiring manager. Look up the organizer in `Knowledge/People/` for
+   an indication of a manager or HM role.
 4. Check the candidate's `brief.md` for a `Req` field. If you know the req, set
    the matching Role file's `Hiring manager` (only if it is currently `—`).
 5. Set the candidate's `brief.md` `Hiring manager` field if it is currently `—`.

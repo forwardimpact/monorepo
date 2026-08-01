@@ -6,7 +6,7 @@ import { join, dirname, resolve, basename } from "node:path";
 import { homedir } from "node:os";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-/** Manage knowledge base lifecycle including initialization, updates, and settings merging. */
+/** Manage the knowledge base lifecycle: init, update, and settings merge. */
 export class KBManager {
   #fs;
   #logger;
@@ -25,12 +25,13 @@ export class KBManager {
 
   /**
    * Resolve a knowledge-base name to its path under the XDG data home,
-   * `~/.local/share/fit/outpost/<name>`. The argument is a single path segment,
-   * never an arbitrary filesystem path, so a provisioned KB always lands outside
-   * TCC-protected folders. The name is validated — not sanitised — against the
-   * same rule as `agent-path.js`: a name carrying `/`, `\`, `..`, NUL, or a
-   * leading `~` could steer the KB back inside `~/Documents`, reopening the TCC
-   * hole, so it is rejected rather than rewritten.
+   * `~/.local/share/fit/outpost/<name>`. The argument is a single path
+   * segment. It is never an arbitrary filesystem path. So a provisioned KB
+   * always lands outside TCC-protected folders. This method validates the name
+   * against the same rule as `agent-path.js`. It does not sanitise the name. A
+   * name that carries `/`, `\`, `..`, NUL, or a leading `~` could steer the KB
+   * back inside `~/Documents` and reopen the TCC hole. So this method rejects
+   * the name. It never rewrites the name.
    * @param {string} name - The KB name (e.g. `Team`, `personal`).
    * @returns {string} Absolute path under the data home.
    * @throws {Error} when `name` is empty, non-string, or an unsafe segment.
@@ -51,7 +52,7 @@ export class KBManager {
   }
 
   /**
-   * Test whether a path exists, via the async fs surface.
+   * Test whether a path exists, through the async fs surface.
    * @param {string} p
    * @returns {Promise<boolean>}
    */
@@ -94,7 +95,7 @@ export class KBManager {
   }
 
   /**
-   * Copy bundled files (CLAUDE.md, skills, agents) from template to a KB.
+   * Copy bundled files (CLAUDE.md, skills, agents) from the template to a KB.
    * @param {string} tpl - Path to the template directory
    * @param {string} dest - Path to the target knowledge base
    * @returns {Promise<void>}
@@ -156,7 +157,7 @@ export class KBManager {
   }
 
   /**
-   * Merge template settings.json into the destination's settings.json.
+   * Merge the template settings.json into the destination's settings.json.
    * @param {string} tpl - Template directory
    * @param {string} dest - Knowledge base directory
    * @returns {Promise<void>}
@@ -206,10 +207,10 @@ export class KBManager {
     }
 
     await this.#ensureDir(dest);
-    // Create the top-level roots only. `Knowledge/` is the shared graph (synced
-    // with the team); `Drafts/` and `Briefings/` are personal and local. Entity
-    // subdirectories (People, Organizations, ...) are created on demand by the
-    // skills that write into them.
+    // Create the top-level roots only. `Knowledge/` is the shared graph, and
+    // the team syncs it. `Drafts/` and `Briefings/` are personal and local.
+    // The skills that write into the entity subdirectories (People,
+    // Organizations, ...) create them on demand.
     for (const d of ["Knowledge", "Drafts", "Briefings"])
       await this.#ensureDir(join(dest, d));
 
@@ -223,12 +224,13 @@ export class KBManager {
   }
 
   /**
-   * Create a navigation symlink at `~/Documents/<name>` pointing to the KB.
+   * Create a navigation symlink at `~/Documents/<name>` that points to the KB.
    * The KB data itself stays under the XDG data home, outside TCC-protected
-   * folders — this is only a convenience pointer so the KB is easy to find and
-   * open from Finder. Best-effort: a pre-existing entry is left untouched, and
-   * any failure (e.g. macOS denying write access to `~/Documents`) is logged,
-   * never fatal, because the KB is already provisioned at `dest`.
+   * folders. The symlink is only a convenience pointer. It makes the KB easy
+   * to find and open from Finder. The method is best-effort. It leaves a
+   * pre-existing entry untouched. It logs any failure, for example when macOS
+   * denies write access to `~/Documents`. A failure is never fatal, because
+   * the KB is already provisioned at `dest`.
    * @param {string} dest - Absolute path to the provisioned KB.
    * @returns {Promise<void>}
    */

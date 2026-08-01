@@ -316,8 +316,8 @@ console.log("Agent skills:", agentProfile.skillMatrix.length);
 console.log("First skill:", agentProfile.skillMatrix[0].skillName);
 ```
 
-The agent skill matrix is smaller than the full role matrix. The derivation
-removes human-only skills and collapses lower-level duplicates.
+The agent skill matrix is smaller than the full role matrix, because the
+derivation removes human-only skills and collapses lower-level duplicates.
 `prepareAgentProfile` sorts behaviours strongest-first. That order helps agent
 instructions, where the most important working styles should lead. For the full
 agent generation pipeline (identity text, working styles, skill markdown), see

@@ -35,7 +35,7 @@ Run this skill:
 - `~/Library/Application Support/anarlog/sessions/{uuid}/transcript.json` —
   this skill edits it in place and removes the words after the logical end
 - `~/Library/Application Support/anarlog/sessions/{uuid}/audio.mp3` — this skill
-  deletes it. A trim means the recording captured audio beyond the consented
+  deletes it. A trim indicates the recording captured audio beyond the consented
   meeting. Delete the full audio to respect participant privacy.
 - A printed summary of the original duration, the trim point, the new duration,
   and the words removed
@@ -145,7 +145,7 @@ json.dump(data, open(path, 'w'), indent=2)
 
 ### Step 5 — Delete the audio recording
 
-A transcript that needs a trim shows that the recording captured audio beyond
+A transcript that needs a trim means that the recording captured audio beyond
 the consented meeting. That audio holds ambient conversation, unrelated
 chatter, or other people who did not consent to the recording. Delete the full
 audio file to respect participant privacy.
@@ -163,8 +163,8 @@ audio file to respect participant privacy.
    ```
 
 This step is **not optional**. It does **not require separate user
-confirmation**. The user already approved the trim. That approval acknowledges
-that the recording went beyond the meeting boundary.
+confirmation**. The user already approved the trim. That approval implicitly
+acknowledges that the recording went beyond the meeting boundary.
 
 ### Step 6 — Verify
 

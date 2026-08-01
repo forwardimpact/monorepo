@@ -1,7 +1,8 @@
 /**
  * Skill CLI Command
  *
- * Handles skill summary, listing, and detail display in the terminal.
+ * Shows the skill summary, the skill list, and the skill detail in the
+ * terminal.
  *
  * Usage:
  *   npx fit-pathway skill              # Summary with stats
@@ -80,7 +81,7 @@ function formatDetail(viewAndContext, standard, runtime) {
  * Format skill as agent SKILL.md output
  * @param {Object} skill - Skill entity with agent section
  * @param {Object} templateLoader - Template loader
- * @param {string} dataDir - Path to data directory for template loading
+ * @param {string} dataDir - Path to the data directory the template loader uses
  */
 async function formatAgentDetail(skill, templateLoader, dataDir, runtime) {
   if (!skill.agent) {

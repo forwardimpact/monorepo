@@ -1,6 +1,6 @@
 ---
 title: The Substrate Contract
-description: Provision identities, pick personas, and issue credentials on any Supabase-backed stack. Implement three views in a substrate schema. You need no Forward Impact data model.
+description: Provision identities, pick personas, and issue credentials on any Supabase-backed stack. To do this, implement three views in a substrate schema. You need no Forward Impact data model.
 ---
 
 You want agent interviews or persona-driven sessions against your own

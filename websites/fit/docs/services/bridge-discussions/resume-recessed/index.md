@@ -120,7 +120,7 @@ fire (e.g., `replies: 3` and only one comment arrived):
 - The bridge updates `ctx.last_active_at` and flushes the store.
 
 The bridge consults the rate limiter only when `freshDispatchAllowed` is
-true. The rate limiter ignores comments that accumulate toward an open
+true. The bridge does not rate-limit comments that accumulate toward an open
 trigger, because those comments do not consume workflow runs.
 
 ## Common failure shapes
@@ -134,7 +134,7 @@ trigger, because those comments do not consume workflow runs.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - A `recessed` verdict posts every `reply` in the callback as a threaded
   comment. It removes the "EYES" reaction. It leaves the discussion open

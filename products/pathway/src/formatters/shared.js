@@ -1,12 +1,12 @@
 /**
- * Shared formatting utilities
+ * Shared presentation helpers
  *
- * Common formatting functions used across different output formats (CLI, DOM, markdown)
+ * Common utilities that format data across different output formats (CLI, DOM, markdown)
  */
 
 /**
  * Trim trailing newlines from a string value
- * Used by template prepare functions for consistent output formatting.
+ * Template prepare functions call it to keep the output format consistent.
  * @param {string|null|undefined} value - Value to trim
  * @returns {string|null} Trimmed value or null if empty
  */
@@ -17,7 +17,7 @@ export function trimValue(value) {
 }
 
 /**
- * Trim a required field, preserving original if trim would result in empty
+ * Trim a required field. Keep the original if the trim leaves it empty.
  * Use for fields that must have a value.
  * @param {string|null|undefined} value - Value to trim
  * @returns {string} Trimmed value or original
@@ -37,7 +37,7 @@ export function splitLines(value) {
 }
 
 /**
- * Transform an array of objects by applying trimValue to specified fields
+ * Transform an array of objects. Apply trimValue to each specified field.
  * @param {Array<Object>} array - Array of objects to transform
  * @param {Object<string, 'optional'|'required'|'array'>} fieldSpec - Fields to trim and their type
  *   - 'optional': use trimValue (returns null if empty)
@@ -109,13 +109,14 @@ export function formatPercent(value) {
 
 /**
  * Capitalize first letter of each word
- * Handles both snake_case and camelCase
+ * It handles both snake_case and camelCase
  * @param {string} str
  * @returns {string}
  */
 export function capitalize(str) {
   if (!str) return "";
-  // Insert space before uppercase letters (for camelCase), then handle snake_case
+  // Insert a space before uppercase letters (for camelCase).
+  // Then handle snake_case.
   return str
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/[-_]/g, " ")

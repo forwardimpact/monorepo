@@ -1,5 +1,5 @@
 /**
- * Job formatting for DOM/web output
+ * Job formatter for DOM/web output
  */
 
 import { div, h1, h2, a, section } from "../../lib/render.js";
@@ -34,7 +34,7 @@ import { createToolkitTable } from "../toolkit/dom.js";
  * @returns {HTMLElement}
  */
 /**
- * Build a job data object from a view for template rendering
+ * Build a job data object from a view for a template to render
  * @param {Object} view
  * @returns {Object}
  */
@@ -154,7 +154,7 @@ function buildJobDescParams(view, options) {
   };
 }
 
-/** Build a complete job detail page DOM tree from a prepared view and display options. */
+/** Build a complete DOM tree for the job detail page from a prepared view and display options. */
 export function jobToDOM(view, options = {}) {
   const opts = { ...JOB_DOM_DEFAULTS, ...options };
   const descParams = buildJobDescParams(view, opts);
@@ -175,7 +175,7 @@ export function jobToDOM(view, options = {}) {
 }
 
 /**
- * Create the job description section with copy button
+ * Create the job description section with a copy button
  * @param {Object} params
  * @param {Object} params.job - The job definition
  * @param {Object} params.discipline - The discipline
@@ -208,7 +208,7 @@ export function createJobDescriptionSection({
       content: markdown,
       filename: "job-description.md",
       description:
-        "Copy this markdown-formatted job description for use in job postings, documentation, or sharing.",
+        "Copy this markdown-formatted job description. Use it in job postings and documentation, or share it.",
       toHtml: markdownToHtml,
       minHeight: 450,
       open: true,
@@ -218,7 +218,7 @@ export function createJobDescriptionSection({
 
 /**
  * Create a print-only HTML version of the job description
- * This is hidden on screen and only visible when printing
+ * The browser hides this on screen and shows it only when you print
  * @param {Object} params
  * @param {Object} params.job - The job definition
  * @param {Object} params.discipline - The discipline

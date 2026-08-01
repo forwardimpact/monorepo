@@ -452,9 +452,9 @@ fields. The service base class expects the new request shape. The client sends
 the new format. The MCP tool schema describes the new parameters. You
 synchronize nothing by hand.
 
-If you add a new RPC method to an existing service, the generated base class
-gains a new stub that throws `"not implemented"` until you override it. The
-methods that already exist stay unaffected.
+If you add a new RPC method to a service that already exists, the generated
+base class gains a new stub. The stub throws `"not implemented"` until you
+override it. The methods that already exist stay unaffected.
 
 If you add a new service proto, the codegen discovers it automatically. It
 generates a complete set of service base, client, and definition files. Those

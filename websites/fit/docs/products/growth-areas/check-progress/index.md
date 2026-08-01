@@ -184,8 +184,8 @@ You complete this guide when you can answer these questions:
   rationale for each match.
 
 If any of these are unclear, revisit the relevant step. The readiness checklist
-is the most direct measure. Missing markers from a previous check can start to
-show as evidenced. Recent work then produces visible movement toward the bar.
+is the most direct measure. When missing markers from a previous check start to
+show as evidenced, recent work produces visible movement toward the bar.
 
 ## What's next
 

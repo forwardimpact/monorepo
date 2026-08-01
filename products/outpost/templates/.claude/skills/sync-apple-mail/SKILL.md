@@ -62,11 +62,11 @@ The script:
 4. Loads last-seen ROWID (or defaults to 0 for first sync)
 5. Finds threads with new messages since last sync (up to 500). It uses both the
    timestamp and the ROWID to catch emails that arrive late. An email downloaded
-   after a delay may have a `date_received` before the last sync timestamp. Its
-   ROWID is higher than the last-seen ROWID
+   after a delay may have a `date_received` before the last sync timestamp. But
+   its ROWID is higher than the last-seen ROWID
 6. For each thread: fetches messages, batch-fetches recipients and attachment
-   metadata, parses `.emlx` files for full email bodies, copies attachment files
-   to the output directory. It falls back to database summaries for the bodies
+   metadata, parses `.emlx` files for full email bodies (with a fallback to
+   database summaries), copies attachment files to the output directory
 7. Writes one markdown file per thread to `~/.cache/fit/outpost/apple_mail/`
 8. Updates sync state (timestamp and max ROWID)
 9. Reports summary (threads processed, files written)

@@ -40,7 +40,7 @@ export function renderInterviewPrep() {
         },
         {
           label: "Skill Questions",
-          text: "Questions are generated based on the required skill proficiencies for the role.",
+          text: "These questions come from the required skill proficiencies for the role.",
         },
         {
           label: "Behaviour Questions",

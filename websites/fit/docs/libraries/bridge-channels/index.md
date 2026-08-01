@@ -309,8 +309,8 @@ signal. A trigger is one of three shapes, named for the lead's intent:
 
 `evaluateTrigger(trigger, observed, now)` returns
 `{ fired: boolean, due_at?: number }`. `due_at` is the absolute ms-epoch when
-an elapsed arm fires. Use it to schedule a wake-up. The host owns `now`, so
-unit tests stay deterministic:
+an elapsed arm fires. You can use it to schedule a wake-up. The host owns
+`now`, so unit tests stay deterministic:
 
 ```js
 import { evaluateTrigger } from "@forwardimpact/libbridge";

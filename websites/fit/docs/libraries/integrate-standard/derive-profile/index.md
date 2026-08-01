@@ -70,8 +70,8 @@ track        Change Management              working
 track        Incident Management            working
 ```
 
-The `track` entries appear only when you pass a track. Omit `track` to get the
-generalist matrix. You can also pass `null`.
+The `track` entries appear only when you pass a track. Omit `track` (or pass
+`null`) to get the generalist matrix.
 
 ## Derive a behaviour profile for a role
 

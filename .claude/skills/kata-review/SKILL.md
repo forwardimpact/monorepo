@@ -34,8 +34,8 @@ findings instead.
 This is the canonical definition of review severity for the spec → design →
 plan → implement arc. Grade every finding with exactly one level:
 
-- **Blocker** — The work is broken, dangerous, or materially wrong. Fix it
-  before you advance (approve the spec, advance status, merge code).
+- **Blocker** — The work is broken, dangerous, or materially wrong. You must
+  fix it before you advance (approve the spec, advance status, merge code).
 - **High** — A correctness or clarity problem. If you ship it, it causes
   rework, confusion, or bugs downstream. Fix it before you advance.
 - **Medium** — A real quality or consistency issue. It is worth a fix now

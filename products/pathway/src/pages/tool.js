@@ -38,7 +38,7 @@ export function renderToolsList() {
       createBadge(`${totalCount} tools`, "default"),
     ),
 
-    // Tools list using standard card grid
+    // Tools list with the standard card grid
     createCardList(
       tools,
       (tool) => toolToCardConfig(tool, data.capabilities),

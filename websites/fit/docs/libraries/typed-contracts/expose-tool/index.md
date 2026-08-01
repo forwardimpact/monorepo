@@ -24,8 +24,8 @@ For the full workflow that sets up typed service contracts from scratch, see
 npm install @forwardimpact/libmcp @forwardimpact/libtype
 ```
 
-- You already defined the proto method you want to expose in a `.proto` file,
-  and the corresponding service implements it
+- The proto method you want to expose already exists in a `.proto` file, and
+  the corresponding service implements it
 
 ## Overview
 
@@ -109,10 +109,10 @@ If the tool does not appear, check:
 
 1. The `method` path in `config.json` matches the proto definition exactly
    (package, service, and method names are case-sensitive)
-2. You ran codegen after you last changed the proto file
-3. You pass the gRPC client for the method's package to
-   `registerToolsFromConfig` (the MCP server must create a client for each
-   package it uses)
+2. Codegen ran after the last change to the proto file
+3. The `registerToolsFromConfig` call receives the gRPC client for the
+   method's package (the MCP server must create a client for each package it
+   uses)
 
 ## How `libmcp` derives parameters
 
@@ -205,9 +205,9 @@ identifier in the error message against your proto file.
       the proto definition
 - [ ] Description is a single sentence that helps agents decide when to use the
       tool
-- [ ] You ran codegen after you added or changed the proto method
+- [ ] Codegen ran after you added or changed the proto method
 - [ ] The tool key appears under `service.mcp.tools` in `config/config.json`,
-      and the MCP server's `tools/list` response includes it
+      and the `tools/list` response includes it while the MCP server runs
 - [ ] Proto field comments describe each parameter well enough that agents do
       not need to read the proto file
 

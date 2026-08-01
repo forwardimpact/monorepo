@@ -92,7 +92,7 @@ directly into a planning document or a VP-facing slide.
 ## Compare against the organization to rule out drift
 
 A driver score can rise across a window because the organization as a whole
-moved. The initiative then did not cause the rise. Use `snapshot compare` to
+moved. The initiative can have no part in that rise. Use `snapshot compare` to
 check whether the change is specific to your team:
 
 ```sh
@@ -157,7 +157,7 @@ For each initiative, write one of three verdicts grounded in what you saw:
   voice does not corroborate. Surface both the score change and the caveats.
 - **Did not land.** The driver did not move across the completion window. Or
   it moved within the prior quarter's range of variation. Engineer voice also
-  does not align. Recommend a redesign before anyone renews the spend.
+  does not align. Recommend no renewal of the spend without a redesign.
 
 The VP-facing version of each verdict is two sentences. The first names the
 initiative and its intended driver. The second gives the observed change and

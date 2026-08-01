@@ -41,7 +41,8 @@ alongside the skill-specific rules below.
       ([work-trackers.md](../../agents/x-work-trackers.md);
       [§ Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create)).
 - [ ] Read the full spec and all plan files before you write any code.
-- [ ] Implement plan-a unless someone directs you to a different variant.
+- [ ] Implement plan-a unless someone explicitly directs you to a different
+      variant.
 - [ ] Implement only what the plan describes. Add no unrequested refactors,
       features, or cleanup.
 - [ ] Verify the current codebase matches the plan's assumptions before each

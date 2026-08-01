@@ -1,6 +1,6 @@
 ---
 title: Look Up Context Fast
-description: Retrieve exactly the context you need from a JSONL-backed index. Prefix, limit, and token-budget filters keep the whole corpus out of memory.
+description: Retrieve exactly the context you need from a JSONL-backed index. Prefix, limit, and token-budget filters give you a subset. You do not load everything into memory.
 ---
 
 You need to find resources in an index that grows. Structural properties like

@@ -6,11 +6,11 @@
 //   bun pkg/build.js                    Compile the Swift launcher
 //   bun pkg/build.js --launcher         Compile the Swift launcher only
 //
-// The fit-outpost scheduler binary is produced by the shared
-// `just build-binary fit-outpost`. The .app bundle and .pkg installer are
-// assembled by the release workflow via `just build-app outpost` and
-// `pkg/macos/build-pkg.sh` against the canonical dist/apps/fit-outpost.app —
-// this script only compiles the launcher they consume.
+// The shared `just build-binary fit-outpost` produces the fit-outpost
+// scheduler binary. The release workflow assembles the .app bundle and the
+// .pkg installer. It runs `just build-app outpost` and
+// `pkg/macos/build-pkg.sh` against the canonical dist/apps/fit-outpost.app.
+// This script only compiles the launcher they consume.
 
 import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -50,22 +50,23 @@ function compileLauncher() {
   const buildDir = join(LAUNCHER_DIR, ".build");
   rmSync(buildDir, { recursive: true, force: true });
 
-  // Determinism profile — produces a byte-identical Mach-O across rebuilds.
-  // (a) SWIFT_DETERMINISTIC_HASHING=1 — symbol-table/section order.
-  // (b) -file-prefix-map — DWARF absolute-path scrubbing.
-  //     -no-clang-module-breadcrumbs — strips clang-module debug
+  // Determinism profile. It produces a byte-identical Mach-O across rebuilds.
+  // (a) SWIFT_DETERMINISTIC_HASHING=1 — fixes symbol-table and section order.
+  // (b) -file-prefix-map — scrubs absolute paths out of DWARF.
+  //     -no-clang-module-breadcrumbs — strips the clang-module debug
   //     paths Swift modules can pull alongside DWARF.
-  //     -gnone — last-resort drop of DWARF debug info entirely;
-  //     without it, timestamp-shaped 4-byte writes leak into
+  //     -gnone — drops DWARF debug info entirely as a last resort.
+  //     Without it, timestamp-shaped 4-byte writes leak into
   //     Contents/MacOS/Outpost.
   //
-  // LC_UUID is intentionally left in place. dyld on macOS 26+ aborts a
-  // main executable that has no LC_UUID ("missing LC_UUID load command"),
-  // so stripping it with `-Xlinker -no_uuid` makes the app fail to launch.
-  // ld-prime derives LC_UUID from a content hash, so with (a)/(b) holding
-  // the linked content byte-stable the UUID is already deterministic — two
-  // builds of the same tree yield a byte-identical Mach-O (verified), so
-  // dropping the flag preserves the cdhash determinism the brew lane needs.
+  // The build intentionally keeps LC_UUID in place. dyld on macOS 26+ aborts
+  // a main executable that has no LC_UUID ("missing LC_UUID load command").
+  // So if you strip it with `-Xlinker -no_uuid`, the app fails to launch.
+  // ld-prime derives LC_UUID from a content hash. Steps (a) and (b) hold the
+  // linked content byte-stable, so the UUID is already deterministic. Two
+  // builds of the same tree yield a byte-identical Mach-O (verified). So the
+  // build can drop the flag and still keep the cdhash determinism the brew
+  // lane needs.
   const swiftCmd = [
     "swift build -c release",
     "-Xswiftc -no-clang-module-breadcrumbs",
@@ -91,8 +92,8 @@ function compileLauncher() {
 // CLI
 // ---------------------------------------------------------------------------
 
-// The only build step this script owns is the Swift launcher. With no flags or
-// with --launcher it compiles the launcher; there are no other steps.
+// The only build step this script owns is the Swift launcher. It compiles the
+// launcher with no flags or with --launcher. There are no other steps.
 console.log(`Outpost Build (v${VERSION})`);
 console.log("==========================");
 compileLauncher();

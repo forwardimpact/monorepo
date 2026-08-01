@@ -1,7 +1,7 @@
 /**
  * Track presentation helpers
  *
- * Shared utilities for formatting track data across DOM and markdown outputs.
+ * Shared utilities that format track data across DOM and markdown outputs.
  */
 
 import {
@@ -28,7 +28,7 @@ export function sortTracksByName(tracks) {
  */
 
 /**
- * Transform tracks for list view
+ * Transform tracks for the list view
  * @param {Array} tracks - Raw track entities
  * @param {number} [descriptionLimit=120] - Maximum description length
  * @returns {{ items: TrackListItem[] }}
@@ -73,7 +73,7 @@ export function prepareTracksList(tracks, descriptionLimit = 120) {
  */
 
 /**
- * Transform track for detail view
+ * Transform a track for the detail view
  * @param {Object} track - Raw track entity
  * @param {Object} context - Additional context
  * @param {Array} context.skills - All skills

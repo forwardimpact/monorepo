@@ -1,6 +1,6 @@
 ---
 name: upstream-instructions
-description: Track changes to this installation's instruction files: the root CLAUDE.md, agent profiles, and skills. Record them in a single root CHANGELOG.md so you can contribute improvements back to the upstream monorepo. Use when someone modified, added, or removed CLAUDE.md, agents, or skills locally and those changes need documentation for upstream.
+description: Track changes to this installation's instruction files: the root CLAUDE.md, agent profiles, and skills. Record them in a single root CHANGELOG.md so you can contribute improvements back to the upstream monorepo. Use when someone modified, added, or removed CLAUDE.md, agents, or skills locally and you should document those changes for upstream.
 ---
 
 # Upstream Instructions
@@ -47,8 +47,8 @@ Track changes to this installation's **instructions**. Record them in one root
 - [ ] Give each entry **What**, **Why**, and **Details**.
 - [ ] Make each description specific enough for an upstream maintainer to act
       on. Never write "updated CLAUDE.md" or "fixed stuff".
-- [ ] Describe the purpose of each new skill or agent. Explain why you removed
-      each deleted one.
+- [ ] Briefly describe the purpose of each new skill or agent. Explain why you
+      removed each deleted one.
 - [ ] Use the real date of the change. Never guess a date.
 - [ ] Write no duplicate entry for the same change.
 
@@ -70,8 +70,8 @@ session**. Recall every edit, addition, removal, and rename you made to
 `CLAUDE.md`, `.claude/agents/`, and `.claude/skills/` during the current
 conversation. List them per surface.
 
-Use `CHANGELOG.md` only to see what you already recorded. Then you do not
-duplicate an existing entry. If something clearly changed but you cannot
+Use `CHANGELOG.md` only to see what it already records. Do not duplicate an
+existing entry. If something clearly changed but you cannot
 reconstruct what or why from the session, flag it for review. Do not guess.
 
 ### 3. Classify each change

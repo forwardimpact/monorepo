@@ -81,8 +81,8 @@ export function renderIntroStep(data, assessmentState) {
       h2({}, "Welcome to the Self-Assessment"),
       p(
         {},
-        "This assessment helps you understand your current skill proficiencies and behaviours, " +
-          "then matches you with suitable roles in the organization.",
+        "This assessment helps you understand your current skill proficiencies and behaviours. " +
+          "Then it matches you with suitable roles in the organization.",
       ),
 
       div(
@@ -146,7 +146,7 @@ export function renderIntroStep(data, assessmentState) {
           createTipCard(
             "🎯",
             "Be Honest",
-            "Rate yourself where you genuinely are, not where you aspire to be.",
+            "Rate yourself where you genuinely are. Do not rate where you aspire to be.",
           ),
           createTipCard(
             "📚",
@@ -161,7 +161,7 @@ export function renderIntroStep(data, assessmentState) {
           createTipCard(
             "💾",
             "Auto-Saved",
-            "Your progress is kept while you navigate between steps.",
+            "The page keeps your progress while you navigate between steps.",
           ),
         ),
       ),
@@ -294,7 +294,7 @@ export function renderSkillsStep(
     selectedDiscipline &&
       div(
         { className: "discipline-context" },
-        span({}, `Showing relevance for: `),
+        span({}, `Relevance for: `),
         span(
           { className: "discipline-name" },
           selectedDiscipline.specialization,
@@ -400,8 +400,8 @@ export function renderBehavioursStep(step, data, assessmentState, rerender) {
 
     p(
       { className: "step-intro" },
-      "Behaviours describe how you approach work—your mindsets and ways of working. " +
-        "These are equally important as technical skills.",
+      "Behaviours describe how you approach work. They are your mindsets and ways of working. " +
+        "They are equally important as technical skills.",
     ),
 
     div(
@@ -414,7 +414,7 @@ export function renderBehavioursStep(step, data, assessmentState, rerender) {
 }
 
 /**
- * Render results preview before navigating to full results
+ * Render the results preview before the user goes to the full results
  * @param {Object} data - App data
  * @param {Object} assessmentState
  * @param {Function} calculateProgress
@@ -434,7 +434,7 @@ export function renderResultsPreview(data, assessmentState, calculateProgress) {
         p(
           {},
           "Please complete at least 20% of the assessment to see job matches. " +
-            `You've currently assessed ${skillCount} skills and ${behaviourCount} behaviours.`,
+            `You assessed ${skillCount} skills and ${behaviourCount} behaviours so far.`,
         ),
         div(
           { className: "progress-summary" },

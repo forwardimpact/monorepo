@@ -122,8 +122,8 @@ When the user says "work the annotations":
 2. For each `status: "open"` annotation, locate the text in the deck source:
    - Prefer `source.line` / `source.column` when present.
    - Otherwise search the source for `quote` (disambiguate with `prefix` /
-     `suffix`, scoped to `slideId`). The quote is the raw DOM text, so it
-     matches the source even across inline tags / entities.
+     `suffix`, scoped to `slideId`). The quote is the underlying DOM text, so
+     it matches the source even across inline tags / entities.
 3. Make the edit. Honor the user's `note`.
 4. Optionally set the annotation's `status` to `"done"` in the JSON so the panel
    shows it resolved.

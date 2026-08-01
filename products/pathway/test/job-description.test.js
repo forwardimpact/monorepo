@@ -3,8 +3,8 @@ import assert from "node:assert";
 
 import { formatJobDescription } from "../src/formatters/job/description.js";
 
-// Minimal template that renders only the capability skill sections, enough to
-// assert which proficiency levels reach the job description.
+// This minimal template renders only the capability skill sections. It is
+// enough to assert which proficiency levels reach the job description.
 const TEMPLATE = [
   "{{#capabilitySkills}}",
   "## {{capabilityHeading}}",
@@ -16,7 +16,7 @@ const TEMPLATE = [
 const LEVEL = { id: "J070", typicalExperienceRange: "8+ years" };
 
 /**
- * Build a job with capabilities spread across three descending proficiencies.
+ * Build a job whose capabilities cover three proficiencies, highest to lowest.
  * @returns {Object}
  */
 function makeJob() {

@@ -4,7 +4,7 @@ GitHub composite action that runs a [`gemba-wiki`](https://github.com/forwardimp
 agent-memory command in CI.
 
 Long agent jobs outlive the one-hour lifetime of the GitHub App installation
-token minted at job start. So a push of the wiki during cleanup fails
+token minted at job start. So a cleanup step that pushes the wiki back fails
 authentication. This action mints a **fresh** installation token immediately
 before it runs the command. It runs as an ordinary `always()` step after the
 agent. It flushes memory reliably, whatever the run length or outcome.

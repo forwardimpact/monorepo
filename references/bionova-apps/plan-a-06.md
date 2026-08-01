@@ -208,7 +208,7 @@ Created: `products/polaris/cli/src/repl.js`
 Per librepl's real API (verified against
 `libraries/librepl/src/index.js:268,316`):
 
-- Type `/<command>` to invoke a command. The leading slash is mandatory.
+- Type `/<command>` to invoke a command. The leading slash is required.
   Bare input falls through to the `onLine` handler.
 - Commands are objects shaped `{ usage, handler, type? }`. The handler
   signature is `(args: string[], state) => Promise<string|false>`.

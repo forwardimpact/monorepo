@@ -135,7 +135,7 @@ Required: `--to`, `--subject`, `--body` (plain text). Optional: `--cc`, `--bcc`,
 `--draft`. With `--draft`, the script deletes the draft file. It also appends
 the email ID to `Drafts/handled` automatically.
 
-### 8. Mark handled without a send
+### 8. Mark handled and do not send
 
 When other channels resolve a thread:
 

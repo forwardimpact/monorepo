@@ -120,7 +120,7 @@ PR-review work is high-priority, but it displaces canonical topic rotation.
 Check this skill's recent metrics rows. After PR review displaces two
 consecutive runs, reserve the next run for topic rotation. Skip that
 reservation if a critical vulnerability is open, or if `main` CI is red. Then
-handle the safety issue first. Defer rotation to the next run.
+handle the safety issue first. Defer rotation to the following run.
 
 ### Step 2: Audit the Topic
 
@@ -153,7 +153,7 @@ Append to the current week's log (see agent profile for the file path):
 - Policy violations you found, and whether you fixed or spec'd them
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
-  eligibility rule.
+  recording-eligibility rule.
 
 ## Coordination Channels
 

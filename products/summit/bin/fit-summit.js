@@ -97,7 +97,7 @@ const definition = {
       name: "what-if",
       args: "<team>",
       description:
-        "Simulate roster changes (the team is the source for --move, otherwise the target team for the diff)",
+        "Simulate roster changes. The team is the source for --move. Otherwise the team is the target for the diff.",
       options: {
         add: { type: "string", description: "Add a hypothetical person" },
         remove: { type: "string", description: "Remove a team member" },
@@ -109,7 +109,7 @@ const definition = {
         to: {
           type: "string",
           description:
-            "Destination team for --move (receives the member); the diff covers both teams",
+            "Destination team for --move (receives the member). The diff covers both teams.",
         },
         promote: {
           type: "string",

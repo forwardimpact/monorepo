@@ -250,7 +250,7 @@ function formatQuestionDetail(lines, q) {
   }
   appendLabelledList(lines, "Steer the simulation", q.simulationPrompts);
   appendLabelledList(lines, "Guide candidate thinking", q.decompositionPrompts);
-  appendLabelledList(lines, "Looking for", q.lookingFor);
+  appendLabelledList(lines, "What to look for", q.lookingFor);
   appendLabelledList(lines, "Follow-ups", q.followUps, "→");
   lines.push("");
 }
@@ -299,7 +299,7 @@ function formatSingleSource(view) {
  * @param {Object} view - Questions view from prepareQuestionsView
  * @param {Object} options - Format options
  * @param {boolean} options.stats - Stats only
- * @param {Array} options.skills - Skills data for name resolution
+ * @param {Array} options.skills - Skills data to resolve names
  * @returns {string}
  */
 export function questionsToMarkdown(view, options = {}) {

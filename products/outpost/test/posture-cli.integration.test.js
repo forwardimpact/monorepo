@@ -1,13 +1,15 @@
 /**
  * Posture CLI behaviour, end to end. `run()` derives `OUTPOST_HOME` from
- * `homedir()`, which Node resolves from `$HOME` at process startup (and caches),
- * so the only portable way to point it at a sandbox is to spawn the bin with
- * `HOME` set in the child's env. This covers `init`'s default recording, the
- * `posture` set/show affordance, and `status` observability of the recorded
- * posture — none of which `outpost-cli.test.js` (parser-only) can reach.
+ * `homedir()`. Node resolves `homedir()` from `$HOME` at process startup and
+ * then caches it. So the only portable way to point it at a sandbox is to
+ * spawn the bin with `HOME` set in the child's env. These tests cover how
+ * `init` records the default, the `posture` set/show affordance, and how
+ * `status` shows the recorded posture. `outpost-cli.test.js` parses only, so
+ * it reaches none of these.
  *
- * Subprocess use is intentional and confined to this `*.integration.test.js`
- * file (whole-file exempt from check-subprocess-in-tests).
+ * These tests use a subprocess on purpose. They keep that use inside this
+ * `*.integration.test.js` file. The whole file is exempt from
+ * check-subprocess-in-tests.
  */
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
@@ -35,7 +37,7 @@ describe("fit-outpost posture CLI (subprocess integration)", () => {
   });
   afterEach(() => rmSync(home, { recursive: true, force: true }));
 
-  /** The `posture:` line from a `status` invocation. */
+  /** The `posture:` line that a `status` run prints. */
   function postureLine(home) {
     const r = runCli(["status"], home);
     return r.stdout.split("\n").find((l) => l.startsWith("posture:"));
@@ -55,7 +57,7 @@ describe("fit-outpost posture CLI (subprocess integration)", () => {
     assert.match(postureLine(home), /^posture: brief$/);
   });
 
-  test("posture <value> records and round-trips via status", () => {
+  test("posture <value> records and round-trips through status", () => {
     const r = runCli(["posture", "brief+draft"], home);
     assert.strictEqual(r.status, 0, r.stderr);
     assert.match(postureLine(home), /^posture: brief\+draft$/);

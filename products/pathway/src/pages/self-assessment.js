@@ -176,7 +176,7 @@ export function renderSelfAssessment() {
       h1({ className: "page-title" }, "Self-Assessment"),
       p(
         { className: "page-description" },
-        "Assess your skills and behaviours to find matching roles and identify development opportunities.",
+        "Assess your skills and behaviours to find the roles that match. Identify where you can develop.",
       ),
     ),
     createProgressBar(data, steps, currentStep),

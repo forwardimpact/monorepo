@@ -1,7 +1,7 @@
 /**
  * Questions YAML Formatter
  *
- * Formats questions as YAML for export and bulk editing.
+ * Formats questions as YAML for export and bulk edits.
  */
 
 import { stringify } from "yaml";

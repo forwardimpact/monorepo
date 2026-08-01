@@ -1,8 +1,8 @@
 # Check workflows
 
 Copy-paste CI for [monorepo-setup](../SKILL.md) Step 5. These check workflows
-run on push and on pull request. Use one workflow per concern. Never use one
-`check.yml`. A failed format run and a failed test run must read as two
+run on push and on pull request. Use one workflow per concern. Never use a
+single `check.yml`. A failed format run and a failed test run must read as two
 distinct red checks. Add concerns (build, data, security) as the repo grows.
 
 All workflows share the same trigger and least-privilege permission. Pin every

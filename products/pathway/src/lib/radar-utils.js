@@ -48,7 +48,7 @@ export function wrapLabel(text, maxCharsPerLine) {
 }
 
 /**
- * Get text anchor based on angle
+ * Get the text anchor for an angle
  * @param {number} angle
  * @returns {string}
  */
@@ -60,7 +60,7 @@ export function getTextAnchor(angle) {
 }
 
 /**
- * Create an SVG element with standard radar chart dimensions
+ * Create an SVG element with the standard dimensions for a radar chart
  * @param {number} size
  * @param {string[]} [extraClasses]
  * @returns {SVGElement}

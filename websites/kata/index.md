@@ -31,7 +31,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Simplicity</div>
       <h2 class="section-headline">Agent teams fail when they get complicated.</h2>
-      <p class="section-body">Most agent setups drown in infrastructure, toolchains that sprawl, and unauditable prompt chains. Kata takes the opposite path of radical simplicity. It gives you everything you need and nothing more.</p>
+      <p class="section-body">Most agent setups drown in infrastructure, toolchains that sprawl, and unauditable prompt chains. Kata takes the opposite path. That path is radical simplicity. It gives you everything you need and nothing more.</p>
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
@@ -135,7 +135,7 @@ layout: home
         <span class="agent-icon">&#x1f9f9;</span>
         <div class="agent-name">DevEx Engineer</div>
         <div class="agent-phase">Do &middot; Study &middot; Act</div>
-        <p class="agent-desc">Audits codebase health, reviews maintainability, and clears debt. Does not change behavior.</p>
+        <p class="agent-desc">Audits codebase health, reviews maintainability, and clears debt with no change to behavior.</p>
       </div>
       <div class="agent-card stagger-item">
         <span class="agent-icon">&#x1f4cb;</span>
@@ -179,7 +179,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Surfaces</div>
       <h2 class="section-headline">Same agents. Every surface.</h2>
-      <p class="section-body">The same profiles and skills operate identically. Your IDE, a cron schedule, a GitHub event, or a bridged message can trigger them.</p>
+      <p class="section-body">Your IDE, a cron schedule, a GitHub event, or a bridged message triggers the same profiles and skills. They operate identically in each case.</p>
     </div>
     <div class="surfaces-grid stagger">
       <div class="surface-item stagger-item">

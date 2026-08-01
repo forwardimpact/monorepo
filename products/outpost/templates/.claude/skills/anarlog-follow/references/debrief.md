@@ -51,7 +51,7 @@ Reference for `anarlog-follow` Phase 4 (Steps 12–13).
 
 ## Next-step offers (Step 14)
 
-After the debrief, **offer** logical follow-ups. Do not ask for permission:
+After the debrief, **offer** (don't ask) logical follow-ups:
 
 - **Interviews:** "I can run `req-assess` on this transcript when Anarlog
   finishes processing."

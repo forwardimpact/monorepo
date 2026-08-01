@@ -4,7 +4,7 @@
  *
  * Chromium stores IndexedDB data in LevelDB with a specific key encoding
  * (database ID, object store ID) and V8-serialized values wrapped in a Blink
- * envelope. This module handles the key parsing and value deserialization.
+ * envelope. This module parses the keys and deserializes the values.
  *
  * Exports: readIndexedDb(dir) → { conversations: Map, messages: Map }
  */
@@ -32,18 +32,18 @@ function readIdbVarint(buf, offset) {
 }
 
 // Highest V8 serialization wire-format version Node's bundled v8.deserialize
-// accepts. Newer Teams/WebView2 builds write version 16, which Node rejects
-// outright even though the payload itself is wire-compatible. We patch the
-// version byte down to this value before deserializing. Bump if Node's V8
-// starts emitting/accepting a higher version natively.
+// accepts. Newer Teams/WebView2 builds write version 16. Node rejects it
+// outright, even though the payload itself is wire-compatible. We patch the
+// version byte down to this value before we deserialize. Bump this value when
+// Node's V8 emits or accepts a higher version natively.
 const V8_MAX_SUPPORTED_VERSION = 15;
 
 // Plausible V8 top-level value tags that immediately follow the
-// [0xFF <version>] header. Used to locate the real V8 payload start inside the
-// Blink envelope without relying on a fixed byte offset (newer envelopes carry
-// a 0xFE trailer that shifts the payload further in). We only ever ACT on a
-// candidate by attempting a deserialize, which validates it — so a stray match
-// just gets skipped.
+// [0xFF <version>] header. The reader uses them to locate where the real V8
+// payload starts inside the Blink envelope. It does not depend on a fixed byte
+// offset (newer envelopes carry a 0xFE trailer that shifts the payload further
+// in). We only ever ACT on a candidate when we try to deserialize it. That
+// call validates the candidate, so the code skips a stray match.
 const V8_TOP_LEVEL_TAGS = new Set([
   0x6f, // 'o' begin JS object
   0x22, // '"' one-byte string
@@ -62,16 +62,17 @@ const V8_TOP_LEVEL_TAGS = new Set([
   0x30, // '0' null
 ]);
 
-// Only the Blink envelope precedes the V8 payload, and it is always small.
-// Scanning a generous prefix keeps non-message records (which never decode)
-// cheap while comfortably covering every real envelope/trailer layout.
+// Only the Blink envelope precedes the V8 payload. The envelope is always
+// small. A scan over a generous prefix keeps non-message records (which never
+// decode) cheap. It also covers every real envelope/trailer layout comfortably.
 const V8_START_SCAN_LIMIT = 256;
 
 /**
- * Deserialize the V8 payload starting at `off`. Tries the bytes as-is first,
- * then — for records whose version byte is newer than Node supports — retries
- * with the version patched down. The wire format is backward-compatible, so a
- * supported version reads the newer payload correctly.
+ * Deserialize the V8 payload that starts at `off`. Tries the bytes as-is
+ * first. For a record whose version byte is newer than Node supports, it then
+ * retries with the version patched down. The wire format is
+ * backward-compatible, so a supported version reads the newer payload
+ * correctly.
  */
 function deserializeAt(rawValue, off) {
   try {
@@ -99,9 +100,9 @@ function deserializeAt(rawValue, off) {
  * Try to deserialize a Chromium IndexedDB value.
  *
  * Values have a Blink envelope (and, in newer WebView2 builds, a 0xFE trailer)
- * before the V8 payload. Locate the payload by scanning for a [0xFF <version>
- * <top-level tag>] header, then decode it — patching the version byte down for
- * records written with a V8 wire version newer than Node accepts.
+ * before the V8 payload. Scan for a [0xFF <version> <top-level tag>] header to
+ * locate the payload. Then decode it. For a record written with a V8 wire
+ * version newer than Node accepts, patch the version byte down first.
  */
 function tryDeserialize(rawValue) {
   if (!rawValue || rawValue.length < 4) return null;
@@ -141,7 +142,7 @@ function _parseKeyPrefix(key) {
  */
 export function readIndexedDb(dir) {
   // Use Maps so later entries (from newer .ldb files) overwrite older ones.
-  // LevelDB reads files in ascending order — newer compactions have higher
+  // LevelDB reads files in ascending order. Newer compactions have higher
   // numbers, so the last write for a given key is the most current.
   const convMap = new Map();
   const msgMap = new Map();

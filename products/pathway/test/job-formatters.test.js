@@ -6,7 +6,7 @@ import { jobToMarkdown } from "../src/formatters/job/markdown.js";
 import { createJobHeader } from "../src/formatters/job/dom.js";
 
 /**
- * Build a minimal job detail view as produced by prepareJobDetail
+ * Build a minimal job detail view in the shape that prepareJobDetail produces
  * @param {Object} overrides - Fields to override on the base view
  * @returns {Object}
  */
@@ -30,13 +30,13 @@ function makeView(overrides = {}) {
 }
 
 describe("jobToMarkdown heading", () => {
-  test("omits track segment when no track is given", () => {
+  test("omits the track segment when the view has no track", () => {
     const output = jobToMarkdown(makeView());
     assert.ok(output.includes("Software Engineering × J060\n"));
     assert.ok(!output.includes("null"));
   });
 
-  test("includes track segment when a track is given", () => {
+  test("includes the track segment when the view has a track", () => {
     const output = jobToMarkdown(
       makeView({ trackId: "platform", trackName: "Platform" }),
     );
@@ -54,8 +54,8 @@ describe("createJobHeader breadcrumb", () => {
     win = new Window({ url: "http://localhost/" });
     globalThis.window = win;
     globalThis.document = win.document;
-    // libui's render helpers branch on `instanceof HTMLElement`; expose it so
-    // element children created via `div(...)`/`a(...)` are recognised.
+    // libui's render helpers branch on `instanceof HTMLElement`. Expose it so
+    // they recognise element children that `div(...)`/`a(...)` create.
     globalThis.HTMLElement = win.HTMLElement;
   });
 
@@ -66,7 +66,7 @@ describe("createJobHeader breadcrumb", () => {
   });
 
   /**
-   * Find the first descendant matching a predicate (depth-first).
+   * Find the first descendant that matches a predicate (depth-first).
    * happy-dom's querySelector is unreliable under bun, so walk manually.
    * @param {HTMLElement} el - Root element
    * @param {Function} predicate - Match test for each element
@@ -98,7 +98,7 @@ describe("createJobHeader breadcrumb", () => {
     return { description, hrefs };
   }
 
-  test("omits track link when no track is given", () => {
+  test("omits the track link when the view has no track", () => {
     const header = createJobHeader(makeView(), false);
     const { description, hrefs } = descriptionLinks(header);
     assert.ok(!description.textContent.includes("null"));
@@ -107,7 +107,7 @@ describe("createJobHeader breadcrumb", () => {
     assert.ok(!description.textContent.includes("J060 ×"));
   });
 
-  test("links the track when a track is given", () => {
+  test("links the track when the view has a track", () => {
     const header = createJobHeader(
       makeView({ trackId: "platform", trackName: "Platform" }),
       false,

@@ -1,7 +1,8 @@
 /**
  * Slide View Main Entry Point
  *
- * Initializes the slide viewer application with routing and data loading.
+ * Initializes the slide viewer application. Sets up the routes and loads the
+ * data.
  */
 
 import { createSlideRouter } from "./lib/router-slides.js";
@@ -160,7 +161,7 @@ function setupRoutes() {
     renderTrackSlide({ render: renderSlide, data: getState().data, params });
   });
 
-  // Jobs - new format: discipline/level/track (track optional)
+  // Jobs in the new format: discipline/level/track (track optional)
   router.on("/job/:discipline/:level/:track", (params) => {
     renderJobSlide({ render: renderSlide, data: getState().data, params });
   });
@@ -173,7 +174,7 @@ function setupRoutes() {
     });
   });
 
-  // Interviews - new format: discipline/level/track (track optional)
+  // Interviews in the new format: discipline/level/track (track optional)
   router.on("/interview/:discipline/:level/:track", (params) => {
     renderInterviewSlide({
       render: renderSlide,
@@ -190,7 +191,7 @@ function setupRoutes() {
     });
   });
 
-  // Progress - new format: discipline/level/track (track optional)
+  // Progress in the new format: discipline/level/track (track optional)
   router.on("/progress/:discipline/:level/:track", (params) => {
     renderProgressSlide({ render: renderSlide, data: getState().data, params });
   });
@@ -292,7 +293,7 @@ function updateNavUI() {
 }
 
 /**
- * Set up navigation UI event handlers
+ * Set up the event handlers for the navigation UI
  */
 function setupNavUI() {
   const prevBtn = document.getElementById("prev-slide");
@@ -318,7 +319,7 @@ function setupNavUI() {
 }
 
 /**
- * Populate the page brand header with standard title and hashtag
+ * Populate the page brand header with the standard title and the hashtag
  * @param {Object} standard - Standard data from YAML
  */
 function populateBrandHeader(standard) {
@@ -369,7 +370,7 @@ async function init() {
     // Start router
     router.start();
   } catch (error) {
-    console.error("Failed to initialize slide viewer:", error);
+    console.error("Failed to initialize the slide viewer:", error);
     renderError("Initialization Error", error.message);
   }
 }

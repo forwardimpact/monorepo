@@ -2,7 +2,7 @@
 
 When you evaluate SHA pinning (Policy Check 2), verify the PR updates **all**
 workflow files and composite actions that reference the action. Derive the
-inventory live. Never rely on a remembered or written-down inventory.
+inventory live. Never rely on a remembered or written-down mapping.
 
 ## Derive the Inventory
 

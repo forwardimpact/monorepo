@@ -1,5 +1,5 @@
 /**
- * Modifier table component for displaying skill/behaviour modifiers
+ * Modifier table component that displays skill/behaviour modifiers
  */
 
 import {
@@ -16,7 +16,7 @@ import {
 import { createBadge } from "./card.js";
 
 /**
- * Create a modifier badge based on value
+ * Create a modifier badge from the modifier value
  * @param {number} modifier - The modifier value
  * @returns {HTMLElement}
  */
@@ -30,7 +30,7 @@ function createModifierBadge(modifier) {
 }
 
 /**
- * Create a table displaying modifiers for skills or behaviours
+ * Create a table that displays modifiers for skills or behaviours
  * @param {Object} options - Configuration options
  * @param {Array} options.modifiers - Array of {id, name, modifier} objects
  * @param {string} options.basePath - Base path for links (e.g., '/skill', '/behaviour')
@@ -84,7 +84,7 @@ export function createSkillModifierTable(modifiers) {
 
 /**
  * Create a skill modifiers table with capability support
- * Used for tracks which can have capability-level modifiers with nested skill links
+ * Use it for tracks that can have capability-level modifiers with nested skill links
  * @param {Array} modifiers - Array of {id, name, modifier, isCapability?, skills?} objects
  * @returns {HTMLElement}
  */

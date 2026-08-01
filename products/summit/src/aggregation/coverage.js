@@ -3,10 +3,10 @@
  *
  * Every analytical command in Summit reduces to "compute TeamCoverage,
  * then transform/diff/rank the result". This module is the single
- * place where a team's collective skill profile is constructed.
+ * place that builds a team's collective skill profile.
  *
- * All functions are pure — no I/O, no logging, no formatters. The
- * command layer is responsible for loading data and rendering output.
+ * All functions are pure. They have no I/O, no logs, and no
+ * formatters. The command layer loads the data and renders the output.
  */
 
 import { deriveSkillMatrix } from "@forwardimpact/libskill/derivation";
@@ -227,8 +227,8 @@ function accumulateMember(skills, member) {
  * Compute per-capability coverage from per-skill coverage.
  *
  * A capability's `depth` is the count of its skills where
- * `headcountDepth >= 1`, per the spec's "at least one skill at
- * working+" framing.
+ * `headcountDepth >= 1`. This matches the spec's rule of "at least one
+ * skill at working+".
  */
 function buildCapabilityCoverage(skills, data) {
   const capabilities = new Map();

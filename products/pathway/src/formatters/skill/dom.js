@@ -1,5 +1,5 @@
 /**
- * Skill formatting for DOM output
+ * Skill formatter for DOM output
  */
 
 import {
@@ -138,7 +138,7 @@ function createRelationsSection(view, showBackLink) {
   );
 }
 
-/** Build a skill detail page DOM tree with proficiency-level descriptions, related disciplines, track modifiers, required tools, and agent content. */
+/** Build the DOM tree for a skill detail page. It shows proficiency-level descriptions, related disciplines, track modifiers, required tools, and agent content. */
 export function skillToDOM(
   skill,
   {
@@ -180,7 +180,7 @@ export function skillToDOM(
           ? span(
               {
                 className: "badge badge-human-only",
-                title: "Requires interpersonal skills; excluded from agents",
+                title: "Requires interpersonal skills. Excluded from agents",
               },
               "🤲 Human-Only",
             )

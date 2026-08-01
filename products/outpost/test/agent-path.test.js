@@ -1,5 +1,6 @@
 /**
- * agent-path unit tests — agent name → state-prefix validation.
+ * agent-path unit tests. They cover how the code validates an agent name and
+ * turns it into a state prefix.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";

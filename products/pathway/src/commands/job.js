@@ -119,7 +119,7 @@ function printJobSummary(filteredJobs, options, runtime) {
 }
 
 /**
- * Validate and exit when a single positional arg is provided
+ * Validate and exit when the user gives a single positional arg
  * @param {string} arg
  * @param {Object} data
  */
@@ -137,7 +137,7 @@ function handleSingleArg(arg, data, runtime) {
     );
   } else if (isTrack) {
     runtime.proc.stderr.write(
-      formatError(`Track must be passed as a flag: --track=${arg}`) + "\n",
+      formatError(`Pass the track as a flag: --track=${arg}`) + "\n",
     );
     runtime.proc.stderr.write(
       `Usage: npx fit-pathway job <discipline> <level> --track=${arg}\n`,
@@ -187,7 +187,7 @@ function exitLevelNotFound(data, args, runtime) {
   if (isTrack) {
     runtime.proc.stderr.write(
       formatError(
-        "Track must be passed as a flag, not a positional argument:",
+        "Pass the track as a flag. Do not use a positional argument:",
       ) + "\n",
     );
     runtime.proc.stderr.write(
@@ -318,7 +318,11 @@ function reportInvalidCombination(discipline, level, track, data, runtime) {
   runtime.proc.exit(1);
 }
 
-/** Generate all job definitions and dispatch to summary table, list, detail, --skills list, --tools list, or JSON output depending on arguments and options. */
+/**
+ * Generate all job definitions. Dispatch to the summary table, the list, the
+ * detail view, the --skills list, the --tools list, or the JSON output. The
+ * arguments and the options select which one runs.
+ */
 export async function runJobCommand({
   data,
   args,

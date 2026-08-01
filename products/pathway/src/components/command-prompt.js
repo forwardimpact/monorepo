@@ -1,7 +1,7 @@
 /**
  * Command Prompt Component
  *
- * Reusable terminal-style command display with copy button.
+ * Reusable terminal-style command display with a copy button.
  * Shows a `$` prompt, monospace command text, and a copy-to-clipboard button.
  */
 
@@ -10,7 +10,7 @@ import { div, span, button } from "../lib/render.js";
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 /**
- * Create the copy icon SVG (two overlapping rectangles)
+ * Create the copy icon SVG (two rectangles that overlap)
  * @returns {SVGSVGElement}
  */
 function createCopyIcon() {
@@ -36,7 +36,7 @@ function createCopyIcon() {
 }
 
 /**
- * Copy text to clipboard with fallback for older browsers
+ * Copy text to the clipboard. Older browsers use the fallback.
  * @param {string} text
  * @param {HTMLButtonElement} btn
  */
@@ -63,7 +63,7 @@ async function copyToClipboard(text, btn) {
 }
 
 /**
- * Create a command prompt element with copy button
+ * Create a command prompt element with a copy button
  * @param {string} command - The command text to display
  * @returns {HTMLElement}
  */

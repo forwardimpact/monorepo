@@ -5,8 +5,8 @@ description: Agents answer relationship questions, look up context, and find rel
 
 You need agents that answer questions about relationships between entities. You
 also need them to look up context by identifier and to find related content by
-meaning. Right now, untyped files trap the knowledge, or retrieval needs an
-external search engine. Four libraries give you a self-contained knowledge
+meaning. Right now, untyped files trap the knowledge, or you need an external
+search engine to retrieve it. Four libraries give you a self-contained knowledge
 infrastructure that runs locally without external databases:
 `@forwardimpact/libresource`, `@forwardimpact/libgraph`,
 `@forwardimpact/libindex`, and `@forwardimpact/libvector`.
@@ -80,8 +80,9 @@ Every index shares this interface. You develop against the local filesystem.
 You deploy against S3 or Supabase when you set `STORAGE_TYPE`. The graph,
 vector, and resource indexes never know which backend they use. On the local
 backend, `put(key, data)` is a same-target atomic replace (write a sibling temp
-file, then `rename`). If a process stops mid-write, the target keeps its prior
-content or holds the new content. The target never holds a truncated prefix.
+file, then `rename`). If a process is killed mid-write, the target keeps its
+prior content or holds the new content. The target never holds a truncated
+prefix.
 
 Install it alongside the index libraries:
 

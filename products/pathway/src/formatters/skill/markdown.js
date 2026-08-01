@@ -1,5 +1,5 @@
 /**
- * Skill formatting for markdown/CLI output
+ * Skill formatter for markdown/CLI output
  */
 
 import { tableToMarkdown, capitalize, formatModifier } from "../shared.js";
@@ -122,7 +122,7 @@ export function skillToMarkdown(
   if (view.isHumanOnly) {
     lines.push(
       "",
-      "🤲 **Human-Only** — Requires interpersonal skills; excluded from agents",
+      "🤲 **Human-Only** — Requires interpersonal skills. Excluded from agents",
     );
   }
 

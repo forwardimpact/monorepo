@@ -13,8 +13,8 @@ set -euo pipefail
 SITE_URL="{{{siteUrl}}}"
 INSTALL_DIR="${HOME}/.fit/data/pathway"
 
-command -v node >/dev/null 2>&1 || { echo "Error: this installer needs Node.js 18+. https://nodejs.org"; exit 1; }
-command -v npm >/dev/null 2>&1 || { echo "Error: this installer needs npm. https://nodejs.org"; exit 1; }
+command -v node >/dev/null 2>&1 || { echo "Error: Node.js 18+ is required. https://nodejs.org"; exit 1; }
+command -v npm >/dev/null 2>&1 || { echo "Error: npm is required. https://nodejs.org"; exit 1; }
 
 # Install fit-pathway globally (provides the fit-pathway binary on PATH)
 echo "Installing @forwardimpact/pathway globally..."

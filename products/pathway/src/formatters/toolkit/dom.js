@@ -1,7 +1,7 @@
 /**
- * Toolkit formatting for DOM/web output
+ * Toolkit formatters for DOM/web output
  *
- * Displays a compact toolkit table showing tools with icons and descriptions.
+ * Display a compact toolkit table of tools with icons and descriptions.
  */
 
 import {

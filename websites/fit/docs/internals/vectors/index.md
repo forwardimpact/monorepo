@@ -73,12 +73,12 @@ bunx fit-rc status embedding       # Check status
 bunx fit-rc stop embedding         # Stop
 ```
 
-The config marks the service `optional`. So fit-rc skips it with a warning when
+The config marks the service `optional`. So fit-rc skips it with a warning if
 `text-embeddings-router` is not installed.
 
 The gRPC server listens on `SERVICE_EMBEDDING_URL` (default
 `grpc://localhost:3015`). TEI runs on an internal backend port (default 8090).
-Set that port with `SERVICE_EMBEDDING_BACKEND_PORT`.
+You can change that port with `SERVICE_EMBEDDING_BACKEND_PORT`.
 
 ### Docker
 
@@ -99,7 +99,7 @@ The endpoint returns 200 when TEI is ready to serve requests.
 
 ## Batch Processing
 
-Resources must exist before `fit-process` can generate vectors. The full
+Resources must exist before the vector processor can generate vectors. The full
 processing chain is:
 
 ```sh

@@ -1,15 +1,16 @@
 /**
- * agent-path — validate a config-supplied agent name before using it as a
+ * agent-path — validate a config-supplied agent name before you use it as a
  * filesystem path component.
  *
  * The agent-state writer maps an agent name to a per-agent state filename.
- * A name carrying `/` or `..` segments would let a rewritten `scheduler.json`
- * direct writes outside `~/.cache/fit/outpost/state/`. This module validates
- * and rejects rather than silently sanitising, so an unexpected path segment
- * surfaces as an intrusion signal instead of a quietly rewritten filename.
+ * A name that carries `/` or `..` segments would let a rewritten
+ * `scheduler.json` direct writes outside `~/.cache/fit/outpost/state/`. This
+ * module validates the name and rejects an unsafe one. It never sanitises the
+ * name silently. So an unexpected path segment surfaces as an intrusion
+ * signal. It does not become a quietly rewritten filename.
  */
 
-/** Raised when an agent name cannot map to a safe state-file prefix. */
+/** Signals an agent name that cannot map to a safe state-file prefix. */
 export class UnsafeAgentNameError extends Error {
   /** @param {string} name */
   constructor(name) {

@@ -76,7 +76,7 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 - Sans-serif stack:
   `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`
 
-**Fit the content:**
+**Content fit:**
 
 - After the first render, visually check every page for overflow
 - Content must not bleed past the `.page` boundary. If it does, reduce spacing

@@ -2,7 +2,7 @@
  * Checklist component
  *
  * Displays derived checklists grouped by capability.
- * Used on job pages to show handoff checklists.
+ * Job pages use it to show handoff checklists.
  */
 
 import { div, span, details, summary } from "../lib/render.js";

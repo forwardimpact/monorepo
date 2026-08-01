@@ -1,7 +1,7 @@
 /**
  * Public barrel for Summit's aggregation surface.
  *
- * Exports grow across parts — see plan-a.md "Data Model" for the
+ * Exports grow across parts. See plan-a.md "Data Model" for the
  * complete shape list.
  */
 

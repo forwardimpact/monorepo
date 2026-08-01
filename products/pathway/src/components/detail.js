@@ -1,8 +1,8 @@
 /**
  * Detail view components
  *
- * Re-exports generic components from @forwardimpact/libui/components/detail
- * and provides domain-specific level display components.
+ * Re-exports generic components from @forwardimpact/libui/components/detail.
+ * Also provides level display components for this domain.
  */
 
 export {
@@ -66,7 +66,7 @@ export function createLevelTable(descriptions, type = "skill") {
 }
 
 /**
- * Create level dots indicator
+ * Create a level dots indicator
  * @param {number} level - Current level (1-based)
  * @param {number} maxLevel - Maximum level
  * @returns {HTMLElement}
@@ -83,7 +83,7 @@ export function createLevelDots(level, maxLevel) {
 }
 
 /**
- * Create a level cell with dots and label
+ * Create a level cell with dots and a label
  * @param {number} levelIndex - Current level (1-based index)
  * @param {number} maxLevels - Maximum levels
  * @param {string} levelName - Level name to display

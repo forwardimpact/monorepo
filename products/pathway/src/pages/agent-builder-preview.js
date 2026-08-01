@@ -1,9 +1,9 @@
 /**
- * Agent builder preview components
+ * Preview components for the agent builder
  *
- * Preview panel for agent generation. Derives data per discipline/track
- * combination, then assembles a single unified layout with consolidated
- * Agents, Skills, and Toolkit sections.
+ * Preview panel for the agents you generate. This module derives the data
+ * for each discipline/track combination. It then assembles a single unified
+ * layout with consolidated Agents, Skills, and Toolkit sections.
  */
 
 import { div, h2, h3, p, section } from "../lib/render.js";
@@ -77,7 +77,7 @@ function buildSkillFileCard(skill, templates) {
 
 /**
  * Derive agent data for a single discipline/track combination.
- * Returns raw data; does not build DOM.
+ * This returns the raw data. It does not build the DOM.
  * @param {Object} context
  * @returns {{profile: Object, skillFiles: Array, toolkit: Array, teamInstructionsContent: string|null}}
  */
@@ -227,7 +227,7 @@ export function createTeamPreview({
 }
 
 /**
- * Create help section explaining how agent builder works
+ * Create the help section that explains how the agent builder works
  * @returns {HTMLElement}
  */
 export function createHelpSection() {

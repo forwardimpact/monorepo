@@ -27,7 +27,7 @@ The prompt must contain "evaluate" and one of:
    b. Call `GetPerson` with the artifact's author email to get their profile
    (discipline, level, track).
    c. Call `GetMarkersForProfile` with the profile to get the markers the
-   engineer must demonstrate. Each line is tab-separated:
+   engineer is expected to demonstrate. Each line is tab-separated:
    `skill_id\tlevel_id\tmarker_text`.
    d. Evaluate the artifact against each returned marker:
       - Determine `matched` (boolean). Set it to true when the artifact

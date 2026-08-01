@@ -18,11 +18,11 @@ export function parseRepo(githubRepo) {
 }
 
 /**
- * Build the EYES reaction adapter. The reaction is the App reacting on the
- * customer's repository, so it needs an installation token for that repo. A
- * `target.repo` (set by the bridge in multi-tenant mode from the resolved
- * tenant) selects a per-tenant client via `makeGraphqlClient`; otherwise the
- * static single-tenant `graphqlClient` is used.
+ * Build the EYES reaction adapter. The App reacts on the customer's
+ * repository, so the adapter needs an installation token for that repo. A
+ * `target.repo` selects a per-tenant client through `makeGraphqlClient`. In
+ * multi-tenant mode the bridge sets `target.repo` from the resolved tenant.
+ * Without it, the adapter uses the static single-tenant `graphqlClient`.
  *
  * @param {(query: string, vars: object) => Promise<unknown>} graphqlClient
  * @param {((repo: {owner: string, name: string}) => Function) | undefined} makeGraphqlClient

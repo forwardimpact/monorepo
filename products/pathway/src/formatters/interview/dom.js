@@ -1,5 +1,5 @@
 /**
- * Interview formatting for DOM output
+ * Interview formatter for DOM output
  */
 
 import { div, heading1, heading2, p, span } from "../../lib/render.js";
@@ -11,7 +11,7 @@ import { getConceptEmoji } from "@forwardimpact/libskill/levels";
  * Format interview detail as DOM elements
  * @param {Object} view - Interview detail view from presenter
  * @param {Object} typeConfig - Interview type configuration
- * @param {Object} options - Formatting options
+ * @param {Object} options - Output options
  * @param {Object} [options.standard] - Standard data for emoji lookup
  * @param {boolean} [options.showBackLink] - Whether to show back navigation link
  * @returns {HTMLElement}

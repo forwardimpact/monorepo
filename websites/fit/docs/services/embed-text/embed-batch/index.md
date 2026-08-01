@@ -81,7 +81,7 @@ Practical batch-size guidance:
 ## Handle a partial failure
 
 The TEI backend either returns all vectors or fails the entire request. If
-the call throws, none of the vectors are usable. Retry the request. Split
+the call throws, none of the vectors are usable. Retry the request, or split
 it if a specific input is the cause.
 
 ```js
@@ -94,13 +94,13 @@ try {
 }
 ```
 
-The service does not try to recover. It does not re-run individual inputs.
-That policy belongs in the caller, because it depends on the feature that
-uses the embeddings.
+The service does not re-run individual inputs to recover. That policy
+belongs in the caller, because it depends on the feature that uses the
+embeddings.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - A single `CreateEmbeddings` call returns one `EmbeddingVector` per input
   in the request array, in the same order.

@@ -1,11 +1,12 @@
 /**
  * CLI Command Mapping
  *
- * Maps hash routes to their equivalent `npx fit-pathway` CLI commands.
+ * This module maps hash routes to their equivalent `npx fit-pathway` CLI
+ * commands.
  */
 
 /**
- * Route-to-CLI command rules, checked in order.
+ * Route-to-CLI command rules. `getCliCommand` checks them in order.
  * Each rule has a pattern (regex) and a function that produces the CLI string.
  * @type {Array<{ pattern: RegExp, toCommand: (match: RegExpMatchArray) => string }>}
  */
@@ -116,7 +117,7 @@ const ROUTE_COMMANDS = [
 ];
 
 /**
- * Get the CLI command equivalent for a given hash path
+ * Get the equivalent CLI command for a hash path
  * @param {string} hashPath - The hash path (without #), e.g. "/skill/testing"
  * @returns {string} The CLI command string
  */

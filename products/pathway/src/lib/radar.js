@@ -1,5 +1,5 @@
 /**
- * Radar chart visualization using SVG
+ * Radar chart visualization with SVG
  */
 
 import {
@@ -12,7 +12,7 @@ import {
   createRadarTooltip,
 } from "./radar-utils.js";
 
-// Re-export ComparisonRadarChart so existing imports keep working
+// Re-export ComparisonRadarChart so imports that already exist still work
 export { ComparisonRadarChart } from "./comparison-radar-chart.js";
 
 /**
@@ -20,7 +20,7 @@ export { ComparisonRadarChart } from "./comparison-radar-chart.js";
  * @property {string} label - Label for this axis
  * @property {number} value - Current value
  * @property {number} maxValue - Maximum possible value
- * @property {string} [description] - Optional description for tooltip
+ * @property {string} [description] - Optional description for the tooltip
  */
 
 /**
@@ -31,7 +31,7 @@ export { ComparisonRadarChart } from "./comparison-radar-chart.js";
  * @property {boolean} [showLabels=true] - Show axis labels
  * @property {boolean} [showTooltips=true] - Enable tooltips
  * @property {number} [size=400] - Chart size in pixels
- * @property {number} [labelOffset=25] - Distance of labels from edge
+ * @property {number} [labelOffset=25] - Distance of the labels from the edge
  */
 
 /** SVG radar chart that plots data points on a polar grid with labels and interactive tooltips. */
@@ -63,7 +63,7 @@ export class RadarChart {
     this.tooltip = null;
   }
 
-  /** Clear the container and draw the full radar chart with rings, axes, data polygon, and labels. */
+  /** Clear the container. Draw the full radar chart with rings, axes, data polygon, and labels. */
   render() {
     this.container.innerHTML = "";
 
@@ -90,7 +90,7 @@ export class RadarChart {
     this.container.appendChild(this.svg);
   }
 
-  /** Draw a filled SVG polygon connecting all data points at their scaled radar positions. */
+  /** Draw a filled SVG polygon that connects all data points at their scaled radar positions. */
   drawDataPolygon() {
     const points = this.data.map((d, i) => {
       const angle = this.angleSlice * i - Math.PI / 2;
@@ -155,7 +155,7 @@ export class RadarChart {
     this.svg.appendChild(group);
   }
 
-  /** Draw word-wrapped axis labels around the radar perimeter with optional tooltip support. */
+  /** Draw word-wrapped axis labels around the radar perimeter, with optional tooltips. */
   drawLabels() {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.classList.add("radar-labels");
@@ -206,7 +206,7 @@ export class RadarChart {
   }
 
   /**
-   * Truncate label text
+   * Truncate the label text
    * @param {string} text
    * @param {number} maxLength
    * @returns {string}
@@ -216,7 +216,7 @@ export class RadarChart {
     return text.slice(0, maxLength - 1) + "…";
   }
 
-  /** Position and display a tooltip showing the label, value, and description for a data point. */
+  /** Position a tooltip. Show the label, value, and description for a data point. */
   showTooltip(event, data) {
     if (!this.tooltip) return;
 
@@ -242,7 +242,7 @@ export class RadarChart {
     }
   }
 
-  /** Replace the chart data and re-render the entire radar visualization. */
+  /** Replace the chart data. Re-render the entire radar visualization. */
   update(newData) {
     this.data = newData;
     this.angleSlice = (Math.PI * 2) / this.data.length;

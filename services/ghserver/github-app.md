@@ -22,7 +22,7 @@ trust model.
 
 | Aspect | Self-hosted (single-tenant) | Hosted (multi-tenant) |
 | --- | --- | --- |
-| Who registers / owns the App | the team that adopts | Forward Impact (one shared App) |
+| Who registers / owns the App | the adopter team | Forward Impact (one shared App) |
 | App scope toggle | "Where can this GitHub App be installed?" → **Only on this account** | → **Any account** |
 | Tenant binding | static installation id (`SERVICE_GHBRIDGE_APP_INSTALLATION_ID`) | resolved per inbound webhook from the delivery's repository (`resolveByRepo`) |
 | Signing credential | App private key (PEM) | App private key (PEM) |
@@ -43,7 +43,7 @@ its key directly. You do not deploy `services/ghserver`.
 
 - **Where can this GitHub App be installed?** → **Only on this account.**
 - Enable the webhook → `${GHBRIDGE_PUBLIC_URL}/api/webhook` with a 32-byte hex
-  secret (set the same value as `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET`).
+  secret (set the same value in `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET`).
 - Install the App on the target repository. Note the **installation id**.
 
 **Configure** `services/ghbridge` (`createServiceConfig("ghbridge")`):

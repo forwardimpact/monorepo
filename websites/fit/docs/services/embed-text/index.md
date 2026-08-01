@@ -120,8 +120,8 @@ console.log(cosineSimilarity(a, b)); // ~0.7 for paraphrases, ~0.1 for unrelated
 ```
 
 For storage and similarity search at scale, hand the vectors to the
-[vector service](/docs/services/ground-agents/). Do not compute cosine
-similarity in-process.
+[vector service](/docs/services/ground-agents/). At that scale, do not
+compute cosine similarity in-process.
 
 ## Handle backend failures
 

@@ -1,8 +1,9 @@
 /**
  * JSON-LD structured data generation
  *
- * Generates JSON-LD for entity pages to enable machine-readable data.
- * Aligns with the RDF schema at https://www.forwardimpact.team/schema/rdf/
+ * These functions generate JSON-LD for entity pages so machines can read the
+ * data. The output aligns with the RDF schema at
+ * https://www.forwardimpact.team/schema/rdf/
  */
 
 const VOCAB_BASE = "https://www.forwardimpact.team/schema/rdf/";

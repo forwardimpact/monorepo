@@ -5,10 +5,11 @@ import { spy, createMockClock } from "@forwardimpact/libmock";
 import { createMcpService } from "../index.js";
 
 /**
- * Integration coverage for the libhttp + MCP-SDK escape hatch: the service
- * mounts on `@forwardimpact/libhttp`, but the StreamableHTTP transport drives
- * the raw Node request/response via `c.env.incoming`/`c.env.outgoing`. These
- * tests start a real server on an ephemeral port and exercise it over HTTP.
+ * Integration coverage for the libhttp + MCP-SDK escape hatch. The service
+ * mounts on `@forwardimpact/libhttp`. But the StreamableHTTP transport drives
+ * the raw Node request/response through `c.env.incoming`/`c.env.outgoing`.
+ * These tests start a real server on an ephemeral port and exercise it over
+ * HTTP.
  */
 function createMockConfig() {
   return {
@@ -41,13 +42,13 @@ describe("MCP HTTP transport", () => {
     await service.stop();
   });
 
-  test("GET /health is served by libhttp without auth", async () => {
+  test("libhttp serves GET /health without auth", async () => {
     const res = await fetch(`${baseUrl}/health`);
     assert.strictEqual(res.status, 200);
     assert.deepStrictEqual(await res.json(), { status: "ok" });
   });
 
-  test("requests without a bearer token are rejected with 401", async () => {
+  test("the service returns 401 for requests without a bearer token", async () => {
     const res = await fetch(`${baseUrl}/`, { method: "POST" });
     assert.strictEqual(res.status, 401);
   });
@@ -71,8 +72,9 @@ describe("MCP HTTP transport", () => {
         },
       }),
     });
-    // The SDK transport drove the raw response: a session id is minted and the
-    // status is a non-error 2xx (proving the escape hatch wiring works).
+    // The SDK transport drove the raw response. It minted a session id. The
+    // status is a non-error 2xx. That proves the service wires the escape
+    // hatch correctly.
     assert.ok(res.status >= 200 && res.status < 300, `status ${res.status}`);
     assert.ok(
       res.headers.get("mcp-session-id"),

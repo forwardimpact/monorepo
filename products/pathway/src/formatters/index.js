@@ -1,8 +1,9 @@
 /**
  * Formatter Layer
  *
- * Export all formatters for easy importing.
- * Formatters transform presenter output into specific formats (DOM, markdown, microdata)
+ * Export all formatters to make imports easy.
+ * Formatters transform presenter output into specific formats (DOM,
+ * markdown, microdata).
  */
 
 // Shared utilities

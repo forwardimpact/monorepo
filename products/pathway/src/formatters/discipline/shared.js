@@ -1,7 +1,8 @@
 /**
  * Discipline presentation helpers
  *
- * Shared utilities for formatting discipline data across DOM and markdown outputs.
+ * These shared utilities format discipline data across DOM and markdown
+ * outputs.
  */
 
 import { truncate } from "../shared.js";
@@ -60,7 +61,8 @@ function disciplineToListItem(discipline, descriptionLimit) {
 }
 
 /**
- * Transform disciplines for list view, grouped by type (professional/management)
+ * Transform disciplines for list view. Group them by type
+ * (professional/management)
  * @param {Array} disciplines - Raw discipline entities
  * @param {number} [descriptionLimit=120] - Maximum description length
  * @returns {{ items: DisciplineListItem[], groups: Object<string, DisciplineListItem[]>, groupOrder: string[] }}
@@ -74,12 +76,12 @@ export function prepareDisciplinesList(disciplines, descriptionLimit = 120) {
     if (discipline.isManagement) {
       management.push(item);
     } else {
-      // Default to professional if not explicitly management
+      // Default to professional if the discipline is not explicitly management
       professional.push(item);
     }
   }
 
-  // Groups in display order: professional first, then management
+  // Order the groups for display. Professional comes first, then management.
   const groups = {};
   const groupOrder = [];
 

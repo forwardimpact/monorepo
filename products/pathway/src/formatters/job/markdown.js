@@ -1,5 +1,5 @@
 /**
- * Job formatting for markdown/CLI output
+ * Job formatter for markdown/CLI output
  */
 
 import {

@@ -67,7 +67,7 @@ machine-readable output.
 ## Define services
 
 You define services in `config/config.json` under the `init` key. Each service
-is either a **longrun** (a process that should stay up) or a **oneshot** (a
+is either a **longrun** (a process that should stay running) or a **oneshot** (a
 command that runs once during startup or shutdown):
 
 ```json
@@ -152,7 +152,7 @@ skips later entries.
 npx fit-rc status
 ```
 
-Expected output when the services are up:
+Expected output when services are running:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Running
@@ -161,7 +161,7 @@ INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
 INFO 2026-05-04T10:05:00.456Z rc graph 42001 MSG004 - up pid="42012"
 ```
 
-Expected output when nothing is up:
+Expected output when nothing is running:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Not running
@@ -185,7 +185,7 @@ daemon sends `SIGKILL` to the entire process group. Oneshot services run their
 `down` command if they define one. When all services stop, the daemon itself
 shuts down.
 
-To stop from a specific service onward and leave earlier services up:
+To stop from a specific service onward and leave earlier services running:
 
 ```sh
 npx fit-rc stop vector
@@ -379,12 +379,12 @@ await manager.stop();          // Stop all services and daemon
 | libsupervise     | `@forwardimpact/libsupervise`        | Supervision daemon (`fit-svscan`), log writer (`fit-logger`), log rotation, process state. |
 | libtelemetry     | `@forwardimpact/libtelemetry`        | Structured logging (`Logger`), trace spans (`Tracer`), unified observer (`Observer`), trace query and rendering (`fit-visualize`). |
 
-The fifth concern in this job keeps instruction files and architecture honest.
-That check is `jidoka`. The [Jidoka standard](https://www.jidoka.team/)
-documents it, and this page does not. `jidoka` runs at authoring time against
-the repository. It does not run at service runtime against a process. See
-[Distribute Skill Packs](/docs/libraries/distribute-skill-packs/) for how you
-publish and keep shared instructions current.
+The fifth concern in this job is to keep instruction files and architecture
+honest. That check is `jidoka`. The [Jidoka standard](https://www.jidoka.team/)
+documents it, and this page does not, because `jidoka` runs at authoring time
+against the repository. It does not run at service runtime against a process.
+See [Distribute Skill Packs](/docs/libraries/distribute-skill-packs/) for the
+publishing side. That page shows how you keep shared instructions current.
 
 ## What's next
 

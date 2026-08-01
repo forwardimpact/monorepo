@@ -95,7 +95,7 @@
         phases.forEach((el) => phaseObserver.observe(el));
       }
 
-      // Terminal reveals its lines as if typed
+      // Terminal type-out effect
       const terminal = document.querySelector(".terminal-lines");
       if (terminal) {
         const termObserver = new IntersectionObserver(
@@ -112,7 +112,7 @@
         termObserver.observe(terminal);
       }
 
-      // Stagger the reveal of the children
+      // Reveal the stagger children one after another
       document.querySelectorAll(".stagger").forEach((container) => {
         const children = container.querySelectorAll(".stagger-item");
         const staggerObserver = new IntersectionObserver(

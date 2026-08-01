@@ -11,10 +11,10 @@ generic advice.
 
 Complete the
 [Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/)
-guide first. The steps below assume you installed Guide, completed codegen,
-and started the service stack.
+guide first. The steps below assume you installed Guide and completed codegen.
+They also assume the service stack runs.
 
-You also need to know your role coordinates (discipline, level, and track). If
+You should also know your role coordinates (discipline, level, and track). If
 you did not identify those yet, work through
 [See What's Expected at Your Level](/docs/products/career-paths/) first.
 

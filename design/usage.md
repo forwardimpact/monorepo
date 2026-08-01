@@ -71,8 +71,9 @@ inside the family.
 - **Radii values** — concrete `--radius-sm/md/lg` numbers may differ per brand
   to match the brand's material vocabulary (e.g. journal cards vs stamped
   paper). A brand that diverges on radii must restate the affected component
-  specs in its own `index.md`. The family's component vocabulary in
-  [index.md § 5](index.md#5-components) names sizes only by token.
+  specs in its own `index.md`. The reason is that the family's component
+  vocabulary in [index.md § 5](index.md#5-components) names sizes only by
+  token.
 - **CSS design tokens** — the concrete `:root` realization of the above.
 
 ### Cross-brand component contract

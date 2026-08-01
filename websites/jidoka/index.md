@@ -140,7 +140,7 @@ layout: home
       <div class="foundation-card stagger-item">
         <div class="foundation-source">Atul Gawande</div>
         <div class="foundation-name">The Checklist Manifesto</div>
-        <p class="foundation-desc">How alignment holds under load. Structured instructions help humans and agents apply existing knowledge consistently.</p>
+        <p class="foundation-desc">How alignment holds under load. Structured instructions keep humans and agents consistent in how they apply existing knowledge.</p>
       </div>
     </div>
   </div>

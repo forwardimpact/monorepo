@@ -105,7 +105,7 @@ common.Message.g7h8i9	0.7856
 | `threshold`  | 0       | Minimum similarity score to include in results              |
 | `limit`      | 0 (all) | Maximum number of results                                   |
 | `prefix`     | none    | Only include identifiers that start with this string        |
-| `max_tokens` | none    | Stop once the cumulative token count exceeds the budget     |
+| `max_tokens` | none    | Return no more results once the token count exceeds the budget |
 
 Filters apply in order: prefix, then score and threshold, then limit, then
 token budget.

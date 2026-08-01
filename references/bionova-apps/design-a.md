@@ -245,7 +245,7 @@ Docker Compose orchestrates these PG On Rails services under
 
 | Service | Image / Build | Port | Purpose |
 | --- | --- | --- | --- |
-| `kong` | `kong:3.4` | 8000 | Routes API requests |
+| `kong` | `kong:3.4` | 8000 | API gateway. It routes requests |
 | `postgres` | `supabase/postgres` + pgvector | 5432 | Primary database |
 | `pgbouncer` | `edoburu/pgbouncer` | 6432 | Connection pool for the PostgREST data API only |
 | `postgrest` | `postgrest/postgrest` | 3000 | REST API from schema |
@@ -261,8 +261,8 @@ Only `postgrest` connects through the pooler. It is the high-connection data
 API. `gotrue` and `storage` send a `search_path` startup parameter that
 transaction-mode pgbouncer rejects. `realtime` relies on session-scoped
 prepared statements. So those three connect directly to `postgres:5432`.
-`postgrest` is pooled, so it runs with prepared statements and with the
-LISTEN/NOTIFY schema-reload channel disabled. `setup.sh` reloads its schema
+`postgrest` is pooled. So it disables prepared statements and the
+LISTEN/NOTIFY schema-reload channel. `setup.sh` reloads its schema
 cache (SIGUSR1) after it applies the migrations. The `anon`/`service_role` API
 keys are JWTs. You must sign them with the same `JWT_SECRET` the services
 verify against. Keep them in sync with `kong.yml`.

@@ -110,11 +110,11 @@ Expected output (Turtle RDF, abbreviated):
   fit:behaviourCount 5 .
 ```
 
-The agent profile is smaller than the full role. The service removes human-only
-skills. It collapses lower-proficiency duplicates. It sorts skills and
-behaviours by strength descending. This order helps when you generate agent
-instructions. In those instructions, the most important capabilities should
-lead.
+The agent profile is smaller than the full role because the service removes
+human-only skills and collapses lower-proficiency duplicates. The service sorts
+skills and behaviours by strength descending. This order helps when you generate
+agent instructions. In those instructions, the most important capabilities
+should lead.
 
 ## Handle errors
 

@@ -32,8 +32,8 @@ column names (verified on macOS Sonoma+).
 | `last_name`    | TEXT | Usually null. `display_name` is the reliable field            |
 
 **IMPORTANT:** Identity does NOT have an `email` column. Use `address` and strip
-the `mailto:` prefix. Use `display_name` for the name. `first_name` and
-`last_name` are typically null.
+the `mailto:` prefix. Use `display_name` for the name. Do not use `first_name`
+or `last_name`. They are typically null.
 
 ## Participant (attendees and organizer)
 

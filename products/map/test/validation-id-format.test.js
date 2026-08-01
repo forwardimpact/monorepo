@@ -4,8 +4,9 @@
  * The simplified standard enforces one delimiter (kebab-case) for every
  * lowercase identifier. It drops `skill.agent.name`. It renames the
  * `role_modeling` maturity to `role-modeling`. These tests stage a temp
- * data dir. They run the real SchemaValidator, the same path as `fit-map
- * validate`. They prove that the validator now rejects each old shape.
+ * data dir. They run the real SchemaValidator. That is the same path as
+ * `fit-map validate`. They prove that the validator now rejects each old
+ * shape.
  */
 
 import { test, describe } from "node:test";

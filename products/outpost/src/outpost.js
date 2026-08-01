@@ -11,10 +11,11 @@
 //   fit-outpost status              Show agent status
 //   fit-outpost --help              Show this help
 //
-// This module owns the CLI definition and dispatch table. The runtime
-// collaborator bag is constructed once in bin/fit-outpost.js (the sole
-// construction site) and threaded into `run(runtime, version)`; `run` returns
-// the process exit code and the bin translates it to `runtime.proc.exit`.
+// This module owns the CLI definition and dispatch table. bin/fit-outpost.js
+// constructs the runtime collaborator bag once, and it is the sole
+// construction site. It threads the bag into `run(runtime, version)`. `run`
+// returns the process exit code. The bin translates that code to
+// `runtime.proc.exit`.
 
 import { join, dirname, resolve } from "node:path";
 import { homedir } from "node:os";
@@ -38,9 +39,9 @@ import {
 const SHARE_DIR = "/usr/local/share/fit-outpost";
 
 /**
- * Build the CLI definition. The object is byte-identical to the libcli
- * definition the goldens were captured against, so `--help` / `--version`
- * output stays stable.
+ * Build the CLI definition. This object is byte-identical to the libcli
+ * definition that the golden capture used. So `--help` and `--version` output
+ * stays stable.
  * @param {string} version
  * @returns {object}
  */
@@ -111,7 +112,7 @@ function buildDefinition(version) {
 }
 
 /**
- * Render an agent's multi-line status block (pure formatting).
+ * Render an agent's multi-line status block. This is a pure format step.
  * @param {string} name
  * @param {Object} agent
  * @param {Object} s - The agent's persisted state.
@@ -145,7 +146,7 @@ export async function run(runtime, version) {
   const logger = createLogger("outpost", runtime);
 
   /**
-   * Async existence check via the one fs surface this module uses.
+   * Test whether a path exists, through the async fs surface of this module.
    * @param {string} p
    * @returns {Promise<boolean>}
    */
@@ -193,10 +194,10 @@ export async function run(runtime, version) {
   }
 
   // --- Wire dependencies -----------------------------------------------------
-  // posix-spawn is a Bun-FFI module (`bun:ffi`); importing it eagerly would
-  // crash plain `node` (e.g. `--help`/`--version`/golden capture). Load it
-  // lazily so only an actual agent wake — which only runs under Bun on macOS —
-  // pulls it in.
+  // posix-spawn is a Bun-FFI module (`bun:ffi`). An eager import would crash
+  // plain `node` (e.g. `--help`/`--version`/golden capture). So load it
+  // lazily. Then only an actual agent wake pulls it in. That wake only runs
+  // under Bun on macOS.
   const loadSpawn = () => import("@forwardimpact/libmacos/posix-spawn");
   const stateManager = new StateManager(STATE_PATH, runtime);
   const agentRunner = new AgentRunner(
@@ -247,7 +248,7 @@ export async function run(runtime, version) {
   // --- Daemon ----------------------------------------------------------------
   async function daemon() {
     const daemonStartedAt = clock.now();
-    log("Scheduler daemon started. Polling every 60 seconds.");
+    log("Scheduler daemon started. It polls every 60 seconds.");
     log(`Config: ${CONFIG_PATH}  State: ${STATE_PATH}`);
 
     // Reset any agents left "active" from a previous daemon session.
@@ -276,8 +277,8 @@ export async function run(runtime, version) {
     void socketServer.whenStopped().then(() => {
       stopped = true;
       // Cancel any pending poll so the armed timer does not keep the event
-      // loop alive after shutdown — `run()` returns 0 and the bin exits only
-      // on a nonzero code, so a lingering 60s timer would delay exit.
+      // loop alive after shutdown. `run()` returns 0, and the bin exits only
+      // on a nonzero code. So a 60s timer that stays armed would delay exit.
       if (tickHandle !== undefined) clock.clearTimeout(tickHandle);
     });
 
@@ -292,8 +293,8 @@ export async function run(runtime, version) {
     }
     void tick();
 
-    // Block until a shutdown is requested via socket or signal; the bin then
-    // owns the process-exit call.
+    // Block until a socket or a signal requests a shutdown. The bin then owns
+    // the process-exit call.
     await socketServer.whenStopped();
     return 0;
   }
@@ -323,9 +324,9 @@ export async function run(runtime, version) {
     const state = await stateManager.load();
     const posture = await readPosture(fs, POSTURE_PATH);
     logger.info("\nOutpost Scheduler\n==================\n");
-    // The posture must be observable on a line matching
-    // `^posture: (brief|brief+draft|unset)$`, so write it as plain text to
-    // stdout rather than through the RFC5424-prefixed logger.
+    // The posture must be observable on a line that matches
+    // `^posture: (brief|brief+draft|unset)$`. So write it as plain text to
+    // stdout. Do not write it through the RFC5424-prefixed logger.
     proc.stdout.write(`posture: ${posture ?? "unset"}\n`);
 
     const agents = Object.entries(config.agents || {});
@@ -409,13 +410,14 @@ export async function run(runtime, version) {
         cli.usageError("missing required argument <agent>");
         return 2;
       }
-      // Always route the wake through the running daemon. The daemon is the
-      // only spawn site that descends from fit-outpost.app, so a `claude`
-      // spawned there inherits the app as its TCC responsible process and a
-      // single grant to the app covers it. Spawning from this CLI process
-      // would attribute the access to the terminal instead, breaking the
-      // single-grant model. If no daemon is running there is nowhere to wake
-      // with correct attribution, so this errors rather than spawning locally.
+      // Always route the wake through the daemon that already runs. The daemon
+      // is the only spawn site that descends from fit-outpost.app. So a
+      // `claude` spawned there inherits the app as its TCC responsible
+      // process, and a single grant to the app covers it. A spawn from this
+      // CLI process would attribute the access to the terminal instead. That
+      // breaks the single-grant model. When no daemon runs, there is nowhere
+      // to wake with correct attribution. So this command errors. It does not
+      // spawn locally.
       const result = await requestWake(SOCKET_PATH, args[0], runtime);
       if (result.ok) {
         log(`Wake dispatched to daemon for "${args[0]}".`);
@@ -423,7 +425,7 @@ export async function run(runtime, version) {
       }
       if (result.reason === "not-running") {
         cli.error(
-          "daemon not running. Start fit-outpost.app (or run `fit-outpost daemon`) before waking an agent.",
+          "daemon not running. Start fit-outpost.app (or run `fit-outpost daemon`) before you wake an agent.",
         );
       } else if (result.reason === "timeout") {
         cli.error("daemon did not respond to the wake request.");
@@ -434,8 +436,9 @@ export async function run(runtime, version) {
     },
     init: async () => {
       // `init [name]` provisions a KB by name under the data home (default
-      // `Team`), never an arbitrary path — so the substrate cannot be
-      // steered back into a TCC-protected folder. An unsafe name is refused.
+      // `Team`). It never accepts an arbitrary path. So nobody can steer the
+      // substrate back into a TCC-protected folder. This command refuses an
+      // unsafe name.
       const name = args[0] ?? "Team";
       let target;
       try {
@@ -452,8 +455,8 @@ export async function run(runtime, version) {
         return result.code;
       }
       // A fresh init defaults the posture to `brief`, the opted-into trust
-      // contract. Only write when none is recorded so re-running never flips
-      // an existing posture.
+      // contract. Only write when the record holds no posture. A second run
+      // then never flips an existing posture.
       if ((await readPosture(fs, POSTURE_PATH)) === null) {
         await writePosture(fs, POSTURE_PATH, "brief");
       }

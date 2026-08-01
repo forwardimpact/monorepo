@@ -6,7 +6,7 @@
  * Rules for PDF output:
  * - No layered elements — style content directly, no separate backgrounds
  * - No box-shadow — use borders: border: 1px solid #e5e7eb
- * - Bullets via CSS only — use li::before pseudo-elements
+ * - Bullets with CSS only — use li::before pseudo-elements
  * - Content must fit — safe area is 1160x600px (1280x720 minus 60px padding)
  * - No footers or headers — no fixed/absolute positioned elements
  */

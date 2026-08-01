@@ -31,7 +31,7 @@ owns those.
   its **Name** as the author on each entry. The KB is shared, so every entry
   must name the team member who made the change. Resolve `~` to `$HOME` before
   you read it.
-- `Knowledge/CHANGELOG.md` — the existing changelog. Read it to see what you
+- `Knowledge/CHANGELOG.md` — the existing changelog. Read it to see what is
   already recorded and to avoid duplicates.
 
 ## Outputs

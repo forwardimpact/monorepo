@@ -38,8 +38,8 @@ Use when no Role file exists for the requisition. Filename:
 ```
 
 If the Role file already exists, set `Hiring manager` only when the export
-provides one and the field is `—`. Update `Last activity` to today. Append
-`- Requisition export processed on {today}: {N} candidates` to Notes.
+provides one and the field is `—`. Then update `Last activity` to today. Then
+append `- Requisition export processed on {today}: {N} candidates` to Notes.
 
 ## CV.md template
 

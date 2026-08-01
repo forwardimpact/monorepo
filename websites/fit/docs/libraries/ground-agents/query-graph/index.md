@@ -151,7 +151,7 @@ Both commands accept optional filters that constrain the returned identifiers:
 | ------------ | -------------------------------------------------------- |
 | `prefix`     | Only return identifiers that start with the given string |
 | `limit`      | Cap the number of results                                |
-| `max_tokens` | Stop once the cumulative token count exceeds the budget  |
+| `max_tokens` | Return no more results once the cumulative token count exceeds the budget |
 
 When you call `GraphIndex.queryItems(pattern, filter)` from code, pass the
 filter as the second argument:

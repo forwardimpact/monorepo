@@ -1,5 +1,6 @@
 /**
- * privilege unit tests — the mandatory-level resolver and its disclaim mapping.
+ * privilege unit tests. They cover the mandatory-level resolver and its
+ * disclaim map.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";

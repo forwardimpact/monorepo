@@ -1,5 +1,5 @@
 /**
- * Track formatting for markdown/CLI output
+ * Track formatters for markdown/CLI output
  */
 
 import { tableToMarkdown, formatModifier } from "../shared.js";
@@ -7,7 +7,7 @@ import { prepareTracksList, prepareTrackDetail } from "./shared.js";
 import { getConceptEmoji } from "@forwardimpact/libskill/levels";
 
 /**
- * Format track list as markdown
+ * Format the track list as markdown
  * @param {Array} tracks - Raw track entities
  * @param {Object} [standard] - Standard config for emojis
  * @returns {string}
@@ -61,7 +61,7 @@ function renderSkillModifier(lines, m) {
 }
 
 /**
- * Format track detail as markdown
+ * Format the track detail as markdown
  * @param {Object} track - Raw track entity
  * @param {Object} context - Additional context
  * @param {Array} context.skills - All skills
@@ -87,7 +87,7 @@ export function trackToMarkdown(
     }
   }
 
-  // Skill modifiers - show expanded skills for capabilities
+  // Skill modifiers. Show the expanded skills for capabilities.
   if (view.skillModifiers.length > 0) {
     lines.push("## Skill Modifiers", "");
     for (const m of view.skillModifiers) {

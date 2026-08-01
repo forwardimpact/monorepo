@@ -48,7 +48,7 @@ export async function tryInject(
   await postSingleDiscussionReply(
     graphqlClient,
     ctx,
-    "A session is in progress on this thread. Your message was not forwarded to the active run.",
+    "A session is in progress on this thread. The bridge did not forward your message to the active run.",
     recordOrigin,
   );
   return { kind: "noticed" };

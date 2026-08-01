@@ -18,8 +18,8 @@ discussed.
 
 ## Organizations
 
-Look for explicit mentions ("Acme Corp"). Infer an organization from a person's
-role or from the context around it.
+Look for explicit mentions ("Acme Corp"). Also infer an organization from a
+person's role or from the context.
 
 ## Projects
 

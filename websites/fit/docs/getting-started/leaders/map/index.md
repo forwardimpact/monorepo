@@ -189,7 +189,7 @@ To stop the local instance:
 npx fit-map activity stop
 ```
 
-To check that the local stack is up and the activity schema is reachable:
+To check whether the local stack is up and the activity schema is reachable:
 
 ```sh
 npx fit-map activity status
@@ -397,8 +397,8 @@ curl -X POST \
 ```
 
 Once a quarter is typical. Match your GetDX survey cadence. The edge function
-and the CLI run the same extract-and-transform code. Your choice between them is
-purely a deployment choice.
+and the CLI run the same extract-and-transform code. So the choice between them
+is purely a deployment choice.
 
 The driver IDs in `data/pathway/drivers.yaml` are the same IDs as
 `getdx_snapshot_team_scores.item_id`. GetDX assigns those IDs. You mirror them
@@ -441,7 +441,7 @@ curl -X POST \
 ## Trying the activity layer with synthetic data
 
 You can explore the activity layer before you connect real data sources. Map
-populates the database with synthetic data. The data is a realistic roster,
+can populate the database with synthetic data. The data is a realistic roster,
 GitHub events, and GetDX snapshots generated from a template.
 
 First, generate synthetic data (requires the `@forwardimpact/libterrain`

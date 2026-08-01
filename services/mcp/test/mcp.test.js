@@ -89,8 +89,8 @@ function createMockClients() {
 }
 
 /**
- * Helper: call a registered tool handler through the McpServer.
- * Uses the server's internal _registeredTools object.
+ * Helper that calls a registered tool handler through the McpServer.
+ * It uses the server's internal _registeredTools object.
  */
 async function callTool(mcpServer, toolName, args = {}) {
   const tools = mcpServer._registeredTools;
@@ -128,7 +128,7 @@ describe("buildPromptText", () => {
     );
   });
 
-  test("omits routing lines for tools that are removed", () => {
+  test("omits routing lines for tools that the config removes", () => {
     const result = buildPromptText("intro", {
       ListJobs: { method: "p.P.ListJobs", routing: ["Jobs/roles"] },
     });
@@ -171,7 +171,7 @@ describe("MCP service", () => {
   });
 
   describe("HTTP server", () => {
-    test("factory returns start function", async () => {
+    test("the factory returns a start function", async () => {
       const config = createMockConfig();
       const clients = createMockClients();
       const logger = { info: spy() };
@@ -187,33 +187,33 @@ describe("MCP service", () => {
       assert.strictEqual(typeof start, "function");
     });
 
-    test("auth rejects missing token", async () => {
+    test("auth rejects a missing token", async () => {
       const req = { headers: {} };
       assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
     });
 
-    test("auth rejects wrong token", async () => {
+    test("auth rejects a wrong token", async () => {
       const req = { headers: { authorization: "Bearer wrong-token-xx" } };
       assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
     });
 
-    test("auth rejects wrong-length token without timingSafeEqual throwing", async () => {
+    test("auth rejects a wrong-length token and timingSafeEqual does not throw", async () => {
       const req = { headers: { authorization: "Bearer x" } };
       assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
     });
 
-    test("auth rejects non-string authorization header", async () => {
+    test("auth rejects a non-string authorization header", async () => {
       const req = { headers: { authorization: ["Bearer test-bearer-token"] } };
       assert.strictEqual(isAuthorized(req, "test-bearer-token"), false);
     });
 
-    test("auth accepts valid token", async () => {
+    test("auth accepts a valid token", async () => {
       const req = { headers: { authorization: "Bearer test-bearer-token" } };
       assert.strictEqual(isAuthorized(req, "test-bearer-token"), true);
     });
   });
 
-  describe("tool handlers route to correct backend", () => {
+  describe("tool handlers route to the correct backend", () => {
     test("get_ontology calls graph.GetOntology", async () => {
       const server = new McpServer({ name: "test", version: "0.0.1" });
       const config = createMockConfig();

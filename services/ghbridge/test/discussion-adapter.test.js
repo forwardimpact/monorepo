@@ -51,8 +51,8 @@ function ctx() {
   };
 }
 
-describe("ghbridge DiscussionAdapter tenant threading", () => {
-  test("constructor throws when tenantResolver is omitted", () => {
+describe("ghbridge DiscussionAdapter threads the tenant id", () => {
+  test("constructor throws when the caller omits tenantResolver", () => {
     expect(() => new DiscussionAdapter(recordingClient())).toThrow(
       "tenantResolver is required",
     );
@@ -84,10 +84,11 @@ describe("ghbridge DiscussionAdapter tenant threading", () => {
     expect(client.seen.ResolvePendingDispatch.tenant_id).toBe("default");
   });
 
-  test("putPendingDispatch uses the target's tenant_id as the sibling field, not a resolver lookup", async () => {
+  test("putPendingDispatch uses the target's tenant_id as the sibling field and skips the resolver lookup", async () => {
     const client = recordingClient();
-    // A resolver whose lookup would throw — proving the supplied tenant_id is
-    // used directly, never resolved from the bare channel string.
+    // A resolver whose lookup throws. This proves the adapter uses the
+    // supplied tenant_id directly and never resolves it from the bare
+    // channel string.
     const adapter = new DiscussionAdapter(client, {
       tenantResolver: {
         resolve: async () => {

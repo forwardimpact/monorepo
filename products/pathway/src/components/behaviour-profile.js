@@ -1,5 +1,5 @@
 /**
- * Behaviour profile display component
+ * Display component for a behaviour profile
  */
 
 /** @typedef {import('../types.js').BehaviourProfileItem} BehaviourProfileItem */

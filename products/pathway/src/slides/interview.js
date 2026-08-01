@@ -23,7 +23,7 @@ export function renderInterviewSlide({ render, data, params }) {
   const level = data.levels.find((g) => g.id === params.level);
   const track = data.tracks.find((t) => t.id === params.track);
 
-  // Get interview type from URL query or default to full
+  // Get the interview type from the URL query. Default to full
   const urlParams = new URLSearchParams(window.location.search);
   const interviewType = urlParams.get("type") || "full";
 

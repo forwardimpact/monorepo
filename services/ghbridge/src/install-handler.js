@@ -1,17 +1,17 @@
 /**
- * GitHub App onboarding. When the hosted App is installed on an
- * organization or repository, or when repositories are added to an
- * existing installation, GitHub fires `installation.created` /
+ * GitHub App onboarding. A customer installs the hosted App on an
+ * organization or repository, or adds repositories to an existing
+ * installation. GitHub then fires `installation.created` or
  * `installation.repositories_added`. This handler registers each named
- * repository in the tenant registry so subsequent user events resolve to
- * an active tenant without operator intervention.
+ * repository in the tenant registry. Later user events resolve to an
+ * active tenant without operator intervention.
  *
- * The registry upsert is idempotent per `(installation_id, repo)` pair, so
- * a redelivered webhook or an `installation.created` that races a
- * `repositories_added` for the same repo set is safe.
+ * The registry upsert is idempotent per `(installation_id, repo)` pair. So
+ * a redelivered webhook is safe. An `installation.created` that races a
+ * `repositories_added` for the same repo set is also safe.
  *
- * The uninstall / `repositories_removed` revoke path is not handled here;
- * a partial uninstall leaves the `active` row in place. See
+ * This handler does not cover the uninstall / `repositories_removed`
+ * revoke path. A partial uninstall leaves the `active` row in place. See
  * `services/ghbridge/README.md`.
  */
 
@@ -19,7 +19,7 @@ const INSTALL_EVENTS = new Set(["installation", "installation_repositories"]);
 
 /**
  * Pull the list of repositories named by an install-class webhook.
- * `installation.created` carries `repositories`; `repositories_added`
+ * `installation.created` carries `repositories`. `repositories_added`
  * carries `repositories_added`.
  *
  * @param {object} payload
@@ -39,8 +39,8 @@ function reposFromPayload(payload) {
 }
 
 /**
- * Whether a webhook delivery is an install-class onboarding event this
- * handler should consume.
+ * Report whether a webhook delivery is an install-class onboarding event
+ * that this handler should consume.
  *
  * @param {string} event - The `x-github-event` header value
  * @param {object} payload

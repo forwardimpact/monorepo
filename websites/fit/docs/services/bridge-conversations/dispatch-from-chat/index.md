@@ -19,7 +19,8 @@ For the full setup with credentials and the tunnel, see
 - Complete the
   [Bridge Microsoft Teams to the Agent Team](/docs/services/bridge-conversations/)
   guide. `msbridge` runs. The tunnel is published. The Teams app is
-  sideloaded. Teams acknowledges `@Kata Agent hello` in your test thread.
+  sideloaded. The bridge acknowledges `@Kata Agent hello` in your test
+  thread.
 
 ## The dispatch sequence
 

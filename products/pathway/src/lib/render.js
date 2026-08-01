@@ -1,8 +1,8 @@
 /**
- * DOM rendering utilities
+ * Utilities that render the DOM
  *
- * Re-exports generic utilities from @forwardimpact/libui/render
- * and adds domain-specific display helpers.
+ * Re-exports generic utilities from @forwardimpact/libui/render.
+ * Adds domain-specific display helpers.
  */
 
 export {

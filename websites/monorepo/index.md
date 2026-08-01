@@ -114,7 +114,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Root Files</div>
       <h2 class="section-headline">Three files. One job each. None restates another.</h2>
-      <p class="section-body">These three files come from the Jidoka standard that Monorepo builds on. Here they orient you the moment you open the repository. A link is cheaper than a duplicate. Each file points at the others and does not repeat them.</p>
+      <p class="section-body">These three files come from the Jidoka standard that Monorepo builds on. Here they orient you the moment you open the repository. A link is cheaper than a duplicate. So each file points at the others and does not repeat them.</p>
     </div>
     <div class="rootfile-grid stagger">
       <div class="rootfile-card stagger-item">
@@ -150,7 +150,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Jobs To Be Done</div>
       <h2 class="section-headline">The aim, made discoverable.</h2>
-      <p class="section-body">Jobs live near the code that serves them. A semantic <code>&lt;job&gt;</code> tag wraps each one. Any human and any agent then finds every job in the repository with one <code>rg</code> search. You need no map.</p>
+      <p class="section-body">Jobs live near the code that serves them. A semantic <code>&lt;job&gt;</code> tag wraps each one. Any human or agent then finds every job in the repository with one <code>rg</code> search. You need no map.</p>
     </div>
     <div class="duo-grid stagger">
       <div class="job-card stagger-item">

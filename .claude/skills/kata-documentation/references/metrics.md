@@ -39,5 +39,6 @@ enumeration-drift:<topic-id>:
 `<topic-id>` names the registry source-of-truth set the drift belongs to. A
 short description follows it. This tag lets post-window analysis isolate
 enumeration-class findings from the broader `errors_found` series. The
-analysis does not read every note again. Findings filed before the gate landed
-keep their existing free-text notes. They are not part of the tagged series.
+analysis does not need to read every note again. Findings filed before the gate
+landed keep their existing free-text notes. They are not part of the tagged
+series.

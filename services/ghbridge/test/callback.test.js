@@ -141,7 +141,7 @@ describe("ghbridge callback handler", () => {
     expect(res.status).toBe(404);
   });
 
-  test("adjourned verdict posts each reply via addDiscussionComment", async () => {
+  test("adjourned verdict posts each reply through addDiscussionComment", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
     const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     const res = await postCallback(baseUrl, token, {
@@ -237,11 +237,10 @@ describe("ghbridge callback handler", () => {
     expect(removeCalls[0].variables.i.subjectId).toBe("D_kw1");
   });
 
-  test("addDiscussionComment is not composed inside any workflow YAML", async () => {
-    // GraphQL mutation strings are owned by
-    // src/graphql.js, never composed inside facilitator prompts or workflow
-    // YAML. This guard catches a regression where the Discussion handling
-    // sneaks back into kata-dispatch.yml.
+  test("no workflow YAML composes addDiscussionComment", async () => {
+    // src/graphql.js owns the GraphQL mutation strings. Nothing composes
+    // them inside facilitator prompts or workflow YAML. This guard catches
+    // a regression where kata-dispatch.yml handles Discussions again.
     const { readdir, readFile } = await import("node:fs/promises");
     const { join } = await import("node:path");
     const workflowsDir = join(
@@ -260,7 +259,7 @@ describe("ghbridge callback handler", () => {
     }
   });
 
-  test("self-originated comments are skipped by the webhook handler", async () => {
+  test("the webhook handler skips self-originated comments", async () => {
     const token = await dispatchFresh(ctx.service, baseUrl);
     const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
     await postCallback(baseUrl, token, {

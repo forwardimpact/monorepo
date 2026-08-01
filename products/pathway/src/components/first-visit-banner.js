@@ -1,13 +1,13 @@
 /**
  * First-visit dismissible banner for the Pathway landing page.
  *
- * Pure DOM factory — no storage access here so the component is trivially
+ * Pure DOM factory. It does not touch storage, so the component is trivially
  * testable. The caller (`renderLanding`) owns the dismissal-state side
- * effects and passes them in via `onDismiss`.
+ * effects and passes them in through `onDismiss`.
  *
- * Copy is verbatim from spec(1120) § Banner copy. Treat it as protected text:
- * the banner is the only line of defence against framing drift (no automated
- * copy test — see design § Risks).
+ * Copy is verbatim from spec(1120) § Banner copy. Treat it as protected text.
+ * The banner is the only line of defence against framing drift. No automated
+ * copy test exists. See design § Risks.
  */
 
 import { section, h2, p, ul, li, div, button } from "../lib/render.js";
@@ -16,7 +16,7 @@ import { section, h2, p, ul, li, div, button } from "../lib/render.js";
  * Build the first-visit banner element.
  *
  * @param {Object} options
- * @param {() => void} options.onDismiss - Called when the user activates the
+ * @param {() => void} options.onDismiss - Runs when the user activates the
  *   `Got it` button (click or keyboard).
  * @returns {HTMLElement} the `<section>` to insert into the page.
  */
@@ -93,9 +93,9 @@ export function createFirstVisitBanner({ onDismiss }) {
 }
 
 /**
- * Build a `<strong>` element via document.createElement (no `strong` helper
- * is re-exported from libui's render module, but every paragraph label here
- * needs bold framing).
+ * Build a `<strong>` element with document.createElement. libui's render
+ * module re-exports no `strong` helper. Every paragraph label here must be
+ * bold.
  * @param {string} text
  * @returns {HTMLElement}
  */

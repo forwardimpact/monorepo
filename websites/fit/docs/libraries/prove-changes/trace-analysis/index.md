@@ -123,8 +123,8 @@ npx gemba-trace reasoning --file /tmp/trace-24497273755/structured.json --from 5
 ]
 ```
 
-A comparison of `reasoning` output to actual `tool` calls reveals mismatches
-between intent and execution.
+Compare `reasoning` output to actual `tool` calls to find mismatches between
+intent and execution.
 
 ## Measure token usage and cost
 

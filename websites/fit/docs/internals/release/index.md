@@ -133,10 +133,11 @@ reads `.clis[]` for the executables. The `tap` job runs
 drift from the shipped set. A single-CLI product yields its one stanza. Gear
 yields about 30. So when you add or remove a library or service CLI, an update
 to `build/cli-manifest.json` is enough. The cask block regenerates on the next
-release. Mark a long-running service CLI with `"server": true`. A service CLI
-is one whose `bin` starts a server. Its `bin` does not print `--help` and then
-exit. The native build still compiles, checksums, uploads, and bundles it. Its
-per-binary smoke gate does not run it, because the CLI would hang.
+release. Mark a long-running service CLI with `"server": true`. A long-running
+service CLI is one whose `bin` starts a server. Its `bin` does not print
+`--help` and then exit. With that mark, the native build still compiles,
+checksums, uploads, and bundles it. Its per-binary smoke gate then does not run
+it, because the CLI would hang.
 
 ## Livecheck regex pattern
 
@@ -193,9 +194,8 @@ Each cask declares a `zap trash:` stanza that removes its preferences plist on
 
 ## Verification commands
 
-A tap PR may modify cask or formula structure. The automated version and
-sha256 updates do not count as structural changes. Before you merge a
-structural PR, run:
+The automated version and sha256 updates do not count as structural changes.
+Before you merge a tap PR that modifies cask or formula structure, run:
 
 ```sh
 brew style Casks/*.rb

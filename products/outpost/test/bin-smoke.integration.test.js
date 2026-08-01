@@ -3,8 +3,8 @@ import assert from "node:assert";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-// Per-bin smoke test: spawn the fit-outpost bin with `--version`
-// and assert it exits 0 and prints a semver-shaped line. This is the one
+// Per-bin smoke test. Spawn the fit-outpost bin with `--version`. Assert
+// that it exits 0 and prints a semver-shaped line. This is the one
 // legitimate subprocess test for the binary, so it lives in an
 // `*.integration.test.js` file (exempt from the subprocess-in-tests invariant).
 

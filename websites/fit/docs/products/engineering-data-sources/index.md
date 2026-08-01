@@ -49,7 +49,7 @@ Output groups rows per class:
 
 The output omits classes with zero rows visible to you. If every class clamps
 to zero, Landmark renders the `NO_SOURCES_FOR_PERSON` empty-state message.
-This happens when you ask about an email outside your scope.
+This happens, for example, when you ask about an email outside your scope.
 
 ## Fields per class
 
@@ -61,7 +61,7 @@ This happens when you ask about an email outside your scope.
 | `window` | The retention window declared in the migration metadata. `while employed` for `organization_people`. |
 | `falloff` | The projected date when the oldest row reaches the end of its retention window. The output omits this field when the window is `while employed`. |
 
-## Retention is a projection
+## Retention is a projection. It is not a guarantee
 
 The `falloff` field is the projected date a row reaches the end of its
 retention window. **Retention enforcement is a follow-up.** Enforcement is the

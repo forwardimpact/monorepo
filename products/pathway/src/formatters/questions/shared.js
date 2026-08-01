@@ -1,7 +1,7 @@
 /**
  * Questions presentation helpers
  *
- * Shared utilities for formatting question data across output formats.
+ * Shared utilities that format question data across output formats.
  */
 
 /**
@@ -47,8 +47,8 @@ export const BEHAVIOUR_MATURITIES = [
  * @property {number} expectedDurationMinutes - Time estimate
  * @property {string[]} [followUps] - Follow-up questions
  * @property {string} [context] - Scenario context
- * @property {string[]} [simulationPrompts] - Simulation steering prompts
- * @property {string[]} [decompositionPrompts] - Decomposition guidance prompts
+ * @property {string[]} [simulationPrompts] - Prompts to steer the simulation
+ * @property {string[]} [decompositionPrompts] - Prompts to guide decomposition
  */
 
 /**
@@ -112,7 +112,7 @@ function getSkillCapability(skillId, skills) {
 const ROLE_TYPES = ["professionalQuestions", "managementQuestions"];
 
 /**
- * Check whether skill questions should be included given the current filter
+ * Check whether the current filter includes the skill's questions
  * @param {string} skillId
  * @param {Array} skills
  * @param {QuestionsFilter} filter
@@ -130,7 +130,7 @@ function shouldIncludeSkill(skillId, skills, filter) {
 }
 
 /**
- * Check whether behaviour questions should be included given the current filter
+ * Check whether the current filter includes the behaviour's questions
  * @param {string} behaviourId
  * @param {QuestionsFilter} filter
  * @returns {boolean}
@@ -233,7 +233,7 @@ function flattenBehaviourQuestions(
 }
 
 /**
- * Flatten all questions from question bank
+ * Flatten all questions from the question bank
  * @param {Object} questionBank
  * @param {Array} skills
  * @param {Array} behaviours
@@ -336,7 +336,7 @@ export function calculateStats(questions, questionBank) {
 }
 
 /**
- * Prepare questions view for rendering
+ * Prepare the questions view for a formatter to render
  * @param {Object} params
  * @param {Object} params.questionBank
  * @param {Array} params.skills

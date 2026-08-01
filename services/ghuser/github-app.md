@@ -18,7 +18,7 @@ the trust model.
 
 | Aspect | Self-hosted (single-tenant) | Hosted (multi-tenant) |
 | --- | --- | --- |
-| Who registers / owns the App | the team that adopts | Forward Impact (one shared App) |
+| Who registers / owns the App | the adopter team | Forward Impact (one shared App) |
 | App type | a GitHub App (or OAuth App) that issues **user-to-server** tokens | same |
 | Role in dispatch | **the** `workflow_dispatch` identity — each dispatch runs as the linked user | **the** `workflow_dispatch` identity — each dispatch runs as the linked user, the same per-user path as self-hosted |
 | Credential | OAuth `client_id` + `client_secret` | OAuth `client_id` + `client_secret` |

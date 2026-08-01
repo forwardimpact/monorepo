@@ -127,11 +127,10 @@ want to adjust when agents run. For example, adjust it if you work across time
 zones or want briefings earlier.
 
 Agent schedules live in the Outpost configuration file at
-`~/.fit/outpost/scheduler.json`. Set `privilege` to `full` for agents that sync
-the live mail/calendar stores or send mail. Set it to `restricted` for agents
-that only process already-synced content. Each agent entry specifies a
-knowledge base path, a required `privilege` level, a schedule, and whether the
-agent is enabled:
+`~/.fit/outpost/scheduler.json`. Each agent entry specifies a knowledge base
+path, a required `privilege` level, a schedule, and whether the agent is
+enabled. Use `full` for agents that sync the live mail/calendar stores or send
+mail. Use `restricted` for agents that only process already-synced content:
 
 ```json
 {
@@ -259,7 +258,7 @@ Validating agents...
 All OK.
 ```
 
-The validator checks that each configured agent has a corresponding agent
+The validator checks that each configured agent has a matching agent
 definition file in `.claude/agents/` (either in the knowledge base or in your
 global `~/.claude/agents/` directory). A `[FAIL]` result means the agent
 definition is missing. Run `npx fit-outpost update <path>` (or

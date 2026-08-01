@@ -89,8 +89,8 @@ under job headings on their hub page. Each job contains two guide types:
 
 A job may own several Big Hire trees. When jobs merge, the trees stay put.
 Slugs are published URLs in shipped CLI `documentation` arrays and skill packs
-(products/CLAUDE.md § Linking rule). Retitle pages. Never move them without
-redirects.
+(products/CLAUDE.md § Linking rule). You can retitle pages. Never move them
+without redirects.
 
 Frame every guide around the reader's progress. Do not frame it around product
 features. See [README.md § Guide Map](README.md#guide-map).

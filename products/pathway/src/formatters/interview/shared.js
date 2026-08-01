@@ -1,7 +1,8 @@
 /**
  * Interview presentation helpers
  *
- * Shared utilities for formatting interview data across DOM and markdown outputs.
+ * These shared utilities format interview data across DOM and markdown
+ * outputs.
  */
 
 import {
@@ -42,7 +43,7 @@ export const INTERVIEW_TYPES = {
     id: "decomposition",
     name: "Decomposition",
     description:
-      "Evaluate how candidates break down ambiguous problems into actionable components. Inspired by Palantir's technique—focus on structured thinking, trade-off analysis, and communication under uncertainty.",
+      "Evaluate how candidates break down ambiguous problems into actionable components. Palantir's technique inspired this interview type. Focus on structured thinking, trade-off analysis, and communication under uncertainty.",
     icon: "🧩",
     expectedDurationMinutes: 60,
     panel: "2 Senior Engineers",
@@ -62,7 +63,7 @@ export const INTERVIEW_TYPES = {
 
 /**
  * Transform raw interview questions into sections
- * @param {Array} questions - Raw questions from interview module
+ * @param {Array} questions - Raw questions from the interview module
  * @returns {Array}
  */
 function groupQuestionsIntoSections(questions) {

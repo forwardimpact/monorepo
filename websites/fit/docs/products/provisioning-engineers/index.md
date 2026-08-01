@@ -64,8 +64,8 @@ The four counters cover every reachable transition:
 
 ## Idempotency
 
-Run `provision` twice in a row against the same roster. The `auth.users`
-rowset stays unchanged. The count, the `id` per email, and the
+Two `provision` runs in a row against the same roster leave the
+`auth.users` rowset unchanged. The count, the `id` per email, and the
 active-state per row are all stable. The test harness and CI fixtures rely
 on this contract. Production operators can run it from cron and it does
 not churn state.

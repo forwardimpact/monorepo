@@ -2,8 +2,8 @@
 /**
  * Read LevelDB SSTable (.ldb) and write-ahead log (.log) files.
  *
- * Parses the binary SSTable format directly — no LevelDB library needed.
- * Handles Snappy-compressed blocks via snappyjs (pure JS, zero native deps).
+ * Parses the binary SSTable format directly. It needs no LevelDB library.
+ * Handles Snappy-compressed blocks with snappyjs (pure JS, zero native deps).
  *
  * Exports a single generator function: readAllEntries(directory)
  */
@@ -146,7 +146,7 @@ const LOG_BLOCK_SIZE = 32768;
 const LOG_HEADER_SIZE = 7; // checksum(4) + length(2) + type(1)
 
 /**
- * Parse records from a single WAL block, yielding { payload, type } for each.
+ * Parse records from a single WAL block. Yield { payload, type } for each one.
  */
 function* parseLogBlock(fileData, blockStart, blockEnd) {
   let offset = blockStart;
@@ -244,7 +244,7 @@ function* parseWriteBatchEntries(batchData) {
 
       yield { key, value };
     } else if (tag === 0) {
-      // Delete — skip the key
+      // Delete. Skip the key.
       const keyLen = readVarint(batchData, pos);
       pos += keyLen.bytesRead;
       pos += keyLen.value;

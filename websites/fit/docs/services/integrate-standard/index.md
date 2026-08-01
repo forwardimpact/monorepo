@@ -138,8 +138,8 @@ matching, as your product needs.
 
 ### Invalid combinations
 
-If the combination is not valid, the service returns a gRPC error. For example,
-a discipline requires a track and the call omits it:
+If the combination is not valid, the service returns a gRPC error. One example
+is a call that omits a track for a discipline that requires one:
 
 ```js
 try {
@@ -216,7 +216,7 @@ skills that reference it.
 You reach the outcome of this guide when:
 
 - `createClient("pathway")` connects without error.
-- `ListJobs` returns Turtle RDF listing all valid role combinations.
+- `ListJobs` returns Turtle RDF that lists all valid role combinations.
 - `DescribeJob` returns a full role definition for a given discipline, level,
   and track.
 - `DescribeAgentProfile` returns an agent-optimized profile for a discipline

@@ -1,18 +1,18 @@
 #!/usr/bin/env bun
 /**
- * Convert an HTML document to A4 PDF using Playwright.
+ * Convert an HTML document to an A4 PDF with Playwright.
  *
- * Renders an HTML file into an A4 PDF with background colours preserved and
- * zero margins (the HTML is expected to handle its own page layout via CSS
- * @page rules and page-break-after). Defaults to writing the PDF alongside
- * the input file when no output path is given.
+ * The script renders an HTML file into an A4 PDF. It keeps the background
+ * colours. It sets zero margins. The HTML must handle its own page layout
+ * through CSS @page rules and page-break-after. Without an output path, the
+ * script writes the PDF next to the input file.
  *
  * Requires: bun install playwright && bunx playwright install chromium
  */
 
 import { resolve, dirname, basename, join } from "node:path";
 
-const HELP = `convert-to-pdf — render an HTML document to A4 PDF via Playwright
+const HELP = `convert-to-pdf — render an HTML document to A4 PDF with Playwright
 
 Usage: bun scripts/convert-to-pdf.mjs <input.html> [output.pdf] [-h|--help]
 

@@ -106,7 +106,7 @@ knowledge are the conditions under which people do their best work.
 ## Open Source, Real World
 
 The entire suite is open source. The data model is yours. You define it in
-YAML, a schema validates it, and it lives in your repository. Different
+YAML. A schema validates it. It lives in your repository. Different
 organizations use the same model with completely different data. There's no
 vendor lock-in, no proprietary format, no SaaS dependency.
 

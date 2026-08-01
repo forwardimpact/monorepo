@@ -14,7 +14,7 @@
     {
       "user": "Empowered Engineers",
       "goal": "Be Prepared and Productive",
-      "trigger": "Walking into a meeting cold because context was scattered across email, Slack, and last week's notes.",
+      "trigger": "The engineer walks into a meeting cold because context is scattered across email, Slack, and last week's notes.",
       "bigHire": "keep track of people, projects, and threads without depending on memory.",
       "littleHire": "walk into every meeting already oriented.",
       "competesWith": "morning email scan; re-reading calendar invites; personal notes; asking colleagues for context",

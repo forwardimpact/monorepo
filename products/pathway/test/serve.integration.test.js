@@ -48,7 +48,7 @@ async function buildMinimalSite() {
   const repoDir = join(siteDir, "packs", "apm", "test-pack");
   await emitter.emit(apmDir, repoDir, { version: "1.0.0", name: "test-pack" });
 
-  // Add a root index so static serving has something
+  // Add a root index so the static server has something to serve
   await writeFile(join(siteDir, "index.html"), "<html>ok</html>\n");
 
   return siteDir;
@@ -63,7 +63,7 @@ describe("fit-pathway serve", () => {
     if (proc) proc.kill();
   });
 
-  test("shallow clone works via smart HTTP", async () => {
+  test("shallow clone works through smart HTTP", async () => {
     siteDir = await buildMinimalSite();
     port = 9100 + Math.floor(Math.random() * 900);
     const cloneDir = join(siteDir, "clone-output");
@@ -75,7 +75,7 @@ describe("fit-pathway serve", () => {
       stdio: "pipe",
     });
 
-    // Wait for server to be ready
+    // Wait for the server to be ready
     await new Promise((resolve) => {
       proc.stderr.on("data", (d) => {
         if (d.toString().includes("serving at")) resolve();

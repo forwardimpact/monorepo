@@ -174,7 +174,7 @@ agent team. Please try again later.` into the thread. Confirm the GitHub
 token has `actions:write` on the target repository. Check the bridge log
 for `api.github.com` errors. If you are on a corporate VPN with tenant
 restrictions, outbound calls to Azure AD or GitHub may be blocked.
-Disconnect, or allowlist the relevant endpoints.
+Disconnect or allowlist the relevant endpoints.
 
 ## What's next
 

@@ -152,7 +152,7 @@ function renderNotFound() {
     div(
       { className: "not-found" },
       h1({}, "404 - Page Not Found"),
-      p({}, "The page you are looking for does not exist."),
+      p({}, "The page you requested does not exist."),
       div(
         { className: "not-found-actions" },
         div(
@@ -169,7 +169,7 @@ function renderNotFound() {
 }
 
 /**
- * Helper to create elements (used in not found)
+ * Helper to create elements (the not-found page uses it)
  */
 function createElement(tag, attrs, text) {
   const el = document.createElement(tag);
@@ -218,7 +218,7 @@ function populateBranding() {
 }
 
 /**
- * Fetch version.json and display in the footer
+ * Fetch version.json. Display the version in the footer.
  */
 function loadVersion() {
   fetch("./version.json")
@@ -246,12 +246,12 @@ function setupDrawerOverlay() {
   overlay.className = "drawer-overlay";
   app.insertBefore(overlay, drawer);
 
-  // Close drawer when overlay is clicked (mobile)
+  // Close the drawer when the user clicks the overlay (mobile)
   overlay.addEventListener("click", () => {
     app.classList.remove("drawer-open");
   });
 
-  // Close drawer on mobile when a link is clicked
+  // Close the drawer on mobile when the user clicks a link
   drawer.addEventListener("click", (e) => {
     if (e.target.tagName === "A" && window.innerWidth <= 768) {
       app.classList.remove("drawer-open");

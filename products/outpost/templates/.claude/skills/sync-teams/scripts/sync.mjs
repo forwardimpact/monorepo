@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Sync Microsoft Teams chat messages to ~/.cache/fit/outpost/teams_chat/ as
- * markdown files. Reads the Teams IndexedDB cache (LevelDB on disk) directly —
- * no browser automation, no API tokens, no network access needed.
+ * markdown files. Reads the Teams IndexedDB cache (LevelDB on disk) directly.
+ * It needs no browser automation, no API tokens, and no network access.
  *
  * Requires macOS with the Microsoft Teams desktop app installed.
  * Requires snappyjs: npm install snappyjs
@@ -272,7 +272,7 @@ function loadUserIdentity() {
     const nameMatch = identityMd.match(/\*\*Name:\*\*\s*(.+)/);
     if (nameMatch) return nameMatch[1].trim();
   } catch {
-    // identity cache not found or not readable — run the identify-user skill
+    // identity cache not found or not readable. Run the identify-user skill
   }
   return "";
 }
@@ -326,7 +326,7 @@ function main() {
 
   if (!existsSync(TEAMS_IDB_DIR)) {
     console.error(
-      "Error: Teams IndexedDB not found. Is the Teams desktop app installed?",
+      "Error: Teams IndexedDB not found. Check that the Teams desktop app is installed.",
     );
     console.error(`Expected: ${TEAMS_IDB_DIR}`);
     process.exit(1);

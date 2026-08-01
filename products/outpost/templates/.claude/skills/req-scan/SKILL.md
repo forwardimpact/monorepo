@@ -5,8 +5,7 @@ description: >
   hire. Uses WebFetch to read public APIs (HN Algolia, GitHub, dev.to).
   Writes prospect notes to Knowledge/Prospects/. Maintains
   cursor/dedup state in ~/.cache/fit/outpost/head-hunter/. Use when the
-  scheduler wakes the head-hunter agent or when the user asks to scan for open
-  candidates.
+  head-hunter agent wakes or when the user asks to scan for open candidates.
 ---
 
 # Scan Open Candidates

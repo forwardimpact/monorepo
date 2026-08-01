@@ -3,7 +3,7 @@
  *
  * Composes the track-scoped teamInstructions body and the installation-scoped
  * organizational-context section into the rendered .claude/CLAUDE.md content
- * via a Mustache template.
+ * with a Mustache template.
  */
 
 import Mustache from "mustache";
@@ -13,12 +13,13 @@ import { trimValue } from "../shared.js";
 /**
  * Format team instructions + organizational context as CLAUDE.md content.
  *
- * Returns null when both inputs are empty/whitespace (instead of an empty
- * rendered template). All call sites — CLI writeTeamInstructions, web
- * preview deriveAgentData, distribution formatContent — treat null as
- * "skip the file/section." The marker-contract last-occurrence rule lives
- * in renderOrganizationalContext and the org-context guide; this composer
- * only appends the section after the teamInstructions body.
+ * Returns null when both inputs are empty or whitespace. It does not return
+ * an empty rendered template. Every call site treats null as "skip the
+ * file/section": the CLI writeTeamInstructions, the web preview
+ * deriveAgentData, and the distribution formatContent. The marker-contract
+ * last-occurrence rule lives in renderOrganizationalContext and in the
+ * org-context guide. This composer only appends the section after the
+ * teamInstructions body.
  *
  * @param {string|null} teamInstructions
  * @param {string|null} orgSection

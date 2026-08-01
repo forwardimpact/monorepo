@@ -1,7 +1,8 @@
 /**
  * Driver CLI Command
  *
- * Handles driver summary, listing, and detail display in the terminal.
+ * Handles the driver summary, the ID list, and the detail view in the
+ * terminal.
  *
  * Usage:
  *   npx fit-pathway driver              # Summary with stats

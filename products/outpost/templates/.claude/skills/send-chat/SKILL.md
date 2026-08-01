@@ -68,8 +68,8 @@ their full name as it appears in the chat platform.
 
 ## Compose the Message
 
-**You MUST draft every message as a text file first.** This lets the user review
-and edit the exact message before you send it.
+**You MUST draft every message as a text file first.** This makes sure the user
+can review and edit the exact message before you send it.
 
 ### Draft Workflow
 

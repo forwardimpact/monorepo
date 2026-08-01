@@ -3,9 +3,9 @@ name: req-screen
 description: >
   Screen candidate CVs against the agent-aligned engineering standard to decide
   whether to invest interview time. It produces a structured screening
-  assessment with an interview/pass recommendation and suggested focus areas
-  for the interview. Use when the user asks to evaluate a CV, or when you find
-  a new CV.
+  assessment with an interview/pass recommendation and suggested interview
+  focus areas. Use when the user asks to evaluate a CV, or when you find a new
+  CV.
 ---
 
 # Screen CV

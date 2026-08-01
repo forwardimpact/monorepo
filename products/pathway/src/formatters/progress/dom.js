@@ -1,5 +1,5 @@
 /**
- * Progress formatting for DOM output
+ * Progress formatter for DOM output
  */
 
 import {

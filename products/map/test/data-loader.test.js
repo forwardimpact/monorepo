@@ -165,8 +165,7 @@ describe("DataLoader", () => {
       };
       mockParser.parseYaml = (content) => JSON.parse(content);
 
-      // #fileExists needs stat. The capabilities/questions dirs must not
-      // throw.
+      // #fileExists needs stat. The capabilities/questions dirs must not throw.
       mockFs.stat = async () => ({});
 
       const loader = new DataLoader(mockFs, mockParser);

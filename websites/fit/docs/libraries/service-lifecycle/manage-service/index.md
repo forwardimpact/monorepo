@@ -120,8 +120,8 @@ The service name is required. Each longrun service writes output to a dedicated
 directory under the configured `log_dir`. The log writer rotates files at 1 MB
 and keeps the 10 most recent archives.
 
-If the service produced no output, no log file exists yet. The command then
-returns silently.
+A service that produced no output has no log file yet. If no log file exists,
+the command returns silently.
 
 ## Tune log rotation
 

@@ -32,7 +32,7 @@ wake.
 
 ## 1. Observe
 
-Assess what you must process:
+Assess what to process:
 
 1. Check for unprocessed synced files (mail and calendar data):
 

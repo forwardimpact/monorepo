@@ -1,7 +1,7 @@
 /**
  * Skill presentation helpers
  *
- * Shared utilities for formatting skill data across DOM and markdown outputs.
+ * Shared utilities that format skill data across DOM and markdown outputs.
  */
 
 import {
@@ -12,7 +12,7 @@ import { getSkillTypeForDiscipline } from "@forwardimpact/libskill/derivation";
 import { truncate } from "../shared.js";
 
 /**
- * Format capability name for display
+ * Format the capability name for display
  * @param {string} capabilityName - The capability name to display
  * @returns {string}
  */
@@ -32,7 +32,7 @@ export function formatCapability(capabilityName) {
  */
 
 /**
- * Transform skills for list view (grouped by capability)
+ * Transform skills for the list view (grouped by capability)
  * @param {Array} skills - Raw skill entities
  * @param {Array} capabilities - Capability entities
  * @param {number} [descriptionLimit=120] - Maximum description length
@@ -79,7 +79,7 @@ export function prepareSkillsList(
  */
 
 /**
- * Transform skill for detail view
+ * Transform a skill for the detail view
  * @param {Object} skill - Raw skill entity
  * @param {Object} context - Additional context
  * @param {Array} context.disciplines - All disciplines

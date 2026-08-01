@@ -8,10 +8,9 @@ description: >
 
 # Ship Feature Branch
 
-Take the current feature branch from "ready" to "merged" in one pass. GitHub's
-squash merge preserves the atomic commits on the branch and collapses them into
-a single commit on `main`. So bisect and review stay useful up to the moment of
-merge.
+Take the current feature branch from "ready" to "merged" in one pass. The branch
+keeps the atomic commits. GitHub's squash merge collapses them into a single
+commit on `main`. So bisect and review stay useful up to the moment of merge.
 
 ## When to Use
 

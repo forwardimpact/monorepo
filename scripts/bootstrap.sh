@@ -40,8 +40,8 @@ else
   # generated/services must mirror the proto set exactly, keyed by proto
   # BASENAME. resource/tool ship through libproto's node_modules protos. No
   # service dir holds them. Without this check, a rename leaves the old dir
-  # behind. codegen's prune removes it. codegen never generates the renamed
-  # service, so "workspace ready" precedes a crash-loop. Skip common.proto
+  # behind. codegen's prune removes it. The renamed service never gets
+  # generated, so "workspace ready" precedes a crash-loop. Skip common.proto
   # (no service).
   proto_names=$(
     for p in services/*/proto/*.proto \

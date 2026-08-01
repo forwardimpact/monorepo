@@ -37,11 +37,11 @@ const WEBHOOK_PATH = "/api/webhook";
 const WORKFLOW_FILE = "kata-dispatch.yml";
 
 /**
- * GitHub Discussions bridge service. Receives webhooks from the Kata
- * GitHub App for `discussion` and `discussion_comment` events, drives
- * the libbridge dispatch dance, posts the lead's structured replies back
- * via the `addDiscussionComment` GraphQL mutation, and tracks the
- * suspend/resume lifecycle through the shared `ResumeScheduler`.
+ * GitHub Discussions bridge service. It receives webhooks from the Kata
+ * GitHub App for `discussion` and `discussion_comment` events. It drives
+ * the libbridge dispatch dance. It posts the lead's structured replies
+ * back through the `addDiscussionComment` GraphQL mutation. It tracks
+ * the suspend/resume lifecycle through the shared `ResumeScheduler`.
  */
 export class GhBridgeService {
   #logger;
@@ -108,26 +108,26 @@ export class GhBridgeService {
     this.#verifyWebhook = verifyWebhook;
     this.#graphqlClient = deps.graphqlClient;
     // In multi-tenant mode the reply/reaction path mints a token for the
-    // per-request resolved tenant repo; `makeGraphqlClient(repo)` returns a
-    // client bound to that repo. Single-tenant uses the static `graphqlClient`.
+    // tenant repo resolved per request. `makeGraphqlClient(repo)` returns a
+    // client bound to it. Single-tenant uses the static `graphqlClient`.
     this.#makeGraphqlClient = deps.makeGraphqlClient;
-    // Deployment mode is config-driven — `tenancy_mode` is the single source of
-    // truth. server.js injects the tenancy/ghserver clients only in "multi";
-    // guard against a multi config that is missing them.
+    // The config drives the deployment mode. `tenancy_mode` is the single
+    // source of truth. server.js injects the tenancy/ghserver clients only in
+    // "multi". Guard against a multi config that is missing them.
     this.#multiTenant = config.tenancy_mode === "multi";
     assertMultiTenantDeps(this.#multiTenant, deps.tenancyClient);
     this.#clock = clock;
     this.#trustedOrigins = trustedOrigins;
     // Multi-tenant onboarding upserts repositories into the registry. The
-    // raw tenancy client is present only in multi-tenant mode; single-tenant
+    // raw tenancy client is present only in multi-tenant mode. Single-tenant
     // deployments never reach services/tenancy.
     this.#tenancyClient = deps.tenancyClient;
 
-    // One resolver instance is shared by the store adapter (tenant_id on
-    // every gRPC) and the dispatcher (tenant_id in the callback URL). The
-    // deployment mode picks the implementation in server.js; if none is
-    // injected, default to the single-tenant `default` resolver derived
-    // from the configured repo.
+    // The store adapter (tenant_id on every gRPC) and the dispatcher
+    // (tenant_id in the callback URL) share one resolver instance. The
+    // deployment mode picks the implementation in server.js. If nothing
+    // injects a resolver, default to the single-tenant `default` resolver
+    // derived from the configured repo.
     const tenantResolver =
       deps.tenantResolver ??
       new DefaultTenantResolver({
@@ -161,11 +161,11 @@ export class GhBridgeService {
         ),
         logger,
       });
-    // Dispatch identity is the dispatching user's per-user OAuth token via
-    // services/ghuser in both tenancy modes (design § Unified dispatch
-    // identity). The reply/reaction path mints its own per-repo install token
-    // through the `makeGraphqlClient` / `graphqlClient` closures injected by
-    // server.js, independent of dispatch.
+    // Dispatch identity in both tenancy modes is the per-user OAuth token of
+    // the user who dispatches, taken through services/ghuser (design
+    // § Unified dispatch identity). The reply/reaction path is independent of
+    // dispatch. It mints its own per-repo install token through the
+    // `makeGraphqlClient` / `graphqlClient` closures that server.js injects.
     const dispatchTokenResolver = new TokenResolver(deps.ghuserClient);
     this.#dispatcher = new Dispatcher({
       clock: this.#clock,
@@ -291,7 +291,7 @@ export class GhBridgeService {
       return c.json({ error: "Invalid JSON" }, 400);
     }
 
-    // Multi-tenant onboarding: register repositories named by an
+    // In multi-tenant mode, register the repositories named by an
     // install-class delivery. Single-tenant deployments have no tenancy
     // client and skip this branch.
     if (this.#multiTenant && isInstallEvent(event, body)) {
@@ -302,12 +302,13 @@ export class GhBridgeService {
       return c.body(null, 200);
     }
 
-    // Multi-tenant per-request tenant extraction. The inbound delivery names
-    // one repository; resolve it to an active tenant before any store write or
-    // dispatch so the downstream Dispatcher/DiscussionAdapter scope every RPC
-    // by the resolved tenant. A delivery from an unknown or non-active tenant
-    // is dropped (204). Single-tenant deployments skip this branch and rely on
-    // the DefaultTenantResolver (`tenant_id = "default"`).
+    // Extract the tenant per request in multi-tenant mode. The inbound
+    // delivery names one repository. Resolve it to an active tenant before any
+    // store write or dispatch, so the downstream Dispatcher and
+    // DiscussionAdapter scope every RPC by the resolved tenant. The handler
+    // drops a delivery from an unknown or non-active tenant (204).
+    // Single-tenant deployments rely on the DefaultTenantResolver
+    // (`tenant_id = "default"`) and skip this branch.
     let tenant;
     if (this.#multiTenant) {
       tenant = await extractTenant(body, this.#tenantResolver);

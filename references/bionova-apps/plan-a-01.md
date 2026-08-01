@@ -253,8 +253,8 @@ Created:
   (part 04) and the pg_cron schedule (part 04) need pg_net.
 
 **The `supabase/postgres` image owns its own role and schema bootstrap.** The
-init scripts must cooperate with it. They must not fight it. The image uses
-`supabase_admin` as its bootstrap superuser. It does not use `postgres`. Its
+init scripts must cooperate with it. They must not fight it. The image's
+bootstrap superuser is `supabase_admin` (not `postgres`). Its
 own `init-scripts/` create the Supabase service roles (`anon`,
 `authenticated`, `service_role`, `authenticator`, `supabase_auth_admin`,
 `supabase_storage_admin`) and schemas (`auth`, `storage`, `realtime`, `net`).
@@ -300,7 +300,7 @@ Created (one config file per service):
 | `realtime` | env in docker-compose | `DB_HOST=postgres`, `DB_PORT=5432` (a direct connection that bypasses the pooler), `DB_NAME=postgres`, `SECRET_KEY_BASE=${REALTIME_SECRET}` |
 | `storage` | env in docker-compose | `DATABASE_URL=postgres://supabase_storage_admin:…@postgres:5432/postgres` (a direct connection that bypasses the pooler), `STORAGE_BACKEND=s3`, `GLOBAL_S3_ENDPOINT=http://minio:9000`, `GLOBAL_S3_PROTOCOL=http`, `GLOBAL_S3_FORCE_PATH_STYLE=true`. An init script creates the `trial-documents` bucket on boot |
 | `imgproxy` | env in docker-compose | `IMGPROXY_BIND=:8080`, `IMGPROXY_USE_S3=true`, `IMGPROXY_S3_ENDPOINT=http://minio:9000` |
-| `tei` | command in docker-compose | `--model-id BAAI/bge-small-en-v1.5 --max-batch-tokens 16384 --max-client-batch-size 16 --auto-truncate` (auto-truncate stops a 413 rejection for condition texts over bge-small's 512-token limit). Parametrize the model id and source with `TEI_MODEL_ID` / `TEI_MODEL_SOURCE` (default to HF download). A `just tei-model` recipe fetches the model to a host directory, so `tei` can load it with no container network. This matters where a TLS-inspection proxy breaks the huggingface.co download and stalls the whole stack |
+| `tei` | command in docker-compose | `--model-id BAAI/bge-small-en-v1.5 --max-batch-tokens 16384 --max-client-batch-size 16 --auto-truncate` (auto-truncate stops a 413 rejection for condition texts over bge-small's 512-token limit). Parametrize the model id and source with `TEI_MODEL_ID` / `TEI_MODEL_SOURCE` (default to HF download). A `just tei-model` recipe fetches the model to a host directory, so `tei` can load it with no container network. The recipe is necessary where a TLS-inspection proxy breaks the huggingface.co download and stalls the whole stack |
 
 Created: `infrastructure/storage/init-bucket.sh` — uses the `mc` CLI in a
 one-shot sidecar container to create the `trial-documents` bucket against

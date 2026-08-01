@@ -1,8 +1,8 @@
 /**
  * Renderer tests. They verify that each entity type renders to a complete
  * HTML document. They parse the microdata with the same parser that
- * libresource uses. The microdata must produce the expected fit:
- * vocabulary quads.
+ * libresource uses. The microdata must produce the expected
+ * fit: vocabulary quads.
  *
  * These tests assert at the quad level. They do not match raw HTML
  * strings. Quad-level assertions keep the tests resilient to whitespace

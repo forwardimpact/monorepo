@@ -87,8 +87,8 @@ data in LevelDB (the same way Chrome does). The key databases are:
 - **replychain-manager** — stores actual messages: sender display name, HTML
   content, timestamps, reactions, edit status
 
-LevelDB is an append-only format. You can read the files while Teams runs. Newer
-`.ldb` files supersede older ones for the same records.
+LevelDB is an append-only format. So you can read the files while Teams runs.
+Newer `.ldb` files supersede older ones for the same records.
 
 ### Name Resolution
 

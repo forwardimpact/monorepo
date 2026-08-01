@@ -69,10 +69,10 @@ Defaults: input = `/tmp/outpost-presentation.html`, output =
 
 ## Interactive HTML Decks — Navigation & Event Standards
 
-Sometimes you deliver the deck as a **standalone interactive HTML file**
+You can deliver the deck as a **standalone interactive HTML file**
 (animated / navigable in the browser) instead of a static PDF. Then keep the
 input handlers deliberately minimal. Rich event handlers fight with two things
-the user needs. The user selects and copies text on a slide. The user types into
+the user needs: selection and copy of text on a slide, and text entry into
 overlay tools (e.g. the `slide-annotator.js` review overlay).
 
 **Required:**

@@ -41,8 +41,7 @@ Follow their choice for the entire session.
 
 ## Core Principles
 
-- **Re-read before every response** — the user may edit the file manually at any
-  time
+- **Re-read before every response** — the user may edit the file manually
 - **Be concise** — don't propose outlines unless asked
 - **Don't assume** — if something is unclear, ask ONE simple question
 - **Use knowledge context** — search the knowledge base for mentioned entities,

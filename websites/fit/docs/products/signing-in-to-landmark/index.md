@@ -50,8 +50,8 @@ Logged in as you@example.com.
 ## OTP flow (headless / SSH)
 
 You may not be able to open a browser on the machine that runs the CLI. An
-SSH session, a sandboxed agent, and a container are examples. Use the OTP
-flow instead:
+SSH session, a sandboxed agent, and a container are examples. If you
+cannot, use the OTP flow instead:
 
 ```sh
 fit-landmark login --otp --email you@example.com

@@ -1,6 +1,6 @@
 /**
  * Career progress detail page
- * Shows skill and behaviour progression comparison across discipline × level × track
+ * Compares skill and behaviour progression across discipline × level × track
  */
 
 import { render, div, h1, h2, p, a, label, section } from "../lib/render.js";
@@ -43,7 +43,7 @@ export function renderProgressDetail(params) {
     return;
   }
 
-  // If trackId was provided but not found, error
+  // Show an error if trackId exists but no track matches it
   if (trackId && !track) {
     renderError({
       title: "Role Not Found",
@@ -170,7 +170,8 @@ function createComparisonSelectorsSection({
     id: "comparison-results",
   });
 
-  // State to track current selections - default to same discipline, same track, next level
+  // State to track current selections. Defaults are the same discipline,
+  // the same track, and the next level.
   let selectedDisciplineId = discipline.id;
   let selectedLevelId = nextLevel?.id || "";
   let selectedTrackId = currentTrack?.id || "";
@@ -322,12 +323,12 @@ function createComparisonSelectorsSection({
   // Get initial available options
   let availableOptions = getAvailableOptions(selectedDisciplineId);
 
-  // References to select elements for updating
+  // Keep references to the select elements to update them later
   let levelSelectEl = null;
   let trackSelectEl = null;
 
   /**
-   * Rebuild level select options, preserving selection if still valid
+   * Rebuild the level select options. Keep the selection if it is still valid.
    */
   function rebuildLevelOptions() {
     if (!levelSelectEl) return;
@@ -354,7 +355,7 @@ function createComparisonSelectorsSection({
   }
 
   /**
-   * Rebuild track select options, preserving selection if still valid
+   * Rebuild the track select options. Keep the selection if it is still valid.
    */
   function rebuildTrackOptions() {
     if (!trackSelectEl) return;
@@ -430,7 +431,7 @@ function createComparisonSelectorsSection({
 
   // Trigger initial comparison if we have defaults
   if (selectedLevelId && selectedTrackId) {
-    // Use setTimeout to ensure DOM is ready
+    // Use setTimeout to make sure the DOM is ready
     setTimeout(() => updateComparison(), 0);
   }
 
