@@ -1,8 +1,10 @@
 /**
- * Industry Data — drug and platform definitions for synthetic knowledge graph.
+ * Industry Data — drug and platform definitions for a synthetic knowledge
+ * graph.
  *
- * Provides deterministic drug pipeline and technology platform data
- * parameterized by the terrain's industry and domain.
+ * This module supplies deterministic data for the drug pipeline and for
+ * the technology platforms. The terrain's industry and domain set the
+ * parameters.
  *
  * @module libterrain/render/industry-data
  */
@@ -16,7 +18,8 @@
  * @property {string} clinicalPharmacology
  * @property {string} phase
  * @property {string} legalStatus
- * @property {string|null} parentDrug - id of parent drug for derivatives
+ * @property {string|null} parentDrug - the id of the parent drug for
+ *   derivatives
  */
 
 /**
@@ -26,7 +29,7 @@
  * @property {string} description
  * @property {string} category
  * @property {string} version
- * @property {string[]} dependencies - ids of dependency platforms
+ * @property {string[]} dependencies - the ids of the dependency platforms
  */
 
 /**

@@ -8,7 +8,7 @@ import { BundleDownloader } from "./downloader.js";
 import { TarExtractor } from "./extractor.js";
 
 /**
- * Updates or creates an environment variable in .env file
+ * Updates or creates an environment variable in the .env file
  * @param {string} filePath - Path to .env file
  * @param {string} key - Environment variable name (e.g., "SERVICE_SECRET")
  * @param {string} value - Environment variable value
@@ -34,7 +34,7 @@ export async function updateEnvFile(filePath, key, value, fsFns) {
   const lines = content.split("\n");
   let found = false;
 
-  // Look for existing key line (both active and commented)
+  // Look for a key line that already exists (both active and commented)
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].startsWith(`${key}=`) || lines[i].startsWith(`# ${key}=`)) {
       lines[i] = envLine;
@@ -43,7 +43,7 @@ export async function updateEnvFile(filePath, key, value, fsFns) {
     }
   }
 
-  // If not found, add it to the end
+  // If the loop found no line, add it to the end
   if (!found) {
     if (content && !content.endsWith("\n")) {
       lines.push("");
@@ -51,14 +51,14 @@ export async function updateEnvFile(filePath, key, value, fsFns) {
     lines.push(envLine);
   }
 
-  // Write back to file
+  // Write back to the file
   await fsFns.writeFile(fullPath, lines.join("\n"));
 }
 
 /**
  * Generates a deterministic hash from multiple input values
  * @param {...string} values - Values to hash together
- * @returns {string} The first 16 characters of SHA256 hash
+ * @returns {string} The first 16 characters of the SHA256 hash
  */
 export function generateHash(...values) {
   const input = values.filter(Boolean).join(".");
@@ -70,7 +70,7 @@ export function generateHash(...values) {
 }
 
 /**
- * Generates a unique session ID for conversation tracking
+ * Generates a unique session ID to track a conversation
  * @returns {string} Unique session identifier
  */
 export function generateUUID() {
@@ -97,12 +97,12 @@ export function createTokenizer() {
 }
 
 /**
- * Creates a BundleDownloader instance configured for generated code management.
- * Used in containerized deployments to download pre-generated code bundles.
+ * Creates a BundleDownloader instance that manages generated code.
+ * Containerized deployments use it to download pre-generated code bundles.
  * @param {Function} createStorage - Storage factory function from libstorage
  * @param {object} logger - Logger instance
- * @param {import("./runtime.js").Runtime} runtime - Injected runtime bag; supplies
- *   the `fs`/`fsSync`/`proc` collaborators the Finder reads.
+ * @param {import("./runtime.js").Runtime} runtime - Injected runtime bag. It
+ *   supplies the `fs`/`fsSync`/`proc` collaborators the Finder reads.
  * @returns {BundleDownloader} Configured BundleDownloader instance
  */
 export function createBundleDownloader(createStorage, logger, runtime) {
@@ -117,12 +117,13 @@ export function createBundleDownloader(createStorage, logger, runtime) {
 }
 
 /**
- * Executes command line arguments as child process, similar to execv() in C
- * @param {number} shift - Number of arguments to skip from process.argv before extracting command
+ * Executes the command line arguments as a child process, like execv() in C
+ * @param {number} shift - Number of arguments to skip from process.argv
+ *   before it extracts the command
  * @param {object} deps - Required dependencies
  * @param {Function} deps.spawn - Child process spawn function
  * @param {object} deps.process - Process object (argv, env, on, exit)
- * @returns {void} Function does not return - exits parent process
+ * @returns {void} Function does not return. It exits the parent process.
  */
 export function execLine(shift, deps) {
   if (!deps?.spawn) throw new Error("deps.spawn is required");
@@ -132,7 +133,7 @@ export function execLine(shift, deps) {
   const args = proc.argv.slice(2 + (shift || 0));
   if (args.length === 0) return;
 
-  // Look for '--' delimiter and use everything after it as the command
+  // Look for the '--' delimiter and use everything after it as the command
   const index = args.indexOf("--");
   const line = index !== -1 ? args.slice(index + 1) : args;
 
@@ -144,7 +145,7 @@ export function execLine(shift, deps) {
     env: proc.env,
   });
 
-  // Forward signals to child process
+  // Forward signals to the child process
   ["SIGTERM", "SIGINT", "SIGQUIT"].forEach((signal) => {
     proc.on(signal, () => child.kill(signal));
   });

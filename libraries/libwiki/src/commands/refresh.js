@@ -30,11 +30,12 @@ async function deriveParentRepo(gitClient, parentDir, env) {
 }
 
 // Compose the agent-experiments block body. On a successful tracker query the
-// body is a fresh last-successful-sync stamp followed by freshly rendered,
-// label-re-checked, sanitized item lines. On a tracker failure the previously
-// materialized body (stamp + items) is preserved verbatim so boot keeps serving
-// the last good routing surface instead of an empty one, and the timestamp is
-// not advanced, so staleness stays auditable from the stamp.
+// body is a fresh last-successful-sync stamp, then freshly rendered,
+// label-re-checked, sanitized item lines. On a tracker failure the function
+// keeps the body it materialized before (stamp + items) verbatim. Boot then
+// still serves the last good routing surface. It never falls back to an empty
+// one. The function does not advance the timestamp, so the stamp keeps
+// staleness auditable.
 async function renderAgentExperimentsBlock(block, lines, ghContext, runtime) {
   const priorBody = lines.slice(block.openLine + 1, block.closeLine);
   try {
@@ -91,8 +92,8 @@ function spliceBlock(lines, block, rendered) {
   );
 }
 
-// A missing current-month storyboard is non-fatal: return null so the caller
-// can create it (see createStoryboardSkeleton) rather than fail the job.
+// A missing current-month storyboard is non-fatal. Return null so the caller
+// can create it (see createStoryboardSkeleton) and does not fail the job.
 function readStoryboardOrNull(runtime, storyboardPath) {
   try {
     return runtime.fsSync.readFileSync(storyboardPath, "utf-8");
@@ -104,10 +105,11 @@ function readStoryboardOrNull(runtime, storyboardPath) {
 
 // Create the current-month storyboard from the minimal skeleton when it does
 // not exist. Refresh is the deterministic "freshen the wiki" step and runs
-// before the session (kata-agent pre-run), so creating here guarantees the file
-// is on disk before participants look for it — without any lead having a write
-// tool. The skeleton carries the section structure and the generic issue-list
-// markers; the render pass below fills them and participants seed metric blocks.
+// before the session (kata-agent pre-run). Creation here guarantees the file
+// is on disk before participants look for it, and no lead needs a write tool.
+// The skeleton carries the section structure and the generic issue-list
+// markers. The render pass below fills them, and participants seed metric
+// blocks.
 function createStoryboardSkeleton(runtime, storyboardPath, logger) {
   const skeleton = renderStoryboardSkeleton(currentDayIso(runtime));
   runtime.fsSync.mkdirSync(path.dirname(storyboardPath), { recursive: true });
@@ -116,12 +118,12 @@ function createStoryboardSkeleton(runtime, storyboardPath, logger) {
   return skeleton;
 }
 
-// Drop every MEMORY.md `## Active Claims` row past its `expires_at`, writing the
+// Drop every MEMORY.md `## Active Claims` row past its `expires_at`. Write the
 // trimmed table back in place. Refresh is the deterministic "freshen the wiki"
-// step, so clearing lapsed claims belongs here alongside the storyboard render;
-// it runs whether or not the storyboard has marker blocks to regenerate. The
-// write is local, mirroring the storyboard splice — the caller's push publishes
-// it. A missing wiki or claims table is a clean no-op.
+// step, so a sweep of lapsed claims belongs here beside the storyboard render.
+// It runs whether or not the storyboard has marker blocks to regenerate. The
+// write is local and mirrors the storyboard splice. The caller's push
+// publishes it. A missing wiki or claims table is a clean no-op.
 function clearExpiredClaims(runtime, options, today, logger) {
   const memPath = path.join(resolveWikiRoot(runtime, options), "MEMORY.md");
   if (!runtime.fsSync.existsSync(memPath)) return;

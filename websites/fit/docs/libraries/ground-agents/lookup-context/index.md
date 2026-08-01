@@ -1,16 +1,17 @@
 ---
 title: Look Up Context Fast
-description: Retrieve exactly the context you need from a JSONL-backed index — prefix, limit, and token-budget filters without loading everything into memory.
+description: Retrieve exactly the context you need from a JSONL-backed index. Prefix, limit, and token-budget filters keep the whole corpus out of memory.
 ---
 
-You need to find resources in a growing index -- not by semantic similarity or
-graph traversal, but by structural properties like type prefix or identifier
-pattern. Loading the entire dataset into your application is wasteful when you
-only need a filtered subset. `@forwardimpact/libindex` provides a JSONL-backed
-index with lazy loading and built-in filters that keep memory use proportional
-to results, not to corpus size.
+You need to find resources in an index that grows. Structural properties like
+type prefix or identifier pattern locate them. Semantic similarity and graph
+traversal do not. It is wasteful to load the entire dataset into your
+application when you need only a filtered subset. `@forwardimpact/libindex`
+provides a JSONL-backed index that loads on demand and applies built-in
+filters. Memory use stays proportional to the results. It does not grow with
+the corpus size.
 
-For the full workflow of building a grounded context pipeline, see
+For the full workflow that builds a grounded context pipeline, see
 [Ground Agents in Context](/docs/libraries/ground-agents/).
 
 ## Prerequisites
@@ -41,7 +42,7 @@ for the file and initializes an empty in-memory map if the file is missing.
 ## Add items
 
 Each item requires an `id` string and an `identifier` object. The `id` is the
-map key; the `identifier` carries the typed resource metadata:
+map key. The `identifier` carries the typed resource metadata:
 
 ```js
 import { resource } from "@forwardimpact/libtype";
@@ -95,10 +96,9 @@ console.log(first5.length);
 
 ### Cap by token budget
 
-When the downstream consumer has a context window to respect, use `max_tokens`
-to stop accumulating results once the total token count exceeds the budget.
-Every identifier must carry a `tokens` field -- the filter throws if one is
-missing:
+When the downstream consumer has a context window to respect, use `max_tokens`.
+The filter stops once the total token count exceeds the budget. Every
+identifier must carry a `tokens` field. The filter throws if one is missing:
 
 ```js
 const budgeted = await index.queryItems({
@@ -114,9 +114,9 @@ console.log(`${budgeted.length} items, ${totalTokens} tokens`);
 4 items, 187 tokens
 ```
 
-The filter walks items in index order, adding each identifier's token count
-until the next item would exceed the budget. It does not optimize for the
-maximum number of items -- it preserves insertion order.
+The filter walks items in index order. It adds each identifier's token count
+until the next item would exceed the budget. It preserves insertion order. It
+does not optimize for the maximum number of items.
 
 ### Combine filters
 
@@ -131,13 +131,13 @@ const results = await index.queryItems({
 });
 ```
 
-This returns at most 10 `common.Message` identifiers, stopping earlier if the
+This returns at most 10 `common.Message` identifiers. It stops earlier if the
 cumulative token count reaches 500.
 
 ## Check existence and retrieve by ID
 
-Use `has` to check whether an item exists without loading its content, and
-`get` to retrieve identifiers by their IDs:
+Use `has` to check whether an item exists. The check does not load the content.
+Use `get` to retrieve identifiers by their IDs:
 
 ```js
 const exists = await index.has("common.Message.a1b2c3");
@@ -147,12 +147,12 @@ const found = await index.get(["common.Message.a1b2c3", "common.Message.d4e5f6"]
 console.log(found.length);  // 2
 ```
 
-Missing IDs are silently skipped -- the result array may be shorter than the
+The index silently skips missing IDs. The result array can be shorter than the
 input.
 
 ## Use buffered writes for high volume
 
-When adding many items in a tight loop, the default `IndexBase` writes one
+When you add many items in a tight loop, the default `IndexBase` writes one
 JSON line per `add` call. `BufferedIndex` batches writes and flushes
 periodically or when the buffer fills:
 
@@ -179,19 +179,18 @@ for (const item of largeDataset) {
 await index.shutdown();   // flush remaining items and clear timer
 ```
 
-`BufferedIndex` requires a `clock` so the flush timer can be injected and
-controlled in tests; `createDefaultClock()` supplies one backed by real timers.
-The third argument is the buffer config -- `flush_interval` (default `5000` ms)
-sets how long the index waits before draining a partial buffer, and
-`max_buffer_size` (default `1000`) forces an immediate flush once that many
-items accumulate.
+`BufferedIndex` requires a `clock` so tests can inject and control the flush
+timer. `createDefaultClock()` supplies one clock backed by real timers. The
+third argument is the buffer config. `flush_interval` (default `5000` ms) sets
+how long the index waits before it drains a partial buffer. `max_buffer_size`
+(default `1000`) forces an immediate flush once that many items accumulate.
 
-Items are queryable immediately after `add` -- they enter the in-memory map at
-once -- but the storage write is deferred until the next flush. Always call
-`shutdown()` before the process exits to avoid losing buffered data.
+Items are queryable immediately after `add`, because they enter the in-memory
+map at once. The index defers the storage write until the next flush. Always
+call `shutdown()` before the process exits so you do not lose buffered data.
 
-Both `IndexBase` and `BufferedIndex` defer loading until the first read. If the
-storage file does not exist, the index initializes empty rather than throwing.
+Both `IndexBase` and `BufferedIndex` defer the load until the first read. If the
+storage file does not exist, the index initializes empty. It does not throw.
 
 ## What's next
 

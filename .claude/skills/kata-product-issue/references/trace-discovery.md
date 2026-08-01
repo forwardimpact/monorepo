@@ -1,15 +1,15 @@
 # PM-Trace Discovery
 
 How to locate a PM activation's trace slice inside `Kata: Dispatch` artifacts
-when studying product-manager behavior from dispatch runs.
+when you study product-manager behavior from dispatch runs.
 
 ## Why This Runbook Exists
 
-`gemba-trace runs <pattern>` filters on **workflow name**, not participant name.
-PM activations run under workflow `Kata: Dispatch`, so
-`gemba-trace runs product-manager` returns `[]` correctly — there is no workflow
-named `product-manager`. The PM trace slice is emitted as a per-participant
-artifact inside the dispatch run's artifact set, under the canonical
+`gemba-trace runs <pattern>` filters on **workflow name**. It does not filter
+on participant name. PM activations run under workflow `Kata: Dispatch`, so
+`gemba-trace runs product-manager` returns `[]` correctly. No workflow is
+named `product-manager`. The dispatch run emits the PM trace slice as a
+per-participant artifact in its artifact set, under the canonical
 `trace--<case>--product-manager.agent.ndjson` filename. No other
 participant's artifact collides with that substring, so the recipe below is
 robust to participant-set changes.
@@ -33,7 +33,7 @@ ls /tmp/<run-id>/ | grep -- '--product-manager.'
 #    trace--<case>--product-manager.agent.ndjson.
 ```
 
-The `grep -- '--product-manager.'` step is participant filtering, which the
-`gemba-trace` CLI does not provide directly. Each download directory contains
-both an `.agent.ndjson` slice (the participant's turn-level trace) and a
-`.raw.ndjson` slice per participant.
+The `grep -- '--product-manager.'` step filters by participant. The
+`gemba-trace` CLI does not provide that filter directly. Each download
+directory contains both an `.agent.ndjson` slice (the participant's
+turn-level trace) and a `.raw.ndjson` slice per participant.

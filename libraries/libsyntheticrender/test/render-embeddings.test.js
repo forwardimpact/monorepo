@@ -61,7 +61,7 @@ describe("renderEmbeddings", () => {
     assert.strictEqual(first.text, "Type 2 Diabetes");
   });
 
-  test("arrays are space-joined", () => {
+  test("joins array values with spaces", () => {
     const out = renderEmbeddings(makeClinical(), new Map(), {
       path: "out/embed.jsonl",
       entities: ["clinical.conditions"],
@@ -71,7 +71,7 @@ describe("renderEmbeddings", () => {
     assert.strictEqual(first.text, "Type 2 Diabetes high blood sugar T2D");
   });
 
-  test("synthetic prose-explainer resolves against cache", () => {
+  test("synthetic prose-explainer resolves against the cache", () => {
     const cache = new Map([
       [
         "clinical_condition_explainer_diabetes-t2",
@@ -90,7 +90,7 @@ describe("renderEmbeddings", () => {
     assert.ok(diabetes.text.includes("Diabetes happens"));
   });
 
-  test("synthetic prose-description resolves against consent summary key", () => {
+  test("synthetic prose-description resolves against the consent summary key", () => {
     const cache = new Map([
       ["clinical_consent_summary_oncora-p3", "Consent summary text."],
     ]);
@@ -105,7 +105,7 @@ describe("renderEmbeddings", () => {
     assert.strictEqual(trial.text, "ONCORA-301 Consent summary text.");
   });
 
-  test("missing cache entries are silently omitted", () => {
+  test("silently omits missing cache entries", () => {
     const out = renderEmbeddings(makeClinical(), new Map(), {
       path: "out/embed.jsonl",
       entities: ["clinical.conditions"],
@@ -120,7 +120,7 @@ describe("renderEmbeddings", () => {
     }
   });
 
-  test("accepts plain object as prose cache", () => {
+  test("accepts a plain object as the prose cache", () => {
     const out = renderEmbeddings(
       makeClinical(),
       { clinical_condition_explainer_cardio: "Heart disease prose." },
@@ -137,7 +137,7 @@ describe("renderEmbeddings", () => {
     assert.ok(cardio.text.includes("Heart disease prose."));
   });
 
-  test("empty entities list yields empty file", () => {
+  test("empty entities list yields an empty file", () => {
     const out = renderEmbeddings(makeClinical(), new Map(), {
       path: "out/embed.jsonl",
       entities: [],

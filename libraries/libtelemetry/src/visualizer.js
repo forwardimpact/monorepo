@@ -13,7 +13,8 @@ export class TraceVisualizer {
    * Creates a new TraceVisualizer instance
    * @param {import("./index.js").TraceIndex} traceIndex - Initialized TraceIndex instance
    * @param {import("@forwardimpact/libutil/runtime").Runtime} [_runtime] - Optional runtime bag
-   *   (reserved for future clock injection; accepted for API consistency)
+   *   reserved for a clock the code can inject later. The constructor accepts
+   *   it to keep the API consistent.
    */
   constructor(traceIndex, _runtime = null) {
     if (!traceIndex) throw new Error("traceIndex is required");
@@ -21,7 +22,7 @@ export class TraceVisualizer {
   }
 
   /**
-   * Creates a visualization of traces matching the given filter and query
+   * Visualizes the traces that match the given filter and query
    * @param {string|null} [query] - Optional JMESPath query expression
    * @param {object} [filter] - Filter object for trace query
    * @param {string} [filter.trace_id] - Filter by trace ID
@@ -38,13 +39,13 @@ export class TraceVisualizer {
     // Group spans by trace_id
     const traceGroups = this.#groupByTrace(spans);
 
-    // If resource_id filter is provided, always use combined visualization
-    // with resource-based title (even for single traces)
+    // If the caller gives a resource_id filter, always use the combined
+    // visualization with a resource-based title (even for single traces)
     if (filter.resource_id) {
       return this.#visualizeCombinedTraces(traceGroups, filter.resource_id);
     }
 
-    // No resource filter - use separate diagrams with trace IDs
+    // Without a resource filter, use separate diagrams with trace IDs
     const visualizations = [];
     for (const [traceId, traceSpans] of traceGroups) {
       visualizations.push(this.#visualizeTrace(traceId, traceSpans));
@@ -99,7 +100,7 @@ export class TraceVisualizer {
   }
 
   /**
-   * Generates timeline events from spans for chronological processing
+   * Generates timeline events from spans to process them in chronological order
    * Creates both "start" and "end" events for each span
    * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of spans
    * @returns {Array<{type: 'start'|'end', time: bigint, span: object}>} Timeline events
@@ -144,7 +145,7 @@ export class TraceVisualizer {
       const span = event.span;
       const fromService = span.attributes["service_name"];
 
-      // Find the corresponding SERVER span
+      // Find the SERVER span that corresponds to it
       const serverSpan = this.#findServerSpan(allSpans, span);
       if (!serverSpan) continue;
 
@@ -188,7 +189,7 @@ export class TraceVisualizer {
    * @returns {string} Mermaid return line
    */
   #generateReturnLine(fromService, toService, serverSpan) {
-    // Convert numeric Code enum to string representation
+    // Convert the numeric Code enum to a string
     const statusCodeNum = serverSpan.status?.code ?? spanType.Code.UNSET;
     const statusCode =
       Object.keys(spanType.Code).find(
@@ -248,10 +249,10 @@ export class TraceVisualizer {
   }
 
   /**
-   * Finds the corresponding SERVER span for a CLIENT span
+   * Finds the SERVER span that corresponds to a CLIENT span
    * @param {import("@forwardimpact/libtype").span.SpanItem[]} spans - Array of all spans
    * @param {import("@forwardimpact/libtype").span.SpanItem} clientSpan - CLIENT span to find match for
-   * @returns {import("@forwardimpact/libtype").span.SpanItem|null} Matching SERVER span or null
+   * @returns {import("@forwardimpact/libtype").span.SpanItem|null} SERVER span that matches, or null
    */
   #findServerSpan(spans, clientSpan) {
     return (
@@ -264,7 +265,7 @@ export class TraceVisualizer {
   }
 
   /**
-   * Extracts attributes from span events matching specified event names
+   * Extracts attributes from span events that match the specified event names
    * @param {import("@forwardimpact/libtype").span.SpanItem} span - Span to extract attributes from
    * @param {string[]} eventNames - Event names to search for
    * @returns {string} Formatted attribute string or empty string
@@ -313,9 +314,9 @@ export class TraceVisualizer {
 
   /**
    * Visualizes multiple traces as a single combined Mermaid sequence diagram
-   * Used when filtering by resource_id to show conversation flow across requests
+   * Use this when you filter by resource_id to show conversation flow across requests
    * @param {Map<string, import("@forwardimpact/libtype").span.SpanItem[]>} traceGroups - Map of trace_id to spans
-   * @param {string} resourceId - Resource ID being visualized
+   * @param {string} resourceId - Resource ID that the diagram shows
    * @returns {string} Raw Mermaid sequence diagram syntax
    */
   #visualizeCombinedTraces(traceGroups, resourceId) {

@@ -1,5 +1,5 @@
 /**
- * Error thrown when a git subcommand exits non-zero.
+ * The client throws this error when a git subcommand exits non-zero.
  */
 export class GitError extends Error {
   /**
@@ -26,18 +26,18 @@ function parseDiffTarget(headerLine) {
 
 /**
  * Reject `:`-prefixed pathspec entries before they reach git. A leading `:`
- * marks git pathspec magic (`:/`, `:(exclude)…`, `:(glob)…`), which the `--`
- * separator does NOT neutralise — `--` ends OPTION parsing, not pathspec magic.
- * A dynamically derived filename starting with `:` could therefore widen a
- * scoped commit beyond the named files, so the path-forwarding methods
- * (`commitPaths`, `status`) reject it at entry rather than passing it to git.
+ * marks git pathspec magic (`:/`, `:(exclude)…`, `:(glob)…`). The `--`
+ * separator does NOT neutralise that magic. `--` ends OPTION parsing only.
+ * A dynamically derived filename that starts with `:` could widen a scoped
+ * commit beyond the named files. So the path-forwarding methods
+ * (`commitPaths`, `status`) reject it at entry and never pass it to git.
  * @param {string[]} [paths]
  */
 function assertSafePaths(paths) {
   for (const p of paths ?? []) {
     if (typeof p === "string" && p.startsWith(":")) {
       throw new Error(
-        `unsafe pathspec: ':'-prefixed entries are rejected (got '${p}'); ` +
+        `unsafe pathspec: ':'-prefixed entries are rejected (got '${p}'). ` +
           "':' magic survives the '--' separator and could widen the commit",
       );
     }
@@ -45,11 +45,11 @@ function assertSafePaths(paths) {
 }
 
 /**
- * Typed wrapper over the `git` CLI. All shelling-out flows through the
- * injected `runtime.subprocess`, so callers never import `node:child_process`
- * and tests inject `createMockSubprocess`. Methods resolve to the
- * raw `{ stdout, stderr, exitCode }` result; `#run` throws a {@link GitError}
- * on a non-zero exit unless `allowFailure` is set.
+ * Typed wrapper over the `git` CLI. Every subprocess call goes through the
+ * injected `runtime.subprocess`. So callers never import `node:child_process`.
+ * Tests inject `createMockSubprocess`. Methods resolve to the raw
+ * `{ stdout, stderr, exitCode }` result. `#run` throws a {@link GitError}
+ * on a non-zero exit unless the caller sets `allowFailure`.
  */
 export class GitClient {
   #runtime;
@@ -67,10 +67,10 @@ export class GitClient {
   }
 
   /**
-   * Clone `url` into `dir`. `opts.config` carries `-c key=value` entries
-   * applied to this one invocation (e.g. an `insteadOf` rewrite that must be in
-   * effect before any remote contact, since the clone predates the local
-   * `.git/config`).
+   * Clone `url` into `dir`. `opts.config` carries `-c key=value` entries. Git
+   * applies them to this one invocation. An example is an `insteadOf` rewrite
+   * that must be in effect before any remote contact, because the clone
+   * predates the local `.git/config`.
    */
   async clone(url, dir, opts = {}) {
     return this.#run("clone", [url, dir, ...this.#flagOpts(opts)], {
@@ -91,11 +91,12 @@ export class GitClient {
   }
 
   /**
-   * Return `git status --porcelain` output, optionally limited to `paths`.
+   * Return `git status --porcelain` output. `paths` limits the output when the
+   * caller supplies it.
    * @param {object} [options]
    * @param {string} [options.cwd]
    * @param {string[]} [options.paths] - Pathspecs to scope the status to.
-   *   `:`-prefixed entries are rejected ({@link assertSafePaths}).
+   *   {@link assertSafePaths} rejects `:`-prefixed entries.
    */
   async status({ cwd, paths } = {}) {
     assertSafePaths(paths);
@@ -113,16 +114,16 @@ export class GitClient {
     return this.#runRaw(args, { cwd, allowFailure: true });
   }
 
-  /** Abort an in-progress rebase, leaving the working tree at its pre-rebase state. */
+  /** Abort an in-progress rebase. The working tree keeps its pre-rebase state. */
   async rebaseAbort({ cwd } = {}) {
     return this.#runRaw(["rebase", "--abort"], { cwd, allowFailure: true });
   }
 
   /**
-   * Move HEAD to `ref` without touching the index or working tree
-   * (`git reset --soft`). Drops local commits ahead of `ref` while leaving every
-   * uncommitted change — including foreign residue from parallel writers — in
-   * place, unlike a `--hard` reset.
+   * Move HEAD to `ref`. This does not touch the index or the working tree
+   * (`git reset --soft`). It drops local commits ahead of `ref`. It keeps every
+   * uncommitted change in place, including foreign residue from parallel
+   * writers. A `--hard` reset does not keep them.
    */
   async resetSoft(ref, { cwd } = {}) {
     return this.#runRaw(["reset", "--soft", ref], { cwd });
@@ -130,9 +131,10 @@ export class GitClient {
 
   /**
    * Reset only `paths` to their content at `ref` (`git checkout <ref> --
-   * <paths>`), leaving the rest of the working tree untouched. With
-   * `allowMissing`, a path absent on `ref` (e.g. a founding write of a file the
-   * tip does not yet carry) yields a non-zero result instead of throwing.
+   * <paths>`). The rest of the working tree stays untouched. With
+   * `allowMissing`, a path absent on `ref` yields a non-zero result and does
+   * not throw. An example is a founding write of a file the tip does not yet
+   * carry.
    * @param {string} ref
    * @param {string[]} paths
    * @param {{cwd?: string, allowMissing?: boolean}} [options]
@@ -145,9 +147,9 @@ export class GitClient {
   }
 
   /**
-   * Merge `ref` into the current branch resolving conflicts with `-X ours`.
-   * With `allowFailure`, a non-zero exit resolves to the raw result instead of
-   * throwing, so the caller can abort and refuse rather than strand a
+   * Merge `ref` into the current branch. `-X ours` resolves the conflicts.
+   * With `allowFailure`, a non-zero exit resolves to the raw result and does
+   * not throw. The caller can then abort and refuse. It does not strand a
    * mid-merge tree.
    */
   async mergeOursStrategy({
@@ -162,16 +164,16 @@ export class GitClient {
     return this.#runRaw(args, { cwd, allowFailure });
   }
 
-  /** Abort an in-progress merge, restoring the pre-merge state. */
+  /** Abort an in-progress merge. This restores the pre-merge state. */
   async mergeAbort({ cwd } = {}) {
     return this.#runRaw(["merge", "--abort"], { cwd, allowFailure: true });
   }
 
   /**
    * Paths with an unmerged index entry (`git status --porcelain` rows whose XY
-   * status is a U-family code: `UU`/`AA`/`DD`/`AU`/`UA`/`DU`/`UD`). Decidable
-   * from the index alone — no history resolution — so it holds on a shallow
-   * clone.
+   * status is a U-family code: `UU`/`AA`/`DD`/`AU`/`UA`/`DU`/`UD`). The index
+   * alone decides this. It needs no history resolution. So it holds on a
+   * shallow clone.
    */
   async unmergedPaths({ cwd } = {}) {
     const result = await this.#runRaw(["status", "--porcelain"], { cwd });
@@ -184,9 +186,9 @@ export class GitClient {
   }
 
   /**
-   * Whether the repository is mid-merge: an unmerged index entry exists or a
-   * MERGE_HEAD is pinned. Both signals are local to the clone, so this holds at
-   * any fetch depth.
+   * Whether the repository is mid-merge. The repository is mid-merge when an
+   * unmerged index entry exists or a MERGE_HEAD is pinned. Both signals are
+   * local to the clone. So this holds at any fetch depth.
    */
   async isMidMerge({ cwd } = {}) {
     if ((await this.unmergedPaths({ cwd })).length > 0) return true;
@@ -198,13 +200,13 @@ export class GitClient {
   }
 
   /**
-   * The content introduced by `range` (e.g. `origin/master..HEAD`), grouped by
-   * path. Returns a `Map<path, addedText>` where `addedText` is the added side
-   * of the diff with the leading `+` of each hunk line stripped and the
-   * `+++`/`---` file headers excluded, so line-anchored scanners match at
-   * column 1. Throws {@link GitError} on a non-zero exit (e.g. an unresolvable
-   * ref) — callers must treat a throw as refuse-with-reason, never a silent
-   * pass.
+   * The content that `range` introduces (e.g. `origin/master..HEAD`), grouped
+   * by path. Returns a `Map<path, addedText>`. `addedText` is the added side
+   * of the diff. It strips the leading `+` from each hunk line. It excludes
+   * the `+++`/`---` file headers. So line-anchored scanners match at column 1.
+   * Throws {@link GitError} on a non-zero exit (e.g. an unresolvable ref).
+   * Callers must treat a throw as refuse-with-reason. A silent pass is never
+   * correct.
    */
   async introducedByFile(range, { cwd } = {}) {
     const result = await this.#runRaw(["diff", "--no-color", range], { cwd });
@@ -230,13 +232,13 @@ export class GitClient {
   }
 
   /**
-   * Stage and commit only `paths`, leaving the rest of the working tree
-   * untouched. The commit carries the same pathspec so content staged by
-   * other writers is never swept in.
+   * Stage and commit only `paths`. The rest of the working tree stays
+   * untouched. The commit carries the same pathspec. So the commit never
+   * sweeps in content that other writers staged.
    * @param {string} message
-   * @param {string[]} paths - Pathspecs to stage and commit. `:`-prefixed
-   *   entries are rejected ({@link assertSafePaths}) so a dynamically derived
-   *   filename can never widen the commit beyond the named files.
+   * @param {string[]} paths - Pathspecs to stage and commit.
+   *   {@link assertSafePaths} rejects `:`-prefixed entries. So a dynamically
+   *   derived filename can never widen the commit beyond the named files.
    * @param {{cwd?: string, author?: string}} [options]
    */
   async commitPaths(message, paths, { cwd, author } = {}) {
@@ -282,10 +284,11 @@ export class GitClient {
 
   /**
    * Unified-diff text (`--unified=0`) of a two-tree `range` (e.g. `"A B"` or
-   * `"A..B"`), or `null` on git failure. A two-tree range diff (never a
-   * single-commit `git show`) diffs merge commits correctly. An empty string
-   * is a legitimate empty diff; `null` is an error — callers distinguish them.
-   * @param {string} range - Range spec; split on spaces into git args.
+   * `"A..B"`), or `null` on git failure. A two-tree range diff diffs merge
+   * commits correctly. A single-commit `git show` does not. An empty string
+   * is a legitimate empty diff. `null` is an error. Callers distinguish them.
+   * @param {string} range - Range spec. The method splits it on spaces into
+   *   git args.
    * @param {{cwd?: string}} [opts]
    * @returns {Promise<string|null>}
    */
@@ -298,11 +301,11 @@ export class GitClient {
   }
 
   /**
-   * Read the text of `filePath` at tree-ish `ref` via `git show <ref>:<path>`.
-   * Returns `null` when the path is absent at that ref; throws {@link GitError}
-   * when the ref itself is unreadable (e.g. pruned below a shallow boundary) —
-   * so a caller measuring a tree never silently mistakes an unreadable ref for
-   * an empty file.
+   * Read the text of `filePath` at tree-ish `ref` with `git show <ref>:<path>`.
+   * Returns `null` when the path is absent at that ref. Throws
+   * {@link GitError} when the ref itself is unreadable (e.g. pruned below a
+   * shallow boundary). So a caller that measures a tree never silently
+   * mistakes an unreadable ref for an empty file.
    * @param {string} ref - The ref to read from (e.g. `"origin/master"`).
    * @param {string} filePath - Repo-relative path.
    * @param {{cwd?: string}} [opts]
@@ -314,9 +317,10 @@ export class GitClient {
       allowFailure: true,
     });
     if (r.exitCode === 0) return r.stdout;
-    // An absent path at a valid ref ("does not exist in" / "exists on disk,
-    // but not in"); any other failure (e.g. "invalid object name") is an
-    // unreadable ref and must throw rather than degrade to an empty blob.
+    // An absent path at a valid ref gives stderr "does not exist in" or
+    // "exists on disk, but not in". Any other failure (e.g. "invalid object
+    // name") is an unreadable ref. It must throw and must not degrade to an
+    // empty blob.
     if (/does not exist in|exists on disk, but not in/.test(r.stderr)) {
       return null;
     }
@@ -356,10 +360,10 @@ export class GitClient {
 
   /**
    * Push `branch` to `remote` with the machine-readable per-ref status
-   * (`--porcelain`). Runs with `allowFailure` so the caller classifies the
-   * outcome from the remote-originated per-ref line rather than the exit code:
-   * the line is `<flag>\t<src>:<dst>\t<summary>`, flag ` `/`=` accepted,
-   * `!` rejected.
+   * (`--porcelain`). Runs with `allowFailure`. The caller classifies the
+   * outcome from the remote-originated per-ref line. The exit code does not
+   * decide it. The line is `<flag>\t<src>:<dst>\t<summary>`. A flag of ` ` or
+   * `=` means accepted. A flag of `!` means rejected.
    */
   async pushPorcelain(remote = "origin", branch, { cwd } = {}) {
     const args = ["push", "--porcelain", remote];
@@ -369,7 +373,7 @@ export class GitClient {
 
   /**
    * The commit SHA the remote ref points at, read fresh with `ls-remote`.
-   * Throws a {@link GitError} on transport failure; returns "" when the ref
+   * Throws a {@link GitError} on transport failure. Returns "" when the ref
    * does not exist on the remote.
    */
   async remoteRefTip(remote = "origin", branch, { cwd } = {}) {
@@ -393,9 +397,10 @@ export class GitClient {
 
   /**
    * The short name of the branch HEAD points at, or "" when HEAD is detached.
-   * An unborn HEAD on a branch (no commits yet) still returns that branch name —
-   * `symbolic-ref` reads the ref HEAD targets, not whether it resolves.
-   * `symbolic-ref -q HEAD` exits non-zero on a detached HEAD, swallowed here.
+   * An unborn HEAD on a branch (no commits yet) still returns that branch name.
+   * `symbolic-ref` reads the ref HEAD targets. It does not read whether that
+   * ref resolves. `symbolic-ref -q HEAD` exits non-zero on a detached HEAD.
+   * This method swallows that exit code.
    */
   async headBranch({ cwd } = {}) {
     const r = await this.#runRaw(["symbolic-ref", "--short", "-q", "HEAD"], {
@@ -416,8 +421,8 @@ export class GitClient {
 
   /**
    * Whether `a` and `b` share a merge-base within the fetched history.
-   * `git merge-base` exits 1 (not an error) when no base exists, so this runs
-   * with `allowFailure` and reads the exit code rather than throwing.
+   * `git merge-base` exits 1 (not an error) when no base exists. So this runs
+   * with `allowFailure`. It reads the exit code and does not throw.
    */
   async mergeBaseExists(a, b, { cwd } = {}) {
     const r = await this.#runRaw(["merge-base", a, b], {
@@ -441,8 +446,8 @@ export class GitClient {
 
   /**
    * Deepen history to full depth for `branch` from `remote`. Runs with
-   * `allowFailure` because `--unshallow` errors on a complete clone; callers
-   * gate this behind a shallow-clone check and treat a non-zero exit as
+   * `allowFailure` because `--unshallow` errors on a complete clone. Callers
+   * gate this behind a shallow-clone check. They treat a non-zero exit as
    * "deepening failed".
    */
   async fetchDeepen(remote, branch, { cwd } = {}) {
@@ -453,12 +458,12 @@ export class GitClient {
   }
 
   /**
-   * List the tags and heads a remote `url` exposes, without cloning. Returns
-   * the raw `{ stdout, stderr, exitCode }` so callers can distinguish exit 0
-   * (refs listed), exit 128 (auth demand — absent or private), and transport
-   * faults. Auth and env are handled by `#runRaw`: a tokenless client transports
-   * anonymously, and `GIT_TERMINAL_PROMPT` is whatever the runtime's `proc.env`
-   * carries.
+   * List the tags and heads a remote `url` exposes. This does not clone.
+   * Returns the raw `{ stdout, stderr, exitCode }` so callers can distinguish
+   * exit 0 (refs listed), exit 128 (auth demand for an absent or private
+   * repo), and transport faults. `#runRaw` handles auth and env. A tokenless
+   * client transports anonymously. `GIT_TERMINAL_PROMPT` is whatever the
+   * runtime's `proc.env` carries.
    * @param {string} url - The repository URL (e.g. `https://github.com/owner/repo`).
    * @returns {Promise<{stdout: string, stderr: string, exitCode: number}>}
    */
@@ -481,17 +486,20 @@ export class GitClient {
   }
 
   /**
-   * Name-status lines between two tree-ish (`<code>\t<path>`). Codes read
-   * going `a`→`b`: a path present in `a` but gone in `b` is `D`, modified `M`,
-   * added `A`. The conservation guard calls it tip-first (a = remote tip,
-   * b = HEAD) so a dropped foreign file reads `D`.
+   * Name-status lines between two tree-ish (`<code>\t<path>`). Read the codes
+   * from `a` to `b`. A path present in `a` but gone in `b` is `D`. A modified
+   * path is `M`. An added path is `A`. The conservation guard calls it
+   * tip-first (a = remote tip, b = HEAD) so a dropped foreign file reads `D`.
    */
   async diffNameStatus(a, b, { cwd } = {}) {
     const r = await this.#runRaw(["diff", "--name-status", a, b], { cwd });
     return r.stdout.trim();
   }
 
-  /** Drop a stash addressed by SHA, never by stack position (`stash drop <sha>`). */
+  /**
+   * Drop a stash addressed by SHA (`stash drop <sha>`). This never addresses a
+   * stash by stack position.
+   */
   async stashDropBySha(sha, { cwd } = {}) {
     return this.#runRaw(["stash", "drop", sha], { cwd, allowFailure: true });
   }
@@ -517,12 +525,13 @@ export class GitClient {
     // Per-invocation `-c key=value` config (e.g. an `insteadOf` rewrite). These
     // precede the subcommand because git only honours `-c` before the verb.
     const configFlags = (config ?? []).flatMap((entry) => ["-c", entry]);
-    // Authenticate over HTTPS by injecting a per-invocation Basic auth header
-    // via git's `-c` config (the `-c http.extraHeader` must precede the
-    // subcommand). GitHub's git-over-HTTPS expects the token as the password in
-    // HTTP Basic auth (username `x-access-token`); a `bearer` scheme is rejected
-    // for PAT/OAuth tokens and only works for App installation tokens, so Basic
-    // is the broadly-compatible choice. No-op when the client carries no token.
+    // Authenticate over HTTPS with a per-invocation Basic auth header. Git's
+    // `-c` config carries it (the `-c http.extraHeader` must precede the
+    // subcommand). GitHub's git-over-HTTPS expects the token as the password
+    // in HTTP Basic auth (username `x-access-token`). GitHub rejects a
+    // `bearer` scheme for PAT/OAuth tokens. That scheme works only for App
+    // installation tokens. So Basic is the broadly-compatible choice. No-op
+    // when the client carries no token.
     const authFlags = this.#token
       ? [
           "-c",

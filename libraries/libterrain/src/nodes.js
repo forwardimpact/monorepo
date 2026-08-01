@@ -2,9 +2,10 @@
  * Pipeline node table — pure stage definitions for fit-terrain.
  *
  * Each node declares dependencies and a `run(deps)` function. Nodes are
- * pure functions of their declared inputs; side-effects (writes, uploads,
- * cache flushes) live in sinks. Kept separate from pipeline.js so the
- * graph definitions don't crowd the executor and Pipeline class.
+ * pure functions of their declared inputs. Side-effects (writes, uploads,
+ * cache flushes) live in sinks. This module stays separate from
+ * pipeline.js, so the graph definitions do not crowd the executor and the
+ * Pipeline class.
  *
  * @module libterrain/nodes
  */
@@ -26,7 +27,7 @@ const FLUSH_EVERY = 25;
 
 /**
  * Build the per-run node table. Each entry is `(deps, ctx) => output`.
- * `deps` is the materialized output of declared dependencies; `ctx`
+ * `deps` is the materialized output of declared dependencies. `ctx`
  * carries pipeline collaborators and run-scoped state (logger, options).
  */
 export function buildNodes(ctx) {
@@ -45,7 +46,7 @@ export function buildNodes(ctx) {
   } = ctx;
 
   // Resolve the async fs surface from the injected runtime.
-  // `runtime` is required for the `parse` node; `Pipeline` always injects it.
+  // The `parse` node needs `runtime`. `Pipeline` always injects it.
   // Direct `buildNodes` callers that skip the `parse` node may omit it.
   const { readFile: readFileFn } = runtime?.fs ?? {};
 
@@ -277,7 +278,7 @@ export function buildNodes(ctx) {
           (o) => o.format === "fhir_microdata_html",
         );
         for (const out of wiredOutputs) {
-          // entities.domain is canonical: fhir-cross-ref mints trial IRIs from it.
+          // entities.domain is canonical. fhir-cross-ref mints trial IRIs from it.
           const input = unwrapFhirDatasets(
             datasets.datasetsMap,
             out,
@@ -426,10 +427,10 @@ async function generateDatasets(
 }
 
 /**
- * Build the per-dataset config passed to the tool. Resolves clinical
- * `conditions` to Synthea modules and merges with any modules the DSL
- * declares explicitly. Returns a shallow copy of `ds.config` — never mutates
- * the parsed AST node, so re-runs of the datasets stage see the same input.
+ * Build the per-dataset config for the tool. Resolves clinical `conditions`
+ * to Synthea modules. Merges them with any modules the DSL declares
+ * explicitly. Returns a shallow copy of `ds.config`. Never mutates the
+ * parsed AST node, so re-runs of the datasets stage see the same input.
  */
 function resolveDatasetConfig(ds, clinical, logger) {
   const config = { ...ds.config };
@@ -444,7 +445,7 @@ function resolveDatasetConfig(ds, clinical, logger) {
     } else {
       logger.info(
         "pipeline",
-        `Dataset '${ds.id}' condition '${condId}' has no synthea_module; skipped`,
+        `Skipping dataset '${ds.id}' condition '${condId}': no synthea_module`,
       );
     }
   }
@@ -479,7 +480,7 @@ async function renderDatasetOutputs(outputs, datasets, files, logger, runtime) {
   }
 }
 
-/** Merge files from each content type, respecting the --only filter. */
+/** Merge files from each content type and obey the --only filter. */
 function mergeOutputFiles(
   only,
   enriched,
@@ -504,7 +505,7 @@ function mergeOutputFiles(
       for (const [k, v] of source) files.set(k, v);
     }
   }
-  // datasets and clinical output are always included regardless of --only
+  // always merge datasets and clinical output, regardless of --only
   for (const [k, v] of datasets.files) files.set(k, v);
   for (const [k, v] of clinicalOutput.files) files.set(k, v);
   for (const [k, v] of fhirMicrodataHtml.files) files.set(k, v);
@@ -546,7 +547,7 @@ function renderClinicalOutput(out, clinical, prose) {
 }
 
 /**
- * Resolve prose keys through the generator, flushing the cache sink
+ * Resolve prose keys through the generator. Flush the cache sink
  * periodically. Returns a Map of key→prose.
  */
 async function resolveProse(proseKeys, proseGenerator, proseCacheSink, logger) {

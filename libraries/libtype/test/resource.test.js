@@ -9,7 +9,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(typeof message.id, "object");
   });
 
-  test("withIdentifier generates UUID when content is null", () => {
+  test("withIdentifier generates a UUID when content is null", () => {
     const message = common.Message.fromObject({
       content: null,
     });
@@ -97,7 +97,7 @@ describe("Universal Resource Identifier", () => {
     );
   });
 
-  test("Identifier generation throws an error without type", () => {
+  test("Identifier throws an error without a type", () => {
     const id = new resource.Identifier();
     assert.throws(
       () => {
@@ -110,7 +110,7 @@ describe("Universal Resource Identifier", () => {
     );
   });
 
-  test("Identifier generation throws an error without name", () => {
+  test("Identifier throws an error without a name", () => {
     const id = new resource.Identifier({ type: "common.Message" });
     assert.throws(
       () => {
@@ -127,7 +127,7 @@ describe("Universal Resource Identifier", () => {
       content: "Hello, world!",
     });
     message.withIdentifier();
-    // Should generate URI with UUID
+    // Should generate a URI with a UUID
     assert.ok(String(message.id).startsWith("common.Message."));
     assert.strictEqual(
       String(message.id).length,
@@ -135,7 +135,7 @@ describe("Universal Resource Identifier", () => {
     );
   });
 
-  test("Identifier generates a URI with name", () => {
+  test("Identifier generates a URI with a name", () => {
     const message = common.Message.fromObject({
       id: {
         name: "hash0001",
@@ -148,7 +148,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(String(message.id), "common.Message.hash0001");
   });
 
-  test("Identifier generates a URI with normalized name", () => {
+  test("Identifier generates a URI with a normalized name", () => {
     const message = common.Message.fromObject({
       id: {
         name: "common.Message.hash0001",
@@ -161,7 +161,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(String(message.id), "common.Message.hash0001");
   });
 
-  test("Identifier generates a URI with name and parent", () => {
+  test("Identifier generates a URI with a name and a parent", () => {
     const message = common.Message.fromObject({
       id: {
         name: "common.Message.hash0002",
@@ -178,7 +178,7 @@ describe("Universal Resource Identifier", () => {
     );
   });
 
-  test("withIdentifier sets subjects parameter", () => {
+  test("withIdentifier sets the subjects parameter", () => {
     const message = common.Message.fromObject({
       content: "Hello, world!",
     });
@@ -193,7 +193,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.tokens, 7);
   });
 
-  test("withIdentifier sets both parent and subjects parameters", () => {
+  test("withIdentifier sets both the parent and subjects parameters", () => {
     const message = common.Message.fromObject({
       content: "Hello, world!",
     });
@@ -208,7 +208,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.tokens, 7);
   });
 
-  test("withIdentifier preserves existing subjects when no subjects parameter", () => {
+  test("withIdentifier preserves existing subjects when the caller omits the subjects parameter", () => {
     const message = common.Message.fromObject({
       id: {
         subjects: ["#existing"],
@@ -226,7 +226,7 @@ describe("Universal Resource Identifier", () => {
     assert.strictEqual(message.id.tokens, 7);
   });
 
-  test("withIdentifier overwrites existing subjects when subjects parameter provided", () => {
+  test("withIdentifier overwrites existing subjects when the caller provides the subjects parameter", () => {
     const message = common.Message.fromObject({
       id: {
         subjects: ["#old"],
@@ -272,7 +272,7 @@ describe("Universal Resource Identifier", () => {
     assert.deepStrictEqual(message.id.subjects, ["12345"]);
   });
 
-  test("withIdentifier sets empty array when subjects is falsy", () => {
+  test("withIdentifier sets an empty array when subjects is falsy", () => {
     const message = common.Message.fromObject({
       content: {
         text: "Falsy subject example",

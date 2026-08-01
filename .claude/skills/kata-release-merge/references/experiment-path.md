@@ -45,8 +45,8 @@ PR-side labels, reviews, and comments feed the row through propagation
 
 ## Diff-scope check (replaces the Step 9 spec check)
 
-Only a PR that passed the approval read above reaches this check. In place of
-the "parent spec plan on main" check, compare the PR's changed-file list against
+Only a PR that passed the approval read above reaches this check. Replace the
+"parent spec plan on main" check. Compare the PR's changed-file list against
 the execution-plan globs recorded on the experiment issue at registration:
 
 - every changed file matches at least one registered glob → **pass**

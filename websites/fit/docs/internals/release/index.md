@@ -6,18 +6,19 @@ toc: false
 
 ## Overview
 
-The `forwardimpact/homebrew-tap` repository holds two package families: seven
-Homebrew casks under `Casks/` — one per product and one shared `fit-gear`
-bundle, installed on macOS — and seven matching formulae under `Formula/`,
-installed on Linux. The `publish-binaries.yml` workflow's `tap` job builds and
-uploads the release assets, then updates the affected cask and formula and
-pushes the change directly to the tap's `main` — no pull request. Every other
-field is human-edited in the tap repo and survives releases unchanged.
+The `forwardimpact/homebrew-tap` repository holds two package families. Seven
+Homebrew casks sit under `Casks/`, one per product plus one shared `fit-gear`
+bundle. You install the casks on macOS. Seven matching formulae sit under
+`Formula/`. You install the formulae on Linux. The `tap` job in the
+`publish-binaries.yml` workflow builds and uploads the release assets. The job
+then updates the affected cask and formula. It pushes the change directly to
+the tap's `main` and opens no pull request. A human edits every other field in
+the tap repo. Those fields survive releases unchanged.
 
 ## Sed contract
 
-Each release rewrites exactly two lines in the cask file (the formula's
-per-arch contract is separate — see below). The `tap` job's
+Each release rewrites exactly two lines in the cask file. The formula's
+per-arch contract is separate. See the section below. The `tap` job's
 "Update cask and formula, push to tap main" step runs:
 
 ```sh
@@ -27,20 +28,21 @@ sed -i \
   "tap/Casks/${CASK}.rb"
 ```
 
-The two-space indent and double-quoted value shape are load-bearing — the `sed`
-patterns anchor on `^  version "` and `^  sha256 "`. Cask authors must preserve
-this shape or the workflow's substitutions will silently miss.
+The two-space indent and the double-quoted value shape are load-bearing. The
+`sed` patterns anchor on `^  version "` and `^  sha256 "`. Cask authors must
+keep this shape. Otherwise the workflow's substitutions silently miss.
 
-All other authored fields — `url`, `name`, `desc`, `homepage`, `depends_on`,
-`app`, `binary`, `livecheck`, `zap` — are never touched by the workflow.
+The workflow never touches the other authored fields: `url`, `name`, `desc`,
+`homepage`, `depends_on`, `app`, `binary`, `livecheck`, and `zap`.
 
 ## Linux formulae
 
-Linux has no cask — Homebrew ignores casks there — so each bundle ships a
-formula under `Formula/<token>.rb` beside its cask, in the same tap and under
-the same token. A formula installs the bundle's per-architecture tarball
-(`fit-<bundle>-linux-<arch>.tar.gz`), and its `install` runs
-`bin.install Dir["*"]` because the tarball holds only the self-contained CLIs:
+Linux has no cask, because Homebrew ignores casks there. So each bundle ships
+a formula under `Formula/<token>.rb` beside its cask. The formula sits in the
+same tap and uses the same token. A formula installs the bundle's
+per-architecture tarball (`fit-<bundle>-linux-<arch>.tar.gz`). Its `install`
+runs `bin.install Dir["*"]`, because the tarball holds only the self-contained
+CLIs:
 
 ```ruby
 class FitGear < Formula
@@ -65,31 +67,31 @@ end
 ```
 
 The install command differs by platform. On macOS the documented command
-installs the cask; on Linux it installs the formula:
+installs the cask. On Linux it installs the formula:
 
 ```sh
 brew install --cask <tap>/<bundle>   # macOS — unchanged
 brew install <tap>/<bundle>          # Linux
 ```
 
-The macOS `--cask` path is unchanged by this addition, and the formula is
+This addition does not change the macOS `--cask` path. The formula is
 `on_linux`-only. A bare `brew install <tap>/<bundle>` on macOS resolves to the
-formula, which loads no macOS artifact and installs nothing — a fail-safe, not
-a wrong install.
+formula. That formula loads no macOS artifact and installs nothing. The result
+is a fail-safe. It is not a wrong install.
 
 ### Formula checksum contract
 
-A cask carries one `sha256`, rewritten by the flat two-line `sed` above. A
-formula carries two — one per architecture — identical in shape, so
+A cask carries one `sha256`. The flat two-line `sed` above rewrites it. A
+formula carries two, one per architecture, and both have the same shape. So
 `build/update-formula.sh` keys each `sha256` to the arch token (`linux-x64` or
-`linux-arm64`) in the `url` line above it; the `on_intel` and `on_arm` stanzas
-never cross-assign. The top-level `version` is rewritten in the same pass, and
-each `url` picks up the new version through `#{version}` interpolation.
+`linux-arm64`) in the `url` line above it. The `on_intel` and `on_arm` stanzas
+never cross-assign. The same pass rewrites the top-level `version`. Each `url`
+then picks up the new version through `#{version}` interpolation.
 
 ## Cask topology
 
-Six product casks and one shared bundle. No `depends_on cask:` between them —
-each is independently installable.
+The tap has six product casks and one shared bundle. No `depends_on cask:`
+links them. You can install each one on its own.
 
 ```mermaid
 graph TD
@@ -107,7 +109,7 @@ graph TD
 ## Binary stanza mapping
 
 Each cask exposes only the executables bundled in its own `.app`.
-`build/cli-manifest.json` is the source of truth; this table mirrors the CLIs
+`build/cli-manifest.json` is the source of truth. This table mirrors the CLIs
 each cask places on `PATH`. Regenerate the `fit-gear` row with
 `jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json`
 when the bundle set changes.
@@ -123,24 +125,24 @@ when the bundle set changes.
 | `fit-gear` | `fit-svcgraph`, `fit-svcmcp`, `fit-svcpathway`, `fit-svcspan`, `fit-svcvector`, `fit-codegen`, `fit-terrain`, `gemba-harness`, `fit-doc`, `fit-rc`, `gemba-xmr`, `fit-storage`, `fit-logger`, `fit-svscan`, `gemba-trace`, `fit-visualize`, `fit-process`, `fit-rag`, `fit-unary`, `fit-tiktoken`, `gemba-wiki`, `gemba-benchmark`, `fit-pack`, `jidoka` | 24 |
 
 Both the `.app` assembly and the cask `binary` block derive from
-`build/cli-manifest.json` for **every** bundle — one code path, no gear
-special-case. `build/build-app.sh <bundle>` reads `.bundles[<bundle>]` for the
-plist, entitlements, version source, and any launcher or resources, and
-`.clis[]` for the executables; the `tap` job runs `render-cask-binaries.sh` for
-every cask so the linked binaries can never drift from the shipped set. A
-single-CLI product yields its one stanza; gear yields ~30. So when a library or
-service CLI is added or removed, updating `build/cli-manifest.json` is enough —
-the cask block regenerates on the next release. Mark a long-running service CLI
-— one whose `bin` starts a server rather than printing `--help` and exiting —
-with `"server": true` so the native build still compiles, checksums, uploads,
-and bundles it but its per-binary smoke gate skips execution (running it would
-hang).
+`build/cli-manifest.json` for **every** bundle. There is one code path and no
+gear special-case. `build/build-app.sh <bundle>` reads `.bundles[<bundle>]` for
+the plist, entitlements, version source, and any launcher or resources. It
+reads `.clis[]` for the executables. The `tap` job runs
+`render-cask-binaries.sh` for every cask, so the linked binaries can never
+drift from the shipped set. A single-CLI product yields its one stanza. Gear
+yields about 30. So when you add or remove a library or service CLI, an update
+to `build/cli-manifest.json` is enough. The cask block regenerates on the next
+release. Mark a long-running service CLI with `"server": true`. A service CLI
+is one whose `bin` starts a server. Its `bin` does not print `--help` and then
+exit. The native build still compiles, checksums, uploads, and bundles it. Its
+per-binary smoke gate does not run it, because the CLI would hang.
 
 ## Livecheck regex pattern
 
 Each cask uses the `:github_releases` strategy with the cask's own download URL
-as the source. A per-cask regex anchors to its tag prefix so that only matching
-releases trigger a version bump:
+as the source. A per-cask regex anchors to its tag prefix. Only the releases
+that match trigger a version bump:
 
 ```ruby
 livecheck do
@@ -153,13 +155,13 @@ end
 Each cask substitutes its own tag prefix (`pathway`, `map`, `guide`,
 `landmark`, `summit`, `outpost`, `gear`).
 
-The `^...$` anchors are essential — without them, a `map@v2.0.0` release would
+The `^...$` anchors are essential. Without them, a `map@v2.0.0` release would
 also match `landmark@v2.0.0` on the shared monorepo releases page.
 
 ## App install path
 
 All casks install their `.app` to a `Forward Impact/` subdirectory under
-`/Applications/` rather than the top-level folder:
+`/Applications/`. They do not use the top-level folder:
 
 ```ruby
 app "fit-pathway.app", target: "Forward Impact/fit-pathway.app"
@@ -171,8 +173,8 @@ Binary stanzas reference this subdirectory:
 binary "#{appdir}/Forward Impact/fit-pathway.app/Contents/MacOS/fit-pathway"
 ```
 
-Grouping keeps seven `.app` bundles visually together in Finder instead of
-scattered among unrelated applications.
+This subdirectory keeps the seven `.app` bundles visually together in Finder.
+They do not scatter among unrelated applications.
 
 ## Zap and uninstall paths
 
@@ -191,8 +193,9 @@ Each cask declares a `zap trash:` stanza that removes its preferences plist on
 
 ## Verification commands
 
-Before merging a tap PR that modifies cask or formula structure (not the
-automated version/sha256 updates), run:
+A tap PR may modify cask or formula structure. The automated version and
+sha256 updates do not count as structural changes. Before you merge a
+structural PR, run:
 
 ```sh
 brew style Casks/*.rb
@@ -209,8 +212,8 @@ sed -i \
   "Casks/fit-pathway.rb"
 ```
 
-On macOS, use `gsed` (GNU sed) instead of the default BSD `sed`, which requires
-a backup suffix with `-i`.
+On macOS, use `gsed` (GNU sed) instead of the default BSD `sed`. The BSD `sed`
+requires a backup suffix with `-i`.
 
 ## What's next
 

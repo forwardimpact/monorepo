@@ -1,9 +1,9 @@
 /**
  * Public substrate capability surface (`@forwardimpact/libterrain/substrate`).
- * Consumers embedding the capability (e.g. map's staging pipeline, its
- * Landmark smoke, and its `auth issue` operator verb) import from here so
- * no private copy of the persona query, auth-user lookup, or provisioning
- * reconciler survives outside this library.
+ * Consumers that embed the capability import from here. They include map's
+ * staging pipeline, its Landmark smoke, and its `auth issue` operator verb.
+ * No private copy of the persona query, the auth-user lookup, or the
+ * provision reconciler then survives outside this library.
  */
 
 export { SUBSTRATE_CONTRACT } from "./contract.js";

@@ -11,8 +11,8 @@ your role.
 
 - Node.js 22+
 - npm
-- Agent-aligned engineering standard data at `data/pathway/`. If your
-  organization hasn't distributed a bundle, generate starter data with
+- Data for the agent-aligned engineering standard at `data/pathway/`. If your
+  organization did not distribute a bundle, generate starter data with
   `npx fit-map init` (see [Initialize standard data](#initialize-standard-data)
   below). Without this, every `fit-pathway` command exits with a
   data-directory-not-found error.
@@ -25,21 +25,22 @@ npm install @forwardimpact/pathway
 
 ## Initialize standard data
 
-Run this unless your organization has distributed a standard data bundle:
+Run this unless your organization distributed a standard data bundle:
 
 ```sh
 npx fit-map init
 ```
 
 This creates `./data/pathway/` with a complete starter agent-aligned engineering
-standard. If your organization distributes an agent-aligned engineering standard
-bundle, follow their installation instructions instead — typically a one-line
-`curl | bash` install script that places data at `~/.fit/data/pathway/`.
+standard. If your organization distributes a bundle for the agent-aligned
+engineering standard, follow their installation instructions instead. That is
+typically a one-line `curl | bash` install script that places data at
+`~/.fit/data/pathway/`.
 
 ### Data directory resolution
 
-The CLI resolves the data directory by walking upward from the current working
-directory looking for a `data/pathway/` folder. To override, use the `--data`
+The CLI resolves the data directory. It walks upward from the current working
+directory and looks for a `data/pathway/` folder. To override, use the `--data`
 flag:
 
 ```sh
@@ -49,7 +50,7 @@ npx fit-pathway discipline --list --data=./my-data/pathway
 ## Browse your job definition
 
 Use the Pathway CLI to explore the agent-aligned engineering standard your
-organization has defined.
+organization defined.
 
 ```sh
 npx fit-pathway discipline --list    # See available disciplines
@@ -57,8 +58,8 @@ npx fit-pathway level --list         # See available levels
 npx fit-pathway track --list         # See available tracks
 ```
 
-Generate a complete job definition by combining a discipline, level, and
-optional track:
+Combine a discipline, a level, and an optional track to generate a complete job
+definition:
 
 ```sh
 npx fit-pathway job software-engineering J040 --track=platform
@@ -75,15 +76,16 @@ Create AI agent definitions matched to your role's skill profile:
 npx fit-pathway agent software-engineering --track=platform --output=./agents
 ```
 
-This generates a `.claude/` directory (and a matching `.vscode/`) under
-`./agents/` containing one `<persona>.md` per agent profile under
-`.claude/agents/`, a `SKILL.md` per skill under `.claude/skills/<skill>/`,
-shared team instructions at `.claude/CLAUDE.md`, and matching editor settings.
-The skill files are the same skill definitions humans reference, formatted for
-AI consumption.
+This generates a `.claude/` directory under `./agents/` and a `.vscode/`
+directory to match. The generated tree holds one `<persona>.md` per agent
+profile under `.claude/agents/` and a `SKILL.md` per skill under
+`.claude/skills/<skill>/`. It also holds shared team instructions at
+`.claude/CLAUDE.md` and the editor settings to match. The skill files are the
+same skill definitions humans reference. Pathway formats them for AI
+consumption.
 
 To install into a project, copy the generated `.claude/` and `.vscode/`
-directories from `./agents/` into your project root — or re-run with
+directories from `./agents/` into your project root. You can also re-run with
 `--output=<your-project-root>` so they land there directly.
 
 ---

@@ -2,12 +2,12 @@
  * Raw Document Renderer — generates individual JSON/YAML documents
  * destined for Supabase Storage or local output.
  *
- * Produces: GetDX API payloads, people YAML, roster YAML, teams YAML,
- * and (via the `PROSE_ACTIVITIES` registration in
- * `libsyntheticgen/activity/`) per-event GitHub webhook JSON and
- * snapshot-comment JSON. Activity-prose render branches dispatch
- * through the registration; non-prose helpers stay inline because
- * they are not bound by the prose-bearing activity contract.
+ * It produces GetDX API payloads, people YAML, roster YAML, and teams
+ * YAML. It also produces per-event GitHub webhook JSON and
+ * snapshot-comment JSON through the `PROSE_ACTIVITIES` registration in
+ * `libsyntheticgen/activity/`. Activity-prose render branches dispatch
+ * through the registration. Non-prose helpers stay inline because the
+ * prose-bearing activity contract does not bind them.
  */
 
 import YAML from "yaml";
@@ -22,7 +22,7 @@ import { PROSE_ACTIVITIES } from "@forwardimpact/libsyntheticgen/activity";
 export function renderRawDocuments(entities, proseMap) {
   const files = new Map();
 
-  // Activity-prose render dispatch — the registration is the single
+  // Activity-prose render dispatch. The registration is the single
   // source of truth for which prose-bearing activity outputs exist.
   // Non-prose helpers stay inline.
   for (const pa of PROSE_ACTIVITIES) {
@@ -150,7 +150,7 @@ function renderGetDXPayloads(entities, files) {
 }
 
 /**
- * Render GetDX initiatives API payloads.
+ * Render the API payloads for GetDX initiatives.
  * @param {object} entities
  * @param {Map<string,string>} files
  */
@@ -188,7 +188,7 @@ function renderGetDXInitiatives(entities, files) {
 }
 
 /**
- * Render GetDX scorecards API payloads.
+ * Render the API payloads for GetDX scorecards.
  * @param {object} entities
  * @param {Map<string,string>} files
  */
@@ -312,10 +312,11 @@ function renderSummitYAML(entities, files) {
 /**
  * Render individual people YAML files.
  *
- * Uses the `profiles/` prefix — NOT `people/` — because `people/` in Supabase
- * Storage is reserved for roster uploads consumed by `transformPeople`.
- * Placing individual person profiles under `people/` caused the seed command
- * to pick a profile instead of the roster, leaving organization_people empty.
+ * This function uses the `profiles/` prefix. It does NOT use `people/`.
+ * Supabase Storage reserves `people/` for roster uploads.
+ * `transformPeople` consumes those uploads. Individual person profiles
+ * under `people/` made the seed command pick a profile instead of the
+ * roster. The command then left organization_people empty.
  *
  * @param {object} entities
  * @param {Map<string,string>} files

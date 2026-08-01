@@ -7,5 +7,5 @@ one row per run.
 | -------------- | ----- | -------------------------------- | ------------ |
 | findings_count | count | New findings identified this run | Audit report |
 
-Open vulnerabilities (`npm audit`, `gh alerts`) are queried, not recorded —
-they're a stock.
+Query open vulnerabilities (`npm audit`, `gh alerts`). Do not record them. They
+are a stock.

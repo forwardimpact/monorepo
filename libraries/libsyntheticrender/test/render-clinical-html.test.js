@@ -153,7 +153,7 @@ describe("renderClinicalPages", () => {
     );
   });
 
-  test("data-enrich keys follow clinical_ prefix pattern", () => {
+  test("data-enrich keys follow the clinical_ prefix pattern", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
     const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
@@ -194,7 +194,7 @@ describe("renderClinicalPages", () => {
     assert.match(files.get("trial-faqs.html"), /FAQ for ONCORA-301\./);
   });
 
-  test("populated prose cache replaces fallback in output", () => {
+  test("populated prose cache replaces the fallback in the output", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
     const prose = new Map([
       [
@@ -222,7 +222,7 @@ describe("renderClinicalPages", () => {
     assert.doesNotMatch(files.get("trial-cards.html"), /data-enrich/);
   });
 
-  test("no clinical block produces zero clinical files, leaves others unaffected", () => {
+  test("no clinical block produces zero clinical files and leaves others unaffected", () => {
     const entities = makeMinimalEntities({ clinical: null });
     const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 
@@ -285,7 +285,7 @@ describe("renderClinicalPages", () => {
     );
   });
 
-  test("no fhirCrossRef option: reverse-link strings absent from output", () => {
+  test("no fhirCrossRef option: the output omits reverse-link strings", () => {
     const entities = makeMinimalEntities({ clinical: makeClinicalFixture() });
     const { files } = renderHTML(entities, new Map(), makeTemplates(), {}, _rt);
 

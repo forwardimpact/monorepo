@@ -40,7 +40,7 @@ describe("GitClient", () => {
     assert.strictEqual(subprocess.calls.at(-1).opts.cwd, "/repo");
   });
 
-  test("status appends a pathspec when paths are given", async () => {
+  test("status appends a pathspec when it receives paths", async () => {
     const { client, subprocess } = clientWith();
     await client.status({ cwd: "/repo", paths: ["MEMORY.md"] });
     assert.deepStrictEqual(subprocess.calls.at(-1).args, [
@@ -65,7 +65,7 @@ describe("GitClient", () => {
     ]);
   });
 
-  test("commitPaths rejects a ':'-prefixed pathspec without spawning git", async () => {
+  test("commitPaths rejects a ':'-prefixed pathspec and does not spawn git", async () => {
     const { client, subprocess } = clientWith();
     const before = subprocess.calls.length;
     await assert.rejects(
@@ -74,11 +74,11 @@ describe("GitClient", () => {
       }),
       /unsafe pathspec/,
     );
-    // No git was spawned — the guard fired before `add`/`commit`.
+    // No git ran. The guard fired before `add`/`commit`.
     assert.strictEqual(subprocess.calls.length, before);
   });
 
-  test("status rejects a ':'-prefixed pathspec without spawning git (criterion 9)", async () => {
+  test("status rejects a ':'-prefixed pathspec and does not spawn git (criterion 9)", async () => {
     const { client, subprocess } = clientWith();
     const before = subprocess.calls.length;
     await assert.rejects(
@@ -88,7 +88,7 @@ describe("GitClient", () => {
     assert.strictEqual(subprocess.calls.length, before);
   });
 
-  test("resetSoft moves HEAD only, preserving the working tree", async () => {
+  test("resetSoft moves HEAD only and keeps the working tree", async () => {
     const { client, subprocess } = clientWith();
     await client.resetSoft("origin/master", { cwd: "/r" });
     assert.deepStrictEqual(subprocess.calls.at(-1).args, [
@@ -120,7 +120,7 @@ describe("GitClient", () => {
     });
   });
 
-  test("rebase adds --autostash when autostash is set", async () => {
+  test("rebase adds --autostash when the caller sets autostash", async () => {
     const { client, subprocess } = clientWith();
     await client.rebase("origin/master", { cwd: "/r", autostash: true });
     assert.deepStrictEqual(subprocess.calls.at(-1).args, [
@@ -130,7 +130,7 @@ describe("GitClient", () => {
     ]);
   });
 
-  test("mergeOursStrategy adds --autostash when autostash is set", async () => {
+  test("mergeOursStrategy adds --autostash when the caller sets autostash", async () => {
     const { client, subprocess } = clientWith();
     await client.mergeOursStrategy({
       cwd: "/r",
@@ -152,7 +152,7 @@ describe("GitClient", () => {
     assert.strictEqual(await client.revListCount("a..b", { cwd: "/r" }), 7);
   });
 
-  test("push adds --force-with-lease when force is set", async () => {
+  test("push adds --force-with-lease when the caller sets force", async () => {
     const { client, subprocess } = clientWith();
     await client.push("origin", "main", { cwd: "/r", force: true });
     assert.deepStrictEqual(subprocess.calls.at(-1).args, [
@@ -230,7 +230,7 @@ describe("GitClient", () => {
     );
   });
 
-  test("mergeBaseExists maps exit 0/1 to true/false without throwing", async () => {
+  test("mergeBaseExists maps exit 0/1 to true/false and does not throw", async () => {
     const has = clientWith({ git: { exitCode: 0 } });
     assert.strictEqual(
       await has.client.mergeBaseExists("origin/master", "HEAD", { cwd: "/r" }),
@@ -359,7 +359,7 @@ describe("GitClient", () => {
     );
   });
 
-  test("mergeOursStrategy allowFailure resolves a non-zero exit instead of throwing", async () => {
+  test("mergeOursStrategy allowFailure resolves a non-zero exit and does not throw", async () => {
     const { client } = clientWith({
       git: { stdout: "", stderr: "CONFLICT", exitCode: 1 },
     });
@@ -397,7 +397,7 @@ describe("GitClient", () => {
     assert.strictEqual(await client.isMidMerge({ cwd: "/r" }), true);
   });
 
-  test("introducedByFile groups added lines per path with the leading + stripped", async () => {
+  test("introducedByFile groups added lines per path and strips the + prefix", async () => {
     const diff = [
       "diff --git a/file.md b/file.md",
       "index 1111..2222 100644",
@@ -451,7 +451,7 @@ describe("GitClient", () => {
     assert.match(r.stdout, /refs\/heads\/master/);
   });
 
-  test("remoteRefTip returns the SHA before the tab, '' when absent", async () => {
+  test("remoteRefTip returns the SHA before the tab and '' when absent", async () => {
     const present = clientWith({
       git: { stdout: "deadbeef\trefs/heads/master\n", exitCode: 0 },
     });

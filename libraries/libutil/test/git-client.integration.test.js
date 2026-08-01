@@ -7,7 +7,7 @@ import path from "node:path";
 import { createDefaultRuntime } from "../src/runtime.js";
 import { GitClient } from "../src/git-client.js";
 
-// One explicit smoke test per binary for GitClient: exercises the real
+// One explicit smoke test per binary for GitClient. It exercises the real
 // `git` binary through the default runtime in a tmpdir.
 describe("GitClient (integration)", () => {
   let dir;
@@ -17,7 +17,7 @@ describe("GitClient (integration)", () => {
     dir = await mkdtemp(path.join(tmpdir(), "git-client-"));
     client = new GitClient({ runtime: createDefaultRuntime() });
     await client.init(dir);
-    // Make commits independent of the host's signing / identity config.
+    // Make commits independent of the host's signature and identity config.
     await client.configSet("commit.gpgsign", "false", { cwd: dir });
     await client.configSet("tag.gpgsign", "false", { cwd: dir });
     await client.configSet("user.email", "test@example.com", { cwd: dir });
@@ -37,7 +37,7 @@ describe("GitClient (integration)", () => {
     assert.strictEqual(await client.revListCount("HEAD", { cwd: dir }), 2);
   });
 
-  test("showFile reads a blob at a ref, returns null for an absent path, throws for a bad ref", async () => {
+  test("showFile reads a blob at a ref. It returns null for an absent path. It throws for a bad ref", async () => {
     await writeFile(path.join(dir, "doc.md"), "hello world\n");
     await client.commitAll("doc", { cwd: dir });
 
@@ -107,7 +107,8 @@ describe("GitClient (integration)", () => {
     await writeFile(path.join(branchDir, "f.txt"), "main\n");
     await c.commitAll("main", { cwd: branchDir });
 
-    // Rebase feature onto main resolving conflicts with -X ours: must not throw.
+    // Rebase feature onto main and resolve conflicts with -X ours. It must
+    // not throw.
     await sub.run("git", ["checkout", "feature"], { cwd: branchDir });
     const result = await c.rebase("main", { cwd: branchDir, strategy: "ours" });
     assert.ok(result, "rebase returned a result");
@@ -127,9 +128,9 @@ describe("GitClient (integration)", () => {
     await s.commitAll("seed", { cwd: src });
 
     // Clone a bogus URL that resolves only because an inline `insteadOf`
-    // rewrites it to the real source path — so a successful clone proves the
-    // `-c` config was in effect before any remote contact (the property the
-    // wiki transport pin relies on).
+    // rewrites it to the real source path. A successful clone then proves the
+    // `-c` config was in effect before any remote contact. The wiki transport
+    // pin relies on that property.
     const dest = path.join(
       await mkdtemp(path.join(tmpdir(), "git-client-dst-")),
       "clone",

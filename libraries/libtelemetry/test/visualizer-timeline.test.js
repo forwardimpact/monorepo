@@ -105,7 +105,7 @@ describe("TraceVisualizer - multiple traces and timeline", () => {
       );
     });
 
-    test("combines multiple traces into single diagram when resource_id filter used", async () => {
+    test("combines multiple traces into single diagram with resource_id filter", async () => {
       const result = await visualizer.visualize(null, {
         resource_id: "common.Conversation.conv1",
       });
@@ -147,13 +147,13 @@ describe("TraceVisualizer - multiple traces and timeline", () => {
         resource_id: "common.Conversation.conv1",
       });
 
-      // Trace IDs should be shown in separator notes
+      // The separator notes show the trace IDs
       assert.ok(result.includes("Trace: trace1"), "Should include trace1 ID");
       assert.ok(result.includes("Trace: trace2"), "Should include trace2 ID");
     });
   });
 
-  describe("visualize() - Timeline Ordering", () => {
+  describe("visualize() - Timeline Order", () => {
     test("processes spans in chronological order", async () => {
       // Add spans in non-chronological order
       await traceIndex.add(
@@ -256,8 +256,8 @@ describe("TraceVisualizer - multiple traces and timeline", () => {
       );
     });
 
-    test("handles overlapping spans correctly", async () => {
-      // Create nested/overlapping spans:
+    test("handles spans that overlap", async () => {
+      // Create nested spans that overlap:
       // span1: 1000000 - 5000000 (outer)
       //   span2: 1500000 - 2500000 (inner, starts first)
       //   span3: 3000000 - 4000000 (inner, starts later)

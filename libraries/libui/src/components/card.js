@@ -9,7 +9,7 @@ import { div, h3, p, span } from "../render.js";
  * @param {Object} options
  * @param {string} options.title - Card title
  * @param {string} [options.description] - Card description
- * @param {string} [options.href] - Link destination (makes card clickable)
+ * @param {string} [options.href] - Link destination that makes the card clickable
  * @param {HTMLElement[]} [options.badges] - Badges to display
  * @param {HTMLElement[]} [options.meta] - Meta information
  * @param {HTMLElement} [options.content] - Additional content

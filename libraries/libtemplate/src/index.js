@@ -1,7 +1,7 @@
 /**
  * Template Loader
  *
- * Loads Mustache templates with a two-tier resolution order:
+ * This module loads Mustache templates with a two-tier resolution order:
  * 1. {dataDir}/templates/{name} — user customization
  * 2. {defaultsDir}/{name} — package defaults
  *
@@ -14,7 +14,7 @@ import { TemplateLoader } from "./loader.js";
 
 /**
  * Create a TemplateLoader bound to a package's default templates directory.
- * Convenience factory for contexts where class instantiation is awkward.
+ * Use this factory when it is awkward to construct the class directly.
  * @param {string} defaultsDir - Absolute path to the package's templates/ folder
  * @param {import("@forwardimpact/libutil/runtime").Runtime} [runtime]
  * @returns {TemplateLoader}

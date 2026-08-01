@@ -1,10 +1,10 @@
 /**
  * `fit-terrain substrate roster` — list every invariant-satisfying persona
- * from a contract-conforming substrate. Operator surface over the same
- * persona query as `pick`: default output is an aligned table over the
- * columns an operator reads to pick a persona; `--format json` returns
- * enriched rows. Exits non-zero with a diagnostic on an empty result so
- * the caller can surface the binding constraint.
+ * from a contract-conforming substrate. This verb is an operator surface
+ * over the same persona query as `pick`. The default output is an aligned
+ * table over the columns an operator reads to pick a persona.
+ * `--format json` returns enriched rows. Exits non-zero with a diagnostic
+ * on an empty result, so the caller can surface the binding constraint.
  */
 
 import { formatTable, formatError } from "@forwardimpact/libcli";

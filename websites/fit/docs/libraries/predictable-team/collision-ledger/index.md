@@ -1,32 +1,34 @@
 ---
 title: Allocate Collision-Ledger Entries for Parallel Work
-description: Assign stable ids to parallel work without merge collisions — anchored on an append-only issue thread, projected onto a ledger page only when you rebuild.
+description: Assign stable ids to parallel work without merge collisions. An append-only issue thread anchors every id. The ledger page gets a projection only when you rebuild.
 ---
 
-When two agents work in parallel, they need stable, non-colliding ids for the
-things they coordinate over — overlapping occurrences, near-misses, folds. If
-each one writes its id straight onto a shared markdown page, the two writes
-collide at merge time and one id silently overwrites the other. The collision
-ledger removes that race: identity is allocated on an append-only issue thread,
-where GitHub serializes every comment and assigns a monotonic id, and the shared
-page is only ever a projection you rebuild from that thread.
+When two agents work in parallel, they need stable ids that do not collide.
+They coordinate over overlapping occurrences, near-misses, and folds. If each
+agent writes its id straight onto a shared markdown page, the two writes
+collide at merge time. One id then silently overwrites the other. The collision
+ledger removes that race. The ledger allocates identity on an append-only issue
+thread. GitHub serializes every comment on that thread and assigns a monotonic
+id. The shared page is only ever a projection you rebuild from that thread.
 
-This guide covers allocating an id at an anchor, rebuilding the ledger page and
-memory row from the anchor record, and verifying the projection still matches.
-It assumes the wiki is already set up — see
+This guide shows how to allocate an id at an anchor. It shows how to rebuild
+the ledger page and the memory row from the anchor record. It also shows how to
+verify that the projection still matches. The guide assumes the wiki is already
+set up. See
 [Set Up Persistent Memory and Metrics](/docs/libraries/predictable-team/).
 
 ## Prerequisites
 
 - Node.js 22+
 - A wiki already initialized in your project
-- `GITHUB_TOKEN` or `GH_TOKEN` set, or a logged-in `gh` CLI — the ledger reads
+- `GITHUB_TOKEN` or `GH_TOKEN` set, or a logged-in `gh` CLI. The ledger reads
   and writes an issue's comment thread over the GitHub API
 
 ## How allocation stays collision-free
 
-Allocation is **publish-an-anchor**, not **write-the-page**. An anchor is one
-append-only comment on a coordination issue carrying a small fenced block:
+Allocation is **publish-an-anchor**. Allocation is not **write-the-page**. An
+anchor is one append-only comment on a coordination issue that carries a small
+fenced block:
 
 ```yaml alloc
 kind: occ
@@ -35,12 +37,12 @@ event: 7d0f8bca
 note: dual-execution episode
 ```
 
-The durable key is `event` — a commit SHA or a prior anchor id. The `ids` are
-display labels only, so relabeling later is lossless. Because GitHub assigns
-each comment a monotonic id, the comment order is an allocation order no merge
-can erase: when two sessions race for the same label, the lowest comment id
-wins, first-published-wins. Nothing is written to the ledger page at allocation
-time, so the contested page never participates in the race.
+The durable key is `event`. It holds a commit SHA or a prior anchor id. The
+`ids` are display labels only, so a later relabel is lossless. Because GitHub
+assigns each comment a monotonic id, the comment order is an allocation order
+that no merge can erase. When two sessions race for the same label, the lowest
+comment id wins, first-published-wins. The command writes nothing to the ledger
+page at allocation time, so the contested page never participates in the race.
 
 Each anchor has one of four kinds:
 
@@ -51,7 +53,7 @@ Each anchor has one of four kinds:
 | `fold` | A fold of prior allocations.            |
 | `meta` | A meta-level allocation.                |
 
-## Allocating an id
+## Allocate an id
 
 Mint the next free id of a kind, keyed to a durable event:
 
@@ -74,36 +76,36 @@ npx gemba-wiki ledger allocate --kind occ --count 2 --event 7d0f8bca
 ```
 
 The printed ids are provisional. A later `rebuild` over the published comment
-sequence is authoritative — it resolves any concurrent interleave
+sequence is authoritative. It resolves any concurrent interleave
 first-published-wins, so two racing allocations never keep the same label.
 
-### Backfilling an id that predates the ledger
+### Backfill an id that predates the ledger
 
-For ids that already exist in history but were never anchored, register them
-explicitly instead of minting new ones:
+Some ids already exist in history but were never anchored. Do not mint new ones
+for them. Register them explicitly:
 
 ```sh
 npx gemba-wiki ledger allocate --kind occ --ids "#42,#43" --event a1b2c3d4
 ```
 
-If any named id already has an anchor, the command refuses rather than
-double-registering it.
+If any named id already has an anchor, the command refuses. It does not
+double-register the id.
 
 ### Allocation options
 
 | Flag        | Required | Description                                                  |
 | ----------- | -------- | ------------------------------------------------------------ |
 | `--kind`    | Yes      | `occ`, `nm`, `fold`, or `meta`.                              |
-| `--event`   | Yes      | Durable key for the allocation — a SHA or a prior anchor id. |
+| `--event`   | Yes      | Durable key for the allocation (a SHA or a prior anchor id). |
 | `--count`   | No       | How many ids to mint (default 1).                            |
 | `--ids`     | No       | Comma-separated ids to backfill, instead of `--count`.       |
 | `--note`    | No       | Free-text note recorded on the anchor.                       |
 | `--issue`   | No       | Anchor issue number (defaults to the coordination issue).    |
 
-## Rebuilding the projection
+## Rebuild the projection
 
 The ledger page and the memory row are projections of the anchor record. After
-new anchors are published, rebuild them from the authoritative thread:
+you publish new anchors, rebuild them from the authoritative thread:
 
 ```sh
 npx gemba-wiki ledger rebuild
@@ -113,21 +115,22 @@ npx gemba-wiki ledger rebuild
 rebuilt: 12 ids, 0 double-allocation(s)
 ```
 
-`rebuild` reads the full anchor sequence, folds it (resolving any double
-allocation first-published-wins), and writes the result to the ledger page and
-the memory row, preserving any prose you have written against an anchor. If the
-prose cites an anchor that no longer exists, the command warns:
+`rebuild` reads the full anchor sequence. It folds that sequence and resolves
+any double allocation first-published-wins. It then writes the result to the
+ledger page and the memory row. It preserves any prose you wrote against an
+anchor. If the prose cites an anchor that no longer exists, the command warns:
 
 ```text
 warning: prose cites missing anchors: #44
 ```
 
-By default, a double-allocation loser is renumbered. To render it as a gap
-instead — keeping the original numbering visible — pass `--gapped`.
+By default, `rebuild` renumbers a double-allocation loser. Pass `--gapped` to
+render it as a gap instead. A gap keeps the original numbers visible.
 
 ## Verify
 
-Confirm the projection matches the anchor record without writing anything:
+Confirm that the projection matches the anchor record. This check writes
+nothing:
 
 ```sh
 npx gemba-wiki ledger verify
@@ -137,15 +140,16 @@ npx gemba-wiki ledger verify
 verify: clean
 ```
 
-`verify` re-projects the anchor record and compares it against the ledger page
-and the memory row. When they diverge it lists the problems and exits non-zero:
+`verify` re-projects the anchor record. It compares the result against the
+ledger page and the memory row. When they diverge, it lists the problems and
+exits non-zero:
 
 ```text
 verify: ledger page diverges from the anchor record; MEMORY row diverges from the anchor record
 ```
 
-The fix is to run `rebuild`, which re-projects both surfaces, then `verify`
-again to confirm they agree.
+Run `rebuild` to fix this. `rebuild` re-projects both surfaces. Then run
+`verify` again to confirm they agree.
 
 ## What's next
 

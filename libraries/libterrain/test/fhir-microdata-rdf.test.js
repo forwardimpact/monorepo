@@ -116,7 +116,7 @@ function makeFhirToolFactory() {
 function makePipeline() {
   const logger = makeLogger();
   const runtime = createDefaultRuntime();
-  // no-prose mode never reads or writes the cache; back its path with an
+  // no-prose mode never reads or writes the cache. Back its path with an
   // in-memory fs so the pipeline needs no real tmpdir. The pipeline's own
   // runtime stays real to read the on-disk DSL fixture and HTML templates.
   const proseCache = new ProseCache({
@@ -172,7 +172,7 @@ function hasQuad(items, { subject, predicate, object }) {
 }
 
 describe("FHIR microdata HTML → libresource RDF", () => {
-  test("emits Person main item and Patient → resource quads per spec criteria 2–6", async () => {
+  test("emits a Person main item and Patient → resource quads per spec criteria 2–6", async () => {
     const { pipeline } = makePipeline();
     {
       const result = await pipeline.run({
@@ -193,9 +193,9 @@ describe("FHIR microdata HTML → libresource RDF", () => {
 
       // Criterion 2: exactly one Person main item whose IRI matches the
       // patient pattern. Nested inline MedicalCondition/Procedure/
-      // DrugPrescription items also surface via libresource's
-      // allowed-prefix grouping (skolemized blank-node IRIs); the spec's
-      // "exactly one main item" is about the Person/IRI uniqueness.
+      // DrugPrescription items also surface because libresource groups by
+      // allowed prefix (skolemized blank-node IRIs). The spec's "exactly
+      // one main item" is about the Person/IRI uniqueness.
       const personItems = patientItems.filter((item) =>
         item.quads.some(
           (q) =>
@@ -291,7 +291,7 @@ describe("FHIR microdata HTML → libresource RDF", () => {
         "site-description missing servedPatient → patient quad",
       );
 
-      // Criterion 6: both directions of patient↔trial present in combined graph.
+      // Criterion 6: the combined graph has both patient↔trial directions.
       const allItems = [...patientItems, ...trialItems];
       assert.ok(
         hasQuad(allItems, {

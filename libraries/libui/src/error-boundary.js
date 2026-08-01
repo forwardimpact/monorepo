@@ -1,5 +1,5 @@
 /**
- * Error boundary wrapper for page rendering
+ * Error boundary wrapper for page render functions
  */
 
 import { NotFoundError, InvalidCombinationError } from "./errors.js";
@@ -7,14 +7,14 @@ import { render, div, h1, p, a } from "./render.js";
 
 /**
  * @typedef {Object} ErrorBoundaryOptions
- * @property {(error: Error) => void} [onError] - Error callback for logging
+ * @property {(error: Error) => void} [onError] - Callback that logs the error
  * @property {string} [backPath] - Default back path
  * @property {string} [backText] - Default back text
  * @property {(title: string, message: string) => void} [renderErrorFn] - Custom error renderer
  */
 
 /**
- * Wrap a render function with error handling
+ * Wrap a render function so it handles errors
  * @param {Function} renderFn - Page render function
  * @param {ErrorBoundaryOptions} [options]
  * @returns {Function}

@@ -18,15 +18,15 @@ import { resolveProjectRoot } from "../util/wiki-dir.js";
 import { FAST_MODEL } from "@forwardimpact/libutil/models";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-// Pipeline: audit → deterministic rotation (the one fix needing a file seal the
-// agent can't do) → re-audit → Haiku agent on the prose-judgment residual →
-// flag what neither should touch. MAX_ROUNDS still caps the agent loop so an
-// unresolvable agent-class finding fails loudly rather than spinning forever.
+// Pipeline: audit → deterministic rotation (the one fix that needs a file seal
+// the agent cannot do) → re-audit → Haiku agent on the prose-judgment residual
+// → flag what neither should touch. MAX_ROUNDS still caps the agent loop. An
+// unresolvable agent-class finding fails loudly and does not loop forever.
 const MAX_ROUNDS = 3;
 
 /**
  * A finding's remediation class, from the declarative rule. Rules without a
- * `remediation` field default to `"agent"`: the Haiku agent handles all
+ * `remediation` field default to `"agent"`. The Haiku agent handles all
  * prose-judgment fixes (summary trims, section order, MEMORY.md prose).
  */
 function classOf(finding) {
@@ -34,14 +34,16 @@ function classOf(finding) {
 }
 
 /**
- * Every rule governing a scope with an open finding, as `id — hint` lines.
- * Handing the agent the full contract for the files it edits — not just the
- * failing rules — stops it fixing one finding by breaking another (dropping
- * the `**Last run**:` line, appending a section after `## Open Blockers`, …).
+ * Every rule that governs a scope with an open finding, as `id — hint` lines.
+ * The agent gets the full contract for the files it edits. The contract covers
+ * more than the rules that fail. It stops the agent from breaking one
+ * invariant while it fixes another finding (a dropped `**Last run**:` line, a
+ * section appended after `## Open Blockers`, …).
  *
- * Only static-string hints are listed: a function hint is a per-finding
- * resolved command (a `rotate` remediation the agent never performs), not a
- * file invariant, so listing it would leak its source text into the prompt.
+ * This lists only static-string hints. A function hint is a per-finding
+ * resolved command (a `rotate` remediation the agent never performs). A
+ * function hint is not a file invariant, so a list would leak its source text
+ * into the prompt.
  */
 function invariantContract(findings) {
   const scopes = new Set(
@@ -53,52 +55,53 @@ function invariantContract(findings) {
 }
 
 /**
- * The opening task: the findings, the invariant contract, and the things the
- * rule hints don't cover — where trimmed history goes (only existing
- * weekly-log files; rotation owns minting new ones), and to prefer a single
- * Write.
+ * The opening task. It carries the findings, the invariant contract, and the
+ * things the rule hints do not cover. It says where trimmed history goes (only
+ * existing weekly-log files, because rotation mints the new ones). It also
+ * says to prefer a single Write.
  */
 function composeTask(findings, wikiRoot, projectRoot) {
   return [
-    `Fix these wiki audit findings by editing files under ${wikiRoot}.`,
+    `Fix these wiki audit findings. Edit files under ${wikiRoot}.`,
     ``,
     emitFindingsText(findings, { cwd: projectRoot }),
     ``,
-    `All of these invariants must hold when you finish — never fix one finding`,
-    `by breaking another:`,
+    `All of these invariants must hold when you finish. Never fix one finding`,
+    `and break another:`,
     ...invariantContract(findings),
     ``,
     `Move history out of an over-budget summary into the agent's existing`,
-    `weekly-log file or its current part (wiki/<agent>-YYYY-Www[-partN].md) —`,
-    `never a new summary section, and never a new file: rotation tooling owns`,
-    `when part files are created, so do not mint filenames yourself. If the`,
-    `trimmed narrative already exists in the weekly log, replace it in the`,
-    `summary with a pointer to that file instead of copying it anywhere.`,
+    `weekly-log file or its current part (wiki/<agent>-YYYY-Www[-partN].md).`,
+    `Never add a new summary section. Never add a new file. The rotation tool`,
+    `owns when it creates part files, so do not mint filenames yourself. If the`,
+    `weekly log already holds the trimmed narrative, replace it in the summary`,
+    `with a pointer to that file. Do not copy it anywhere.`,
     `Prefer a single Write over many Edits.`,
   ].join("\n");
 }
 
-/** The resume task: the findings that survived the last edit. */
+/** The resume task. It carries the findings that survived the last edit. */
 function composeFollowup(findings, projectRoot) {
   return [
-    `The wiki still fails the audit. Remaining findings:`,
+    `The wiki still fails the audit. The findings that remain:`,
     ``,
     emitFindingsText(findings, { cwd: projectRoot }),
     ``,
-    `Fix every one without breaking any invariant listed earlier.`,
+    `Fix every one. Do not break any invariant listed earlier.`,
   ].join("\n");
 }
 
 /**
- * Deterministic pre-pass: seal every over-budget current-week weekly-log main
- * file via `rotateIfOverBudget`. The agent name comes from the audit's own
- * subjects (keyed by path) — no filename parsing. `force: true` rotates even a
- * word-over/line-under file.
+ * Deterministic pre-pass. It seals every over-budget current-week main log
+ * with `rotateIfOverBudget`. The agent name comes from the audit's own
+ * subjects (keyed by path), so nothing parses the filename. `force: true`
+ * rotates even a word-over/line-under file.
  *
- * `rotateIfOverBudget` always seals the agent's *current-week* log, so we only
- * call it when the finding IS that file. A prior-week over-budget main is left
- * untouched (rotating it would force-seal a healthy current-week log instead);
- * it survives the re-audit and is flagged for a human.
+ * `rotateIfOverBudget` always seals the agent's *current-week* log, so we call
+ * it only when the finding IS that file. A prior-week over-budget main log
+ * stays untouched. A rotation would force-seal a healthy current-week log
+ * instead. The over-budget main survives the re-audit, and the run flags it
+ * for a human.
  */
 /**
  * Seal one over-budget current-week main log. A failed seal leaves the source
@@ -133,8 +136,8 @@ function rotateOverBudgetMainLogs(findings, deps) {
   ];
   const agentByPath = new Map(subjects.map((s) => [s.path, s.agentPrefix]));
   // A log over BOTH budgets yields two `rotate` findings with the same path
-  // (different rule ids); seal each path once, or the second force call would
-  // bisect the freshly-written fresh-main into a spurious near-empty part.
+  // (different rule ids). Seal each path once. A second force call would
+  // bisect the newly written main file into a spurious near-empty part.
   const sealed = new Set();
   for (const f of findings) {
     if (classOf(f) !== "rotate") continue;
@@ -147,9 +150,9 @@ function rotateOverBudgetMainLogs(findings, deps) {
 }
 
 /**
- * Re-bisect one over-budget sealed part, logging each new sibling slot it
- * produces (the reused source slot is not a new file). A failed reseal leaves
- * the source intact (the writer rolled back), so the re-audit re-flags it.
+ * Re-bisect one over-budget sealed part. Log each new sibling slot it produces
+ * (the reused source slot is not a new file). A failed reseal leaves the
+ * source intact (the writer rolled back), so the re-audit re-flags it.
  */
 function resealPart(partPath, { fs, projectRoot, out, err }) {
   try {
@@ -171,15 +174,15 @@ function resealPart(partPath, { fs, projectRoot, out, err }) {
 }
 
 /**
- * Deterministic pass for over-budget sealed parts: re-bisect each at its
- * day-section seams. A part with no splittable seam is left byte-identical (the
- * re-audit re-flags it for a human). Agent and week come from the part filename,
- * so no subject lookup is needed. Part findings are disjoint from the main-log
- * findings `rotateOverBudgetMainLogs` handles.
+ * Deterministic pass for over-budget sealed parts. It re-bisects each part at
+ * its day-section seams. A part with no splittable seam stays byte-identical
+ * (the re-audit re-flags it for a human). Agent and week come from the part
+ * filename, so the pass needs no subject lookup. Part findings are disjoint
+ * from the main-log findings `rotateOverBudgetMainLogs` handles.
  */
 function rebisectOverBudgetParts(findings, deps) {
-  // A part over both budgets yields two findings with the same path; re-bisect
-  // each path once.
+  // A part over both budgets yields two findings with the same path.
+  // Re-bisect each path once.
   const done = new Set();
   for (const f of findings) {
     if (classOf(f) !== "rotate") continue;
@@ -190,7 +193,7 @@ function rebisectOverBudgetParts(findings, deps) {
   }
 }
 
-/** Report findings that need human judgment — never auto-fixed. */
+/** Report findings that need human judgment. Nothing auto-fixes them. */
 function reportFlags(err, flagFindings, projectRoot) {
   err(
     `gemba-wiki fix: ${flagFindings.length} finding(s) need human judgment ` +
@@ -200,11 +203,11 @@ function reportFlags(err, flagFindings, projectRoot) {
 }
 
 /**
- * Surface a round's agent error, if any. Returns true when it is fatal: a
- * missing sessionId means the process never started (e.g. the SDK refused
+ * Surface a round's agent error, if any. Returns true when the error is fatal.
+ * A missing sessionId means the process never started (e.g. the SDK refused
  * bypass-permissions as root), so there is nothing to resume. A turn-limit or
- * transient error keeps its session and may have made partial progress, so it
- * is noted but not fatal — the re-audit decides.
+ * transient error keeps its session and can make partial progress. The
+ * function notes it and does not treat it as fatal. The re-audit decides.
  */
 function isFatalError(result, round, err) {
   if (!result.error) return false;
@@ -237,10 +240,10 @@ async function buildFixRunner(ctx, projectRoot, runtime) {
 }
 
 /**
- * Run the agent on the prose-judgment findings, re-auditing each round until
- * clean, flag-only, or MAX_ROUNDS is exhausted. The audit is the verdict, not
- * the agent's self-report; resuming extends the turn budget for a trim too
- * large for one round.
+ * Run the agent on the prose-judgment findings. Re-audit each round until the
+ * wiki is clean, until only flags remain, or until MAX_ROUNDS is exhausted.
+ * The audit gives the verdict. The agent's self-report does not. A resume
+ * extends the turn budget for a trim too large for one round.
  */
 async function runAgentRounds(runner, agentFindings, deps) {
   const { wikiRoot, projectRoot, audit, partition, out, err } = deps;
@@ -291,10 +294,10 @@ export async function runFixCommand(ctx) {
       buildContext({ wikiRoot, today, fs, subprocess: runtime.subprocess }),
       { resolveScope },
     );
-  // The agent only ever gets prose-judgment (`agent`-class) findings. A
-  // `rotate` finding that survived the pre-pass (e.g. a prior-week log) is
-  // unfixable by the agent — and trimming append-only history to satisfy a
-  // budget would corrupt it — so it joins the flag set for a human.
+  // The agent only ever gets prose-judgment (`agent`-class) findings. The
+  // agent cannot fix a `rotate` finding that survived the pre-pass (e.g. a
+  // prior-week log). A trim of append-only history to satisfy a budget would
+  // corrupt the history. So the finding joins the flag set for a human.
   const partition = (found) => ({
     agentFindings: found.filter((f) => classOf(f) === "agent"),
     flagFindings: found.filter((f) => classOf(f) !== "agent"),
@@ -307,7 +310,7 @@ export async function runFixCommand(ctx) {
   }
 
   // Deterministic layer: seal over-budget main logs, then re-bisect over-budget
-  // sealed parts. Both are content-preserving — no agent, no history rewrite.
+  // sealed parts. Both preserve content, with no agent and no history rewrite.
   if (findings.some((f) => classOf(f) === "rotate")) {
     const rotateDeps = { wikiRoot, today, projectRoot, fs, out, err };
     rotateOverBudgetMainLogs(findings, rotateDeps);
@@ -319,15 +322,16 @@ export async function runFixCommand(ctx) {
     }
   }
 
-  // Residual: agent-class goes to the writer; everything else (flag, plus any
-  // rotate finding the deterministic pass could not handle) needs a human.
+  // Residual: agent-class goes to the writer. Everything else needs a human
+  // (flag, plus any rotate finding the deterministic pass could not handle).
   const { agentFindings, flagFindings } = partition(findings);
   if (agentFindings.length === 0) {
     reportFlags(err, flagFindings, projectRoot);
     return { ok: false, code: 2 };
   }
 
-  // Constructed only now, so a rotation-only or flag-only run never spawns it.
+  // Build the runner only now, so a rotation-only or flag-only run never
+  // spawns it.
   const runner = await buildFixRunner(ctx, projectRoot, runtime);
   return runAgentRounds(runner, agentFindings, {
     wikiRoot,

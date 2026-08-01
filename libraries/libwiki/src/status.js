@@ -1,20 +1,21 @@
 // STATUS.md rows come in two kinds. A spec row's id is four digits with an
-// optional `/<unit>` suffix denoting a per-migration-unit sub-row of a master
-// spec (`1370/libutil`, …); the master `NNNN` row advances only when every
-// sub-row reads `plan implemented`. An experiment row's id is `exp:<issue>`
-// and the row carries four tab cells — `exp:<issue><TAB><state><TAB><pin>
-// <TAB><plan-ref>` — keying the merge-gate approval path for a spec-less
-// experiment PR. The `exp:` namespace cannot match the spec id's `^\d{4}`
-// anchor, so the two kinds never collide for any issue-number width.
+// optional `/<unit>` suffix. The suffix denotes a per-migration-unit sub-row
+// of a master spec (`1370/libutil`, …). The master `NNNN` row advances only
+// when every sub-row reads `plan implemented`. An experiment row's id is
+// `exp:<issue>`. That row carries four tab cells:
+// `exp:<issue><TAB><state><TAB><pin><TAB><plan-ref>`. The cells key the
+// merge-gate approval path for a spec-less experiment PR. The `exp:` namespace
+// cannot match the spec id's `^\d{4}` anchor, so the two kinds never collide
+// for any issue-number width.
 
 /** Matches a status-row id: a four-digit spec id (optional `/<unit>`) or `exp:<issue>`. */
 export const STATUS_ID_REGEX = /^(\d{4}(\/[a-z0-9-]+)?|exp:\d+)$/;
 
 /**
- * Classify a status-row id into its kind and parts. Experiment rows are
- * identified by an `exp:` id together with a four-cell row; the optional
- * `cells` array supplies that count (a bare `exp:` id without four cells is
- * not a valid row and yields null).
+ * Classify a status-row id into its kind and parts. An `exp:` id together with
+ * a four-cell row identifies an experiment row. The optional `cells` array
+ * supplies that count. A bare `exp:` id without four cells is not a valid row
+ * and yields null.
  * @param {string} id - The id field (cell 0) of a STATUS.md row.
  * @param {string[]} [cells] - The full tab-separated cells of the row, when
  *   available. Required to classify an experiment row.

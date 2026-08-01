@@ -3,25 +3,26 @@ title: Manage Service Lifecycle from One Interface
 description: Services that stay running and problems that surface before they escalate — supervision and observability from one interface.
 ---
 
-You are running multiple services -- a gRPC server, a vector store, a trace
-collector -- and managing them means remembering which command starts each one,
-watching for crashes by hand, and wading through unstructured console output
-when something goes wrong. Three libraries eliminate that overhead:
-`@forwardimpact/librc` gives you a single CLI for starting, stopping, and
-checking every service. `@forwardimpact/libsupervise` runs a supervision daemon
-that automatically restarts services when they crash.
-`@forwardimpact/libtelemetry` adds structured logging and trace spans so
-problems surface in context, not buried in stdout.
+You run several services, such as a gRPC server, a vector store, and a trace
+collector. To manage them, you must remember which command starts each one.
+You must watch for crashes by hand. You must wade through unstructured console
+output when something goes wrong. Three libraries remove that overhead.
+`@forwardimpact/librc` gives you a single CLI that starts, stops, and checks
+every service. `@forwardimpact/libsupervise` runs a supervision daemon that
+restarts services automatically when they crash.
+`@forwardimpact/libtelemetry` adds structured logging and trace spans, so
+problems surface in context. They do not stay buried in stdout.
 
-This guide walks the full arc: define services in a configuration file, manage
-them through one interface, and observe their behavior through structured logs
-and spans. Each step produces a working result. Two bounded tasks cover the
+This guide walks the full arc. Define services in a configuration file. Manage
+them through one interface. Observe their behavior through structured logs and
+spans. Each step produces a result that works. Two bounded tasks cover the
 details:
 
 - [Start, stop, or check a service](/docs/libraries/service-lifecycle/manage-service/)
-  -- manage a service without remembering its specific incantation.
+  — manage a service without the need to remember its specific incantation.
 - [Add observability](/docs/libraries/service-lifecycle/add-observability/)
-  -- add a log line or trace span without configuring a logging framework.
+  — add a log line or trace span without the need to configure a logging
+  framework.
 
 ## Prerequisites
 
@@ -57,15 +58,16 @@ config/config.json          (service definitions)
 ```
 
 `fit-rc` reads the service configuration and sends commands to the `svscan`
-supervision daemon (from `libsupervise`). The daemon manages each process,
-restarts it on failure with exponential backoff, and pipes its output through a
-log writer that handles rotation. `libtelemetry` provides the structured logging
-that both the daemon and your services use to produce machine-readable output.
+supervision daemon (from `libsupervise`). The daemon manages each process. It
+restarts the process on failure with exponential backoff. It pipes the output
+through a log writer that handles rotation. `libtelemetry` provides the
+structured logging that both the daemon and your services use to produce
+machine-readable output.
 
 ## Define services
 
-Services are defined in `config/config.json` under the `init` key. Each service
-is either a **longrun** (a process that should stay running) or a **oneshot** (a
+You define services in `config/config.json` under the `init` key. Each service
+is either a **longrun** (a process that should stay up) or a **oneshot** (a
 command that runs once during startup or shutdown):
 
 ```json
@@ -106,8 +108,9 @@ command that runs once during startup or shutdown):
 | `down`     | oneshot  | Command to run on stop. Optional.                                     |
 | `optional` | no       | When `true`, failure is a warning rather than an error. Default `false`. |
 
-Services start in array order. When stopping, the order reverses. This matters
-when services depend on each other -- place dependencies earlier in the array.
+Services start in array order. When they stop, the order reverses. This
+matters when services depend on each other. Place dependencies earlier in the
+array.
 
 ## Start all services
 
@@ -117,7 +120,7 @@ npx fit-rc start
 
 This command:
 
-1. Spawns the `svscan` supervision daemon (or restarts it if already running).
+1. Spawns the `svscan` supervision daemon (or restarts it if it already runs).
 2. Walks through each service in order.
 3. For oneshot services, runs the `up` command and waits for completion.
 4. For longrun services, adds them to the supervision tree. The daemon keeps
@@ -140,8 +143,8 @@ stack):
 npx fit-rc start trace
 ```
 
-This starts every service from the beginning of the array through `trace`,
-skipping later entries.
+This starts every service from the beginning of the array through `trace`. It
+skips later entries.
 
 ## Check service status
 
@@ -149,7 +152,7 @@ skipping later entries.
 npx fit-rc status
 ```
 
-Expected output when services are running:
+Expected output when the services are up:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Running
@@ -158,7 +161,7 @@ INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
 INFO 2026-05-04T10:05:00.456Z rc graph 42001 MSG004 - up pid="42012"
 ```
 
-Expected output when nothing is running:
+Expected output when nothing is up:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Not running
@@ -176,12 +179,13 @@ npx fit-rc status trace
 npx fit-rc stop
 ```
 
-Services stop in reverse order. Longrun services receive `SIGTERM`; if a process
-does not exit within the shutdown timeout (default 3 seconds), the daemon sends
-`SIGKILL` to the entire process group. Oneshot services run their `down` command
-if one is defined. When all services are stopped, the daemon itself shuts down.
+Services stop in reverse order. Longrun services receive `SIGTERM`. If a
+process does not exit within the shutdown timeout (default 3 seconds), the
+daemon sends `SIGKILL` to the entire process group. Oneshot services run their
+`down` command if they define one. When all services stop, the daemon itself
+shuts down.
 
-To stop from a specific service onward (leaving earlier services running):
+To stop from a specific service onward and leave earlier services up:
 
 ```sh
 npx fit-rc stop vector
@@ -196,51 +200,51 @@ reverse order.
 npx fit-rc restart trace
 ```
 
-This stops the named service and everything after it in the array, then starts
-that same slice again — dependents that were torn down come back up, and
-services before the target are left untouched. Without a name, it restarts all
-services.
+This stops the named service and everything after it in the array. It then
+starts that same slice again. Dependents that it tore down come back up. It
+leaves the services before the target untouched. Without a name, it restarts
+all services.
 
 ## Read service logs
 
 Each longrun service writes output to a rotated log directory under the path
-configured in `log_dir`. View a service's current log:
+you configure in `log_dir`. View a service's current log:
 
 ```sh
 npx fit-rc logs trace
 ```
 
-The log writer (from `libsupervise`) automatically rotates files at 1 MB and
-keeps the 10 most recent archives. Archived files are named with ISO 8601
-timestamps, so sorting by filename gives chronological order.
+The log writer (from `libsupervise`) rotates files automatically at 1 MB and
+keeps the 10 most recent archives. It names archived files with ISO 8601
+timestamps, so a sort by filename gives chronological order.
 
 ## Supervision behavior
 
 The `svscan` daemon restarts crashed services automatically. When a longrun
-service exits unexpectedly, the daemon waits before restarting, using
-exponential backoff:
+service exits unexpectedly, the daemon waits before it restarts the service.
+The wait uses exponential backoff:
 
 | Parameter          | Default | Effect                                                  |
 | ------------------ | ------- | ------------------------------------------------------- |
 | Initial delay      | 100 ms  | Wait time after the first crash.                        |
 | Backoff multiplier | 2x      | Each subsequent crash doubles the wait.                 |
 | Maximum delay      | 5000 ms | The wait never exceeds this value.                      |
-| Shutdown timeout   | 3000 ms | Time to wait for `SIGTERM` before escalating to `SIGKILL`. |
+| Shutdown timeout   | 3000 ms | Time to wait for `SIGTERM` before the daemon escalates to `SIGKILL`. |
 
 A successful restart resets the backoff counter. The daemon does not limit the
-total number of restart attempts -- it keeps the service running as long as the
+total number of restart attempts. It keeps the service running as long as the
 supervision tree is active.
 
 Each supervised process runs in its own process group (`detached: true`). When
 the daemon sends a signal, it targets the entire group (shell and child
-processes), preventing orphaned subprocesses.
+processes). This prevents orphaned subprocesses.
 
 ## Fail fast at startup
 
 A service that starts on the wrong Node.js version, or with a required secret
-left blank, should refuse to run rather than fail halfway through a request.
-`@forwardimpact/libpreflight` makes that refusal happen at the very top of a
-service's entry script, before any heavy import resolves.
+left blank, should refuse to run. It should not fail halfway through a
+request. `@forwardimpact/libpreflight` triggers that refusal at the very top
+of a service's entry script, before any heavy import resolves.
 
 Import the runtime-floor check as the **first** import in the entry file. It has
 no dependencies, so it runs before any sibling import body executes:
@@ -261,9 +265,9 @@ Error: This command requires Node.js 22 or later (running 20.11.0).
 Install Node.js 22 (LTS) from https://nodejs.org/ and re-run.
 ```
 
-For required configuration, call `assertNonEmpty` right after loading config so
-a missing secret stops the process at startup instead of surfacing as a
-confusing runtime error later:
+For required configuration, call `assertNonEmpty` right after you load the
+config. A missing secret then stops the process at startup. It does not
+surface as a confusing runtime error later:
 
 ```js
 import { assertNonEmpty } from "@forwardimpact/libpreflight/assert-non-empty.js";
@@ -280,8 +284,8 @@ empty. On failure the process writes
 ## Add structured logging
 
 Services that use `@forwardimpact/libtelemetry` produce RFC 5424-formatted log
-lines. This structured format makes logs greppable and parseable by both humans
-and agents.
+lines. This structured format lets both humans and agents grep and parse the
+logs.
 
 ```js
 import { createLogger } from "@forwardimpact/libtelemetry";
@@ -310,7 +314,7 @@ Control verbosity with the `LOG_LEVEL` environment variable:
 | `info`      | Errors and info (default).   |
 | `debug`     | Everything including debug.  |
 
-For domain-specific debug output without changing the global level, set the
+For domain-specific debug output without a change to the global level, set the
 `DEBUG` environment variable:
 
 ```sh
@@ -375,12 +379,12 @@ await manager.stop();          // Stop all services and daemon
 | libsupervise     | `@forwardimpact/libsupervise`        | Supervision daemon (`fit-svscan`), log writer (`fit-logger`), log rotation, process state. |
 | libtelemetry     | `@forwardimpact/libtelemetry`        | Structured logging (`Logger`), trace spans (`Tracer`), unified observer (`Observer`), trace query and rendering (`fit-visualize`). |
 
-Keeping instruction files and architecture honest is the fifth concern in this
-job. That check is `jidoka`, documented with the
-[Jidoka standard](https://www.jidoka.team/) rather than here, because it
-runs at authoring time against the repository -- not at service runtime against
-a process. See [Distribute Skill Packs](/docs/libraries/distribute-skill-packs/)
-for the publishing side of keeping shared instructions current.
+The fifth concern in this job keeps instruction files and architecture honest.
+That check is `jidoka`. The [Jidoka standard](https://www.jidoka.team/)
+documents it, and this page does not. `jidoka` runs at authoring time against
+the repository. It does not run at service runtime against a process. See
+[Distribute Skill Packs](/docs/libraries/distribute-skill-packs/) for how you
+publish and keep shared instructions current.
 
 ## What's next
 

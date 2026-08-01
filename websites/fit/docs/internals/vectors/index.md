@@ -24,18 +24,18 @@ Two separate concerns use TEI:
 | **Query embedding** | Runtime search        | vector service → embedding service (gRPC) → TEI |
 
 Both go through the embedding service (`SERVICE_EMBEDDING_URL`), which proxies
-to TEI internally. Authentication is handled by the gRPC framework.
+to TEI internally. The gRPC framework handles authentication.
 
 ---
 
 ## TEI (Text Embeddings Inference)
 
-TEI is a Rust binary from HuggingFace that serves embedding models over HTTP. It
-must be running before batch processing or query-time search will work.
+TEI is a Rust binary from HuggingFace that serves embedding models over HTTP.
+TEI must run before batch processing or query-time search works.
 
 ### Installation
 
-Install once via Cargo:
+Install it once with Cargo:
 
 ```sh
 just tei-install
@@ -53,7 +53,7 @@ The first startup downloads the `BAAI/bge-small-en-v1.5` model (~130 MB) to
 
 ### Running Under fit-rc
 
-The embedding service wraps TEI — it starts a gRPC server and spawns
+The embedding service wraps TEI. It starts a gRPC server and spawns
 `text-embeddings-router` as a managed child process. Add the service entry to
 `config/config.json` under `init.services`:
 
@@ -73,19 +73,19 @@ bunx fit-rc status embedding       # Check status
 bunx fit-rc stop embedding         # Stop
 ```
 
-Because the service is marked `optional`, fit-rc skips it with a warning if
+The config marks the service `optional`. So fit-rc skips it with a warning when
 `text-embeddings-router` is not installed.
 
 The gRPC server listens on `SERVICE_EMBEDDING_URL` (default
-`grpc://localhost:3015`). TEI runs on an internal backend port (default 8090,
-configurable via `SERVICE_EMBEDDING_BACKEND_PORT`).
+`grpc://localhost:3015`). TEI runs on an internal backend port (default 8090).
+Set that port with `SERVICE_EMBEDDING_BACKEND_PORT`.
 
 ### Docker
 
-`docker-compose.yml` defines a `tei` container using the HuggingFace CPU image.
-It listens on port 8080 inside the Docker network (`tei.local:8080`), accessible
-only to other containers. This is intended for containerized deployments, not
-local development.
+`docker-compose.yml` defines a `tei` container that uses the HuggingFace CPU
+image. It listens on port 8080 inside the Docker network (`tei.local:8080`).
+Only other containers can reach it. Use this for containerized deployments. Do
+not use it for local development.
 
 ### Health Check
 
@@ -93,14 +93,14 @@ local development.
 curl http://localhost:8090/health
 ```
 
-Returns 200 when TEI is ready to serve requests.
+The endpoint returns 200 when TEI is ready to serve requests.
 
 ---
 
 ## Batch Processing
 
-Resources must exist before vectors can be generated. The full processing chain
-is:
+Resources must exist before `fit-process` can generate vectors. The full
+processing chain is:
 
 ```sh
 just process                   # export-standard → process-resources → process-graphs → process-vectors
@@ -148,7 +148,8 @@ Each line in `data/vectors/index.jsonl` is a self-contained JSON record:
 - **Dimensions:** 384 (bge-small-en-v1.5)
 - **Normalization:** Pre-normalized, so cosine similarity reduces to dot product
 - **Search:** `VectorIndex.queryItems()` computes dot products with SIMD-style
-  loop unrolling, filters by prefix and token budget, returns ranked identifiers
+  loop unrolling, filters by prefix and token budget, and returns ranked
+  identifiers
 
 ---
 
@@ -166,14 +167,14 @@ Each line in `data/vectors/index.jsonl` is a self-contained JSON record:
 
 ## Troubleshooting
 
-**TEI not reachable** — Check `curl http://localhost:8090/health`. Verify the
-embedding service is running (`bunx fit-rc status embedding`).
+**TEI not reachable** — Check `curl http://localhost:8090/health`. Verify that
+the embedding service runs (`bunx fit-rc status embedding`).
 
 **No resources to process** — Run `just process-resources` first. The vector
 processor reads from `data/resources/`.
 
-**Empty vector index** — Resources with empty or null content are skipped.
-Verify `data/resources/` contains files with non-empty content fields.
+**Empty vector index** — The processor skips resources with empty or null
+content. Verify `data/resources/` contains files with non-empty content fields.
 
 **Model download stalls** — The first TEI startup downloads the model from
 HuggingFace. Check network access and `~/.cache/huggingface/` for partial

@@ -1,13 +1,13 @@
 /**
- * Poll until a condition returns true with exponential backoff
+ * Poll with exponential backoff until a condition returns true
  * @param {() => Promise<boolean>} checkFn - Function that returns true when ready
  * @param {object} options - Configuration options
  * @param {number} [options.timeout] - Maximum time to wait in ms
- * @param {number} [options.interval] - Initial polling interval in ms
- * @param {number} [options.maxInterval] - Maximum polling interval in ms
- * @param {(ms: number) => Promise<void>} delayFn - Function that returns a promise resolving after ms
+ * @param {number} [options.interval] - Initial poll interval in ms
+ * @param {number} [options.maxInterval] - Maximum poll interval in ms
+ * @param {(ms: number) => Promise<void>} delayFn - Function that returns a promise that resolves after ms
  * @returns {Promise<void>}
- * @throws {Error} When timeout is reached
+ * @throws {Error} When the timeout expires
  */
 export async function waitFor(checkFn, options, delayFn) {
   if (!delayFn) throw new Error("delayFn is required");
@@ -20,7 +20,7 @@ export async function waitFor(checkFn, options, delayFn) {
     try {
       if (await checkFn()) return;
     } catch {
-      // Ignore errors during polling - service may not be up yet
+      // Ignore errors during the poll. The service may not be up yet
     }
 
     await delayFn(currentInterval);

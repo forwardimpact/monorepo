@@ -7,7 +7,8 @@
  */
 
 /**
- * Build a frozen route descriptor binding a URL pattern to its page, CLI, and graph channels.
+ * Build a frozen route descriptor. It binds a URL pattern to its page, CLI,
+ * and graph channels.
  * @param {{ pattern: string, page: Function, cli?: Function, graph?: Function }} spec
  * @returns {RouteDescriptor}
  */

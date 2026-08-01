@@ -2,14 +2,14 @@
  * `fit-terrain substrate pick` — return one invariant-satisfying persona
  * from a contract-conforming substrate. With `--memory <path>` the pick
  * diversifies against the last `--memory-window` picks recorded in that
- * CSV, appending the new pick on success so cross-run diversification
- * carries over; without `--memory` the verb is stateless. Enrichment
- * reads the synthetic story artifacts (`data/synthetic/story.dsl`)
- * resolved upward from the working directory; absent artifacts yield the
- * structural persona fields un-enriched.
+ * CSV. It appends the new pick on success, so cross-run diversification
+ * carries over. Without `--memory` the verb is stateless. The verb enriches
+ * the persona from the synthetic story artifacts (`data/synthetic/story.dsl`)
+ * that it resolves upward from the working directory. Absent artifacts
+ * yield the structural persona fields un-enriched.
  *
  * Exits non-zero when (a) no persona satisfies the applicable invariants,
- * or (b) every qualifying persona appears in the recent-pick window.
+ * or (b) every persona that qualifies appears in the recent-pick window.
  */
 
 import path from "node:path";
@@ -108,7 +108,8 @@ export async function runSubstratePick({
         memoryPath,
         {
           persona_email: enriched.email,
-          // CI run metadata, not a product literal; empty outside GitHub.
+          // CI run metadata. This is not a product literal. It is empty
+          // outside GitHub.
           run_id: env.GITHUB_RUN_ID ?? "",
         },
         runtime,

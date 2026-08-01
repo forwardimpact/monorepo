@@ -23,9 +23,9 @@ class BaseExtractor {
   }
 
   /**
-   * Check if file should be skipped (macOS resource forks, PAX headers)
+   * Check if the extractor skips a file (macOS resource forks, PAX headers)
    * @param {string} name - File name
-   * @returns {boolean} True if file should be skipped
+   * @returns {boolean} True if the extractor skips the file
    * @private
    */
   _shouldSkipFile(name) {
@@ -107,11 +107,11 @@ class BaseExtractor {
 
 /**
  * Simple TAR file extractor for .tar.gz files
- * Implements native Node.js TAR format parsing without external dependencies
+ * Parses the TAR format natively in Node.js with no external dependencies
  */
 export class TarExtractor extends BaseExtractor {
   /**
-   * Extract a .tar.gz file to specified directory
+   * Extract a .tar.gz file to the specified directory
    * @param {string} tarGzPath - Path to the .tar.gz file
    * @param {string} outputDir - Directory to extract files to
    * @returns {Promise<void>}
@@ -165,11 +165,11 @@ export class TarExtractor extends BaseExtractor {
 
 /**
  * Simple ZIP file extractor for .zip files
- * Implements native Node.js ZIP format parsing without external dependencies
+ * Parses the ZIP format natively in Node.js with no external dependencies
  */
 export class ZipExtractor extends BaseExtractor {
   /**
-   * Extract a .zip file to specified directory
+   * Extract a .zip file to the specified directory
    * @param {string} zipPath - Path to the .zip file
    * @param {string} outputDir - Directory to extract files to
    * @returns {Promise<void>}
@@ -309,7 +309,7 @@ export class ZipExtractor extends BaseExtractor {
   }
 
   /**
-   * Inflate compressed data using DEFLATE
+   * Inflate compressed data with DEFLATE
    * @param {Buffer} compressedData - Compressed data
    * @returns {Promise<Buffer>} Decompressed data
    * @private

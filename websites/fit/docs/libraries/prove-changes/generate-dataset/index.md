@@ -1,17 +1,18 @@
 ---
 title: Generate an Eval Dataset
-description: Go from a DSL file to a complete, validated evaluation dataset — entities generated, prose resolved, output rendered, and results verified.
+description: Go from a DSL file to a complete, validated evaluation dataset. The pipeline generates entities, resolves prose, renders output, and verifies results.
 ---
 
 You need to produce a dataset for an agent evaluation. The dataset must include
 an organization graph, people, an engineering standard, knowledge-base
-documents, and activity records -- and you need to regenerate the whole thing
+documents, and activity records. You also need to regenerate the whole dataset
 when the schema changes. `fit-terrain generate` does all of that from a single
 `.dsl` file.
 
-For the end-to-end workflow that connects dataset generation to evaluation
-sessions and trace analysis, see
-[Prove Whether Agent Changes Improved Outcomes](/docs/libraries/prove-changes/).
+Read
+[Prove Whether Agent Changes Improved Outcomes](/docs/libraries/prove-changes/)
+for the end-to-end workflow. That workflow connects dataset generation to
+evaluation sessions and trace analysis.
 
 ## Prerequisites
 
@@ -74,18 +75,18 @@ terrain Acme {
 }
 ```
 
-A complete `standard` block with capabilities, behaviours, disciplines, and
-levels is shown in the
-[end-to-end guide](/docs/libraries/prove-changes/#1-define-the-dataset-in-a-dsl-file).
-The `seed` field makes the entity graph deterministic -- the same seed produces
-the same people, assignments, and proficiency ratings on every run.
+The
+[end-to-end guide](/docs/libraries/prove-changes/#1-define-the-dataset-in-a-dsl-file)
+shows a complete `standard` block with capabilities, behaviours, disciplines,
+and levels. The `seed` field makes the entity graph deterministic. The same seed
+produces the same people, assignments, and proficiency ratings on every run.
 
-For healthcare deployments, add a `clinical {}` block declaring conditions,
+For healthcare deployments, add a `clinical {}` block that declares conditions,
 sites, and trials. The pipeline then generates a parallel patient-and-trial
-entity graph, emits seven patient-facing HTML pages with Schema.org
-`MedicalCondition` / `MedicalTrial` / `MedicalClinic` microdata, and resolves
-`dataset.conditions [...]` references to the Synthea modules that filter
-generated patient cohorts:
+entity graph. It emits seven patient-facing HTML pages with Schema.org
+`MedicalCondition` / `MedicalTrial` / `MedicalClinic` microdata. It also
+resolves `dataset.conditions [...]` references to the Synthea modules that
+filter the generated patient cohorts:
 
 ```dsl
 clinical {
@@ -141,14 +142,14 @@ output trial_patients_condition json { path "output/conditions.json" }
 ```
 
 `synthea_module` maps each DSL condition to a Synthea module name. The
-`dataset.conditions` field resolves through those mappings and is also used
-to post-filter the generated cohort to patients carrying a matching FHIR
-`Condition` resource.
+`dataset.conditions` field resolves through those mappings. The pipeline also
+uses the field to post-filter the generated cohort. It keeps the patients that
+carry a matching FHIR `Condition` resource.
 
 Synthea needs Java 11+ and the `synthea-with-dependencies.jar` available at
 `$SYNTHEA_JAR` (or in `vendor/synthea/` relative to the working directory).
 Without either, the dataset stage logs an "unavailable" line and skips the
-block — the rest of the pipeline still runs:
+block. The rest of the pipeline still runs:
 
 ```sh
 mkdir -p vendor/synthea
@@ -171,23 +172,23 @@ The pipeline walks a DAG of stages in dependency order:
 | Stage          | What it does                                                                |
 | -------------- | --------------------------------------------------------------------------- |
 | `parse`        | Reads and parses the DSL file                                               |
-| `entities`     | Generates the organization graph, people, assignments — and, when the DSL declares a `clinical {}` block, also the conditions, sites, trials, criteria, and researchers |
+| `entities`     | Generates the organization graph, people, and assignments. When the DSL declares a `clinical {}` block, also generates the conditions, sites, trials, criteria, and researchers |
 | `prose-keys`   | Collects every key that needs prose (bios, summaries, reviews, condition explainers, trial FAQs, consent summaries) |
-| `cache-lookup` | Resolves each key through an LLM, caching results to disk                   |
+| `cache-lookup` | Resolves each key through an LLM and caches the results to disk             |
 | `skeleton`     | Renders deterministic HTML structure for knowledge documents and patient-facing clinical pages |
 | `enriched`     | Fills the skeleton with cached prose                                        |
 | `raw`          | Renders raw activity documents                                              |
 | `markdown`     | Renders personal markdown documents                                         |
 | `pathway`      | Renders engineering standard YAML from the `standard` block                 |
-| `datasets`     | Runs any external dataset tools (Faker, Synthea, SDV); resolves the `dataset.conditions` field against the clinical block when both are present |
+| `datasets`     | Runs any external dataset tools (Faker, Synthea, SDV). Resolves the `dataset.conditions` field against the clinical block when both are present |
 | `validate`     | Checks entity consistency and HTML structure                                |
 | `write`        | Merges all output and writes to disk                                        |
 
-`fit-terrain` orchestrates three libraries across these stages: libsyntheticgen
-parses the DSL and generates the deterministic entity graph, libsyntheticprose
-resolves the LLM prose and YAML, and libsyntheticrender renders and validates
-the output. You install and run `fit-terrain`; the three libraries work behind
-it.
+`fit-terrain` orchestrates three libraries across these stages. The
+libsyntheticgen library parses the DSL and generates the deterministic entity
+graph. The libsyntheticprose library resolves the LLM prose and YAML. The
+libsyntheticrender library renders and validates the output. You install and run
+`fit-terrain`. The three libraries work behind it.
 
 The prose cache persists to `data/synthetic/prose-cache.json` by default.
 Subsequent runs with the same DSL reuse cached prose, so only new or changed
@@ -205,29 +206,31 @@ data/
   synthetic/        Prose cache
 ```
 
-Datasets declared via `dataset` + `output` blocks land at the paths each
+Datasets declared with `dataset` + `output` blocks land at the paths each
 `output` block names. Available output formats include `json`, `yaml`,
-`csv`, `markdown`, `parquet`, `sql`, plus `supabase_migration` (numbered
-SQL files applicable via `supabase db push`), `embeddings_jsonl` (one
-JSON object per line, combining entity fields with cached prose, ready for
-vector embedding), and `fhir_microdata_html` (one Schema.org-microdata
-HTML page per FHIR `Patient` from a Synthea-produced dataset, plus an
-`index.html`, with reverse links from the clinical trial / condition /
-site pages to the matching synthetic patients).
+`csv`, `markdown`, `parquet`, and `sql`. They also include
+`supabase_migration`, `embeddings_jsonl`, and `fhir_microdata_html`.
+`supabase_migration` produces numbered SQL files that you apply with
+`supabase db push`. `embeddings_jsonl` produces one JSON object per line that
+combines entity fields with cached prose, ready for vector embedding.
+`fhir_microdata_html` produces one Schema.org-microdata HTML page per FHIR
+`Patient` from a Synthea-produced dataset. It adds an `index.html` and reverse
+links from the clinical trial / condition / site pages to the matching
+synthetic patients.
 
 ## Verify without regenerating
 
-Two verbs let you check the dataset without making LLM calls.
+Two verbs let you check the dataset with no LLM calls.
 
-**Check cache completeness** -- reports how many prose keys are cached versus
-missing. Exit code `1` if any key is a miss:
+**Check cache completeness** -- reports how many prose keys the cache holds and
+how many it misses. Exit code `1` if any key is a miss:
 
 ```sh
 npx fit-terrain check --story=evals/terrain/story.dsl
 ```
 
-**Validate structure** -- runs entity and cross-content checks without writing
-files. Use after editing the DSL to catch errors before a full rebuild:
+**Validate structure** -- runs entity and cross-content checks and writes no
+files. Use it after you edit the DSL to catch errors before a full rebuild:
 
 ```sh
 npx fit-terrain validate --story=evals/terrain/story.dsl
@@ -235,18 +238,18 @@ npx fit-terrain validate --story=evals/terrain/story.dsl
 
 ## Rebuild a subset
 
-When only part of the dataset needs refreshing, use `build` with `--only` to
+When only part of the dataset needs a refresh, use `build` with `--only` to
 render a single content type:
 
 ```sh
 npx fit-terrain build --story=evals/terrain/story.dsl --only=pathway
 ```
 
-Valid `--only` values: `html`, `pathway`, `raw`, `markdown`. Omitting `--only`
-renders everything.
+Valid `--only` values: `html`, `pathway`, `raw`, `markdown`. Omit `--only` to
+render everything.
 
 The `build` verb uses the existing prose cache but does not call the LLM. If the
-cache has misses, the output will include a warning:
+cache has misses, the output includes a warning:
 
 ```text
 ⚠ 12 prose cache misses — run "fit-terrain generate" to fill the cache.
@@ -270,7 +273,7 @@ To debug or understand the intermediate output of any stage, use `inspect`:
 npx fit-terrain inspect entities --story=evals/terrain/story.dsl
 ```
 
-This prints the stage's output as formatted JSON. Valid stage names match the
+The command prints the stage's output as formatted JSON. Valid stage names match the
 pipeline table above: `parse`, `entities`, `prose-keys`, `cache-lookup`,
 `skeleton`, `enriched`, `raw`, `markdown`, `pathway`, `datasets`, `validate`,
 `write`.

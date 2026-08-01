@@ -1,7 +1,7 @@
 /**
  * `substrate init` scaffolds one timestamped starter migration under the
- * target checkout, generated from SUBSTRATE_CONTRACT so scaffold and probe
- * cannot drift.
+ * target checkout. It generates the migration from SUBSTRATE_CONTRACT so
+ * scaffold and probe cannot drift.
  */
 
 import { test, describe } from "node:test";
@@ -26,7 +26,8 @@ describe("substrate init", () => {
     const sql = runtime.fs.data.get(migration);
     assert.match(sql, /create schema substrate;/);
     assert.match(sql, /grant usage on schema substrate to service_role;/);
-    // One commented example view per contract relation, naming every column.
+    // Each contract relation gets one commented example view. The view
+    // names every column.
     for (const [name, rel] of Object.entries(SUBSTRATE_CONTRACT.relations)) {
       assert.match(sql, new RegExp(`-- create view substrate\\.${name} as`));
       for (const col of rel.columns) {

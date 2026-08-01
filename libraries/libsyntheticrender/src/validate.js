@@ -75,10 +75,11 @@ export function validateCrossContent(entities) {
 
 // ─── Check functions ─────────────────────────────
 
-// Department directors manage across every team in a department rather than
-// within one, so they carry a `department` but no `team_id`. They are the
-// resolution root for the director-tier rollup, never a leaf-team member, so
-// team-membership and manager-team checks do not apply to them.
+// Department directors manage across every team in a department. They do not
+// manage inside one team. So they carry a `department` but no `team_id`. They
+// are the resolution root for the director-tier rollup. They are never a
+// leaf-team member. So team-membership and manager-team checks do not apply
+// to them.
 function isDirectorTier(person) {
   return person.team_id == null && person.department != null;
 }
@@ -179,8 +180,8 @@ function checkRosterCompleteness(entities) {
     name: "roster_completeness",
     passed: hasAll,
     message: hasAll
-      ? "All people present in activity roster"
-      : "Some people missing from activity roster",
+      ? "All people present in the activity roster"
+      : "Some people missing from the activity roster",
   };
 }
 
@@ -271,7 +272,7 @@ function checkProseLength(entities) {
     passed: errors.length === 0,
     message:
       errors.length === 0
-        ? "All prose fields within expected length range"
+        ? "All prose fields within the expected length range"
         : `${errors.length} prose fields outside range: ${errors.slice(0, 3).join("; ")}`,
   };
 }

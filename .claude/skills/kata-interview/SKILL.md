@@ -13,10 +13,10 @@ description: >
 
 In a **JTBD switching interview**, an agent gets only a persona. It then
 tries to get a chosen Job To Be Done done with one of the repository's
-products, which it meets cold at the public website. The agent works in
-isolation with no repository access. You run in the repository root with
-`JTBD.md`, the synthetic `data/` from `fit-terrain build`, and project
-context. Use them to stage, craft, and verify. Never leak them.
+products. It meets that product cold at the public website. The agent
+works in isolation with no repository access. You run in the repository
+root with `JTBD.md`, the synthetic `data/` from `fit-terrain build`, and
+project context. Use them to stage, craft, and verify. Never leak them.
 
 ## When to Use
 
@@ -160,17 +160,17 @@ and write the report.
 ### Step 8: Capture Findings
 
 Review the agent's output. For each distinct finding, note against the JTBD
-whether the agent reached the **Big Hire**, experienced the **Little
-Hire**, felt the **Anxiety**, found **Competes With** more attractive, or
-hit any **Fired When** condition.
+whether the agent reached the **Big Hire** and experienced the **Little
+Hire**. Also note whether the agent felt the **Anxiety**, found **Competes
+With** more attractive, or hit any **Fired When** condition.
 
 Classify each for action:
 
-| Category            | Criteria                               | Action                 |
-| ------------------- | -------------------------------------- | ---------------------- |
-| **Bug**             | Crashes, errors, wrong output          | Create bug issue       |
-| **Product-aligned** | Missing feature that serves the vision | Create feature issue   |
-| **Documentation**   | Unclear, missing, or outdated docs     | Create docs issue      |
+| Category            | Criteria                               | Action                  |
+| ------------------- | -------------------------------------- | ----------------------- |
+| **Bug**             | Crashes, errors, wrong output          | Create bug issue        |
+| **Product-aligned** | Missing feature that serves the vision | Create feature issue    |
+| **Documentation**   | Unclear, missing, or outdated docs     | Create docs issue       |
 | **Out of scope**    | Not actionable or outside the product  | Skip and note in report |
 
 For each actionable finding, use your own `gh`. Extract it. Search for
@@ -182,9 +182,9 @@ table with its issue number. Hold each body to
 
 ### Step 9: Report
 
-Write a final summary: the product, the job, whether the persona got it
-done, which JTBD forces materialized, and a table of findings with the
-issues you created or updated.
+Write a final summary. Give the product, the job, and whether the persona
+got it done. Name which JTBD forces materialized. Add a table of findings
+with the issues you created or updated.
 
 ## Memory: What to Record
 

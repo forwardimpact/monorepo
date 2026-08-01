@@ -1,6 +1,6 @@
 ---
 title: Library Guides
-description: Workflow guides for the shared libraries that give humans and agents the same capabilities — memory, coordination, interfaces, knowledge, contracts, lifecycle, and evals.
+description: Workflow guides for the shared libraries that give humans and agents the same capabilities. They cover memory, coordination, interfaces, knowledge, contracts, lifecycle, and evals.
 layout: product
 toc: false
 ---
@@ -137,5 +137,5 @@ toc: false
 
 </div>
 
-Looking for product workflows? See [Product Guides](/docs/products/). For shared
-gRPC service integration, see [Service Guides](/docs/services/).
+For product workflows, see [Product Guides](/docs/products/). For shared gRPC
+service integration, see [Service Guides](/docs/services/).

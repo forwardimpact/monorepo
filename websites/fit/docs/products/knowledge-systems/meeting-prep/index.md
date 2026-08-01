@@ -1,23 +1,23 @@
 ---
 title: "Walk Into Every Meeting Already Oriented"
-description: "Walk into any meeting already oriented — attendee context, open items, and talking points assembled before you sit down."
+description: "Walk into any meeting already oriented, with attendee context, open items, and talking points assembled before you sit down."
 ---
 
-You need to prepare for a meeting without scrambling through inboxes and chat
-threads for context on who you are meeting and what is outstanding with them.
+You need to prepare for a meeting. You do not want to scramble through inboxes
+and chat threads for context on who you meet and what is outstanding with them.
 
 ## Prerequisites
 
 Complete
 [Keep Track of Context Without Effort](/docs/products/knowledge-systems/) first.
-That guide covers knowledge base setup, agent scheduling, and the knowledge
-graph structure. The steps below assume your Outpost agents are running and your
-knowledge graph has been accumulating context from email and calendar syncs.
+That guide covers knowledge base setup, agent schedules, and the knowledge
+graph structure. The steps below assume your Outpost agents run. They also
+assume your knowledge graph accumulated context from email and calendar syncs.
 
 ## Check your schedule
 
-Start by seeing what is coming up. The calendar query script reads synced events
-and filters by time window:
+First, see what is ahead. The calendar query script reads synced events and
+filters by time window:
 
 ```sh
 node .claude/skills/sync-apple-calendar/scripts/query.mjs --upcoming 2h
@@ -31,13 +31,13 @@ node .claude/skills/sync-apple-calendar/scripts/query.mjs --upcoming 2h
 2 event(s) | now: 2026-05-04T08:15:00.000Z
 ```
 
-The `--upcoming 2h` flag shows meetings starting within two hours, with a
+The `--upcoming 2h` flag shows meetings that start within two hours, with a
 countdown. Use `--today` for the full day or `--tomorrow` to prepare the evening
 before.
 
 ## Look up attendees in the knowledge graph
 
-Before generating a briefing, search the knowledge graph for each attendee.
+Before you generate a briefing, search the knowledge graph for each attendee.
 This is the step that turns a generic calendar entry into useful preparation:
 
 ```sh
@@ -55,7 +55,7 @@ Topics/Platform Reliability.md:5:Raised by [[Sarah Chen]] in Q1 review
 
 The results span people, projects, and topics because the
 librarian agent links entities with `[[backlinks]]` as it processes your email
-and calendar. A single search surfaces the full picture rather than a single
+and calendar. A single search surfaces the full picture instead of a single
 file.
 
 Read the person note for the full picture:
@@ -65,15 +65,14 @@ cat ~/.local/share/fit/outpost/Team/Knowledge/People/Sarah\ Chen.md
 ```
 
 The note contains context (role, what they focus on), a reverse-chronological
-interaction history, and an Open Items section with unresolved commitments --
-the details that disappear from memory between meetings but determine whether
+interaction history, and an Open Items section with unresolved commitments.
+These details disappear from memory between meetings. They determine whether
 someone feels heard.
 
 ## Wake the concierge for a fresh briefing
 
 The concierge agent prepares meeting briefings automatically on its schedule.
-If you want a briefing now rather than waiting for the next cycle, wake it on
-demand:
+If you want a briefing now, do not wait for the next cycle. Wake it on demand:
 
 ```sh
 npx fit-outpost wake concierge
@@ -105,10 +104,10 @@ Waking chief-of-staff...
   Done (7.2s)
 ```
 
-The result is saved to `Briefings/2026-05-04-morning.md`. It
+The agent saves the result to `Briefings/2026-05-04-morning.md`. It
 includes today's schedule (meetings marked `PREPPED` have attendee context
 already assembled), priority actions linked to today's meetings, and open
-commitments to the people you are seeing.
+commitments to the people you will see.
 
 ## Prepare for a specific meeting on demand
 
@@ -145,28 +144,28 @@ Suggested Talking Points
 
 Each section draws from a different part of the knowledge graph: person notes,
 project status, and interaction history. Talking points are specific to this
-meeting and these attendees, not generic templates.
+meeting and these attendees. They are not generic templates.
 
 For interview meetings, the briefing also surfaces candidate briefs from
 `Knowledge/Candidates/` and pipeline status from `Knowledge/Roles/`.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - You can query your calendar with `--today` or `--upcoming 2h` and see
   meetings with attendee names.
-- Searching the knowledge graph with `rg "name" Knowledge/` returns
-  cross-referenced context about the people you are meeting.
-- `npx fit-outpost wake concierge` produces a briefing for an upcoming meeting,
-  drawing on knowledge graph data rather than generic placeholders.
+- A search of the knowledge graph with `rg "name" Knowledge/` returns
+  cross-referenced context about the people you meet.
+- `npx fit-outpost wake concierge` produces a briefing for an upcoming meeting.
+  The briefing draws on knowledge graph data instead of generic placeholders.
 - The chief-of-staff's daily briefing in `Briefings/` includes your
   schedule, priority actions tied to today's meetings, and open commitments to
-  the people you are seeing.
+  the people you will see.
 
 If attendee context is thin, your knowledge graph may need more time to
-accumulate data. Check that the postman and librarian agents are running --
-`npx fit-outpost status` -- and that email sync is producing notes under
+accumulate data. Run `npx fit-outpost status` to check that the postman and
+librarian agents run. Also check that email sync produces notes under
 `Knowledge/People/`.
 
 ## What's next

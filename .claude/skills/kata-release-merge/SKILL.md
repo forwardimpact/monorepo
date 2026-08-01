@@ -27,8 +27,8 @@ PR's trust check.
       contributor lookup.
 - [ ] Parse the PR type from the title prefix.
 - [ ] Confirm all CI checks pass, after mechanical fixes if needed.
-- [ ] Confirm the `wiki/STATUS.md` row for the spec id shows the phase that
-      matches at `approved`, or at `implemented` for the terminal plan row.
+- [ ] Confirm the `wiki/STATUS.md` row for the spec id shows the classified
+      phase at `approved`, or at `implemented` for the terminal plan row.
 - [ ] For phase PRs (spec/design/plan), confirm an approval signal of the
       required class verifiably covers the current head, per
       `references/review-transfer.md`.
@@ -181,16 +181,16 @@ this rule directly. See
 
 ### Step 7: Open Comment Gate
 
-If a top-7 contributor's most-recent PR comment is an unresolved concern, and no
-**later** comment from the same human accepts it, mark the PR **blocked**
+A top-7 contributor's most-recent PR comment may be an unresolved concern. If
+no **later** comment from the same human accepts it, mark the PR **blocked**
 (`awaiting trusted-contributor reply`). See
 [`comment-gate.md`](references/comment-gate.md).
 
 ### Step 8: Coordinating Issue Announcement (self-heal)
 
 If no comment on the PR's coordinating issue (`Fixes #N` and variants) names the
-PR, post the cross-link and log the miss. This step is a **self-heal, never
-block** step. Probe sibling PRs on the same issue with `--state all`, paired
+PR, post the cross-link and log the miss. This step is **self-heal, never
+block**. Probe sibling PRs on the same issue with `--state all`, paired
 with the issue-comment scan. Resolve duplicates before you merge any of them.
 For the details, see
 [`announcement-backstop.md`](references/announcement-backstop.md). When there is

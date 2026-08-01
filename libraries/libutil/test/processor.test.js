@@ -14,13 +14,13 @@ describe("ProcessorBase", () => {
   });
 
   describe("constructor", () => {
-    test("creates ProcessorBase with logger and batch size", () => {
+    test("creates a ProcessorBase with a logger and a batch size", () => {
       const processor = new ProcessorBase(mockLogger, 5);
 
       assert.ok(processor instanceof ProcessorBase);
     });
 
-    test("validates logger parameter", () => {
+    test("validates the logger parameter", () => {
       assert.throws(() => new ProcessorBase(), {
         message: /logger is required/,
       });
@@ -29,7 +29,7 @@ describe("ProcessorBase", () => {
       });
     });
 
-    test("validates batch size parameter", () => {
+    test("validates the batch size parameter", () => {
       assert.throws(() => new ProcessorBase(mockLogger, 0), {
         message: /batchSize must be a positive number/,
       });
@@ -41,15 +41,15 @@ describe("ProcessorBase", () => {
       });
     });
 
-    test("uses default batch size when not provided", () => {
+    test("uses the default batch size when the caller omits it", () => {
       const processor = new ProcessorBase(mockLogger);
-      // Test passes if no error is thrown
+      // The test passes if nothing throws
       assert.ok(processor instanceof ProcessorBase);
     });
   });
 
   describe("process", () => {
-    test("validates items parameter", async () => {
+    test("validates the items parameter", async () => {
       const processor = new ProcessorBase(mockLogger, 2);
 
       await assert.rejects(() => processor.process("not-array"), {
@@ -57,7 +57,7 @@ describe("ProcessorBase", () => {
       });
     });
 
-    test("handles empty array", async () => {
+    test("handles an empty array", async () => {
       const processor = new ProcessorBase(mockLogger, 2);
 
       // Should not throw
@@ -94,7 +94,7 @@ describe("ProcessorBase", () => {
       assert.deepStrictEqual(processor.processedItems, ["a", "b", "c", "d"]);
     });
 
-    test("continues processing when individual items fail", async () => {
+    test("continues when individual items fail", async () => {
       /** Test processor that simulates failures */
       class TestProcessor extends ProcessorBase {
         /**
@@ -107,7 +107,7 @@ describe("ProcessorBase", () => {
         }
 
         /**
-         * Processes a single item with failure simulation
+         * Processes a single item and simulates a failure
          * @param {any} item - Item to process
          * @returns {Promise<string>} Processed result
          */
@@ -123,13 +123,13 @@ describe("ProcessorBase", () => {
       const processor = new TestProcessor(mockLogger);
       await processor.process(["a", "fail", "b", "c"]);
 
-      // Should have processed all items except the failing one
+      // Should process every item except the one that fails
       assert.deepStrictEqual(processor.processedItems, ["a", "b", "c"]);
     });
   });
 
   describe("processItem", () => {
-    test("throws error when not implemented", async () => {
+    test("throws an error when a subclass does not implement it", async () => {
       const processor = new ProcessorBase(mockLogger, 2);
 
       await assert.rejects(() => processor.processItem("item"), {

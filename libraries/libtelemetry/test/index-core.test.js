@@ -40,7 +40,7 @@ describe("TraceIndex - Core", () => {
       );
     });
 
-    test("constructor uses default indexKey when not provided", () => {
+    test("constructor uses default indexKey when the caller omits it", () => {
       const index = new TraceIndex(mockStorage, undefined, { clock: _clock });
       assert.strictEqual(
         index.indexKey,
@@ -101,7 +101,7 @@ describe("TraceIndex - Core", () => {
     });
   });
 
-  describe("queryItems() - Basic Filtering", () => {
+  describe("queryItems() - Basic Filters", () => {
     beforeEach(async () => {
       await traceIndex.add(
         spanType.SpanItem.fromObject({
@@ -152,7 +152,7 @@ describe("TraceIndex - Core", () => {
       );
     });
 
-    test("returns all spans when no filter specified", async () => {
+    test("returns all spans when the caller gives no filter", async () => {
       const spans = await traceIndex.queryItems(null, {});
       assert.strictEqual(spans.length, 3, "Should return all spans");
     });

@@ -1,9 +1,9 @@
 import path from "node:path";
 
 /**
- * Find the project root by upward `package.json` discovery from the current
- * working directory, using the injected `runtime.finder` (the one canonical
- * Finder, constructed only inside libutil).
+ * Find the project root. The search looks upward for a `package.json` from the
+ * current working directory. It uses the injected `runtime.finder` (the one
+ * canonical Finder, which libutil alone constructs).
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime
  * @returns {string}
  */
@@ -12,9 +12,9 @@ export function resolveProjectRoot(runtime) {
 }
 
 /**
- * Resolve the wiki root, preserving the pre-1370 order: the `--wiki-root`
- * option when given, else `<projectRoot>/wiki`. The finder is consulted only
- * when no explicit `--wiki-root` is supplied.
+ * Resolve the wiki root and keep the pre-1370 order: the `--wiki-root` option
+ * when the caller gives one, else `<projectRoot>/wiki`. The function consults
+ * the finder only when the caller supplies no explicit `--wiki-root`.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime
  * @param {Record<string, unknown>} [options] - Parsed CLI options (`ctx.options`).
  * @returns {string}
@@ -26,7 +26,7 @@ export function resolveWikiRoot(runtime, options = {}) {
 /**
  * Report whether the resolved wiki root exists on disk. Commands that read or
  * sync an existing wiki use this to degrade gracefully (warn and exit 0) when
- * the tree was never bootstrapped — e.g. a fresh worktree where
+ * nobody bootstrapped the tree. One example is a fresh worktree where
  * `scripts/bootstrap.sh` did not run.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime
  * @param {string} wikiDir - The resolved wiki root.

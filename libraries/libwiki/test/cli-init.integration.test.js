@@ -94,10 +94,10 @@ describe("init command (real git)", () => {
   });
 });
 
-// Real-fs scaffolding: init resolves the project root via the real finder over
-// proc.cwd() (a tmpdir holding package.json), so this stays an integration test
-// even though the wiki clone is mocked.
-describe("init Active Claims scaffolding (local fs)", () => {
+// Real-fs setup: init resolves the project root through the real finder over
+// proc.cwd() (a tmpdir that holds package.json). So this stays an integration
+// test even though the wiki clone is mocked.
+describe("init scaffolds Active Claims (local fs)", () => {
   let dir;
   let wikiRoot;
   beforeEach(() => {
@@ -111,8 +111,8 @@ describe("init Active Claims scaffolding (local fs)", () => {
   async function runInit() {
     const harness = makeRuntime({
       cwd: dir,
-      // FIT_WIKI_URL points at a non-existent path so the clone fails cleanly;
-      // the handler falls through to the local-only scaffolding.
+      // FIT_WIKI_URL points at a non-existent path so the clone fails cleanly.
+      // The handler then falls through to the local-only scaffolding.
       env: { FIT_WIKI_URL: "/nonexistent/repo.git" },
     });
     const wikiSync = {

@@ -36,7 +36,7 @@ export class InvalidCombinationError extends Error {
 }
 
 /**
- * Data loading error
+ * Data load error
  */
 export class DataLoadError extends Error {
   /**

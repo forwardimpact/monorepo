@@ -43,7 +43,7 @@ function renderEntityGroup(files, entities, dir, schemaName) {
 /**
  * Render pathway YAML files from generated entity data.
  *
- * @param {object} pathwayData - Keyed by entity type
+ * @param {object} pathwayData - Each key is an entity type
  * @returns {Map<string,string>} path → YAML content
  */
 export function renderPathway(pathwayData) {

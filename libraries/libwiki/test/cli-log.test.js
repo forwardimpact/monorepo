@@ -8,8 +8,8 @@ import { makeRuntime, ctxFor } from "./helpers.js";
 const WIKI_ROOT = "/wiki";
 
 describe("gemba-wiki log CLI (in-process)", () => {
-  // One in-memory wiki shared across a test's log subcommands; the command
-  // reads and rewrites the weekly-log file via runtime.fsSync.
+  // Every log subcommand in a test shares one in-memory wiki. The command
+  // reads and rewrites the weekly-log file with runtime.fsSync.
   function makeWiki() {
     const fsSync = createMockFs();
     const run = (subcommand, options) => {
@@ -25,7 +25,7 @@ describe("gemba-wiki log CLI (in-process)", () => {
     return { fsSync, run };
   }
 
-  test("log decision writes leading ### Decision block", async () => {
+  test("log decision writes a leading ### Decision block", async () => {
     const { fsSync, run } = makeWiki();
     await run("decision", {
       agent: "staff-engineer",
@@ -58,7 +58,7 @@ describe("gemba-wiki log CLI (in-process)", () => {
       assert.equal(result.code, 2);
       assert.match(result.error, /^log requires --agent <name>; e\.g\. /);
       assert.doesNotMatch(result.error, /LIBHARNESS_AGENT_PROFILE/);
-      // No weekly log minted for any agent.
+      // The run mints no weekly log for any agent.
       assert.equal(
         fsSync.existsSync(`${WIKI_ROOT}/product-manager-2026-W21.md`),
         false,

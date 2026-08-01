@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { parseJsonBody } from "../src/http.js";
 
 /**
- * Creates a mock HTTP request object with event emitter behavior
+ * Creates a mock HTTP request that acts as an event emitter
  * @param {object} options - Request options
  * @returns {object} Mock request object
  */
@@ -31,7 +31,7 @@ function createMockRequest(options = {}) {
 }
 
 describe("parseJsonBody", () => {
-  test("parses valid JSON body", async () => {
+  test("parses a valid JSON body", async () => {
     const req = createMockRequest({
       body: { message: "Hello", correlationId: "123" },
     });
@@ -43,7 +43,7 @@ describe("parseJsonBody", () => {
     assert.deepStrictEqual(result, { message: "Hello", correlationId: "123" });
   });
 
-  test("returns empty object for invalid JSON", async () => {
+  test("returns an empty object for invalid JSON", async () => {
     const req = createMockRequest({ body: {} });
     let dataCallback;
     let endCallback;
@@ -61,7 +61,7 @@ describe("parseJsonBody", () => {
     assert.deepStrictEqual(result, {});
   });
 
-  test("rejects on request error", async () => {
+  test("rejects on a request error", async () => {
     const req = createMockRequest({ body: {} });
     const testError = new Error("Connection reset");
 
@@ -73,7 +73,7 @@ describe("parseJsonBody", () => {
     });
   });
 
-  test("handles empty body", async () => {
+  test("handles an empty body", async () => {
     const req = createMockRequest({ body: {} });
     let dataCallback;
     let endCallback;

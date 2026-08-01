@@ -115,13 +115,13 @@ describe("mintCompletionTicket / verifyCompletionTicket", () => {
     assert.strictEqual(r.reason, "malformed");
   });
 
-  test("malformed ticket with empty payload rejects as malformed", () => {
+  test("malformed ticket with an empty payload rejects as malformed", () => {
     const r = verify(".sig");
     assert.strictEqual(r.ok, false);
     assert.strictEqual(r.reason, "malformed");
   });
 
-  test("canonical-JSON: minting twice with the same inputs is byte-identical", () => {
+  test("canonical-JSON: two mints with the same inputs are byte-identical", () => {
     const a = mintCompletionTicket({
       surfaceUserId: SUID,
       linkToken: LINK,
@@ -139,7 +139,7 @@ describe("mintCompletionTicket / verifyCompletionTicket", () => {
     assert.strictEqual(a, b);
   });
 
-  test("timingSafeEqual path: equal-length signatures with one non-leading byte differing reject as bad_signature", () => {
+  test("timingSafeEqual path: equal-length signatures that differ in one non-leading byte reject as bad_signature", () => {
     const t = mint();
     const [payload, sig] = t.split(".");
     const idx = Math.floor(sig.length / 2);

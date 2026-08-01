@@ -1,6 +1,6 @@
 /**
- * BundleDownloader utility for retrieving and extracting bundle.tar.gz from remote storage.
- * Used to download generated code bundles in containerized deployments.
+ * BundleDownloader gets bundle.tar.gz from remote storage and extracts it.
+ * Containerized deployments use it to download generated code bundles.
  */
 export class BundleDownloader {
   #storageFactory;
@@ -18,7 +18,7 @@ export class BundleDownloader {
    * @param {object} finder - Finder instance for symlink management
    * @param {object} logger - Logger instance
    * @param {object} extractor - TarExtractor instance for archive extraction
-   * @param {object} process - Process environment access (for testing)
+   * @param {object} process - Process environment access (for tests)
    */
   constructor(
     createStorageFn,
@@ -52,7 +52,7 @@ export class BundleDownloader {
     this.#local = this.#storageFactory("generated", "local", this.#process);
     this.#remote = this.#storageFactory("generated", "s3", this.#process);
 
-    // Ensure directory and create symlinks for packages
+    // Make sure the directory exists. Create symlinks for the packages.
     await this.#local.ensureBucket();
     const generatedPath = this.#local.path();
     await this.#finder.createPackageSymlinks(generatedPath);
@@ -75,14 +75,14 @@ export class BundleDownloader {
     if (storageType === "local") {
       this.#logger.debug(
         "BundleDownloader",
-        "Download skipped, using local storage",
+        "Download skipped, local storage in use",
       );
       return;
     }
 
     const key = "bundle.tar.gz";
 
-    // Check if bundle exists in remote storage
+    // Check if the bundle exists in remote storage
     const exists = await this.#remote.exists(key);
     if (!exists) throw new Error(`Bundle not found`);
 
@@ -95,7 +95,7 @@ export class BundleDownloader {
   }
 
   /**
-   * Extract bundle.tar.gz to local storage using TarExtractor
+   * Extract bundle.tar.gz to local storage with TarExtractor
    * @param {string} key - Bundle file key in local storage
    * @returns {Promise<void>}
    * @private

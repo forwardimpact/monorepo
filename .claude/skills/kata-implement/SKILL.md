@@ -78,11 +78,11 @@ Process. Extract previously implemented specs and blockers.
 ### Step 1: Study the spec deeply
 
 Read every file in the spec directory: `spec.md`, all `plan-*.md` files, and
-any supporting documents. Understand the **problem**, which is the gap and its
-evidence. Understand the **scope**: the files, APIs, entities, and behaviours
-affected, and what is out of scope. Understand the **success criteria**: what
-"done" looks like and how you verify it. Do not start to code until you can
-explain the problem and its boundaries from memory.
+any document that supports them. Understand the **problem**, which is the gap
+and its evidence. Understand the **scope**: the files, APIs, entities, and
+behaviours affected, and what is out of scope. Understand the
+**success criteria**: what "done" looks like and how you verify it. Do not
+start to code until you can explain the problem and its boundaries from memory.
 
 ### Step 2: Select and study the plan
 
@@ -103,23 +103,23 @@ Read the selected plan thoroughly. Understand:
   single agent, or parallel engineering agents for independent parts.
 
 **Multi-part plans.** If the plan splits into parts (`plan-a.md` +
-`plan-a-01.md`, `plan-a-02.md`, etc.), first read the overview in `plan-a.md`
-for the strategy, the part index, and the execution recommendation. Then work
-through the parts in numbered order. Each part is independently executable.
-Complete and verify each part before you move to the next. When the plan
-recommends parallel execution for independent parts, the caller must launch
-the concurrent engineering agents. A single agent implements one part at a
-time.
+`plan-a-01.md`, `plan-a-02.md`, etc.), first read the overview in `plan-a.md`.
+It holds the strategy, the part index, and the execution recommendation. Then
+work through the parts in numbered order. Each part is independently
+executable. Complete and verify each part before you move to the next. When the
+plan recommends parallel execution for independent parts, the caller must
+launch the concurrent engineering agents. A single agent implements one part at
+a time.
 
 ### Step 3: Research the current codebase
 
-Before making any change, read the files that the plan targets. Verify:
+Before you make any change, read the files that the plan targets. Verify:
 
-- Do the files still exist at the paths the plan references?
-- Does the current code match the plan's assumptions (function signatures, data
-  structures, imports)?
-- Have there been changes since the plan was written that affect the approach?
-  On divergence, see Handling Problems.
+- The files still exist at the paths the plan references.
+- The current code matches the plan's assumptions (function signatures, data
+  structures, imports).
+- No change since the plan was written affects the approach. On divergence, see
+  Handling Problems.
 
 ### Step 4: Build a task list
 
@@ -137,15 +137,15 @@ organize tasks by part, ordered as Step 2 describes.
 
 For each task:
 
-1. **Make the change.** Follow the plan's concrete guidance — file paths,
-   function signatures, code patterns. Adapt to current code when the plan's
-   assumptions are stale.
+1. **Make the change.** Follow the plan's concrete guidance: file paths,
+   function signatures, and code patterns. Adapt to the current code when the
+   plan's assumptions are stale.
 2. **Verify immediately.** Run relevant tests, linters, or validation commands
    after each logical group of changes. Do not accumulate untested work.
 3. **Commit atomically.** Before each commit, run the DO-CONFIRM checklist in
-   CONTRIBUTING.md § Core Rules. Group related changes into logical commits
-   following the repository's git workflow (`type(scope): subject`). Commit
-   after each verified step — do not batch unrelated changes.
+   CONTRIBUTING.md § Core Rules. Group related changes into logical commits that
+   follow the repository's git workflow (`type(scope): subject`). Commit after
+   each verified step. Do not batch unrelated changes.
 
 ### Step 6: Final verification
 
@@ -156,31 +156,30 @@ After all tasks are complete, run the DO-CONFIRM checklist above.
 Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md). Tell each reviewer not
 to invoke `kata-implement`. Address every confirmed blocker/high/medium finding
-before advancing.
+before you advance.
 
 ### Step 8: Open an implementation PR
 
-Push commits only after the panel is clean; re-run the READ-DO freshness probe
+Push commits only after the panel is clean. Re-run the READ-DO freshness probe
 before the `open-change`. Title the PR with the spec id:
-`feat(scope): ... (#NNN)`. After opening, announce and route on the coordinating
-issue per
-[coordination-protocol § Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create),
-and hold the PR body to
-[Citation integrity](../../agents/x-citation-integrity.md).
+`feat(scope): ... (#NNN)`. After you open it, announce and route on the
+coordinating issue per
+[coordination-protocol § Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create).
+Hold the PR body to [Citation integrity](../../agents/x-citation-integrity.md).
 
 ## Handling Problems
 
-- **Plan step is unclear.** Read the spec for intent, then use your judgment.
+- **Plan step is unclear.** Read the spec for intent. Then use your judgment.
   Note what you decided and why in the commit message.
 - **Plan step conflicts with current code.** Adapt to the current state. The
-  plan describes what to achieve, not exact keystrokes. Flag significant
-  deviations to the user.
-- **A test fails after a change.** Fix the issue before moving on. If the fix
-  requires deviating from the plan, note the deviation.
-- **The plan is incomplete.** Fill gaps
-  using the spec's intent, codebase conventions, and CONTRIBUTING.md § Core
-  Rules (Invariants and the READ-DO / DO-CONFIRM checklists). Do not ask for
-  permission on routine decisions — only flag genuine ambiguity.
+  plan describes what to achieve. It does not describe exact keystrokes. Flag
+  significant deviations to the user.
+- **A test fails after a change.** Fix the issue before you move on. If the fix
+  must deviate from the plan, note the deviation.
+- **The plan is incomplete.** Fill gaps with the spec's intent, the codebase
+  conventions, and CONTRIBUTING.md § Core Rules (Invariants and the READ-DO /
+  DO-CONFIRM checklists). Do not ask for permission on routine decisions. Flag
+  genuine ambiguity only.
 
 ## Memory: What to Record
 
@@ -193,5 +192,5 @@ Append to the current week's log (see agent profile for the file path):
 - **Deferred specs** — Specs skipped and why
 - **Metrics** — One row per run to `wiki/metrics/{skill}/` per
   `references/metrics.md` (eligibility in KATA.md § Metrics). The metric is
-  route-bearing: record the route taken and routes eligible per
+  route-bearing. Record the route taken and the routes eligible per
   [`references/route-decision.md`](references/route-decision.md).

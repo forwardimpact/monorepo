@@ -1,6 +1,7 @@
 /**
- * `substrate pick` — memory on/off, window generalization, and the
- * declared-degradation payload (`selection_metadata.applied_invariants`).
+ * `substrate pick` — memory on and off, how the window generalizes, and
+ * the declared-degradation payload
+ * (`selection_metadata.applied_invariants`).
  */
 
 import { test, describe } from "node:test";
@@ -49,7 +50,7 @@ function twoQualifyingSeed() {
 }
 
 describe("substrate pick", () => {
-  test("stateless without --memory: no file read or written", async () => {
+  test("stateless without --memory, so it reads and writes no file", async () => {
     const supabase = makeSubstrateStub(invariantSatisfyingSeed());
     const runtime = createTestRuntime();
     const code = await runSubstratePick({ supabase, options: {}, runtime });
@@ -130,7 +131,7 @@ describe("substrate pick", () => {
       memory,
       "picked_at,persona_email,run_id\n2026-07-01T00:00:00.000Z,mgr@x,1\n",
     );
-    // Window 0 disables diversification: the recent pick is eligible again.
+    // Window 0 disables diversification, so the recent pick is eligible again.
     const code = await runSubstratePick({
       supabase,
       options: { memory: memory, memoryWindow: "0" },

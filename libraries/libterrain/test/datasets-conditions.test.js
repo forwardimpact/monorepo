@@ -8,9 +8,9 @@ function makeLogger() {
 }
 
 /**
- * Build a fake tool that records the config it was invoked with and produces
- * an empty result set. Lets tests assert on the `modules` that nodes.js
- * resolved before calling the tool.
+ * Build a fake tool that records the config it receives and produces an
+ * empty result set. Tests can then assert on the `modules` that nodes.js
+ * resolved before it called the tool.
  */
 function makeRecordingFactory() {
   const calls = [];
@@ -92,7 +92,7 @@ describe("datasets node — condition resolution", () => {
     assert.deepStrictEqual(calls[0].modules, ["diabetes"]);
   });
 
-  test("ignores conditions when no clinical block, leaves modules untouched", async () => {
+  test("ignores conditions and leaves modules untouched with no clinical block", async () => {
     const { factory, calls } = makeRecordingFactory();
     const parse = {
       datasets: [
@@ -115,7 +115,7 @@ describe("datasets node — condition resolution", () => {
     assert.deepStrictEqual(calls[0].conditions, ["lung-cancer"]);
   });
 
-  test("leaves config.modules untouched when dataset has no conditions field", async () => {
+  test("leaves config.modules untouched when the dataset has no conditions field", async () => {
     const { factory, calls } = makeRecordingFactory();
     const parse = {
       datasets: [
@@ -137,7 +137,7 @@ describe("datasets node — condition resolution", () => {
     assert.deepStrictEqual(calls[0].modules, ["diabetes"]);
   });
 
-  test("merges explicit modules with conditions-derived modules, deduped", async () => {
+  test("merges explicit modules with conditions-derived modules and dedupes", async () => {
     const { factory, calls } = makeRecordingFactory();
     const ds = {
       id: "trial-patients",
@@ -151,8 +151,8 @@ describe("datasets node — condition resolution", () => {
     const clinical = {
       conditions: [
         { id: "diabetes-t2", synthea_module: "diabetes" },
-        // Both DSL conditions can resolve to the same Synthea module —
-        // the merge dedupes so we don't load the same module twice.
+        // Both DSL conditions can resolve to the same Synthea module.
+        // The merge dedupes so we don't load the same module twice.
         { id: "hypertension_dsl", synthea_module: "hypertension" },
       ],
     };
@@ -164,7 +164,7 @@ describe("datasets node — condition resolution", () => {
     assert.deepStrictEqual(ds.config.modules, ["hypertension"]);
   });
 
-  test("returns datasetsMap on the empty path when no datasets declared", async () => {
+  test("returns datasetsMap on the empty path when the parse declares no datasets", async () => {
     const { factory } = makeRecordingFactory();
     const parse = { datasets: [], outputs: [], seed: 42 };
 
@@ -197,7 +197,7 @@ describe("datasets node — condition resolution", () => {
     assert.ok(result.datasetsMap.has("trial-patients-patient"));
   });
 
-  test("skips fhir_microdata_html outputs without 'dataset not generated' log", async () => {
+  test("skips fhir_microdata_html outputs without a 'dataset not generated' log", async () => {
     const logs = [];
     const logger = {
       info: (cat, msg) => logs.push({ cat, msg }),
@@ -251,7 +251,7 @@ describe("datasets node — condition resolution", () => {
 
     await runDatasetsNode(parse, { clinical, factory });
 
-    // Original AST node still only carries `conditions`; nothing wrote
+    // The original AST node still carries only `conditions`. Nothing wrote
     // `modules` onto it.
     assert.strictEqual(ds.config.modules, undefined);
     assert.deepStrictEqual(ds.config.conditions, ["diabetes-t2"]);

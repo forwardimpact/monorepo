@@ -1,7 +1,7 @@
 /**
- * `substrate roster` — operator surface over the same persona query as
- * `pick`: table output by default, enriched JSON with the
- * declared-degradation metadata on `--format json`, and the binding
+ * `substrate roster` — the operator surface over the same persona query as
+ * `pick`. It prints a table by default. It prints enriched JSON with the
+ * declared-degradation metadata on `--format json`. It prints the binding
  * diagnostic on an empty result.
  */
 
@@ -20,7 +20,7 @@ function stdoutText(runtime) {
 }
 
 describe("substrate roster", () => {
-  test("default output is a table over the operator columns", async () => {
+  test("prints a table over the operator columns by default", async () => {
     const supabase = makeSubstrateStub(invariantSatisfyingSeed());
     const runtime = createTestRuntime();
     const code = await runSubstrateRoster({ supabase, options: {}, runtime });

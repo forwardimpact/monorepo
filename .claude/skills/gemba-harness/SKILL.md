@@ -3,9 +3,9 @@ name: gemba-harness
 description: >
   Prove whether agent changes improved outcomes with reproducible
   evidence. Use when an eval passes locally but fails in CI and the only
-  output is 'assertion failed', when you need a pass/fail verdict from a
-  judge agent, or when you coordinate multiple specialist agents in one
-  session. Pair with `gemba-trace` for trace analysis.
+  output is 'assertion failed'. Use when you need a pass/fail verdict
+  from a judge agent. Use when you coordinate multiple specialist agents
+  in one session. Pair with `gemba-trace` for trace analysis.
 ---
 
 # gemba-harness

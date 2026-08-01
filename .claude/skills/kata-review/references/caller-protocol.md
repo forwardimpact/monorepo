@@ -1,6 +1,6 @@
 # Sub-Agent Review Protocol
 
-Shared protocol for callers of `kata-review`. Used by:
+Callers of `kata-review` share this protocol:
 
 - `kata-spec` Step 5 — product + technical panels, 3 each
 - `kata-design` / `kata-plan` Step 5 — technical + devex panels, 3 each
@@ -26,7 +26,7 @@ Rationale for panels, sizes, and scope:
 
 ## How to Invoke
 
-1. **Launch all panels in a single message** via one `Agent` tool call per
+1. **Launch all panels in a single message** with one `Agent` tool call per
    reviewer. All reviewers across all panels launch in parallel, so the caller
    cannot cross-feed one reviewer's output into another's prompt. Each
    sub-agent:
@@ -36,61 +36,61 @@ Rationale for panels, sizes, and scope:
    - Receives the **identical** prompt within its panel: artifact type, artifact
      path, spec path (for design/plan/diff), design path (for plan/diff), plan
      path (for diff), and branch name (for diff).
-   - Is told not to invoke the parent skill (e.g., "do not invoke `kata-spec`")
-     — defense in depth on top of the structural recursion fix.
+   - Is told not to invoke the parent skill (e.g., "do not invoke `kata-spec`").
+     This adds defense in depth to the structural recursion fix.
 
 2. **Do not share a scratchpad or cross-feed reviewer output.** Correlated
    errors collapse the ensemble back to one reviewer's signal.
 
-3. **Collect all N findings reports** before merging. A missing report is not a
-   pass — re-spawn that reviewer.
+3. **Collect all N findings reports** before you merge. An absent report is not
+   a pass. Re-spawn that reviewer.
 
 ## How to Merge Findings
 
 Merge findings **within each panel independently**. When an artifact has
 multiple panels (e.g., technical + product for specs), run the steps below once
-per panel, then combine the results. Findings from different panels are not
-cross-voted — each panel's consensus threshold applies to its own reviewers.
+per panel. Then combine the results. Do not cross-vote across panels. Each
+panel's consensus threshold applies to its own reviewers.
 
-Findings arrive under `### Blocker` / `### High` / `### Medium` / `### Low`,
-each row shaped `<file:line> — <criterion> — <one-sentence reason>` (or a commit
-hash in place of `file:line` for diffs).
+Findings arrive under `### Blocker` / `### High` / `### Medium` / `### Low`.
+Each row has the shape `<file:line> — <criterion> — <one-sentence reason>`. For
+diffs, a commit hash replaces `file:line`.
 
-1. **Group semantically.** Merge findings citing the same `file:line` (or nearby
-   lines in the same hunk) that raise the same concern, even if worded
-   differently. When in doubt, merge.
-2. **Record vote count and each flagging reviewer's severity.**
-3. **Pick severity by mode; tie-break high.** Vote count reflects reach;
-   severity reflects seriousness.
+1. **Group semantically.** Merge findings that cite the same `file:line` (or
+   nearby lines in the same hunk) and raise the same concern. Wording may
+   differ. When in doubt, merge.
+2. **Record the vote count and the severity of each flag.**
+3. **Pick severity by mode. Tie-break high.** Vote count reflects reach.
+   Severity reflects seriousness.
 4. **Partition by vote count:**
    - **Consensus (≥⌈N/2⌉):** verify and address all confirmed blocker/high/
      medium findings in the same turn.
    - **Minority (>1, <⌈N/2⌉):** empty for N=3. For N=5, verify with extra care.
-   - **Singleton (1):** verify each; address or record dismissal rationale.
-5. **Scope-creep guard.** Dismiss findings raising concerns outside the
+   - **Singleton (1):** verify each. Address or record a dismissal rationale.
+5. **Scope-creep guard.** Dismiss findings that raise concerns outside the
    artifact's declared scope (spec scope for design/plan, plan scope for diffs;
    user intent for specs). Exception: consensus "scope-creep in the diff"
    findings stand.
 
 ## How to Handle Findings
 
-- **Verify** every unique finding against the actual artifact before acting on
-  it. The caller is accountable, not the panel.
-- **Proceed without pausing.** Address every confirmed consensus
-  **blocker**/**high**/**medium** finding in the same turn — do not stop for
-  user permission. Re-run the panel if the fix is substantial, then advance.
-- **Low** findings are optional. Document if dismissed.
+- **Verify** every unique finding against the actual artifact before you act.
+  The caller is accountable. The panel is not.
+- **Proceed. Do not pause.** Address every confirmed consensus
+  **blocker**/**high**/**medium** finding in the same turn. Do not stop for
+  user permission. Re-run the panel if the fix is substantial. Then advance.
+- **Low** findings are optional. Document any dismissal.
 - **False positives.** Record a one-line rationale in the commit message or
-  artifact and continue — silent dismissal is not allowed.
+  artifact, then continue. Never dismiss one silently.
 - **Disagreement with a consensus blocker.** Revise the artifact to address the
-  underlying concern, or record a rationale — in the same turn, without
-  stopping.
-- **Same-run revision is an exclusive route.** A Disposition comment
-  pre-announcing a same-run revision reserves it for the announcing run, and
-  must embed a run-unique token: `$GITHUB_RUN_ID` (or the workflow run URL)
-  in CI sessions, a session-generated nonce otherwise. You are the announcing
-  run iff the announcement's token equals your own run's token; on mismatch
-  **or missing token**, the route is taken — do not author a duplicate. The
-  pin comment naming the revision head echoes the token, so the thread itself
-  records announcer = pinner. Any other route checks the thread tail before
-  authoring: pin present, verify against the pinned head.
+  concern behind it, or record a rationale. Do it in the same turn. Do not
+  stop.
+- **Same-run revision is an exclusive route.** A Disposition comment that
+  pre-announces a same-run revision reserves it for the announcer. That comment
+  must embed a run-unique token: `$GITHUB_RUN_ID` (or the workflow run URL) in
+  CI sessions, a session-generated nonce otherwise. You are the announcer iff
+  the announcement's token equals your run's token. On a mismatch **or an
+  absent token**, another run holds the route. Do not author a duplicate. The
+  pin comment that names the revision head echoes the token, so the thread
+  itself records announcer = pinner. Any other route checks the thread tail
+  first: pin present, verify against the pinned head.

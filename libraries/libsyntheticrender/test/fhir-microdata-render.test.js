@@ -87,11 +87,11 @@ describe("renderFhirMicrodataHtml", () => {
       { path: "data/patients" },
     );
     const html = files.get(`data/patients/${PATIENT_A}.html`);
-    // The libresource RDF assertions in libterrain cover full main-item
-    // grouping; here we assert the Mustache output emits exactly one
-    // `itemtype="https://schema.org/Person"` (the Patient main item) and
-    // exactly one matching `itemid` attribute. Nested resource itemscopes
-    // use different itemtypes and carry no itemid.
+    // The libresource RDF assertions in libterrain fully cover how main
+    // items group. Here we assert that the Mustache output emits exactly one
+    // `itemtype="https://schema.org/Person"` (the Patient main item). It also
+    // emits exactly one `itemid` attribute that matches. Nested resource
+    // itemscopes use different itemtypes and carry no itemid.
     const personMatches = html.match(
       /itemtype="https:\/\/schema\.org\/Person"/g,
     );

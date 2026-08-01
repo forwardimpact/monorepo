@@ -6,5 +6,5 @@ Record per KATA.md § Metrics. Append one row per run.
 | ------------- | ----- | ---------------------------------- | ----------- |
 | plans_drafted | count | Plan PRs opened or merged this run | `list` changes ([work-trackers.md](../../../agents/x-work-trackers.md)) |
 
-Plan backlog (`specs/` with `design-a.md` but no `plan-a.md`) is queried,
-not recorded.
+You query the plan backlog (`specs/` with `design-a.md` but no
+`plan-a.md`). Do not record it.

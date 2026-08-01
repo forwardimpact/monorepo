@@ -58,7 +58,7 @@ the graders were healthy.
 
 | Flag       | Required | Purpose                                                                              |
 | ---------- | -------- | ------------------------------------------------------------------------------------ |
-| `--input`  | no       | Run-output directory containing `results.jsonl` (default `benchmark-runs`)           |
+| `--input`  | no       | Run-output directory with `results.jsonl` (default `benchmark-runs`)                 |
 | `--k`      | no       | Comma-separated `k` values (default `1,3,5`)                                         |
 | `--format` | no       | Output format `json` or `text` (default `json`)                                      |
 | `--detail` | no       | Text report verbosity `full` or `compact` (default `full`). `compact` drops per-task detail for a short sharded-run summary |
@@ -69,7 +69,7 @@ warning and counts them under `totals.skipped`.
 For every task with at least one scored record, the report adds `meanScore`
 and `scoreAtK`. `meanScore` is the mean effective score across runs.
 `scoreAtK` is the expected best score over k of the task's n runs, the
-continuous analog of pass@k. The report also adds matching `score` /
+continuous analog of pass@k. The report also adds the equivalent `score` /
 `score@k` columns in the text formats. A score-less record in a scored group
 contributes its verdict as the degenerate score (pass = 1, fail = 0). Binary
 tasks render unchanged.

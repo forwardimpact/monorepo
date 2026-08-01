@@ -38,7 +38,7 @@ describe("VectorIndex - Core Functionality", () => {
       );
     });
 
-    test("constructor uses default indexKey when not provided", () => {
+    test("constructor uses default indexKey when caller omits it", () => {
       const index = new VectorIndex(mockStorage);
       assert.strictEqual(
         index.indexKey,
@@ -48,7 +48,7 @@ describe("VectorIndex - Core Functionality", () => {
     });
   });
 
-  describe("Data Loading", () => {
+  describe("Data Load", () => {
     test("loadData initializes empty index when file doesn't exist", async () => {
       mockStorage.exists = spy(() => Promise.resolve(false));
 

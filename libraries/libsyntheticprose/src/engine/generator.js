@@ -8,7 +8,7 @@
  * `generatePlain()` keys the cache by entity key directly so the on-disk
  * file is diff-readable and the key set is enumerable.
  * `generateStructured()` keys by `${entityKey}#${hash}`. The entity stays
- * greppable, and prompt drift auto-invalidates stale entries.
+ * greppable. Prompt drift auto-invalidates stale entries.
  *
  * @module libsyntheticprose/engine/generator
  */

@@ -14,7 +14,7 @@ describe("deriveWikiUrl", () => {
     assert.equal(url, "https://github.com/forwardimpact/monorepo.wiki.git");
   });
 
-  test("derives wiki URL by appending .wiki.git to origin", async () => {
+  test("appends .wiki.git to origin to derive the wiki URL", async () => {
     const git = createMockGitClient({
       responses: { remoteGetUrl: "https://github.com/foo/bar" },
     });
@@ -24,7 +24,7 @@ describe("deriveWikiUrl", () => {
     );
   });
 
-  test("strips trailing .git before appending .wiki.git", async () => {
+  test("strips a trailing .git before it appends .wiki.git", async () => {
     const git = createMockGitClient({
       responses: { remoteGetUrl: "https://github.com/foo/bar.git" },
     });
@@ -34,7 +34,7 @@ describe("deriveWikiUrl", () => {
     );
   });
 
-  test("returns null when no origin remote configured", async () => {
+  test("returns null when no origin remote is configured", async () => {
     const git = createMockGitClient({ responses: { remoteGetUrl: "" } });
     assert.equal(await deriveWikiUrl(git, "/p", {}), null);
   });

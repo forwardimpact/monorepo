@@ -1,13 +1,13 @@
 ---
 title: Start, Stop, or Check a Service
-description: Start, stop, restart, check status, and read logs through one interface — without remembering each service's specific incantation.
+description: Start, stop, restart, check status, and read logs through one interface. You do not need to remember each service's specific incantation.
 ---
 
-You need to start a service, check whether it is running, or stop it cleanly.
-Rather than remembering the specific command, port, and flags for each service,
-`fit-rc` provides a single interface for all of them. This page covers the
-bounded task of managing one or more services. For the full setup including
-supervision and observability, see
+You need to start a service, check whether it runs, or stop it cleanly.
+`fit-rc` provides a single interface for all of them. You do not need to
+remember the specific command, port, and flags for each service. This page
+covers one bounded task. It shows how to manage one or more services. For the
+full setup with supervision and observability, see
 [Service Lifecycle](/docs/libraries/service-lifecycle/).
 
 ## Prerequisites
@@ -33,14 +33,15 @@ INFO 2026-05-04T10:00:01.456Z rc trace 42001 MSG002 - Service started
 INFO 2026-05-04T10:00:01.789Z rc vector 42001 MSG003 - Service started
 ```
 
-Start up to a specific service (useful when you only need part of the stack):
+Start up to a specific service. This helps when you need only part of the
+stack:
 
 ```sh
 npx fit-rc start trace
 ```
 
 This starts every service from the beginning of the configuration array through
-the named service. Services listed after `trace` are not started.
+the named service. `fit-rc` does not start the services after `trace`.
 
 ## Check status
 
@@ -48,7 +49,7 @@ the named service. Services listed after `trace` are not started.
 npx fit-rc status
 ```
 
-Expected output when services are running:
+Expected output when the services run:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Running
@@ -56,7 +57,7 @@ INFO 2026-05-04T10:05:00.234Z rc trace 42001 MSG002 - up pid="42010"
 INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
 ```
 
-Expected output when the supervision daemon is not running:
+Expected output when the supervision daemon does not run:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Not running
@@ -82,19 +83,19 @@ Stop all services in reverse order and shut down the daemon:
 npx fit-rc stop
 ```
 
-Stop from a specific service onward, leaving earlier services running:
+Stop from a specific service onward and leave the earlier services up:
 
 ```sh
 npx fit-rc stop vector
 ```
 
 This stops `vector` and every service after it in the configuration array, in
-reverse order. Services listed before `vector` remain running, and the daemon
-stays active.
+reverse order. The services before `vector` stay up. The daemon stays active.
 
 Longrun services receive `SIGTERM` first. If the process does not exit within
-the shutdown timeout (default 3 seconds), `SIGKILL` is sent to the entire
-process group. Oneshot services run their `down` command if one is defined.
+the shutdown timeout (default 3 seconds), the entire process group gets
+`SIGKILL`. Oneshot services run their `down` command if the configuration
+defines one.
 
 ## Restart a service
 
@@ -103,8 +104,8 @@ npx fit-rc restart trace
 ```
 
 This stops the named service and everything after it in the configuration
-array, then starts that same slice again — dependents that were torn down come
-back up, and services before the target are left untouched. Without a name,
+array. It then starts that same slice again. The dependents that it tore down
+come back up. The services before the target stay untouched. Without a name,
 all services restart.
 
 ## Read logs
@@ -117,18 +118,19 @@ npx fit-rc logs trace
 
 The service name is required. Each longrun service writes output to a dedicated
 directory under the configured `log_dir`. The log writer rotates files at 1 MB
-and retains the 10 most recent archives.
+and keeps the 10 most recent archives.
 
-If no log file exists yet (the service has not produced output), the command
+If the service produced no output, no log file exists yet. The command then
 returns silently.
 
 ## Tune log rotation
 
 `fit-rc` pipes each longrun service's output through `fit-logger`, the log
-writer from `@forwardimpact/libsupervise`. It reads lines on stdin, prepends an
-ISO 8601 timestamp, writes to a file named `current`, and rotates that file to a
-timestamped archive once it grows past a size limit. You can run `fit-logger`
-directly to capture any command's output, or to test rotation settings:
+writer from `@forwardimpact/libsupervise`. It reads lines on stdin and prepends
+an ISO 8601 timestamp. It writes to a file named `current`. It rotates that
+file to a timestamped archive once the file grows past a size limit. You can
+run `fit-logger` directly to capture any command's output, or to test rotation
+settings:
 
 ```sh
 my-service | npx fit-logger --dir data/logs/my-service
@@ -138,24 +140,24 @@ Two options tune rotation:
 
 | Option           | Short | Default     | Effect                                       |
 | ---------------- | ----- | ----------- | -------------------------------------------- |
-| `--dir`          | `-d`  | required    | Directory the log files are written to.      |
+| `--dir`          | `-d`  | required    | Directory that `fit-logger` writes logs to.  |
 | `--maxFileSize`  | `-s`  | `1000000`   | Bytes before `current` rotates to an archive. |
-| `--maxFiles`     | `-n`  | `10`        | Archives retained; the oldest are pruned.    |
+| `--maxFiles`     | `-n`  | `10`        | Archives to keep. `fit-logger` deletes the oldest. |
 
 ```sh
 my-service | npx fit-logger -d data/logs/my-service -s 1048576 -n 5
 ```
 
-Archives are named `@YYYY-MM-DD_HH-mm-ss-SSS.s` (the trailing `-SSS` is the
-millisecond segment), so sorting filenames gives chronological order. When the
-count exceeds `--maxFiles`, the oldest archives are deleted on the next
-rotation.
+`fit-logger` names each archive `@YYYY-MM-DD_HH-mm-ss-SSS.s`. The trailing
+`-SSS` is the millisecond segment. So when you sort the filenames, you get
+chronological order. When the count exceeds `--maxFiles`, `fit-logger` deletes
+the oldest archives on the next rotation.
 
 ## Supervise processes directly
 
 `fit-rc` drives a supervision daemon, `fit-svscan`, over a Unix domain socket.
-You normally never call the daemon yourself -- `fit-rc start` spawns it -- but
-understanding its control interface helps when debugging a stuck service. Start
+You normally never call the daemon yourself. `fit-rc start` spawns it. But when
+you debug a stuck service, it helps to know its control interface. Start
 the daemon with a socket path, a PID file, and a log directory:
 
 ```sh
@@ -169,8 +171,9 @@ npx fit-svscan --socket data/svscan.sock --pid data/svscan.pid --logdir data/log
 | `--logdir`  | `-l`  | required| Directory each supervised process logs to.      |
 | `--timeout` | `-t`  | `3000`  | Milliseconds to wait for `SIGTERM` before `SIGKILL`. |
 
-Control commands are newline-delimited JSON objects sent to the socket. Each
-command has a `command` field; `add` and `remove` also carry a service name:
+You send control commands to the socket as newline-delimited JSON objects. Each
+command has a `command` field. The `add` and `remove` commands also carry a
+service name:
 
 | Command    | Fields              | Response                                  |
 | ---------- | ------------------- | ----------------------------------------- |
@@ -181,11 +184,11 @@ command has a `command` field; `add` and `remove` also carry a service name:
 | `shutdown` |                     | Stops every service and exits the daemon.  |
 
 The daemon answers each command with a single JSON line and closes the
-connection. `shutdown` is the exception: the daemon exits before replying, so a
-client sees the connection close with no response line. The daemon is a pure
-supervisor -- it knows nothing about service order or oneshot commands. Ordering
-and oneshot handling live in `fit-rc`, which is why `fit-rc` is the interface
-you reach for day to day.
+connection. `shutdown` is the exception. The daemon exits before it replies, so
+a client sees the connection close with no response line. The daemon is a pure
+supervisor. It knows nothing about service order or oneshot commands. `fit-rc`
+handles the order and the oneshot commands. So `fit-rc` is the interface you
+use day to day.
 
 ## Suppress output
 
@@ -195,12 +198,12 @@ All commands accept the `--silent` flag to suppress informational output:
 npx fit-rc start --silent
 ```
 
-Errors still print. This is useful in scripts where you only want to see
+Errors still print. This helps in scripts where you want to see only
 failures.
 
 ## Programmatic usage
 
-The same operations are available from the `ServiceManager` class:
+The `ServiceManager` class gives you the same operations:
 
 ```js
 import { spawn, execSync } from "node:child_process";
@@ -238,9 +241,9 @@ await manager.stop("trace");   // Stop from "trace" onward
 ```
 
 Each method maps directly to the CLI command. `start` and `stop` accept an
-optional service name with the same slicing behavior as the CLI: `start` takes
-everything up to and including the named service; `stop` takes the named service
-and everything after it.
+optional service name. They slice the service list the same way as the CLI.
+`start` takes everything up to and including the named service. `stop` takes
+the named service and everything after it.
 
 ## What's next
 

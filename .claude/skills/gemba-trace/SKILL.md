@@ -2,9 +2,9 @@
 name: gemba-trace
 description: >
   See exactly what an agent did and whether a change improved outcomes.
-  Use when an agent workflow failed and you need to understand why, when
-  you want to measure token usage, cost, and efficiency across runs, or
-  when you study agent behavior patterns from NDJSON traces.
+  Use when an agent workflow failed and you need to understand why.
+  Use when you want to measure token usage, cost, and efficiency across
+  runs. Use when you study agent behavior patterns from NDJSON traces.
 ---
 
 # Trace Analysis

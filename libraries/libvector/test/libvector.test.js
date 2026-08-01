@@ -91,7 +91,7 @@ describe("libvector", () => {
       assert.strictEqual(result[0].tokens, 10);
     });
 
-    test("queryItems respects max_tokens filter - stops when limit reached", async () => {
+    test("queryItems respects max_tokens filter and stops at the limit", async () => {
       const identifier1 = resource.Identifier.fromObject({
         type: "Message",
         name: "item1",
@@ -113,7 +113,8 @@ describe("libvector", () => {
       await vectorIndex.add(identifier2, [1.0, 0.0, 0.0]);
       await vectorIndex.add(identifier3, [1.0, 0.0, 0.0]);
 
-      // Query with max_tokens=20, should get first two items (10+15=25 > 20, so stops at first item)
+      // Query with max_tokens=20. This should get the first two items.
+      // 10+15=25 > 20, so the filter stops at the first item.
       const results = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         max_tokens: 20,
@@ -133,7 +134,8 @@ describe("libvector", () => {
 
       await vectorIndex.add(identifier, [1.0, 0.0, 0.0]);
 
-      // Query with max_tokens=50, should return empty since first item is 100 tokens
+      // Query with max_tokens=50. This returns empty because the first
+      // item is 100 tokens.
       const results = await vectorIndex.queryItems([[1.0, 0.0, 0.0]], {
         threshold: 0,
         max_tokens: 50,

@@ -3,13 +3,13 @@ import assert from "node:assert";
 import { renderRawDocuments } from "@forwardimpact/libsyntheticrender/render/raw";
 
 /**
- * Regression: renderPeopleYAML used to write individual person profiles under
- * the `people/` storage prefix. This collided with roster uploads that
- * `transformPeople` reads from the same prefix, causing `activity seed` to
- * pick a profile instead of the roster and import zero people.
+ * Regression: renderPeopleYAML wrote individual person profiles under the
+ * `people/` storage prefix. That collided with the roster uploads that
+ * `transformPeople` reads from the same prefix. The collision made
+ * `activity seed` pick a profile instead of the roster and import zero people.
  *
- * Fix: person profiles now use the `profiles/` prefix; `people/` is reserved
- * for roster uploads consumed by the transform pipeline.
+ * Fix: person profiles now use the `profiles/` prefix. The `people/` prefix
+ * now serves only the roster uploads that the transform pipeline consumes.
  */
 
 const MINIMAL_ENTITIES = {
@@ -33,8 +33,8 @@ const MINIMAL_ENTITIES = {
   activity: {},
 };
 
-describe("raw renderer people prefix", () => {
-  test("person profiles use profiles/ prefix, not people/", () => {
+describe("people prefix in the raw renderer", () => {
+  test("person profiles use the profiles/ prefix instead of people/", () => {
     const files = renderRawDocuments(MINIMAL_ENTITIES);
     const peoplePaths = [...files.keys()].filter((k) =>
       k.startsWith("people/"),

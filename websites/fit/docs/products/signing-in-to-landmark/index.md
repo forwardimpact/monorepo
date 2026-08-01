@@ -1,32 +1,33 @@
 ---
 title: Sign In to Landmark
-description: Sign in via Supabase magic-link so Landmark commands resolve your identity without managing a long-lived token.
+description: Sign in with a Supabase magic-link so Landmark commands resolve your identity. You do not manage a long-lived token.
 ---
 
 Every Landmark read requires an authenticated caller. The privacy substrate
-keys row-level security off the JWT's `email` claim, so before any verb can
-return data it needs to know who is asking.
+keys row-level security off the JWT's `email` claim. Before any verb can
+return data, it needs to know who asks.
 
 `fit-landmark login` walks you through Supabase's magic-link flow, captures
 the session at a localhost callback, and stores it under
-`~/.config/landmark/credentials.json` (0600). Subsequent commands resolve
-identity automatically — subject-scoped commands (`readiness`, `timeline`,
-`coverage`, `sources`, and `voice` with no flags) default `--email` to your
-signed-in identity, while `evidence` stays explicit so omitting `--email`
-shows the broadest view your access allows. You only run `login` again when
-the session expires or you change machines.
+`~/.config/landmark/credentials.json` (0600). Later commands resolve
+identity automatically. Subject-scoped commands default `--email` to your
+signed-in identity. These commands are `readiness`, `timeline`, `coverage`,
+`sources`, and `voice` with no flags. `evidence` stays explicit. When you
+omit `--email` from `evidence`, it shows the broadest view your access
+allows. You only run `login` again when the session expires or you change
+machines.
 
-This guide is for **engineers** signing in to read Landmark from the CLI.
-Operators issuing tokens for unattended agents follow a different path — see
+This guide is for **engineers** who sign in to read Landmark from the CLI.
+Operators who issue tokens for unattended agents follow a different path. See
 [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md).
 
 ## Prerequisites
 
 - An `auth.users` row paired with your roster entry. Your operator runs
-  `fit-terrain substrate provision` to keep these synchronized — if your email
-  is not in the roster, login will fail.
+  `fit-terrain substrate provision` to keep these synchronized. If your email
+  is not in the roster, login fails.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` available in your environment.
-  Local installs get these in `.env` from `just env-setup`; hosted
+  Local installs get these in `.env` from `just env-setup`. Hosted
   Supabase projects expose them in Project Settings → API.
 
 ## Browser flow (default)
@@ -36,9 +37,9 @@ fit-landmark login --email you@example.com
 ```
 
 The CLI starts a listener on `127.0.0.1` and prints a port. Supabase emails
-you a magic-link; clicking it from the same machine redirects the browser
-to the listener, which captures the PKCE code and exchanges it for a
-session. The credentials file is written with mode 0600.
+you a magic-link. Click it from the same machine. The browser then redirects
+to the listener. The listener captures the PKCE code and exchanges it for a
+session. The CLI writes the credentials file with mode 0600.
 
 ```text
 Sent a magic link to you@example.com.
@@ -48,14 +49,15 @@ Logged in as you@example.com.
 
 ## OTP flow (headless / SSH)
 
-When you cannot open a browser on the machine running the CLI — an SSH
-session, a sandboxed agent, a container — use the OTP flow instead:
+You may not be able to open a browser on the machine that runs the CLI. An
+SSH session, a sandboxed agent, and a container are examples. Use the OTP
+flow instead:
 
 ```sh
 fit-landmark login --otp --email you@example.com
 ```
 
-Supabase emails you a six-digit code. Paste it at the prompt; the CLI
+Supabase emails you a six-digit code. Paste it at the prompt. The CLI
 verifies it and persists the same session shape as the browser flow.
 
 ```text
@@ -74,21 +76,21 @@ Logged in as you@example.com.
 | XDG override | `$XDG_CONFIG_HOME/landmark/credentials.json` (any platform) |
 
 The file holds `access_token`, `refresh_token`, `expires_at`, and `email`.
-Treat it like an SSH private key — never commit it, never copy it to a
-shared filesystem. The 0600 permission is enforced on POSIX systems.
+Treat it like an SSH private key. Never commit it. Never copy it to a
+shared filesystem. POSIX systems enforce the 0600 permission.
 
-You can override the path with `LANDMARK_CREDENTIALS_FILE`; useful for
-isolating sessions per project or for test harnesses.
+You can override the path with `LANDMARK_CREDENTIALS_FILE`. It is useful
+when you isolate sessions per project or run test harnesses.
 
 ## When the session expires
 
 Supabase access tokens are short-lived (an hour by default) but the
 refresh token persists for weeks. The Landmark identity resolver checks
-`expires_at` on every command and calls Supabase's refresh endpoint
+`expires_at` on every command. It calls Supabase's refresh endpoint
 automatically when the access token is within a minute of expiry. The
-refreshed tokens are written back to the same credentials file.
+resolver writes the refreshed tokens back to the same credentials file.
 
-When the refresh token itself has aged out, you'll see:
+When the refresh token itself ages out, you see:
 
 ```text
 Authentication required: session expired and refresh failed — run `fit-landmark login` again
@@ -102,21 +104,21 @@ Run `fit-landmark login` again to start a new session.
 fit-landmark logout
 ```
 
-Removes the credentials file. A subsequent `login` starts fresh.
+The command removes the credentials file. The next `login` starts fresh.
 
 ## Power-user override
 
-If you have been issued a long-lived JWT (operator-minted via
-`fit-map auth issue`), export it as `PRODUCT_LANDMARK_TOKEN` and the resolver
-will skip the credentials store entirely:
+An operator may issue you a long-lived JWT with `fit-map auth issue`. Export
+it as `PRODUCT_LANDMARK_TOKEN`. The resolver then skips the credentials store
+entirely:
 
 ```sh
 export PRODUCT_LANDMARK_TOKEN=<jwt>
 fit-landmark voice
 ```
 
-This is the path unattended agents take. Treat the token like a credential —
-it grants the same scope your magic-link session would.
+This is the path unattended agents take. Treat the token like a credential.
+It grants the same scope your magic-link session would.
 
 ## What's next
 

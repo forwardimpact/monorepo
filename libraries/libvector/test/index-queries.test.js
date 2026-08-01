@@ -212,7 +212,7 @@ describe("VectorIndex - Queries and Edge Cases", () => {
       }
     });
 
-    test("queryItems deduplicates results when using multiple query vectors", async () => {
+    test("queryItems deduplicates results with multiple query vectors", async () => {
       const queryVector1 = normalize([1.0, 0.0, 0.0]);
       const queryVector2 = normalize([0.95, 0.05, 0.0]);
       const queryVector3 = normalize([0.9, 0.1, 0.0]);
@@ -233,7 +233,7 @@ describe("VectorIndex - Queries and Edge Cases", () => {
       }
     });
 
-    test("queryItems keeps highest score when deduplicating across multiple vectors", async () => {
+    test("queryItems keeps highest score when it deduplicates across multiple vectors", async () => {
       const queryVector1 = normalize([1.0, 0.0, 0.0]);
       const queryVector2 = normalize([0.5, 0.5, 0.0]);
 

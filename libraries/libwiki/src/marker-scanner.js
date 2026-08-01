@@ -84,8 +84,9 @@ function matchClose(line, open) {
 
 /**
  * Scan text for paired marker blocks (xmr or issue-list). Returns positions and
- * metadata. Dangling open markers are reported through the injected `warn`
- * callback (default: discard) instead of writing to the process directly.
+ * metadata. The scanner reports dangling open markers through the injected
+ * `warn` callback (default: discard). It does not write to the process
+ * directly.
  * @param {string} text - The storyboard text to scan.
  * @param {{warn?: (message: string) => void}} [options]
  * @returns {Array<object>} The paired marker blocks.

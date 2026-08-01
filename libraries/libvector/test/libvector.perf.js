@@ -14,7 +14,7 @@ describe("LibVector Performance Tests", () => {
   }
 
   /**
-   * Generate mock vector data for testing
+   * Generate mock vector data for the tests
    * @param {number} count - Number of vectors to generate
    * @param {number} dimensions - Vector dimensions
    * @returns {object[]} Mock vector data

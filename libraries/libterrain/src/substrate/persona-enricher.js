@@ -1,14 +1,14 @@
 /**
  * Persona-row enricher for the substrate roster/pick verbs.
  *
- * Sources the three DSL-only persona-template fields (`repos`,
- * `department_name`, `scenario`) from `data/synthetic/story.dsl`,
- * augmenting persona rows already carrying the contract scalars and
- * joined team/parent/peer context. AST traversal is delegated to
- * `@forwardimpact/libsyntheticgen`'s public helpers; this module owns
- * only the contract ↔ DSL id coupling and the row-shape contract. The
- * contract's `team_id` is the DSL team id — any vendor-prefix mapping is
- * the consumer view's job, not this module's.
+ * This module sources the three DSL-only persona-template fields (`repos`,
+ * `department_name`, `scenario`) from `data/synthetic/story.dsl`. It
+ * augments persona rows that already carry the contract scalars and the
+ * joined team/parent/peer context. It delegates AST traversal to
+ * `@forwardimpact/libsyntheticgen`'s public helpers. It owns only the
+ * contract ↔ DSL id coupling and the row-shape contract. The contract's
+ * `team_id` is the DSL team id. The consumer view maps any vendor prefix.
+ * This module does not.
  */
 
 import {
@@ -19,11 +19,11 @@ import {
 } from "@forwardimpact/libsyntheticgen";
 
 /**
- * Resolve `data/synthetic/story.dsl` upward from `cwd`, parse it, and
- * return the AST. Returns `null` when the file is absent so the verbs
- * degrade gracefully for consumers with no staged terrain. Wraps parser
- * errors with the file path so the caller sees DSL drift, not a bare
- * parse message.
+ * Resolve `data/synthetic/story.dsl` upward from `cwd`. Parse it. Return
+ * the AST. Returns `null` when the file is absent so the verbs degrade
+ * gracefully for consumers with no staged terrain. Wraps parser errors with
+ * the file path. The caller then sees DSL drift. A bare parse message does
+ * not reach the caller.
  *
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs, finder, proc).
  * @param {string} [cwd] - working directory (defaults to `runtime.proc.cwd()`)
@@ -42,10 +42,11 @@ export async function loadStory(runtime, cwd = runtime.proc.cwd()) {
 }
 
 /**
- * Augment a persona row with three DSL-derived fields. Pure: the same
- * `(row, ast)` always returns the same shape. When the AST is absent or
- * the row carries no resolvable team id, the three DSL fields fall to
- * `null` rather than throwing so the row is still pickable.
+ * Augment a persona row with three DSL-derived fields. The function is pure.
+ * The same `(row, ast)` always returns the same shape. When the AST is
+ * absent or the row carries no resolvable team id, the three DSL fields
+ * fall to `null`. The function does not throw, so the row is still
+ * pickable.
  *
  * @param {object} row - persona row from `findInvariantSatisfyingPersonas`
  * @param {object|null} ast - parsed terrain AST from `loadStory()` or `null`

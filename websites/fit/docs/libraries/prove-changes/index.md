@@ -1,23 +1,23 @@
 ---
 title: Prove Agent Changes
-description: Reproducible evidence that agent changes improved outcomes — from dataset generation through evaluation to trace analysis.
+description: Reproducible evidence that agent changes improved outcomes, from the dataset through the evaluation to the trace analysis.
 ---
 
 You changed an agent profile, tightened a tool allowlist, or rewrote a system
-prompt. The question is whether the change actually helped. Answering that
-question requires a dataset you can regenerate when the schema changes, a
-session that captures every turn, and an analysis method that connects observed
-behavior to actionable findings. This guide walks the full arc with
-`fit-terrain` and `gemba-harness`, then hands off to `gemba-trace` for the
-reading.
+prompt. The question is whether the change actually helped. To answer that
+question you need a dataset you can regenerate when the schema changes. You
+also need a session that captures every turn. You also need an analysis method
+that connects observed behavior to actionable findings. This guide walks the
+full arc with `fit-terrain` and `gemba-harness`. It then hands off to
+`gemba-trace` so you can read the traces.
 
 ## Prerequisites
 
 - Node.js 22+
-- `ANTHROPIC_API_KEY` set in the shell (used by both `fit-terrain generate` and
-  `gemba-harness`)
+- `ANTHROPIC_API_KEY` set in the shell (both `fit-terrain generate` and
+  `gemba-harness` read it)
 - A repository where agents will work
-- The three CLIs ship in two packages -- install once:
+- The three CLIs ship in two packages. Install them once:
 
 ```sh
 npm install -g @forwardimpact/libharness @forwardimpact/libterrain
@@ -33,11 +33,12 @@ npx --yes @forwardimpact/libharness gemba-trace --help
 
 ## 1. Define the dataset in a DSL file
 
-`fit-terrain` reads a single `.dsl` file that declares everything the pipeline
-needs: an organization graph, people distribution, projects, scenarios, an
-engineering standard, content types, and external datasets. The pipeline parses
-the DSL, generates entities, resolves prose through an LLM-backed cache, renders
-output in multiple formats, and validates the result -- all from one source.
+`fit-terrain` reads a single `.dsl` file. The file declares everything the
+pipeline needs: an organization graph, people distribution, projects,
+scenarios, an engineering standard, content types, and external datasets. The
+pipeline parses the DSL, generates entities, resolves prose through an
+LLM-backed cache, renders output in multiple formats, and validates the result.
+It does all of this from one source.
 
 Create a minimal DSL file. This example declares a small organization with one
 team, a people distribution, and an engineering standard:
@@ -131,62 +132,62 @@ terrain Acme {
 }
 ```
 
-The DSL supports additional blocks -- `project`, `scenario`, `snapshots`,
-`content`, `clinical`, `dataset`, and `output` -- that add projects,
-time-based scenarios, a patient-and-trial domain with Schema.org microdata
-output, external tool-generated datasets (Synthea, SDV, Faker), and rendered
-output files. Start small and add blocks as your evaluation demands more
-context. See the
+The DSL supports more blocks: `project`, `scenario`, `snapshots`, `content`,
+`clinical`, `dataset`, and `output`. These blocks add projects, time-based
+scenarios, and a patient-and-trial domain with Schema.org microdata output.
+They also add external tool-generated datasets (Synthea, SDV, Faker) and
+rendered output files. Start small and add blocks as your evaluation demands
+more context. See the
 [Generate an Eval Dataset](/docs/libraries/prove-changes/generate-dataset/)
 guide for examples of each.
 
 ## 2. Generate and validate the dataset
 
-The pipeline has four verbs. Use them in sequence during setup, then only the
-ones you need on subsequent runs:
+The pipeline has four verbs. Use them in sequence during setup. On later runs,
+use only the ones you need:
 
 ```sh
 npx fit-terrain check --story=evals/terrain/story.dsl
 ```
 
 `check` parses the DSL, generates entities, and reports prose cache
-completeness. On a fresh file every key will be a miss -- that is expected.
+completeness. On a fresh file every key is a miss. That is expected.
 
 ```sh
 npx fit-terrain generate --story=evals/terrain/story.dsl
 ```
 
-`generate` fills the prose cache via the LLM, then renders and validates all
-content. The cache is persisted to `data/synthetic/prose-cache.json` by default
-(override with `--cache`). Subsequent runs with the same DSL reuse cached prose,
-so only new or changed keys cost API calls.
+`generate` fills the prose cache with the LLM. It then renders and validates
+all content. It writes the cache to `data/synthetic/prose-cache.json` by
+default (override with `--cache`). Later runs with the same DSL reuse cached
+prose. Only new or changed keys cost API calls.
 
 ```sh
 npx fit-terrain validate --story=evals/terrain/story.dsl
 ```
 
-`validate` runs entity and cross-content checks without writing files. Use it
-after editing the DSL to catch structural errors before a full build.
+`validate` runs entity and cross-content checks and writes no files. Use it
+after you edit the DSL to catch structural errors before a full build.
 
 ```sh
 npx fit-terrain build --story=evals/terrain/story.dsl
 ```
 
 `build` renders and writes all content types. Add `--only=pathway` to render
-only the engineering standard YAML, or `--only=html` for knowledge-base
+only the engineering standard YAML. Add `--only=html` for knowledge-base
 documents. The output lands under `data/` in the working directory.
 
 After the build, the `data/` tree contains everything the eval needs:
 engineering standard definitions, knowledge-base documents, activity records,
-and any external datasets declared in the DSL.
+and any external datasets the DSL declares.
 
 ## 3. Write the eval task and profiles
 
-With the dataset in place, write the task file and agent profiles that will
-exercise the change you want to evaluate. The task is a markdown prompt; the
-profiles live under `.claude/agents/`.
+With the dataset in place, write the task file and agent profiles that exercise
+the change you want to evaluate. The task is a markdown prompt. The profiles
+live under `.claude/agents/`.
 
-A task for evaluating a refactored formatting utility:
+A task that evaluates a refactored formatting utility:
 
 ```md
 <!-- evals/refactor-utils/task.md -->
@@ -224,7 +225,7 @@ include a one-paragraph summary of the gap.
 
 For facilitated sessions with multiple specialists, write a facilitator profile
 and one profile per participant. Each participant only needs to describe its
-specialism -- the runtime appends the orchestration tools (`Ask`, `Answer`,
+specialism. The runtime appends the orchestration tools (`Ask`, `Answer`,
 `Announce`, `RollCall`, `Conclude`) automatically.
 
 ```md
@@ -262,10 +263,10 @@ npx gemba-harness supervise \
 ```
 
 `--max-turns` is the per-runner invocation budget for both the judge and the
-agent. The orchestration loop that drives the supervisor↔agent exchange is
-bounded separately by an internal lead-turn cap. `0` removes the per-runner
-cap. Exit code `0` means the judge concluded with `success: true`; exit code
-`1` means it concluded `success: false`, ran out of turns, or errored.
+agent. An internal lead-turn cap separately bounds the orchestration loop that
+drives the supervisor↔agent exchange. `0` removes the per-runner cap. Exit code
+`0` means the judge concluded with `success: true`. Exit code `1` means it
+concluded `success: false`, ran out of turns, or errored.
 
 For a **facilitated session** (one facilitator, N participants):
 
@@ -281,30 +282,31 @@ npx gemba-harness facilitate \
 ```
 
 Participants share `--agent-cwd` by default. If two participants might edit the
-same file, give each its own working directory or restrict tool allowlists so
-only one can write. `--max-turns` is applied uniformly to the facilitator and
-to every participant -- always set a budget so a stuck participant cannot run
-the session indefinitely. The CLI default is `20`; raise it for sessions that
-do real implementation work.
+same file, give each its own working directory. Or restrict tool allowlists so
+only one participant can write. `--max-turns` applies uniformly to the
+facilitator and to every participant. Always set a budget so a stuck
+participant cannot run the session indefinitely. The CLI default is `20`. Raise
+it for sessions that do real implementation work.
 
 For a **threaded discussion** (Chair + N participants, suspendable across a
 bridged channel), use `gemba-harness discuss`. It accepts the same lead and
-agent flags plus `--discussion-id` (the stable thread identifier carried
-through traces) and `--resume-context` (JSON-serialized prior state for a
-resumed run). The bridge service relays the workflow callback when the
-conversation suspends and re-enters.
+agent flags. It also accepts `--discussion-id` and `--resume-context`.
+`--discussion-id` is the stable thread identifier that traces carry.
+`--resume-context` is the JSON-serialized prior state for a resumed run. The
+bridge service relays the workflow callback when the conversation suspends and
+re-enters.
 
 Every mode accepts the task as one of three inputs (exactly one required):
 `--task-file=<path>`, `--task-text="<inline>"`, or
 `--task-event=<path>` for a native GitHub event payload.
-The `--task-file` content is visible to every agent in the session as the
-opening prompt. The facilitator profile steers how the goal is pursued; the
+Every agent in the session sees the `--task-file` content as the opening
+prompt. The facilitator profile steers how the session pursues the goal. The
 participants apply their specialisms.
 
 ## 5. Verify the trace
 
 After the run, confirm the trace file exists and contains the expected structure
-before investing time in analysis:
+before you invest time in analysis:
 
 ```sh
 npx gemba-trace overview --file trace--demo.raw.ndjson
@@ -315,8 +317,8 @@ npx gemba-trace stats --file trace--demo.raw.ndjson
 `overview` reports metadata, turn count, and tool usage frequency. `timeline`
 prints one line per turn so you can see the shape of the session at a glance.
 `stats` breaks down token usage and cost. Cross-trace verbs take their files
-through `--file` (repeat it, or pass a quoted glob) and print text by default;
-add `--format json` for the machine-parseable envelope.
+through `--file` (repeat it, or pass a quoted glob). They print text by
+default. Add `--format json` for the machine-parseable envelope.
 
 For supervised and facilitated runs, split the combined trace into per-source
 files:
@@ -326,21 +328,21 @@ npx gemba-trace split trace--demo.raw.ndjson --mode=supervise --case=demo
 npx gemba-trace split trace--demo.raw.ndjson --mode=facilitate --case=demo
 ```
 
-This produces files following the
-`trace--<case>--<participant>.<role>.ndjson` convention — for `supervise`,
-`trace--demo--agent.agent.ndjson` and
-`trace--demo--supervisor.supervisor.ndjson`; for `facilitate`,
+This produces files that follow the
+`trace--<case>--<participant>.<role>.ndjson` convention. For `supervise`, you
+get `trace--demo--agent.agent.ndjson` and
+`trace--demo--supervisor.supervisor.ndjson`. For `facilitate`, you get
 `trace--demo--facilitator.facilitator.ndjson` plus one
 `trace--demo--<participant>.agent.ndjson` per participant. `--case` defaults
-to `default`; pass it to disambiguate matrix shards. Per-source traces are
-essential when participants disagreed -- you can read each one's view
+to `default`. Pass it to disambiguate matrix shards. Per-source traces are
+essential when participants disagreed. You can read each one's view
 independently.
 
 ## 6. Analyze traces for findings
 
-The trace is qualitative data. The most useful analysis comes from reading it
-like a researcher, not running a checklist. Drill into specific tools and
-message exchanges:
+The trace is qualitative data. The most useful analysis comes when you read the
+trace like a researcher. A checklist does not produce it. Drill into specific
+tools and message exchanges:
 
 ```sh
 npx gemba-trace tool trace--demo.raw.ndjson Conclude
@@ -351,17 +353,18 @@ npx gemba-trace search trace--demo.raw.ndjson 'error|fail' --context 1
 npx gemba-trace reasoning --file trace--demo.raw.ndjson
 ```
 
-`tool` and `search` pin a single trace, so they take the file as a positional;
-the cross-trace verbs (`filter`, `reasoning`, and the rest) take `--file`.
+`tool` and `search` pin a single trace, so they take the file as a positional.
+The cross-trace verbs (`filter`, `reasoning`, and the rest) take `--file`.
 
-The `Conclude` call carries the verdict -- start there when an eval fails, then
+The `Conclude` call carries the verdict. Start there when an eval fails. Then
 follow the timeline backwards. For facilitated sessions, walk `Announce`
 (broadcasts) and `Ask`/`Answer` (targeted exchanges) to see how the
 participants converged or where they diverged.
 
-For the full analysis method -- grounded-theory coding, pattern identification,
-and writing findings that are grounded, testable, and actionable -- see the
-[Trace Analysis](/docs/libraries/prove-changes/trace-analysis/) guide.
+See the [Trace Analysis](/docs/libraries/prove-changes/trace-analysis/) guide
+for the full analysis method. That method covers grounded-theory coding,
+pattern identification, and how to write findings that are grounded, testable,
+and actionable.
 
 ## What's next
 

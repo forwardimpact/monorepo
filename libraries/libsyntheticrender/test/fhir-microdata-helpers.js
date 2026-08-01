@@ -6,7 +6,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 export { buildFhirCrossRef };
 
-// Thread a real runtime (the renderer reads bundled templates via fsSync).
+// Thread a real runtime (the renderer reads bundled templates through fsSync).
 const _fhirRuntime = createDefaultRuntime();
 export const renderFhirMicrodataHtml = (input, config) =>
   _renderFhirMicrodataHtml(input, config, _fhirRuntime);

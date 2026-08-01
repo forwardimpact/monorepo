@@ -1,14 +1,14 @@
 ---
 title: The Substrate Contract
-description: Provision identities, pick personas, and issue credentials on any Supabase-backed stack by implementing three views in a substrate schema — no Forward Impact data model required.
+description: Provision identities, pick personas, and issue credentials on any Supabase-backed stack. Implement three views in a substrate schema. You need no Forward Impact data model.
 ---
 
 You want agent interviews or persona-driven sessions against your own
-application, but the identity plumbing — reconciling auth users against a
-roster, picking a qualifying persona, minting a scoped JWT and handing it to
-an agent — is generic work you should not rebuild. The
-`fit-terrain substrate` verbs do all of it against one documented interface:
-the **Substrate Contract**. You map your schema onto the contract once; the
+application. The identity plumbing is generic work you should not rebuild.
+That plumbing reconciles auth users against a roster, picks a persona that
+qualifies, mints a scoped JWT, and hands it to an agent. The
+`fit-terrain substrate` verbs do all of it against one documented interface,
+the **Substrate Contract**. You map your schema onto the contract once. The
 verbs never read your vendor tables.
 
 This page is the normative definition of the contract. The verbs that consume
@@ -22,10 +22,9 @@ npx fit-terrain --help
 
 ### Namespace
 
-A Postgres schema named `substrate`, listed in your Supabase API
-configuration (`api.schemas` in `supabase/config.toml`). Every stack-facing
-verb builds a client bound to `db.schema = "substrate"` and never names
-another schema.
+A Postgres schema named `substrate`. Your Supabase API configuration lists it
+(`api.schemas` in `supabase/config.toml`). Every stack-facing verb builds a
+client bound to `db.schema = "substrate"` and never names another schema.
 
 ### Relations
 
@@ -37,10 +36,10 @@ You implement the relations as views (or tables) over your own schema:
 | `substrate.evidence` | no | `email` — one row per authored evidence item |
 | `substrate.discovery` | no | `key`, `value` — navigation ids copied into `.substrate.json` |
 
-`discipline`, `level`, and `track` are mandated columns — the
+`discipline`, `level`, and `track` are mandated columns. The
 engineering-standard vocabulary is a stated opinion of this contract. A
 consumer from a different domain maps its own role model onto the three
-columns rather than renaming them. A clinical-research platform, for example,
+columns. It does not rename them. A clinical-research platform, for example,
 maps staff roles like this:
 
 ```sql
@@ -61,9 +60,9 @@ left join clinical.sites si on si.site_id = s.site_id;
 ### Auth model
 
 Supabase auth with email identities. Your product's row-level security keys
-on `auth.email()`; provisioning and picking use the service-role key. The
-`substrate` schema itself should be readable by `service_role` only — it is
-operator surface, not end-user surface.
+on `auth.email()`. The `provision` and `pick` verbs use the service-role key.
+Only `service_role` should read the `substrate` schema itself. It is operator
+surface. It is not end-user surface.
 
 ### Environment variables
 
@@ -77,14 +76,15 @@ operator surface, not end-user surface.
 
 ### Degradation semantics
 
-Absent optional relations degrade declaredly, never silently:
+Absent optional relations degrade declaredly. They never degrade silently:
 
-- `check` reports an absent optional relation as info, not failure.
-- `pick` without `substrate.evidence` drops the evidence invariants
-  (persona authors evidence; manages a direct who does) and keeps the
-  structural ones (persona has a manager; manages at least one direct). The
+- `check` reports an absent optional relation as info. It does not report a
+  failure.
+- Without `substrate.evidence`, `pick` drops the evidence invariants
+  (persona authors evidence, manages a direct who does). It keeps the
+  structural ones (persona has a manager, manages at least one direct). The
   payload's `selection_metadata.applied_invariants` names which sets ran.
-- `issue` without `substrate.discovery` writes an identity-only
+- Without `substrate.discovery`, `issue` writes an identity-only
   `.substrate.json` (persona and manager email plus timestamp, no
   navigation ids).
 
@@ -119,20 +119,20 @@ npx fit-terrain substrate issue --email persona@example.com --cwd . \
 ```
 
 `pick` accepts `--memory <path>` to diversify against recent picks recorded
-in a CSV it appends on success (window size via `--memory-window`, default
-5); omit it for a stateless pick. `issue` accepts `--ttl` (default `1h`) and
+in a CSV it appends on success (window size with `--memory-window`, default
+5). Omit it for a stateless pick. `issue` accepts `--ttl` (default `1h`) and
 `--stash <path>` for a bare copy of the JWT.
 
-`issue` writes three things atomically (mode 0600): a `<NAME>=<jwt>` line to
-`.env`, the discovery key/values plus `persona_email`, `manager_email`, and
-`generated_at` to `.substrate.json`, and the bare token to `--stash` when
-supplied. Those three field names are reserved — a `substrate.discovery` row
-using one of them is overridden by the identity values. `--token-env` is
-required and has no default — the token's name belongs to your application,
-not to this library.
+`issue` writes three things atomically (mode 0600). It writes a
+`<NAME>=<jwt>` line to `.env`. It writes the discovery key/values plus
+`persona_email`, `manager_email`, and `generated_at` to `.substrate.json`. It
+writes the bare token to `--stash` when you supply one. Those three field
+names are reserved. The identity values override a `substrate.discovery` row
+that uses one of them. `--token-env` is required and has no default. The
+token's name belongs to your application. It does not belong to this library.
 
 ## Roster visibility
 
-`npx fit-terrain substrate roster` lists every persona satisfying the
-applicable invariants — the same query `pick` runs, as an operator surface.
-Use it to see who qualifies before wiring the pick into automation.
+`npx fit-terrain substrate roster` lists every persona that satisfies the
+applicable invariants. It runs the same query as `pick`, as an operator
+surface. Use it to see who qualifies before you wire the pick into automation.

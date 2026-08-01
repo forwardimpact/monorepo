@@ -59,7 +59,7 @@ describe("gemba-wiki memo CLI (in-process)", () => {
     assert.ok(content.includes("from **technical-writer**: audit d642ff0c"));
   });
 
-  test("broadcast writes to every agent except sender", () => {
+  test("broadcast writes to every agent except the sender", () => {
     writeFileSync(join(agentsDir, "technical-writer.md"), "# TW");
     writeFileSync(
       join(wikiRoot, "technical-writer.md"),
@@ -93,7 +93,7 @@ describe("gemba-wiki memo CLI (in-process)", () => {
     assert.equal(result.code, 2);
   });
 
-  test("rejects --to that escapes wiki root via path traversal", () => {
+  test("rejects --to that escapes wiki root through path traversal", () => {
     const outside = join(dir, "outside.md");
     writeFileSync(
       outside,
@@ -110,8 +110,8 @@ describe("gemba-wiki memo CLI (in-process)", () => {
   });
 
   test("--from omitted fails closed even with LIBHARNESS_AGENT_PROFILE set", () => {
-    // The env var is no longer a fallback: a missing --from is a fail-closed
-    // error regardless of env state, and nothing is written.
+    // The env var is no longer a fallback. A missing --from is a fail-closed
+    // error regardless of env state. The command writes nothing.
     const { result } = run(
       { to: "staff-engineer", message: "env test" },
       { LIBHARNESS_AGENT_PROFILE: "security-engineer" },

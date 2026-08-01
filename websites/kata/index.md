@@ -1,6 +1,6 @@
 ---
 title: Kata Agent Team
-description: An autonomous, continuously improving agent team organized as a daily Plan-Do-Study-Act cycle. Three lines to set up. Zero infrastructure to maintain.
+description: An autonomous agent team that improves continuously, organized as a daily Plan-Do-Study-Act cycle. Three lines to set up. Zero infrastructure to maintain.
 toc: false
 layout: home
 ---
@@ -31,7 +31,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Simplicity</div>
       <h2 class="section-headline">Agent teams fail when they get complicated.</h2>
-      <p class="section-body">Most agent setups drown in infrastructure, sprawling toolchains, and unauditable prompt chains. Kata takes the opposite path — radical simplicity. Everything you need, nothing you don't.</p>
+      <p class="section-body">Most agent setups drown in infrastructure, toolchains that sprawl, and unauditable prompt chains. Kata takes the opposite path of radical simplicity. It gives you everything you need and nothing more.</p>
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
@@ -69,18 +69,18 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Loop</div>
       <h2 class="section-headline">One cycle. Every day.</h2>
-      <p class="section-body">Every workflow maps to a phase. Findings from Study always re-enter the loop — nothing is observed without downstream action.</p>
+      <p class="section-body">Every workflow maps to a phase. Findings from Study always re-enter the loop. Every observation leads to downstream action.</p>
     </div>
     <div class="pdsa-grid stagger">
       <div class="pdsa-card stagger-item">
         <div class="phase-letter">P</div>
         <div class="phase-name">Plan</div>
-        <p class="phase-desc">Turn approved specs into architectural designs, then executable plans with steps, files, sequencing, and risks.</p>
+        <p class="phase-desc">Turn approved specs into architectural designs. Then turn the designs into executable plans with steps, files, sequence, and risks.</p>
       </div>
       <div class="pdsa-card stagger-item">
         <div class="phase-letter">D</div>
         <div class="phase-name">Do</div>
-        <p class="phase-desc">Execute plans via implementation PRs. Run scheduled workflows that harden, release, and maintain. Every run captures a trace.</p>
+        <p class="phase-desc">Execute plans through implementation PRs. Run scheduled workflows that harden, release, and maintain. Every run captures a trace.</p>
       </div>
       <div class="pdsa-card stagger-item">
         <div class="phase-letter">S</div>
@@ -110,7 +110,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Team</div>
       <h2 class="section-headline">Eight agents. Explicit scope.</h2>
-      <p class="section-body">Each persona knows what it must do — and what it must not. When a finding exceeds scope, the agent writes a spec rather than attempting the fix.</p>
+      <p class="section-body">Each persona knows what it must do. It also knows what it must not do. When a finding exceeds scope, the agent writes a spec. It does not try the fix.</p>
     </div>
     <div class="agents-grid stagger">
       <div class="agent-card stagger-item">
@@ -135,7 +135,7 @@ layout: home
         <span class="agent-icon">&#x1f9f9;</span>
         <div class="agent-name">DevEx Engineer</div>
         <div class="agent-phase">Do &middot; Study &middot; Act</div>
-        <p class="agent-desc">Audits codebase health, reviews maintainability, and clears debt without changing behavior.</p>
+        <p class="agent-desc">Audits codebase health, reviews maintainability, and clears debt. Does not change behavior.</p>
       </div>
       <div class="agent-card stagger-item">
         <span class="agent-icon">&#x1f4cb;</span>
@@ -179,7 +179,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Surfaces</div>
       <h2 class="section-headline">Same agents. Every surface.</h2>
-      <p class="section-body">The same profiles and skills operate identically whether triggered by your IDE, a cron schedule, a GitHub event, or a bridged message.</p>
+      <p class="section-body">The same profiles and skills operate identically. Your IDE, a cron schedule, a GitHub event, or a bridged message can trigger them.</p>
     </div>
     <div class="surfaces-grid stagger">
       <div class="surface-item stagger-item">
@@ -221,7 +221,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Shared Memory</div>
       <h2 class="section-headline">One Git repo of markdown files.</h2>
-      <p class="section-body">Every agent reads and writes the same wiki — priorities, logs, metrics, and storyboards. A scheduled shift, a bridge-dispatched message, and an IDE session all share the same state. No database. Just markdown in a Git repository.</p>
+      <p class="section-body">Every agent reads and writes the same wiki: priorities, logs, metrics, and storyboards. A scheduled shift, a bridge-dispatched message, and an IDE session all share the same state. No database. Just markdown in a Git repository.</p>
     </div>
   </div>
 </div>

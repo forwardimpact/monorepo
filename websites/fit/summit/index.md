@@ -1,12 +1,12 @@
 ---
 title: Summit
-description: See whether a team has the capability to deliver — coverage, structural risks, what-if staffing scenarios, and quarterly trajectory.
+description: See whether a team has the capability to deliver. Get coverage, structural risks, what-if staffing scenarios, and quarterly trajectory.
 layout: product
 toc: false
 hero:
   image: /assets/scene-summit.svg
   alt: An engineer, an AI robot, and a business professional gather around a map on a flat rock, planning an ascent to the peak
-  subtitle: Reach the peak. Summit shows whether a team has the capability to deliver what it needs to — modelling the team as a system with coverage, structural risks, and what-if scenarios so staffing decisions are evidence-based, not guesswork.
+  subtitle: Reach the peak. Summit shows whether a team has the capability to deliver what it needs to. It models the team as a system with coverage, structural risks, and what-if scenarios. Staffing decisions then rest on evidence. They do not rest on guesswork.
   cta:
     - label: View on GitHub
       href: https://github.com/forwardimpact/monorepo/tree/main/products/summit
@@ -15,23 +15,23 @@ hero:
       secondary: true
 ---
 
-A post-mortem surfaces the same skill gap that caused the last incident —
-nobody saw it before staffing. A team's capability depends on coverage, depth,
-redundancy, and complementarity — not the sum of individual scores. Summit
-makes that visible.
+A post-mortem surfaces the same skill gap that caused the last incident. Nobody
+saw it before the staffing decision. A team's capability depends on coverage,
+depth, redundancy, and complementarity. It is not the sum of individual scores.
+Summit makes that visible.
 
 ## What becomes possible
 
 ### For Engineering Leaders
 
-Make staffing decisions you can defend by seeing what each role requires. Spot
+See what each role requires. Then make staffing decisions you can defend. Spot
 capability gaps and check whether a candidate fills them. Simulate roster
-changes and see their impact before anyone makes a decision.
+changes and see their impact before anyone decides.
 
 - Capability coverage per skill across the team
 - Structural risk identification (single points of failure, critical gaps)
-- What-if scenario simulation (add / remove / move / promote before acting)
-- Side-by-side team comparison and quarterly trajectory tracking
+- What-if scenario simulation (add / remove / move / promote before you act)
+- Side-by-side team comparison and a quarterly trajectory you can track
 - Optional: `--evidenced` for practiced capability, `--outcomes` for
   GetDX-weighted growth recommendations
 
@@ -40,8 +40,8 @@ changes and see their impact before anyone makes a decision.
 Align personal growth with what the team actually needs. See which skills make
 the biggest difference and where your development closes a real gap.
 
-- Growth alignment connecting team gaps to individual development
-- Team capability views that show where depth is needed
+- Growth alignment that connects team gaps to individual development
+- Team capability views that show where the team needs depth
 
 ---
 
@@ -50,7 +50,7 @@ the biggest difference and where your development closes a real gap.
 ### Capability Coverage
 
 For each skill in the agent-aligned engineering standard, Summit computes the
-team's collective proficiency by aggregating individual skill matrices derived
+team's collective proficiency. It aggregates individual skill matrices derived
 through Pathway.
 
 ```text
@@ -81,8 +81,8 @@ $ npx fit-summit coverage --project migration-q2
 ### Structural Risks
 
 Summit identifies single points of failure, critical gaps, and concentration
-risks — structural facts about team composition, not judgments about
-individuals.
+risks. These are structural facts about team composition. They are not
+judgments about individuals.
 
 ```text
 $ npx fit-summit risks platform
@@ -100,19 +100,20 @@ $ npx fit-summit risks platform
 ```
 
 The severity tag on single points of failure reflects the engineer's allocation
-to the team: **high** when allocation is below 0.5 (less than half-time),
-**medium** between 0.5 and 1.0 (part-time), and **low** at 1.0 (full-time). In
-reporting teams where members default to full allocation, every SPOF shows
-`[low]`. The tag differentiates in project teams where partial allocation makes
-a single point of failure more acute.
+to the team. It shows **high** when allocation is below 0.5 (less than
+half-time). It shows **medium** between 0.5 and 1.0 (part-time). It shows
+**low** at 1.0 (full-time). In reporting teams where members default to full
+allocation, every SPOF shows `[low]`. The tag differentiates in project teams
+where partial allocation makes a single point of failure more acute.
 
 ### What-If Scenarios
 
-Simulate roster changes and see their impact before anyone makes a decision.
+Simulate roster changes and see their impact before anyone decides.
 
-Adding an engineer may resolve existing risks, but can also introduce new ones
-(for example, two engineers at the same level creates a concentration risk in
-skills neither covers at working+). Summit shows both directions:
+When you add an engineer, the change may resolve existing risks. It can also
+introduce new ones. For example, two engineers at the same level create a
+concentration risk in skills neither covers at working+. Summit shows both
+directions:
 
 ```text
 $ npx fit-summit what-if platform --add "{ discipline: software-engineering, level: J060 }"
@@ -127,10 +128,10 @@ $ npx fit-summit what-if platform --add "{ discipline: software-engineering, lev
     + incident-response concentration risk: 2 engineers, none at working+
 ```
 
-`-` lines are risks resolved by the change. `+` lines are risks the change
+`-` lines are risks the change resolves. `+` lines are risks the change
 introduces. A staffing change that looks straightforwardly positive can still
-surface second-order gaps — Summit shows both so you can make the decision with
-the full picture.
+surface second-order gaps. Summit shows both, so you decide with the full
+picture.
 
 ---
 

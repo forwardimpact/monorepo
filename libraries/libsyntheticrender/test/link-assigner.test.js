@@ -86,7 +86,7 @@ describe("assignLinks", () => {
     assert.ok(Array.isArray(result.articles));
   });
 
-  test("blog dates are valid for counts exceeding 24", () => {
+  test("blog dates are valid for counts over 24", () => {
     const ent = makeTestEntities();
     const result = assignLinks({
       ...ent,
@@ -105,7 +105,7 @@ describe("assignLinks", () => {
     }
   });
 
-  test("project IRIs use /id/ prefix", () => {
+  test("project IRIs use the /id/ prefix", () => {
     const ent = makeTestEntities();
     const result = assignLinks({
       ...ent,
@@ -124,7 +124,7 @@ describe("assignLinks", () => {
     }
   });
 
-  test("course orgName uses provided value instead of hardcoded", () => {
+  test("course orgName uses the provided value instead of a hardcoded one", () => {
     const ent = makeTestEntities();
     const result = assignLinks({
       ...ent,
@@ -141,7 +141,7 @@ describe("assignLinks", () => {
     }
   });
 
-  test("dates use provided startYear/endYear", () => {
+  test("dates use the provided startYear/endYear", () => {
     const ent = makeTestEntities();
     const result = assignLinks({
       ...ent,

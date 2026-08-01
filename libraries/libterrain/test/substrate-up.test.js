@@ -1,11 +1,11 @@
 /**
  * Unit tests for `fit-terrain substrate up` (generic Supabase bring-up).
  *
- * The Supabase spawner is injected so the bring-up + emit logic is exercised
- * without a real `supabase` binary: a fake spawner records `start` and returns
- * a scripted `status --output json`. Assertions cover the two emitted
- * `KEY=value` lines, the explicit cwd threaded to the spawner, and the
- * fail-closed paths when status omits a field.
+ * These tests inject the Supabase spawner, so the bring-up and emit logic
+ * runs without a real `supabase` binary. A fake spawner records `start` and
+ * returns a scripted `status --output json`. Assertions cover the two
+ * emitted `KEY=value` lines, the explicit cwd threaded to the spawner, and
+ * the fail-closed paths when status omits a field.
  */
 
 import { test, describe } from "node:test";
@@ -18,8 +18,8 @@ import {
 } from "../src/commands/substrate-up.js";
 
 /**
- * A fake spawner factory: records the cwd it was built with and every `run`
- * call, and returns `statusJson` from `capture`.
+ * A fake spawner factory. It records the cwd it receives and every `run`
+ * call. It returns `statusJson` from `capture`.
  */
 function fakeSpawner(statusJson, sink) {
   return ({ cwd }) => {
@@ -96,7 +96,7 @@ describe("fit-terrain substrate up", () => {
     );
   });
 
-  test("spawner resolves bare supabase and threads cwd", async () => {
+  test("the spawner resolves bare supabase and threads cwd", async () => {
     const calls = [];
     const runtime = createTestRuntime({
       subprocess: {
@@ -113,11 +113,11 @@ describe("fit-terrain substrate up", () => {
     const spawner = createSupabaseSpawner({ runtime, cwd: "/checkout" });
     await spawner.run(["start"]);
 
-    // First call probes bare `supabase --version` from the explicit cwd.
+    // The first call probes bare `supabase --version` from the explicit cwd.
     assert.equal(calls[0].cmd, "supabase");
     assert.deepEqual(calls[0].args, ["--version"]);
     assert.equal(calls[0].opts.cwd, "/checkout");
-    // Then `start` runs via spawn with inherited stdio from the same cwd.
+    // Then `start` runs through spawn with inherited stdio from the same cwd.
     const spawnCall = calls.find((c) => c.kind === "spawn");
     assert.equal(spawnCall.cmd, "supabase");
     assert.deepEqual(spawnCall.args, ["start"]);

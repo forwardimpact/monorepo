@@ -1,9 +1,9 @@
 /**
  * Link Assigner — deterministic cross-link assignment between entities.
  *
- * Assigns drugs to projects, platforms to projects, people to events/courses,
- * and builds all cross-entity relationships using seeded random for
- * reproducibility.
+ * This module assigns drugs to projects, platforms to projects, and people
+ * to events and courses. It also builds all cross-entity relationships. A
+ * seeded random generator makes the result reproducible.
  *
  * @module libterrain/render/link-assigner
  */
@@ -15,10 +15,10 @@ import { isoDate } from "@forwardimpact/libutil";
  * @typedef {object} LinkedEntities
  * @property {object[]} drugs
  * @property {object[]} platforms
- * @property {object[]} projects - enriched with drug/platform/people links
- * @property {object[]} courses - enriched with prereqs, attendees, platform/drug links
- * @property {object[]} events - enriched with organizer, attendees, about links
- * @property {object[]} blogPosts - enriched with author, about, mentions
+ * @property {object[]} projects - include drug/platform/people links
+ * @property {object[]} courses - include prereqs, attendees, platform/drug links
+ * @property {object[]} events - include organizer, attendees, about links
+ * @property {object[]} blogPosts - include author, about, mentions
  */
 
 /**
@@ -66,7 +66,7 @@ export function assignLinks({
     startYear || Number(isoDate(clock.now()).slice(0, 4));
   const yearSpan = endYear && startYear ? endYear - startYear + 1 : 1;
 
-  // --- Project linking ---
+  // --- Project links ---
   const linkedProjects = projects.map((proj) => {
     const projectTeams = teams.filter((t) => proj.teams.includes(t.id));
     const projectPeople = people.filter((p) =>
@@ -102,7 +102,7 @@ export function assignLinks({
     };
   });
 
-  // --- Course linking ---
+  // --- Course links ---
   const COURSE_CATALOG = [
     {
       id: "PHARM-101",
@@ -164,7 +164,8 @@ export function assignLinks({
   const coursesToGenerate = Math.min(courseCount, COURSE_CATALOG.length);
   const linkedCourses = COURSE_CATALOG.slice(0, coursesToGenerate).map(
     (course, i) => {
-      // Build prerequisite chains: 201 courses require 101 in same category
+      // Build prerequisite chains. A 201 course requires the 101 course
+      // in the same category.
       const prereqs = [];
       if (course.id.includes("201")) {
         const base101 = COURSE_CATALOG.find(
@@ -208,7 +209,7 @@ export function assignLinks({
     },
   );
 
-  // --- Event linking ---
+  // --- Event links ---
   const EVENT_CATALOG = [
     "Engineering All-Hands",
     "Tech Talk: AI in Pharma",
@@ -246,7 +247,7 @@ export function assignLinks({
     };
   });
 
-  // --- Blog post linking ---
+  // --- Blog post links ---
   const BLOG_TOPICS = [
     "AI-Driven Drug Discovery at BioNova",
     "Our Journey to Cloud-Native Infrastructure",
@@ -265,12 +266,13 @@ export function assignLinks({
     "Open Source in Pharmaceutical R&D",
   ];
 
-  // Weighted topic selection from DSL blog-topics or fallback to BLOG_TOPICS
+  // Select the topic by weight from the DSL blog-topics. Fall back to
+  // BLOG_TOPICS.
   const weightedTopicEntries = blogTopics
     ? Object.entries(blogTopics).map(([name, weight]) => ({ name, weight }))
     : null;
 
-  // Title templates per topic — cycle through for variety
+  // Title templates for each topic. Cycle through them for variety.
   const TOPIC_TITLES = {
     "drug-discovery": [
       "Advances in AI-Driven Drug Discovery",
@@ -361,7 +363,7 @@ export function assignLinks({
     };
   });
 
-  // --- Article linking ---
+  // --- Article links ---
   const TOPIC_ENTITY_MAP = {
     clinical: {
       drugFilter: (d) =>

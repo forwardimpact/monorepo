@@ -1,13 +1,13 @@
 // Pure calendar arithmetic on explicit date inputs.
 //
 // Every `new Date(...)` here operates only on a value the caller passed (a ms
-// timestamp, a `Date`, or an ISO string) — never the ambient wall clock, which
-// lives behind `runtime.clock.now()`. That is why this module is allow-listed
-// in `.jidoka/invariants/ambient-deps.allow.yml` for the same reason `runtime.js`
-// is: it produces deterministic time values from its arguments rather than
-// reaching for an ambient dependency. Consumers read "now" from
-// `runtime.clock.now()` and pass the result here when they need a formatted or
-// shifted calendar value.
+// timestamp, a `Date`, or an ISO string). It never reads the ambient wall
+// clock, which lives behind `runtime.clock.now()`. That is why
+// `.jidoka/invariants/ambient-deps.allow.yml` allow-lists this module. It
+// allow-lists `runtime.js` for the same reason. The module produces
+// deterministic time values from its arguments. It does not reach for an
+// ambient dependency. Consumers read "now" from `runtime.clock.now()`. They
+// pass the result here when they need a formatted or shifted calendar value.
 
 /**
  * Normalise an input into a `Date`. Accepts a `Date`, a ms timestamp, or any
@@ -30,7 +30,7 @@ export function isoDate(input) {
 
 /**
  * Format an input as a full ISO 8601 timestamp (`YYYY-MM-DDTHH:mm:ss.sssZ`,
- * UTC). Pass `runtime.clock.now()` for "now"; never reads the wall clock.
+ * UTC). Pass `runtime.clock.now()` for "now". It never reads the wall clock.
  * @param {Date|number|string} input
  * @returns {string}
  */
@@ -39,14 +39,14 @@ export function isoTimestamp(input) {
 }
 
 /**
- * Compute the ISO 8601 year-week for an input. `year` is the ISO week-year
- * (not necessarily the calendar year for edge weeks).
+ * Compute the ISO 8601 year-week for an input. `year` is the ISO week-year.
+ * For edge weeks it can differ from the calendar year.
  * @param {Date|number|string} input
  * @returns {{year: number, week: number}}
  */
 export function isoWeek(input) {
   const date = toDate(input);
-  // Anchor on Thursday of the week: ISO weeks belong to the year of their
+  // Anchor on Thursday of the week. ISO weeks belong to the year of their
   // Thursday.
   const d = new Date(
     Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
@@ -82,7 +82,7 @@ export function yearMonth(input) {
 
 /**
  * Shift an input by `n` whole days (UTC) and return the ISO calendar date.
- * Negative `n` moves backward. The input is never mutated.
+ * Negative `n` moves backward. This function never mutates the input.
  * @param {Date|number|string} input
  * @param {number} n - Days to add (may be negative).
  * @returns {string}

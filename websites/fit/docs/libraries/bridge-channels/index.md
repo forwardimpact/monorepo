@@ -1,16 +1,16 @@
 ---
 title: Bridge a Threaded Channel to the Agent Team
-description: Threaded-channel adapters share an intake skeleton, callback registry, durable thread state, and resume-trigger contract — one library, every channel.
+description: Threaded-channel adapters share an intake skeleton, callback registry, durable thread state, and resume-trigger contract. One library serves every channel.
 ---
 
-You are building an adapter that relays messages between a human channel
-(GitHub Discussions, Microsoft Teams, the next chat platform someone asks for)
-and the Kata agent team's `kata-dispatch` workflow. The first time you do this,
-you reach for last project's callback registry, rate limiter, and history-bound
-prompt builder. `@forwardimpact/libbridge` gives you those primitives so the
-host service can focus on the channel-specific SDK glue and leave thread state,
-callback verification, prompt construction, and workflow dispatch to a shared
-library.
+You build an adapter that relays messages between a human channel and the Kata
+agent team's `kata-dispatch` workflow. The channel can be GitHub Discussions,
+Microsoft Teams, or the next chat platform someone asks for. The first time you
+do this, you reach for last project's callback registry, rate limiter, and
+history-bound prompt builder. `@forwardimpact/libbridge` gives you those
+primitives. The host service can then focus on the channel-specific SDK glue.
+It leaves thread state, callback verification, prompt construction, and
+workflow dispatch to a shared library.
 
 ## Prerequisites
 
@@ -22,13 +22,13 @@ npm install @forwardimpact/libbridge @forwardimpact/libstorage @forwardimpact/li
 ```
 
 - A workflow on the target repository that accepts the channel-bridge payload
-  via `workflow_dispatch` (the Kata Agent Team's `kata-dispatch.yml` is the
+  through `workflow_dispatch` (the Kata Agent Team's `kata-dispatch.yml` is the
   reference implementation).
 - A GitHub token with `actions:write` on that repository.
 
 ## What libbridge owns
 
-libbridge is channel-agnostic: it never imports `botbuilder`, `@octokit/*`, or
+libbridge is channel-agnostic. It never imports `botbuilder`, `@octokit/*`, or
 any channel-specific SDK. The host service (`services/ghbridge`,
 `services/msbridge`, your next adapter) owns the SDK glue, signature
 verification, and channel-shaped responses. libbridge owns the shared
@@ -36,44 +36,44 @@ primitives every adapter needs:
 
 | Primitive | Purpose |
 | --- | --- |
-| `createBridgeServer` | Hono server wiring a channel webhook route and `/api/callback/:tenant_id/:token` together |
+| `createBridgeServer` | Hono server that wires a channel webhook route and `/api/callback/:tenant_id/:token` together |
 | `Acknowledgement` | Reaction-plus-optional-typing-verb lifecycle for "I received your message" feedback |
 | `Dispatcher` | Composes callback registration, acknowledgement, workflow dispatch, history append, and rollback-on-failure into one call |
 | `createCallbackHandler` | Inbound-callback skeleton with verdict routing (`adjourned` / `failed` / `recessed`) and span instrumentation |
-| `ResumeScheduler` | Channel-agnostic suspend/resume lifecycle for `recessed` verdicts; wraps `ElapsedScheduler` |
+| `ResumeScheduler` | Channel-agnostic suspend/resume lifecycle for `recessed` verdicts. Wraps `ElapsedScheduler` |
 | `CallbackRegistry` | In-memory token registry with tenant-bound entries, TTL enforced at lookup, periodic sweep, and atomic consume |
 | `DiscussionAdapter` *(typedef)* | The persistence contract every bridge implements: `loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`, `flush`, `shutdown` (plus optional `putPendingDispatch` / `resolvePendingDispatch`) |
 | `newDiscussionContext` | Channel-agnostic factory for a fresh per-thread record, keyed by `(channel, discussion_id)` |
 | `RateLimiter` | Sliding-window per-thread rate limit so a noisy channel cannot DoS the workflow |
 | `ProgressTicker` | Tick-and-stop timer so the host can show progress while the workflow runs |
-| `appendHistory` | Bounded message history (default cap: 10 entries; oldest dropped on overflow) |
+| `appendHistory` | Bounded message history. The default cap is 10 entries, and the oldest entry drops on overflow |
 | `buildPrompt` | Prompt builder that prepends recent history bounded by exchange count and char cap |
 | `dispatchWorkflow` | GitHub Actions `workflow_dispatch` POST with the agreed input shape |
 | `evaluateTrigger` | Caller-clock resume-trigger evaluation (kinds: `missing_input`, `elapsed`, `escalation_needed`) |
-| `parseIsoDuration` | ISO-8601 duration parser (`P1D`, `PT12H`, `P1DT6H`) used by `evaluateTrigger` |
+| `parseIsoDuration` | ISO-8601 duration parser (`P1D`, `PT12H`, `P1DT6H`) that `evaluateTrigger` uses |
 
-The top four — `Acknowledgement`, `Dispatcher`, `createCallbackHandler`, and
-`ResumeScheduler` — are the composition layer. A real bridge wires the channel
-SDK into these constructors and lets each one own its slice of the dance; the
+Four primitives form the composition layer: `Acknowledgement`, `Dispatcher`,
+`createCallbackHandler`, and `ResumeScheduler`. A real bridge wires the channel
+SDK into these constructors, and each one owns its slice of the dance. The
 primitives below them are still available when you need to step outside the
 shared composition.
 
 Two injection rules keep the surface testable from any host. Persistence is
-**contract-injected**: every libbridge primitive that touches per-thread state
+**contract-injected**. Every libbridge primitive that touches per-thread state
 (`Dispatcher`, `ResumeScheduler`, `createCallbackHandler`,
-`createLinkCompleteHandler`) takes a `store` parameter satisfying the
-`DiscussionAdapter` typedef, and the library never
-constructs persistence on its own. The trigger evaluator is **clock-injected**:
-`evaluateTrigger(trigger, observed, now)` takes `now` as a parameter, never
-calling `Date.now()` inside the library.
+`createLinkCompleteHandler`) takes a `store` parameter that satisfies the
+`DiscussionAdapter` typedef. The library never constructs persistence on its
+own. The trigger evaluator is **clock-injected**.
+`evaluateTrigger(trigger, observed, now)` takes `now` as a parameter. The
+library never calls `Date.now()`.
 
 ## Compose a bridge server
 
-The minimum shape a channel adapter needs is a Hono server with a
-channel-shaped webhook route and a workflow callback route. `createBridgeServer`
-mounts both routes on a Hono app and returns lifecycle handles. Both routes
-hand the raw Hono `Context` to host-supplied callbacks — the host owns
-signature verification, token redemption, and channel-shaped responses:
+At minimum, a channel adapter needs a Hono server with a channel-shaped webhook
+route and a workflow callback route. `createBridgeServer` mounts both routes on
+a Hono app and returns lifecycle handles. Both routes hand the raw Hono
+`Context` to host-supplied callbacks. The host owns signature verification,
+token redemption, and channel-shaped responses:
 
 ```js
 import {
@@ -118,8 +118,8 @@ await bridge.start();
 ```
 
 `createBridgeServer` mounts `POST <webhookPath>` and
-`POST /api/callback/:tenant_id/:token` on a Hono app, captures the raw POST
-body on `c.get("rawBody")` for signature verification, and returns
+`POST /api/callback/:tenant_id/:token` on a Hono app. It captures the raw POST
+body on `c.get("rawBody")` for signature verification. It returns
 `{ start, stop, app, address }`. The host owns lifecycle, the channel SDK,
 and the verdict-to-channel translation (a GraphQL `addDiscussionComment` for
 GitHub, a `botbuilder` activity for Teams, etc.).
@@ -150,8 +150,8 @@ const ctx = newDiscussionContext({
 // }
 ```
 
-The host owns persistence by implementing the `DiscussionAdapter` typedef and
-passing the instance as `store` to `Dispatcher`, `ResumeScheduler`,
+The host owns persistence. It implements the `DiscussionAdapter` typedef. It
+passes the instance as `store` to `Dispatcher`, `ResumeScheduler`,
 `createCallbackHandler`, and `createLinkCompleteHandler`. The contract:
 
 ```js
@@ -168,8 +168,9 @@ passing the instance as `store` to `Dispatcher`, `ResumeScheduler`,
  */
 ```
 
-A minimal in-process adapter — durable JSONL via `@forwardimpact/libindex` and
-`@forwardimpact/libstorage`, suitable for single-process bridges:
+The next example is a minimal in-process adapter. It stores durable JSONL with
+`@forwardimpact/libindex` and `@forwardimpact/libstorage`. It suits
+single-process bridges:
 
 ```js
 import { BufferedIndex } from "@forwardimpact/libindex";
@@ -222,28 +223,29 @@ await store.add(ctx);
 await store.flush();
 ```
 
-For multi-process bridges, point the adapter at a shared backend (Redis,
-Postgres, or a dedicated persistence service) so every bridge replica sees
-the same `(channel, discussion_id)` records and `pending_callbacks` tokens
-survive restarts. The Kata Agent Team's monorepo runs the canonical
-implementation — a small gRPC service that owns the JSONL files and the TTL
-sweep — and `services/ghbridge` / `services/msbridge` wrap a generated
-client in a `DiscussionAdapter` to talk to it. Implementations swap freely;
-libbridge only sees the contract.
+For multi-process bridges, point the adapter at a shared backend such as
+Redis, Postgres, or a dedicated persistence service. Every bridge replica then
+sees the same `(channel, discussion_id)` records. The `pending_callbacks`
+tokens also survive restarts. The Kata Agent Team's monorepo runs the canonical
+implementation, a small gRPC service that owns the JSONL files and the TTL
+sweep. `services/ghbridge` and `services/msbridge` wrap a generated client in a
+`DiscussionAdapter` to talk to it. Implementations swap freely. libbridge only
+sees the contract.
 
 ## Issue and verify callback tokens
 
-A bridge dispatches a workflow run and waits for the workflow to POST back its
-verdict. The host registers a `(correlationId, meta)` pair — `meta.tenant_id`
-is required — and receives a randomly generated token; the host embeds the
-token in the callback URL; the workflow echoes it; the host consumes the token
-once and rejects all subsequent attempts. `consume(token, { tenant_id })` is
-atomic — it removes the entry and returns it in one call, and returns `null`
-when the token is unknown, expired, or bound to a different tenant. The
-default TTL is two hours, expired entries are dropped at the lookup that
-observes them, and `startSweepTimer()` evicts tokens whose dispatch never
-calls back (every 10 minutes by default; `stopSweepTimer()` cancels it). Use
-`peek(token, { tenant_id })` to inspect an entry without consuming it.
+A bridge dispatches a workflow run. It then waits for the workflow to POST back
+its verdict. The host registers a `(correlationId, meta)` pair, and
+`meta.tenant_id` is required. The host receives a randomly generated token. The
+host embeds the token in the callback URL. The workflow echoes it. The host
+consumes the token once and rejects every later attempt.
+`consume(token, { tenant_id })` is atomic. It removes the entry and returns it
+in one call. It returns `null` when the token is unknown, expired, or bound to
+a different tenant. The default TTL is two hours. A lookup drops an expired
+entry when it observes it. `startSweepTimer()` evicts tokens whose dispatch
+never calls back, every 10 minutes by default. `stopSweepTimer()` cancels the
+sweep. Use `peek(token, { tenant_id })` to inspect an entry. `peek` does not
+consume it.
 
 ```js
 import { randomUUID } from "node:crypto";
@@ -283,12 +285,13 @@ async function onCallback(c) {
 }
 ```
 
-The registry is in-memory; for multi-process bridges, persist
-`pending_callbacks` on each discussion-context record (via the adapter's `add()`
-call) so the host can re-register tokens on restart. The `correlation_id` echoes
-through the workflow and is checked against the consumed entry's `correlationId`
-to defend against token-and-payload mismatches; the tenant binding ensures a
-token issued for one tenant cannot redeem a callback addressed to another.
+The registry is in-memory. For multi-process bridges, persist
+`pending_callbacks` on each discussion-context record through the adapter's
+`add()` call. The host can then re-register tokens on restart. The
+`correlation_id` echoes through the workflow. The host checks it against the
+consumed entry's `correlationId` to defend against token-and-payload
+mismatches. The tenant binding makes sure a token issued for one tenant cannot
+redeem a callback addressed to another.
 
 ## Evaluate recess triggers
 
@@ -296,17 +299,18 @@ Long-running RFCs use the libharness `Recess` verdict to wait for an external
 signal. A trigger is one of three shapes, named for the lead's intent:
 
 - `{ kind: "missing_input", replies: N }` — fire when at least `N` new
-  replies have arrived on the dispatching thread since the recess opened.
+  replies arrive on the dispatching thread after the recess opens.
 - `{ kind: "elapsed", elapsed: "P1D" }` — fire after an ISO-8601 duration
-  passes. Days, hours, minutes, seconds supported (`P14D`, `PT12H`, `P1DT6H`).
+  passes. The parser supports days, hours, minutes, and seconds (`P14D`,
+  `PT12H`, `P1DT6H`).
 - `{ kind: "escalation_needed", signal: "<name>" }` — reserved for future
   use. The schema accepts this shape, but the scheduler throws until
   signal-based resume support ships.
 
 `evaluateTrigger(trigger, observed, now)` returns
-`{ fired: boolean, due_at?: number }` where `due_at` is the absolute ms-epoch
-when an elapsed arm will fire (useful for scheduling a wake-up). The host owns
-`now` so unit tests stay deterministic:
+`{ fired: boolean, due_at?: number }`. `due_at` is the absolute ms-epoch when
+an elapsed arm fires. Use it to schedule a wake-up. The host owns `now`, so
+unit tests stay deterministic:
 
 ```js
 import { evaluateTrigger } from "@forwardimpact/libbridge";
@@ -333,28 +337,29 @@ if (result.fired) {
 }
 ```
 
-`evaluateTrigger` is pure: it takes a trigger, an observation
-(`{ replies?, opened_at? }`), and a clock reading, and returns whether the
+`evaluateTrigger` is pure. It takes a trigger, an observation
+(`{ replies?, opened_at? }`), and a clock reading. It returns whether the
 observation satisfies the trigger. The host calls it whenever a candidate
-event arrives — for `missing_input`, on every new channel message; for
-`elapsed`, on a host-scheduled wake-up at `due_at`; `escalation_needed`
-throws today and will integrate with channel signal intake once that
-spec lands.
+event arrives. For `missing_input`, the host calls it on every new channel
+message. For `elapsed`, the host calls it on a host-scheduled wake-up at
+`due_at`. `escalation_needed` throws today. It will integrate with channel
+signal intake once that spec lands.
 
 ## Verify
 
 You have reached the outcome of this guide when:
 
 - You can stand up a Hono server with channel-webhook and
-  `/api/callback/:tenant_id/:token` routes via `createBridgeServer`, with the
-  host's channel-specific SDK glue only inside `onWebhook` and `onCallback`.
-- You can persist per-thread state by implementing the `DiscussionAdapter`
-  contract — `loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`,
-  `flush`, `shutdown` — and build fresh records via `newDiscussionContext`
+  `/api/callback/:tenant_id/:token` routes through `createBridgeServer`. The
+  host's channel-specific SDK glue sits only inside `onWebhook` and
+  `onCallback`.
+- You can persist per-thread state. You implement the `DiscussionAdapter`
+  contract (`loadByChannel`, `loadByCorrelation`, `listOpenRecesses`, `add`,
+  `flush`, `shutdown`). You build fresh records with `newDiscussionContext`,
   keyed by `(channel, discussion_id)`.
 - You can `register` tenant-bound tokens, dispatch, and one-shot
-  `consume(token, { tenant_id })` through `CallbackRegistry`, with
-  `correlation_id` echoed end-to-end and expired tokens rejected at lookup.
+  `consume(token, { tenant_id })` through `CallbackRegistry`. The
+  `correlation_id` echoes end-to-end. A lookup rejects expired tokens.
 - You can evaluate `missing_input` and `elapsed` recess triggers
   against a caller-supplied clock and route the resume back through
   `dispatchWorkflow` with a JSON-encoded `resume_context`.

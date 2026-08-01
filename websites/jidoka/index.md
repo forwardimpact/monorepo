@@ -1,6 +1,6 @@
 ---
 title: Jidoka Instruction Architecture
-description: Built-in quality for agent instructions — eight layers, each with one job, and checks that stop the line the moment a layer drifts. Grounded in Jidoka, Jobs To Be Done, and The Checklist Manifesto.
+description: Built-in quality for agent instructions. Eight layers each hold one job. Checks stop the line the moment a layer drifts. Grounded in Jidoka, Jobs To Be Done, and The Checklist Manifesto.
 toc: false
 layout: home
 ---
@@ -17,7 +17,7 @@ layout: home
     <rect class="layer-bar layer-bar-top" x="24" y="5" width="16" height="4" rx="1.5" />
   </svg>
   <h1 class="hero-title">Build quality into agent instructions</h1>
-  <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers, each with a single job — and checks that stop the line the moment a layer drifts.</p>
+  <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers each hold a single job. Checks stop the line the moment a layer drifts.</p>
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
@@ -28,8 +28,8 @@ layout: home
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Problem</div>
-      <h2 class="section-headline">Instructions sprawl, and nothing stops the drift.</h2>
-      <p class="section-body">Prompts pile up. Layers restate each other, jobs go stale, and nobody notices until an agent misbehaves. Jidoka takes the Toyota path: build quality into the process itself. One layered architecture where every layer owns a single job and carries a machine-checkable budget — so a defect traces to exactly one layer, and the line stops before it ships.</p>
+      <h2 class="section-headline">Instructions sprawl. Nothing stops the drift.</h2>
+      <p class="section-body">Prompts pile up. Layers restate each other. Jobs go stale. Nobody notices until an agent misbehaves. Jidoka takes the Toyota path and builds quality into the process itself. In one layered architecture, every layer owns a single job and carries a machine-checkable budget. A defect then traces to exactly one layer. The line stops before the defect ships.</p>
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
@@ -64,7 +64,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Architecture</div>
       <h2 class="section-headline">Eight layers. Most general to most specific.</h2>
-      <p class="section-body">Each layer loads at the right moment and owns one concern. Auto-loaded layers stay budgeted so context never bloats; on-demand layers disclose only when the work calls for them.</p>
+      <p class="section-body">Each layer loads at the right moment and owns one concern. Auto-loaded layers stay budgeted, so context never bloats. On-demand layers disclose only when the work calls for them.</p>
     </div>
     <div class="layers-grid stagger">
       <div class="layer-card stagger-item">
@@ -75,7 +75,7 @@ layout: home
       <div class="layer-card stagger-item">
         <div class="layer-tag">L1</div>
         <div class="layer-name">CLAUDE.md</div>
-        <p class="layer-desc">Project identity — what it is, who it serves, and where to find its jobs and checklists.</p>
+        <p class="layer-desc">Project identity: what it is, who it serves, and where to find its jobs and checklists.</p>
       </div>
       <div class="layer-card stagger-item">
         <div class="layer-tag">L2</div>
@@ -85,7 +85,7 @@ layout: home
       <div class="layer-card stagger-item">
         <div class="layer-tag">L3</div>
         <div class="layer-name">Agent Profile</div>
-        <p class="layer-desc">One persona — voice, skill routing, and scope constraints. Boundaries, not steps.</p>
+        <p class="layer-desc">One persona: voice, skill routing, and scope constraints. It sets boundaries. It does not give steps.</p>
       </div>
       <div class="layer-card stagger-item">
         <div class="layer-tag">L4</div>
@@ -95,7 +95,7 @@ layout: home
       <div class="layer-card stagger-item">
         <div class="layer-tag">L5</div>
         <div class="layer-name">Skill Procedure</div>
-        <p class="layer-desc">The complete, imperative steps for one domain of work — no tribal knowledge required.</p>
+        <p class="layer-desc">The complete, imperative steps for one domain of work. They need no tribal knowledge.</p>
       </div>
       <div class="layer-card stagger-item">
         <div class="layer-tag">L6</div>
@@ -105,7 +105,7 @@ layout: home
       <div class="layer-card stagger-item">
         <div class="layer-tag">L7</div>
         <div class="layer-name">Checklists</div>
-        <p class="layer-desc">Binary verification at a pause point. No explanation — just confirmation.</p>
+        <p class="layer-desc">Binary verification at a pause point. It confirms. It does not explain.</p>
       </div>
     </div>
   </div>
@@ -124,23 +124,23 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Foundations</div>
       <h2 class="section-headline">What agents align to, and how alignment holds.</h2>
-      <p class="section-body">Three well-publicized ideas answer the halves of the problem — and together they explain why the layers are shaped the way they are, and why the checks stop the line.</p>
+      <p class="section-body">Three well-publicized ideas answer the halves of the problem. Together they explain why the layers have the shape they have. They also explain why the checks stop the line.</p>
     </div>
     <div class="duo-grid stagger">
       <div class="foundation-card stagger-item">
         <div class="foundation-source">Toyota</div>
         <div class="foundation-name">Jidoka</div>
-        <p class="foundation-desc">How quality holds. It is built into the process, not inspected in afterward — the checks halt at the first defect and never pass one downstream.</p>
+        <p class="foundation-desc">How quality holds. The process builds in quality. Inspection afterward does not. The checks halt at the first defect. They never pass one downstream.</p>
       </div>
       <div class="foundation-card stagger-item">
         <div class="foundation-source">Christensen &amp; Moesta</div>
         <div class="foundation-name">Jobs To Be Done</div>
-        <p class="foundation-desc">What agents align to. Every layer traces to the progress a persona seeks in a specific circumstance — not to a feature list.</p>
+        <p class="foundation-desc">What agents align to. Every layer traces to the progress a persona seeks in a specific circumstance. No layer traces to a feature list.</p>
       </div>
       <div class="foundation-card stagger-item">
         <div class="foundation-source">Atul Gawande</div>
         <div class="foundation-name">The Checklist Manifesto</div>
-        <p class="foundation-desc">How alignment holds under load. Structured instructions keep existing knowledge consistently applied — by humans and agents alike.</p>
+        <p class="foundation-desc">How alignment holds under load. Structured instructions help humans and agents apply existing knowledge consistently.</p>
       </div>
     </div>
   </div>
@@ -159,19 +159,19 @@ layout: home
     <div class="reveal">
       <div class="section-label">Verification</div>
       <h2 class="section-headline">Two gates. One at entry, one at exit.</h2>
-      <p class="section-body">Checklists never teach — they confirm; if an item needs explaining, the procedure above it is incomplete. Each gate is wrapped in a semantic <code>&lt;read_do_checklist&gt;</code> or <code>&lt;do_confirm_checklist&gt;</code> tag, so every pause point in the repository is one <code>rg</code> search away — no map required.</p>
+      <p class="section-body">Checklists never teach. They confirm. If you must explain an item, the procedure above it is incomplete. A semantic <code>&lt;read_do_checklist&gt;</code> or <code>&lt;do_confirm_checklist&gt;</code> tag wraps each gate. Every pause point in the repository is then one <code>rg</code> search away. You need no map.</p>
     </div>
     <div class="duo-grid stagger">
       <div class="gate-card stagger-item">
         <div class="gate-kind">Entry gate</div>
         <div class="gate-name">READ-DO</div>
-        <p class="gate-desc">Read each item, then do it. Loads constraints into memory before the first line of work, when missing one sends everything in the wrong direction.</p>
+        <p class="gate-desc">Read each item, then do it. The gate loads constraints into memory before the first line of work. At that moment, one missed constraint sends everything in the wrong direction.</p>
         <code class="gate-find">rg '&lt;read_do_checklist'</code>
       </div>
       <div class="gate-card stagger-item">
         <div class="gate-kind">Exit gate</div>
         <div class="gate-name">DO-CONFIRM</div>
-        <p class="gate-desc">Do from memory, then pause and confirm. Verifies nothing was missed before a commit, merge, or release — independent checks, no interruption mid-flow.</p>
+        <p class="gate-desc">Do from memory, then pause and confirm. The gate verifies that you missed nothing before a commit, merge, or release. The checks stay independent. They do not interrupt you mid-flow.</p>
         <code class="gate-find">rg '&lt;do_confirm_checklist'</code>
       </div>
     </div>

@@ -8,7 +8,7 @@ function parseDsl(source) {
   return parse(tokenize(source));
 }
 
-describe("dataset and output parsing", () => {
+describe("parse — datasets and outputs", () => {
   test("parses empty terrain with no datasets", () => {
     const ast = parseDsl("terrain test {}");
     assert.deepStrictEqual(ast.datasets, []);
@@ -238,7 +238,7 @@ describe("dataset and output parsing", () => {
     ]);
   });
 
-  test("parses conditions alongside modules — both coexist", () => {
+  test("parses conditions alongside modules and keeps both", () => {
     const ast = parseDsl(`terrain test {
       dataset trial-patients {
         tool synthea

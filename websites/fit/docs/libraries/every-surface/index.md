@@ -1,14 +1,14 @@
 ---
 title: Give Agents and Humans the Same Interface
-description: Capabilities that work on every surface — one presenter, one contract, and one formatter shared between CLI and web, with no separate integrations.
+description: Capabilities that work on every surface. One presenter, one contract, and one formatter serve both the CLI and the web. You build no separate integrations.
 ---
 
-When a capability exists as a CLI command but not as a web page (or vice versa),
-someone eventually rewrites the logic for the second surface. The two
-implementations drift apart, and agents that learned one interface cannot reach
-the other. `@forwardimpact/libcli`, `@forwardimpact/libui`, and
-`@forwardimpact/libformat` let you write a capability once and surface it on
-both the terminal and the browser through a shared contract.
+A capability can exist as a CLI command with no web page. The reverse also
+happens. Someone eventually rewrites the logic for the second surface. The two
+implementations drift apart. Agents that learned one interface cannot reach the
+other. `@forwardimpact/libcli`, `@forwardimpact/libui`, and
+`@forwardimpact/libformat` let you write a capability once. A shared contract
+puts that capability on both the terminal and the browser.
 
 ## Prerequisites
 
@@ -22,8 +22,8 @@ npm install @forwardimpact/libcli @forwardimpact/libui @forwardimpact/libformat
 ## How the shared contract works
 
 Both surfaces produce the same frozen object, an **InvocationContext**, from
-their native inputs. The CLI builds it from `argv`; the web router builds it
-from the URL hash. Handlers receive this object and never know which surface
+their native inputs. The CLI builds it from `argv`. The web router builds it
+from the URL hash. Handlers receive this object. They never know which surface
 called them.
 
 ```js
@@ -36,16 +36,16 @@ called them.
 
 **Value types are uniform across surfaces.** `args` values are always strings.
 `options` values are `string`, `boolean` (`true` for presence-only flags or
-empty query params), or `string[]` (repeated keys). No nulls, no numbers -- if
-you need a number, parse it in the handler.
+empty query params), or `string[]` (repeated keys). There are no nulls and no
+numbers. If you need a number, parse it in the handler.
 
-The context is frozen at every level. Handlers can rely on immutability without
-checking.
+The context is frozen at every level. Handlers can rely on immutability with no
+check.
 
 ## 1. Write the shared presenter
 
 The presenter takes an InvocationContext, looks up data, and returns a plain
-view object. No DOM, no stdout -- data in, data out.
+view object. It uses no DOM and no stdout. Data goes in. Data comes out.
 
 ```js
 // src/present-forecast.js
@@ -64,7 +64,7 @@ export function presentForecast(ctx) {
 ```
 
 Because the presenter depends only on a plain frozen object, you can test it
-without a browser or a running process:
+without a browser and without a live process:
 
 ```js
 // test/present-forecast.test.js
@@ -90,16 +90,16 @@ assert.strictEqual(view.temp, 14);
 assert.strictEqual(view.units, "metric");
 ```
 
-Both surfaces call the same function, so a passing presenter test covers the
-core logic for the CLI and the web UI at once.
+Both surfaces call the same function. So a presenter test that passes covers
+the core logic for the CLI and the web UI at once.
 
 ## 2. Format the output for each surface
 
 `@forwardimpact/libformat` provides two formatters that render the same markdown
-content to different targets. The terminal formatter produces ANSI-styled text;
-the HTML formatter produces sanitized HTML. Both implement the same
-`{ format(markdown) }` interface, so you can write one formatting function and
-swap the formatter at the surface boundary.
+content to different targets. The terminal formatter produces ANSI-styled text.
+The HTML formatter produces sanitized HTML. Both implement the same
+`{ format(markdown) }` interface. So you can write one function that formats.
+You then swap the formatter at the surface boundary.
 
 ```js
 // src/format-forecast.js
@@ -117,7 +117,7 @@ export function formatForecast(view, formatter) {
 }
 ```
 
-The CLI surface uses `createTerminalFormatter`; the web surface uses
+The CLI surface uses `createTerminalFormatter`. The web surface uses
 `createHtmlFormatter`. The presenter stays the same either way.
 
 ## 3. Build the CLI surface
@@ -171,13 +171,13 @@ const data = { cities: loadCities() };
 cli.dispatch(parsed, { data });
 ```
 
-`cli.dispatch` builds the InvocationContext internally -- it maps the positional
-argv values to the names declared in `args: ["city"]`, merges the parsed flags
-into `options`, folds in the `data` you provide, freezes everything, and calls
-the handler.
+`cli.dispatch` builds the InvocationContext internally. It maps the positional
+argv values to the names declared in `args: ["city"]`. It merges the parsed
+flags into `options`. It folds in the `data` you provide. It freezes
+everything. It then calls the handler.
 
-Running `weather forecast london` produces ANSI-formatted output. Running
-`weather forecast london --json` produces:
+The command `weather forecast london` produces ANSI-formatted output. The
+command `weather forecast london --json` produces:
 
 ```json
 {
@@ -190,8 +190,8 @@ Running `weather forecast london` produces ANSI-formatted output. Running
 ```
 
 Agents can always pass `--json` to get structured output. The `--help` flag
-renders a grep-friendly synopsis, and `--help --json` returns the full
-definition as JSON so agents can discover the interface programmatically.
+renders a grep-friendly synopsis. The `--help --json` flags return the full
+definition as JSON. Agents can then discover the interface programmatically.
 
 ## 4. Build the web surface
 
@@ -242,16 +242,17 @@ When the user navigates to `#/forecast/london`, the bound router:
 4. Calls `page(ctx)`
 
 The command bar displays `weather forecast london` with a copy button. An agent
-or a person reading the web page can paste that command into a terminal to get
-the same result through the CLI.
+or a person who reads the web page can paste that command into a terminal. The
+command gives the same result through the CLI.
 
-The `cli` function on the descriptor is optional. When present, the command bar
-displays the equivalent CLI command. Routes without `cli` render the bar empty.
+The `cli` function on the descriptor is optional. When it is present, the
+command bar displays the equivalent CLI command. Routes without `cli` render
+the bar empty.
 
 ## 5. Verify both surfaces reach the same result
 
-The simplest way to confirm both surfaces produce equivalent output is to check
-that both call the same presenter with the same context shape:
+To confirm both surfaces produce equivalent output, check that both call the
+same presenter with the same context shape:
 
 ```js
 import { freezeInvocationContext } from "@forwardimpact/libcli";
@@ -278,12 +279,12 @@ assert.deepStrictEqual(cliView, webView);
 ```
 
 Both contexts are structurally identical because both surfaces follow the same
-contract. The presenter does not branch on which surface produced the context --
-it cannot tell.
+contract. The presenter does not branch on which surface produced the context.
+It cannot tell.
 
-## Query string parsing
+## How the web surface parses the query string
 
-The web surface parses the query string after `?` in the URL hash using
+The web surface parses the query string after `?` in the URL hash with
 `URLSearchParams`:
 
 | Input                    | Result                       |
@@ -293,10 +294,10 @@ The web surface parses the query string after `?` in the URL hash using
 | `?tag=rain&tag=wind`     | `{ tag: ["rain", "wind"] }`  |
 | (no query)               | `{}`                         |
 
-Empty values become `true`; repeated keys become arrays; everything else is a
-string. This matches the CLI's flag parsing: `--json` produces `{ json: true }`,
-`--units=imperial` produces `{ units: "imperial" }`, and `--tag=rain --tag=wind`
-produces `{ tag: ["rain", "wind"] }`.
+Empty values become `true`. Repeated keys become arrays. Everything else is a
+string. This matches how the CLI parses flags. `--json` produces
+`{ json: true }`. `--units=imperial` produces `{ units: "imperial" }`.
+`--tag=rain --tag=wind` produces `{ tag: ["rain", "wind"] }`.
 
 ## What's next
 

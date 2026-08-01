@@ -8,10 +8,10 @@ const DEFAULTS_DIR = "/defaults";
 const DATA_DIR = "/data";
 
 /**
- * Build a TemplateLoader over an in-memory fs seeded with `files` (a
- * path→content map), injected through the loader's `runtime` parameter. The
- * defaults layer lives at `/defaults`; override-dir tests seed
- * `/data/templates/...` into the same map.
+ * Build a TemplateLoader over an in-memory fs. The `files` map holds one
+ * path→content pair for each seeded file. The helper injects the fs through
+ * the loader's `runtime` parameter. The defaults layer lives at `/defaults`.
+ * Override-dir tests seed `/data/templates/...` into the same map.
  */
 function loaderWith(files = {}) {
   return new TemplateLoader(
@@ -21,46 +21,46 @@ function loaderWith(files = {}) {
 }
 
 describe("TemplateLoader", () => {
-  test("constructor throws when defaultsDir is not provided", () => {
+  test("constructor throws when the caller omits defaultsDir", () => {
     assert.throws(() => new TemplateLoader(), {
       message: "defaultsDir is required",
     });
   });
 
-  test("constructor throws when defaultsDir is empty string", () => {
+  test("constructor throws when defaultsDir is an empty string", () => {
     assert.throws(() => new TemplateLoader(""), {
       message: "defaultsDir is required",
     });
   });
 
-  test("constructor accepts valid defaultsDir", () => {
+  test("constructor accepts a valid defaultsDir", () => {
     const loader = loaderWith();
     assert.ok(loader instanceof TemplateLoader);
   });
 
   describe("load", () => {
-    test("throws when name is not provided", () => {
+    test("throws when the caller omits name", () => {
       const loader = loaderWith();
       assert.throws(() => loader.load(), {
         message: "name is required",
       });
     });
 
-    test("throws when name is empty string", () => {
+    test("throws when name is an empty string", () => {
       const loader = loaderWith();
       assert.throws(() => loader.load(""), {
         message: "name is required",
       });
     });
 
-    test("throws when template file does not exist", () => {
+    test("throws when the template file does not exist", () => {
       const loader = loaderWith();
       assert.throws(() => loader.load("nonexistent.html"), {
         message: /Template 'nonexistent.html' not found/,
       });
     });
 
-    test("loads template from defaults directory", () => {
+    test("loads the template from the defaults directory", () => {
       const content = "<h1>{{title}}</h1>";
       const loader = loaderWith({ [`${DEFAULTS_DIR}/page.html`]: content });
       const result = loader.load("page.html");
@@ -68,7 +68,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, content);
     });
 
-    test("loads template from dataDir override", () => {
+    test("loads the template from the dataDir override", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/page.html`]: "default",
         [`${DATA_DIR}/templates/page.html`]: "override",
@@ -78,7 +78,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, "override");
     });
 
-    test("falls back to defaults when dataDir template missing", () => {
+    test("falls back to the defaults when no dataDir template exists", () => {
       const loader = loaderWith({ [`${DEFAULTS_DIR}/page.html`]: "default" });
       const result = loader.load("page.html", DATA_DIR);
 
@@ -87,7 +87,7 @@ describe("TemplateLoader", () => {
   });
 
   describe("render", () => {
-    test("renders template with data", () => {
+    test("renders the template with data", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/greeting.html`]: "Hello, {{name}}!",
       });
@@ -96,7 +96,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, "Hello, World!");
     });
 
-    test("renders template with empty data", () => {
+    test("renders the template with empty data", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/greeting.html`]: "Hello, {{name}}!",
       });
@@ -105,7 +105,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, "Hello, !");
     });
 
-    test("renders template without data argument", () => {
+    test("renders the template without a data argument", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/static.html`]: "Static content",
       });
@@ -114,7 +114,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, "Static content");
     });
 
-    test("renders template with sections", () => {
+    test("renders the template with sections", () => {
       const template = "<ul>{{#items}}<li>{{.}}</li>{{/items}}</ul>";
       const loader = loaderWith({ [`${DEFAULTS_DIR}/list.html`]: template });
       const result = loader.render("list.html", { items: ["a", "b"] });
@@ -122,7 +122,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, "<ul><li>a</li><li>b</li></ul>");
     });
 
-    test("renders from dataDir override", () => {
+    test("renders from the dataDir override", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/page.html`]: "default {{v}}",
         [`${DATA_DIR}/templates/page.html`]: "custom {{v}}",
@@ -134,7 +134,7 @@ describe("TemplateLoader", () => {
   });
 
   describe("renderWithPartials", () => {
-    test("resolves a partial referenced via {{> name}}", () => {
+    test("resolves a partial the template references with {{> name}}", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/page.html`]:
           "<ul>{{#items}}{{> item.html}}{{/items}}</ul>",
@@ -149,7 +149,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, "<ul><li>a</li><li>b</li></ul>");
     });
 
-    test("partial under dataDir/templates overrides the package default", () => {
+    test("a partial in dataDir/templates overrides the package default", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/page.html`]: "{{> partial.html}}",
         [`${DEFAULTS_DIR}/partial.html`]: "default",
@@ -165,7 +165,7 @@ describe("TemplateLoader", () => {
       assert.strictEqual(result, "overridden");
     });
 
-    test("missing partial raises a Template not found error", () => {
+    test("raises a Template not found error when the partial is absent", () => {
       const loader = loaderWith({
         [`${DEFAULTS_DIR}/page.html`]: "{{> missing.html}}",
       });

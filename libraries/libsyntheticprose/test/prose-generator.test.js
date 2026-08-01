@@ -31,8 +31,9 @@ function makeLlmApi(response = "test response") {
 const CACHE_PATH = "/prose/cache.json";
 
 function makeFixture(overrides = {}) {
-  // A shared in-memory runtime: the mock fs persists writes so a second
-  // ProseCache over the same path sees what the first one saved.
+  // The runtime is shared and in memory. The mock fs persists writes,
+  // so a second ProseCache over the same path sees what the first one
+  // saved.
   const runtime = createTestRuntime({ fs: createMockFs() });
   const cache = new ProseCache({
     cachePath: CACHE_PATH,
@@ -70,7 +71,7 @@ describe("ProseGenerator", () => {
     assert.strictEqual([...cache.keys()].length, 1);
   });
 
-  test("generatePlain returns cached value without calling LLM", async () => {
+  test("generatePlain returns cached value with no LLM call", async () => {
     const { cache, generator, runtime } = makeFixture({
       llmApi: makeLlmApi("first"),
     });

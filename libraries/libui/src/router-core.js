@@ -1,7 +1,7 @@
 /**
  * Core Router Factory
  *
- * Pure factory function for hash-based routing with no dependencies.
+ * A pure factory function for a hash-based router with no dependencies.
  */
 
 import { withErrorBoundary } from "./error-boundary.js";
@@ -22,18 +22,18 @@ import { withErrorBoundary } from "./error-boundary.js";
 
 /**
  * @typedef {Object} Router
- * @property {(pattern: string, handler: Function) => void} on - Register route
- * @property {(path: string) => void} navigate - Navigate to path
- * @property {() => string} currentPath - Get current hash path
- * @property {() => void} handleRoute - Process current route
- * @property {() => void} start - Begin listening for hash changes
- * @property {() => void} stop - Stop listening for hash changes
- * @property {() => string[]} patterns - Get registered patterns
+ * @property {(pattern: string, handler: Function) => void} on - Register a route
+ * @property {(path: string) => void} navigate - Navigate to a path
+ * @property {() => string} currentPath - Get the current hash path
+ * @property {() => void} handleRoute - Process the current route
+ * @property {() => void} start - Start to listen for hash changes
+ * @property {() => void} stop - Stop the listener for hash changes
+ * @property {() => string[]} patterns - Get the registered patterns
  */
 
 /**
- * Parse route pattern into regex and param names
- * @internal Exported for bound-router.js — not part of the public API.
+ * Parse a route pattern into a regex and param names
+ * @internal bound-router.js imports this. It is not part of the public API.
  * @param {string} pattern
  * @returns {{ regex: RegExp, paramNames: string[] }}
  */
@@ -82,7 +82,7 @@ export function createRouter(options = {}) {
   }
 
   /**
-   * Get current path from hash (including query string)
+   * Get the current path from the hash. It includes the query string.
    * @returns {string}
    */
   function currentPath() {
@@ -133,7 +133,7 @@ export function createRouter(options = {}) {
     handleRoute,
 
     /**
-     * Start listening for hash changes
+     * Start to listen for hash changes
      */
     start() {
       hashChangeHandler = () => handleRoute();
@@ -142,7 +142,7 @@ export function createRouter(options = {}) {
     },
 
     /**
-     * Stop listening for hash changes
+     * Stop the listener for hash changes
      */
     stop() {
       if (hashChangeHandler) {

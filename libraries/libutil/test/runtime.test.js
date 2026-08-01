@@ -37,12 +37,16 @@ describe("createDefaultProc env Proxy", () => {
     const proc = createDefaultProc({ source, env: source.env });
     assert.strictEqual(proc.env.A, "1");
     source.env.A = "2";
-    assert.strictEqual(proc.env.A, "2", "Proxy must read through live");
+    assert.strictEqual(
+      proc.env.A,
+      "2",
+      "the Proxy must read through to the live env",
+    );
     source.env.B = "new";
     assert.strictEqual(proc.env.B, "new");
   });
 
-  test("spread produces a non-empty plain object inheriting source env", () => {
+  test("spread produces a non-empty plain object that inherits the source env", () => {
     const source = { env: { A: "1", B: "2" }, argv: ["node", "x"] };
     const proc = createDefaultProc({ source, env: source.env });
     const spread = { ...proc.env, NEW_KEY: "x" };
@@ -70,7 +74,7 @@ describe("createDefaultProc env Proxy", () => {
 });
 
 describe("createDefaultProc exitCode", () => {
-  test("assigning exitCode propagates to the source", () => {
+  test("writes exitCode through to the source", () => {
     const source = { env: {}, argv: ["node", "x"], exitCode: 0 };
     const proc = createDefaultProc({ source, env: source.env });
     proc.exitCode = 1;
@@ -104,21 +108,21 @@ describe("createDefaultClock / createDefaultSubprocess", () => {
     await clock.sleep(1);
   });
 
-  test("clock.setInterval returns an unref-able host handle; clearInterval stops it", () => {
+  test("clock.setInterval returns an unref-able host handle and clearInterval stops it", () => {
     const clock = createDefaultClock();
     let fired = 0;
-    // 1h period guarantees the callback never fires within the test.
+    // The 1h period guarantees the callback never fires within the test.
     const handle = clock.setInterval(() => fired++, 3_600_000);
     // The handle must mirror the host timer so periodic sweepers can `.unref()`
-    // it (design § Collaborator Surfaces — a load-bearing contract for the
-    // service idle-session/TTL reapers).
+    // it (design § Collaborator Surfaces). This contract is load-bearing for
+    // the idle-session and TTL reapers in the services.
     assert.strictEqual(typeof handle.unref, "function");
     handle.unref();
     clock.clearInterval(handle);
     assert.strictEqual(fired, 0);
   });
 
-  test("subprocess.run echoes via a real binary", async () => {
+  test("subprocess.run echoes through a real binary", async () => {
     const sub = createDefaultSubprocess();
     const result = await sub.run("node", ["-e", "process.stdout.write('hi')"]);
     assert.strictEqual(result.stdout, "hi");
@@ -139,7 +143,7 @@ describe("createDefaultClock / createDefaultSubprocess", () => {
     assert.notStrictEqual(result.exitCode, 0);
   });
 
-  test("subprocess.runSync echoes via a real binary", () => {
+  test("subprocess.runSync echoes through a real binary", () => {
     const sub = createDefaultSubprocess();
     const result = sub.runSync("node", ["-e", "process.stdout.write('hi')"]);
     assert.strictEqual(result.stdout, "hi");
@@ -160,9 +164,9 @@ describe("createDefaultClock / createDefaultSubprocess", () => {
     assert.strictEqual(result.exitCode, 127);
   });
 
-  test("subprocess.spawn resolves exitCode 127 on spawn failure without crashing", async () => {
-    // Regression: a spawn failure (ENOENT) emits a child `error` event; with
-    // no listener Node rethrows it as an uncaughtException and crashes the
+  test("subprocess.spawn resolves exitCode 127 on spawn failure and does not crash", async () => {
+    // Regression: a spawn failure (ENOENT) emits a child `error` event. With
+    // no listener, Node rethrows it as an uncaughtException and crashes the
     // process. The wrapper must resolve a 127 exit code instead.
     const sub = createDefaultSubprocess();
     const child = sub.spawn("definitely-not-a-real-binary-xyz", []);
@@ -173,11 +177,11 @@ describe("createDefaultClock / createDefaultSubprocess", () => {
 });
 
 describe("createMockClock interval surface", () => {
-  test("setInterval returns an unref-able handle; clearInterval stops it", () => {
+  test("setInterval returns an unref-able handle and clearInterval stops it", () => {
     const clock = createMockClock();
     let fired = 0;
     const handle = clock.setInterval(() => fired++, 3_600_000);
-    // The fake delegates to the host timer (matching createDefaultClock), so a
+    // The fake delegates to the host timer, like createDefaultClock. So a
     // migrated sweeper injected with createMockClock keeps the `.unref()` seam.
     assert.strictEqual(typeof handle.unref, "function");
     handle.unref();

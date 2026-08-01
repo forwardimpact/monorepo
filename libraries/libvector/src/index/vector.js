@@ -2,7 +2,7 @@ import { resource } from "@forwardimpact/libtype";
 import { IndexBase } from "@forwardimpact/libindex";
 
 /**
- * VectorIndex class for managing vector data with lazy loading
+ * The VectorIndex class manages vector data. It loads the data on demand.
  * @implements {import("@forwardimpact/libindex").IndexInterface}
  */
 export class VectorIndex extends IndexBase {
@@ -23,7 +23,7 @@ export class VectorIndex extends IndexBase {
   }
 
   /**
-   * Queries items from this vector index using cosine similarity
+   * Queries items from this vector index with cosine similarity
    * @param {number[][]} vectors - Query vectors
    * @param {import("@forwardimpact/libtype").tool.QueryFilter} filter - Filter object for query constraints
    * @returns {Promise<resource.Identifier[]>} Array of resource identifiers sorted by score
@@ -63,7 +63,8 @@ export class VectorIndex extends IndexBase {
 }
 
 /**
- * Dot product calculation with loop unrolling (cosine similarity for normalized vectors)
+ * Calculates the dot product with an unrolled loop (cosine similarity
+ * for normalized vectors)
  * @param {number[]} a - First vector
  * @param {number[]} b - Second vector
  * @param {number} [length] - Length of vectors (defaults to a.length)

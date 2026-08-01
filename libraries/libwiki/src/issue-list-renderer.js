@@ -3,10 +3,11 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { sanitizeCrossingField, sanitizeTitle } from "./sanitize.js";
 
 /**
- * Thrown when the tracker query for the agent-experiments materialization fails
- * (non-zero exit or unparseable JSON). Distinct from returning `[]` so the
- * refresh command can keep the previously materialized block instead of wiping
- * the routing surface when the tracker is briefly unavailable.
+ * `renderAgentExperiments` throws this when the tracker query for the
+ * agent-experiments materialization fails (non-zero exit or unparseable JSON).
+ * This error differs from a `[]` return. It lets the refresh command keep the
+ * previously materialized block when the tracker is briefly unavailable. The
+ * command does not wipe the routing surface.
  */
 export class TrackerQueryError extends Error {
   /** @param {string} reason */
@@ -18,7 +19,12 @@ export class TrackerQueryError extends Error {
 
 const AGENT_LABEL_RE = /^agent:([a-z][a-z-]*)$/;
 
-/** Parse `owner/repo` from a git origin URL. Tolerates http(s), ssh, and proxy-rewritten URLs (e.g. `http://host/git/owner/repo`) by taking the last two path segments after stripping `.git`. Returns null when nothing parseable is found. */
+/**
+ * Parse `owner/repo` from a git origin URL. Tolerates http(s), ssh, and
+ * proxy-rewritten URLs (e.g. `http://host/git/owner/repo`). It strips `.git`.
+ * Then it takes the last two path segments. Returns null when it finds nothing
+ * parseable.
+ */
 export function parseRepoSlug(originUrl) {
   if (!originUrl) return null;
   const stripped = originUrl.trim().replace(/\.git$/, "");
@@ -29,11 +35,12 @@ export function parseRepoSlug(originUrl) {
 
 /**
  * Render an issue-list block for an obstacles/experiments marker. Returns
- * markdown lines. `cwd` should be the parent monorepo's project root so `gh`
- * resolves the correct origin; `repo` is an explicit `owner/name` slug used when
- * the origin remote is unparseable by `gh` (e.g. sandbox proxy URLs); `token`
- * is the resolved GH token (e.g. via `Config.ghToken()`). The `gh` command runs
- * through `runtime.subprocess`, and stderr warnings through `runtime.proc`.
+ * markdown lines. Set `cwd` to the parent monorepo's project root so `gh`
+ * resolves the correct origin. `repo` is an explicit `owner/name` slug. Use it
+ * when `gh` cannot parse the origin remote (e.g. sandbox proxy URLs). `token`
+ * is the resolved GH token (e.g. through `Config.ghToken()`). The `gh` command
+ * runs through `runtime.subprocess`. Stderr warnings run through
+ * `runtime.proc`.
  *
  * @param {object} options
  * @param {string} options.topic
@@ -107,12 +114,13 @@ export async function renderIssueList({
 }
 
 /**
- * Render the attributed per-agent experiments surface. Fetches open
- * issues labeled `experiment`, keeps only those also carrying an
- * `agent:{name}` label, and emits one sanitized, body-free line per issue:
- * `- #<number> [<agent>] <title> (by <author>)`. Issue bodies are never read.
- * Throws {@link TrackerQueryError} on tracker failure so the caller can keep the
- * previously materialized block; never returns `[]` on failure.
+ * Render the attributed per-agent experiments surface. Fetches open issues
+ * labeled `experiment`. Keeps only the issues that also carry an
+ * `agent:{name}` label. Emits one sanitized, body-free line per issue:
+ * `- #<number> [<agent>] <title> (by <author>)`. This function never reads
+ * issue bodies. Throws {@link TrackerQueryError} on tracker failure so the
+ * caller can keep the previously materialized block. Never returns `[]` on
+ * failure.
  *
  * @param {object} options
  * @param {string} options.cwd

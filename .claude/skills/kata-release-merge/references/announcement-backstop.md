@@ -17,7 +17,7 @@ exists before any merge, and it does not depend on author adherence.
 
 **Self-heal, never block**: a missing announcement is mechanical. A block would
 cost a full dispatch cycle (gate fails → author's next run announces →
-re-gate) for a comment the gate can post in seconds. Reserve the block for
+re-gate). The gate can post that comment in seconds. Reserve the block for
 gates that need judgment: trust, approval, and unresolved human concerns.
 
 ## Detect the Coordinating Issue

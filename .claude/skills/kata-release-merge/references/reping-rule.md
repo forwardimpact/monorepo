@@ -12,9 +12,9 @@ The named **Re-ping Rule** has three parameters:
 - **Window** — a **3 calendar-day** silence window.
 - **Trigger** — **fires on every release-merge run**, scheduled sweep and
   on-demand single-PR run alike (SKILL.md § When to Use).
-- **Reset** — each re-ping **resets the window** from its own timestamp, so the
-  next re-ping on the same PR is no sooner than 3 calendar days later. The rule
-  limits itself to once per window per PR. No comment-storm results.
+- **Reset** — each re-ping **resets the window** from its own timestamp. The
+  next re-ping on the same PR is then no sooner than 3 calendar days later. The
+  rule limits itself to once per window per PR. No comment-storm results.
 
 ## Candidate set
 
@@ -47,8 +47,8 @@ silently.
 - Most-recent bot comment **within 3 calendar days** → **not due**. Skip it.
   That window covers the first-block comment Steps 2–8 just posted.
 
-When a PR is due, post the re-ping variant that matches, from
-[`templates.md`](templates.md) § Re-ping Comments for the PR's block reason
+When a PR is due, go to [`templates.md`](templates.md) § Re-ping Comments. Post
+the re-ping variant for the PR's block reason
 **already computed in this run's Steps 2–8**. Do not re-run the gates. Do not
 re-`read` the change's CI checks
 ([work-trackers.md](../../../agents/x-work-trackers.md)). The failed checks

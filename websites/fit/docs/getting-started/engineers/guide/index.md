@@ -1,6 +1,6 @@
 ---
 title: "Getting Started: Guide for Engineers"
-description: "Set up the AI agent that understands your agent-aligned engineering standard — onboarding, career advice, skill assessment, and contextual help."
+description: "Set up the AI agent that understands your agent-aligned engineering standard: onboarding, career advice, skill assessment, and contextual help."
 ---
 
 Guide is a conversational AI agent that understands your organization's
@@ -35,7 +35,7 @@ The `--init` step generates:
 
 ## Configure credentials
 
-Guide runs on the Anthropic API. Authenticate using one of:
+Guide runs on the Anthropic API. Authenticate with one of these:
 
 ```sh
 npx fit-guide --login     # OAuth PKCE flow (recommended)
@@ -46,7 +46,7 @@ startup and reports if they are missing.
 
 ## Process data
 
-Before starting the services, process the standard data into the indexes that
+Before you start the services, process the standard data into the indexes that
 Guide's services read at runtime:
 
 ```sh
@@ -64,8 +64,8 @@ npx fit-rc start          # provided by @forwardimpact/librc
 ```
 
 This supervises all required microservices (trace, vector, graph, pathway, map,
-mcp) in dependency order. Configuration and secrets are read automatically from
-`.env`. Stop them with `npx fit-rc stop`.
+mcp) in dependency order. `fit-rc` reads configuration and secrets automatically
+from `.env`. Stop them with `npx fit-rc stop`.
 
 ## Usage
 
@@ -96,7 +96,7 @@ Leadership to close the gap to Level II.
 ```
 
 Guide reasons about your organization's specific skill definitions, behaviour
-expectations, and markers — not generic career advice.
+expectations, and markers. It does not give generic career advice.
 
 ---
 
@@ -104,8 +104,8 @@ expectations, and markers — not generic career advice.
 
 ### Configuration errors on startup
 
-Guide validates configuration before connecting. If you see errors about missing
-`ANTHROPIC_API_KEY` or `MCP_TOKEN`, check that:
+Guide validates configuration before it connects. If you see errors about
+missing `ANTHROPIC_API_KEY` or `MCP_TOKEN`, check that:
 
 1. You ran `npx fit-guide --init` (creates `.env` with `MCP_TOKEN`)
 2. You ran `npx fit-guide --login` or set `ANTHROPIC_API_KEY` in `.env`
@@ -117,8 +117,8 @@ Run `npx fit-guide --login` to authenticate with Anthropic, or set
 
 ### Data not found
 
-If Guide cannot answer questions, the knowledge indexes may not be populated.
-Run the processing pipeline:
+If Guide cannot answer questions, the knowledge indexes may be empty. Run the
+pipeline that processes the data:
 
 ```sh
 npx fit-process resources
@@ -129,7 +129,7 @@ Then restart the services.
 
 ### MCP endpoint unreachable
 
-Verify the MCP service is running. Check `npx fit-guide --status` for health
+Verify the MCP service runs. Check `npx fit-guide --status` for health
 information, then restart the services:
 
 ```sh
@@ -138,7 +138,7 @@ npx fit-rc stop && npx fit-rc start
 
 ### Missing module errors after install
 
-Run code generation first — Guide depends on generated gRPC clients:
+Run code generation first. Guide depends on generated gRPC clients:
 
 ```sh
 npx fit-codegen generate --all
@@ -146,15 +146,15 @@ npx fit-codegen generate --all
 
 ### Service startup failures
 
-Check service logs for the failing service:
+Check the logs for the service that fails:
 
 ```sh
 npx fit-rc status                 # Identify the failing service
 npx fit-rc logs <service>         # Print its current log (example: npx fit-rc logs trace)
 ```
 
-Each microservice writes to `data/logs/{service}/current`. Common causes are
-missing environment variables or port conflicts.
+Each microservice writes to `data/logs/{service}/current`. Common causes are an
+absent environment variable or a port conflict.
 
 ---
 

@@ -2,8 +2,8 @@ import { join } from "node:path";
 import Mustache from "mustache";
 
 /**
- * Template loader with two-tier resolution and Mustache rendering.
- * Follows constructor dependency injection pattern.
+ * The loader resolves a template in two tiers. It renders the template with
+ * Mustache. It follows the constructor dependency-injection pattern.
  *
  * Resolution order:
  * 1. {dataDir}/templates/{name} — user customization
@@ -49,7 +49,7 @@ export class TemplateLoader {
   }
 
   /**
-   * Load and render a template with Mustache templating.
+   * Load a template and render it with Mustache.
    * @param {string} name - Template filename (e.g. 'agent.template.md')
    * @param {object} data - Data to render into the template
    * @param {string} [dataDir] - Optional data directory for user overrides
@@ -63,15 +63,15 @@ export class TemplateLoader {
   /**
    * Load and render a template that references Mustache partials.
    *
-   * Each partial is resolved through the same two-tier fallback as the main
-   * template, so users can override individual partials by dropping a file at
-   * `{dataDir}/templates/{partialName}`. Missing partials raise the same
-   * `Template '...' not found` error that {@link TemplateLoader#load} does.
+   * The loader resolves each partial through the same two-tier fallback as
+   * the main template. So a user can override one partial with a file at
+   * `{dataDir}/templates/{partialName}`. A partial that does not exist raises
+   * the same `Template '...' not found` error as {@link TemplateLoader#load}.
    *
    * @param {string} name - Main template filename
    * @param {object} data - Data to render into the template
-   * @param {string[]} partialNames - Filenames of partials referenced by the
-   *   main template via `{{> partialName}}`
+   * @param {string[]} partialNames - Filenames of the partials that the main
+   *   template references with `{{> partialName}}`
    * @param {string} [dataDir] - Optional data directory for user overrides
    * @returns {string} Rendered template content
    */

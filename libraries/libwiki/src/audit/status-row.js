@@ -1,7 +1,7 @@
 import { STATUS_ID_REGEX } from "../status.js";
 
-// Validate every row inside wiki/STATUS.md's code fence. Rows are resolved by
-// the `status-row` scope in scopes.js; each subject carries
+// Validate every row inside wiki/STATUS.md's code fence. The `status-row`
+// scope in scopes.js resolves the rows. Each subject carries
 // `{ cells, id, phase, status, kind, text }`. Two row kinds share the fence:
 //
 //   spec        `{id}<TAB>{phase}<TAB>{status}` — three cells
@@ -40,7 +40,7 @@ export const STATUS_ROW_RULES = [
     when: hasThreeCells,
     check: (s) => (STATUS_ID_REGEX.test(s.id) ? null : { id: s.id }),
     message: (_s, r) => `Bad id '${r.id}' (expected ^\\d{4}(/[a-z0-9-]+)?$)`,
-    hint: "spec ids are four digits; a sub-row appends `/<unit>` (e.g. 1370/libutil)",
+    hint: "spec ids are four digits. a sub-row appends `/<unit>` (e.g. 1370/libutil)",
   },
   {
     id: "status-row.phase",
@@ -73,11 +73,10 @@ export const STATUS_ROW_RULES = [
     hint: "each experiment row is `exp:{issue}<TAB>{state}<TAB>{pin}<TAB>{plan-ref}`",
   },
   {
-    // An experiment-kind row is classified by its `exp:` id prefix
-    // (scopes.js), so the spec `id-format` rule is skipped for it; this rule
-    // enforces the `exp:\d+` id so a non-numeric issue (e.g. `exp:abc`) flags
-    // rather than auditing clean — keeping the audit aligned with
-    // STATUS_ID_REGEX / parseStatusRowId.
+    // scopes.js classifies an experiment-kind row by its `exp:` id prefix, so
+    // the spec `id-format` rule skips it. This rule enforces the `exp:\d+` id,
+    // so a non-numeric issue (e.g. `exp:abc`) flags and does not audit clean.
+    // That keeps the audit aligned with STATUS_ID_REGEX / parseStatusRowId.
     id: "status-row.exp-id-format",
     scope: "status-row",
     severity: "fail",
@@ -101,10 +100,10 @@ export const STATUS_ROW_RULES = [
     scope: "status-row",
     severity: "fail",
     when: hasFourCells,
-    // The pin is decidable per state, with no "ever approved" inference: a
-    // `registered` row has no pin (`-`); an `approved` row pins the 40-hex
-    // head; a `cancelled` row may carry the retained pin or `-` (it may or may
-    // not have been approved before cancellation), so both are accepted.
+    // The pin is decidable per state, with no "ever approved" inference. A
+    // `registered` row has no pin (`-`). An `approved` row pins the 40-hex
+    // head. A `cancelled` row may carry the retained pin or `-`, because it
+    // may or may not pass through `approved` first. So the check accepts both.
     check: (s) => {
       const [, state, pin] = s.cells;
       if (state === "registered") {
@@ -118,11 +117,11 @@ export const STATUS_ROW_RULES = [
           ? null
           : { state, pin, want: "`-` or a 40-hex SHA" };
       }
-      return null; // bad state already flagged by exp-state
+      return null; // exp-state already flags a bad state
     },
     message: (_s, r) =>
       `Bad pin '${r.pin}' for state '${r.state}' (expected ${r.want})`,
-    hint: "registered pins `-`; approved pins a 40-hex SHA; cancelled pins either",
+    hint: "registered pins `-`, approved pins a 40-hex SHA, and cancelled pins either",
   },
   {
     id: "status-row.exp-planref",
@@ -131,6 +130,6 @@ export const STATUS_ROW_RULES = [
     when: hasFourCells,
     check: (s) => (/^#\d+$/.test(s.cells[3]) ? null : { planRef: s.cells[3] }),
     message: (_s, r) => `Bad plan-ref '${r.planRef}' (expected #NNN)`,
-    hint: "the plan-ref names the issue carrying the execution plan, e.g. #NNN",
+    hint: "the plan-ref names the issue that carries the execution plan, e.g. #NNN",
   },
 ];

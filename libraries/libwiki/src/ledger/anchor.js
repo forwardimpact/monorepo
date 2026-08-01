@@ -13,11 +13,11 @@
  * ```
  * ```
  *
- * The block is parsed by structure, not by a general YAML engine, so libwiki
- * adds no parser dependency. `kind` is one of `occ`, `nm`, `fold`, `meta`;
- * `ids` is a list of display labels; `event` is the durable key (a SHA or a
- * prior anchor id); `note` is free text. The durable key is `event`; labels are
- * display only, so relabeling is lossless.
+ * The parser reads the block by structure. It does not use a general YAML
+ * engine, so libwiki adds no parser dependency. `kind` is one of `occ`, `nm`,
+ * `fold`, `meta`. `ids` is a list of display labels. `event` is the durable
+ * key (a SHA or a prior anchor id). `note` is free text. The durable key is
+ * `event`. Labels are display only, so a relabel loses nothing.
  */
 
 const FENCE_OPEN = "```yaml alloc";
@@ -59,7 +59,7 @@ export function parseAnchor(body) {
 }
 
 /**
- * Render the canonical anchor body for posting.
+ * Render the canonical anchor body to post.
  *
  * @param {{kind: string, ids: string[], event: string, note?: string}} anchor
  * @returns {string}

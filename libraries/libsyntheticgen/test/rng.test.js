@@ -149,7 +149,7 @@ describe("createSeededRNG", () => {
       }
     });
 
-    test("respects heavy weighting", () => {
+    test("respects heavy weights", () => {
       const rng = createSeededRNG(42);
       // Weight index 2 very heavily
       const weights = [1, 1, 1000];
@@ -191,7 +191,7 @@ describe("createSeededRNG", () => {
         rng.gaussian(mean, std),
       );
       const avg = values.reduce((s, v) => s + v, 0) / values.length;
-      // Average should be reasonably close to mean
+      // The average should be reasonably close to the mean
       assert.ok(
         Math.abs(avg - mean) < 3,
         `Average ${avg} too far from mean ${mean}`,
@@ -228,7 +228,7 @@ describe("createSeededRNG", () => {
       const values = Array.from({ length: 500 }, () => rng.gaussian(100, 5));
       const min = Math.min(...values);
       const max = Math.max(...values);
-      // Should be roughly within 100 +/- 25 (5 sigma)
+      // The values should be roughly within 100 +/- 25 (5 sigma)
       assert.ok(min > 70, `Min ${min} too low for mean=100, std=5`);
       assert.ok(max < 130, `Max ${max} too high for mean=100, std=5`);
     });

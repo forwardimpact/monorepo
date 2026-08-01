@@ -3,8 +3,8 @@ import { SESSION_GAP_MS } from "./constants.js";
 import { isLaneFile, enumerateLaneFiles } from "./lane-files.js";
 
 /**
- * Normalize a content line for content-keyed presence: strip a trailing CR and
- * trailing whitespace. Blank lines normalize to "" and are dropped by callers.
+ * Normalize a content line for content-keyed presence. Strip a trailing CR and
+ * trailing whitespace. A blank line normalizes to "". Callers drop it.
  * @param {string} line
  * @returns {string}
  */
@@ -13,10 +13,10 @@ export function normLine(line) {
 }
 
 /**
- * Parse `git diff --unified=0` text into per-file change records, attributing
+ * Parse `git diff --unified=0` text into per-file change records. Attribute
  * each `+`/`-` line to the file named by the most recent `+++ b/<path>` header.
- * The `+++`/`---`/`@@` framing lines are not content. `/dev/null` targets
- * (pure deletions) are kept as the home for their removed lines.
+ * The `+++`/`---`/`@@` framing lines are not content. The parser keeps
+ * `/dev/null` targets (pure deletions) as the home for their removed lines.
  * @param {string} diffText
  * @returns {Array<{home: string, added: string[], removed: string[]}>}
  */
@@ -38,7 +38,7 @@ export function parseDiff(diffText) {
   return [...byHome.values()];
 }
 
-/** Whether a diff line is framing (`---`, `@@`, `diff`, `index`) rather than content. */
+/** Whether a diff line is framing (`---`, `@@`, `diff`, `index`) and carries no content. */
 function isDiffFraming(raw) {
   return (
     raw.startsWith("--- ") ||
@@ -48,7 +48,7 @@ function isDiffFraming(raw) {
   );
 }
 
-/** Strip a diff target's `a/`/`b/` prefix; `/dev/null` stays as-is. */
+/** Strip a diff target's `a/`/`b/` prefix. `/dev/null` stays as-is. */
 function stripDiffTarget(target) {
   const t = target.trim();
   if (t === "/dev/null") return t;
@@ -57,10 +57,11 @@ function stripDiffTarget(target) {
 
 /**
  * Compose a window of change records (oldest→newest) into the surviving
- * addition assertions, then return those absent from the tip. Content-keyed on
- * `norm(line)`: a later own-lane deletion of an earlier-added line cancels its
- * assertion (additions-only, own-deletions cancel). A surviving assertion is
- * present iff its normalized line appears anywhere in `tipText`.
+ * addition assertions. Then return those absent from the tip. The composition
+ * is content-keyed on `norm(line)`. A later own-lane deletion of an
+ * earlier-added line cancels its assertion (additions-only, own-deletions
+ * cancel). A surviving assertion is present iff its normalized line appears
+ * anywhere in `tipText`.
  *
  * @param {Array<{home: string, added: string[], removed: string[]}>} changes
  *   Window changes, oldest→newest.
@@ -108,10 +109,10 @@ function normalizedKeySet(text, norm) {
 
 /**
  * Resolve the previous-session push set from lane-authored commits (newest
- * first) by idle-gap. Tier 2 runs at boot before the current session has
- * pushed, so the most recent contiguous run is the previous session. Vacuous
- * only for empty history; the degenerate (content-unresolvable) case is raised
- * by {@link sweepTier2}, not here.
+ * first) by idle-gap. Tier 2 runs at boot before the current session pushes,
+ * so the most recent contiguous run is the previous session. The result is
+ * vacuous only for empty history. {@link sweepTier2} raises the degenerate
+ * (content-unresolvable) case. This function does not raise it.
  *
  * @param {Array<{sha: string, when: number}>} commits - Newest first.
  * @param {number} gapMs - Idle-gap threshold (ms).
@@ -121,7 +122,7 @@ export function previousSessionWindow(commits, gapMs) {
   if (commits.length === 0) return { kind: "vacuous" };
   const tipRun = [commits[0]];
   for (let i = 1; i < commits.length; i++) {
-    // commits are newest-first; `when` is seconds, gap threshold is ms.
+    // commits are newest-first. `when` is seconds. The gap threshold is ms.
     const gap = (commits[i - 1].when - commits[i].when) * 1000;
     if (gap > gapMs) break;
     tipRun.push(commits[i]);
@@ -130,8 +131,8 @@ export function previousSessionWindow(commits, gapMs) {
 }
 
 /**
- * Build a detection record. `detectedAt` is the binding wall-clock stamp (ISO);
- * an exposure figure derived from commit timestamps carries the labeled
+ * Build a detection record. `detectedAt` is the binding wall-clock stamp
+ * (ISO). An exposure figure derived from commit timestamps carries the labeled
  * `commit-timestamp` fallback basis.
  *
  * @param {object} d
@@ -166,8 +167,9 @@ export function makeDetection({
 
 /**
  * Render detections to flow output text. Empty input renders the empty string
- * (clean-path silence). One line per detection naming tier, push-time home, and
- * content identity; exposure (when present) is labeled with its fallback basis.
+ * (clean-path silence). Each detection gets one line that names the tier, the
+ * push-time home, and the content identity. The line labels exposure with its
+ * fallback basis when exposure is present.
  * @param {object[]} detections
  * @returns {string}
  */
@@ -186,10 +188,10 @@ export function renderDetections(detections) {
 }
 
 /**
- * Tier-2 boot sweep: verify the lane's previous-session push set is still
- * content-present at the fetched (rebased) origin tip, returning detections for
+ * Tier-2 boot sweep. Verify the lane's previous-session push set is still
+ * content-present at the fetched (rebased) origin tip. Return detections for
  * any absence. Reads git and lane files from `wikiDir` (the rebased tree).
- * Never writes, never throws into the flow (the caller wraps it).
+ * Never writes. Never throws into the flow (the caller wraps it).
  *
  * @param {object} ctx
  * @param {import('@forwardimpact/libutil/runtime').Runtime} ctx.runtime
@@ -202,7 +204,7 @@ export function renderDetections(detections) {
 export async function sweepTier2({ runtime, gitClient, wikiDir, agent, now }) {
   const email = await gitClient.configGet("user.email", { cwd: wikiDir });
   if (!email) {
-    // Lane identity unresolvable — never a silent vacuous pass.
+    // Lane identity unresolvable. Never a silent vacuous pass.
     return [
       makeDetection({
         tier: 2,
@@ -221,7 +223,7 @@ export async function sweepTier2({ runtime, gitClient, wikiDir, agent, now }) {
 
   const detections = [];
   const changes = [];
-  // Oldest→newest so own-deletion cancellation composes in commit order.
+  // Oldest→newest so own-deletions cancel in commit order.
   const ordered = [...window.commits].reverse();
   for (const commit of ordered) {
     const diff = await gitClient.diffRange(`${commit.sha}~1 ${commit.sha}`, {
@@ -250,7 +252,7 @@ export async function sweepTier2({ runtime, gitClient, wikiDir, agent, now }) {
 
   for (const absent of findAbsent(changes, tipText, normLine)) {
     // Exposure runs from the LAST window commit that added this exact line
-    // (its most recent assertion at origin), not merely a same-home commit.
+    // (its most recent assertion at origin). A same-home commit does not count.
     const when = lastAssertionTime(changes, absent.contentId);
     const exposureSeconds =
       when != null ? Math.round(now / 1000 - when) : undefined;

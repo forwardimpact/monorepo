@@ -1,8 +1,8 @@
 import { extractAttributes } from "./attributes.js";
 
 /**
- * Observer class that unifies logging and tracing for RPC operations
- * Coordinates span lifecycle and automatic span events
+ * Observer class that unifies the logger and the tracer for RPC operations
+ * Coordinates the span lifecycle and automatic span events
  */
 export class Observer {
   #logger;
@@ -60,7 +60,7 @@ export class Observer {
         );
       }
 
-      // Fallback without tracing
+      // Fall back when no tracer exists
       const response = await callFn();
       this.#logEvent(methodName, "Response received", response);
 
@@ -92,7 +92,7 @@ export class Observer {
         );
       }
 
-      // Fallback without tracing
+      // Fall back when no tracer exists
       return callFn();
     } catch (error) {
       this.#logger?.exception(methodName, error);
@@ -104,7 +104,7 @@ export class Observer {
    * Observes a server RPC handler (incoming)
    * @param {string} methodName - RPC method name
    * @param {object} call - gRPC call object with metadata and request
-   * @param {Function} handlerFn - Business logic handler function
+   * @param {Function} handlerFn - Handler function for the business logic
    * @returns {Promise<object>} Response object
    */
   async observeServerUnaryCall(methodName, call, handlerFn) {
@@ -121,7 +121,7 @@ export class Observer {
         );
       }
 
-      // Fallback without tracing
+      // Fall back when no tracer exists
       const response = await handlerFn(call);
       this.#logEvent(methodName, "Response sent", response);
 
@@ -136,7 +136,7 @@ export class Observer {
    * Observes a server streaming RPC handler (incoming)
    * @param {string} methodName - RPC method name
    * @param {object} call - gRPC call object with metadata and request
-   * @param {Function} handlerFn - Business logic handler function
+   * @param {Function} handlerFn - Handler function for the business logic
    * @returns {Promise<void>}
    */
   async observeServerStreamingCall(methodName, call, handlerFn) {
@@ -152,7 +152,7 @@ export class Observer {
           this.#logger,
         );
       } else {
-        // Fallback without tracing
+        // Fall back when no tracer exists
         await handlerFn(call);
       }
 
@@ -174,7 +174,7 @@ export class Observer {
     if (!this.#logger || !this.#logger.enabled) return;
     const attributes = extractAttributes(data);
 
-    // Resource ID has special meaning for tracing and therefore not part of
+    // Resource ID has a special meaning for tracing, so it is not part of the
     // common attributes. Add it explicitly if present.
     if (data?.resource_id) attributes["resource_id"] = data.resource_id;
 

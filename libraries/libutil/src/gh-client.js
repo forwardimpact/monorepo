@@ -1,5 +1,5 @@
 /**
- * Error thrown when a `gh` subcommand exits non-zero.
+ * The client throws this error when a `gh` subcommand exits non-zero.
  */
 export class GhError extends Error {
   /**
@@ -18,9 +18,9 @@ export class GhError extends Error {
 }
 
 /**
- * Typed wrapper over the `gh` CLI. Shelling-out flows through the injected
- * `runtime.subprocess` so callers never import `node:child_process` and tests
- * inject `createMockSubprocess`.
+ * Typed wrapper over the `gh` CLI. Every subprocess call goes through the
+ * injected `runtime.subprocess`. So callers never import `node:child_process`.
+ * Tests inject `createMockSubprocess`.
  */
 export class GhClient {
   #runtime;
@@ -50,18 +50,18 @@ export class GhClient {
     return this.#run(["pr", "merge", String(number), `--${method}`], { cwd });
   }
 
-  /** GET an API path; returns parsed JSON. */
+  /** GET an API path. Returns parsed JSON. */
   async apiGet(path, { cwd } = {}) {
     const result = await this.#run(["api", path], { cwd });
     return result.stdout.trim() ? JSON.parse(result.stdout) : null;
   }
 
   /**
-   * GET every page of a paginated API `path`. Uses `gh api --paginate --slurp`,
-   * which wraps the per-page response arrays in one outer JSON array of pages;
-   * this parses that once and flattens it into a single array, avoiding the
-   * concatenated-but-separate-documents shape a bare `--paginate` produces.
-   * Returns `[]` when the response is empty.
+   * GET every page of a paginated API `path`. Uses `gh api --paginate --slurp`.
+   * That flag wraps the per-page response arrays in one outer JSON array of
+   * pages. This method parses that array once. It then flattens the array into
+   * a single array. It avoids the concatenated-but-separate-documents shape a
+   * bare `--paginate` produces. Returns `[]` when the response is empty.
    */
   async apiGetPaginated(path, { cwd } = {}) {
     const result = await this.#run(["api", "--paginate", "--slurp", path], {
@@ -72,7 +72,7 @@ export class GhClient {
     return Array.isArray(pages) ? pages.flat() : pages;
   }
 
-  /** POST to an API path with `fields`; returns parsed JSON. */
+  /** POST to an API path with `fields`. Returns parsed JSON. */
   async apiPost(path, fields = {}, { cwd } = {}) {
     const args = ["api", "--method", "POST", path];
     for (const [k, v] of Object.entries(fields)) {

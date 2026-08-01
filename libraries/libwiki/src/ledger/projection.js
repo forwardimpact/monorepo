@@ -1,16 +1,18 @@
 /**
- * Fold the ordered allocation-anchor sequence into id assignments and render
- * the two derived projections — the ledger page body and the MEMORY
- * cross-cutting row. The anchor record is authoritative; these projections hold
- * no sole-copy state and are rebuildable from it, so erasure of a projection is
- * a cache miss repaired by rebuild, not a loss event.
+ * Fold the ordered allocation-anchor sequence into id assignments. Then render
+ * the two derived projections: the ledger page body and the MEMORY
+ * cross-cutting row. The anchor record is authoritative. These projections
+ * hold no sole-copy state, and a rebuild recreates them from the record. So an
+ * erased projection is a cache miss that a rebuild repairs. It is not a loss
+ * event.
  *
- * Identity is the `event` key; labels are display output, so a double-allocation
- * resolves first-published-wins and the loser is re-labeled without losing any
- * record. The labeling policy is a `labelMode` parameter: `renumber` (the
- * default, matching the team's established convention) keeps the labels dense
- * and re-mints the loser at the next free index; `gapped` leaves a gap so a
- * label never moves. Both are supported; neither is forced.
+ * Identity is the `event` key. Labels are display output. So a
+ * double-allocation resolves first-published-wins. The loser takes a new
+ * label, and no record is lost. The `labelMode` parameter sets the label
+ * policy. `renumber` is the default and matches the team's established
+ * convention. It keeps the labels dense and re-mints the loser at the next
+ * free index. `gapped` leaves a gap so a label never moves. The code supports
+ * both. It forces neither.
  */
 
 /**
@@ -37,7 +39,7 @@ export function foldAnchors(anchors) {
         assignments.set(label, record);
         continue;
       }
-      // existing was published earlier (anchors are id-ordered): it wins.
+      // the existing record is older (anchors are id-ordered), so it wins.
       if (!contested.has(label)) contested.set(label, []);
       contested.get(label).push(record);
     }
@@ -51,13 +53,13 @@ export function foldAnchors(anchors) {
 }
 
 /**
- * Render the ledger page body from a fold. Entries are grouped by kind and
- * ordered by their winning anchor's id. Authored prose carried by
- * `<!-- anchor:ID -->`-cited blocks is re-emitted in anchor-id order; a cited
- * anchor that does not exist is reported in the returned `missingProse` list,
- * never silently dropped. `labelMode` selects the loser re-mint guidance for a
- * double-allocation: `renumber` (default) re-mints at the next free index,
- * `gapped` leaves the loser's index as a gap.
+ * Render the ledger page body from a fold. The renderer groups entries by kind
+ * and orders them by the id of the anchor that won. It re-emits authored prose
+ * from `<!-- anchor:ID -->`-cited blocks in anchor-id order. The returned
+ * `missingProse` list names any cited anchor that does not exist. The renderer
+ * never drops one silently. `labelMode` selects the re-mint guidance for the
+ * loser of a double-allocation. `renumber` (default) re-mints at the next free
+ * index. `gapped` leaves the loser's index as a gap.
  *
  * @param {{assignments: Map, conflicts: Array}} fold
  * @param {Array<{anchorId: number, text: string}>} [prose] - Anchor-cited prose blocks.
@@ -72,7 +74,7 @@ export function renderLedgerPage(
   const lines = [
     "# Parallel-Collision Ledger",
     "",
-    "Derived projection of the allocation-anchor record. Rebuilt by `gemba-wiki ledger rebuild`; do not hand-edit identifiers here — allocate at an anchor.",
+    "Derived projection of the allocation-anchor record. `gemba-wiki ledger rebuild` rebuilds it. Do not hand-edit identifiers here. Allocate at an anchor.",
     "",
     ...renderKindSections(fold),
     ...renderConflicts(fold, labelMode),
@@ -123,8 +125,8 @@ function renderConflicts(fold, labelMode) {
 
 /**
  * Extract `<!-- anchor:ID -->`-cited prose blocks from an existing ledger-page
- * body so a rebuild re-emits them rather than dropping them. Each block runs
- * from its citation marker to the next marker or end of input.
+ * body so a rebuild re-emits them. A rebuild does not drop them. Each block
+ * runs from its citation marker to the next marker or end of input.
  *
  * @param {string} pageBody - The current ledger-page text.
  * @returns {Array<{anchorId: number, text: string}>}
@@ -160,8 +162,8 @@ function appendProse(lines, fold, prose) {
 }
 
 /**
- * Render the MEMORY cross-cutting row counters from a fold: next-free index per
- * kind, plus the total assigned count.
+ * Render the MEMORY cross-cutting row counters from a fold. The counters are
+ * the next-free index per kind, plus the total assigned count.
  *
  * @param {{assignments: Map}} fold
  * @returns {string}
@@ -176,7 +178,7 @@ export function renderMemoryRow(fold) {
   return (
     `Parallel-collision allocation (derived from the anchor record): ` +
     `${fold.assignments.size} ids assigned; next free #${next.occ}, NM${next.nm}, ` +
-    `n=${next.fold}, M${next.meta}. Allocate at an anchor, never by editing this row.`
+    `n=${next.fold}, M${next.meta}. Allocate at an anchor. Never allocate by editing this row.`
   );
 }
 
@@ -188,11 +190,12 @@ const MEMORY_REGION_RE = new RegExp(
 
 /**
  * Write the derived MEMORY-row counters into a delimited region of a MEMORY.md
- * body, so the row is a rebuildable projection of the anchor record
- * without overwriting the surrounding authored narrative. The region is the
- * only sole-copy-free surface: its interior is fully regenerated, everything
- * outside it is preserved byte-for-byte. If the region is absent it is appended
- * under a heading; if present, only its interior is replaced.
+ * body. The row is then a rebuildable projection of the anchor record. The
+ * write does not overwrite the surrounding authored narrative. The region is
+ * the only sole-copy-free surface. This function regenerates its interior in
+ * full. It preserves everything outside the region byte-for-byte. If the
+ * region is absent, this function appends it under a heading. If the region is
+ * present, this function replaces only its interior.
  *
  * @param {string} memoryBody - Current `MEMORY.md` text.
  * @param {{assignments: Map}} fold
@@ -210,8 +213,8 @@ export function writeMemoryRowRegion(memoryBody, fold) {
 
 /**
  * Extract the derived MEMORY-row region interior from a MEMORY.md body, or
- * `null` if the region is absent. Used by `verify` to diff the projection
- * surface alone, never the surrounding narrative.
+ * `null` if the region is absent. `verify` uses this to diff the projection
+ * surface alone. It never diffs the surrounding narrative.
  *
  * @param {string} memoryBody
  * @returns {string|null}

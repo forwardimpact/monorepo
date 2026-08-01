@@ -41,7 +41,7 @@ export class Renderer {
    * @param {Map<string,string>} prose
    * @param {object} [options]
    * @param {object} [options.fhirCrossRef] - Cross-ref index from
-   *   `buildFhirCrossRef`; when supplied, clinical pages emit reverse
+   *   `buildFhirCrossRef`. When you supply it, clinical pages emit reverse
    *   links to matched patients.
    * @returns {{ files: Map<string,string>, linked: object }}
    */
@@ -113,8 +113,8 @@ export class Renderer {
   }
 
   /**
-   * Enrich the deterministic HTML skeleton with LLM-generated prose by
-   * substituting `data-enrich` blocks. Pass 2 of the renderer pipeline.
+   * Enrich the deterministic HTML skeleton with LLM-generated prose.
+   * Substitute the `data-enrich` blocks. Pass 2 of the renderer pipeline.
    *
    * @param {Map<string,string>} skeleton
    * @param {object} linked - LinkedEntities from renderSkeleton
@@ -134,7 +134,7 @@ export class Renderer {
 }
 
 /**
- * Creates a Renderer with real dependencies wired.
+ * Create a Renderer with real dependencies wired.
  * @param {object} logger - Logger instance
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {Renderer}

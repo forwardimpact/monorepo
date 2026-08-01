@@ -5,23 +5,23 @@ description: List the activity rows Landmark retains about you and see when they
 
 The data Landmark reads about engineers comes from a small set of row classes
 in Map's activity schema. `fit-landmark sources --email <self>` lists every
-class that has at least one row visible to you, together with its retention
+class that has at least one row visible to you. Each class shows its retention
 window and the projected fall-off date for the oldest row.
 
-This is the answer to *"what does Landmark actually know about me?"* — a
-contract that's been worth nothing if you have to read the schema migration
-to find out.
+This command answers the question *"what does Landmark actually know about
+me?"* That contract is worth nothing if you must read the schema migration to
+find out.
 
 ## Prerequisites
 
 - A Supabase Auth session bound to your engineer email. Engineers run
-  `fit-landmark login` (magic-link or `--otp`) to obtain one — see
+  `fit-landmark login` (magic-link or `--otp`) to get one. See
   [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md).
   Unattended agents and CI fixtures instead export an operator-minted JWT
-  as `PRODUCT_LANDMARK_TOKEN`; test harnesses mint short-lived JWTs against
-  `JWT_SECRET` via the `signTestToken` helper.
+  as `PRODUCT_LANDMARK_TOKEN`. Test harnesses mint short-lived JWTs against
+  `JWT_SECRET` with the `signTestToken` helper.
 - `SUPABASE_URL` and `SUPABASE_ANON_KEY` available in your environment.
-  Local installs generate these in `.env` via `just env-setup`; hosted
+  Local installs generate these in `.env` with `just env-setup`. Hosted
   Supabase deployments copy them from the project's API settings.
 
 ## Run it
@@ -47,49 +47,50 @@ Output groups rows per class:
     falloff: 2026-08-11T11:03:00Z
 ```
 
-Classes with zero rows visible to you are omitted from the output. If every
-class clamps to zero — for example, you asked about an email outside your
-scope — Landmark renders the `NO_SOURCES_FOR_PERSON` empty-state message.
+The output omits classes with zero rows visible to you. If every class clamps
+to zero, Landmark renders the `NO_SOURCES_FOR_PERSON` empty-state message.
+This happens when you ask about an email outside your scope.
 
 ## Fields per class
 
 | Field | Meaning |
 | --- | --- |
 | `count` | Number of rows in the class visible under your identity (RLS-clamped). |
-| `oldest` | Timestamp on the oldest visible row, using the class's `clock` column. |
+| `oldest` | Timestamp on the oldest visible row, from the class's `clock` column. |
 | `newest` | Timestamp on the most recent visible row. |
 | `window` | The retention window declared in the migration metadata. `while employed` for `organization_people`. |
-| `falloff` | The projected date when the oldest row reaches the end of its retention window. Omitted when the window is `while employed`. |
+| `falloff` | The projected date when the oldest row reaches the end of its retention window. The output omits this field when the window is `while employed`. |
 
-## Retention is a projection, not a guarantee
+## Retention is a projection
 
 The `falloff` field is the projected date a row reaches the end of its
-retention window. **Retention enforcement — the cron, daemon, or scheduled job
-that physically deletes past-retention rows — is a follow-up.** The schema
-declaration this command reads from is the substrate that enforcement will
-later use; for now, treat fall-off dates as a published intent, not a
-guaranteed deletion event.
+retention window. **Retention enforcement is a follow-up.** Enforcement is the
+cron, daemon, or scheduled job that physically deletes past-retention rows.
+This command reads from the schema declaration. That declaration is the
+substrate that enforcement will later use. For now, treat fall-off dates as a
+published intent. They are not a guaranteed deletion event.
 
-If a row stays in the schema beyond its `falloff`, that's a bug in retention
-enforcement, not in this command's display.
+If a row stays in the schema beyond its `falloff`, retention enforcement has a
+bug. This command's display does not.
 
 ## Scope
 
-You can run `sources --email <self>` to see what's retained about yourself.
-If you manage other engineers, you can pass their email to see what's retained
-about them — Landmark clamps the result through row-level security so you
-only see rows for direct reports. An out-of-tree email returns the empty-state
-message; no rows are exposed across scope boundaries.
+Run `sources --email <self>` to see what Landmark retains about yourself.
+If you manage other engineers, pass their email to see what Landmark retains
+about them. Landmark clamps the result through row-level security. You then
+see only rows for your direct reports. An out-of-tree email returns the
+empty-state message. Landmark exposes no rows across scope boundaries.
 
 ## What's not in scope
 
-- Additional source classes (Claude Code aggregates, `evaluate-evidence`
-  traces, Copilot ingestion) are not yet listed by this command. When they
+- This command does not yet list additional source classes (Claude Code
+  aggregates, `evaluate-evidence` traces, Copilot ingestion). When they
   land, the
   [SOURCE_CLASSES registry](https://github.com/forwardimpact/monorepo/blob/main/products/landmark/src/commands/sources.js)
   expands to cover them.
-- Map ingestion-pipeline rows (`getdx_initiatives`, `getdx_teams`,
-  `github_events`) are not consumed by Landmark today and so are not listed.
+- Landmark does not consume Map ingestion-pipeline rows
+  (`getdx_initiatives`, `getdx_teams`, `github_events`) today. This command
+  does not list them.
 
 ## What's next
 

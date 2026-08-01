@@ -2,9 +2,10 @@
  * Shared Supabase-shaped stub keyed on the three Substrate Contract
  * relations (`people`, `evidence`, `discovery`). A relation seeded `null`
  * responds like a live PostgREST stack whose consumer never defined the
- * view: `{ error: { code: "PGRST205" } }` — how the verbs detect declared
- * absence. Chained `select/eq/order/limit/maybeSingle` calls are tolerated
- * so call patterns from every verb work against the same fixture.
+ * view. It returns `{ error: { code: "PGRST205" } }`. The verbs detect
+ * declared absence that way. The stub tolerates chained
+ * `select/eq/order/limit/maybeSingle` calls, so call patterns from every
+ * verb work against the same fixture.
  */
 
 function absentError(table) {
@@ -17,9 +18,9 @@ function absentError(table) {
 /**
  * @param {object} [seed]
  * @param {Array} [seed.people] - `substrate.people` rows.
- * @param {Array|null} [seed.evidence] - `substrate.evidence` rows; `null`
+ * @param {Array|null} [seed.evidence] - `substrate.evidence` rows. `null`
  *   marks the relation absent.
- * @param {Array|null} [seed.discovery] - `substrate.discovery` rows; `null`
+ * @param {Array|null} [seed.discovery] - `substrate.discovery` rows. `null`
  *   marks the relation absent.
  * @param {Array} [seed.authUsers] - `auth.admin.listUsers` rows.
  * @returns {object}
@@ -88,9 +89,9 @@ export function makeSubstrateStub(seed = {}) {
 }
 
 /**
- * A people set where `mgr@x` satisfies every invariant: she has a manager,
- * manages two directs, authors evidence, and one direct (`dev1@x`) authors
- * evidence too.
+ * A people set where `mgr@x` satisfies every invariant. She has a manager.
+ * She manages two directs. She authors evidence. One direct (`dev1@x`)
+ * authors evidence too.
  */
 export function invariantSatisfyingSeed() {
   return {

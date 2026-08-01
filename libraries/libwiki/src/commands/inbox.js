@@ -104,7 +104,7 @@ function appendPriorityRow(memoryText, { item, agents, owner, status, added }) {
     ];
     return memoryText.replace(/\n*$/, "") + "\n" + block.join("\n");
   }
-  // Find last data row.
+  // Find the last data row.
   let sepIdx = -1;
   for (let i = headingIdx + 1; i < lines.length; i++) {
     if (/^\|\s*---/.test(lines[i])) {

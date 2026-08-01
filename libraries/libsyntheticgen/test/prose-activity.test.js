@@ -1,9 +1,10 @@
 /**
  * `ProseActivity` contract tests.
  *
- * Asserts the contract's behavior: single source of truth, no per-output
- * names at the call sites, multi-driver context for snapshot comments,
- * and per-output unit coverage including multi-driver-declining input.
+ * These tests assert the contract's behavior. The contract has a single
+ * source of truth. The call sites use no per-output names. Snapshot
+ * comments carry multi-driver context. Each output has unit coverage that
+ * includes multi-driver-declining input.
  */
 import { describe, test } from "node:test";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
@@ -127,7 +128,7 @@ describe("comment proseKeys carries multi-driver array", () => {
     );
 
     // Build a map from prose-key → context for the entire comment
-    // output, then look up the context for each alpha-team key directly.
+    // output. Then look up the context for each alpha-team key directly.
     const tuples = new Map(
       commentActivity.proseKeys(entities.activity.comment, {
         domain: entities.domain,
@@ -144,7 +145,7 @@ describe("comment proseKeys carries multi-driver array", () => {
       assert.strictEqual(
         ctx.drivers.length,
         2,
-        "alpha team has two declining drivers — context must carry both",
+        "alpha team has two declining drivers. context must carry both",
       );
       const ids = ctx.drivers.map((d) => d.driver_id).sort();
       assert.deepStrictEqual(
@@ -152,7 +153,8 @@ describe("comment proseKeys carries multi-driver array", () => {
         ["deep-work", "ease-of-release"].sort(),
         "both declining driver_ids present",
       );
-      // Magnitudes preserved (sorted by |magnitude| descending in generate).
+      // The context keeps the magnitudes. generate sorts them by
+      // |magnitude| descending.
       assert.strictEqual(ctx.drivers[0].driver_id, "deep-work");
       assert.strictEqual(ctx.drivers[0].magnitude, -6);
       assert.strictEqual(ctx.drivers[1].driver_id, "ease-of-release");
@@ -161,7 +163,7 @@ describe("comment proseKeys carries multi-driver array", () => {
     }
     assert.ok(
       asserted > 0,
-      "at least one alpha-team comment must have been asserted",
+      "this test must assert at least one alpha-team comment",
     );
   });
 
@@ -180,7 +182,7 @@ describe("comment proseKeys carries multi-driver array", () => {
 });
 
 describe("commentActivity per-output coverage", () => {
-  test("snapshot-comment generation under multi-driver-declining input", () => {
+  test("generates snapshot comments under multi-driver-declining input", () => {
     const { entities } = loadFromDsl();
     const output = entities.activity.comment;
     assert.ok(output.keys.length > 0, "comment-keys non-empty");

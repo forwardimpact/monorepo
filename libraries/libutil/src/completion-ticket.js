@@ -2,21 +2,22 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { isTrusted } from "./trusted-origins.js";
 
-/** Ticket lifetime in milliseconds. 5 minutes covers IdP round-trip + redirect
- * with margin and is well inside browser/proxy URL-lifetime norms. */
+/** Ticket lifetime in milliseconds. 5 minutes covers the IdP round-trip and
+ * the redirect with margin. It stays well inside the URL-lifetime norms of
+ * browsers and proxies. */
 export const TICKET_TTL_MS = 5 * 60 * 1000;
 
 /**
- * Canonical-JSON encoding of the ticket payload. Keys are sorted alphabetically
- * (`exp, idp_origin, link_token, surface_user_id`) so the wire bytes do not
- * depend on input-object property iteration order — minting the same claims
- * twice produces byte-identical payloads.
+ * Encode the ticket payload as canonical JSON. This function sorts the keys
+ * alphabetically (`exp, idp_origin, link_token, surface_user_id`). So the wire
+ * bytes do not depend on the property iteration order of the input object. If
+ * you mint the same claims twice, you get byte-identical payloads.
  *
  * @param {object} claims
  * @param {number} claims.exp Absolute ms-since-epoch expiry.
  * @param {string} claims.idpOrigin Normalised IdP origin (`new URL(…).origin`).
  * @param {string} claims.linkToken Opaque link-token claim.
- * @param {string} claims.surfaceUserId Caller surface user id.
+ * @param {string} claims.surfaceUserId Surface user id of the caller.
  * @returns {string} Canonical JSON.
  */
 function canonicalJson({ exp, idpOrigin, linkToken, surfaceUserId }) {
@@ -53,7 +54,7 @@ function sign(secret, payloadB64) {
  *
  * @param {object} args
  * @param {string} args.linkToken Opaque link-token bound to a queued dispatch.
- * @param {string} args.surfaceUserId Caller surface user id.
+ * @param {string} args.surfaceUserId Surface user id of the caller.
  * @param {string} args.idpOrigin Normalised IdP origin (`new URL(…).origin`).
  * @param {string} args.secret Shared HMAC secret. Must match the verifier's.
  * @param {number} args.now Absolute ms-since-epoch.
@@ -80,18 +81,18 @@ export function mintCompletionTicket({
 
 /**
  * Verify a wire-form completion ticket. Returns `{ ok: true, claims }` on
- * success or `{ ok: false, reason }` on failure. All failure reasons are
- * caller-rendered as the same "Unable to verify completion" page —
- * indistinguishability is intentional.
+ * success or `{ ok: false, reason }` on failure. The caller renders every
+ * failure reason as the same "Unable to verify completion" page. The design
+ * makes the reasons indistinguishable on purpose.
  *
  * Failure reasons: `malformed`, `bad_signature`, `expired`,
  * `link_token_mismatch`, `untrusted_origin`.
  *
- * The `surface_user_id` claim is returned in `claims.surfaceUserId` for the
- * handler to cross-check against the freshly-resolved `pending.surface_user_id`
- * — see `services/bridge` step 8 in the plan. Folding that check into the
- * verifier would require it to take a pending store, which the design
- * explicitly avoids.
+ * The verifier returns the `surface_user_id` claim in `claims.surfaceUserId`
+ * so the handler can cross-check it against the freshly-resolved
+ * `pending.surface_user_id`. See `services/bridge` step 8 in the plan. If the
+ * verifier folded that check in, it would need a pending store. The design
+ * explicitly avoids that.
  *
  * @param {object} args
  * @param {string} args.ticket Wire-form ticket.

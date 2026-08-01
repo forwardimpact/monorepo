@@ -50,7 +50,7 @@ instead.
 - [ ] Close the corpus before you code it. Enumerate every change: open,
       merged, and closed-unmerged. Record the count and enumeration point.
 - [ ] Code who authorized each outcome, in the corpus's own language. The
-      governance vocabulary is the comparison surface, not the code list.
+      governance vocabulary is the comparison surface. It is not the code list.
 - [ ] Quote evidence in-vivo, with the change number as the anchor.
 - [ ] The artifact record outranks the team's memory. Where they disagree,
       memo the disagreement as a finding.

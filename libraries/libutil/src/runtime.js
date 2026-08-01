@@ -10,20 +10,20 @@ import { Finder } from "./finder.js";
 /**
  * @typedef {Object} Runtime
  *
- * The single bag of ambient collaborators threaded from every binary's
- * entry point through `ctx.deps` into every constructor and factory
- * Production wires the bag from `createDefaultRuntime`; tests
- * wire it from libmock's `createTestRuntime`. A module destructures the
- * fields it actually uses and never imports `node:fs` / `node:child_process`
- * or reads `Date.now` / `process.*` directly.
+ * The single bag of ambient collaborators. Every binary threads it from its
+ * entry point through `ctx.deps` into every constructor and factory.
+ * Production wires the bag from `createDefaultRuntime`. Tests wire it from
+ * libmock's `createTestRuntime`. A module destructures the fields it actually
+ * uses. It never imports `node:fs` / `node:child_process`. It never reads
+ * `Date.now` / `process.*` directly.
  *
  * @property {Object} fs
  *   Async filesystem surface (the `node:fs/promises` shape): `readFile`,
  *   `writeFile`, `readdir`, `stat`, `mkdir`, `access`, `copyFile`, `cp`, `rm`,
  *   `lstat`, `unlink`, `rename`, `symlink`, `utimes`, `chmod`, plus the two stream
- *   factories `createReadStream` / `createWriteStream` (the `node:fs` shape —
- *   the promises API has no stream factories, so they live on the async
- *   surface as the canonical streaming seam). A module destructures `fs` xor
+ *   factories `createReadStream` / `createWriteStream` (the `node:fs` shape).
+ *   The promises API has no stream factories, so they live on the async
+ *   surface as the canonical seam for streams. A module destructures `fs` xor
  *   `fsSync`, never both (design Decision 7).
  * @property {Object} fsSync
  *   Sync filesystem surface (the `node:fs` shape): `existsSync`,
@@ -31,15 +31,15 @@ import { Finder } from "./finder.js";
  *   `openSync`, `readSync`, `closeSync`, `unlinkSync`.
  * @property {Object} proc
  *   Process surface: `cwd()`, `env`, `argv`, `stdin`, `stdout`/`stderr`
- *   (pipeline-grade `Writable`s — they support `.write(str)` and also serve as
+ *   (pipeline-grade `Writable`s that support `.write(str)` and also serve as
  *   `pipeline()` sinks), `exit(code)`, `kill(pid, signal)` (a negative `pid`
  *   signals the process group, e.g. for daemon teardown), `pid` (this
- *   process's id — used to exclude self from process-group descendant scans),
- *   `platform` (the `process.platform` string — `"darwin"`/`"win32"`/`"linux"`
- *   — for per-platform path resolution), `on(event, handler)` (subscribe to
- *   process events such as `"SIGTERM"`/`"SIGINT"` so daemons register signal
- *   handlers through the collaborator instead of the global), and an
- *   `exitCode` accessor.
+ *   process's id, which callers use to exclude self from process-group
+ *   descendant scans), `platform` (the `process.platform` string, one of
+ *   `"darwin"`, `"win32"`, or `"linux"`, for per-platform path resolution),
+ *   `on(event, handler)` (subscribe to process events such as
+ *   `"SIGTERM"`/`"SIGINT"` so daemons register signal handlers through the
+ *   collaborator instead of the global), and an `exitCode` accessor.
  * @property {Object} clock
  *   Time surface: `now()`, `sleep(ms)`, `setTimeout(fn, ms)`,
  *   `clearTimeout(handle)`, `setInterval(fn, ms)`, `clearInterval(handle)`.
@@ -47,22 +47,22 @@ import { Finder } from "./finder.js";
  * @property {Object} subprocess
  *   Subprocess surface: `run(cmd, args, opts) -> Promise<{stdout, stderr,
  *   exitCode}>` (async, buffered), `runSync(cmd, args, opts) -> {stdout,
- *   stderr, exitCode}` (synchronous, buffered — for the rare caller that
- *   cannot go async, e.g. a sync config accessor shelling to `gh auth
+ *   stderr, exitCode}` (synchronous and buffered, for the rare caller that
+ *   cannot go async, e.g. a sync config accessor that shells to `gh auth
  *   token`), and `spawn(cmd, args, opts) -> {stdout, stderr, stdin, exitCode,
  *   signal, kill, pid}` where `stdout`/`stderr` are AsyncIterables,
- *   `exitCode`/`signal` are Promises (the terminating signal name or `null`),
- *   `stdin` is the child's writable (only when `opts.stdio` pipes stdin, else
- *   `null`), `kill(signal)` signals the child, and `pid` is its id (`undefined`
- *   on spawn failure).
+ *   `exitCode`/`signal` are Promises (the name of the signal that stopped the
+ *   child, or `null`), `stdin` is the child's writable (only when
+ *   `opts.stdio` pipes stdin, else `null`), `kill(signal)` signals the child,
+ *   and `pid` is its id (`undefined` on spawn failure).
  * @property {Object} finder
  *   A constructed `Finder` (project path resolution + symlink management).
  */
 
 /**
- * Build the process surface over a `process`-like source. The returned
- * object is intentionally not frozen — `exitCode` is defined as an accessor
- * with a setter, which `Object.freeze` would strip.
+ * Build the process surface over a `process`-like source. This function
+ * deliberately does not freeze the returned object. `exitCode` is an accessor
+ * with a setter, and `Object.freeze` would strip that setter.
  *
  * @param {object} [options]
  * @param {object} [options.source=process] - The backing process handle.
@@ -95,10 +95,10 @@ export function createDefaultProc({ source = process, env = source.env } = {}) {
     }),
     argv: Object.freeze([...source.argv]),
     stdin: lineIterator(source.stdin),
-    // Pipeline-grade Writables: they support `.write(str)` like the old
-    // `{ write }` shim and also serve as `pipeline()` sinks. The wrapper
-    // forwards each chunk to the real stream; `.end()` finishes the wrapper
-    // without closing `source.stdout`/`stderr`.
+    // Pipeline-grade Writables. They support `.write(str)` like the old
+    // `{ write }` shim. They also serve as `pipeline()` sinks. The wrapper
+    // forwards each chunk to the real stream. `.end()` finishes the wrapper
+    // and does not close `source.stdout`/`stderr`.
     stdout: forwardingWritable(source.stdout),
     stderr: forwardingWritable(source.stderr),
     exit: (code) => source.exit(code),
@@ -119,18 +119,18 @@ export function createDefaultProc({ source = process, env = source.env } = {}) {
 
 /**
  * Wrap an underlying writable (`process.stdout`/`stderr`) in a pipeline-grade
- * `Writable` sink that forwards every chunk to it. Used so `runtime.proc.stdout`
- * can be both `.write(str)`-ed and used as a `pipeline()` destination, without
- * `.end()` on the wrapper closing the real stream.
+ * `Writable` sink that forwards every chunk to it. A caller can both
+ * `.write(str)` to `runtime.proc.stdout` and use it as a `pipeline()`
+ * destination. `.end()` on the wrapper does not close the real stream.
  * @param {object} target - The underlying writable to forward chunks to.
  * @returns {import("node:stream").Writable}
  */
 function forwardingWritable(target) {
   return new Writable({
     write(chunk, _encoding, callback) {
-      // Forward and complete immediately. The underlying stream's
-      // backpressure signal is not propagated, which is fine for the CLI
-      // sinks this serves (a one-shot `librc logs()` tail); a future
+      // Forward and complete immediately. This wrapper does not propagate
+      // the underlying stream's backpressure signal. That is fine for the
+      // CLI sinks this serves (a one-shot `librc logs()` tail). A future
       // high-volume consumer that needs flow control should respect
       // `target.write()`'s return value here.
       target.write(chunk);
@@ -178,15 +178,16 @@ export function createDefaultClock() {
 
 /**
  * Build the subprocess surface over `node:child_process`. `run` buffers the
- * full output; `runSync` is its synchronous sibling; `spawn` exposes streaming
- * AsyncIterables plus an exit Promise.
+ * full output. `runSync` is its synchronous sibling. `spawn` exposes
+ * AsyncIterables over the child streams, plus an exit Promise.
  * @returns {{run: Function, runSync: Function, spawn: Function}}
  */
 export function createDefaultSubprocess() {
   const runSync = (cmd, args = [], opts = {}) => {
     const r = spawnSync(cmd, args, { encoding: "utf8", ...opts });
-    // `error` is set on spawn failure (e.g. ENOENT); mirror run()'s mapping:
-    // numeric status, 128 for a signal-kill, 127 for a spawn failure.
+    // Node sets `error` on a spawn failure (e.g. ENOENT). Mirror the mapping
+    // of run(): numeric status, 128 for a signal-kill, 127 for a spawn
+    // failure.
     let exitCode = 0;
     if (r.error) exitCode = 127;
     else if (typeof r.status === "number") exitCode = r.status;
@@ -233,13 +234,14 @@ export function createDefaultSubprocess() {
       resolveSignal(sig ?? null);
       resolveExit(code ?? 0);
     });
-    // A spawn failure (e.g. ENOENT for a missing binary) emits an `error`
-    // event. With no listener Node rethrows it as an uncaughtException and
-    // crashes the whole process — even for callers that synchronously guard
-    // `pid === undefined`, because the event fires on a later tick. Mirror the
-    // run()/runSync() contract instead: resolve a 127 exit code and a null
-    // signal so the surface never rejects and never crashes. `resolveExit` is
-    // idempotent, so a `close` arriving after `error` is a no-op.
+    // A spawn failure (e.g. ENOENT for a binary that does not exist) emits an
+    // `error` event. With no listener Node rethrows it as an uncaughtException
+    // and crashes the whole process. It crashes even for callers that
+    // synchronously guard `pid === undefined`, because the event fires on a
+    // later tick. Mirror the run()/runSync() contract instead. Resolve a 127
+    // exit code and a null signal, so the surface never rejects and never
+    // crashes. `resolveExit` is idempotent, so a `close` that arrives after
+    // `error` is a no-op.
     child.on("error", () => {
       resolveSignal(null);
       resolveExit(127);
@@ -247,18 +249,19 @@ export function createDefaultSubprocess() {
     return {
       stdout: child.stdout ?? emptyAsyncIterable(),
       stderr: child.stderr ?? emptyAsyncIterable(),
-      // The child's writable stdin — present only when `opts.stdio` makes
-      // stdin a pipe (e.g. `["pipe", ...]`); `null` otherwise. A supervising
-      // caller writes its piped output into it.
+      // The child's writable stdin. It is present only when `opts.stdio`
+      // makes stdin a pipe (e.g. `["pipe", ...]`). It is `null` otherwise. A
+      // caller that supervises writes its piped output into it.
       stdin: child.stdin ?? null,
       exitCode,
-      // Resolves with the terminating signal name (or `null` on a clean exit),
-      // alongside `exitCode`. Supervisors that distinguish a SIGTERM teardown
-      // from a crash read it; clean-exit callers can ignore it.
+      // Resolves with the name of the signal that stopped the child (or
+      // `null` on a clean exit), alongside `exitCode`. Supervisors that
+      // distinguish a SIGTERM teardown from a crash read it. Clean-exit
+      // callers can ignore it.
       signal,
       kill: (signal) => child.kill(signal),
-      // The child's pid — `undefined` if the spawn failed. Detached callers
-      // read it to derive the process-group id for group teardown.
+      // The child's pid. It is `undefined` if the spawn failed. Detached
+      // callers read it to derive the process-group id for group teardown.
       pid: child.pid,
     };
   };
@@ -287,18 +290,18 @@ function emptyAsyncIterable() {
 }
 
 /**
- * Build the production runtime bag. Two-phase: phase 1 assembles the leaf
- * collaborators, phase 2 constructs the `Finder` from them, then the whole
- * bag is frozen and returned.
+ * Build the production runtime bag in two phases. Phase 1 assembles the leaf
+ * collaborators. Phase 2 constructs the `Finder` from them. The function then
+ * freezes the whole bag and returns it.
  *
  * @param {object} [options]
  * @param {Record<string,string>} [options.env=process.env] - Backing env.
  * @returns {Readonly<Runtime>}
  */
 export function createDefaultRuntime({ env = process.env } = {}) {
-  // The async fs surface is `node:fs/promises` augmented with the two stream
-  // factories (which only exist on `node:fs`), so streaming consumers never
-  // import `node:fs` directly.
+  // The async fs surface is `node:fs/promises` plus the two stream factories
+  // (which only exist on `node:fs`). Consumers of streams then never import
+  // `node:fs` directly.
   const fs = {
     ...nodeFs,
     createReadStream: nodeCreateReadStream,
@@ -308,7 +311,7 @@ export function createDefaultRuntime({ env = process.env } = {}) {
   const proc = createDefaultProc({ source: process, env });
   const clock = createDefaultClock();
   const subprocess = createDefaultSubprocess();
-  // Finder needs the sync existence surface plus the async fs ops; pass both.
+  // Finder needs the sync existence surface plus the async fs ops. Pass both.
   const finder = new Finder({ fs, fsSync, proc });
   return Object.freeze({ fs, fsSync, proc, clock, subprocess, finder });
 }

@@ -3,9 +3,9 @@ name: gemba-benchmark
 description: >
   Prove whether a skill-pack change made agents write better code.
   Use when a single eval that passes proves nothing and you need
-  multi-run pass@k evidence, when you grade coding tasks with hidden
-  tests the agent cannot see, or when you compare outcomes across
-  skill-set versions.
+  multi-run pass@k evidence. Use when you grade coding tasks with
+  hidden tests the agent cannot see. Use when you compare outcomes
+  across skill-set versions.
 ---
 
 # gemba-benchmark
@@ -119,7 +119,7 @@ family load. Layout details in
 ## CLI
 
 The full flag surface lives in [references/cli.md](references/cli.md).
-Task-authoring guidance lives in
+Guidance to author tasks lives in
 [references/authoring.md](references/authoring.md).
 
 ## GitHub Action

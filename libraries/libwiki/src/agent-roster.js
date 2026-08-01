@@ -2,8 +2,8 @@ import path from "node:path";
 import { BROADCAST_TARGET } from "./constants.js";
 
 /**
- * List all agent markdown files in the agents directory, returning agent names
- * and summary paths.
+ * List all agent markdown files in the agents directory. Return the agent
+ * names and the summary paths.
  * @param {{agentsDir: string, wikiRoot: string}} dirs
  * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
  */

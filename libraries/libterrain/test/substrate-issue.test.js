@@ -1,8 +1,9 @@
 /**
- * `substrate issue` — file set, `--token-env` threading and required-ness,
- * stash, non-human rejection, and identity-only degradation when
- * `substrate.discovery` is absent. Atomic write + chmod 0600 run on real
- * disk, so these tests thread a real runtime with a quiet proc.
+ * Tests for `substrate issue`. They cover the file set, how the command
+ * threads `--token-env` and requires it, the stash, the non-human
+ * rejection, and identity-only degradation when `substrate.discovery` is
+ * absent. The atomic write and chmod 0600 run on real disk, so these tests
+ * thread a real runtime with a quiet proc.
  */
 
 import { describe, test, beforeEach, afterEach } from "node:test";
@@ -76,7 +77,7 @@ describe("substrate issue", () => {
     );
     assert.equal(parsed.persona_email, "mgr@x");
     assert.equal(parsed.manager_email, "mgr@x");
-    // Discovery key/values spread at top level, not nested.
+    // Discovery key/values spread at the top level. They never nest.
     assert.equal(parsed.snapshot_id, "S1");
     assert.equal(parsed.item_id, "ITEM1");
     assert.equal("discovery" in parsed, false);
@@ -86,7 +87,7 @@ describe("substrate issue", () => {
     assert.equal(subStat.mode & 0o777, 0o600);
   });
 
-  test("--token-env is required with no default", async () => {
+  test("requires --token-env and provides no default", async () => {
     await assert.rejects(
       () =>
         runSubstrateIssue({
@@ -144,7 +145,7 @@ describe("substrate issue", () => {
     ]);
   });
 
-  test("--stash writes a third file containing just the JWT (mode 0600)", async () => {
+  test("--stash writes a third file that holds just the JWT (mode 0600)", async () => {
     const stashPath = path.join(tmpdir, "stash.jwt");
     const code = await runSubstrateIssue({
       supabase: seededStub(),
@@ -168,7 +169,7 @@ describe("substrate issue", () => {
     assert.equal(stashStat.mode & 0o777, 0o600);
   });
 
-  test("rejects kind!=human naming substrate.people, not a product CLI", async () => {
+  test("rejects kind!=human and names substrate.people, never a product CLI", async () => {
     await assert.rejects(
       () =>
         runSubstrateIssue({
@@ -213,7 +214,7 @@ describe("substrate issue", () => {
   });
 
   test("rename failure leaves no orphan tmp files", async () => {
-    // Make `.env` an existing non-empty directory so the rename fails.
+    // Make `.env` a non-empty directory so the rename fails.
     await fs.mkdir(path.join(tmpdir, ".env"));
     await fs.writeFile(path.join(tmpdir, ".env", "marker"), "blocker");
 

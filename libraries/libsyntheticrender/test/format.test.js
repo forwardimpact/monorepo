@@ -7,13 +7,13 @@ function makeLogger() {
   return { info: () => {}, debug: () => {}, warn: () => {}, error: () => {} };
 }
 
-// JSON.stringify(…, 2) deliberately keeps short arrays multi-line and emits no
-// trailing newline; Prettier collapses such arrays and adds the newline. The
-// gap is what lets the assertions below prove whether a pass actually ran.
+// JSON.stringify(…, 2) deliberately keeps short arrays multi-line. It emits
+// no trailing newline. Prettier collapses such arrays and adds the newline.
+// The gap lets the assertions below prove whether a pass ran.
 const CANONICAL_JSON = JSON.stringify({ ok: true, tags: ["a", "b"] }, null, 2);
 
 describe("ContentFormatter", () => {
-  test("formats every known parser when no skip set is given", async () => {
+  test("formats every known parser when the caller gives no skip set", async () => {
     const formatter = new ContentFormatter(format, makeLogger());
     const out = await formatter.format(
       new Map([
@@ -23,12 +23,12 @@ describe("ContentFormatter", () => {
     );
     assert.ok(
       out.get("x.html").split("\n").length > 2,
-      "html should be reflowed across lines",
+      "Prettier should reflow html across lines",
     );
     assert.notStrictEqual(
       out.get("x.json"),
       CANONICAL_JSON,
-      "json should be touched by Prettier when not skipped",
+      "Prettier should touch json when the skip set omits it",
     );
   });
 
@@ -44,10 +44,10 @@ describe("ContentFormatter", () => {
       { skipParsers: new Set(["json", "yaml"]) },
     );
 
-    // Canonical machine output is written through untouched...
+    // The formatter writes canonical machine output through untouched...
     assert.strictEqual(out.get("x.json"), CANONICAL_JSON);
     assert.strictEqual(out.get("x.yaml"), yaml);
-    // ...while content that genuinely needs reflowing is still formatted.
+    // ...while it still formats content that genuinely needs a reflow.
     assert.ok(out.get("x.html").split("\n").length > 2);
   });
 

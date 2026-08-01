@@ -1,7 +1,7 @@
 /**
  * Persona query against the Substrate Contract: invariant sets with and
- * without `substrate.evidence`, the binding-constraint diagnostic, and
- * discovery folding/absence.
+ * without `substrate.evidence`, the binding-constraint diagnostic, and how
+ * discovery folds to an object or to null.
  */
 
 import { test, describe } from "node:test";
@@ -49,16 +49,16 @@ describe("findInvariantSatisfyingPersonas", () => {
     const result = await findInvariantSatisfyingPersonas({ supabase });
 
     assert.deepEqual(result.applied_invariants, ["structural"]);
-    // Structural-only: mgr@x still qualifies (has manager, manages 2).
+    // Structural-only: mgr@x still qualifies with a manager and 2 directs.
     const emails = result.personas.map((p) => p.email);
     assert.ok(emails.includes("mgr@x"));
-    // dev1@x has a manager but manages nobody — still excluded.
+    // dev1@x has a manager but manages nobody, so it stays excluded.
     assert.equal(emails.includes("dev1@x"), false);
     // Evidence counts read 0 without the relation.
     assert.equal(result.personas[0].evidence_count, 0);
   });
 
-  test("empty people yields the empty-roster diagnostic", async () => {
+  test("an empty people relation yields the empty-roster diagnostic", async () => {
     const supabase = makeSubstrateStub({ people: [] });
     const result = await findInvariantSatisfyingPersonas({ supabase });
     assert.equal(result.personas.length, 0);
@@ -67,7 +67,7 @@ describe("findInvariantSatisfyingPersonas", () => {
 
   test("diagnoses the binding constraint when no persona qualifies", async () => {
     const seed = invariantSatisfyingSeed();
-    // Nobody authors evidence: authors_evidence becomes the binding root.
+    // Nobody authors evidence, so authors_evidence becomes the binding root.
     seed.evidence = [];
     const supabase = makeSubstrateStub(seed);
     const result = await findInvariantSatisfyingPersonas({ supabase });
@@ -75,10 +75,10 @@ describe("findInvariantSatisfyingPersonas", () => {
     assert.match(result.diagnostic, /binding constraint: authors_evidence/);
   });
 
-  test("structural-only binding diagnostic never names evidence constraints", async () => {
+  test("the structural-only binding diagnostic never names evidence constraints", async () => {
     const seed = invariantSatisfyingSeed();
     seed.evidence = null;
-    // No human has a manager: parent_email_known is the binding root.
+    // No human has a manager, so parent_email_known is the binding root.
     seed.people = seed.people.map((p) => ({ ...p, manager_email: null }));
     const supabase = makeSubstrateStub(seed);
     const result = await findInvariantSatisfyingPersonas({ supabase });
@@ -120,12 +120,12 @@ describe("loadDiscovery", () => {
     });
   });
 
-  test("absent relation folds to null", async () => {
+  test("an absent relation folds to null", async () => {
     const supabase = makeSubstrateStub({ discovery: null });
     assert.equal(await loadDiscovery(supabase), null);
   });
 
-  test("empty relation folds to null", async () => {
+  test("an empty relation folds to null", async () => {
     const supabase = makeSubstrateStub({ discovery: [] });
     assert.equal(await loadDiscovery(supabase), null);
   });

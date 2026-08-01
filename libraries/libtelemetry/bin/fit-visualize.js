@@ -69,9 +69,9 @@ Apply filters to narrow the spans before you query.
     echo "[?contains(name, 'QueryByPattern')]" | just cli-visualize ARGS="--resource common.Conversation.abc123"`;
 
 /**
- * Queries and visualizes spans using JMESPath
+ * Queries and visualizes spans with JMESPath
  * @param {string} prompt - The JMESPath query expression
- * @param {object} state - REPL state containing span filters and indices
+ * @param {object} state - REPL state with span filters and indices
  * @param {import("stream").Writable} outputStream - Stream to write results to
  */
 async function queryTraces(prompt, state, outputStream) {
@@ -85,21 +85,21 @@ async function queryTraces(prompt, state, outputStream) {
     filter.resource_id = resource_id;
   }
 
-  // If prompt is empty, visualize without JMESPath query
+  // If the prompt is empty, visualize without a JMESPath query
   const query = prompt.trim() || null;
 
   const visualization = await visualizer.visualize(query, filter);
 
-  // If no spans found, return as-is
+  // Return the message as-is when no spans match
   if (visualization.startsWith("No spans found")) {
     outputStream.write(visualization);
   } else {
-    // Wrap raw Mermaid syntax in code block
+    // Wrap the raw Mermaid syntax in a code block
     outputStream.write(`\`\`\`mermaid\n${visualization}\n\`\`\``);
   }
 }
 
-// Create REPL with dependency injection
+// Create the REPL with dependency injection
 const repl = new Repl({
   usage,
 

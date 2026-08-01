@@ -1,13 +1,14 @@
 /**
  * `fit-terrain substrate check` — validate a live stack against the
- * Substrate Contract. One column-explicit probe per contract relation
- * (`select(<columns>).limit(1)`, never `select("*")` — PostgREST accepts
- * unknown relations lazily on some error paths, and the explicit column
- * list is what turns a malformed view into a diagnostic naming the missing
- * column). One diagnostic per missing or malformed relation; severity
- * follows the relation's required flag, not the failure kind — a required
- * relation missing **or malformed** exits 1, an optional one reports as
- * info and exits 0 (declared degradation).
+ * Substrate Contract. The command sends one column-explicit probe per
+ * contract relation: `select(<columns>).limit(1)`, never `select("*")`.
+ * PostgREST accepts unknown relations lazily on some error paths. The
+ * explicit column list turns a malformed view into a diagnostic that names
+ * the missing column. The command writes one diagnostic per missing or
+ * malformed relation. Severity follows the relation's required flag. The
+ * failure kind does not change it. A required relation that is missing
+ * **or malformed** exits 1. An optional one reports as info and exits 0
+ * (declared degradation).
  */
 
 import {
