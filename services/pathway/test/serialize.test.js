@@ -330,8 +330,8 @@ describe("progressionToTurtle", () => {
       "practitioner",
     );
 
-    // The behaviour change must emit fit:behaviourChange with a maturity
-    // that matches.
+    // The behaviour change emits fit:behaviourChange with a maturity that
+    // matches.
     const bcNodes = findAll(quads, {
       subject: progNode,
       predicate: `${FIT}behaviourChange`,
