@@ -1,14 +1,14 @@
 /**
- * Hidden-test engine — executes a task's `tests/` overlay against the
- * post-run agent CWD: stage each file at its mirrored path, run each check
- * with `node --test`, convert the exit status into one check row, and
- * restore the tree so the judge sees the workdir exactly as the agent left
- * it.
+ * Hidden-test engine — runs a task's `tests/` overlay against the post-run
+ * agent CWD. The engine stages each file at its mirrored path. It runs each
+ * check with `node --test`. It converts the exit status into one check row.
+ * It restores the tree, so the judge sees the workdir exactly as the agent
+ * left it.
  *
- * Fault attribution is the engine's contract: a stage or spawn failure (the
- * agent deleted the scaffold) is a *failing row* — agent fault; the engine
- * itself throwing is grader fault, which the caller records as unhealthy so
- * a crashed grader can never mint marks.
+ * Fault attribution is the engine's contract. A stage or spawn failure (the
+ * agent deleted the scaffold) is agent fault, so the engine returns a *row
+ * that fails*. A throw from the engine itself is grader fault. The caller
+ * records that as unhealthy, so a crashed grader can never mint marks.
  */
 
 import { dirname, join } from "node:path";
@@ -16,8 +16,8 @@ import { dirname, join } from "node:path";
 import { buildHookEnv } from "./hook-env.js";
 
 // Fixed per-check budget. A wedged test process runs outside the agent
-// watchdog, so this bound is what keeps a hung hidden test from stalling the
-// cell; the timeout row keeps the failure visible.
+// watchdog. Without this bound, a hung hidden test would stall the cell. The
+// timeout row keeps the failure visible.
 const CHECK_TIMEOUT_MS = 120_000;
 const STDERR_TAIL_CHARS = 500;
 
@@ -50,9 +50,9 @@ export async function runHiddenTests(task, ctx, runtime, opts = {}) {
 }
 
 /**
- * Stage one check, run it, and restore its staging — the check's own row is
- * the only trace it leaves. A stage failure is the agent's fault (a deleted
- * scaffold), so it becomes a failing row rather than a throw.
+ * Stage one check, run it, then put the tree back. The check's own row is the
+ * only trace it leaves. A stage failure is the agent's fault (a deleted
+ * scaffold). The engine returns a row that fails. It does not throw.
  */
 async function runOneCheck(task, ctx, runtime, timeoutMs, check) {
   const stager = newStager();
@@ -71,7 +71,8 @@ async function runOneCheck(task, ctx, runtime, timeoutMs, check) {
 /**
  * Spawn `node --test <staged path>` from the agent CWD under the hook env
  * and map the exit status onto one row. The clock timer SIGKILLs a child
- * that outlives the per-check budget; the row fails with a timeout message.
+ * that outlives the per-check budget. The row then fails with a timeout
+ * message.
  */
 async function spawnCheck(task, ctx, runtime, timeoutMs, check) {
   const env = buildHookEnv(runtime.proc.env, {
@@ -83,8 +84,8 @@ async function spawnCheck(task, ctx, runtime, timeoutMs, check) {
     familyDir: ctx.familyDir,
   });
   // An inherited test-runner context makes the child `node --test` report
-  // exit 0 even when its tests fail — a failing check would mint a passing
-  // row whenever the harness itself runs under `node --test`.
+  // exit 0 even when its tests fail. A check that fails would then mint a row
+  // that passes whenever the harness itself runs under `node --test`.
   delete env.NODE_TEST_CONTEXT;
   const child = runtime.subprocess.spawn("node", ["--test", check.stagePath], {
     cwd: ctx.cwd,
@@ -129,8 +130,8 @@ function newStager() {
 }
 
 /**
- * Copy the symlink-resolved source to its mirrored path under the agent CWD,
- * backing up a collided file's bytes and tracking every directory created so
+ * Copy the symlink-resolved source to its mirrored path under the agent CWD.
+ * Back up the bytes of a collided file. Track every directory created, so
  * `unstage` can put the tree back exactly.
  */
 async function stageFile(fs, cwd, stager, { sourcePath, stagePath }) {
@@ -154,7 +155,7 @@ async function ensureParents(fs, cwd, stager, dir) {
     await fs.access(dir);
     return;
   } catch {
-    // missing — create below
+    // missing, so create it below
   }
   await ensureParents(fs, cwd, stager, dirname(dir));
   await fs.mkdir(dir);
@@ -162,10 +163,10 @@ async function ensureParents(fs, cwd, stager, dir) {
 }
 
 /**
- * Reverse the staging: staged copies out, collided bytes back, created
- * directories removed (deepest first — a check's own artifacts inside a
- * created directory go with it, since that directory did not exist when the
- * agent finished).
+ * Reverse the stage step. Remove the staged copies. Write the collided bytes
+ * back. Remove the created directories, deepest first. A check's own
+ * artifacts inside a created directory go with it, because that directory did
+ * not exist when the agent finished.
  */
 async function unstage(fs, stager) {
   for (const target of stager.staged) {

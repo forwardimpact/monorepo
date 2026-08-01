@@ -3,11 +3,12 @@ import { transformAll } from "../_shared/activity/transform/index.js";
 /**
  * Run the full transform orchestrator with hosted collaborators.
  *
- * Threads the injected runtime (clock) and, when available, the bundled
- * standard data into the orchestrator. The producer-skipped reason from the
- * bundle loader rides the response so a reader can tell "did not run" from
- * "ran, matched nothing". The `ok` flag keeps the surface's existing
- * people/getdx/github computation; the producer's outcome does not gate it.
+ * It threads the injected runtime (clock) into the orchestrator. It also
+ * threads the bundled standard data when that data is available. The
+ * producer-skipped reason from the bundle loader rides the response, so a
+ * reader can tell "did not run" from "ran, matched nothing". The `ok` flag
+ * keeps the surface's existing people/getdx/github computation. The
+ * producer's outcome does not gate it.
  *
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {{ clock: { now: () => number } }} runtime

@@ -12,7 +12,7 @@ describe("ResourceProcessor", () => {
   let processor;
 
   beforeEach(() => {
-    // Mock ResourceIndex with tracking capabilities
+    // Mock ResourceIndex that tracks the calls
     resourceIndex = {
       put: async (_resource) => {},
       has: async (_id) => false,
@@ -69,7 +69,7 @@ describe("ResourceProcessor", () => {
 
     await processor.process(".html");
 
-    // Should not call put when no files to process
+    // The processor should not call put when there are no files to process
     assert.strictEqual(putCallCount, 0);
   });
 
@@ -104,18 +104,18 @@ describe("ResourceProcessor", () => {
     try {
       await processor.process(".html");
 
-      // The test passes if no errors are thrown during processing
-      // Complex microdata processing is implementation-dependent
-      assert.ok(true, "Processing completed without errors");
+      // The test passes if the processor throws no errors
+      // The implementation decides how it handles complex microdata
+      assert.ok(true, "The processor completed without errors");
     } catch (error) {
-      // If processing fails, log for debugging
+      // If the processor fails, log the error to debug the failure
       console.log(
-        "Note: Microdata processing test skipped due to:",
+        "Note: skipped the microdata test. The error was:",
         error.message,
       );
       assert.ok(
         true,
-        "Test skipped - microdata processing dependencies may be missing",
+        "Skipped the test. Dependencies to process microdata may be missing",
       );
     }
   });
@@ -124,7 +124,7 @@ describe("ResourceProcessor", () => {
     const skolemizer = new Skolemizer();
     const _parser = new Parser(skolemizer, logger);
 
-    // Parser is required; constructing without it SHOULD throw
+    // The parser is required. The constructor SHOULD throw without it
     assert.throws(
       () => {
         new ResourceProcessor(
@@ -142,7 +142,7 @@ describe("ResourceProcessor", () => {
   });
 
   test("processes Buffer HTML content correctly", async () => {
-    // Test that processor handles Buffer input from storage
+    // Test that the processor handles Buffer input from storage
     knowledgeStorage.get = async (key) => {
       if (key === "test.html") {
         return Buffer.from(
@@ -159,12 +159,12 @@ describe("ResourceProcessor", () => {
 
     await processor.process(".html");
 
-    // Verify processing occurred (no errors from Buffer handling)
-    assert.ok(true, "Buffer content processed without errors");
+    // Verify that the processor ran. The Buffer content caused no errors
+    assert.ok(true, "The processor read the Buffer content without errors");
   });
 
   test("uses base element href when present", async () => {
-    // Test that processor extracts and uses <base href="..."> from HTML
+    // Test that the processor extracts and uses <base href="..."> from HTML
     knowledgeStorage.get = async (key) => {
       if (key === "test.html") {
         return `<!DOCTYPE html>
@@ -190,8 +190,9 @@ describe("ResourceProcessor", () => {
 
     await processor.process(".html");
 
-    // Verify processing completed
-    // Base IRI handling is internal, but we can verify no errors occurred
-    assert.ok(true, "Base element handling succeeded");
+    // Verify that the processor completed
+    // The processor handles the base IRI internally. We can verify that no
+    // errors occurred
+    assert.ok(true, "The processor handled the base element successfully");
   });
 });

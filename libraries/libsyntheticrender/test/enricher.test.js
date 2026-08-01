@@ -4,8 +4,9 @@ import { buildEntities } from "@forwardimpact/libsyntheticgen/engine/entities";
 import { createSeededRNG } from "@forwardimpact/libsyntheticgen/rng";
 
 /**
- * Tests that entity IRIs from entities.js now consistently use /id/{type}/{id}
- * format, which the enricher's stripOffDomainIris preserves.
+ * These tests check that entity IRIs from entities.js now use the
+ * /id/{type}/{id} format consistently. The enricher's stripOffDomainIris
+ * preserves that format.
  */
 
 describe("enricher IRI compatibility", () => {

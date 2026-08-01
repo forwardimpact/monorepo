@@ -3,14 +3,14 @@ title: "Authoring Agent-Aligned Engineering Standards"
 description: "Turn 'good engineering' into an operational definition so evaluations start from a shared foundation instead of private mental models."
 ---
 
-Two managers disagree on what "senior" means and neither can point to a written
-definition — this guide walks you through defining an engineering standard in
-YAML that Map validates and Pathway renders, giving the organization a shared
+Two managers disagree on what "senior" means. Neither can point to a written
+definition. This guide shows you how to define an engineering standard in YAML.
+Map validates that standard. Pathway renders it. The organization gets a shared
 foundation it can trust.
 
 ## Prerequisites
 
-Complete the Map and Pathway getting-started guides before continuing:
+Complete the Map and Pathway getting-started guides first:
 
 - [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/) --
   install Map and initialize a `data/pathway/` directory with starter content.
@@ -33,14 +33,14 @@ A standard is a set of YAML files that answer six questions:
 | How should engineers approach it? | Behaviour  | `behaviours/{id}.yaml`   |
 | What business outcomes result?    | Driver     | `drivers.yaml`           |
 
-Skills are defined inside capability files. Every entity carries a `human:`
-section for engineers, and most can include an `agent:` section for AI coding
-agents. Skills can also carry `instructions`, `references`, and
-`toolReferences` that flow into the generated SKILL.md files agents load at
-runtime. A discipline classifies skills into three tiers (`coreSkills`,
-`supportingSkills`, `broadSkills`), and a level sets the baseline proficiency
-expected at each tier (`core`, `supporting`, `broad`). When Pathway generates a
-role, these two dimensions combine into concrete expectations.
+You define skills inside capability files. Every entity carries a `human:`
+section for engineers. Most entities can also include an `agent:` section for
+AI coding agents. Skills can carry `instructions`, `references`, and
+`toolReferences`. These fields flow into the generated SKILL.md files that
+agents load at runtime. A discipline classifies skills into three tiers
+(`coreSkills`, `supportingSkills`, `broadSkills`). A level sets the baseline
+proficiency expected at each tier (`core`, `supporting`, `broad`). When Pathway
+generates a role, these two dimensions combine into concrete expectations.
 
 For complete field definitions, required vs. optional fields, and ID patterns,
 see the [YAML Schema Reference](/docs/reference/yaml-schema/).
@@ -87,7 +87,7 @@ Base proficiencies use the five-level skill scale:
 | `practitioner` | lead, mentor          | area (2--5 teams)        |
 | `expert`       | define, shape         | business unit / function |
 
-Validate after editing:
+Validate after you edit:
 
 ```sh
 npx fit-map validate
@@ -106,16 +106,17 @@ Data Summary
 
 ## Level field conventions
 
-Two fields on each level entry feed string composition in `fit-pathway job`
-and have an unstated shape contract. This section names both. Standards
-that violate either shape fail `fit-map validate` and `fit-pathway` startup
-with a `ContractViolationError` pointing back here.
+Two fields on each level entry feed the strings that `fit-pathway job`
+composes. Both fields have an unstated shape contract. This section names
+both. A standard that violates either shape fails `fit-map validate` and
+`fit-pathway` startup. The error is a `ContractViolationError` that points
+back here.
 
 ### `professionalTitle` — rank token
 
-`professionalTitle` is the **rank** the engineer sits at, not the role.
-The discipline supplies the role (e.g. `Software Engineer`); Pathway
-composes the two into the job title via two branches:
+`professionalTitle` is the **rank** the engineer sits at. It is not the role.
+The discipline supplies the role (e.g. `Software Engineer`). Pathway
+composes the two into the job title through two branches:
 
 - When `professionalTitle` starts with `Level`, the job title is
   `{roleTitle} {professionalTitle}` (e.g. `Software Engineer Level II`).
@@ -136,12 +137,12 @@ Compliant: `professionalTitle: Senior` against
 `discipline.roleTitle: Software Engineer` renders `Senior Software Engineer`.
 
 Non-compliant: `professionalTitle: "Engineer"` against the same discipline
-renders `Engineer Software Engineer` — `Engineer` is not disjoint from
+renders `Engineer Software Engineer`. `Engineer` is not disjoint from
 `Software Engineer`.
 
 ### `autonomyExpectation` — base-form verb opener
 
-`autonomyExpectation` is composed into the sentence `You will <value>`
+Pathway composes `autonomyExpectation` into the sentence `You will <value>`
 (with the value lower-cased). The first word must be a base-form/imperative
 verb so the sentence parses.
 
@@ -150,12 +151,12 @@ Compliant: `Work independently on familiar problems` →
 
 Non-compliant: `Works independently on routine tasks` →
 `You will works independently on routine tasks.` Third-person openers
-(`Works`, `Owns`, `Drives`, `Leads`, `Defines`) are rejected.
+(`Works`, `Owns`, `Drives`, `Leads`, `Defines`) are not valid.
 
 ## Step 2: Define capabilities and skills
 
 Capabilities group related skills. When a track modifier targets a capability,
-all skills in the group shift together -- they are a cohesive unit.
+all skills in the group shift together. They are a cohesive unit.
 
 Create one file per capability in `data/pathway/capabilities/`:
 
@@ -180,10 +181,11 @@ skills:
 
 Every skill requires a `human:` section with `description` and
 `proficiencyDescriptions` at all five levels. Use the proficiency scale from
-Step 1 to calibrate your descriptions -- "independently resolves incidents"
-belongs at `working`; "defines incident response strategy" belongs at `expert`.
+Step 1 to calibrate your descriptions. The phrase "independently resolves
+incidents" belongs at `working`. The phrase "defines incident response
+strategy" belongs at `expert`.
 
-### Adding agent content to skills
+### Add agent content to skills
 
 To make a skill available to AI coding agents, add an `agent:` section:
 
@@ -200,22 +202,23 @@ To make a skill available to AI coding agents, add an `agent:` section:
         - Code follows project conventions
 ```
 
-`readChecklist` is a read-do entry gate: the agent reads each item then acts on
-it before starting work. `confirmChecklist` is a do-confirm exit gate: the agent
-works from memory, then pauses to confirm each item before proceeding. Aim for
-5--7 items per list. Each item is a single action starting with a verb -- if it
-needs explanation, the `instructions` field is incomplete. Skills that cannot be
-automated can be marked `isHumanOnly: true`. For the full skill schema, see the
+`readChecklist` is a read-do entry gate. The agent reads each item and acts on
+it before work starts. `confirmChecklist` is a do-confirm exit gate. The agent
+works from memory. The agent then pauses to confirm each item before it
+continues. Aim for 5--7 items per list. Each item is a single action that
+starts with a verb. If an item needs explanation, the `instructions` field is
+incomplete. Mark a skill that nobody can automate with `isHumanOnly: true`. For
+the full skill schema, see the
 [YAML Schema Reference](/docs/reference/yaml-schema/).
 
-### Adding instructions to skills
+### Add instructions to skills
 
 When a skill needs a multi-step workflow beyond what the checklists convey, add
-an `instructions:` field. This is a top-level skill field (a sibling of
-`agent:`, not nested inside it) whose content renders directly into the
-SKILL.md body.
+an `instructions:` field. This is a top-level skill field. It is a sibling of
+`agent:`. It is not nested inside `agent:`. Its content renders directly into
+the SKILL.md body.
 
-`focus` is a one-line priority; checklists are entry and exit gates;
+`focus` is a one-line priority. Checklists are entry and exit gates.
 `instructions` is the procedural workflow the agent follows between those gates.
 
 ```yaml
@@ -236,11 +239,12 @@ SKILL.md body.
 
 Keep instructions imperative. Do not restate what the checklists already cover.
 
-### Adding references to skills
+### Add references to skills
 
-When a skill needs supporting documents the agent can consult -- runbooks,
-templates, glossaries, or decision criteria -- add a `references:` array. Each
-entry becomes a separate `references/{name}.md` file alongside the SKILL.md.
+When a skill needs documents the agent can consult, add a `references:` array.
+These documents include runbooks, templates, glossaries, and decision criteria.
+Each entry becomes a separate `references/{name}.md` file alongside the
+SKILL.md.
 
 Each entry requires three fields:
 
@@ -278,19 +282,19 @@ Names must be unique within a skill and match the pattern
           - Corrective actions — owner, due date, tracking link.
 ```
 
-Instructions describe the workflow; references supply the data that workflow
-consults -- templates, examples, and lookup tables. References are declarative
-(what the data is), not procedural (what to do with it).
+Instructions describe the workflow. References supply the data that workflow
+consults. That data includes templates, examples, and lookup tables. References
+are declarative and state what the data is. They are not procedural and do not
+state what to do with the data.
 
-### Adding tool references to skills
+### Add tool references to skills
 
-When your organization has standardized on specific tools for a skill, declare
-them in a `toolReferences:` array. These render as a mandatory tools table in
-the generated SKILL.md -- agents are expected to use them and document any
-deviation.
+When your organization standardizes on specific tools for a skill, declare them
+in a `toolReferences:` array. These render as a mandatory tools table in the
+generated SKILL.md. Agents should use these tools and document any deviation.
 
 Each entry requires `name`, `description`, and `useWhen`. The optional `url`
-links to documentation and `simpleIcon` specifies a
+links to documentation. The optional `simpleIcon` specifies a
 [Simple Icons](https://simpleicons.org/) slug for display.
 
 ```yaml
@@ -306,8 +310,8 @@ links to documentation and `simpleIcon` specifies a
         useWhen: Provisioning or modifying cloud infrastructure
 ```
 
-Only declare tools the team has decided on. If using a different tool is
-acceptable, it does not belong in `toolReferences`.
+Only declare tools the team decided on. If a different tool is acceptable, the
+tool does not belong in `toolReferences`.
 
 ## Step 3: Define disciplines
 
@@ -345,16 +349,16 @@ broadSkills:
 The `validTracks` array is required. Use `null` to allow a generalist
 configuration with no track applied.
 
-Optionally add `behaviourModifiers` (capped at +/-1 for disciplines) and
-parallel `human:` / `agent:` sections for role summaries and agent identity.
-See the [YAML Schema Reference](/docs/reference/yaml-schema/) for all
+Optionally add `behaviourModifiers` (capped at +/-1 for disciplines). You can
+also add parallel `human:` / `agent:` sections for role summaries and agent
+identity. See the [YAML Schema Reference](/docs/reference/yaml-schema/) for all
 discipline fields.
 
 ## Step 4: Define tracks
 
-Tracks are pure modifiers -- they adjust expectations based on work context, not
-the role itself. "Platform Engineering" is a track; it applies modifiers to
-capabilities for any discipline.
+Tracks are pure modifiers. They adjust expectations based on work context. They
+do not adjust the role itself. "Platform Engineering" is a track. It applies
+modifiers to capabilities for any discipline.
 
 Create one file per track in `data/pathway/tracks/`:
 
@@ -374,12 +378,12 @@ behaviourModifiers:
 ```
 
 Track `skillModifiers` target capability IDs (not individual skill IDs). A
-modifier of `+1` raises all skills in that capability by one proficiency level;
-`-1` lowers them by one. Results are clamped to the valid proficiency range.
-Track `behaviourModifiers` are not capped like discipline modifiers -- they can
-exceed +/-1.
+modifier of `+1` raises all skills in that capability by one proficiency level.
+A modifier of `-1` lowers them by one. A modifier never pushes a skill outside
+the valid proficiency range. Track `behaviourModifiers` are not capped like
+discipline modifiers. They can exceed +/-1.
 
-### Adding agent team instructions to tracks
+### Add agent team instructions to tracks
 
 Tracks can carry an `agent:` section with `teamInstructions`:
 
@@ -394,7 +398,7 @@ agent:
     - **Test runner:** vitest
 ```
 
-For guidance on structuring exported agent teams, see the
+For guidance on how to structure exported agent teams, see the
 [Agent Teams guide](/docs/products/agent-teams/).
 
 ## Step 5: Define behaviours
@@ -467,16 +471,17 @@ Edit `data/pathway/drivers.yaml`:
     - relentless_curiosity
 ```
 
-Aim for 3--7 drivers. Each needs an `id` and `name`; the links to skills and
-behaviours are optional but make the standard's rationale visible.
+Aim for 3--7 drivers. Each needs an `id` and `name`. The links to skills and
+behaviours are optional. They make the standard's rationale visible.
 
 ## Step 7: Add organizational context (optional)
 
-The organizational context slot carries installation-scoped per-team facts
-that do not belong on a track shared across teams. Sibling of the
-`claude-settings.yaml` file, the slot is optional -- skip this step if your
-installation has no per-team facts to add. When populated, the slot flows
-into the rendered `.claude/CLAUDE.md` that `npx fit-pathway agent` writes.
+The organizational context slot carries installation-scoped per-team facts.
+These facts do not belong on a track shared across teams. The slot is a
+sibling of the `claude-settings.yaml` file. The slot is optional. Skip this
+step if your installation has no per-team facts to add. When you populate the
+slot, it flows into the rendered `.claude/CLAUDE.md` that
+`npx fit-pathway agent` writes.
 
 Edit `data/pathway/organizational-context.yaml`:
 
@@ -498,11 +503,12 @@ escalationPaths:
     destination: security@pharma.example.com
 ```
 
-Each top-level concern is optional, so partial population is valid (a team
-may know its repos and manager before its escalation paths). The
+Each top-level concern is optional, so you can populate only part of the slot.
+A team may know its repos and manager before its escalation paths. The
 [Give Agents Organizational Context](/docs/products/agent-teams/organizational-context/)
-guide describes the rendered output and the marker contract downstream
-tooling depends on. Run `bunx fit-map validate` to confirm the slot parses.
+guide describes the rendered output. It also describes the marker contract that
+downstream tools depend on. Run `bunx fit-map validate` to confirm the slot
+parses.
 
 ## Step 8: Configure the standard
 
@@ -518,8 +524,8 @@ distribution:
   siteUrl: https://pathway.acme.com
 ```
 
-Only `title` is required. The `distribution.siteUrl` is used by
-`npx fit-pathway update` to download standard bundles for installation.
+Only `title` is required. `npx fit-pathway update` uses the
+`distribution.siteUrl` to download standard bundles for installation.
 
 ## Verify
 
@@ -531,9 +537,9 @@ Run validation and preview to confirm the standard is complete and correct.
 npx fit-map validate
 ```
 
-A passing run confirms all YAML files match the schema, all cross-references
-between entities resolve (e.g., skill IDs in `coreSkills` exist in your
-capability files), and proficiency levels use valid values.
+A run that passes confirms three things. All YAML files match the schema. All
+cross-references between entities resolve (e.g., skill IDs in `coreSkills`
+exist in your capability files). Proficiency levels use valid values.
 
 **Preview in the browser:**
 
@@ -541,7 +547,7 @@ capability files), and proficiency levels use valid values.
 npx fit-pathway dev
 ```
 
-Browse the local development server and verify that roles render the T-shape you
+Browse the local development server. Verify that roles render the T-shape you
 expect for each discipline.
 
 **Generate a role to confirm derivation:**
@@ -571,8 +577,8 @@ Software Engineering × J060 × Platform
 | ...
 ```
 
-Track modifiers raise or lower entire capabilities (not individual skills),
-so the Platform track's `reliability: +1` shifts every skill in the Reliability
+Track modifiers raise or lower entire capabilities (not individual skills).
+The Platform track's `reliability: +1` shifts every skill in the Reliability
 capability up one proficiency level.
 
 For common validation errors and their fixes, see the

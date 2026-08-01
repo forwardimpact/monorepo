@@ -29,7 +29,7 @@ describe("org show", () => {
     assert.equal(result.meta.emptyState, undefined);
   });
 
-  it("returns empty state when no people", async () => {
+  it("returns empty state when there are no people", async () => {
     const result = await runOrgCommand({
       args: ["show"],
       options: {},
@@ -55,7 +55,7 @@ describe("org team", () => {
     assert.equal(result.view.managerEmail, "alice@example.com");
   });
 
-  it("returns empty state when manager has no team", async () => {
+  it("returns empty state when the manager has no team", async () => {
     const result = await runOrgCommand({
       args: ["team"],
       options: { manager: "nobody@example.com" },
@@ -83,7 +83,7 @@ describe("org team", () => {
 });
 
 describe("org subcommand validation", () => {
-  it("throws for unknown subcommand", async () => {
+  it("throws for an unknown subcommand", async () => {
     await assertRejectsMessage(
       () =>
         runOrgCommand({

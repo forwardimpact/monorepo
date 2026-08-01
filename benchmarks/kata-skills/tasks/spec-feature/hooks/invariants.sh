@@ -13,8 +13,8 @@ check file-present --gate --exists "$SPEC"
 check has-problem        --grep '^#{2,6}[ \t]+.*Problem' "$SPEC"
 check has-scope          --grep '^#{2,6}[ \t]+.*(Scope|Non.?Goals)' "$SPEC"
 check verifiable-success --grep '^#{2,6}[ \t]+.*(Success|Acceptance)' "$SPEC"
-# A WHAT/WHY spec that pins file:line implementation detail leaks the HOW —
-# a constraint on the artifact, so it gates rather than scores.
+# A WHAT/WHY spec that pins file:line implementation detail leaks the HOW.
+# That is a constraint on the artifact, so it gates rather than scores.
 check no-how-leak --gate --not \
   --grep '[A-Za-z0-9_/.-]+\.(js|ts|sh|py|yml|yaml):[0-9]+' "$SPEC" \
   --message "file:line reference detected"

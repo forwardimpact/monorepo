@@ -217,7 +217,7 @@ describe("TraceVisualizer - attributes and errors", () => {
     });
   });
 
-  describe("visualize() - Error Status Handling", () => {
+  describe("visualize() - Error Status", () => {
     test("displays error status and message", async () => {
       await traceIndex.add(
         spanType.SpanItem.fromObject({

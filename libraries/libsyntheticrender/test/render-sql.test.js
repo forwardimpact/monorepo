@@ -106,7 +106,7 @@ const ALL_ENTITIES = [
 ];
 
 describe("renderSql", () => {
-  test("emits 8 files without include_embeddings, 9 with", () => {
+  test("emits 8 files without include_embeddings and 9 files with it", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ALL_ENTITIES,
@@ -121,7 +121,7 @@ describe("renderSql", () => {
     assert.strictEqual(withEmb.size, 9);
   });
 
-  test("files are numbered in dependency order", () => {
+  test("numbers files in dependency order", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ALL_ENTITIES,
@@ -166,7 +166,7 @@ describe("renderSql", () => {
     assert.ok(conditions.includes("cardio"));
   });
 
-  test("text array columns use ARRAY[...] literal", () => {
+  test("text array columns use an ARRAY[...] literal", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ALL_ENTITIES,
@@ -176,7 +176,7 @@ describe("renderSql", () => {
     assert.ok(conditions.includes("ARRAY['E11']"));
   });
 
-  test("junction tables generated for trial.sites and trial.conditions", () => {
+  test("generates junction tables for trial.sites and trial.conditions", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ALL_ENTITIES,
@@ -239,7 +239,7 @@ describe("renderSql", () => {
     );
   });
 
-  test("strings with single quotes are dollar-quoted safely", () => {
+  test("safely dollar-quotes strings that contain single quotes", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ["clinical.researchers"],
@@ -268,7 +268,7 @@ describe("renderSql", () => {
     assert.ok(criteria.includes("::jsonb"));
   });
 
-  test("foreign keys declared on dependent tables", () => {
+  test("declares foreign keys on dependent tables", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ALL_ENTITIES,
@@ -287,7 +287,7 @@ describe("renderSql", () => {
     );
   });
 
-  test("project_id reads from project.id not project_ref", () => {
+  test("project_id reads from project.id instead of project_ref", () => {
     const clinical = makeClinical();
     clinical.trials[0].project_ref = "oncora";
     clinical.trials[0].project = { id: "oncora_resolved", name: "Oncora" };
@@ -318,7 +318,7 @@ describe("renderSql", () => {
     );
     assert.ok(
       trials.includes("'2024-06-01'"),
-      "YYYY-MM dates should be padded to YYYY-MM-01",
+      "renderSql should pad YYYY-MM dates to YYYY-MM-01",
     );
   });
 
@@ -344,7 +344,7 @@ describe("renderSql", () => {
     assert.ok(out.has("supabase/migrations/bn_002_rls.sql"));
   });
 
-  test("path config normalizes trailing slash", () => {
+  test("path config normalizes the trailing slash", () => {
     const out = renderSql(makeClinical(), {
       path: "supabase/migrations",
       prefix: "bn",

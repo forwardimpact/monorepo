@@ -7,7 +7,7 @@ import { createProc, createCli } from "./cli-helpers.js";
 
 describe("Cli", () => {
   describe("showHelp", () => {
-    test("writes help to stdout without re-parsing", () => {
+    test("writes help to stdout without a second parse", () => {
       const proc = createProc();
       const cli = createCli(proc);
       cli.showHelp();
@@ -17,7 +17,7 @@ describe("Cli", () => {
   });
 
   describe("per-command help", () => {
-    test("renders per-command help when command --help is passed", () => {
+    test("renders per-command help when the caller passes command --help", () => {
       const proc = createProc();
       const def = {
         name: "fit-test",
@@ -45,7 +45,7 @@ describe("Cli", () => {
       assert.ok(proc.stdout.output.includes("Global options:"));
     });
 
-    test("renders per-command JSON when command --help --json is passed", () => {
+    test("renders per-command JSON when the caller passes command --help --json", () => {
       const proc = createProc();
       const def = {
         name: "fit-test",

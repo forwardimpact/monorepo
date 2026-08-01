@@ -3,24 +3,25 @@
  * tool-result previews.
  *
  * `hintForCall(name, input)` renders the human-meaningful field for each
- * tool (file path, command, pattern, …) sanitized to strip JSON punctuation
- * (`{`, `}`, `"`) and collapsed to a single line ≤ 80 chars.
+ * tool (file path, command, pattern, …). It strips JSON punctuation
+ * (`{`, `}`, `"`) from that field. It collapses the field to a single line
+ * ≤ 80 chars.
  *
- * MCP-prefixed tools (`mcp__*`) are an intentional carve-out: their hint is
+ * MCP-prefixed tools (`mcp__*`) are an intentional carve-out. Their hint is
  * the full input rendered as compact single-line JSON, so `{` and `"` do
  * appear on those lines. Readers of GitHub workflow logs need the full MCP
- * payload to know what was actually sent across the protocol.
+ * payload to know what the caller actually sent across the protocol.
  *
  * `previewForResult(content, isError)` collapses a tool result to a single
- * line ≤ 80 chars and flags errors so the renderer can apply the reserved
- * error color and the `Error:` label.
+ * line ≤ 80 chars. It also flags errors. The flag lets the renderer apply
+ * the reserved error color and the `Error:` label.
  */
 
 const MAX_HINT_CHARS = 80;
 
 /**
  * Strip `{`, `}`, `"`, collapse whitespace, and truncate to MAX_HINT_CHARS.
- * First line only — anything past a newline is dropped. Always returns a
+ * Use the first line only. Drop anything past a newline. Always returns a
  * string, never null/undefined.
  * @param {unknown} raw
  * @returns {string}
@@ -36,9 +37,10 @@ function sanitize(raw) {
 }
 
 /**
- * Truncate an already-sanitized string to MAX_HINT_CHARS with a trailing
- * ellipsis when it overflows. Shared by the few handlers that concatenate
- * multiple sanitized pieces before deciding on truncation.
+ * Truncate an already-sanitized string to MAX_HINT_CHARS, with an ellipsis
+ * at the end when it overflows. The few handlers that concatenate multiple
+ * sanitized pieces share this helper. They concatenate first, then decide
+ * whether to truncate.
  * @param {string} str
  * @returns {string}
  */
@@ -50,8 +52,9 @@ function truncate(str) {
 
 /**
  * Per-tool hint handlers. Each entry takes the sanitized input object
- * (never null) and returns the hint string. Kept as a flat table so adding
- * a new tool is one entry, not a new branch in a growing switch.
+ * (never null) and returns the hint string. This table stays flat. A new
+ * tool then needs one entry. It does not need a new branch in a switch that
+ * grows.
  */
 const HINT_HANDLERS = {
   Bash: (i) => sanitize(i.command),
@@ -104,7 +107,7 @@ export function simplifyToolName(name) {
  *    `{` / `"` from the input (built-in tool hints stay free of JSON
  *    punctuation so readers see clean one-liners).
  *  - An MCP-prefixed tool (`mcp__*`) → full input rendered as compact
- *    single-line JSON; `{` and `"` intentionally appear so readers see
+ *    single-line JSON. `{` and `"` intentionally appear so readers see
  *    the actual MCP payload.
  *  - Anything else → "" (the caller still shows the bare tool name).
  *
@@ -126,8 +129,8 @@ export function hintForCall(name, input) {
 
 /**
  * Render a tool result as a single preview line plus an `isError` flag.
- * The flag lets the line-renderer pick the reserved error color without
- * re-inspecting the content.
+ * The flag lets the line-renderer pick the reserved error color. The
+ * line-renderer does not re-inspect the content.
  *
  * @param {string|object|null|undefined} content - Tool result content
  * @param {boolean} isError - Whether the tool call failed

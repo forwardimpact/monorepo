@@ -12,7 +12,7 @@ describe("vector service", () => {
       assert.ok(VectorService.prototype);
     });
 
-    test("VectorService has SearchContent method", () => {
+    test("VectorService has a SearchContent method", () => {
       assert.strictEqual(
         typeof VectorService.prototype.SearchContent,
         "function",
@@ -52,7 +52,7 @@ describe("vector service", () => {
       );
     });
 
-    test("creates service instance with index", () => {
+    test("creates a service instance with an index", () => {
       const service = new VectorService(
         mockConfig,
         mockContentIndex,
@@ -63,7 +63,7 @@ describe("vector service", () => {
       assert.strictEqual(service.config, mockConfig);
     });
 
-    test("SearchContent queries content index", async () => {
+    test("SearchContent queries the content index", async () => {
       const service = new VectorService(
         mockConfig,
         mockContentIndex,

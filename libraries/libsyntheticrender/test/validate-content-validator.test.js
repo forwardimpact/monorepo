@@ -8,11 +8,11 @@ import {
 import { buildEntities } from "./validate-helpers.js";
 
 describe("ContentValidator", () => {
-  test("throws when logger is not provided", () => {
+  test("throws when the caller gives no logger", () => {
     assertThrowsMessage(() => new ContentValidator(), /logger is required/);
   });
 
-  test("validates entities using validate method", () => {
+  test("validates entities with the validate method", () => {
     const logger = createSilentLogger();
     const validator = new ContentValidator(logger);
     const result = validator.validate(buildEntities());

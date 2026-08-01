@@ -3,55 +3,55 @@
 Comment templates and report formats for the merge gate.
 
 Each template is a `comment` on a change or issue
-([work-trackers.md](../../../agents/x-work-trackers.md)); fill the body
+([work-trackers.md](../../../agents/x-work-trackers.md)). Fill the body
 shown and post it.
 
 ## Skip Comments
 
 ### Untrusted Author
 
-> Release merge: skipping — author `<login>` is not in the top 7 contributors.
-> Requires human review.
+> Release merge: skipped. Author `<login>` is not in the top 7 contributors.
+> This PR requires human review.
 
 ### Unsupported PR Type
 
-> Release merge: skipping — PR type `<type>` requires human review.
+> Release merge: skipped. PR type `<type>` requires human review.
 
 ### Awaiting Approval Signal
 
-> Release merge: blocked — `wiki/STATUS.md` row for the spec does not yet show
-> `<phase>\tapproved`. Apply `<phase>:approved` label, submit an APPROVED
-> review, or post an approval comment from a trusted account; `kata-dispatch`
-> will propagate it into STATUS.
+> Release merge: blocked. The `wiki/STATUS.md` row for the spec does not yet
+> show `<phase>\tapproved`. Apply the `<phase>:approved` label, submit an
+> APPROVED review, or post an approval comment from a trusted account.
+> `kata-dispatch` will propagate it into STATUS.
 
 ### CI Failing
 
-Comment with the specific failing checks from the change's CI `read`.
+Comment with the specific checks that failed, from the change's CI `read`.
 
 ### Substantive Conflict
 
-> Release merge: blocked — substantive conflicts in <files>. Author judgment
-> needed; aborting rebase.
+> Release merge: blocked. Substantive conflicts in <files>. This needs author
+> judgment. The gate aborted the rebase.
 
 ## Announcement Cross-Link
 
 `comment` on the **coordinating issue** (not the change) when Step 8 finds no
-comment naming the PR
+comment that names the PR
 ([work-trackers.md](../../../agents/x-work-trackers.md)). Adapt the
 verb to the PR's state at gate time:
 
-> Release merge (announcement backstop): PR #<pr-number> — `<title>` — is in
-> flight for this issue and has reached the merge gate. Cross-link posted by the
-> gate because no prior comment here named the PR; recorded as an adherence miss
-> per coordination-protocol.md fix-in-flight markers.
+> Release merge (announcement backstop): PR #<pr-number>, `<title>`, is in
+> flight for this issue and reached the merge gate. The gate posted this
+> cross-link because no prior comment here named the PR. The gate recorded an
+> adherence miss per coordination-protocol.md fix-in-flight markers.
 
 ## Re-ping Comments
 
-Posted by the **Re-ping Rule** (SKILL.md Step 10, item 4) when a blocked PR's
-silence window has expired. Post the one template below, filling `<state>`,
-`<owner>`, and `<next-action>` from the row matching the PR's block reason —
-already computed in this run's Steps 2–8; the Re-ping Rule does not re-run the
-gates. Post it as a `comment` on the change
+The **Re-ping Rule** (SKILL.md Step 10, item 4) posts these when a blocked PR's
+silence window expires. Post the one template below. Fill `<state>`, `<owner>`,
+and `<next-action>` from the row that matches the PR's block reason, already
+computed in this run's Steps 2–8. The Re-ping Rule does not re-run the gates.
+Post it as a `comment` on the change
 ([work-trackers.md](../../../agents/x-work-trackers.md)):
 
 > Release merge Re-ping Rule — gate still open after 3 calendar days:
@@ -64,21 +64,21 @@ gates. Post it as a `comment` on the change
 | --- | --- | --- | --- |
 | Untrusted Author | author `<login>` not in the top 7 contributors | a trusted top-7 contributor | review and merge, or close the PR |
 | Unsupported PR Type | PR type `<type>` unsupported | a trusted human | re-title to a supported `type(scope): subject`, or close |
-| CI Failing | checks `<failing-checks>` still red | the PR author | push a fix; the next sweep re-checks |
-| Substantive Conflict | conflicts in `<files>`; not mergeable | the PR author | rebase on `main` and resolve the files |
-| Awaiting Approval Signal | row still not `<phase>\tapproved` | a trusted human | apply the `<phase>:approved` label / APPROVED review / approval comment; `kata-dispatch` propagates it |
+| CI Failing | checks `<failing-checks>` still red | the PR author | push a fix. The next sweep re-checks |
+| Substantive Conflict | conflicts in `<files>`, so it is not mergeable | the PR author | rebase on `main` and resolve the files |
+| Awaiting Approval Signal | row still not `<phase>\tapproved` | a trusted human | apply the `<phase>:approved` label / APPROVED review / approval comment. `kata-dispatch` propagates it |
 | Awaiting trusted-contributor reply | concern from `<contributor>` still open | `<contributor>` | accept the response or post an override signal |
 
 ## Merge Comment
 
-`comment` then `merge-change`
+Post the `comment`, then run `merge-change`
 ([work-trackers.md](../../../agents/x-work-trackers.md)):
 
-> Release merge: all gates pass — type `<type>`, CI green, author trusted,
-> STATUS row `<phase>\tapproved`. Merging.
+> Release merge: all gates pass. Type `<type>`, CI green, author trusted,
+> STATUS row `<phase>\tapproved`. The gate merges this PR now.
 
-After merging, `read` the change's state. If still `OPEN`, note in the summary
-rather than reporting as merged.
+After the merge, `read` the change's state. If it is still `OPEN`, note that in
+the summary. Do not report it as merged.
 
 ## Report Summary
 
@@ -93,9 +93,9 @@ rather than reporting as merged.
 ```
 
 `Action` is `merged`, `blocked`, or `re-pinged`. A PR the Re-ping Rule
-(SKILL.md Step 10, item 4) commented on this run reports `re-pinged` — one row
-per re-pinged PR — distinct from `blocked`. A blocked PR still inside its 3-day
-silence window stays `blocked`.
+(SKILL.md Step 10, item 4) commented on this run reports `re-pinged`, with one
+row per re-pinged PR. That value is distinct from `blocked`. A blocked PR still
+inside its 3-day silence window stays `blocked`.
 
-**Flag PRs blocked across 3+ consecutive runs** prominently above the table —
-these may need human escalation.
+**Flag PRs blocked across 3+ consecutive runs** prominently above the table.
+These may need human escalation.

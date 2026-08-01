@@ -6,7 +6,7 @@ import {
   clearCredentials,
 } from "./credentials.js";
 
-/** Thrown when no usable caller identity can be derived from the env. */
+/** `resolveIdentity` throws this when the env gives no usable caller identity. */
 export class IdentityUnresolvedError extends Error {
   /** Wrap the reason in a prefixed message and attach code "LANDMARK_IDENTITY_UNRESOLVED". */
   constructor(reason) {
@@ -15,15 +15,16 @@ export class IdentityUnresolvedError extends Error {
   }
 }
 
-// HS256 HMAC-SHA256 digest is fixed at 32 bytes; reject any signature whose
-// decoded length deviates before invoking timingSafeEqual.
+// The HS256 HMAC-SHA256 digest is fixed at 32 bytes. Reject any signature
+// whose decoded length deviates before you call timingSafeEqual.
 const HS256_DIGEST_BYTES = 32;
 
-// Refresh slightly before the access token's expires_at so a long-running
-// command never trips PostgREST's own clock-skew check mid-batch.
+// Refresh slightly before the access token's expires_at. A command that
+// runs for a long time never trips PostgREST's own clock-skew check
+// mid-batch.
 const REFRESH_LEAD_MS = 60_000;
 
-/** Decode a JWT segment as JSON; throws IdentityUnresolvedError on failure. */
+/** Decode a JWT segment as JSON. Throws IdentityUnresolvedError on failure. */
 function parseJwtSegment(seg, label) {
   let raw;
   try {
@@ -46,8 +47,8 @@ function parseJwtSegment(seg, label) {
  * Validate the structure, expiry, and (when the secret is available)
  * HMAC of the caller's JWT (sourced from `config.token`). Returns the
  * resolved identity. The production engineer-side path runs without
- * the secret — the JWT is trusted at the shape level, and Postgres
- * rejects forgeries at the RLS clamp on the next round trip.
+ * the secret. It trusts the JWT at the shape level. Postgres rejects
+ * forgeries at the RLS clamp on the next round trip.
  */
 function resolveFromJwt(jwt, config, runtime) {
   const parts = jwt.split(".");
@@ -71,14 +72,14 @@ function resolveFromJwt(jwt, config, runtime) {
   )
     throw new IdentityUnresolvedError("PRODUCT_LANDMARK_TOKEN is expired");
 
-  // HMAC verification is best-effort: monorepo contributors get the
-  // secret via `just env-setup`; external `npx fit-landmark login` users
-  // never get it, and Postgres RLS catches forgeries on the next call.
+  // HMAC verification is best-effort. Monorepo contributors get the secret
+  // through `just env-setup`. External `npx fit-landmark login` users never
+  // get it. Postgres RLS catches forgeries on the next call.
   let secret;
   try {
     secret = config?.supabaseJwtSecret();
   } catch {
-    // operator-only install path; engineer install never has the secret
+    // operator-only install path. Engineer install never has the secret
   }
   if (secret) {
     const actual = Buffer.from(parts[2], "base64url");
@@ -98,9 +99,9 @@ function resolveFromJwt(jwt, config, runtime) {
 }
 
 /**
- * Refresh an expiring session via Supabase Auth's refresh endpoint and
- * persist the new tokens. On failure, clear the store and throw with a
- * "run login" prompt — a stale refresh token cannot recover itself.
+ * Refresh a session that expires soon. Use Supabase Auth's refresh
+ * endpoint. Persist the new tokens. On failure, clear the store and throw
+ * with a "run login" prompt. A stale refresh token cannot recover itself.
  *
  * @param {{access_token:string,refresh_token:string,expires_at:number,email:string}} creds
  * @param {object} config - libconfig Config for the landmark product.
@@ -141,21 +142,21 @@ async function refreshSession(creds, config, runtime, env, createClient) {
 /**
  * Resolve the caller's identity. Precedence:
  *
- *   1. `config.token` — the Landmark product config's `token` param,
- *      resolved by libconfig from `PRODUCT_LANDMARK_TOKEN` (shell env)
+ *   1. `config.token` — the Landmark product config's `token` param.
+ *      libconfig resolves it from `PRODUCT_LANDMARK_TOKEN` (shell env)
  *      → `.env` `PRODUCT_LANDMARK_TOKEN` → `config.json`
  *      `product.landmark.token` (CI, signTestToken, operator-issued
- *      long-lived tokens, kata-interview substrate). The JWT is
- *      validated for shape and (when the JWT secret is available)
- *      signature, then returned as-is.
- *   2. Credentials store — populated by `fit-landmark login`. If the
- *      access token has expired (or is within REFRESH_LEAD_MS of doing so),
- *      attempt a Supabase refresh and persist the result.
+ *      long-lived tokens, kata-interview substrate). Landmark validates
+ *      the JWT for shape and (when the JWT secret is available)
+ *      signature. It then returns the JWT as-is.
+ *   2. Credentials store — `fit-landmark login` populates it. If the
+ *      access token expired (or is within REFRESH_LEAD_MS of expiry),
+ *      try a Supabase refresh and persist the result.
  *
  * @param {object} params
  * @param {object} params.config - libconfig Config for the landmark product.
  * @param {object} params.runtime - The injected collaborator bag.
- * @param {NodeJS.ProcessEnv} [params.env] - Process env; carries LANDMARK_CREDENTIALS_FILE.
+ * @param {NodeJS.ProcessEnv} [params.env] - Process env. Carries LANDMARK_CREDENTIALS_FILE.
  * @param {(url:string,key:string)=>any} [params.createClient]
  * @returns {Promise<{email: string, jwt: string}>}
  * @throws {IdentityUnresolvedError}
@@ -190,9 +191,10 @@ export async function resolveIdentity({
 }
 
 /**
- * Resolve the subject email for a subject-scoped command: an explicit
- * `--email` wins, else the signed-in identity's email. RLS still clamps
- * everything server-side — this only picks the default subject.
+ * Resolve the subject email for a subject-scoped command. An explicit
+ * `--email` wins. If it is absent, use the signed-in identity's email.
+ * RLS still clamps everything server-side. This only picks the default
+ * subject.
  *
  * @param {object} options - Parsed CLI options (may carry `email`).
  * @param {{email: string}|null} identity - Resolved caller identity, if any.

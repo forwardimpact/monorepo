@@ -1,13 +1,13 @@
 ---
 name: meeting-prep
-description: Prepare for meetings by gathering context from the knowledge base and calendar. Use when the user asks to prep for a meeting or wants a briefing on upcoming meetings. Creates personalized briefings with attendee history, open items, and suggested talking points.
+description: Prepare for meetings. Gather context from the knowledge base and calendar. Use when the user asks to prep for a meeting or wants a briefing on upcoming meetings. Creates personalized briefings with attendee history, open items, and suggested talking points.
 ---
 
 # Meeting Prep
 
-Help the user prepare for meetings by gathering context from the knowledge base
-and calendar. Creates personalized briefing documents with attendee history,
-open items, and suggested talking points.
+Help the user prepare for meetings. Gather context from the knowledge base and
+calendar. Create personalized briefing documents with attendee history, open
+items, and suggested talking points.
 
 ## Trigger
 
@@ -17,7 +17,7 @@ meetings.
 ## Prerequisites
 
 - Calendar data synced in `~/.cache/fit/outpost/apple_calendar/`
-- Knowledge base populated (from `extract-entities` skill)
+- A populated knowledge base (from the `extract-entities` skill)
 
 ## Inputs
 
@@ -25,11 +25,11 @@ meetings.
 - `Knowledge/People/*.md` — attendee context
 - `Knowledge/Organizations/*.md` — company context
 - `Knowledge/Projects/*.md` — project context
-- `Knowledge/Priorities/*.md` — active priorities and strategic context for
-  framing
+- `Knowledge/Priorities/*.md` — active priorities and strategic context to
+  frame the brief
 - `Knowledge/Candidates/*/brief.md` — candidate context (for interview meetings)
-- `Knowledge/Roles/*.md` — role/requisition context (for interview meetings);
-  check the `**Status:**` field to distinguish active from historical reqs
+- `Knowledge/Roles/*.md` — role/requisition context (for interview meetings).
+  Check the `**Status:**` field to distinguish active from historical reqs
 
 ## Outputs
 
@@ -39,7 +39,7 @@ meetings.
 
 ## Critical: Always Look Up Context First
 
-**BEFORE creating any meeting brief, you MUST look up the attendees in the
+**BEFORE you create any meeting brief, you MUST look up the attendees in the
 knowledge base.**
 
 When the user asks to prep for a meeting:
@@ -48,23 +48,23 @@ When the user asks to prep for a meeting:
 2. **SEARCH** — Look up each attendee: `rg -l "Attendee Name" Knowledge/`
 3. **READ** — Read their notes: `cat "Knowledge/People/Attendee Name.md"`
 4. **UNDERSTAND** — Extract role, organization, history, open items
-5. **THEN BRIEF** — Create the meeting brief using this context
+5. **THEN BRIEF** — Create the meeting brief with this context
 
 ## Key Principles
 
-**Ask, don't guess:**
+**Ask. Do not guess:**
 
 - If unclear which meeting, ASK
 - If multiple upcoming meetings, offer choices
 - **WRONG:** "Here's a generic meeting prep template"
 - **RIGHT:** "I see meetings with Sarah (2pm) and John (4pm). Which one?"
 
-**Be thorough, not generic:**
+**Be thorough. Do not be generic:**
 
-- Include specific history, open items, and context from knowledge base
+- Include specific history, open items, and context from the knowledge base
 - Reference actual past interactions and commitments
 
-## Processing Flow
+## Process Flow
 
 ### Step 1: Identify the Meeting
 
@@ -82,7 +82,7 @@ If "prep me for my next meeting":
 
 - Query upcoming events with `--upcoming 2h`
 - Find the next meeting with external attendees
-- Confirm with user if unclear
+- Confirm with the user if unclear
 
 ### Step 2: Parse Calendar Event
 
@@ -102,9 +102,9 @@ rg -l "attendee_name" Knowledge/Projects/
 
 Extract: role/title, company, key facts, previous interactions, open items.
 
-Also check `Knowledge/Priorities/` for context relevant
-to the meeting topic — e.g. if the meeting is about hiring, surface the relevant
-hiring Priority's status and progress.
+Also check `Knowledge/Priorities/` for context relevant to the meeting topic.
+For example, if the meeting is about hiring, surface the relevant hiring
+Priority's status and progress.
 
 ### Step 4: Create Meeting Brief
 
@@ -134,19 +134,20 @@ Suggested Talking Points
 **Guidelines:**
 
 - Use `[[Name]]` wiki-link syntax for cross-references
-- Keep "About" section to 2-3 sentences max
+- Keep the "About" section to 2-3 sentences max
 - History: reverse chronological, 3-5 most relevant items
-- Talking points: concrete, not generic
+- Talking points: concrete. Avoid generic suggestions
 - If no notes exist for a person, mention that and offer to create one
 
 ### Interview Meeting Context
 
-When preparing for interview meetings (title contains "Interview", "Screening",
-"Decomposition", "Panel", or a candidate name from `Knowledge/Candidates/`):
+When you prepare for interview meetings (title contains "Interview",
+"Screening", "Decomposition", "Panel", or a candidate name from
+`Knowledge/Candidates/`):
 
 1. **Read the candidate brief:** `Knowledge/Candidates/{Name}/brief.md`
 2. **Read the Role file:** Look up the `Req` field and read the corresponding
-   `Knowledge/Roles/*.md` file; check the `**Status:**` field for context.
+   `Knowledge/Roles/*.md` file. Check the `**Status:**` field for context.
 3. **Include in the briefing:**
    - Candidate's current status, skills, and screening recommendation
    - Role context: hiring manager, domain lead, remaining positions

@@ -98,12 +98,12 @@ export class S3Storage {
 
     const content = await this.#readResponseBody(response);
 
-    // Parse JSON Lines format if file has .jsonl extension
+    // Parse JSON Lines format if the file has a .jsonl extension
     if (key.endsWith(".jsonl")) {
       return fromJsonLines(content);
     }
 
-    // Parse JSON format if file has .json extension
+    // Parse JSON format if the file has a .json extension
     if (key.endsWith(".json")) {
       return fromJson(content);
     }
@@ -121,9 +121,9 @@ export class S3Storage {
   }
 
   /**
-   * Check if key exists
+   * Check if the key exists
    * @param {string} key - Storage key identifier
-   * @returns {Promise<boolean>} True if key exists
+   * @returns {Promise<boolean>} True if the key exists
    */
   async exists(key) {
     return await this.#withNotFoundHandling(async () => {
@@ -146,7 +146,7 @@ export class S3Storage {
       Buffer.alloc(0),
     );
 
-    // Always append with newline for JSON-ND format consistency
+    // Always append with a newline to keep the JSON-ND format consistent
     const dataWithNewline = data.toString().endsWith("\n") ? data : data + "\n";
     const newData = Buffer.concat([existingData, Buffer.from(dataWithNewline)]);
     await this.put(key, newData);
@@ -173,7 +173,7 @@ export class S3Storage {
     return results;
   }
 
-  // Search and Listing Operations
+  // Search and List Operations
 
   /**
    * Lists all keys in storage
@@ -184,7 +184,7 @@ export class S3Storage {
   }
 
   /**
-   * Find keys with specified prefix, optionally grouped by delimiter
+   * Find keys with the specified prefix. An optional delimiter groups them.
    * @param {string} prefix - Key prefix to match
    * @param {string} [delimiter] - Optional delimiter to group keys (e.g. '/')
    * @returns {Promise<string[]>} Array of matching keys or prefixes
@@ -199,7 +199,7 @@ export class S3Storage {
   }
 
   /**
-   * Find keys with specified extension
+   * Find keys with the specified extension
    * @param {string} extension - File extension to search for
    * @returns {Promise<string[]>} Array of keys with the extension
    */
@@ -217,31 +217,32 @@ export class S3Storage {
   path(key = ".") {
     let cleanKey = key;
     if (key.startsWith("/")) {
-      // For absolute paths, remove leading slash
+      // For absolute paths, remove the leading slash
       cleanKey = key.substring(1);
     }
-    // Prepend prefix to create the full S3 key (empty prefix returns just the key)
+    // Prepend the prefix to create the full S3 key. An empty prefix returns
+    // just the key.
     return this.#prefix ? `${this.#prefix}/${cleanKey}` : cleanKey;
   }
 
   // Bucket Management
 
   /**
-   * Ensures the storage bucket exists
-   * @returns {Promise<boolean>} True if bucket was created
+   * Makes sure the storage bucket exists
+   * @returns {Promise<boolean>} True if this method created the bucket
    */
   async ensureBucket() {
     try {
       await this.#executeCommand(this.#commands.HeadBucketCommand, {
         Bucket: this._bucket,
       });
-      return false; // Bucket already exists
+      return false; // The bucket already exists
     } catch (error) {
       if (this.#isNotFound(error)) {
         await this.#executeCommand(this.#commands.CreateBucketCommand, {
           Bucket: this._bucket,
         });
-        return true; // Bucket was created
+        return true; // This method created the bucket
       }
       throw error;
     }
@@ -249,7 +250,7 @@ export class S3Storage {
 
   /**
    * Checks if the storage bucket exists
-   * @returns {Promise<boolean>} True if bucket exists
+   * @returns {Promise<boolean>} True if the bucket exists
    */
   async bucketExists() {
     return await this.#withNotFoundHandling(async () => {
@@ -261,23 +262,23 @@ export class S3Storage {
   }
 
   /**
-   * Check if storage service is reachable.
-   * Returns true if we can connect (even if bucket doesn't exist).
+   * Check if the storage service is reachable.
+   * Returns true if we can connect (even if the bucket doesn't exist).
    * Returns false only on connection/network errors.
-   * @returns {Promise<boolean>} True if storage service is reachable
+   * @returns {Promise<boolean>} True if the storage service is reachable
    */
   async isHealthy() {
     try {
       await this.#executeCommand(this.#commands.HeadBucketCommand, {
         Bucket: this._bucket,
       });
-      return true; // Bucket exists, service is healthy
+      return true; // The bucket exists. The service is healthy.
     } catch (error) {
-      // Bucket not found means service is reachable
+      // A not-found bucket means the service is reachable
       if (this.#isNotFound(error)) {
         return true;
       }
-      // Any other error (connection, auth) means not healthy
+      // Any other error (connection, auth) means the service is not healthy
       return false;
     }
   }
@@ -296,7 +297,7 @@ export class S3Storage {
     let params;
 
     if (typeof keyOrParams === "string") {
-      // keyOrParams is a key, build command parameters
+      // keyOrParams is a key, so build the command parameters
       params = {
         Bucket: this._bucket,
         Key: this.path(keyOrParams),
@@ -326,7 +327,7 @@ export class S3Storage {
   }
 
   /**
-   * Executes an operation with not found error handling
+   * Executes an operation and handles the not-found error
    * @param {Function} operation - Async operation to execute
    * @param {any} defaultValue - Value to return if not found
    * @returns {Promise<any>} Operation result or default value
@@ -344,7 +345,7 @@ export class S3Storage {
   }
 
   /**
-   * Checks if error represents a not found condition (object or bucket)
+   * Checks if the error represents a not-found condition (object or bucket)
    * @private
    */
   #isNotFound(error) {
@@ -357,7 +358,7 @@ export class S3Storage {
   }
 
   /**
-   * Get raw data without JSON Lines parsing
+   * Get the raw data. This method does not parse JSON Lines.
    * @param {string} key - Storage key identifier
    * @returns {Promise<Buffer>} Raw buffer data
    * @private
@@ -371,7 +372,7 @@ export class S3Storage {
   }
 
   /**
-   * Recursively list objects in S3 bucket with optional filtering
+   * Recursively list the objects in the S3 bucket with an optional filter
    * @private
    * @param {object} [options] - S3 ListObjectsV2 command options
    * @param {Function|null} [keyFilter] - Optional filter function for keys
@@ -381,7 +382,7 @@ export class S3Storage {
     const objectsWithTimestamps = [];
     let continuationToken;
 
-    // Add prefix to the S3 list query (empty prefix lists all)
+    // Add the prefix to the S3 list query (an empty prefix lists all)
     const prefixPath = this.#prefix ? `${this.#prefix}/` : "";
     const listOptions = {
       ...(prefixPath && { Prefix: prefixPath }),
@@ -422,7 +423,7 @@ export class S3Storage {
   }
 
   /**
-   * Collects objects from S3 response into results array
+   * Collects the objects from the S3 response into the results array
    * @private
    */
   #collectObjects(contents, prefixPath, keyFilter, results) {
@@ -442,7 +443,7 @@ export class S3Storage {
   }
 
   /**
-   * Collects common prefixes from S3 response into results array
+   * Collects the common prefixes from the S3 response into the results array
    * @private
    */
   #collectPrefixes(commonPrefixes, prefixPath, keyFilter, results) {

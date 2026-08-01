@@ -17,8 +17,8 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
 }
 
 /**
- * Parse and validate discuss command options. Exported so tests can verify
- * defaults and the legacy-flag clean break.
+ * Parse and validate discuss command options. This function is exported so a
+ * test can verify the defaults and the legacy-flag clean break.
  * @param {object} values - Parsed option values
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {object}
@@ -30,8 +30,8 @@ export function parseDiscussOptions(values, runtime) {
   );
 
   const profilesRaw = values["agent-profiles"];
-  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back to
-  // the default rather than overriding it with "".
+  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back
+  // to the default. The empty string does not override the default.
   const agentCwd = resolve(values["agent-cwd"] || ".");
 
   const maxTurnsRaw = values["max-turns"] || "40";
@@ -74,8 +74,8 @@ export function parseDiscussOptions(values, runtime) {
 
 /**
  * Discuss command — run a discusser-led session with suspend/resume
- * semantics, threading `discussion_id` through the trace so multi-run
- * conversations are queryable as one.
+ * semantics. The session threads `discussion_id` through the trace, so
+ * you can query multi-run conversations as one.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>}
@@ -102,7 +102,8 @@ export async function runDiscussCommand(ctx) {
     runtime.proc.env.LIBHARNESS_AGENT_PROFILE = opts.leadProfile;
   }
   // Unconditional so the default "github" is observable to the agent's
-  // active-tracker resolution, mirroring --agent-profile's env write above.
+  // active-tracker resolution. This mirrors --agent-profile's env write
+  // above.
   runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");

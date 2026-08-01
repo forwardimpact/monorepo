@@ -1,7 +1,7 @@
 /**
- * CLI-shaped helpers for fit-terrain: pipeline wiring, sink selection, and
- * output renderers. Kept out of bin/fit-terrain.js so the entry point reads as
- * dispatch + I/O only.
+ * CLI-shaped helpers for fit-terrain. They wire the pipeline, select the
+ * sink, and render output. They stay out of bin/fit-terrain.js so the entry
+ * point reads as dispatch + I/O only.
  */
 
 import { join, dirname } from "path";
@@ -43,10 +43,10 @@ import {
 import { loadToSupabase } from "./load.js";
 
 /**
- * Build the Supabase client used by LoadSink, validating config first.
+ * Build the Supabase client that LoadSink uses. Validate the config first.
  *
  * @param {object} params
- * @param {object} params.config - libconfig Config carrying Supabase URL + service-role key.
+ * @param {object} params.config - libconfig Config with the Supabase URL + service-role key.
  */
 export async function resolveSupabaseClient({ config }) {
   if (!config) throw new Error("resolveSupabaseClient: config required");
@@ -111,10 +111,10 @@ export function createPipeline(opts) {
 
   // Build an execFileFn compatible with SyntheaTool / SdvTool from the
   // injected subprocess surface. These tools follow the `promisify(execFile)`
-  // contract: it REJECTS on a non-zero exit, and they depend on that — e.g.
-  // `checkAvailability()` probes `python3 -c "import sdv"` and treats a throw
-  // as "tool unavailable, skip". `runtime.subprocess.run` resolves on failure,
-  // so re-throw here to preserve the reject-on-failure semantics.
+  // contract: it REJECTS on a non-zero exit, and they depend on that. For
+  // example, `checkAvailability()` probes `python3 -c "import sdv"` and treats
+  // a throw as "tool unavailable, skip". `runtime.subprocess.run` resolves on
+  // failure, so re-throw here to preserve the reject-on-failure semantics.
   const { run: subprocessRun } = runtime.subprocess;
   const execFileFn = async (cmd, args, opts2) => {
     const result = await subprocessRun(cmd, args ?? [], opts2 ?? {});
@@ -186,7 +186,10 @@ export function createPipeline(opts) {
   });
 }
 
-/** Choose the output sink for a verb, composing WriteSink and LoadSink when --load is set. */
+/**
+ * Choose the output sink for a verb. Compose WriteSink and LoadSink when the
+ * caller sets --load.
+ */
 export async function selectOutputSink({
   verb,
   load,
@@ -220,7 +223,7 @@ export async function selectOutputSink({
 
 /**
  * Map a verb to its terminal DAG stage. `inspect` takes the stage name
- * from positional args; everything else has a fixed terminal.
+ * from positional args. Every other verb has a fixed terminal.
  */
 export function terminalForVerb(verb, inspectStage) {
   switch (verb) {
@@ -249,10 +252,10 @@ export function terminalForVerb(verb, inspectStage) {
 }
 
 /**
- * Resolve prompt and template directories. In a `bun build --compile` binary
- * the prompt/template files are inlined and registered (see the CLI's `assets`
- * block in build/cli-manifest.json), so return the virtual mounts the runtime
- * overlay serves them from — `import.meta.resolve` cannot find packages in the
+ * Resolve prompt and template directories. A `bun build --compile` binary
+ * inlines and registers the prompt/template files (see the CLI's `assets`
+ * block in build/cli-manifest.json). So return the virtual mounts the runtime
+ * overlay serves them from. `import.meta.resolve` cannot find packages in the
  * /$bunfs root. Otherwise resolve from the installed libsyntheticprose and
  * libsyntheticrender packages.
  */
@@ -276,8 +279,8 @@ export function resolvePackagePaths(metaResolve) {
 }
 
 /**
- * Render the validation block followed by a totals summary. Returns true on
- * pass, false on fail.
+ * Render the validation block, then a totals summary. Returns true on pass,
+ * false on fail.
  *
  * @param {object} result
  * @param {object} summary
@@ -319,7 +322,9 @@ export function printValidation(result, summary, stdout) {
 }
 
 /**
- * Render a prose cache stats block (Hits/Generated/Misses/Rate) via summary.render; returns immediately if no cache entries were recorded.
+ * Render a stats block for the prose cache (Hits/Generated/Misses/Rate)
+ * through summary.render. Returns immediately when the run recorded no
+ * cache entries.
  */
 export function printProseStats(summary, result, ok) {
   const { hits, generated, misses } = result.stats.prose;
@@ -339,8 +344,8 @@ export function printProseStats(summary, result, ok) {
 }
 
 /**
- * Render the in-memory render stats (file counts produced by the pipeline,
- * before write). Distinct from the Write block which counts what hit disk.
+ * Render the in-memory render stats (file counts the pipeline produced,
+ * before write). The Write block differs. It counts what hit disk.
  */
 export function printRenderStats(summary, result, ok) {
   const items = [
@@ -401,8 +406,8 @@ export function printWriteStats(summary, writeStats, ok, stdout) {
 }
 
 /**
- * Render the LLM-call accounting block emitted by `generate`. Reports the
- * number of actual LLM invocations made during this run (prose.generated counter).
+ * Render the LLM-call accounting block that `generate` emits. Reports the
+ * number of actual LLM calls this run made (prose.generated counter).
  */
 export function printGenerateStats(summary, result, ok) {
   const items = [
@@ -415,10 +420,10 @@ export function printGenerateStats(summary, result, ok) {
 }
 
 /**
- * Render the cache report used by `check`. On success, a tight key/hits/
- * misses/rate block. On failure, a formatTable surfaces the same numbers in a
- * scannable, agent-parseable shape so a CI gate can diff cache state turn over
- * turn.
+ * Render the cache report that `check` uses. On success it renders a tight
+ * key/hits/misses/rate block. On failure a formatTable surfaces the same
+ * numbers in a scannable, agent-parseable shape. A CI gate can then diff
+ * cache state turn over turn.
  *
  * @param {object} result
  * @param {object} summary

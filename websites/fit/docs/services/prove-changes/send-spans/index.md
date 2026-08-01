@@ -1,24 +1,24 @@
 ---
 title: Send Spans from a Product
-description: Spans emitted and immediately queryable — without managing storage infrastructure.
+description: Emit spans and query them immediately, with no storage infrastructure to manage.
 ---
 
-You need to record spans from within a product -- what happened, how long
-it took, whether it succeeded -- and trust that those spans are stored and
-queryable afterward. This page walks through the bounded task of connecting to
-the span service, building a span, sending it, and querying it back to
-confirm the round trip.
+You need to record spans from within a product. A span records what happened,
+how long it took, and whether it succeeded. You also need to trust that the
+service stores those spans and keeps them queryable. This page covers one
+bounded task. Connect to the span service. Build a span and send it. Query it
+back to confirm the round trip.
 
-For the full setup including architecture context, the query interface, and
-tree reconstruction, see
-[Collect Spans from Any Product](/docs/services/prove-changes/).
+See [Collect Spans from Any Product](/docs/services/prove-changes/) for the
+full setup with architecture context, the query interface, and tree
+reconstruction.
 
 ## Prerequisites
 
 - Completed the
-  [Collect Spans from Any Product](/docs/services/prove-changes/) guide --
-  you have `@forwardimpact/librpc` and `@forwardimpact/libtype` installed, and
-  the span service is running.
+  [Collect Spans from Any Product](/docs/services/prove-changes/) guide. You
+  installed `@forwardimpact/librpc` and `@forwardimpact/libtype`. The span
+  service runs.
 
 ## Connect
 
@@ -34,7 +34,8 @@ const spanClient = await createClient("span", logger);
 ## Send a span
 
 Build a `span.SpanItem` and call `RecordSpan`. Every span needs a `trace_id`
-(grouping related spans) and a `span_id` (unique to this span):
+and a `span_id`. The `trace_id` groups related spans. The `span_id` is unique
+to this span:
 
 ```js
 const record = span.SpanItem.fromObject({
@@ -66,7 +67,7 @@ Sent: true
 
 ## Send a child span
 
-Link a child span to its parent using `parent_span_id`:
+Link a child span to its parent with `parent_span_id`:
 
 ```js
 const childSpan = span.SpanItem.fromObject({
@@ -118,7 +119,8 @@ await spanClient.RecordSpan(errorSpan);
 
 ## Query to confirm
 
-After sending spans, query them back by trace ID to confirm storage:
+After you send spans, query them back by trace ID to confirm that the service
+stored them:
 
 ```js
 const query = span.QueryRequest.fromObject({
@@ -145,8 +147,8 @@ Stored spans: 3
 
 ## Handle send failures
 
-`RecordSpan` validates that `trace_id` and `span_id` are present. Missing
-either produces a gRPC error:
+`RecordSpan` validates that `trace_id` and `span_id` are present. If you omit
+either one, `RecordSpan` produces a gRPC error:
 
 ```js
 try {
@@ -163,12 +165,12 @@ try {
 ```
 
 If the span service is unreachable, the client retries up to 10 times with
-exponential backoff (1-second base delay, doubling each attempt, plus jitter)
-before surfacing the connection error.
+exponential backoff. The base delay is 1 second. The delay doubles on each
+attempt and includes jitter. The client then reports the connection error.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `RecordSpan` with a valid `trace_id` and `span_id` returns
   `{ success: true }`.

@@ -65,7 +65,8 @@ describe("Derivation", () => {
   describe("deriveSkillProficiency", () => {
     it("derives correct level for core skill with modifier capped at level max", () => {
       // Primary skill (practitioner) + modifier (+1 from scale capability)
-      // Cap: max base level for level is practitioner, so capped at practitioner
+      // Cap: the level's max base level is practitioner. The result caps
+      // there.
       const level = deriveSkillProficiency({
         discipline: testDiscipline,
         level: testLevel,
@@ -142,7 +143,7 @@ describe("Derivation", () => {
         },
       };
       // Secondary skill (practitioner) + modifier (+1) = expert
-      // This is allowed because expert is the level's max base level
+      // This works because expert is the level's max base level
       const trackWithAiBoost = {
         ...testTrack,
         skillModifiers: { ai: 1 },
@@ -157,9 +158,9 @@ describe("Derivation", () => {
       assert.strictEqual(level, "expert");
     });
 
-    it("caps positive modifier at level max even when would exceed", () => {
+    it("caps positive modifier at level max even when it would exceed", () => {
       // Secondary skill (working) would be practitioner with +1
-      // But max base is practitioner, so it's capped there
+      // But the max base is practitioner. The cap applies there
       const capLevel = {
         ...testLevel,
         baseSkillProficiencies: {
@@ -179,12 +180,12 @@ describe("Derivation", () => {
         skillId: "skill_b", // supporting skill with AI capability
         skills: testSkills,
       });
-      // working (2) + 2 = expert (4), but capped at practitioner (3)
+      // working (2) + 2 = expert (4). The cap holds it at practitioner (3)
       assert.strictEqual(level, "practitioner");
     });
 
     it("allows negative modifier to go below level base", () => {
-      // Negative modifiers should not be capped - they create emphasis
+      // The derivation should not cap negative modifiers. They create emphasis
       const level = deriveSkillProficiency({
         discipline: testDiscipline,
         level: testLevel,

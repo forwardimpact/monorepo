@@ -26,7 +26,7 @@ export function createSkillRadar(skillMatrix, options = {}) {
     div({ className: "radar-chart-wrapper", id: "skill-radar-wrapper" }),
   );
 
-  // Render chart after container is in DOM
+  // Render the chart after the container is in the DOM
   setTimeout(() => {
     const wrapper = container.querySelector("#skill-radar-wrapper");
     if (!wrapper || !skillMatrix || skillMatrix.length === 0) return;
@@ -70,7 +70,7 @@ export function createBehaviourRadar(behaviourProfile, options = {}) {
     div({ className: "radar-chart-wrapper", id: "behaviour-radar-wrapper" }),
   );
 
-  // Render chart after container is in DOM
+  // Render the chart after the container is in the DOM
   setTimeout(() => {
     const wrapper = container.querySelector("#behaviour-radar-wrapper");
     if (!wrapper || !behaviourProfile || behaviourProfile.length === 0) return;

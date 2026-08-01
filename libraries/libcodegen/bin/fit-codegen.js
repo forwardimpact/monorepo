@@ -9,7 +9,7 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 const definition = {
   name: "fit-codegen",
   description:
-    "Generate code from proto contracts, or download a pre-generated bundle. `generate` needs the optional proto-compiler toolchain; `download` is lean and fetches the bundle a production image consumes at startup.",
+    "Generate code from proto contracts, or download a pre-generated bundle. `generate` needs the optional proto-compiler toolchain. `download` is lean and fetches the bundle a production image consumes at startup.",
   globalOptions: {
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
@@ -59,7 +59,7 @@ const definition = {
       title: "Keep Types Synced with Proto Definitions",
       url: "https://www.forwardimpact.team/docs/libraries/typed-contracts/index.md",
       description:
-        "One source of truth from proto definition to runtime: types, MCP tools, and service endpoints regenerated with fit-codegen.",
+        "One source of truth from proto definition to runtime. fit-codegen regenerates the types, the MCP tools, and the service endpoints.",
     },
   ],
 };
@@ -78,7 +78,8 @@ const logger = createLogger("codegen", runtime);
 
 /**
  * Parse argv and route the leading positional to its subcommand handler. A
- * bare invocation shows help (exit 0), the subcommand surface's front door.
+ * bare invocation shows the help and exits 0. The help is the front door to
+ * the subcommand surface.
  * @returns {Promise<void>}
  */
 async function main() {

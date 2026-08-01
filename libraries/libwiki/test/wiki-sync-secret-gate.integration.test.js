@@ -14,7 +14,7 @@ function makeSync(wikiDir, parentDir, resolveToken = () => null, env) {
   return new WikiSync({ runtime, gitClient, wikiDir, parentDir, resolveToken });
 }
 
-/** Whether gitleaks resolves in this runner; the secret-gate cases need it. */
+/** Whether gitleaks resolves in this runner. The secret-gate cases need it. */
 function gitleaksAvailable() {
   try {
     execFileSync("gitleaks", ["version"], { stdio: "pipe" });
@@ -24,10 +24,11 @@ function gitleaksAvailable() {
   }
 }
 
-// A fake GitHub PAT — shaped to match the gitleaks `github-pat` rule, not a
-// real credential. Assembled from parts so no contiguous token literal sits in
-// source (GitHub push-protection would reject the literal); the runtime string
-// is still detectable by gitleaks, which scans file content not source.
+// A fake GitHub PAT. It matches the shape of the gitleaks `github-pat` rule.
+// It is not a real credential. The constant joins two parts, so no contiguous
+// token literal sits in source (GitHub push-protection would reject the
+// literal). gitleaks can still detect the runtime string. gitleaks scans file
+// content. It does not scan source.
 const FAKE_PAT = ["ghp", "wWPw5k4aXcaT4fNP0UcnZwJUVFk6LO0pINUx"].join("_");
 
 describe("WikiSync secret gate (real git + gitleaks)", () => {
@@ -44,7 +45,7 @@ describe("WikiSync secret gate (real git + gitleaks)", () => {
     : {};
 
   test(
-    "a secret-bearing write is refused and never reaches the remote",
+    "the gate refuses a write that carries a secret, and the write never reaches the remote",
     opts,
     async () => {
       const { parent, wikiDir } = cloneRepo(bare, "gate-block");
@@ -61,14 +62,14 @@ describe("WikiSync secret gate (real git + gitleaks)", () => {
 
       assert.equal(result.pushed, false);
       assert.equal(result.reason, "secret-detected");
-      assert.ok(result.findings?.length >= 1, "a finding is reported");
+      assert.ok(result.findings?.length >= 1, "the gate reports a finding");
       assert.equal(result.findings[0].rule, "github-pat");
-      // No remote contact: the remote tip is unchanged.
+      // No remote contact. The remote tip is unchanged.
       git(wikiDir, "fetch", "origin", "master");
       assert.equal(
         git(wikiDir, "rev-parse", "origin/master"),
         remoteTipBefore,
-        "the push must not have advanced the remote",
+        "the push must not advance the remote",
       );
       // The finding carries no secret value.
       assert.doesNotMatch(JSON.stringify(result.findings), /ghp_/);
@@ -89,7 +90,7 @@ describe("WikiSync secret gate (real git + gitleaks)", () => {
   });
 
   test(
-    "FIT_WIKI_SECRET_OVERRIDE pushes the secret-bearing write and lands an audit log",
+    "FIT_WIKI_SECRET_OVERRIDE pushes the write that carries a secret and lands an audit log",
     opts,
     async () => {
       const { parent, wikiDir } = cloneRepo(bare, "gate-override");
@@ -112,7 +113,7 @@ describe("WikiSync secret gate (real git + gitleaks)", () => {
 
       // The audit log landed in the pushed tree and is secret-free.
       const logPath = join(wikiDir, "secret-overrides.log");
-      assert.ok(existsSync(logPath), "secret-overrides.log was written");
+      assert.ok(existsSync(logPath), "the gate wrote secret-overrides.log");
       const log = readFileSync(logPath, "utf-8");
       assert.match(log, /\tfinding\t/);
       assert.match(log, /documented sample token in test fixture/);

@@ -22,7 +22,7 @@ import {
 
 describe("Matching", () => {
   describe("findNextStepJob", () => {
-    it("finds next level rank job", () => {
+    it("finds the job at the next level rank", () => {
       const level2 = { ...testLevel, id: "level2", ordinalRank: 2 };
       const level3 = { ...testLevel, id: "level3", ordinalRank: 3 };
       const level4 = {
@@ -58,7 +58,7 @@ describe("Matching", () => {
       assert.strictEqual(result.job.level.ordinalRank, 4);
     });
 
-    it("returns null when at top level", () => {
+    it("returns null when the job is at the top level", () => {
       const topLevel = { ...testLevel, id: "top_level", ordinalRank: 7 };
 
       const currentJob = deriveJob({
@@ -121,7 +121,7 @@ describe("Matching", () => {
   });
 
   describe("calculateGapScore", () => {
-    it("returns 1.0 for no gap or exceeds", () => {
+    it("returns 1.0 when the gap is zero or negative", () => {
       assert.strictEqual(calculateGapScore(0), GAP_SCORES[0]);
       assert.strictEqual(calculateGapScore(-1), GAP_SCORES[0]);
       assert.strictEqual(calculateGapScore(-2), GAP_SCORES[0]);

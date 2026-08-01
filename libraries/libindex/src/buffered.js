@@ -1,7 +1,7 @@
 import { IndexBase } from "./base.js";
 
 /**
- * Buffered index for high-volume writes with periodic flushing
+ * Buffered index for high-volume writes with a periodic flush
  * Extends IndexBase to provide batched storage operations
  * @augments IndexBase
  */
@@ -32,26 +32,26 @@ export class BufferedIndex extends IndexBase {
   }
 
   /**
-   * Adds item to buffer instead of immediate storage
+   * Adds an item to the buffer instead of immediate storage
    * @param {object} item - Item to add
    * @returns {Promise<void>}
    */
   async add(item) {
     if (!this.loaded) await this.loadData();
 
-    // Add to in-memory index immediately for queries
+    // Add to the in-memory index immediately for queries
     this.index.set(item.id, item);
 
     // Buffer for batch write
     this.#buffer.push(item);
 
-    // Check if forced flush needed
+    // Check if a forced flush is needed
     if (this.#buffer.length >= this.#maxBufferSize) {
       await this.flush();
       return;
     }
 
-    // Schedule periodic flush
+    // Schedule a periodic flush
     if (!this.#flushTimer) {
       this.#flushTimer = this.#clock.setTimeout(
         () => this.flush(),
@@ -83,8 +83,8 @@ export class BufferedIndex extends IndexBase {
 
   /**
    * Compaction on a buffered index drains the in-memory write buffer to
-   * storage first (so any post-buffer state is observable on disk) and
-   * then replaces the persisted file with the live in-memory set.
+   * storage first (so any post-buffer state is observable on disk). It then
+   * replaces the persisted file with the live in-memory set.
    * @returns {Promise<void>}
    */
   async compact() {
@@ -93,7 +93,7 @@ export class BufferedIndex extends IndexBase {
   }
 
   /**
-   * Shuts down the index by flushing remaining buffer and clearing timer
+   * Shuts down the index. Flushes the remaining buffer and clears the timer
    * @returns {Promise<void>}
    */
   async shutdown() {

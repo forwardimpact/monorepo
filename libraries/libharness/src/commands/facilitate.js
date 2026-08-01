@@ -22,9 +22,9 @@ function parseAgentProfiles(raw, cwd, maxTurns) {
 }
 
 /**
- * Parse and validate facilitate command options. Exported for test
- * coverage of the `--max-turns` → per-agent threading contract; not part
- * of the package's public API.
+ * Parse and validate facilitate command options. This function is exported
+ * so a test can cover the contract that threads `--max-turns` to each
+ * agent. It is not part of the package's public API.
  * @param {object} values - Parsed option values
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {object} Parsed options
@@ -37,17 +37,18 @@ export function parseFacilitateOptions(values, runtime) {
 
   const profilesRaw = values["agent-profiles"];
   if (!profilesRaw) throw new Error("--agent-profiles is required");
-  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back to
-  // the default rather than overriding it with "".
+  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back
+  // to the default. The empty string does not override the default.
   const agentCwd = resolve(values["agent-cwd"] || ".");
 
   const maxTurnsRaw = values["max-turns"] || "20";
   const maxTurns = maxTurnsRaw === "0" ? 0 : parseInt(maxTurnsRaw, 10);
 
-  // Thread --max-turns into each participant: without this, every facilitated
-  // agent silently falls back to the 50-turn default in facilitator.js even
-  // when the caller raises the budget. Observed in run 26078312414 where
-  // staff-engineer terminated at 51 turns despite --max-turns=200.
+  // Thread --max-turns into each participant. Without this, every
+  // facilitated agent silently falls back to the 50-turn default in
+  // facilitator.js, even when the caller raises the budget. Run
+  // 26078312414 showed this. In it, staff-engineer terminated at 51
+  // turns despite --max-turns=200.
   const agentConfigs = parseAgentProfiles(profilesRaw, agentCwd, maxTurns);
 
   return {
@@ -77,9 +78,9 @@ export async function runFacilitateCommand(ctx) {
   const runtime = ctx.deps.runtime;
   const opts = parseFacilitateOptions(ctx.options, runtime);
 
-  // Build the redactor as the first observable side-effect after option
-  // parsing — the env snapshot must freeze BEFORE any in-process
-  // env writes the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
+  // Build the redactor as the first observable side-effect after the parser
+  // reads the options. The env snapshot must freeze BEFORE any in-process
+  // env write the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
   const redactor = createRedactor({ runtime });
 
   const fileStream = opts.outputPath
@@ -98,7 +99,8 @@ export async function runFacilitateCommand(ctx) {
     runtime.proc.env.LIBHARNESS_AGENT_PROFILE = opts.facilitatorProfile;
   }
   // Unconditional so the default "github" is observable to the agent's
-  // active-tracker resolution, mirroring --agent-profile's env write above.
+  // active-tracker resolution. This mirrors --agent-profile's env write
+  // above.
   runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   const { query } = await import("@anthropic-ai/claude-agent-sdk");

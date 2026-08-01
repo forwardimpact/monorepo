@@ -2,15 +2,15 @@
 name: fit-rc
 description: >
   Start, stop, restart, check status, and read logs for configured services
-  through one interface. Use when you need to manage a set of services without
-  remembering each one's specific command, port, and flags.
+  through one interface. Use when you need to manage a set of services and you
+  do not want to remember each one's specific command, port, and flags.
 ---
 
 # Start, Stop, or Check a Service
 
 `fit-rc` is a service manager. It reads the services declared under the `init`
-key of `config/config.json` and starts, stops, restarts, checks, or tails them
-through one command, talking to a supervision daemon over a Unix socket.
+key of `config/config.json`. It starts, stops, restarts, checks, or tails them
+through one command. It talks to a supervision daemon over a Unix socket.
 
 ## When to Use
 
@@ -38,9 +38,8 @@ npx fit-rc logs trace
 to act on all). `logs` requires a service name. Pass `--silent` to suppress
 info-level output.
 
-Services are defined under the `init` key of `config/config.json`. See the guide
-for the configuration format and the supervision and observability setup around
-it.
+Define services under the `init` key of `config/config.json`. See the guide for
+the configuration format and the supervision and observability setup around it.
 
 ## Documentation
 

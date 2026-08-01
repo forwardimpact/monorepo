@@ -9,7 +9,7 @@ const { namedNode, literal } = DataFactory;
 
 describe("LibGraph Performance Tests", () => {
   /**
-   * Generate mock RDF triples for testing
+   * Generate mock RDF triples for tests
    * @param {number} count - Number of triples to generate
    * @returns {object[]} Array of quad objects
    */
@@ -72,7 +72,7 @@ describe("LibGraph Performance Tests", () => {
   }
 
   test(
-    "parseGraphQuery parsing performance",
+    "parseGraphQuery parse performance",
     createPerformanceTest({
       count: 10000,
       setupFn: (iterations) => {

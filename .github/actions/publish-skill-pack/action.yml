@@ -1,17 +1,18 @@
 name: Publish skill pack
 description: >
-  Sync one skill pack (its agent references always, and for kata its agent
-  profiles) from the monorepo into the checked-out sibling repo, regenerate
-  apm.yml and README.md, then commit, push,
-  and tag at the pack's package version. All pack-specific values arrive via
-  inputs so the three packs share one implementation. Prose and repo names reach
-  the scripts through the environment, never by interpolation into source text.
+  Sync one skill pack from the monorepo into the checked-out sibling repo. The
+  sync always includes the pack's agent references. For kata it also includes
+  the agent profiles. Regenerate apm.yml and README.md. Then commit, push,
+  and tag at the pack's package version. All pack-specific values arrive through
+  inputs, so the three packs share one implementation. Prose and repo names
+  reach the scripts through the environment, never by interpolation into source
+  text.
 
-  Primitives are laid out under APM's conventional `.apm/` source root
-  (`.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`) so that a bare
-  `apm install forwardimpact/<repo>` discovers and installs every primitive,
-  agents included. A root-level `agents/` directory is not an APM-recognized
-  package form, so agents placed there install for nobody.
+  The action lays out primitives under APM's conventional `.apm/` source root
+  (`.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`). A bare
+  `apm install forwardimpact/<repo>` then discovers and installs every
+  primitive, agents included. A root-level `agents/` directory is not an
+  APM-recognized package form. Agents placed there install for nobody.
 
 inputs:
   pack-prefix:
@@ -24,9 +25,9 @@ inputs:
     default: ""
   source-dir:
     description: >
-      Directory holding skills/ and agents/ to stage from. Defaults to the
-      repo-root .claude; a product-local pack points this at its own .claude
-      (e.g. products/outpost/templates/.claude).
+      The directory that holds skills/ and agents/ to stage from. It defaults
+      to the repo-root .claude. A product-local pack points this at its own
+      .claude (e.g. products/outpost/templates/.claude).
     default: .claude
   all:
     description: >
@@ -35,8 +36,8 @@ inputs:
     default: "false"
   sibling-repo:
     description: >
-      Sibling repo short name (e.g. fit-skills). Names the apm package and the
-      `forwardimpact/<repo>` install commands.
+      Sibling repo short name (e.g. fit-skills). It names the apm package and
+      the `forwardimpact/<repo>` install commands.
     required: true
   version-file:
     description: package.json whose `.version` stamps the apm package and release tag.
@@ -72,10 +73,11 @@ runs:
         echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
     # Stage the sibling repo's `.apm/` tree, apm.yml, and README in one tested
-    # code path. `fit-pack` (libpack) owns the APM layout — skills under
-    # `.apm/skills/`, agents under `.apm/agents/<name>.agent.md` — shared with
-    # the Pathway git packs so the two cannot drift. Workflows orchestrate;
-    # the staging logic lives in the library, not in walls of inline bash.
+    # code path. `fit-pack` (libpack) owns the APM layout: skills under
+    # `.apm/skills/`, agents under `.apm/agents/<name>.agent.md`. The Pathway
+    # git packs share that layout, so the two cannot drift. Workflows
+    # orchestrate. The library holds the logic that stages the pack. Walls of
+    # inline bash do not.
     - name: Stage pack
       shell: bash
       env:
@@ -89,11 +91,12 @@ runs:
         README_INTRO: ${{ inputs.readme-intro }}
         SYNC_AGENTS: ${{ inputs.sync-agents }}
       run: |
-        # A matrix entry that omits source-dir/all renders them empty here, not
-        # as the input defaults, so coalesce to the repo-root prefix pack shape.
+        # A matrix entry that omits source-dir/all renders them empty here.
+        # It does not render the input defaults. So coalesce to the shape of
+        # the repo-root prefix pack.
         source_dir="${SOURCE_DIR:-.claude}"
 
-        # Expand each space-separated prefix into its own --prefix flag; a
+        # Expand each space-separated prefix into its own --prefix flag. A
         # single-prefix value expands identically to the previous single-flag
         # form.
         select_flag=""

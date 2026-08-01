@@ -4,12 +4,13 @@ import { WEEKLY_LOG_NAME_RE, WEEKLY_LOG_PART_NAME_RE } from "./constants.js";
 const METRICS_CSV_RE = /^metrics\/[^/]+\/\d{4}\.csv$/;
 
 /**
- * Whether a wiki-root-relative path is one of the lane's own files: the
- * agent's summary (`<agent>.md`), a weekly log or sealed part
- * (`<agent>-YYYY-Www.md`, `<agent>-YYYY-Www-partN.md`, matched on the captured
- * agent token), or a metrics CSV (`metrics/<skill>/<year>.csv`). Metrics CSVs
- * match by path for every agent; lane ownership of a metrics CSV is enforced by
- * the tier-2 sweep's author filter at the commit level, not here.
+ * Whether a wiki-root-relative path is one of the lane's own files. The lane's
+ * own files are the agent's summary (`<agent>.md`), a weekly log or sealed
+ * part, and a metrics CSV (`metrics/<skill>/<year>.csv`). A weekly log or
+ * sealed part is `<agent>-YYYY-Www.md` or `<agent>-YYYY-Www-partN.md`, matched
+ * on the captured agent token. Metrics CSVs match by path for every agent. The
+ * tier-2 sweep's author filter enforces lane ownership of a metrics CSV at the
+ * commit level. This function does not.
  *
  * @param {string} relPath - Path relative to the wiki root (POSIX or native).
  * @param {string} agent - Agent profile id (e.g. "staff-engineer").
@@ -27,9 +28,9 @@ export function isLaneFile(relPath, agent) {
 }
 
 /**
- * Enumerate the lane's own files present under `wikiRoot`: matching top-level
- * summary and weekly-log files, plus every `metrics/<skill>/<year>.csv`.
- * Returns wiki-root-relative POSIX paths.
+ * Enumerate the lane's own files present under `wikiRoot`. The list holds the
+ * top-level summary and weekly-log files that match, plus every
+ * `metrics/<skill>/<year>.csv`. Returns wiki-root-relative POSIX paths.
  *
  * @param {string} wikiRoot
  * @param {string} agent
@@ -45,7 +46,7 @@ export function enumerateLaneFiles(wikiRoot, agent, fsSync) {
   return out;
 }
 
-/** Wiki-root-relative `metrics/<skill>/<year>.csv` paths matching the lane. */
+/** Wiki-root-relative `metrics/<skill>/<year>.csv` paths that match the lane. */
 function enumerateMetricsCsvs(wikiRoot, agent, fsSync) {
   const metricsDir = path.join(wikiRoot, "metrics");
   if (!fsSync.existsSync(metricsDir)) return [];

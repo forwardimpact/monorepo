@@ -235,8 +235,8 @@
 
   /*
    * List items: 60px row height = 16px padding-top + 28px content + 16px padding-bottom
-   * Uses bottom-border only for 1px gaps between items (like table rows)
-   * Left/right borders and rounded corners on first/last items match table styling
+   * Each item uses a bottom border only for 1px gaps between items (like table rows)
+   * Left/right borders and rounded corners on first/last items match the table style
    */
   .list-item {
     display: flex;

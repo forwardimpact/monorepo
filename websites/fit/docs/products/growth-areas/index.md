@@ -3,25 +3,25 @@ title: "Get Career Guidance Grounded in the Standard"
 description: "When a promotion conversation ends with 'not yet' and no specifics, use Guide and Landmark to find what's missing and show concrete evidence of growth."
 ---
 
-The promotion conversation ended with "not yet", and nobody could point to what
-specific evidence would change the answer. The feedback felt subjective, and you
-left without a clear picture of what to work on or how to show progress. This
-guide walks you through finding the specific gaps between where you are and
-where you need to be, then building a visible evidence record that grounds the
-next conversation in facts. For the other half of this job, reviewing a
-deliverable against the same standard, see
+The promotion conversation ended with "not yet". Nobody could point to the
+specific evidence that would change the answer. The feedback felt subjective.
+You left without a clear picture of what to work on or how to show progress.
+This guide shows you how to find the specific gaps between where you are and
+where you need to be. It then shows you how to build a visible evidence record
+that grounds the next conversation in facts. The other half of this job is to
+review a deliverable against the same standard. See
 [Get Output Review Grounded in the Standard](/docs/products/trust-output/).
 
 Two products work together in this workflow. **Guide** is an AI agent that
-reasons about your organization's engineering standard -- it identifies gaps and
+reasons about your organization's engineering standard. It identifies gaps. It
 gives career advice grounded in your actual skill and behaviour definitions.
 **Landmark** reads your engineering artifacts (pull requests, design documents,
-code reviews) and shows which standard markers your work has evidenced. Together
+code reviews) and shows which standard markers your work evidences. Together
 they replace subjective impressions with specific, standards-grounded answers.
 
 ## Prerequisites
 
-This guide assumes you have completed the setup for both products:
+This guide assumes you completed the setup for both products:
 
 - [Getting Started: Guide for Engineers](/docs/getting-started/engineers/guide/)
   -- install Guide, run codegen, authenticate with Anthropic, process your
@@ -29,21 +29,21 @@ This guide assumes you have completed the setup for both products:
 - [Getting Started: Landmark for Engineers](/docs/getting-started/engineers/landmark/)
   -- install Landmark and confirm access to Map's activity layer.
 
-You should also know your role coordinates (discipline, level, and track). If
-you have not identified those yet, work through
-[See What's Expected at Your Level](/docs/products/career-paths/) first -- that
-guide covers finding your coordinates and understanding what your current level
-expects.
+Also know your role coordinates (discipline, level, and track). If you do not
+know them yet, work through
+[See What's Expected at Your Level](/docs/products/career-paths/) first. That
+guide covers how to find your coordinates. It also explains what your current
+level expects.
 
 ## Ask Guide what's missing
 
-Start by asking Guide what the gap looks like between your current level and
-your target. Guide reads your organization's skill definitions, behaviour
-expectations, and markers, and returns specific areas grounded in your
-standard rather than generic career advice.
+First, ask Guide what the gap looks like between your current level and your
+target. Guide reads your organization's skill definitions, behaviour
+expectations, and markers. It returns specific areas grounded in your standard.
+It does not return generic career advice.
 
-Start Guide and ask a growth question. Lines starting with `>` are prompts you
-type inside the Guide session:
+Start Guide and ask a growth question. Lines that start with `>` are prompts
+you type inside the Guide session:
 
 ```sh
 npx fit-guide
@@ -83,14 +83,14 @@ Focus on Architecture Design and Think in Systems first — those represent the
 largest shifts in scope and autonomy.
 ```
 
-You can also pipe a question directly without entering the interactive session:
+You can also pipe a question directly and skip the interactive session:
 
 ```sh
 echo "What markers define practitioner-level architecture design?" | npx fit-guide
 ```
 
-Guide will reference the specific markers from your capability YAML -- the same
-observable indicators that Landmark uses to match evidence.
+Guide references the specific markers from your capability YAML. These are the
+same observable indicators that Landmark uses to match evidence.
 
 ### Go deeper on specific gaps
 
@@ -108,16 +108,15 @@ Once you know the broad gap, drill into specific areas:
 > Which of my core skills have the biggest jump to J070?
 ```
 
-Each answer is grounded in your organization's definitions. Two people asking
-the same question get the same foundational answer because the source of truth
-is shared.
+Your organization's definitions ground each answer. Two people who ask the same
+question get the same foundational answer. They share one source of truth.
 
 ## Check your evidence record
 
 Guide tells you what to work on. Landmark tells you what your engineering record
-already shows. Before you start building new evidence, see where you stand.
+already shows. Before you build new evidence, see where you stand.
 
-### See which markers your work has evidenced
+### See which markers your work evidences
 
 ```sh
 npx fit-landmark evidence --email you@example.com
@@ -150,7 +149,7 @@ npx fit-landmark evidence --email you@example.com
 ```
 
 Each row shows the marker it matched, the rationale for the match, and a
-provenance label naming where the evidence came from. Filter by skill to
+provenance label that names where the evidence came from. Filter by skill to
 focus on a specific gap:
 
 ```sh
@@ -160,24 +159,24 @@ npx fit-landmark evidence --skill architecture-design --email you@example.com
 ### Know where each piece of evidence comes from
 
 Every evidence row carries one of four provenance labels. They matter when
-you bring the record to a promotion conversation — evidence interpreted from
+you bring the record to a promotion conversation. Evidence interpreted from
 real artifacts carries more weight than placeholder rows:
 
 | Provenance              | Where the row came from                                                                  |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
 | `artifact_interpreted`  | Matched directly from an ingested artifact (pull request, design document, code review)  |
 | `agent_attested`        | Written by Guide's deeper evaluation of your artifacts against a marker                  |
-| `human_attested`        | Recorded by a person attesting the marker — also the default for rows written before provenance tracking |
-| `synthetic_placeholder` | Generated from synthetic demo data — not evidence of real work                           |
+| `human_attested`        | Recorded by a person who attests the marker. Also the default for rows written before provenance tracking |
+| `synthetic_placeholder` | Generated from synthetic demo data. It is not evidence of real work                      |
 
-The `coverage` command (below) breaks your record down by these labels, so
-you can see at a glance how much of it rests on interpreted artifacts versus
-placeholders.
+The `coverage` command (below) breaks your record down by these labels. You can
+then see at a glance how much of it rests on interpreted artifacts and how much
+rests on placeholders.
 
 ### Check promotion readiness
 
-See a checklist of next-level markers -- which ones you have already evidenced
-and which are still outstanding:
+See a checklist of next-level markers. The checklist shows which ones you
+already evidenced and which ones are still outstanding:
 
 ```sh
 npx fit-landmark readiness --email you@example.com
@@ -209,7 +208,7 @@ level. To check against a specific level, add the `--target` flag:
 npx fit-landmark readiness --email you@example.com --target J080
 ```
 
-The missing markers become your concrete growth plan -- each one describes an
+The missing markers become your concrete growth plan. Each one describes an
 observable action you can work toward.
 
 ### View skill coverage
@@ -237,10 +236,10 @@ npx fit-landmark coverage --email you@example.com
       pull_request          12/15 interpreted
 ```
 
-Coverage shows how many of your artifacts have been interpreted into
-evidence, broken down by provenance label and artifact type. A low
-interpreted ratio means the record is thin — focus on getting artifacts
-ingested and interpreted before reading too much into any other view.
+Coverage shows how many of your artifacts are interpreted into evidence. It
+breaks the count down by provenance label and artifact type. A low interpreted
+ratio means the record is thin. Get more artifacts ingested and interpreted
+before you read too much into any other view.
 
 ### When coverage is below the confidence floor
 
@@ -249,8 +248,8 @@ record as too thin to support conclusions:
 
 - `readiness` suppresses its verdict entirely and prints the coverage figure
   with guidance instead of a checklist.
-- `coverage` and `timeline` print a banner — low coverage means the numbers
-  reflect a measurement gap, not an absence of growth.
+- `coverage` and `timeline` print a banner. Low coverage means the numbers
+  reflect a measurement gap. It does not mean growth is absent.
 
 Each suppression names the same way out: add evidence from interpreted
 artifacts, run Guide's evaluate-evidence assessment, or have a person attest
@@ -258,8 +257,8 @@ markers directly. Once coverage crosses the floor, the full views return.
 
 ## Build evidence in the gaps
 
-Now you know exactly which markers are missing. The goal is not to game the
-checklist -- it is to do work that naturally demonstrates growth in those areas.
+Now you know exactly which markers are missing. Do work that naturally
+demonstrates growth in those areas. Do not game the checklist.
 
 ### Use Guide to plan your approach
 
@@ -274,10 +273,10 @@ npx fit-guide
 > area"? I'm at working-level Architecture Design and need practitioner.
 ```
 
-Guide will suggest concrete activities grounded in your standard -- not generic
-advice. It knows what your organization defines as practitioner-level
-architecture work and can recommend activities that would produce artifacts
-Landmark can later interpret.
+Guide suggests concrete activities grounded in your standard. It does not give
+generic advice. It knows what your organization defines as practitioner-level
+architecture work. It can recommend activities that produce artifacts Landmark
+can later interpret.
 
 ### Look up marker definitions directly
 
@@ -296,13 +295,14 @@ npx fit-landmark marker architecture-design --level practitioner
 ```
 
 Markers are the observable indicators defined in your capability YAML. They
-describe what someone at that proficiency level does in practice -- not what
-they know in theory. Every marker Landmark checks against is visible here.
+describe what someone at that proficiency level does in practice. They do not
+describe what that person knows in theory. Every marker Landmark checks against
+is visible here.
 
 ### Track progress over time
 
 As you do the work and your artifacts accumulate, track whether your evidence
-record is growing:
+record grows:
 
 ```sh
 npx fit-landmark timeline --email you@example.com
@@ -319,8 +319,8 @@ npx fit-landmark timeline --email you@example.com
 ```
 
 The timeline shows the highest evidenced proficiency level per skill per
-quarter. A level appearing for the first time tells you the evidence record
-has caught up to your growth. Filter by skill to focus on one area:
+quarter. A level that appears for the first time tells you the evidence record
+caught up to your growth. Filter by skill to focus on one area:
 
 ```sh
 npx fit-landmark timeline --email you@example.com --skill architecture-design
@@ -328,24 +328,24 @@ npx fit-landmark timeline --email you@example.com --skill architecture-design
 
 ## Verify
 
-You have reached the outcome of this guide when you can answer these questions:
+You reach the outcome of this guide when you can answer these questions:
 
-- **What specific skills and behaviours need to grow?** You have asked Guide
-  about the gap between your current level and your target, and you can name the
-  areas with the largest shifts.
-- **Where does your evidence record already show strength?** You have run
-  `npx fit-landmark evidence` and `npx fit-landmark readiness` and can identify
+- **What specific skills and behaviours need to grow?** You asked Guide about
+  the gap between your current level and your target. You can name the areas
+  with the largest shifts.
+- **Where does your evidence record already show strength?** You ran
+  `npx fit-landmark evidence` and `npx fit-landmark readiness`. You can identify
   which markers are evidenced and which are still missing.
-- **What does the next level look like in practice?** You have looked up
-  specific marker definitions with `npx fit-landmark marker` and can describe
-  the observable actions your target level expects.
-- **Is your evidence growing over time?** You have checked
-  `npx fit-landmark timeline` and can see whether recent work is producing
-  visible movement.
+- **What does the next level look like in practice?** You looked up specific
+  marker definitions with `npx fit-landmark marker`. You can describe the
+  observable actions your target level expects.
+- **Does your evidence grow over time?** You checked
+  `npx fit-landmark timeline`. You can see whether recent work produces visible
+  movement.
 
 If any of these are unclear, revisit the relevant step. The readiness checklist
-is the most direct measure -- when the missing markers from your first run
-start showing as evidenced, you are making progress.
+is the most direct measure. When the missing markers from your first run show
+as evidenced, you make progress.
 
 ## What's next
 

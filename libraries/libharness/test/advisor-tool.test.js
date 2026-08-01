@@ -71,7 +71,7 @@ describe("advisorTool", () => {
     assert.strictEqual(events[0].durationMs, 7);
   });
 
-  test("the cap is enforced in code: consult n+1 starts no session and emits no event", async () => {
+  test("the code enforces the cap, so consult n+1 starts no session and emits no event", async () => {
     const budget = createAdvisorBudget(2);
     const { t, consults, events } = makeTool({ budget });
 
@@ -88,7 +88,7 @@ describe("advisorTool", () => {
     assert.strictEqual(budget.used, 2);
   });
 
-  test("the counter is shared across two handlers built over one budget object", async () => {
+  test("two handlers built over one budget object share the counter", async () => {
     const budget = createAdvisorBudget(1);
     const a = makeTool({ budget, from: "agent-a" });
     const b = makeTool({ budget, from: "agent-b" });
@@ -101,7 +101,7 @@ describe("advisorTool", () => {
   });
 });
 
-describe("agent tool-server extraTools seam", () => {
+describe("extraTools seam on agent tool servers", () => {
   const ctx = () => {
     const c = createOrchestrationContext();
     c.rfcs = [];

@@ -9,8 +9,9 @@ const DEFAULT = { tenant_id: "default" };
 const clock = createDefaultClock();
 
 /**
- * Deterministic clock double: `advance` moves `now`, and intervals are
- * captured for manual firing instead of scheduling host timers.
+ * Deterministic clock double. `advance` moves `now`. The double captures
+ * intervals so the test fires them by hand. It does not schedule host
+ * timers.
  * @param {number} [start]
  * @returns {object}
  */
@@ -55,14 +56,14 @@ describe("CallbackRegistry", () => {
     expect(second).toBeNull();
   });
 
-  test("peek returns metadata without consuming and clones the entry", () => {
+  test("peek returns a clone of the metadata and leaves the entry in place", () => {
     const reg = new CallbackRegistry({ clock });
     const token = reg.register("corr-2", { tenant_id: "default" });
     const peeked = reg.peek(token, DEFAULT);
     expect(peeked.correlationId).toBe("corr-2");
     expect(reg.size).toBe(1);
 
-    // Mutating the peeked entry must not corrupt internal state.
+    // A mutation of the peeked entry must not corrupt internal state.
     peeked.correlationId = "tampered";
     const second = reg.peek(token, DEFAULT);
     expect(second.correlationId).toBe("corr-2");
@@ -118,7 +119,7 @@ describe("CallbackRegistry", () => {
     // No eviction when `now` is still inside the window.
     expect(reg.sweep(after)).toBe(0);
 
-    // Eviction when `now` has advanced past createdAt + ttlMs for both.
+    // Eviction when `now` moves past createdAt + ttlMs for both.
     expect(reg.sweep(before + 5000)).toBe(2);
     expect(reg.consume(a, DEFAULT)).toBeNull();
     expect(reg.consume(b, DEFAULT)).toBeNull();
@@ -174,7 +175,7 @@ describe("CallbackRegistry", () => {
     expect(reg.tenantOf("corr-evict")).toBeNull();
   });
 
-  test("consume returns null and drops the entry once the TTL has elapsed", () => {
+  test("consume returns null and drops the entry once the TTL elapses", () => {
     const fake = createFakeClock();
     const reg = new CallbackRegistry({ clock: fake, ttlMs: 1000 });
     const token = reg.register("corr-stale", { tenant_id: "default" });
@@ -183,7 +184,7 @@ describe("CallbackRegistry", () => {
     expect(reg.size).toBe(0);
   });
 
-  test("peek returns null and drops the entry once the TTL has elapsed", () => {
+  test("peek returns null and drops the entry once the TTL elapses", () => {
     const fake = createFakeClock();
     const reg = new CallbackRegistry({ clock: fake, ttlMs: 1000 });
     const token = reg.register("corr-stale-peek", { tenant_id: "default" });
@@ -203,7 +204,7 @@ describe("CallbackRegistry", () => {
     expect(reg.size).toBe(0);
   });
 
-  test("startSweepTimer schedules a periodic sweep; stopSweepTimer clears it", () => {
+  test("startSweepTimer schedules a periodic sweep and stopSweepTimer clears it", () => {
     const fake = createFakeClock();
     const reg = new CallbackRegistry({ clock: fake, ttlMs: 1000 });
     reg.startSweepTimer(60_000);
@@ -217,7 +218,7 @@ describe("CallbackRegistry", () => {
 
     reg.stopSweepTimer();
     expect(fake.intervals[0].cleared).toBe(true);
-    // A stopped registry can start sweeping again.
+    // A stopped registry can start the sweep again.
     reg.startSweepTimer(60_000);
     expect(fake.intervals.length).toBe(2);
     reg.stopSweepTimer();

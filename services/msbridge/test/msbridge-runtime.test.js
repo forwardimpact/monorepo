@@ -103,7 +103,7 @@ describe("msbridge service", () => {
       expect(stored.history.map((h) => h.text)).toEqual(["first", "follow up"]);
     });
 
-    test("failed verdict additionally posts the summary", async () => {
+    test("failed verdict also posts the summary", async () => {
       const token = service.callbacks.register("c-fail", {
         threadId: "t-fail",
         tenant_id: "default",

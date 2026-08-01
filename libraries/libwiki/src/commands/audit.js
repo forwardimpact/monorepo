@@ -11,8 +11,8 @@ import { resolveProjectRoot } from "../util/wiki-dir.js";
 
 /**
  * Run the wiki audit and return its findings plus the resolved project root.
- * Shared by `runAuditCommand` (emits them) and `runCurateCommand` (routes
- * them to an issue) so the two cannot drift.
+ * `runAuditCommand` emits the findings. `runCurateCommand` routes them to an
+ * issue. Both share this function, so the two cannot drift.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {{ findings: object[], projectRoot: string }}
  */
@@ -32,7 +32,7 @@ export function auditWiki(ctx) {
   return { findings: runRules(RULES, auditCtx, { resolveScope }), projectRoot };
 }
 
-/** Run the wiki audit and emit findings. JSON via --format json. */
+/** Run the wiki audit and emit findings. Use --format json for JSON. */
 export function runAuditCommand(ctx) {
   const { runtime } = ctx.deps;
   const options = ctx.options;

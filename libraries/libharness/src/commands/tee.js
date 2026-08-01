@@ -4,10 +4,11 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 import { createTeeWriter } from "../tee-writer.js";
 
 /**
- * Tee command — stream text output to stdout while optionally saving the raw
- * NDJSON to a file. Reads stdin line-by-line through the injected runtime and
- * re-delimits each record with a newline so the TeeWriter's line splitter sees
- * the same framing the raw byte stream produced.
+ * Tee command — stream text output to stdout. Save the raw NDJSON to a file
+ * when the caller gives an output path. The command reads stdin line by line
+ * through the injected runtime. It re-delimits each record with a newline.
+ * The TeeWriter's line splitter then sees the same record boundaries that the
+ * raw byte stream produced.
  *
  * Usage: gemba-harness tee [output.ndjson] < trace.ndjson
  *
@@ -21,8 +22,8 @@ export async function runTeeCommand(ctx) {
     ? runtime.fs.createWriteStream(outputPath)
     : null;
 
-  // TeeWriter requires a fileStream; when no output file is specified,
-  // use a PassThrough as a no-op sink (NDJSON is not saved).
+  // TeeWriter requires a fileStream. When the caller gives no output file,
+  // use a PassThrough as a no-op sink. The command then saves no NDJSON.
   const sink = fileStream ?? new PassThrough();
   const tee = createTeeWriter({
     fileStream: sink,
@@ -32,9 +33,9 @@ export async function runTeeCommand(ctx) {
   });
 
   try {
-    // `runtime.proc.stdin` yields newline-stripped lines; re-append `\n` so the
-    // TeeWriter's `_write` line splitter frames records exactly as it did when
-    // piped the raw byte stream.
+    // `runtime.proc.stdin` yields newline-stripped lines. Re-append `\n` so
+    // the TeeWriter's `_write` line splitter frames records exactly as it did
+    // when the caller piped the raw byte stream into it.
     const lines = (async function* () {
       for await (const line of runtime.proc.stdin) yield `${line}\n`;
     })();

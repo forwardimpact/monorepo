@@ -76,9 +76,10 @@ what's realistic and what depends on what}
 
 ## Data dependencies table
 
-For Step 4a, fill in this table. Flag any data that doesn't seem to exist yet,
-is locked behind inaccessible systems, is unstructured and would need heavy
-preprocessing, or carries compliance/privacy constraints.
+For Step 4a, fill in this table. Flag any data that doesn't seem to exist yet.
+Flag data that is locked behind inaccessible systems. Flag unstructured data
+that would need heavy preprocessing. Flag data that carries compliance or
+privacy constraints.
 
 | Data        | Where It Lives             | Format                             | Access                          | Blocker?       |
 | ----------- | -------------------------- | ---------------------------------- | ------------------------------- | -------------- |

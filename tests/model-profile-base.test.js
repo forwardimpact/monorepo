@@ -130,7 +130,7 @@ describe("Profile Module", () => {
       assert.strictEqual(result[2].skillId, "a"); // awareness
     });
 
-    it("does not mutate original array when used with spread", () => {
+    it("does not mutate the original array when the caller spreads it", () => {
       const original = [
         { skillId: "a", proficiency: "awareness" },
         { skillId: "b", proficiency: "expert" },
@@ -171,7 +171,7 @@ describe("Profile Module", () => {
     });
 
     it("includes human-only skills in raw derivation", () => {
-      // prepareBaseProfile returns raw derivation without filtering
+      // prepareBaseProfile returns the raw derivation and applies no filter
       const skillsWithHumanOnly = [
         ...testSkills,
         {
@@ -198,7 +198,7 @@ describe("Profile Module", () => {
       assert.ok(result.skillMatrix.some((s) => s.skillId === "human_skill"));
     });
 
-    it("derives responsibilities when capabilities provided", () => {
+    it("derives responsibilities when the caller provides capabilities", () => {
       const result = prepareBaseProfile({
         discipline: testDiscipline,
         track: testTrack,
@@ -212,7 +212,7 @@ describe("Profile Module", () => {
   });
 
   describe("prepareAgentProfile", () => {
-    it("applies agent-specific filtering and sorting via composed policies", () => {
+    it("filters and sorts for agents through composed policies", () => {
       const result = prepareAgentProfile({
         discipline: testDiscipline,
         track: testTrack,

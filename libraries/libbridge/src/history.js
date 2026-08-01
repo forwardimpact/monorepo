@@ -1,7 +1,7 @@
 /**
- * Append a message to a bounded history, dropping the oldest entries when
- * the cap is exceeded. Mutates `history` in place to match the legacy
- * msteams bridge behaviour preserved in services/msbridge.
+ * Append a message to a bounded history. Drop the oldest entries when the
+ * history exceeds the cap. Mutates `history` in place to match the legacy
+ * behaviour of the msteams bridge, preserved in services/msbridge.
  *
  * @param {Array<{role: "user"|"assistant", text: string}>} history
  * @param {{role: "user"|"assistant", text: string}} entry

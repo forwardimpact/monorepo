@@ -3,8 +3,8 @@
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
 Channel-to-agent-team bridge — relay messages between human channels (GitHub
-Discussions, Microsoft Teams) and the agent team, with thread state,
-multi-tenant routing, rate limits, and resume scheduling handled once.
+Discussions, Microsoft Teams) and the agent team. The bridge handles thread
+state, multi-tenant routing, rate limits, and resume scheduling once.
 
 <!-- END:description -->
 

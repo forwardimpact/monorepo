@@ -33,9 +33,9 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     assert.strictEqual(matches.length, 1);
   });
 
-  test("the retired eval-era redaction-disable env name is ignored (clean break)", () => {
-    // The name is built from parts so the criterion-1 completeness oracle
-    // stays clean while this still guards the clean break.
+  test("the redactor ignores the retired redaction-disable env name from the eval era (clean break)", () => {
+    // This test builds the name from parts so the criterion-1 completeness
+    // oracle stays clean. The test still guards the clean break.
     const retired = `${"LIBEVAL"}_REDACTION_DISABLED`;
     let r;
     const stderr = captureStderr(() => {
@@ -96,7 +96,7 @@ describe("Redactor — opt-out (criterion 4, design § Opt-out surface)", () => 
     assert.match(stderr, /libharness: trace redaction DISABLED/);
   });
 
-  test("disabled redactor returns top-level input by reference (identity contract)", () => {
+  test("a disabled redactor returns the top-level input by reference (identity contract)", () => {
     const r = createNoopRedactor();
     const obj = { type: "assistant", message: { content: [{ text: "hi" }] } };
     assert.strictEqual(r.redactValue(obj), obj);
@@ -116,9 +116,8 @@ describe("createNoopRedactor", () => {
   });
 
   test("never fires the stderr warning regardless of env state", () => {
-    // Even though disabled, the noop helper must NOT write to stderr —
-    // it is intended for test fixtures that need a silent disabled
-    // redactor.
+    // Even though disabled, the noop helper must NOT write to stderr. It
+    // serves test fixtures that need a silent disabled redactor.
     const stderr = captureStderr(() => {
       createNoopRedactor();
     });
@@ -163,7 +162,7 @@ describe("Redactor — exports and defaults", () => {
   });
 
   test("createRedactor({ runtime: _rt }) with no options falls back to process.env", () => {
-    // Smoke check — must not throw, and must produce a Redactor.
+    // Smoke check. It must not throw. It must produce a Redactor.
     const r = createRedactor({ runtime: _rt });
     assert.ok(r instanceof Redactor);
   });

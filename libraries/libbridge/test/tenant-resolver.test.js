@@ -128,7 +128,7 @@ describe("RegistryTenantResolver", () => {
     expect(revoked).toBeNull();
   });
 
-  test("resolveByTenantId forwards to the client without state filtering", async () => {
+  test("resolveByTenantId forwards to the client and does not filter on state", async () => {
     const resolver = new RegistryTenantResolver({
       client: makeClient({
         byTenantId: ({ tenant_id }) =>

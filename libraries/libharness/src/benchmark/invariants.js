@@ -1,14 +1,15 @@
 /**
  * Invariants — runs `<task.paths.hooks>/invariants.sh` from the template path
- * against the post-run agent CWD. A pure collector with no verdict of its
- * own: structured per-check rows arrive on fd 3 (`$RESULTS_FD=3`) as NDJSON
- * and grading happens downstream over the merged rows. The exit code is
- * script health only — nonzero means the grader itself failed, never that a
- * check failed.
+ * against the post-run agent CWD. The module is a pure collector with no
+ * verdict of its own. Structured per-check rows arrive on fd 3
+ * (`$RESULTS_FD=3`) as NDJSON. Downstream code grades the merged rows. The
+ * exit code is script health only. A nonzero code means the grader itself
+ * failed. It never means that a check failed.
  *
- * Subprocess access flows through `runtime.subprocess.spawn`; the fd-3 backing
- * store and the stderr log use the sync filesystem surface (`runtime.fsSync`) —
- * the only surface this module touches, per design Decision 7.
+ * Subprocess access flows through `runtime.subprocess.spawn`. The fd-3
+ * backing store and the stderr log use the sync filesystem surface
+ * (`runtime.fsSync`). That surface is the only one this module touches, per
+ * design Decision 7.
  */
 
 import { join } from "node:path";
@@ -18,11 +19,12 @@ import { buildHookEnv } from "./hook-env.js";
 /**
  * @typedef {object} InvariantsResult
  * @property {Array<object>} details
- * @property {number} exitCode - Script health: nonzero means the hook itself
- *   failed, never that a check failed.
+ * @property {number} exitCode - Script health. A nonzero code means the hook
+ *   itself failed. It never means that a check failed.
  * @property {string} [stderr] - Trimmed script stderr, present only when the
- *   script wrote to stderr. Surfaces hook failures (e.g. a missing tool) that
- *   leave `details` empty, so they read distinctly from a real invariant miss.
+ *   script wrote to stderr. This field surfaces hook failures (e.g. a missing
+ *   tool) that leave `details` empty. A reader can then tell them apart from
+ *   a real invariant miss.
  */
 
 /**
@@ -43,8 +45,8 @@ export async function runInvariants(task, ctx, runtime) {
 
   // Bun's child_process pipe setup for fd >= 3 is racy under load (it
   // creates a unix socket pair and the connect() can return ENOENT). Use
-  // a temp file as the fd-3 backing store instead — the script still
-  // writes via `$RESULTS_FD`, but we hand it a real file descriptor.
+  // a temp file as the fd-3 backing store instead. The script still writes
+  // through `$RESULTS_FD`, but we hand it a real file descriptor.
   const fd3Path = join(ctx.runDir, "invariants.fd3.ndjson");
   const fd3File = fsSync.openSync(fd3Path, "w+");
 
@@ -69,7 +71,8 @@ export async function runInvariants(task, ctx, runtime) {
     throw e;
   }
 
-  // Drain stdout (do not require consumers to read it); capture stderr to log.
+  // Drain stdout (do not require consumers to read it). Capture stderr to
+  // the log.
   const drainStdout = (async () => {
     for await (const _chunk of child.stdout) {
       // discard
@@ -127,8 +130,8 @@ function readAndUnlink(fsSync, path) {
 }
 
 /**
- * Parse the fd-3 buffer (read from the temp-file backing) into one NDJSON
- * row per detail entry.
+ * Parse the fd-3 buffer (read from the temp-file backing store) into one
+ * NDJSON row per detail entry.
  */
 function parseFd3Buffer(buf, details) {
   if (!buf) return;

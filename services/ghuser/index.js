@@ -10,7 +10,8 @@ const { GhuserBase } = services;
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 
 /**
- * GitHub user authentication service — Kata Agent User App token lifecycle.
+ * GitHub user authentication service. It manages the token lifecycle for
+ * the Kata Agent User App.
  * @augments GhuserBase
  */
 export class GhuserService extends GhuserBase {
@@ -34,22 +35,24 @@ export class GhuserService extends GhuserBase {
    * @param {import("./src/stores.js").GrantStore} deps.grants
    * @param {ReturnType<import("./src/github-oauth.js").createGithubOAuth>} deps.github
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} deps.clock
-   *   Injected clock collaborator; drives flow/grant timestamps and token
-   *   expiry comparisons (`now()`).
-   * @param {string} deps.idpOrigin Normalised IdP origin minted into the
-   *   completion ticket. Sourced from `config.idp_origin` at boot — never
-   *   from request data.
-   * @param {Set<string>} deps.trustedOrigins Trusted-origin set asserted-
-   *   non-empty at boot; gates `bindings.upsert` so an IdP origin no longer
-   *   in the trusted set returns `untrusted_origin` instead of binding.
-   * @param {string} deps.ticketSecret Shared HMAC secret across ghuser,
-   *   ghbridge, and msbridge. Rotation policy documented in TRUST.md.
-   * @param {object} deps.bridgeClient `services/bridge` gRPC client used by
-   *   the `bridge_pending_dispatch_proof` identity contract at `Begin`.
-   * @param {object} [deps.logger] Optional injected logger. When present,
-   *   the identity-proof contract emits a debug-level crumb on every
-   *   fail-closed outcome, letting operators distinguish a bridge outage
-   *   from a legitimate negative result without altering the outcome shape.
+   *   The injected clock collaborator. It drives the flow timestamps, the
+   *   grant timestamps, and the token expiry comparisons (`now()`).
+   * @param {string} deps.idpOrigin The normalised IdP origin that the
+   *   service mints into the completion ticket. The service reads it from
+   *   `config.idp_origin` at boot. It never reads it from request data.
+   * @param {Set<string>} deps.trustedOrigins The trusted-origin set. The
+   *   server asserts at boot that the set is not empty. The set gates
+   *   `bindings.upsert`. If an IdP origin is no longer in the trusted set,
+   *   the service returns `untrusted_origin` and does not bind.
+   * @param {string} deps.ticketSecret The HMAC secret shared across ghuser,
+   *   ghbridge, and msbridge. TRUST.md documents the rotation policy.
+   * @param {object} deps.bridgeClient The `services/bridge` gRPC client. The
+   *   `bridge_pending_dispatch_proof` identity contract uses it at `Begin`.
+   * @param {object} [deps.logger] Optional injected logger. When it is
+   *   present, the identity-proof contract emits a debug-level crumb on
+   *   every fail-closed outcome. The crumb lets operators distinguish a
+   *   bridge outage from a legitimate negative result. The crumb does not
+   *   change the outcome shape.
    */
   constructor(
     config,

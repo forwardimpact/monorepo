@@ -1,5 +1,5 @@
 /**
- * DSL Tokenizer — converts terrain DSL source to token stream.
+ * DSL Tokenizer — converts terrain DSL source to a token stream.
  *
  * Token types:
  *   KEYWORD   - reserved words (terrain, department, team, etc.)

@@ -2,7 +2,7 @@
  * Posture — read/write the adoption-posture record and resolve the
  * draft-side deny set from the skill-posture manifest.
  *
- * The two committed posture strings are the only valid values; they appear
+ * The two committed posture strings are the only valid values. They appear
  * verbatim in CLI flags, `status` output, and landing-page copy.
  */
 
@@ -46,8 +46,8 @@ export async function writePosture(fs, posturePath, value) {
 }
 
 /**
- * Resolve the effective posture, applying the default when no posture has been
- * recorded so a posture-less install behaves as `brief`.
+ * Resolve the effective posture. Apply the default when no posture is
+ * recorded. A posture-less install then behaves as `brief`.
  * @param {"brief"|"brief+draft"|null} stored
  * @returns {"brief"|"brief+draft"}
  */

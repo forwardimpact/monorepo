@@ -1,7 +1,7 @@
 /**
- * Enricher keys on the contract's bare `team_id` (vendor-prefix mapping is
- * the consumer view's job) and degrades to null DSL fields when the story
- * AST or the team is absent.
+ * The enricher keys on the contract's bare `team_id`. The consumer view
+ * maps the vendor prefix. The enricher degrades to null DSL fields when the
+ * story AST or the team is absent.
  */
 
 import { test, describe } from "node:test";
@@ -30,7 +30,7 @@ function makeAst() {
 }
 
 describe("enrichPersonaRow", () => {
-  test("returns row with three null fields when ast is null", () => {
+  test("returns the row with three null fields when ast is null", () => {
     const row = { email: "p@x", team_id: "alpha" };
     const out = enrichPersonaRow(row, null);
     assert.equal(out.email, "p@x");
@@ -39,7 +39,7 @@ describe("enrichPersonaRow", () => {
     assert.equal(out.scenario, null);
   });
 
-  test("resolves by bare team_id — no vendor prefix handling", () => {
+  test("resolves by bare team_id and does not handle a vendor prefix", () => {
     const row = { email: "p@x", team_id: "alpha" };
     const out = enrichPersonaRow(row, makeAst());
     assert.deepEqual(out.repos, ["a", "b"]);

@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/pathway",
   "version": "0.26.9",
-  "description": "Explore roles, generate agent profiles, and surface career expectations so progression and team configuration are visible, not guessed.",
+  "description": "Explore roles, generate agent profiles, and surface career expectations so progression and team configuration are visible instead of guessed.",
   "keywords": [
     "career",
     "competency",
@@ -24,7 +24,7 @@
     {
       "user": "Empowered Engineers",
       "goal": "See What's Expected of Humans and Agents",
-      "trigger": "'Meets expectations' on the review form has no definition anyone can point to, and an agent's work was just rejected for following generic practices instead of the organization's.",
+      "trigger": "'Meets expectations' on the review form has no definition anyone can point to. An agent's work was just rejected for following generic practices instead of the organization's.",
       "bigHire": "see what's expected of me at my level and of the agents I configure, from one shared standard.",
       "littleHire": "generate a job definition, a level comparison, or an agent profile from discipline, track, and level.",
       "competesWith": "asking peers; inferring from manager comments; custom system prompts; copying another team's config; living with ambiguity",

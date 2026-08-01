@@ -1,7 +1,7 @@
 /**
  * Skill File Viewer
  *
- * Vertically stacked collapsible panes for viewing skill files
+ * Vertically stacked collapsible panes that show skill files
  * (SKILL.md, install.sh, references files).
  * Uses code-display-pane component with sfv-pane modifier.
  */

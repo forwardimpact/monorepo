@@ -1,5 +1,5 @@
 /**
- * DOM rendering utilities
+ * Utilities that render the DOM
  */
 
 /**
@@ -204,7 +204,8 @@ export function showError(message) {
  */
 export function formatLevel(value) {
   if (!value) return "";
-  // Insert space before uppercase letters (for camelCase), then handle snake_case
+  // Insert a space before uppercase letters (for camelCase).
+  // Then handle snake_case
   return value
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/[-_]/g, " ")

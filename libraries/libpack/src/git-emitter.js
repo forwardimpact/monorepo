@@ -18,7 +18,7 @@ function pktLine(data) {
   return len.toString(16).padStart(4, "0") + data;
 }
 
-/** Static bare git repo emitter for dumb-HTTP serving. */
+/** Emitter for a static bare git repo. A dumb-HTTP server serves it. */
 export class GitEmitter {
   #subprocess;
   #fs;
@@ -33,7 +33,7 @@ export class GitEmitter {
     this.#proc = rt.proc;
   }
 
-  /** Run a git command synchronously; returns stdout as string. */
+  /** Run a git command synchronously. Return stdout as a string. */
   #exec(cmd, args, opts = {}) {
     const result = this.#subprocess.runSync(cmd, args, opts);
     return result.stdout;
@@ -105,7 +105,7 @@ export class GitEmitter {
     // 14. Strip to design-specified files + empty refs skeleton
     await rm(join(outputPath, "hooks"), { recursive: true, force: true });
     await rm(join(outputPath, "info", "exclude"), { force: true });
-    // Keep refs/ as empty dirs — local git clone reads them directly
+    // Keep refs/ as empty dirs. A local git clone reads them directly
     const refsDir = join(outputPath, "refs");
     await rm(refsDir, { recursive: true, force: true });
     await mkdir(join(refsDir, "heads"), { recursive: true });
@@ -120,7 +120,7 @@ export class GitEmitter {
     }
 
     // 15. Pre-computed smart HTTP responses for shallow clone support.
-    // Dumb HTTP cannot negotiate shallow capabilities, so tools that
+    // Dumb HTTP cannot negotiate shallow capabilities. So tools that
     // use `git clone --depth=1` (e.g. APM) need the smart HTTP
     // protocol. For a single-commit repo the responses are static.
     await this.#emitSmartHttp(outputPath, commitSha, version);
@@ -156,7 +156,7 @@ export class GitEmitter {
     const smartDir = join(outputPath, "smart-http");
     await mkdir(smartDir, { recursive: true });
 
-    // v1 ref advertisement — pkt-line format with shallow capability
+    // v1 ref advertisement in pkt-line format with shallow capability
     const adv =
       pktLine("# service=git-upload-pack\n") +
       "0000" +
@@ -170,7 +170,7 @@ export class GitEmitter {
     // v1 stateless-rpc shallow fetch issues two POSTs to /git-upload-pack:
     //   POST 1 (no "done") → server returns shallow list + flush
     //   POST 2 (has "done") → server returns shallow list + flush + NAK + pack
-    // The web server routes by checking whether the POST body contains "done".
+    // The web server checks each POST body for "done" and routes on that.
     const packDir = join(outputPath, "objects", "pack");
     const packFile = (await readdir(packDir)).find((f) => f.endsWith(".pack"));
     const packData = await readFile(join(packDir, packFile));

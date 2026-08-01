@@ -15,14 +15,14 @@ import { resolvePrivilege, disclaimFor } from "./privilege.js";
 import { buildSpawnEnv } from "./spawn-env.js";
 
 /**
- * System-prompt directive injected under the `brief` posture. Neutralises any
- * draft-side prose in a materialised agent definition and forbids writing the
- * posture record.
+ * The system-prompt directive the runner injects under the `brief` posture. It
+ * neutralises any draft-side prose in a materialised agent definition. It also
+ * forbids a write to the posture record.
  */
 const BRIEF_DIRECTIVE =
   "Adoption posture: brief. Run only read-and-brief work. Do not draft or " +
-  "send content on the user's behalf for delivery to anyone else, do not move " +
-  "or write files outside the knowledge base, and never write the posture " +
+  "send content on the user's behalf for delivery to anyone else. Do not " +
+  "move or write files outside the knowledge base. Never write the posture " +
   "record (~/.fit/outpost/posture.json).";
 
 /** Spawn agent CLI processes, capture their output, and update agent state. */
@@ -41,11 +41,11 @@ export class AgentRunner {
 
   /**
    * @param {Object | (() => Object | Promise<{default?: Object}>)} spawn -
-   *   The posix-spawn module, or a (possibly async) loader returning it. A
-   *   loader lets the Bun-FFI module load lazily so plain `node` invocations
-   *   that never wake an agent don't pull in `bun:ffi`.
+   *   The posix-spawn module, or a loader that returns it. The loader may be
+   *   async. A loader lets the Bun-FFI module load lazily. So a plain `node`
+   *   invocation that never wakes an agent does not pull in `bun:ffi`.
    * @param {import('./state-manager.js').StateManager} stateManager
-   * @param {Function} logFn - Logging function
+   * @param {Function} logFn - The function that writes a log line
    * @param {string} cacheDir - Cache directory for state files
    * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
    *   Injected runtime bag (uses `fs` (async), `proc`, `clock`).
@@ -84,8 +84,8 @@ export class AgentRunner {
   }
 
   /**
-   * Resolve the injected spawn collaborator to the posix-spawn module,
-   * invoking and unwrapping a loader thunk on first use.
+   * Resolve the injected spawn collaborator to the posix-spawn module. On
+   * first use, invoke a loader thunk and unwrap it.
    * @returns {Promise<Object>}
    */
   async #resolveSpawn() {
@@ -97,7 +97,7 @@ export class AgentRunner {
   }
 
   /**
-   * Test whether a path exists, via the async fs surface.
+   * Test whether a path exists, through the async fs surface.
    * @param {string} p
    * @returns {Promise<boolean>}
    */
@@ -148,11 +148,12 @@ export class AgentRunner {
   }
 
   /**
-   * Resolve the spawn flags the recorded posture adds. Under `brief` (also the
-   * default when no posture is recorded), deny every draft-side skill by name
-   * and inject the brief directive — a deterministic gate the woken agent
-   * cannot override under `bypassPermissions`. Under `brief+draft`, add
-   * nothing. The posture record is read here, never written.
+   * Resolve the spawn flags the recorded posture adds. Under `brief`, deny
+   * every draft-side skill by name and inject the brief directive. `brief` is
+   * also the default when no posture is recorded. The directive is a
+   * deterministic gate. The woken agent cannot override it under
+   * `bypassPermissions`. Under `brief+draft`, add nothing. This method reads
+   * the posture record. It never writes the record.
    * @returns {Promise<string[]>} Extra args to append to the spawn argv.
    */
   async #postureArgs() {
@@ -170,17 +171,20 @@ export class AgentRunner {
   }
 
   /**
-   * Validate the agent's kb path exists, spawn `claude --agent` with the prompt "Observe and act.", and update agent state to active/idle/failed.
+   * Validate that the agent's kb path exists. Spawn `claude --agent` with the
+   * prompt "Observe and act." Then update the agent state to active, idle, or
+   * failed.
    * @param {string} agentName
    * @param {Object} agent
    * @param {Object} state
    * @param {Record<string, string>} [configEnv] - Extra env vars from config
    */
   async wake(agentName, agent, state, configEnv) {
-    // Resolve the mandatory privilege level before any work. A missing or
-    // invalid level is fail-closed: log and skip the wake — no agent process is
-    // spawned with a guessed privilege. The level lives in the user-only trust
-    // root, so a spawned agent cannot raise its own.
+    // Resolve the mandatory privilege level before any work. The runner is
+    // fail-closed on a missing or invalid level. It logs the problem and skips
+    // the wake. It never spawns an agent process with a guessed privilege. The
+    // level lives in the user-only trust root, so a spawned agent cannot raise
+    // its own.
     let level;
     try {
       level = resolvePrivilege(agent);
@@ -196,13 +200,13 @@ export class AgentRunner {
     }
 
     if (!agent.kb) {
-      this.#log(`Agent ${agentName}: no "kb" specified, skipping.`);
+      this.#log(`Agent ${agentName}: no "kb" specified. Skipped.`);
       return;
     }
     const kbPath = this.#expandPath(agent.kb);
     if (!(await this.#exists(kbPath))) {
       this.#log(
-        `Agent ${agentName}: path "${kbPath}" does not exist, skipping.`,
+        `Agent ${agentName}: path "${kbPath}" does not exist. Skipped.`,
       );
       return;
     }

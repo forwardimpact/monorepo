@@ -1,23 +1,23 @@
 # Checklists: tags, types, and properties
 
-A checklist is binary verification at one pause point. It never teaches — if an
+A checklist is binary verification at one pause point. It never teaches. If an
 item needs explanation, the procedure above it is incomplete.
 
 ## Two types
 
-| Moment | Type | How it is used |
+| Moment | Type | How to use it |
 | --- | --- | --- |
-| Before starting work | READ-DO | Read each item, then do it |
-| Before crossing a boundary | DO-CONFIRM | Do from memory, then confirm each item |
+| Before you start work | READ-DO | Read each item, then do it |
+| Before you cross a boundary | DO-CONFIRM | Do from memory, then confirm each item |
 
 Use READ-DO when the contributor must load constraints before the first line.
-Use DO-CONFIRM before a commit, merge, or release — skilled contributors work
-fluidly, then pause to confirm nothing was missed. Using the wrong type at the
-wrong moment defeats the checklist.
+Use DO-CONFIRM before a commit, merge, or release. Skilled contributors work
+fluidly, then pause to confirm they missed nothing. The wrong type at the wrong
+moment defeats the checklist.
 
 ## Tags
 
-Wrap each checklist in a semantic tag encoding its type and goal:
+Wrap each checklist in a semantic tag that encodes its type and goal:
 
 ```markdown
 <read_do_checklist goal="Internalize constraints before writing code">
@@ -50,13 +50,13 @@ rg '<do_confirm_checklist'  # exit gates
 1. **Goal statement.** Every checklist states the outcome it protects.
 2. **5–7 items.** Beyond working-memory limits, contributors skip entries.
 3. **Precise.** Each item is one unambiguous action or verification.
-4. **Killer items only.** Every item addresses a failure that has actually
+4. **Killer items only.** Every item addresses a failure that actually
    occurred or is highly likely.
-5. **Action or verification, never explanation.** A verb phrase, not a
-   paragraph.
-6. **One checklist, one moment.** Tied to a single, natural pause point.
-7. **Tested and revised.** Use it, observe what still goes wrong, revise.
+5. **Action or verification, never explanation.** Write a verb phrase. Do not
+   write a paragraph.
+6. **One checklist, one moment.** Tie it to a single, natural pause point.
+7. **Tested and revised.** Use it. Observe what still goes wrong. Revise it.
 
-The cap is on item count (≤ 9 per block), not lines — a wrapped line is
-formatting, not cognitive load. If a block needs more than seven items, the
-pause point is probably two pause points.
+The cap counts items (≤ 9 per block). It does not count lines. A wrapped line
+is formatting. It does not add cognitive load. If a block needs more than seven
+items, the pause point is probably two pause points.

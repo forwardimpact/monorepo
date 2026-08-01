@@ -1,7 +1,8 @@
 /**
- * Anchors spec(1180) criterion 1: the starter `drivers.yaml` ids equal the
- * `ALL_DRIVERS` set the synthetic engine emits as `scoreRow.item_id`. Drift
- * on either side breaks the clean-install fit-landmark health view.
+ * This test anchors spec(1180) criterion 1. The starter `drivers.yaml` ids
+ * equal the `ALL_DRIVERS` set the synthetic engine emits as
+ * `scoreRow.item_id`. Drift on either side breaks the clean-install
+ * fit-landmark health view.
  */
 
 import { test } from "node:test";
@@ -15,7 +16,7 @@ import { ALL_DRIVERS } from "@forwardimpact/libsyntheticgen/engine/activity";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const starterPath = join(__dirname, "..", "starter", "drivers.yaml");
 
-test("starter drivers.yaml id set equals ALL_DRIVERS", () => {
+test("the ids in starter drivers.yaml equal ALL_DRIVERS", () => {
   const text = readFileSync(starterPath, "utf8");
   const entries = parse(text);
   const starterIds = entries.map((e) => e.id);

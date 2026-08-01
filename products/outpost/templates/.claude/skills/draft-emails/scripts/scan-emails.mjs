@@ -2,10 +2,11 @@
 /**
  * Scan for unprocessed emails and output their IDs and subjects.
  *
- * Checks ~/.cache/fit/outpost/apple_mail/ for email thread markdown files not
- * yet listed in Drafts/handled or Drafts/ignored. Outputs one tab-separated
- * line per unprocessed thread: email_id<TAB>subject. Used by the draft-emails
- * skill to identify threads that need a reply.
+ * The script checks ~/.cache/fit/outpost/apple_mail/ for email thread markdown
+ * files. It skips a file that Drafts/handled or Drafts/ignored already lists.
+ * It outputs one tab-separated line per unprocessed thread:
+ * email_id<TAB>subject. The draft-emails skill uses this script to find
+ * threads that need a reply.
  */
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";

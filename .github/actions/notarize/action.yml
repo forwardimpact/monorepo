@@ -1,10 +1,10 @@
 name: Notarize and staple
 description: >
-  Submit a macOS artifact to Apple's notary service and staple the ticket. If
-  `path` is a bundle directory (.app) it is zipped for submission and the
-  bundle itself is stapled; if it is a file (.pkg) it is submitted and stapled
-  directly. The App Store Connect API key is written to a temp file and removed
-  on exit (including on failure).
+  Submit a macOS artifact to Apple's notary service and staple the ticket. When
+  `path` is a bundle directory (.app), the action submits a zip of it and
+  staples the bundle itself. When `path` is a file (.pkg), the action submits
+  and staples it directly. The action writes the App Store Connect API key to a
+  temp file. It removes that file on exit, including on failure.
 
 inputs:
   path:
@@ -37,8 +37,9 @@ runs:
         printf '%s' "$API_KEY_B64" | base64 --decode > "$KEY"
 
         if [ -d "$ARTIFACT" ]; then
-          # notarytool consumes an archive; ditto preserves codesign metadata.
-          # The ticket is stapled onto the bundle itself, not the zip.
+          # notarytool consumes an archive. ditto preserves codesign metadata.
+          # The action staples the ticket onto the bundle itself. It does not
+          # staple the zip.
           ditto -c -k --sequesterRsrc --keepParent "$ARTIFACT" "$ZIP"
           SUBMIT="$ZIP"
         else

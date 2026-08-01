@@ -1,18 +1,18 @@
 /**
- * Simple tokenizer class that provides API compatibility with js-tiktoken
- * Uses basic approximation logic for token counting
+ * Simple tokenizer class that gives API compatibility with js-tiktoken
+ * It uses basic approximation logic to count tokens
  */
 export class Tokenizer {
   /**
    * Creates a new Tokenizer instance
-   * @param {object} _ranks - Ranking data (unused in simple implementation)
+   * @param {object} _ranks - Rank data (unused in the simple implementation)
    */
   constructor(_ranks) {
-    // Ranks parameter is ignored in this simple implementation
+    // This simple implementation ignores the ranks parameter
   }
 
   /**
-   * Encodes text into tokens using simple approximation
+   * Encodes text into tokens with simple approximation
    * @param {string} text - Text to encode
    * @returns {number[]} Array of token IDs (approximated)
    */
@@ -28,7 +28,7 @@ export class Tokenizer {
     // Simple approximation logic:
     // 1. Split on whitespace and punctuation
     // 2. Count characters in a way that approximates GPT tokenization
-    // 3. Return array with length approximating actual token count
+    // 3. Return an array whose length approximates the actual token count
 
     // Remove extra whitespace and normalize
     const normalized = text.trim().replace(/\s+/g, " ");
@@ -37,8 +37,8 @@ export class Tokenizer {
       return [];
     }
 
-    // Simple heuristic for token counting:
-    // - Average English word is ~4 characters = 1 token
+    // Simple heuristic to count tokens:
+    // - The average English word is ~4 characters = 1 token
     // - Punctuation and special chars often = 1 token each
     // - Numbers and code can be more dense
 
@@ -64,18 +64,18 @@ export class Tokenizer {
     const spaces = normalized.match(/\s/g) || [];
     tokenCount += Math.ceil(spaces.length / 2);
 
-    // Ensure minimum of 1 token for non-empty text
+    // Make sure non-empty text has a minimum of 1 token
     tokenCount = Math.max(1, tokenCount);
 
-    // Return array with dummy token IDs
-    // The actual values don't matter since only .length is used
+    // Return an array with dummy token IDs
+    // The actual values do not matter because callers read only .length
     return new Array(tokenCount).fill(0).map((_, i) => i);
   }
 
   /**
-   * Decodes tokens back to text (not implemented - not used in codebase)
+   * Decodes tokens back to text (not implemented, not used in the codebase)
    * @param {number[]} _tokens - Token IDs to decode
-   * @throws {Error} Always throws - not implemented
+   * @throws {Error} Always throws, because it is not implemented
    */
   decode(_tokens) {
     throw new Error("decode() not implemented in Tokenizer");
@@ -84,6 +84,6 @@ export class Tokenizer {
 
 /**
  * Dummy ranks object for compatibility
- * Not used in the simple implementation but needed for API compatibility
+ * The simple implementation does not use it. API compatibility needs it
  */
 export const ranks = {};

@@ -4,7 +4,7 @@
 
 /**
  * Get an array of items by their IDs
- * @param {Array} items - Array of items with id property
+ * @param {Array} items - Array of items with an id property
  * @param {string[]} ids - Array of IDs to find
  * @returns {Array} - Found items, filtered to remove nulls
  */

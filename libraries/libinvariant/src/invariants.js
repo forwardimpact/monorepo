@@ -6,17 +6,18 @@ import { LIBCLI_IS_COMPILED } from "@forwardimpact/libcli";
 import { runRules } from "@forwardimpact/libutil";
 import { createBuildKit, RULE_KIT } from "./invariant-kit.js";
 
-// Rule modules are imported dynamically at runtime, so a compiled binary cannot
-// bundle their bare imports, and the standalone executable has no node_modules
-// to resolve them from — a rule module's `import "yaml"` would fail. Expose the
-// third-party packages libinvariant already bundles as virtual modules, so a
-// compiled rule module resolves them to the embedded copies. Under node/bunx
-// this is a no-op: node_modules resolves them normally. A rule module that
-// imports a package beyond this set must run via the package, not the binary.
+// The loader imports rule modules dynamically at runtime. So a compiled binary
+// cannot bundle their bare imports. The standalone executable also has no
+// node_modules to resolve them from, so a rule module's `import "yaml"` would
+// fail. Expose the third-party packages libinvariant already bundles as virtual
+// modules. A compiled rule module then resolves them to the embedded copies.
+// Under node/bunx this is a no-op, because node_modules resolves them normally.
+// A rule module that imports a package beyond this set must run through the
+// package. It cannot run through the binary.
 let bundledRuleDepsRegistered = false;
 function registerBundledRuleDeps() {
   if (bundledRuleDepsRegistered) return;
-  // Only the standalone binary needs this; node/bunx resolve from node_modules.
+  // Only the standalone binary needs this. node/bunx resolve from node_modules.
   if (!LIBCLI_IS_COMPILED || typeof Bun === "undefined") {
     return;
   }
@@ -32,20 +33,20 @@ function registerBundledRuleDeps() {
 
 /**
  * Resolve the root whose rules directory applies to the working directory.
- * The nearest `package.json` is not enough — inside a monorepo every
- * workspace package has one — so search upward for the caller-supplied
- * rules directory itself, falling back to the nearest project root so the
- * loader's error names the expected location.
+ * The nearest `package.json` is not enough. Inside a monorepo every workspace
+ * package has one. So search upward for the caller-supplied rules directory
+ * itself. Fall back to the nearest project root so the loader's error names
+ * the expected location.
  *
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime
  * @param {string} rulesDir - Rules directory relative to the project root.
- * @returns {string} Project root directory path.
+ * @returns {string} Path of the project root directory.
  */
 export function findInvariantsRoot(runtime, rulesDir) {
   const found = runtime.finder.findUpward(runtime.proc.cwd(), rulesDir, 8);
   if (!found) return runtime.finder.findProjectRoot();
-  // Climb back out of the found rules directory — one level per segment of
-  // the caller-supplied path — to land on the project root that contains it.
+  // Climb back out of the found rules directory to the project root that
+  // contains it. Use one level for each segment of the caller-supplied path.
   const climb = rulesDir
     .split("/")
     .filter(Boolean)
@@ -64,10 +65,10 @@ export function findInvariantsRoot(runtime, rulesDir) {
 //     seed?: async ({ root, runtime }) => "text",   // e.g. a refreshed deny-list
 //   }
 //
-// `build` walks the repo and returns plain subjects per scope; `rules` are the
-// declarative checks `runRules` applies over them. The repository owns its
-// rule modules — this host only discovers, loads, and runs them, so the
-// policies themselves never ship with the CLI.
+// `build` walks the repo and returns plain subjects for each scope. `rules`
+// are the declarative checks that `runRules` applies over them. The repository
+// owns its rule modules. This host only discovers, loads, and runs them. So
+// the policies themselves never ship with the CLI.
 
 function assertModuleShape(mod, fileName) {
   const ok =
@@ -89,12 +90,12 @@ function resolveRules(mod) {
 }
 
 /**
- * Discover and import every rule module under `rulesDir` (sorted by file
- * name for a stable run order).
+ * Discover and import every rule module under `rulesDir`. Sort by file name
+ * for a stable run order.
  *
  * @param {{ root: string, rulesDir: string, runtime: import('@forwardimpact/libutil/runtime').Runtime }} options
- *   `rulesDir` is the rules directory relative to `root`, supplied by the
- *   caller (the library carries no discovery default).
+ *   `rulesDir` is the rules directory relative to `root`. The caller supplies
+ *   it. The library carries no discovery default.
  * @returns {Promise<object[]>} The modules' default exports.
  */
 export async function loadRuleModules({ root, rulesDir, runtime }) {
@@ -123,14 +124,14 @@ export async function loadRuleModules({ root, rulesDir, runtime }) {
 }
 
 /**
- * Run already-loaded rule modules: inject the build kit, build each module's
- * subjects, then apply its rule catalogue through the shared rules engine.
+ * Run already-loaded rule modules. Inject the build kit. Build each module's
+ * subjects. Then apply its rule catalogue through the shared rules engine.
  *
  * @param {object[]} modules - Rule-module default exports.
  * @param {{ root: string, runtime: import('@forwardimpact/libutil/runtime').Runtime, dir: string }} options
- *   `dir` is the modules' directory (for co-located config), supplied by
- *   the caller alongside the rules it loaded.
- * @returns {Promise<object[]>} Structured findings; empty when conformant.
+ *   `dir` is the modules' directory for co-located config. The caller supplies
+ *   it with the rules it loaded.
+ * @returns {Promise<object[]>} Structured findings, empty when conformant.
  */
 export async function runRuleModules(modules, { root, runtime, dir }) {
   const findings = [];
@@ -152,7 +153,7 @@ export async function runRuleModules(modules, { root, runtime, dir }) {
  * Load every rule module under `root`/`rulesDir` and run it.
  *
  * @param {{ root: string, rulesDir: string, runtime: import('@forwardimpact/libutil/runtime').Runtime }} options
- * @returns {Promise<object[]>} Structured findings; empty when conformant.
+ * @returns {Promise<object[]>} Structured findings, empty when conformant.
  *   Each finding is `{ id, level, path, lineNo?, message, hint? }` for use
  *   with `emitFindingsText` / `emitFindingsJson` from libutil.
  */

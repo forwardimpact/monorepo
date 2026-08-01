@@ -1,10 +1,10 @@
 /**
  * Coordinated Supabase migration renderer for clinical entities.
  *
- * Emits a numbered set of SQL files containing dependency-ordered
- * `CREATE TABLE` + `INSERT` statements, junction tables for array
+ * It emits a numbered set of SQL files. The files hold dependency-ordered
+ * `CREATE TABLE` and `INSERT` statements, junction tables for array
  * cross-references, RLS policies, and an optional pgvector embeddings
- * table — loadable via `supabase db push`.
+ * table. `supabase db push` can load them.
  *
  * @module libsyntheticrender/render/render-sql
  */
@@ -86,11 +86,11 @@ const JUNCTIONS = [
   },
 ];
 
-// Patient-facing prose tables. Each is one text column keyed off a base entity
-// plus its foreign key, except `patient_stories` which fans out to several
-// rows per condition. `rows(clinical, cache)` resolves the prose text from the
-// cache under the exact logical keys the generator emits (see
-// libsyntheticgen clinicalProseKeys), so ids line up with cache entries.
+// Patient-facing prose tables. Each table is one text column keyed off a base
+// entity plus its foreign key. `patient_stories` is the exception. It fans out
+// to several rows per condition. `rows(clinical, cache)` resolves the prose
+// text from the cache under the exact logical keys the generator emits (see
+// libsyntheticgen clinicalProseKeys). The ids then line up with cache entries.
 const PROSE_TABLE_SPEC = [
   {
     key: "condition_explainers",
@@ -162,7 +162,8 @@ const PROSE_TABLE_SPEC = [
  * @param {object} outputConfig - `{ path, prefix, entities, include_embeddings }`.
  *   `path`, when present, prefixes every emitted filename (directory layout).
  * @param {Map<string, string>|object} [prose] - resolved prose cache keyed by
- *   logical key; supplies the text columns of the patient-facing prose tables.
+ *   logical key. It supplies the text columns of the patient-facing prose
+ *   tables.
  * @returns {Map<string, string>} path → file content
  */
 export function renderSql(clinicalEntities, outputConfig, prose) {
@@ -204,7 +205,7 @@ export function renderSql(clinicalEntities, outputConfig, prose) {
   }
 
   // Prose tables reference conditions/trials/sites, so they render after the
-  // base tables — the numbered filenames preserve that FK-apply order.
+  // base tables. The numbered filenames preserve that FK-apply order.
   for (const spec of includedProseSpecs) {
     files.set(
       filePath(`${prefix}_${next()}_${spec.table}.sql`),
@@ -229,7 +230,7 @@ export function renderSql(clinicalEntities, outputConfig, prose) {
   return files;
 }
 
-// Prose specs declare no skip set — their row objects carry only real columns.
+// Prose specs declare no skip set. Their row objects carry only real columns.
 const EMPTY_SKIP = new Set();
 
 function normalizeDir(path) {
@@ -251,8 +252,8 @@ function toCache(cache) {
  * Reproduce the generator's patient-story distribution so each row's id matches
  * a prose cache key. For every condition listed in
  * `content.patient_story_conditions`, emit `perCondition` rows
- * (`ceil(patient_stories / conditions)`); conditions absent from the graph are
- * skipped exactly as `clinicalProseKeys` skips them, keeping ids and FKs valid.
+ * (`ceil(patient_stories / conditions)`). Skip conditions absent from the
+ * graph exactly as `clinicalProseKeys` skips them. Ids and FKs stay valid.
  */
 function patientStoryRows(clinical, cache) {
   const content = clinical.content;

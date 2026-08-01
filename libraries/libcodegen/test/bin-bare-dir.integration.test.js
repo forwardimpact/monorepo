@@ -9,8 +9,8 @@ import { fileURLToPath } from "node:url";
 const bin = fileURLToPath(new URL("../bin/fit-codegen.js", import.meta.url));
 
 // The publish smoke gate executes the bin with --help from a clean temp
-// install — no project root, no proto directories. Flag handling must
-// therefore complete before any filesystem discovery runs.
+// install. That install has no project root and no proto directories. So
+// the bin must handle the flags before it runs any filesystem discovery.
 describe("fit-codegen bin in a bare directory", () => {
   let bareDir;
 

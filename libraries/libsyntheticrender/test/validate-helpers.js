@@ -1,5 +1,5 @@
 /**
- * Build minimal valid entities for testing.
+ * Build minimal valid entities for a test.
  * @param {object} overrides
  * @returns {object}
  */

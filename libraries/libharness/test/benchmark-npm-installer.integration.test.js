@@ -22,8 +22,8 @@ async function makeFamilyWithPkg(dir) {
 
 /**
  * A subprocess fake whose `bun install` materialises a `node_modules/.bin`
- * tree in the family root (mirroring a successful install) before its exit
- * code resolves, so the installer's stage-copy has something to copy.
+ * tree in the family root before its exit code resolves. The tree mirrors a
+ * successful install, so the installer's stage-copy has something to copy.
  */
 function makeInstallingSubprocess() {
   const calls = [];

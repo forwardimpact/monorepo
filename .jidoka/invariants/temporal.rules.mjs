@@ -1,8 +1,9 @@
 // Flag temporal references embedded in code, docs, and tests. A "temporal"
-// reference points to a transient artefact — a spec number, design number,
+// reference points to a transient artefact: a spec number, design number,
 // plan number, GitHub issue, GitHub PR. Once the artefact is closed or
 // superseded, the reference rots. Every comment, log message, or test label
-// should stand on its own and explain WHY the code exists, not WHEN it landed.
+// should stand on its own. It should explain WHY the code exists. It should
+// not record WHEN it landed.
 //
 // Out of scope: specs/, references/, wiki/, benchmarks/, generated/,
 // node_modules/, .git/.
@@ -12,16 +13,16 @@ const PATTERNS = [
   { pattern: "\\bdesign[- ][0-9]{2,5}\\b" },
   { pattern: "\\bplan[- ][0-9]{2,5}\\b" },
   // Captured-trace fixtures replay real agent output whose result events
-  // must stay byte-exact for token-accounting parity, so an issue number
-  // inside one cannot be reworded away — exclude fixtures, keep the rule
-  // on authored test code.
-  // Widening this exclusion requires security review — see
+  // must stay byte-exact for token-accounting parity. So an author cannot
+  // reword an issue number inside one. Exclude fixtures. Keep the rule on
+  // authored test code.
+  // Widen this exclusion only after a security review. See
   // CONTRIBUTING.md § Security.
   { pattern: "\\bissue[- ]?#?[0-9]{2,5}\\b", globs: ["!**/test/fixtures/**"] },
   // Loose patterns: test fixtures naturally include synthetic IDs that look
   // like cross-references ("(#42)", "PR #99"). Exclude **/test/** so the
-  // checker keeps catching real temporal references in production code
-  // without flagging assertion strings.
+  // checker still catches real temporal references in production code. Then
+  // it does not flag assertion strings.
   {
     pattern: "\\b(pr|pull)[- ]?#[0-9]{2,5}\\b",
     globs: ["!**/test/**"],
@@ -29,42 +30,43 @@ const PATTERNS = [
   { pattern: "\\bGH-[0-9]{2,5}\\b" },
   { pattern: "\\(#[0-9]{2,5}\\)", globs: ["!**/test/**"] },
   { pattern: "[[:space:]]#[0-9]{2,5}\\b", globs: ["!**/test/**"] },
-  // Spec-artefact labels: success criteria (SC), priorities (P), and
-  // findings (F) are numbered inside a spec's spec.md / plan / review. Once
+  // Spec-artefact labels: a spec's spec.md, plan, and review number the
+  // success criteria (SC), the priorities (P), and the findings (F). Once
   // the spec closes, "SC5" or "Foundation F1" in a comment points at nothing.
-  // Match the uppercase label forms only (caseSensitive) so the lowercase
-  // tokens that collide — patient fixture IDs (`p1`), latency percentiles
-  // (`p50`/`p90`), CSS hex (`#f87171`), cert extensions (`.p12`) — never trip
-  // the check.
+  // Match the uppercase label forms only (caseSensitive). Then the lowercase
+  // tokens that collide never trip the check: patient fixture IDs (`p1`),
+  // latency percentiles (`p50`/`p90`), CSS hex (`#f87171`), and cert
+  // extensions (`.p12`).
   { pattern: "\\bSC[0-9]+\\b", caseSensitive: true },
   // The same label spelled out as a spec-section reference ("Spec § Success
   // Criteria row 8") rots when the spec closes, exactly like "SC8". Require
-  // the capitalised "Success" (caseSensitive) so the generic prose noun in
-  // the agent docs — "a spec with verifiable success criteria" — never trips;
-  // only the section-label form does. Allow either case on the second word so
-  // "Success criteria" is caught too.
+  // the capitalised "Success" (caseSensitive). Then the generic prose noun in
+  // the agent docs ("a spec with verifiable success criteria") never trips
+  // the check. Only the section-label form trips it. Allow either case on the
+  // second word so the check catches "Success criteria" too.
   { pattern: "\\bSuccess [Cc]riteria\\b", caseSensitive: true },
   // P (priority) and F (finding) also serve as a legitimate, self-defined
-  // triage vocabulary in the agent operating docs under .claude/ (the product
-  // manager's P1/P2/P3 buckets, the storyboard P1/F4 placeholders) — those are
-  // not references into a spec, so scope these two rules to everything else.
+  // triage vocabulary in the agent operation docs under .claude/ (the product
+  // manager's P1/P2/P3 buckets, the storyboard P1/F4 placeholders). Those are
+  // not references into a spec. So scope these two rules to everything else.
   { pattern: "\\bP[0-9]+\\b", caseSensitive: true, globs: ["!.claude/**"] },
   { pattern: "\\bF[0-9]+\\b", caseSensitive: true, globs: ["!.claude/**"] },
-  // Kata experiments and obstacles are tracked as labeled GitHub issues that
-  // close when the PDSA cycle ends, so "Exp 45" / "RE Exp 43" / "Obstacle 12"
-  // rot the same way a raw issue number does. caseSensitive so prose like
-  // "active experiments" or an "exp"-prefixed identifier never matches — only
-  // the capitalised label-plus-number form does.
+  // Labeled GitHub issues track Kata experiments and obstacles. Those issues
+  // close when the PDSA cycle ends. So "Exp 45" / "RE Exp 43" / "Obstacle 12"
+  // rot the same way a raw issue number does. Use caseSensitive so prose like
+  // "active experiments" or an "exp"-prefixed identifier never matches. Only
+  // the capitalised label-plus-number form matches.
   {
     pattern: "\\b(Exp|Experiment|Obstacle)[- ]?[0-9]+\\b",
     caseSensitive: true,
   },
-  // Agent-role initialisms used as a numbered shorthand for that agent's
+  // Agent-role initialisms can serve as a numbered shorthand for that agent's
   // experiments or findings (SE = staff/security engineer, RE = release
   // engineer, TW = technical writer, PM = product manager, IC = improvement
-  // coach). None occur today; this guards against the shorthand creeping in.
-  // Single-letter role forms (S#, T#) are deliberately omitted — they collide
-  // with `S3`, `SHA-256`, type parameters, and similar legitimate tokens.
+  // coach). None occur today. This rule guards against the shorthand before
+  // it creeps in. This rule deliberately omits the single-letter role forms
+  // (S#, T#). They collide with `S3`, `SHA-256`, type parameters, and similar
+  // legitimate tokens.
   { pattern: "\\b(SE|RE|TW|PM|IC)[0-9]+\\b", caseSensitive: true },
   {
     pattern:
@@ -75,10 +77,10 @@ const PATTERNS = [
   { pattern: "\\bduring spec [0-9]+ migration\\b" },
   {
     // An ISO date in source is a temporal reference ("landed 2026-…") unless
-    // it is the operative value of a named constant — a date the code reads
-    // at runtime, not a note about when something happened. Skip the
-    // `const NAME = "YYYY-MM-DD"` declaration form; rot-prone prose dates
-    // elsewhere on the line, or anywhere else, still trip.
+    // it is the operative value of a named constant. Such a date is one the
+    // code reads at runtime. It is not a note about when something happened.
+    // Skip the `const NAME = "YYYY-MM-DD"` declaration form. Rot-prone prose
+    // dates elsewhere on the line, or anywhere else, still trip.
     pattern: "\\b20[0-9]{2}-[0-1][0-9]-[0-3][0-9]\\b",
     globs: ["*.js", "!**/test/**", "!**/*synthetic*/**"],
     exclude:
@@ -91,9 +93,9 @@ const BASE_GLOBS = [
   "!node_modules/**",
   "!generated/**",
   "!specs/**",
-  // Reference specs for external-repo implementations (references/*): living
-  // spec-shaped docs that cite prerequisite specs, SHAs, dates, and version
-  // pins by nature, out of scope like specs/.
+  // Reference specs for external-repo implementations (references/*) are
+  // spec-shaped docs that stay current. They cite prerequisite specs, SHAs,
+  // dates, and version pins by nature. They are out of scope like specs/.
   "!references/**",
   "!wiki/**",
   "!benchmarks/**",
@@ -104,16 +106,16 @@ const BASE_GLOBS = [
   "!.jidoka/invariants/temporal.rules.mjs",
   // Vendored, self-contained browser overlay shipped verbatim into user KBs.
   // Its inline CSS hex colours (` #000`, ` #111`) trip the space-prefixed
-  // numeric pattern; it is not authored monorepo source where references rot.
+  // numeric pattern. It is not authored monorepo source where references rot.
   "!products/outpost/templates/.claude/skills/deck-review/assets/**",
   // The collision-ledger guide shows example CLI output whose anchor ids
-  // (` #97`, ` #44`) are runtime identifiers, not issue references; they trip
-  // the space-prefixed numeric pattern.
+  // (` #97`, ` #44`) are runtime identifiers. They are not issue references.
+  // They trip the space-prefixed numeric pattern.
   "!websites/fit/docs/libraries/predictable-team/collision-ledger/index.md",
   // Co-located action sources are byte-faithful projections of their sibling
-  // repos, mirrored here verbatim; their READMEs cross-reference the siblings'
-  // own history and cannot be reworded without diverging the projection, so
-  // they are out of scope like specs/ and benchmarks/.
+  // repos, mirrored here verbatim. Their READMEs cross-reference the
+  // siblings' own history. A reword would diverge the projection. So they are
+  // out of scope like specs/ and benchmarks/.
   "!products/gemba/actions/**",
   "!products/kata/actions/**",
 ];
@@ -137,7 +139,7 @@ export default {
     failAll("temporal-match", {
       id: "temporal.reference",
       message: (s) => `temporal reference: ${s.text.trim()}`,
-      hint: "replace with a short, non-temporal WHY; for a false positive (CSS hex, HTML entity, runtime ID, opaque fixture ID), narrow the rule in .jidoka/invariants/temporal.rules.mjs",
+      hint: "replace with a short, non-temporal WHY. For a false positive (CSS hex, HTML entity, runtime ID, opaque fixture ID), narrow the rule in .jidoka/invariants/temporal.rules.mjs",
     }),
   ],
 };

@@ -1,21 +1,21 @@
 /**
  * Live-Postgres test harness for the RLS policy suite.
  *
- * Tests need a running Supabase stack (migrate, apply RLS, mint JWTs,
+ * Tests need a live Supabase stack (migrate, apply RLS, mint JWTs,
  * exercise the policy matrix). The harness:
  *   - skips when `SUPABASE_URL` and `JWT_SECRET` are unset
- *     (CI runs the suite without booting Supabase)
- *   - applies the RLS migration via `bunx fit-map activity migrate`
+ *     (CI runs the suite and does not start Supabase)
+ *   - applies the RLS migration with `bunx fit-map activity migrate`
  *   - seeds a per-test fixture under the service-role admin client
- *   - tears down by truncating the six RLS'd tables
+ *   - truncates the six RLS'd tables to tear down
  *
- * Local invocation:
+ * Run locally:
  *   bunx fit-map activity start && eval "$(bunx fit-map activity status --env)" && bun run test
  */
 
 import { createClient } from "@supabase/supabase-js";
 
-/** Return true when env vars for a running local Supabase stack are set. */
+/** Return true when the env vars for a live local Supabase stack are set. */
 export function isLiveSupabaseAvailable() {
   return Boolean(process.env.SUPABASE_URL && process.env.JWT_SECRET);
 }
@@ -35,10 +35,10 @@ export function createAdminClient() {
   return createClient(url, key, { db: { schema: "activity" } });
 }
 
-// Each RLS'd table is truncated by deleting rows that do not match a PK
-// sentinel — the sentinel column varies per table because not every table
-// has an `email` column. Using a per-table identity column avoids the
-// "filter column does not exist" failure mode the panel flagged.
+// The harness truncates each RLS'd table. It deletes the rows that do not
+// match a PK sentinel. The sentinel column varies per table, because not
+// every table has an `email` column. A per-table identity column avoids
+// the "filter column does not exist" failure mode the panel flagged.
 const TABLE_PK_SENTINEL = [
   {
     table: "getdx_snapshot_comments",
@@ -60,23 +60,23 @@ let migrationApplied = false;
 
 async function ensureMigrationApplied() {
   if (migrationApplied) return;
-  // Skip the per-test migrate cost when the harness has already run it
-  // once in this process. Local invocation flow:
+  // Skip the per-test migrate cost when the harness already ran it once
+  // in this process. Run it locally like this:
   //   bunx fit-map activity start
   //   bunx fit-map activity migrate
   //   bun run test
-  // — so the migrate command is idempotent and cheap to skip.
+  // The migrate command is idempotent and cheap to skip.
   const { migrate } = await import("../../../src/commands/activity.js");
   await migrate();
   migrationApplied = true;
 }
 
-// Team sentinels used by tests that seed organization_people with a
-// non-null `getdx_team_id`. organization_people's FK to getdx_teams is
-// strict (no `MATCH SIMPLE` escape hatch), so without these rows the
-// inserts fail silently under the admin client and downstream RLS reads
-// see an empty fixture — masquerading as a scope-clamp bug. The four
-// ids are upserted once per process and survive the per-test teardown
+// Tests that seed organization_people with a non-null `getdx_team_id`
+// use these team sentinels. organization_people's FK to getdx_teams is
+// strict (no `MATCH SIMPLE` escape hatch). Without these rows the inserts
+// fail silently under the admin client, and downstream RLS reads see an
+// empty fixture. That looks like a scope-clamp bug. The harness upserts
+// the four ids once per process. They survive the per-test teardown
 // (getdx_teams is not in TABLE_PK_SENTINEL).
 const TEAM_SENTINELS = ["t", "t2", "team-1", "team-2"];
 
@@ -107,7 +107,7 @@ export async function withLiveActivity(fn) {
       try {
         await admin.from(table).delete().neq(column, value);
       } catch {
-        // Last-ditch cleanup; ignore PK shape mismatch.
+        // Last-ditch cleanup. Ignore the PK shape mismatch.
       }
     }
   }

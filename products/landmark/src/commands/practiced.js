@@ -38,7 +38,7 @@ export async function runPracticedCommand({
     };
   }
 
-  // Derive expected skills per team member, aggregate highest per skill
+  // Derive expected skills per team member and aggregate highest per skill
   const derivedDepths = aggregateDerivedDepths(team, mapData);
 
   // Fetch practice patterns

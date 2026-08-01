@@ -1,18 +1,20 @@
 /**
- * Pack generation for Pathway distribution.
+ * Generate the packs for Pathway distribution.
  *
- * Emits one pre-built agent/skill pack per valid discipline/track combination
- * across four distribution channels, organized by channel prefix:
+ * This module emits one pre-built agent/skill pack for each valid
+ * discipline/track combination, across four distribution channels. The
+ * channel prefix organizes them:
  *  - Raw — `.claude/` layout archived as `raw/{name}.tar.gz` (curl | tar)
  *  - APM — deployed `.claude/` layout + `apm.lock.yaml` as `apm/{name}.tar.gz` (apm unpack)
  *  - APM git — bare git repo at `apm/{name}/` (apm install)
  *  - Skills — `.well-known/skills/` repository at `skills/{name}/` (`npx skills add`)
  *
- * An `apm.yml` project manifest for Microsoft APM is written at the site root.
+ * This module writes an `apm.yml` project manifest for Microsoft APM at the
+ * site root.
  *
  * See specs/0520-apm-compatible-packs and specs/0700-git-installable-packs.
  *
- * Invoked from build.js after the distribution bundle has been generated.
+ * build.js calls this module after it generates the distribution bundle.
  */
 
 import { join } from "path";
@@ -198,9 +200,9 @@ async function writeApmManifest(
 }
 
 /**
- * Generate pre-built agent/skill packs for installation through ecosystem
- * tools like `npx skills`, Microsoft APM, and `git clone`. One pack per
- * valid discipline/track combination.
+ * Generate pre-built agent/skill packs so ecosystem tools can install them.
+ * Those tools include `npx skills`, Microsoft APM, and `git clone`. Emit one
+ * pack for each valid discipline/track combination.
  *
  * @param {Object} params
  * @param {string} params.outputDir - Build output directory
@@ -245,7 +247,7 @@ export async function generatePacks({
 
   const validCombinations = findValidCombinations(data, agentData);
   if (validCombinations.length === 0) {
-    logger.info("   (no valid discipline/track combinations — skipping)");
+    logger.info("   (no valid discipline/track combinations, so no packs)");
     return;
   }
 

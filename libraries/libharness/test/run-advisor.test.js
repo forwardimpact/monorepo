@@ -81,7 +81,7 @@ describe("parseRunOptions - advisor flags", () => {
     );
   });
 
-  test("a malformed --advisor-max-uses is a usage error, not a silent NaN", () => {
+  test("a malformed --advisor-max-uses is a usage error. It is not a silent NaN", () => {
     for (const bad of ["abc", "0", "-2"]) {
       assert.throws(
         () => parse({ "advisor-model": "adv-m", "advisor-max-uses": bad }),
@@ -130,7 +130,7 @@ describe("wireRunSession - advisor wiring", () => {
     });
   });
 
-  test("a consult forwards the seeded composed prompt and lands advisor + consult lines with monotonic seq", async () => {
+  test("a consult forwards the seeded composed prompt. It lands advisor + consult lines with monotonic seq", async () => {
     const captured = [];
     const query = createMockAgentQuery(adviceMessages, (params) =>
       captured.push(params),
@@ -145,7 +145,7 @@ describe("wireRunSession - advisor wiring", () => {
     const result = await advisorTool.handler({ question: "Which way?" }, {});
 
     assert.match(result.content[0].text, /Advice\./);
-    // The recorder was seeded with the composed (preset) system prompt.
+    // The wiring seeded the recorder with the composed (preset) system prompt.
     assert.match(captured[0].prompt, /<caller_system_prompt>/);
     assert.match(captured[0].prompt, /\(claude_code preset\)/);
     assert.ok(captured[0].prompt.includes(advisorGuidance(3)));
@@ -163,7 +163,7 @@ describe("wireRunSession - advisor wiring", () => {
     for (let i = 1; i < seqs.length; i++) assert.ok(seqs[i] > seqs[i - 1]);
   });
 
-  test("onPrompt feeds the recorder: a later consult forwards the delivered task", async () => {
+  test("onPrompt feeds the recorder. A later consult forwards the delivered task", async () => {
     const captured = [];
     const query = createMockAgentQuery(adviceMessages, (params) =>
       captured.push(params),

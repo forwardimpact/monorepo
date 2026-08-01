@@ -25,8 +25,9 @@ import {
 import { makeRuntime, ctxFor } from "./helpers.js";
 
 // Run the real audit engine over `wikiRoot` and return only the weekly-log
-// fail findings — what "gemba-wiki audit passes on the result" means for the
-// rotated file under test (criterion 1), without seeding MEMORY/STATUS/storyboard.
+// fail findings. These define what "gemba-wiki audit passes on the result"
+// means for the rotated file under test (criterion 1). The helper does not
+// seed MEMORY/STATUS/storyboard.
 function weeklyLogAuditFails(wikiRoot, today, fs) {
   const ctx = buildContext({ wikiRoot, today, fs });
   return runRules(RULES, ctx, { resolveScope }).filter(
@@ -34,9 +35,9 @@ function weeklyLogAuditFails(wikiRoot, today, fs) {
   );
 }
 
-// The append path seals via fs.renameSync (no createMockFs renameSync), so the
-// rotate-then-append behaviour is exercised against the real fs here; the
-// mock-backed cli-log.test.js covers the under-budget (no-seal) cases.
+// The append path seals through fs.renameSync (no createMockFs renameSync), so
+// this suite exercises the rotate-then-append behaviour against the real fs.
+// The mock-backed cli-log.test.js covers the under-budget (no-seal) cases.
 describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
   let dir;
   let wikiRoot;
@@ -51,8 +52,8 @@ describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
   test("decision against an over-line-budget multi-day log bisects, then appends fresh", () => {
     const today = "2026-05-24"; // ISO 2026-W21
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", today);
-    // 4 day-sections @ 150 lines: each under budget, jointly over the line
-    // budget so the append path's non-force short-circuit triggers a seal.
+    // 4 day-sections @ 150 lines: each is under budget. Together they overflow
+    // the line budget, so the non-force short-circuit on append seals the log.
     let text = "# Staff Engineer — 2026-W21\n";
     for (let s = 0; s < 4; s++) {
       text += `## 2026-05-${String(18 + s).padStart(2, "0")}\n`;
@@ -77,7 +78,7 @@ describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
     );
 
     assert.deepEqual(result, { ok: true });
-    // The prior content is sealed into ≥2 conforming parts.
+    // The seal splits the prior content into ≥2 conforming parts.
     assert.ok(
       existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")) &&
         existsSync(join(wikiRoot, "staff-engineer-2026-W21-part2.md")),
@@ -144,9 +145,9 @@ describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
     const today = "2026-05-24"; // ISO 2026-W21
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", today);
     // ~474 lines (under the 496 line cap) but ~6117 words (near the 6400 word
-    // cap); the next note tips words over 6400 with lines still under, so only
-    // the word-budget trigger can fire the seal (word-cap rotation, not just
-    // the line-cap path).
+    // cap). The next note tips words over 6400 with lines still under. So only
+    // the word-budget trigger can fire the seal. This exercises the word-cap
+    // rotation path on its own.
     const rows = ["# Staff Engineer — 2026-W21", "", "## 2026-05-24", ""];
     for (let i = 0; i < 470; i++) rows.push(Array(13).fill("w").join(" "));
     writeFileSync(logPath, rows.join("\n") + "\n");
@@ -173,8 +174,8 @@ describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
     );
     const fresh = readFileSync(logPath, "utf-8");
     assert.match(fresh, /Followup/);
-    // The real audit passes on the rotated result — the spec's stated verify,
-    // not a budget recount (criterion 1).
+    // The real audit passes on the rotated result. The spec names the audit as
+    // the verify. It does not name a budget recount (criterion 1).
     assert.deepEqual(
       weeklyLogAuditFails(wikiRoot, today, nodeFs),
       [],
@@ -185,8 +186,8 @@ describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
   test("append against a lone over-cap day with ### blocks splits at block seams (criterion 2, append path)", () => {
     const today = "2026-05-24"; // ISO 2026-W21
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", today);
-    // One dated entry, over the line cap, built from 4 `### ` blocks none of
-    // which alone exceeds the cap. The append-path rotation must split it at the
+    // One dated entry sits over the line cap. It has 4 `### ` blocks, and none
+    // alone exceeds the cap. The append-path rotation must split it at the
     // block seams rather than report it irreducible.
     let text = "# Staff Engineer — 2026-W21\n## 2026-05-24\n";
     for (let b = 1; b <= 4; b++) {
@@ -215,7 +216,7 @@ describe("gemba-wiki log CLI seal-on-append (in-process)", () => {
       existsSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md")),
       "the over-cap day was sealed (split at its block seams) before the note",
     );
-    // The whole result passes the audit — the day was reduced, not irreducible.
+    // The whole result passes the audit. The rotation reduced the day.
     assert.deepEqual(
       weeklyLogAuditFails(wikiRoot, today, nodeFs),
       [],

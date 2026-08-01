@@ -13,7 +13,7 @@ function fence(rows) {
   return ["# Spec Status", "", "```", ...rows, "```", ""].join("\n");
 }
 
-// Seed STATUS.md in an in-memory fs and run the status-row rules; buildContext
+// Seed STATUS.md in an in-memory fs and run the status-row rules. buildContext
 // reads `${wikiRoot}/STATUS.md` through the injected sync surface.
 function auditStatus(statusMd) {
   const ctx = buildContext({
@@ -111,7 +111,7 @@ describe("status-row audit", () => {
       (f) => f.id,
     );
     assert.ok(ids.includes("status-row.exp-id-format"));
-    // and it is not silently passed through the spec-shaped rules
+    // and the spec-shaped rules do not silently pass it through
     assert.ok(!ids.includes("status-row.id-format"));
   });
 

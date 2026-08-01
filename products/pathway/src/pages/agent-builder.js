@@ -1,9 +1,10 @@
 /**
  * Agent builder page
  *
- * Single scrollable view for generating AI coding agent team configurations.
- * Multi-select checkboxes for disciplines, single-select dropdown for track.
- * Generates one agent per selected discipline × the chosen track.
+ * One scrollable view that generates team configurations for AI coding agents.
+ * Disciplines use multi-select checkboxes. The track uses a single-select
+ * dropdown. The page generates one agent per selected discipline × the chosen
+ * track.
  */
 
 import {
@@ -36,7 +37,7 @@ let agentDataCache = null;
 let templateCache = null;
 
 /**
- * Load agent data with caching
+ * Load the agent data and cache it
  * @param {string} dataDir - Data directory path
  * @returns {Promise<Object>}
  */
@@ -48,7 +49,7 @@ async function getAgentData(dataDir = "./data") {
 }
 
 /**
- * Load templates with caching
+ * Load the templates and cache them
  * @returns {Promise<{agent: string, skill: string, install: string, reference: string}>}
  */
 async function getTemplates() {
@@ -145,7 +146,7 @@ export async function renderAgentBuilder() {
     : new Set();
   const initialTrack = pathMatch && pathMatch[2] ? pathMatch[2] : "";
 
-  // Track select element — options updated when disciplines change
+  // Track select element. The options change when the disciplines change.
   const trackSelectEl = select(
     { className: "form-select", id: "agent-track-select" },
     option({ value: "", disabled: true, selected: true }, "Select a track..."),
@@ -288,8 +289,9 @@ export async function renderAgentBuilder() {
   }
 
   /**
-   * Merge a single derive result into the running aggregation, deduplicating skills and tools
-   * @param {Object} agg - Running aggregation state
+   * Merge one derive result into the aggregation so far. Remove duplicate
+   * skills and tools.
+   * @param {Object} agg - Aggregation state so far
    * @param {Object} result - Output from deriveAgentData
    */
   function mergeResult(agg, result) {
@@ -312,7 +314,8 @@ export async function renderAgentBuilder() {
   }
 
   /**
-   * Aggregate derived agent data across all combos, deduplicating skills and tools
+   * Aggregate the derived agent data across all combos. Remove duplicate
+   * skills and tools.
    * @param {Array} combos
    * @param {Object} level
    * @returns {{allProfiles: Array, allSkillFiles: Array, allToolkit: Array, teamInstructionsContent: string|null}}
@@ -446,7 +449,7 @@ export async function renderAgentBuilder() {
                 "No disciplines have agent definitions.",
               ),
         ),
-        // Track single-select (options filtered by selected disciplines)
+        // Track single-select (the selected disciplines filter the options)
         div(
           { className: "form-group" },
           label({ className: "form-label" }, "Track"),

@@ -47,7 +47,7 @@ describe("prepareLinkResume — keyword args, discriminated return", () => {
     );
   });
 
-  test("sets tenant_id on the URL when tenantId is supplied", () => {
+  test("sets tenant_id on the URL when the caller supplies tenantId", () => {
     const { augmentedUrl } = prepareLinkResume({
       authorizeUrl: "https://oauth.example/authorize",
       callbackBaseUrl: "https://bridge.example",

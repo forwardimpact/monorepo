@@ -16,8 +16,8 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
  *
  * Generates every secret previously split between scripts/env-secrets.js
  * and scripts/env-storage.js. All values land in a single .env. Re-runs
- * are idempotent: every value written by the first run is preserved
- * verbatim by the second.
+ * are idempotent. The second run preserves every value the first run
+ * wrote, verbatim.
  *
  * To rotate a single value, delete its line from .env and re-run.
  * To rotate JWT_SECRET, also delete SUPABASE_ANON_KEY and
@@ -39,7 +39,7 @@ async function main() {
   const runtime = createDefaultRuntime();
   const get = (key, gen) => getOrGenerateSecret(key, gen, ".env", runtime);
 
-  // Generate / read the Supabase JWT secret first; the anon and
+  // Generate or read the Supabase JWT secret first. The anon and
   // service-role keys are HMAC-signed against it.
   const supabaseJwtSecret = await get("JWT_SECRET", () => generateSecret(32));
 

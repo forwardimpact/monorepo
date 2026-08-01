@@ -1,11 +1,11 @@
 /**
- * Thin wrapper around `git log` / `git show` for trajectory parsing.
+ * Thin wrapper around `git log` / `git show` for the trajectory parser.
  *
- * All calls shell out through an injected collaborator: production passes
- * `runtime.subprocess` (via `options.subprocess`); tests inject a promisified
- * `exec` fake (via `options.exec`) to drive the helpers without a real git
- * binary. Either seam keeps these functions free of an ambient
- * `node:child_process` import.
+ * All calls shell out through an injected collaborator. Production passes
+ * `runtime.subprocess` (through `options.subprocess`). Tests inject a
+ * promisified `exec` fake (through `options.exec`) to drive the helpers
+ * without a real git binary. Either seam keeps these functions free of an
+ * ambient `node:child_process` import.
  */
 
 /** Signals that git history operations failed because git is missing or the working directory is not a repository. */
@@ -20,8 +20,8 @@ export class GitUnavailableError extends Error {
 }
 
 /**
- * Resolve the exec adapter: prefer an explicit test `exec`, else build one over
- * the injected `subprocess` collaborator.
+ * Resolve the exec adapter. Prefer an explicit test `exec`. Otherwise build
+ * one over the injected `subprocess` collaborator.
  * @param {object} options - `{ exec?, subprocess? }`.
  * @returns {(cmd: string, args: string[], opts: object) => Promise<{stdout: string, stderr: string}>}
  */
@@ -54,9 +54,10 @@ function resolveExec(options) {
 
 /**
  * Return the absolute path of the git repository root that contains
- * `cwd`. Used to convert a caller-supplied path into a repo-root-relative
- * path before shelling out to `git show <sha>:<path>`, which interprets
- * its path argument as repo-root-relative regardless of `cwd`.
+ * `cwd`. Callers use the root to convert a caller-supplied path into a
+ * repo-root-relative path. They do this before they shell out to
+ * `git show <sha>:<path>`. That command interprets its path argument as
+ * repo-root-relative, regardless of `cwd`.
  *
  * @param {object} [options]
  * @param {string} [options.cwd]

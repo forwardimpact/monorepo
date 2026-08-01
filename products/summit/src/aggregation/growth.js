@@ -1,16 +1,16 @@
 /**
  * Growth alignment.
  *
- * Summit's growth pipeline identifies team gaps, ranks them by impact
- * (critical gap > SPOF reduction > coverage strengthening), then
- * matches team members as candidates for each gap based on their
- * current proficiency for that skill.
+ * Summit's growth pipeline identifies team gaps. It ranks them by
+ * impact (critical gap > SPOF reduction > coverage strengthening). It
+ * then matches team members as candidates for each gap. The match uses
+ * each member's current proficiency for that skill.
  *
- * `computeGrowthAlignment` is also exported publicly from the package
- * root — Landmark imports it and renders its output inline in health
- * views. The signature is stable across parts; Part 07 layers on evidence
- * filtering and outcome weighting through the optional `evidence` and
- * `driverScores` parameters without changing the shape.
+ * The package root also exports `computeGrowthAlignment` publicly.
+ * Landmark imports it and renders its output inline in health views.
+ * The signature is stable across parts. Part 07 adds evidence filters
+ * and outcome weights through the optional `evidence` and
+ * `driverScores` parameters. It does not change the shape.
  */
 
 import { getSkillProficiencyIndex } from "@forwardimpact/libskill/levels";
@@ -49,7 +49,7 @@ export class GrowthContractError extends Error {
 /**
  * Compute growth recommendations for a team.
  *
- * This function is Summit's public cross-product export — its
+ * This function is Summit's public cross-product export. Its
  * signature must match spec.md:575–584 exactly.
  *
  * @param {object} params
@@ -58,7 +58,7 @@ export class GrowthContractError extends Error {
  * @param {object} params.mapData - Loaded Map data.
  * @param {Map<string, object>} [params.evidence] - Optional Part 07
  *   evidence map (skillId → { practitioners: Set<email>, count }).
- *   Passing `null`/`undefined` behaves as "no evidence".
+ *   A `null` or `undefined` value behaves as "no evidence".
  * @param {Map<string, object>} [params.driverScores] - Optional Part 07
  *   driver scores map.
  * @returns {GrowthRecommendation[]}
@@ -180,9 +180,10 @@ function buildRecommendation({
 }
 
 /**
- * Build a skillId → worst driver context lookup. Each skill can
- * contribute to multiple drivers (via `data.drivers[].contributingSkills`);
- * the lookup carries the worst (lowest percentile) score.
+ * Build a lookup from skillId to the worst driver context. Each skill
+ * can contribute to multiple drivers through
+ * `data.drivers[].contributingSkills`. The lookup carries the worst
+ * (lowest percentile) score.
  *
  * @param {object} data
  * @param {Map<string, object>} [driverScores]
@@ -236,8 +237,9 @@ function evidencedPractitioners(skillId, evidence) {
 /**
  * Rank members as candidates to develop a specific skill toward working+.
  *
- * Sorted descending by current proficiency: candidates closest to "working"
- * appear first, as they require the least investment to reach the target.
+ * The rank sorts descending by current proficiency. Candidates closest
+ * to "working" appear first. They need the least investment to reach
+ * the target.
  *
  * @param {string} skillId
  * @param {Array<object>} personMatrices
@@ -289,8 +291,8 @@ function compareRecommendations(a, b) {
   const rankDiff = IMPACT_RANK[a.impact] - IMPACT_RANK[b.impact];
   if (rankDiff !== 0) return rankDiff;
   // Within a tier, prefer skills with the worst driver percentile.
-  // Spec.md:451 — a gap aligned with a poorly-scoring GetDX driver
-  // gets boosted within its impact tier.
+  // Spec.md:451 states that a gap aligned with a GetDX driver that
+  // scores poorly moves up within its impact tier.
   const aPct = a.driverContext?.percentile ?? null;
   const bPct = b.driverContext?.percentile ?? null;
   if (aPct !== null && bPct !== null && aPct !== bPct) return aPct - bPct;

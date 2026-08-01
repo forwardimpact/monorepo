@@ -4,31 +4,31 @@ Reference for `req-scan` Step 2 (fetch & scan). One source per wake cycle.
 
 ## 1. Hacker News "Who Wants to Be Hired?"
 
-Monthly thread, posted on the 1st.
+A monthly thread that appears on the 1st.
 
 ```text
 WebFetch URL: https://hn.algolia.com/api/v1/search?query=%22Who+wants+to+be+hired%22&tags=ask_hn&hitsPerPage=5
 ```
 
-The first hit whose title matches "Who wants to be hired?" with `created_at` in
-the current or previous month is the target thread.
+The target thread is the first hit whose title matches "Who wants to be hired?"
+and whose `created_at` falls in the current or previous month.
 
 ```text
 WebFetch URL: https://hn.algolia.com/api/v1/items/{objectID}
 ```
 
-`children[]` contains top-level comments — each is one candidate. Parse the
-`text` field for:
+`children[]` contains top-level comments. Each comment is one candidate. Parse
+the `text` field for:
 
 - **Location** ("Location: New York", "NYC / Remote").
 - **Remote** ("Remote: Yes", "Open to remote").
 - **Skills** — tech stack, language/standard mentions.
 - **Experience** — years, role titles, past companies.
-- **Contact** — email (often obfuscated: "name [at] domain [dot] com").
+- **Contact** — email, often obfuscated as "name [at] domain [dot] com".
 - **Resume / CV** — links to personal sites, GitHub, LinkedIn.
 
 **Cursor:** thread `objectID` plus the ID of the last processed child comment.
-**Rate:** no strict limit; one fetch per wake cycle.
+**Rate:** no strict limit. One fetch per wake cycle.
 
 ## 2. GitHub Open to Work
 

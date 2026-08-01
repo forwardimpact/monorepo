@@ -7,7 +7,7 @@ Options:
   --wiki-root=<string>  Override wiki root directory (default: wiki)
   --today=<string>      Override today's ISO date (testing)
   --index=<string>      Bullet index (0-based) for ack/promote/drop
-  --owner=<string>      Owner field when promoting (default: --agent)
+  --owner=<string>      Owner field for promote (default: --agent)
 
 Global options:
   --help, -h  Show this help

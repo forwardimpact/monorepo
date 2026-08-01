@@ -3,7 +3,7 @@ import { createStorage } from "@forwardimpact/libstorage";
 import { createPolicy } from "@forwardimpact/libpolicy";
 
 /**
- * Resource index for typed resource management with access control
+ * Resource index that manages typed resources and controls access
  * @implements {import("@forwardimpact/libutil").IndexInterface}
  */
 export class ResourceIndex {
@@ -50,7 +50,7 @@ export class ResourceIndex {
   async put(resource) {
     if (!resource) throw new Error("resource is required");
 
-    // Ensure that the resource identifier is generated
+    // Make sure the resource identifier exists
     resource.withIdentifier();
 
     const id = resource.id;
@@ -85,7 +85,7 @@ export class ResourceIndex {
     if (!Array.isArray(ids)) throw new Error("ids must be an array or null");
     if (ids.length === 0) return [];
 
-    // Evaluate access policy if actor is provided
+    // Evaluate the access policy if the caller supplies an actor
     if (actor) {
       if (!(await this.#policy.evaluate({ actor, resources: ids }))) {
         throw new Error("Access denied");
@@ -95,7 +95,7 @@ export class ResourceIndex {
     const keys = ids.map((id) => `${id}.json`);
     const data = await this.#storage.getMany(keys);
 
-    // Convert to array preserving original order of ids
+    // Convert to an array and keep the original order of the ids
     const promises = keys.map((key) => {
       const d = data[key];
       if (!d) return null;
@@ -147,7 +147,8 @@ export class ResourceIndex {
 }
 
 /**
- * Helper function creating object instances of the right type from resource descriptor
+ * Helper function that creates object instances of the right type from a
+ * resource descriptor
  * @param {object} object - Plain object with type information
  * @returns {object} Typed object content
  */
@@ -166,22 +167,23 @@ export function toType(object) {
 }
 
 /**
- * Helper function creating Identifier instance from resource URI - reverse of resource.Identifier.toString()
+ * Helper function that creates an Identifier instance from a resource URI.
+ * It is the reverse of resource.Identifier.toString()
  * @param {string} uri - Resource URI (e.g., "common.Message.abc123" or "parent/child/common.Message.abc123")
  * @returns {types.resource.Identifier} Identifier instance
  */
 export function toIdentifier(uri) {
   const tree = uri.split("/");
 
-  // The last part is the name, everything before is the parent path
+  // The last part is the name. The parts before it are the parent path
   const nameParts = tree[tree.length - 1].split(".");
   const parentParts = tree.slice(0, -1);
 
-  // Extract type from name (format: "namespace.Type.hash")
+  // Extract the type from the name (format: "namespace.Type.hash")
   const name = nameParts.pop();
   const type = `${nameParts[0]}.${nameParts[1]}`;
 
-  // Build parent URI if there are parent parts
+  // Build the parent URI if parent parts exist
   const parent = parentParts.length > 0 ? parentParts.join("/") : "";
 
   return new types.resource.Identifier({
@@ -192,8 +194,8 @@ export function toIdentifier(uri) {
 }
 
 /**
- * Creates a ResourceIndex instance with configurable storage prefix.
- * @param {string} prefix - Storage prefix (bucket name) used to create the underlying storage
+ * Creates a ResourceIndex instance with a configurable storage prefix.
+ * @param {string} prefix - Storage prefix (bucket name) for the underlying storage
  * @param {import("@forwardimpact/libpolicy").Policy} [policy] - Optional policy instance (defaults to createPolicy())
  * @returns {ResourceIndex} Configured ResourceIndex instance
  */

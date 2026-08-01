@@ -63,7 +63,7 @@ describe("Auth", () => {
       // Tamper with the token (it's base64 encoded)
       const decoded = Buffer.from(token, "base64").toString("utf8");
       const parts = decoded.split(":");
-      // Change serviceId part
+      // Change the serviceId part
       parts[0] = "other-service";
       const tamperedToken = Buffer.from(parts.join(":")).toString("base64");
 
@@ -95,7 +95,7 @@ describe("Auth", () => {
       );
     });
 
-    test("should create Interceptor with valid secret", () => {
+    test("should create Interceptor with a valid secret", () => {
       const interceptor = createAuth(
         "test",
         runtimeWithSecret("test-secret-that-is-at-least-32-characters-long"),

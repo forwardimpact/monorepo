@@ -34,8 +34,8 @@ export function parseRunOptions(values, runtime) {
     values,
     runtime,
   );
-  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back to
-  // the default, rather than overriding it with "".
+  // `||` (not `??`) so an empty-string flag from a CI forwarder falls back
+  // to the default. The empty string does not override the default.
   const maxTurnsRaw = values["max-turns"] || "50";
 
   return {
@@ -64,10 +64,10 @@ const devNull = new Writable({
 
 /**
  * Wire the run-mode agent session: external MCP entry, `LIBHARNESS_*` env
- * writes, system-prompt composition, and — when an advisor model is set —
- * the advisor wiring (budget, recorder, advisor session, dedicated MCP
- * server holding only the `Advisor` tool). Extracted from `runRunCommand`
- * so tests can inject a fake `query`.
+ * writes, and system-prompt composition. When an advisor model is set, also
+ * wire the advisor (budget, recorder, advisor session, and a dedicated MCP
+ * server that holds only the `Advisor` tool). This function is extracted
+ * from `runRunCommand` so a test can inject a fake `query`.
  *
  * Run mode has no stop path (the command simply awaits the runner), so the
  * consult timeout is deliberately the advisor's only guard.
@@ -120,9 +120,9 @@ export async function wireRunSession({
   runtime.proc.env.LIBHARNESS_WORK_TRACKER = opts.workTracker;
 
   // With a profile, the consult guidance rides the profile composer's
-  // amendment parameter; with no profile, a preset-append prompt carries
+  // amendment parameter. With no profile, a preset-append prompt carries
   // the guidance as its only session-protocol fragment. Advisor off and no
-  // profile means no system prompt — today's behavior, unchanged.
+  // profile means no system prompt. That is today's behavior, unchanged.
   let systemPrompt;
   if (opts.agentProfile) {
     systemPrompt = composeProfilePrompt(opts.agentProfile, {
@@ -161,7 +161,7 @@ export async function wireRunSession({
       budget,
       model: opts.advisorModel,
     });
-    // No allowlist push: in-process SDK MCP servers work under
+    // No allowlist push. In-process SDK MCP servers work under
     // bypassPermissions without allowlist entries (loop-mode precedent).
     mcpServers = {
       ...mcpServers,
@@ -195,7 +195,7 @@ export async function wireRunSession({
 }
 
 /**
- * Run command — execute a single agent via the Claude Agent SDK.
+ * Run command — execute a single agent through the Claude Agent SDK.
  *
  * Usage: gemba-harness run [options]
  *
@@ -206,12 +206,12 @@ export async function runRunCommand(ctx) {
   const runtime = ctx.deps.runtime;
   const opts = parseRunOptions(ctx.options, runtime);
 
-  // Build the redactor as the first observable side-effect after option
-  // parsing — the env snapshot must freeze BEFORE any in-process
-  // env writes the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
+  // Build the redactor as the first observable side-effect after the parser
+  // reads the options. The env snapshot must freeze BEFORE any in-process
+  // env write the command performs (e.g. LIBHARNESS_AGENT_PROFILE).
   const redactor = createRedactor({ runtime });
 
-  // When --output is specified, stream text to stdout while writing NDJSON to file.
+  // With --output, stream text to stdout and write NDJSON to the file.
   // Otherwise, write NDJSON directly to stdout (backwards-compatible).
   const fileStream = opts.outputPath
     ? runtime.fs.createWriteStream(opts.outputPath)

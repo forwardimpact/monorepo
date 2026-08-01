@@ -1,18 +1,19 @@
 ---
 title: "Check Progress Toward Next Level"
-description: "See whether recent engineering work shows visible movement toward the next level by reviewing your readiness checklist and growth timeline."
+description: "See whether recent engineering work shows visible movement toward the next level. Review your readiness checklist and growth timeline."
 ---
 
 You need to check whether your evidence record shows movement toward the bar
-for the next level -- without waiting for a formal review to find out.
+for the next level. You do not want to wait for a formal review to find out.
 
 ## Prerequisites
 
 Complete
 [Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/)
-first. That guide covers setting up Guide and Landmark, identifying your gaps,
-and starting to build evidence. The steps below assume you have an existing
-evidence record and want to measure whether it is growing.
+first. That guide covers how to set up Guide and Landmark, how to identify
+your gaps, and how to start to build evidence. The steps below assume you
+already have an evidence record. They assume you want to measure whether it
+grows.
 
 You need:
 
@@ -24,8 +25,9 @@ You need:
 
 ## Check your readiness checklist
 
-The `readiness` command shows a checklist of next-level markers -- which ones
-your work has already evidenced and which are still outstanding:
+The `readiness` command shows a checklist of next-level markers. The checklist
+marks which markers your work already evidenced and which ones are still
+outstanding:
 
 ```sh
 npx fit-landmark readiness --email you@example.com
@@ -59,18 +61,19 @@ level. To check against a specific level:
 npx fit-landmark readiness --email you@example.com --target J080
 ```
 
-The summary line at the bottom is the quickest signal: compare the
-evidenced/total ratio to your last check. If the ratio has grown, recent work is
-producing visible results. The trailing coverage line shows how much of your
-artifact record backs the checklist — when fewer than 30% of your artifacts
-are interpreted, `readiness` suppresses the checklist entirely and prints the
-coverage figure with guidance on how to lift it instead.
+The summary line at the bottom is the quickest signal. Compare the
+evidenced/total ratio to your last check. If the ratio grew, recent work
+produces visible results. The coverage line at the end shows how much of your
+artifact record backs the checklist. When fewer than 30% of your artifacts
+are interpreted, `readiness` suppresses the checklist entirely. It then prints
+the coverage figure with guidance on how to lift it.
 
 ## Review the evidence behind each marker
 
 When a marker shows `[x]`, the readiness output names the artifact that
-evidenced it. To see the full rationale -- why Landmark matched that artifact to
-that marker -- use the `evidence` command filtered to a specific skill:
+evidenced it. The full rationale says why Landmark matched that artifact to
+that marker. To see it, use the `evidence` command filtered to a specific
+skill:
 
 ```sh
 npx fit-landmark evidence --skill architecture-design --email you@example.com
@@ -96,16 +99,16 @@ Expected output:
     Evidence covers 18/24 artifacts.
 ```
 
-Each matched row includes a rationale explaining the match and a provenance
-label naming where the evidence came from (see
+Each matched row includes a rationale that explains the match. It also
+includes a provenance label that names where the evidence came from (see
 [Know where each piece of evidence comes from](/docs/products/growth-areas/#know-where-each-piece-of-evidence-comes-from)).
-Reviewing rationales helps you understand what kind of work is being
-recognized -- and what kind is not yet strong enough to match.
+Review the rationales to understand what kind of work Landmark recognizes.
+The rationales also show what kind of work is not yet strong enough to match.
 
 ## Check your growth timeline
 
 The `timeline` command shows the highest evidenced proficiency level per skill
-per quarter. A level appearing for the first time means the evidence record has
+per quarter. A level that appears for the first time means the evidence record
 caught up to growth in that area:
 
 ```sh
@@ -125,7 +128,7 @@ Expected output:
 ```
 
 In this example, `architecture-design` moved from `working` to `practitioner`
-in Q3. That is a visible shift -- the evidence record now reflects growth that
+in Q3. That is a visible shift. The evidence record now reflects growth that
 previously existed only in practice.
 
 Filter to a single skill to focus on one area:
@@ -135,11 +138,12 @@ npx fit-landmark timeline --email you@example.com --skill architecture-design
 ```
 
 If the timeline shows the same proficiency level across multiple quarters with
-no change, either the work has not yet produced artifacts that match the
-next-level markers, or the relevant artifacts have not been ingested. Check
-whether recent pull requests and design documents have been processed. When
-coverage is below 30%, the timeline opens with a banner reminding you that a
-flat line reflects the measurement floor, not an absence of growth.
+no change, one of two things happened. The work did not yet produce artifacts
+that match the next-level markers. Or nobody ingested the relevant artifacts.
+Check whether Landmark processed your recent pull requests and design
+documents. When coverage is below 30%, the timeline opens with a banner. The
+banner says a flat line reflects the measurement floor. It does not reflect an
+absence of growth.
 
 ## Look up what the missing markers expect
 
@@ -160,28 +164,28 @@ npx fit-landmark marker architecture-design --level practitioner
 ```
 
 These are the observable indicators your standard defines for that proficiency
-level. Knowing the full set helps you identify which kinds of work would
+level. When you know the full set, you can identify which kinds of work would
 naturally produce evidence for the missing markers.
 
 ## Verify
 
-You have completed this guide when you can answer these questions:
+You complete this guide when you can answer these questions:
 
-- **Is your evidence record growing?** You have run
+- **Does your evidence record grow?** You ran
   `npx fit-landmark readiness` and compared the evidenced/total ratio to a
-  previous check. The ratio has changed -- or you understand why it has not.
+  previous check. The ratio changed. Or you understand why it did not.
 - **Do you know which markers are still missing?** The readiness summary names
-  the outstanding markers, and you can describe what each one expects.
-- **Can you see the trajectory?** You have run `npx fit-landmark timeline` and
-  can point to at least one skill where the proficiency level has changed across
-  quarters -- or you have identified why no change appears yet.
-- **Do you understand the rationale behind matched markers?** You have run
-  `npx fit-landmark evidence` for at least one skill and reviewed the rationale
-  for each match.
+  the outstanding markers. You can describe what each one expects.
+- **Can you see the trajectory?** You ran `npx fit-landmark timeline`. You
+  can point to at least one skill where the proficiency level changed across
+  quarters. Or you identified why no change appears yet.
+- **Do you understand the rationale behind matched markers?** You ran
+  `npx fit-landmark evidence` for at least one skill. You reviewed the
+  rationale for each match.
 
 If any of these are unclear, revisit the relevant step. The readiness checklist
-is the most direct measure -- when missing markers from a previous check start
-showing as evidenced, recent work is producing visible movement toward the bar.
+is the most direct measure. When missing markers from a previous check start to
+show as evidenced, recent work produces visible movement toward the bar.
 
 ## What's next
 

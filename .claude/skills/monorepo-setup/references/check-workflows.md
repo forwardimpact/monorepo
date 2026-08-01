@@ -1,15 +1,15 @@
 # Check workflows
 
-Copy-paste CI for [monorepo-setup](../SKILL.md) Step 5 — the check workflows
-that run on push and pull request. One workflow per concern, never a single
-`check.yml`: a failing format run and a failing test run must read as two
+Copy-paste CI for [monorepo-setup](../SKILL.md) Step 5. These check workflows
+run on push and on pull request. Use one workflow per concern. Never use a
+single `check.yml`. A failed format run and a failed test run must read as two
 distinct red checks. Add concerns (build, data, security) as the repo grows.
 
-All share the same trigger and least-privilege permission, and pin every action
-by SHA — resolve `<sha>` at generation time (`gh api
-repos/<action>/git/ref/tags/<tag>`); the `github-actions` Dependabot entry
+All workflows share the same trigger and least-privilege permission. Pin every
+action by SHA. Run `gh api repos/<action>/git/ref/tags/<tag>` to resolve `<sha>`
+when you generate the workflow. The `github-actions` Dependabot entry
 `kata-setup` adds keeps the pins fresh. Commands are the repo's own scripts
-(`npm run format`, `npm test`, …); adjust names to the root `package.json`.
+(`npm run format`, `npm test`, …). Adjust names to the root `package.json`.
 
 ## .github/workflows/check-quality.yml
 
@@ -72,10 +72,10 @@ jobs:
 
 ## .github/workflows/check-context.yml
 
-This is the workflow `jidoka-setup` assumes: it wires `jidoka` into the
-check task but never adds CI. One job per `jidoka` subcommand so a layered
-instruction breach, a stale JTBD block, and an invariant violation each surface
-as their own red check.
+`jidoka-setup` assumes this workflow. It wires `jidoka` into the check task.
+It never adds CI. Use one job per `jidoka` subcommand. A layered-instruction
+breach, a stale JTBD block, and an invariant violation then each surface as
+their own red check.
 
 ```yaml
 name: Context
@@ -120,9 +120,9 @@ jobs:
 
 ## Why the wiki audit is not a check here
 
-`gemba-wiki audit` reads the live, shared wiki, so its verdict is a function of
-the current wiki state, not the PR head — it would redden a clean commit
-whenever the shared wiki happens to be dirty, and flip on re-run with no code
-change. Keep it out of the per-PR gate. A scheduled curation run owns live-wiki
-findings and routes them to a single curation issue (see `kata-setup`). A
+`gemba-wiki audit` reads the live, shared wiki. Its verdict depends on the
+current wiki state. The PR head does not affect it. It would redden a clean
+commit whenever the shared wiki is dirty. It would also flip on re-run with no
+code change. Keep it out of the per-PR gate. A scheduled curation run owns
+live-wiki findings and routes them to one curation issue (see `kata-setup`). A
 commit-status check may verify only surfaces the PR's diff fully determines.

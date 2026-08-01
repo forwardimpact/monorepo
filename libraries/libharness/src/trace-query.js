@@ -9,11 +9,11 @@ import {
 } from "./trace-usage.js";
 
 /**
- * Query engine for structured trace documents produced by TraceCollector.
+ * Query engine for structured trace documents that TraceCollector produces.
  *
- * Loads a structured JSON trace into memory and provides methods for
- * paging, searching, filtering, and summarizing turns — the operations
- * agents need to analyze large traces efficiently.
+ * Loads a structured JSON trace into memory. Provides methods to page,
+ * search, filter, and summarize turns. Agents need these operations to
+ * analyze large traces efficiently.
  */
 export class TraceQuery {
   /**
@@ -54,7 +54,7 @@ export class TraceQuery {
   }
 
   /**
-   * Full system/init event — the single most diagnostic message for
+   * Full system/init event. It is the single most diagnostic message for
    * root-cause analysis. Returns null for traces collected before this
    * field existed.
    * @returns {object|null}
@@ -73,16 +73,16 @@ export class TraceQuery {
   }
 
   /**
-   * Filter turns by composable structural criteria. All criteria are
-   * combined as AND. `tool()` and `errors()` remain as convenience
-   * shortcuts for pre-existing workflows.
+   * Filter turns by composable structural criteria. The filter combines all
+   * criteria as AND. `tool()` and `errors()` remain as convenience
+   * shortcuts for workflows that already exist.
    *
-   * `toolName` matches assistant turns only. Applying `toolName` without
-   * `role: "assistant"` still drops every non-assistant turn, because
-   * resolving tool_use → tool_result pairs requires the `tool()` method.
-   * `isError` matches tool_result turns only. Combining `toolName` with
-   * `isError` therefore always returns `[]` (no turn is both assistant
-   * and tool_result) — use `tool(name)` for "errors from Bash"–shaped
+   * `toolName` matches assistant turns only. `toolName` without
+   * `role: "assistant"` still drops every non-assistant turn, because only
+   * the `tool()` method resolves tool_use → tool_result pairs.
+   * `isError` matches tool_result turns only. So `toolName` with
+   * `isError` always returns `[]`. No turn is both assistant and
+   * tool_result. Use `tool(name)` for "errors from Bash"–shaped
    * queries.
    *
    * @param {object} [opts]
@@ -138,15 +138,16 @@ export class TraceQuery {
   }
 
   /**
-   * Search all turn content for a regex pattern.  Returns matching turns
-   * with the matched text highlighted by context.
+   * Search all turn content for a regex pattern. Returns the turns that
+   * match and highlights the matched text with context.
    *
    * Searches: assistant text blocks, tool_use names and stringified input,
    * and tool_result content.
    *
    * @param {string} pattern - Regex pattern (case-insensitive)
    * @param {object} [opts]
-   * @param {number} [opts.context=0] - Number of surrounding turns to include
+   * @param {number} [opts.context=0] - Number of turns to include around the
+   *   match
    * @param {number} [opts.limit=50] - Max results
    * @param {boolean} [opts.full=false] - Emit full content block text in
    *   match descriptions instead of the default narrow excerpt window.
@@ -197,7 +198,8 @@ export class TraceQuery {
   }
 
   /**
-   * Filter turns involving a specific tool (both the tool_use and its result).
+   * Filter turns that involve a specific tool (both the tool_use and its
+   * result).
    * @param {string} name - Tool name
    * @returns {object[]}
    */
@@ -251,9 +253,9 @@ export class TraceQuery {
   }
 
   /**
-   * Compact one-line-per-assistant-turn timeline showing tool names,
-   * reasoning snippet, and token usage.  Thinking-only turns are marked
-   * as such and their content is omitted (it is model-internal).
+   * Compact one-line-per-assistant-turn timeline with tool names,
+   * reasoning snippet, and token usage. The timeline marks thinking-only
+   * turns as such. It omits their content (the content is model-internal).
    * @returns {string[]}
    */
   timeline() {
@@ -296,16 +298,18 @@ export class TraceQuery {
    * totals that name their population.
    *
    * A structured document collected before this change (version < 1.2.0)
-   * carries no message identity, so it reports its carried last-wins summary
-   * labeled as such — corrected figures come from re-running the NDJSON source.
+   * carries no message identity. It reports its carried last-wins summary
+   * and labels it as such. To get corrected figures, run the NDJSON source
+   * again.
    *
-   * Otherwise: when the trace carries result events, totals are the SDK's
-   * accumulated result-event sums (authoritative); the per-message sums are
-   * compared against them and any divergence on input/cacheRead/cacheCreation
-   * is surfaced, never silently absorbed. A trace with no result event
-   * (truncated or in-flight) falls back to the per-message sums, with output
-   * flagged as a streaming-snapshot lower bound and cost/duration/turns
-   * reported as unavailable rather than a silent 0.
+   * Otherwise, when the trace carries result events, the totals are the SDK's
+   * accumulated result-event sums (authoritative). The method compares the
+   * per-message sums against them. It surfaces any divergence on
+   * input/cacheRead/cacheCreation. It never absorbs that divergence
+   * silently. A trace with no result event (truncated or in-flight) falls
+   * back to the per-message sums. The method flags output as a
+   * streaming-snapshot lower bound. It reports cost/duration/turns as
+   * unavailable. It never reports a silent 0.
    * @returns {object}
    */
   stats() {
@@ -355,8 +359,8 @@ export class TraceQuery {
   }
 
   /**
-   * Stats for a pre-change structured document: report the carried last-wins
-   * summary and per-stream-event breakdown, each labeled, without claiming
+   * Stats for a pre-change structured document. Report the carried last-wins
+   * summary and the per-stream-event breakdown. Label each one. Do not claim
    * result-event parity (the document lacks the message identity it needs).
    * @returns {object}
    */
@@ -379,8 +383,8 @@ export class TraceQuery {
   }
 
   /**
-   * One record per `tool_use` block, each paired with its `tool_result`
-   * (joined by `toolUseId`) or `result: null` for orphaned calls.
+   * One record per `tool_use` block. Each record pairs with its `tool_result`
+   * (joined by `toolUseId`). An orphaned call gets `result: null`.
    * @returns {Array<{turnIndex: number, name: string, toolUseId: string, input: object, result: {content: *, isError: boolean}|null}>}
    */
   toolCalls() {
@@ -404,8 +408,10 @@ export class TraceQuery {
   }
 
   /**
-   * One record per `Bash` `tool_use` block, carrying its command text.
-   * @param {string} [re] - Optional regex source tested against `input.command`.
+   * One record per `Bash` `tool_use` block. Each record carries its command
+   * text.
+   * @param {string} [re] - Optional regex source to test against
+   *   `input.command`.
    * @returns {Array<{turnIndex: number, toolUseId: string, command: string}>}
    */
   commands(re) {
@@ -434,7 +440,7 @@ export class TraceQuery {
 
   /**
    * Side-by-side comparison of this trace against another peer `TraceQuery`.
-   * Identity (case name, participant) comes from the caller — the trace
+   * Identity (case name, participant) comes from the caller. The trace
    * carries no filename.
    * @param {TraceQuery} other
    * @param {{aIdentity: {caseName: string, participant: string|null}, bIdentity: {caseName: string, participant: string|null}}} identities
@@ -476,16 +482,17 @@ export class TraceQuery {
   }
 
   /**
-   * Per-tool token attribution: each `tool_use` block gets an equal share of
-   * its host turn's usage; assistant turns with no `tool_use` block contribute
-   * full usage to the `(no-tool)` bucket. Per-bucket sums are scaled onto
-   * `stats().totals` — the authoritative population (result-event sums when the
-   * trace carries them, the per-message fallback otherwise) — so the buckets
-   * answer "of the reported total, what share did each tool drive" rather than
-   * a separate per-turn re-count that drifts from the headline figure. The
-   * largest bucket absorbs the rounding residual on each axis, so the input,
-   * output, and `costShare` columns each sum to the corresponding `totals`
-   * value (and `1.0`) exactly (criterion-6 invariant).
+   * Per-tool token attribution. Each `tool_use` block gets an equal share of
+   * its host turn's usage. Assistant turns with no `tool_use` block
+   * contribute full usage to the `(no-tool)` bucket. The method scales the
+   * per-bucket sums onto `stats().totals`, the authoritative population
+   * (result-event sums when the trace carries them, the per-message fallback
+   * otherwise). So the buckets answer "of the reported total, what share did
+   * each tool drive". The method does not make a separate per-turn re-count.
+   * Such a re-count drifts from the headline figure. The largest bucket
+   * absorbs the rounding residual on each axis. So the input, output, and
+   * `costShare` columns each sum to the corresponding `totals` value (and
+   * `1.0`) exactly (criterion-6 invariant).
    * @returns {{perTool: Array<{tool: string, turns: number, inputTokens: number, outputTokens: number, costShare: number}>, totals: object}}
    */
   statsByTool() {
@@ -496,7 +503,7 @@ export class TraceQuery {
   }
 
   /**
-   * Totals-only view — `stats().totals` with no per-turn array.
+   * Totals-only view. Returns `stats().totals` with no per-turn array.
    * @returns {{totals: object}}
    */
   statsSummary() {
@@ -537,9 +544,10 @@ function matchesToolName(turn, toolName) {
 }
 
 /**
- * Collect every assistant `tool_use` block keyed by `toolUseId`, optionally
- * filtered by tool name. The shared join-key source feeding `toolCalls()`,
- * `commands()`, and `collectToolUseIds()`. Insertion order follows turn order.
+ * Collect every assistant `tool_use` block and key each one by `toolUseId`.
+ * Filter by tool name when the caller supplies a name. This is the shared
+ * join-key source for `toolCalls()`, `commands()`, and
+ * `collectToolUseIds()`. Insertion order follows turn order.
  * @param {object[]} turns
  * @param {string} [name] - Optional tool-name filter.
  * @returns {Map<string, {turnIndex: number, name: string, input: object}>}
@@ -633,7 +641,8 @@ function sideSummary(
 }
 
 /**
- * Search a single turn for regex matches. Returns array of match descriptions.
+ * Search a single turn for regex matches. Returns an array of match
+ * descriptions.
  * @param {object} turn
  * @param {RegExp} re
  * @param {boolean} [full=false] - Emit full block text instead of an excerpt.

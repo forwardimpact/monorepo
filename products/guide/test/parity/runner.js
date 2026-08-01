@@ -6,8 +6,8 @@
  *   node runner.js --surface cli     # Test via fit-guide CLI
  *   node runner.js --surface mcp     # Test via direct MCP tool calls
  *
- * Requires a running Guide stack and ANTHROPIC_API_KEY.
- * Claude Chat surface requires manual evaluation (document steps).
+ * This runner needs a live Guide stack and ANTHROPIC_API_KEY.
+ * Evaluate the Claude Chat surface manually (document steps).
  */
 
 import { readFileSync } from "node:fs";
@@ -41,7 +41,7 @@ async function runFixtureMcp(fixture) {
   const mcpUrl = config.url;
   const mcpToken = config.mcpToken();
 
-  // Call each expected tool directly via MCP JSON-RPC
+  // Call each expected tool directly through MCP JSON-RPC
   const toolResults = [];
   for (const toolName of fixture.expected_tools) {
     const res = await fetch(mcpUrl, {

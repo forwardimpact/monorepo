@@ -1,6 +1,6 @@
 ---
 title: "Add a Capability to Both Surfaces"
-description: "Ship a feature to terminal and browser at once — one presenter, one registration, both surfaces."
+description: "Ship a feature to terminal and browser at once. One presenter and one registration cover both surfaces."
 ---
 
 You need to add a new capability to an application that already shares a
@@ -10,7 +10,7 @@ both places from a single implementation.
 ## Prerequisites
 
 Complete the [Agent-Friendly Surfaces](/docs/libraries/every-surface/) guide
-first -- this page assumes a working `createCli` definition, a
+first. This page assumes a working `createCli` definition, a
 `createBoundRouter`, and the shared presenter pattern.
 
 - Node.js 22+
@@ -22,7 +22,7 @@ npm install @forwardimpact/libcli @forwardimpact/libui @forwardimpact/libformat
 
 ## Overview
 
-Adding a capability follows four steps, each producing a testable artifact:
+You add a capability in four steps. Each step produces a testable artifact:
 
 | Step | Artifact        | What it does                                          |
 | ---- | --------------- | ----------------------------------------------------- |
@@ -50,8 +50,8 @@ export function presentStatus(ctx) {
 }
 ```
 
-Test the presenter with `freezeInvocationContext` -- the same helper both
-surfaces use internally:
+Test the presenter with `freezeInvocationContext`. Both surfaces use the same
+helper internally:
 
 ```js
 // test/present-status.test.js
@@ -75,12 +75,12 @@ assert.strictEqual(view.name, "API Gateway");
 assert.strictEqual(view.healthy, true);
 ```
 
-Because the context is frozen and surface-neutral, a passing test here covers
+The context is frozen and surface-neutral. So a test that passes here covers
 the core logic for both CLI and web.
 
 ## Step 2: Write the format function
 
-Write markdown and call `formatter.format(md)` -- both
+Write markdown and call `formatter.format(md)`. Both
 `createTerminalFormatter` and `createHtmlFormatter` share that interface.
 
 ```js
@@ -100,8 +100,8 @@ export function formatStatus(view, formatter) {
 }
 ```
 
-The formatter is injected at the surface boundary -- this function does not
-decide whether output becomes ANSI or HTML.
+You inject the formatter at the surface boundary. This function does not decide
+whether output becomes ANSI or HTML.
 
 ## Step 3: Register the CLI command
 
@@ -130,7 +130,7 @@ import { formatStatus } from "../src/format-status.js";
 }
 ```
 
-Running `myapp status api` produces formatted terminal output. Running
+`myapp status api` produces formatted terminal output.
 `myapp status api --json` produces:
 
 ```json
@@ -142,7 +142,7 @@ Running `myapp status api` produces formatted terminal output. Running
 }
 ```
 
-Agents pass `--json` to get structured output without parsing formatted text.
+Agents pass `--json` to get structured output. They do not parse formatted text.
 
 ## Step 4: Register the web route
 
@@ -169,30 +169,30 @@ router.register(defineRoute({
 }));
 ```
 
-Navigating to `#/status/api` extracts `{ service: "api" }` as `args`, parses
-any query string into `options`, freezes everything into an InvocationContext,
-and calls `page(ctx)`.
+Navigate to `#/status/api`. The router extracts `{ service: "api" }` as `args`.
+It parses any query string into `options`. It freezes everything into an
+InvocationContext. Then it calls `page(ctx)`.
 
 The `cli` function is optional. When present, the command bar displays the
 equivalent terminal command with a copy button.
 
 ## Verify
 
-The Step 1 presenter test already covers this -- both surfaces build the same
-`{ data, args, options }` shape, so the presenter returns identical output
-regardless of which surface produced the context.
+The Step 1 presenter test already covers this. Both surfaces build the same
+`{ data, args, options }` shape. So the presenter returns identical output,
+whichever surface produced the context.
 
 ## Checklist
 
-- [ ] Presenter depends only on `InvocationContext` -- no DOM, no stdout, no
-      surface-specific imports
-- [ ] Format function accepts a formatter argument -- does not create its own
+- [ ] Presenter depends only on `InvocationContext`, with no DOM, no stdout,
+      and no surface-specific imports
+- [ ] Format function accepts a formatter argument and does not create its own
 - [ ] CLI command declares `args` with named positionals and supports `--json`
 - [ ] Web route `pattern` uses the same parameter names as the CLI `args`
 - [ ] Route descriptor includes a `cli` function so the command bar displays the
       terminal equivalent
 - [ ] Presenter test passes with a `freezeInvocationContext` fixture
-- [ ] `--json` output matches the view object returned by the presenter
+- [ ] `--json` output matches the view object the presenter returns
 
 ## What's next
 

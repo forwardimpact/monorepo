@@ -9,7 +9,7 @@ on:
         required: false
         default: '["bun-linux-x64", "bun-darwin-arm64"]'
       bundle:
-        description: "Restrict to one app bundle (manifest .bundle, e.g. outpost, gear). Empty builds every CLI."
+        description: "Restrict to one app bundle (manifest .bundle, e.g. outpost, gear). An empty value builds every CLI."
         type: string
         required: false
         default: ""
@@ -21,7 +21,7 @@ on:
         required: false
         default: '["bun-linux-x64", "bun-darwin-arm64"]'
       bundle:
-        description: "Restrict to one app bundle (manifest .bundle, e.g. outpost, gear). Empty builds every CLI."
+        description: "Restrict to one app bundle (manifest .bundle, e.g. outpost, gear). An empty value builds every CLI."
         type: string
         required: false
         default: ""
@@ -41,8 +41,9 @@ jobs:
           TARGETS: ${{ inputs.targets }}
           BUNDLE: ${{ inputs.bundle }}
         run: |
-          # An empty BUNDLE builds every CLI; a bundle name restricts the matrix
-          # to that app's CLIs so a single-product tag doesn't compile all ~30.
+          # An empty BUNDLE builds every CLI. A bundle name restricts the
+          # matrix to that app's CLIs, so a single-product tag does not compile
+          # all ~30.
           CELLS=$(jq -c --argjson req "$TARGETS" --arg bundle "$BUNDLE" '
             [ .clis[] as $c
               | select($bundle == "" or $c.bundle == $bundle)
@@ -65,14 +66,14 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.matrix.outputs.cells) }}
     runs-on: ${{ matrix.os }}
-    # Bound the cell: bootstrap + codegen + compile + smoke is a few minutes, so
-    # a stuck cell (e.g. a CLI that hangs on --help) fails fast instead of
-    # burning the default job budget.
+    # Bound the cell. bootstrap + codegen + compile + smoke takes a few minutes,
+    # so a stuck cell (e.g. a CLI that hangs on --help) fails fast and does not
+    # burn the default job budget.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
-      - name: Ensure codegen is current
+      - name: Make sure codegen is current
         run: just codegen
       - name: Compile
         run: just build-binary "${{ matrix.cli }}" "${{ matrix.target }}"
@@ -80,20 +81,21 @@ jobs:
         run: |
           BIN="dist/binaries/${{ matrix.cli }}"
           if [ "${{ matrix.cli }}" = "fit-codegen" ]; then
-            # fit-codegen's job is generation, not --help. Gate it on a real
-            # generation invocation against the proto set the codegen step above
-            # already resolved. --service --client --definition exercises all
-            # five mustache render paths (service, client, definition, plus the
-            # services-exports and definitions-exports runExports) — the kinds a
-            # compiled binary previously failed on with "Missing *.mustache". It
-            # skips --type (pbjs subprocess, a separate concern). `set -e` (the
-            # default shell) fails the gate on the binary's non-zero exit.
+            # fit-codegen generates code. A --help gate does not test that
+            # job. Gate it on a real generate run against the proto set the
+            # codegen step above already resolved. --service --client
+            # --definition exercises all five mustache render paths (service,
+            # client, definition, plus the services-exports and
+            # definitions-exports runExports). A compiled binary previously
+            # failed on those paths with "Missing *.mustache". It skips --type
+            # (pbjs subprocess, a separate concern). `set -e` (the default
+            # shell) fails the gate on the binary's non-zero exit.
             "$BIN" generate --service --client --definition
           else
-            # Capture stdout+stderr: a CLI that prints --help to stderr must
+            # Capture stdout+stderr. A CLI that prints --help to stderr must
             # still count as non-empty output (the gate is "starts and writes
-            # output"). `set -e` fails the gate when the binary exits non-zero —
-            # the startup-crash failure mode.
+            # output"). `set -e` fails the gate when the binary exits non-zero.
+            # That is the startup-crash failure mode.
             OUT="$("$BIN" --help 2>&1)"
             test -n "$OUT" || { echo "::error::${{ matrix.cli }} produced no output"; exit 1; }
           fi

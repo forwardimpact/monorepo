@@ -9,25 +9,25 @@ const cliPath = join(__dirname, "..", "bin", "fit-guide.js");
 const source = readFileSync(cliPath, "utf8");
 
 describe("fit-guide CLI", () => {
-  test("entry point has shebang and uses librepl", () => {
+  test("the entry point has a shebang and uses librepl", () => {
     assert.ok(source.includes("#!/usr/bin/env node"));
     assert.ok(source.includes("@forwardimpact/librepl"));
     assert.ok(source.includes("new Repl"));
     assert.ok(source.includes("repl.start"));
   });
 
-  test("defines expected commands", () => {
+  test("defines the expected commands", () => {
     for (const cmd of ["login", "logout", "init", "status", "version"]) {
       assert.ok(source.includes(`${cmd}:`), `Missing command: ${cmd}`);
     }
   });
 
-  test("uses Claude Agent SDK", () => {
+  test("uses the Claude Agent SDK", () => {
     assert.ok(source.includes("@anthropic-ai/claude-agent-sdk"));
     assert.ok(source.includes("query("));
   });
 
-  test("layers product identity with MCP scope prompt", () => {
+  test("layers the product identity with the MCP scope prompt", () => {
     assert.ok(source.includes("createProductConfig"));
     assert.ok(source.includes("guideConfig.systemPrompt"));
     assert.ok(source.includes("fetchMcpPrompt"));
@@ -43,7 +43,7 @@ describe("fit-guide CLI", () => {
   test("does not persist session ID to disk across process restarts", () => {
     assert.ok(
       !source.includes("state.sessionId"),
-      "sessionId must not live on librepl state — librepl persists state to storage and SDK sessions are ephemeral",
+      "sessionId must not live on librepl state. librepl persists state to storage. SDK sessions are ephemeral",
     );
   });
 
@@ -52,7 +52,7 @@ describe("fit-guide CLI", () => {
     const afterStart = source.slice(startIdx);
     assert.ok(
       !afterStart.includes("process.exit"),
-      "process.exit must not follow repl.start — librepl manages the lifecycle",
+      "process.exit must not follow repl.start. librepl manages the lifecycle",
     );
   });
 });

@@ -1,11 +1,11 @@
 /**
  * Find personas in a contract-conforming substrate that satisfy every
- * applicable persona invariant. Queries only Substrate Contract relations
- * (`substrate.people`, `substrate.evidence`, `substrate.discovery`) through
- * a client bound to the `substrate` schema; the helper composes the result
- * client-side via chained Supabase JS calls.
+ * applicable persona invariant. The helper queries only Substrate Contract
+ * relations (`substrate.people`, `substrate.evidence`,
+ * `substrate.discovery`) through a client bound to the `substrate` schema.
+ * It composes the result client-side with chained Supabase JS calls.
  *
- * Invariant sets, applied by what the consumer implements:
+ * The consumer's implementation decides which invariant sets apply:
  *   structural (always) —
  *     (a) the row's own `manager_email` is non-null, so every persona
  *         carries an org-tree parent, and
@@ -14,9 +14,9 @@
  *     (c) the row authored ≥1 evidence row, and
  *     (d) manages ≥1 direct who authored ≥1 evidence row (practice proxy).
  *
- * Absent optional relations degrade declaredly, never silently: the return
- * value's `applied_invariants` names the sets that ran, and `discovery` is
- * `null` when `substrate.discovery` is absent or empty.
+ * Absent optional relations degrade declaredly. They never degrade
+ * silently. The return value's `applied_invariants` names the sets that
+ * ran. `discovery` is `null` when `substrate.discovery` is absent or empty.
  */
 
 /** PostgREST/Postgres error codes meaning "relation does not exist". */
@@ -29,10 +29,10 @@ function isRelationAbsent(error) {
 /**
  * Fold `substrate.discovery` key/value rows into one object (e.g.
  * `{snapshot_id, item_id}`). Returns `null` when the relation is absent or
- * empty — the consumer declared no discovery vector. Any other query error
+ * empty. The consumer declared no discovery vector. Any other query error
  * propagates.
  *
- * Shared with `substrate issue`, which copies the folded object into
+ * `substrate issue` also uses this helper. It copies the folded object into
  * `.substrate.json`.
  *
  * @param {import("@supabase/supabase-js").SupabaseClient} supabase
@@ -52,7 +52,8 @@ export async function loadDiscovery(supabase) {
 
 /**
  * Count evidence rows per author email from `substrate.evidence`. Returns
- * `null` when the relation is absent — the evidence invariants do not apply.
+ * `null` when the relation is absent. The evidence invariants then do not
+ * apply.
  *
  * @param {import("@supabase/supabase-js").SupabaseClient} supabase
  * @returns {Promise<Map<string, number>|null>}
@@ -97,9 +98,9 @@ function diagnoseBindingConstraint(
   evidenceCountByEmail,
   practiceCountByManager,
 ) {
-  // parent_email_known is listed first so it wins ties: when no human has
-  // a parent, every downstream constraint that depends on manager_email
-  // also reads 0, and the parent_email_known filter is the binding root.
+  // parent_email_known comes first so it wins ties. When no human has a
+  // parent, every downstream constraint that depends on manager_email also
+  // reads 0. The parent_email_known filter is then the binding root.
   const counts = {
     parent_email_known: humans.filter((h) => h.manager_email != null).length,
     manages: humans.filter((h) => (directsByManager.get(h.email) ?? 0) >= 1)

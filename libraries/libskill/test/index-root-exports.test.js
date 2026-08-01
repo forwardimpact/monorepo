@@ -2,17 +2,18 @@
  * Regression test for the root package import.
  *
  * The root `src/index.js` re-exports a curated surface from several
- * submodules. Re-exporting a name from the wrong submodule produces an
- * ESM `SyntaxError: export 'X' not found in './module.js'` at link time —
- * which no existing test catches because every other test imports
- * directly from its submodule under test. This test imports the root,
- * which exercises the full re-export graph and fails loudly if any
- * re-export is misrouted.
+ * submodules. A name re-exported from the wrong submodule produces an
+ * ESM `SyntaxError: export 'X' not found in './module.js'` at link time.
+ * No existing test catches it, because every other test imports directly
+ * from its submodule under test. This test imports the root. The import
+ * exercises the full re-export graph and fails loudly if any re-export
+ * points at the wrong submodule.
  *
- * History: `getSkillTypeForDiscipline` was re-exported from `./modifiers.js`
- * but defined in `./derivation.js`, silently breaking the root import.
- * The bug was only discovered when a new consumer (outside the monorepo's
- * own import conventions) tried to import from the package root.
+ * History: `./modifiers.js` re-exported `getSkillTypeForDiscipline`, but
+ * `./derivation.js` defined it. The mismatch broke the root import and
+ * gave no warning. Nobody found the bug until a new consumer (outside the
+ * monorepo's own import conventions) tried to import from the package
+ * root.
  */
 
 import { test } from "node:test";
@@ -23,7 +24,7 @@ import * as libskill from "@forwardimpact/libskill";
 test("root import resolves without ESM link errors", () => {
   // If any re-export in src/index.js points at the wrong submodule,
   // the import above throws at module-graph link time and this test
-  // never even runs. Arrival here already means the root links cleanly.
+  // never even runs. This line runs only when the root links cleanly.
   assert.ok(libskill, "root import returned a module namespace");
 });
 

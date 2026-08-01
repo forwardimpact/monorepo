@@ -1,12 +1,12 @@
 /**
  * Parse Summit roster YAML into a normalized Roster object.
  *
- * Summit's YAML format is a superset of Map's `people:` file: it declares
+ * Summit's YAML format is a superset of Map's `people:` file. It declares
  * `teams:` (reporting teams) and optional `projects:` (project teams with
  * allocation). A project member may reference a reporting team member by
- * email alone, in which case their job is resolved from the reporting team.
+ * email alone. The parser then resolves their job from the reporting team.
  *
- * The parser is pure: it takes a string and returns plain data, no I/O.
+ * The parser is pure. It takes a string and returns plain data, no I/O.
  */
 
 import { parse as parseYaml } from "yaml";
@@ -16,7 +16,7 @@ import { parse as parseYaml } from "yaml";
  * @property {string} name
  * @property {string} email
  * @property {{ discipline: string, level: string, track?: string }} job
- * @property {number} [allocation] - Project teams only; defaults to 1.0.
+ * @property {number} [allocation] - Project teams only. Defaults to 1.0.
  */
 
 /**
@@ -24,7 +24,7 @@ import { parse as parseYaml } from "yaml";
  * @property {string} id
  * @property {"reporting" | "project"} type
  * @property {RosterPerson[]} members
- * @property {string|null} [managerEmail] - Populated for Map-sourced teams.
+ * @property {string|null} [managerEmail] - Map-sourced teams populate this.
  */
 
 /**
@@ -58,7 +58,7 @@ function validateRosterShape(parsed) {
   }
   if (Array.isArray(parsed)) {
     throw new Error(
-      "summit: roster YAML must be an object with a `teams:` key — a bare list of people is not supported.",
+      "summit: roster YAML must be an object with a `teams:` key. Summit does not support a bare list of people.",
     );
   }
   if (!parsed.teams || typeof parsed.teams !== "object") {
@@ -130,7 +130,7 @@ function normalizeReportingPerson(raw, teamId) {
   }
   if ("allocation" in raw) {
     throw new Error(
-      `summit: team "${teamId}" member "${raw.name}" has "allocation" set — allocation is only allowed on project team members.`,
+      `summit: team "${teamId}" member "${raw.name}" has "allocation" set, but allocation is only allowed on project team members.`,
     );
   }
   const job = normalizeJob(raw.job, `${teamId} / ${raw.name}`);
@@ -210,7 +210,7 @@ function normalizeAllocation(value, projectId) {
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n) || n < 0) {
     throw new Error(
-      `summit: project "${projectId}" has invalid allocation "${value}" — must be a non-negative number.`,
+      `summit: project "${projectId}" has invalid allocation "${value}". Allocation must be a non-negative number.`,
     );
   }
   return n;

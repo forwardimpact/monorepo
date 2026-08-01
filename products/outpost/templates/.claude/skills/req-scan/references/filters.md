@@ -11,7 +11,7 @@ Apply in order. Stop at the first that excludes the candidate.
 - HN "Who Wants to Be Hired?" → **auto-pass** (thread is opt-in).
 - GitHub → must have `hireable: true` **or** bio contains an open-to-work
   phrase.
-- dev.to → must be tagged `opentowork` or `lookingforwork`.
+- dev.to → the post must carry the tag `opentowork` or `lookingforwork`.
 
 ### 2. Deduplication
 
@@ -31,8 +31,8 @@ Prefer or accept candidates in or open to:
 - **Remote / Anywhere / Global**.
 
 Skip candidates explicitly locked to incompatible regions ("San Francisco only",
-"APAC only"). When location is ambiguous or unstated, include the candidate —
-let the user decide.
+"APAC only"). When location is ambiguous or unstated, include the candidate.
+Let the user decide.
 
 ### 4. Skill alignment
 
@@ -46,8 +46,8 @@ non-traditional path (law, policy, academia → tech), AI/ML tool proficiency
 **Platform:** infrastructure / cloud / DevOps, architecture and system design,
 API design and shared services, performance / scalability / reliability.
 
-**Minimum bar:** at least 2 standard-relevant skills must be identifiable from
-the post. Skip candidates with purely non-technical profiles.
+**Minimum bar:** the post must show at least 2 standard-relevant skills. Skip
+candidates with purely non-technical profiles.
 
 ### 5. Experience level
 
@@ -68,16 +68,16 @@ block page):
 1. Increment the failure count:
    `node scripts/state.mjs failure increment {source}`.
 2. **Do not retry** the same source in this wake cycle.
-3. Suspend after 3 consecutive failures — skip during source selection. Retry
-   suspended sources once every 7 days to detect recovery.
+3. Suspend after 3 consecutive failures. Skip a suspended source during source
+   selection. Retry suspended sources once every 7 days to detect recovery.
 4. Log the failure in `log.md` with HTTP status and error.
 5. Reset on success: `node scripts/state.mjs failure reset {source}`.
 
 ### Common failure patterns
 
-| Symptom                  | Likely cause                                           |
-| ------------------------ | ------------------------------------------------------ |
-| 503 with HTML redirect   | Corporate proxy blocking the domain (won't recover)    |
-| 403 Forbidden            | Auth required or automated requests blocked            |
-| 429 Too Many Requests    | Rate limited — will recover; don't suspend permanently |
-| Empty response / timeout | Transient — likely recovers next wake                  |
+| Symptom                  | Likely cause                                             |
+| ------------------------ | -------------------------------------------------------- |
+| 503 with HTML redirect   | A corporate proxy blocks the domain. It will not recover |
+| 403 Forbidden            | The site needs auth, or it blocks automated requests     |
+| 429 Too Many Requests    | Rate limited. It recovers. Do not suspend permanently    |
+| Empty response / timeout | Transient. It likely recovers next wake                  |

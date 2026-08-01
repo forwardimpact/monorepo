@@ -18,11 +18,11 @@ describe("TraceQuery", () => {
   });
 
   describe("tool", () => {
-    test("returns tool_use and matching tool_result turns", () => {
+    test("returns tool_use turns with their paired tool_result turns", () => {
       const q = new TraceQuery(buildTrace());
       const turns = q.tool("Bash");
 
-      // Should include both Bash tool_use turns and their results
+      // The list includes both Bash tool_use turns and their results
       assert.strictEqual(turns.length, 4);
       assert.strictEqual(turns[0].role, "assistant");
       assert.strictEqual(turns[1].role, "tool_result");

@@ -1,8 +1,8 @@
 /**
  * Eval Scenario Reference Validator.
  *
- * Validates that entity names and IRIs referenced in eval scenarios
- * exist in the generated data. Reports missing references.
+ * The validator checks that entity names and IRIs referenced in eval
+ * scenarios exist in the generated data. It reports missing references.
  *
  * @module libterrain/validate-eval
  */

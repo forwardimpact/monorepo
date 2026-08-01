@@ -70,7 +70,7 @@ describe("librepl", () => {
       }, /formatter dependency is required/);
     });
 
-    test("handles command line argument parsing for state", async () => {
+    test("parses command line arguments into state", async () => {
       mockProcess.argv = [
         "node",
         "script.js",
@@ -109,7 +109,7 @@ describe("librepl", () => {
         mockOs,
       );
 
-      // Arguments are parsed during start()
+      // start() parses the arguments
       await repl.start();
 
       assert.strictEqual(repl.state.testVar, "fromArgs");
@@ -155,7 +155,7 @@ describe("librepl", () => {
         mockOs,
       );
 
-      // Arguments are parsed during start()
+      // start() parses the arguments
       await repl.start();
 
       assert.strictEqual(repl.state.intVal, 100);
@@ -181,7 +181,7 @@ describe("librepl", () => {
       assert(repl instanceof Repl);
     });
 
-    test("handles interactive mode initialization", () => {
+    test("initializes in interactive mode", () => {
       mockProcess.stdin.isTTY = true;
 
       const app = {
@@ -199,7 +199,7 @@ describe("librepl", () => {
         mockOs,
       );
 
-      // Just test that it can be created in interactive mode
+      // Just test that the constructor runs in interactive mode
       assert(repl instanceof Repl);
     });
 
@@ -238,7 +238,7 @@ describe("librepl", () => {
       assert(outputData.includes("formatted: Streamed: test input"));
     });
 
-    test("--help renders Documentation section when documentation entries are configured", async () => {
+    test("--help renders the Documentation section when the app configures documentation entries", async () => {
       const app = {
         documentation: [
           {
@@ -277,7 +277,7 @@ describe("librepl", () => {
       assert(outputData.includes("— The full method walkthrough."));
     });
 
-    test("--help omits Documentation section when no entries are configured", async () => {
+    test("--help omits the Documentation section when the app configures no entries", async () => {
       let outputData = "";
       mockProcess.stdout.write = (text) => {
         outputData += text;
@@ -312,7 +312,7 @@ describe("librepl", () => {
         mockOs,
       );
 
-      // Should have custom prompt but other defaults
+      // The repl keeps the custom prompt and the other defaults
       assert(repl instanceof Repl);
     });
   });

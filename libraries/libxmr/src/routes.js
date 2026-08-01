@@ -1,12 +1,13 @@
-// kata-implement route-decision registry — single source of truth for the
-// closed set of routes a kata-implement activation can take, the metrics
-// that carry route context, and the parse/format helpers that read and
-// write the route sub-grammar inside a metrics-CSV `note` field. The
-// recorder (commands/record.js), the validator (csv.js validateRow), and
-// the analyze partition reader (analyze.js) all import from here, so a
-// removed or renamed route is a build/test error at every consumer. The
-// published kata-implement reference (references/route-decision.md) is
-// guarded against drift from ROUTES by .jidoka/invariants.
+// kata-implement route-decision registry — the single source of truth for
+// three things. It holds the closed set of routes a kata-implement
+// activation can take. It holds the metrics that carry route context. It
+// holds the parse and format helpers that read and write the route
+// sub-grammar inside a metrics-CSV `note` field. The recorder
+// (commands/record.js), the validator (csv.js validateRow), and the
+// analyze partition reader (analyze.js) all import from here. A removed
+// or renamed route then breaks the build or the tests at every consumer.
+// .jidoka/invariants guards the published kata-implement reference
+// (references/route-decision.md) against drift from ROUTES.
 
 /** The closed set of kata-implement routes, keyed by bare id. */
 export const ROUTES = {
@@ -22,19 +23,20 @@ export const ROUTE_NONE = "none";
 /** Metrics whose rows carry route-decision context. */
 export const ROUTE_BEARING_METRICS = ["implementations_shipped"];
 
-// Route validation is forward-only: it applies only to rows the shipped
-// recording surface writes, which are strictly after every route-bearing
-// row that existed when the convention shipped. The binding case is the
-// latest pre-convention `implementations_shipped` rows that carry no route
-// grammar; pinning the gate strictly after them keeps the whole
-// pre-convention file valid and makes the gate impossible to silently
-// disable. routes.test.js asserts this stays a valid ISO date after the
+// The route check is forward-only. It applies only to rows that the
+// shipped recorder writes. Those rows come strictly after every
+// route-bearing row that existed when the convention shipped. The binding
+// case is the latest pre-convention `implementations_shipped` rows that
+// carry no route grammar. Pin the gate strictly after them. The whole
+// pre-convention file then stays valid, and nobody can silently disable
+// the gate. routes.test.js asserts this stays a valid ISO date after the
 // latest pre-convention row.
 export const CONVENTION_START = "2026-06-20"; // forward-only validation gate
 
-// route_taken is required and parsed independently of routes_eligible so
-// the legacy `route_taken=none (parenthetical)` form — which carries no
-// eligible clause — parses to {none, []} rather than failing to match.
+// The code requires route_taken and parses it independently of
+// routes_eligible. The legacy `route_taken=none (parenthetical)` form
+// carries no eligible clause. That form then parses to {none, []} and does
+// not fail to match.
 const ROUTE_RE = /route_taken=(\d+|none)/;
 const ELIGIBLE_RE = /routes_eligible=\[([0-9,\s]*)\]/;
 
@@ -71,9 +73,9 @@ export function formatRouteContext({ routeTaken, routesEligible = [] }) {
 }
 
 /**
- * Whether an id is a member of the closed route set or the `none` sentinel.
- * Any other non-numeric value is rejected because `Number(x)` is `NaN` and
- * `ROUTES` has no `NaN` key.
+ * Report whether an id is a member of the closed route set or the `none`
+ * sentinel. The function rejects any other non-numeric value because
+ * `Number(x)` is `NaN` and `ROUTES` has no `NaN` key.
  *
  * @param {string|number} id
  * @returns {boolean}

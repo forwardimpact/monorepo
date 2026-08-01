@@ -1,5 +1,5 @@
 /**
- * Builder component for discipline/level/track selection pages
+ * Builder component for the discipline, level, and track selection pages
  */
 
 import {
@@ -41,7 +41,7 @@ import { createReactive } from "../lib/reactive.js";
  * @property {string} title - Page title
  * @property {string} description - Page description
  * @property {string} formTitle - Form section title
- * @property {string} emptyPreviewText - Text when nothing selected
+ * @property {string} emptyPreviewText - Text for an empty selection
  * @property {string} buttonText - Action button text
  * @property {Function} previewPresenter - (selection, data) => previewData
  * @property {Function} detailPath - (selection) => "/path/to/detail"
@@ -94,12 +94,13 @@ export function createBuilder({
     buttonText,
   );
 
-  // Track select element - created once, options updated when discipline changes
+  // Track select element. Create it once. Update the options when the
+  // discipline changes.
   const trackSelectEl = select(
     { className: "form-select", id: "track-select" },
     option({ value: "" }, "Generalist"),
   );
-  // Initially disabled until discipline is selected
+  // Disable it until the user selects a discipline
   trackSelectEl.disabled = true;
 
   /**
@@ -129,7 +130,7 @@ export function createBuilder({
   }
 
   /**
-   * Update track select options based on selected discipline
+   * Update the track select options for the selected discipline
    * @param {string} disciplineId
    */
   function updateTrackOptions(disciplineId) {
@@ -140,7 +141,7 @@ export function createBuilder({
     // Clear existing options
     trackSelectEl.innerHTML = "";
 
-    // Add generalist option if trackless is allowed
+    // Add the generalist option if the discipline allows trackless jobs
     if (canBeTrackless) {
       trackSelectEl.appendChild(option({ value: "" }, "Generalist"));
     }
@@ -154,9 +155,9 @@ export function createBuilder({
     trackSelectEl.disabled = !canBeTrackless && availableTracks.length === 0;
   }
 
-  // Subscribe to selection changes - all updates happen here
+  // Subscribe to selection changes. All updates happen here.
   selection.subscribe(({ discipline, track, level }) => {
-    // Track is now optional - only discipline and level are required
+    // Track is now optional. Only discipline and level are required.
     if (!discipline || !level) {
       previewContainer.innerHTML = "";
       previewContainer.appendChild(
@@ -372,7 +373,7 @@ export function createProgressPreview(preview, selection) {
 
   const { discipline, level, track } = selection;
 
-  // Build badges array - track is optional
+  // Build the badges array. Track is optional.
   const badges = [
     createBadge(discipline.specialization, "discipline"),
     createBadge(level.id, "level"),

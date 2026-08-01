@@ -3,13 +3,14 @@ title: Run an Eval
 description: Know whether agent changes improved outcomes — an agent-as-judge eval wired into CI with traceable results.
 ---
 
-You changed an agent profile, a tool allowlist, or a system prompt -- and now
-you need to know whether things got better or worse. `gemba-harness supervise`
+You changed an agent profile, a tool allowlist, or a system prompt. Now you
+need to know whether things got better or worse. `gemba-harness supervise`
 runs a **judge agent** alongside a **target agent** on a shared orchestration
-loop: the judge sends `Ask` questions, the target replies with `Answer`, and the
-judge calls `Conclude` with a verdict when satisfied. The exit code (`0` pass,
-`1` fail) drops into GitHub Actions like any other check. The NDJSON trace
-captures every turn so you can inspect what happened with `gemba-trace`.
+loop. The judge sends `Ask` questions. The target replies with `Answer`. The
+judge calls `Conclude` with a verdict when it is satisfied. The exit code
+(`0` pass, `1` fail) drops into GitHub Actions like any other check. The
+NDJSON trace captures every turn, so you can inspect what happened with
+`gemba-trace`.
 
 ## Prerequisites
 
@@ -21,8 +22,8 @@ captures every turn so you can inspect what happened with `gemba-trace`.
 
 ## Write the task
 
-A task file is a plain markdown prompt -- what the target agent should do. Keep
-it specific and measurable.
+A task file is a plain markdown prompt. It says what the target agent should
+do. Keep it specific and measurable.
 
 ```md
 <!-- evals/refactor-utils/task.md -->
@@ -34,9 +35,9 @@ locales. Run the test suite and confirm it passes before finishing.
 
 ## Write the judge profile
 
-The judge is an agent profile at `.claude/agents/<name>.md`. The runtime appends
-an orchestration trailer explaining the available tools -- your profile only
-needs to define **what good looks like**.
+The judge is an agent profile at `.claude/agents/<name>.md`. The runtime
+appends an orchestration trailer that explains the available tools. Your
+profile only needs to define **what good looks like**.
 
 ```md
 <!-- .claude/agents/refactor-judge.md -->
@@ -62,9 +63,9 @@ before calling `Conclude`. Conclude with `verdict: "failure"` if any
 criterion fails; include a one-paragraph summary of the gap.
 ```
 
-Give the judge read-only tools via `--supervisor-allowed-tools` (typically
-`Read,Grep,Bash`). A judge with `Edit` access can rewrite the target's work and
-mask failures.
+Give the judge read-only tools with `--supervisor-allowed-tools` (typically
+`Read,Grep,Bash`). A judge with `Edit` access can rewrite the target's work
+and mask failures.
 
 ## Run the eval locally
 
@@ -79,19 +80,21 @@ npx gemba-harness supervise \
   --output=trace--default.raw.ndjson
 ```
 
-`--agent-cwd` should be a sandbox copy of your repo since the target agent edits
-files there. When omitted, `gemba-harness` creates a temporary directory. The
-judge stays in `--supervisor-cwd` to inspect the target's work without writing
-to it. `--max-turns` is the per-runner invocation budget (default `200`); the
-orchestration loop that drives the judge↔agent exchange is bounded separately by
-an internal lead-turn cap. `--max-turns=0` removes the per-runner cap.
+`--agent-cwd` should be a sandbox copy of your repo, because the target agent
+edits files there. When you omit it, `gemba-harness` creates a temporary
+directory. The judge stays in `--supervisor-cwd`. It inspects the target's
+work and does not write to it. `--max-turns` is the per-runner invocation
+budget (default `200`). A separate internal lead-turn cap bounds the
+orchestration loop that drives the judge↔agent exchange. `--max-turns=0`
+removes the per-runner cap.
 
 Exit code `0` means the judge concluded with `success: true`. Exit code `1`
-means `success: false`, the turn limit was reached, or an error occurred.
+means the judge concluded with `success: false`, the run reached the turn
+limit, or an error occurred.
 
 ## Run the eval in GitHub Actions
 
-A two-step workflow is enough: run the eval, then split and upload the trace.
+A two-step workflow is enough. Run the eval. Then split and upload the trace.
 
 ```yaml
 # .github/workflows/eval.yml
@@ -146,7 +149,7 @@ jobs:
 ```
 
 `if: always()` on the split and upload steps preserves the trace even when the
-eval fails -- which is when you most need it.
+eval fails. That is when you most need it.
 `split --mode=supervise --case=default` produces
 `trace--default--agent.agent.ndjson` and
 `trace--default--supervisor.supervisor.ndjson` alongside the original
@@ -154,8 +157,8 @@ eval fails -- which is when you most need it.
 
 ## Read the results
 
-When an eval fails, download the artifact and start with `overview` and
-`timeline` to orient, then drill into the verdict.
+When an eval fails, download the artifact. Start with `overview` and
+`timeline` to orient yourself. Then drill into the verdict.
 
 ```sh
 npx gemba-trace runs                              # find the failed run
@@ -165,9 +168,9 @@ npx gemba-trace timeline --file structured.json
 npx gemba-trace tool structured.json Conclude
 ```
 
-Cross-trace verbs (`overview`, `timeline`, …) take their file through `--file`
-and print text by default; `tool` pins a single trace, so it takes a
-positional. Add `--format json` to any verb for the machine-parseable shape.
+Cross-trace verbs (`overview`, `timeline`, …) take their file through
+`--file`. They print text by default. `tool` pins a single trace, so it takes
+a positional. Add `--format json` to any verb for the machine-parseable shape.
 
 The `Conclude` tool call carries the judge's verdict and summary. From there,
 follow the timeline backwards to find the turn where the agent went wrong.
@@ -188,19 +191,20 @@ strategy:
       - { task: add-rate-limiter, judge: ratelimit-judge }
 ```
 
-`fail-fast: false` ensures every eval runs and produces a trace, not just the
-first failure.
+`fail-fast: false` makes sure every eval runs and produces a trace. The run
+does not stop at the first failure.
 
 ## Tips
 
-- **`--max-turns=0`** removes the per-runner invocation cap; the
-  orchestration loop's internal lead-turn cap still applies. Use it for
-  exploratory local runs; always set a real budget in CI.
-- **`--task-amend`** appends extra text to the task without editing the task
-  file -- useful for parameterizing the same task across a matrix.
-- **The judge profile is a system prompt, not a contract.** It steers the judge
-  but does not bind it. Treat eval verdicts like a code review from a strong but
-  fallible reviewer -- useful signal, not ground truth.
+- **`--max-turns=0`** removes the per-runner invocation cap. The orchestration
+  loop's internal lead-turn cap still applies. Use it for exploratory local
+  runs. Always set a real budget in CI.
+- **`--task-amend`** appends extra text to the task and does not edit the task
+  file. This helps you parameterize the same task across a matrix.
+- **The judge profile is a system prompt. It is not a contract.** It steers
+  the judge. It does not bind it. Treat eval verdicts like a code review from
+  a strong but fallible reviewer. They give useful signal. They are not ground
+  truth.
 
 ## What's next
 

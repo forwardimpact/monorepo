@@ -14,8 +14,8 @@ import {
 } from "@forwardimpact/libmock";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-// Wrap a test proc as a runtime bag (real fs + test-controlled proc). The proc
-// object is shared so Config's env mutations remain observable on it.
+// Wrap a test proc as a runtime bag (real fs + test-controlled proc). The
+// tests share one proc object, so Config's env changes stay observable on it.
 const rt = (proc) => ({ ...createDefaultRuntime(), proc });
 
 describe("libconfig - Config", () => {
@@ -55,7 +55,7 @@ describe("libconfig - Config", () => {
     assert.strictEqual(config.url, "grpc://0.0.0.0:3000");
   });
 
-  test("loads environment variables via URL", async () => {
+  test("loads environment variables through the URL", async () => {
     mockProcess.env = {
       TEST_MYSERVICE_URL: "grpc://custom-host:8080",
     };
@@ -174,7 +174,7 @@ describe("libconfig - Config", () => {
     assert.strictEqual(config.name, "myservice");
   });
 
-  test("uses default storageFactory when storageFn not provided", async () => {
+  test("uses default storageFactory when the caller omits storageFn", async () => {
     mockProcess.env.STORAGE_ROOT = "/tmp";
     const config = await createConfig("test", "myservice", {}, rt(mockProcess));
 
@@ -182,11 +182,11 @@ describe("libconfig - Config", () => {
   });
 
   // Regression guard: storageFn must receive the full runtime bag.
-  // createStorage destructures `{ fs, proc } = runtime`; passing a bare
-  // `proc` makes `runtime.proc` undefined and crashes the consumer with
+  // createStorage destructures `{ fs, proc } = runtime`. A bare `proc`
+  // makes `runtime.proc` undefined. It then crashes the consumer with
   // "Cannot read properties of undefined (reading 'env')" the first time
   // anything touches `proc.env`.
-  test("invokes storageFn with the full runtime bag, not a bare proc", async () => {
+  test("invokes storageFn with the full runtime bag and never a bare proc", async () => {
     const mockStorageFn = spy(() => mockStorage);
 
     await createConfig("test", "myservice", {}, rt(mockProcess), mockStorageFn);
@@ -243,7 +243,7 @@ describe("libconfig - Environment-driven storage integration", () => {
     assert.strictEqual(config.name, "myservice");
   });
 
-  test("demonstrates circular dependency resolution", async () => {
+  test("demonstrates that the circular dependency resolves", async () => {
     const mockProcess = {
       env: { STORAGE_TYPE: "local", STORAGE_ROOT: "/tmp" },
       cwd: () => "/test/dir",

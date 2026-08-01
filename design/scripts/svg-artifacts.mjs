@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-// Remove small free-floating black areas from auto-traced SVGs.
+// Remove small detached black areas from auto-traced SVGs.
 //
-// PNG-to-SVG converters pack the main outline into a single compound path
-// containing hundreds of sub-paths.  Many are tiny artifacts (< 1–3 px)
-// tracing along the stroke edges.  This script strips those sub-paths
-// based on bounding-box area, leaving legitimate features intact.
+// PNG-to-SVG converters pack the main outline into a single compound path.
+// That path holds hundreds of sub-paths.  Many of them are tiny artifacts
+// (< 1–3 px) that trace along the stroke edges.  This script strips those
+// sub-paths by bounding-box area.  It keeps legitimate features intact.
 //
 // Usage:
 //   node design/scripts/svg-artifacts.mjs [--level 1-5] <file ...>
@@ -71,9 +71,10 @@ function pushPoint(s, x, y, isEndpoint) {
   if (isEndpoint) s.endpoints.push([x, y]);
 }
 
-// Path-command dispatch — each handler walks `v` in its command's stride and
-// pushes the appropriate sample points onto state. Splitting per-command keeps
-// the cyclomatic complexity of any single function below the lint threshold.
+// Path-command dispatch. Each handler walks `v` in its command's stride. Each
+// handler pushes the appropriate sample points onto state. One handler per
+// command keeps the cyclomatic complexity of any single function below the
+// lint threshold.
 const COMMAND_HANDLERS = {
   M: linePoints,
   L: linePoints,

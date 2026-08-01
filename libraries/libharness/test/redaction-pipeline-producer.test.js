@@ -15,7 +15,7 @@ import {
 } from "./redaction-pipeline-helpers.js";
 
 describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
-  test("sentinels in every carrier shape are redacted before reaching fileStream", async () => {
+  test("the pipeline redacts sentinels in every carrier shape before they reach fileStream", async () => {
     const SESSION_PAYLOAD = `boot ${GITHUB_SENT}`;
     const sink = captureSink();
 
@@ -28,8 +28,9 @@ describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
       },
     });
 
-    // Real AgentRunner driven by a scripted async-generator query that
-    // yields messages with the sentinels embedded in each carrier shape.
+    // A scripted async-generator query drives the real AgentRunner. The
+    // query yields messages with the sentinels embedded in each carrier
+    // shape.
     const scripted = [
       {
         type: "system",
@@ -108,7 +109,7 @@ describe("Producer pipeline — sentinel sweep (criterion 1)", () => {
 });
 
 describe("Producer pipeline — patterns (criterion 2)", () => {
-  test("pattern hits redact when no env vars are configured", async () => {
+  test("pattern hits redact when the caller configures no env vars", async () => {
     const sink = captureSink();
     const redactor = createRedactor({ runtime: _rt, env: {} });
 
@@ -160,11 +161,11 @@ describe("Producer pipeline — patterns (criterion 2)", () => {
 });
 
 describe("Producer pipeline — opt-out warning (criterion 4)", () => {
-  test("LIBHARNESS_REDACTION_DISABLED=1 emits stderr warning; sentinels reach fileStream unredacted", async () => {
+  test("LIBHARNESS_REDACTION_DISABLED=1 emits the stderr warning. Sentinels reach fileStream unredacted", async () => {
     const sink = captureSink();
 
     // Construct the redactor under test. Capture stderr from this site
-    // only — avoid mutating process.env (other tests run in parallel).
+    // only. Do not mutate process.env (other tests run in parallel).
     let redactor;
     let stderrCaptured;
     stderrCaptured = "";
@@ -303,8 +304,9 @@ describe("Producer pipeline — toText() byte-for-byte placeholder fidelity (cri
       { type: "result", subtype: "success", result: "ok" },
     ];
 
-    // Drive a small command-style pipeline: a real runner emits to devNull,
-    // and an envelope-redacting onLine writes the tagged event to the tee.
+    // Drive a small command-style pipeline. A real runner emits to devNull.
+    // An onLine hook redacts the envelope. It writes the tagged event to
+    // the tee.
     const devNull = new Writable({
       write(_c, _e, cb) {
         cb();

@@ -1,29 +1,28 @@
 # Plan 1160-a-01 — Repo bootstrap + infrastructure
 
-Stand up `forwardimpact/bionova-apps` **with the monorepo-setup skill**, then
+Stand up `forwardimpact/bionova-apps` **with the monorepo-setup skill**. Then
 layer the Polaris product and its PG On Rails Docker Compose stack onto that
-skeleton — all infrastructure services configured but not yet wired to product
-code.
+skeleton. This part configures all infrastructure services. It does not wire
+them to product code yet.
 
 All paths below are relative to the `bionova-apps/` repo root.
 
 ## Step 1 — Stand up the repo skeleton with the monorepo-setup skill
 
-`bionova-apps` is a Monorepo-standard repository, so its scaffolding is **not
-hand-rolled here**. Invoke the **monorepo-setup skill**, which owns the full
-skeleton end to end and is authoritative for it, and let it run its upstream
-skills (`jidoka-setup`, then `kata-setup`) to completion. Configuration to
-hand it:
+`bionova-apps` is a Monorepo-standard repository. Do **not** hand-roll its
+scaffolding here. Invoke the **monorepo-setup skill**. The skill owns the full
+skeleton end to end and is authoritative for it. Let it run its upstream skills
+(`jidoka-setup`, then `kata-setup`) to completion. Hand it this configuration:
 
 | Prompt | Value |
 | --- | --- |
 | Repo | `forwardimpact/bionova-apps`, public |
 | Description | "BioNova Polaris — reference consumer of Forward Impact libraries" |
-| Toolchain | Bun 1.2 + `just`; check/test scripts and workflows run `bun run …` / `deno …` |
+| Toolchain | Bun 1.2 + `just`. The check and test scripts and the workflows run `bun run …` / `deno …` |
 
-Do not restate or re-implement what the skill produces. When it finishes the
-repo already carries: `git` + `main`, `scripts/bootstrap.sh`, the base root
-`package.json` (with `jidoka` wired into `check`), `.gitignore`, the
+Do not restate what the skill produces. Do not re-implement it. When it
+finishes, the repo already carries: `git` + `main`, `scripts/bootstrap.sh`, the
+base root `package.json` (with `jidoka` wired into `check`), `.gitignore`, the
 Monorepo directory tree, the installed `jidoka-skills` + `kata-skills` packs
 and kata agent profiles under `.claude/`, `CLAUDE.md` / `CONTRIBUTING.md` /
 `JTBD.md` / `.jidoka/`, the per-concern check workflows, the created remote
@@ -32,7 +31,7 @@ session hooks, the seeded wiki, and the `SETUP.md` operator runbook.
 
 Everything below **layers** the Polaris product and its infrastructure onto
 that skeleton. Where a skill-owned file needs bionova content (root
-`package.json`, `.gitignore`, CI), this part **extends** it — it never
+`package.json`, `.gitignore`, CI), this part **extends** it. It never
 re-creates or overwrites a file the skill owns.
 
 Verify: the skill's own Done-When checklist passes (skeleton present, both
@@ -48,8 +47,8 @@ Created / extended:
 | `MONOREPO.md` | Repo's layout doc (three-shippable / three-support), scoped to bionova-apps |
 | `LICENSE` | Apache-2.0 |
 | `.nvmrc` | `20` (Node major) |
-| `.tool-versions` | `bun 1.3.11`, `nodejs 20.19.0` (`supabase` added in part 02, `deno` in part 04). Bun must stay >= 1.2.9: `apm install` calls `Bun.YAML.parse`, absent in older bun |
-| `package.json` | **extend** the skeleton manifest — add `"type": "module"`, `engines`, the Polaris workspaces, the bionova scripts, and app devDependencies (below); keep the skeleton's `check`/`jidoka` entries |
+| `.tool-versions` | `bun 1.3.11`, `nodejs 20.19.0` (`supabase` added in part 02, `deno` in part 04). Bun must stay >= 1.2.9 because `apm install` calls `Bun.YAML.parse`, which older bun versions do not have |
+| `package.json` | **extend** the skeleton manifest. Add `"type": "module"`, `engines`, the Polaris workspaces, the bionova scripts, and app devDependencies (below). Keep the skeleton's `check`/`jidoka` entries |
 | `.gitignore` | **append** the bionova ignores (below) to the skeleton's |
 | `justfile` | Recipes: `up` (`docker compose up -d`), `down`, `setup`, `seed` (`bash scripts/build-seed.sh`), `cli`, `dev:site`, `test`, `lint` |
 | `eslint.config.mjs` | Flat config; `eslint-config-prettier`; no unused vars, no console in `src/` |
@@ -57,8 +56,8 @@ Created / extended:
 | `tsconfig.json` | Strict, ES2022 target, `moduleResolution: bundler`, paths to workspaces |
 
 `package.json` — the skeleton already carries `name`, `private`, and the
-`jidoka` check wiring. Layer on the Polaris workspaces, scripts, and app
-devDependencies (do **not** drop the skeleton's `check` / `jidoka` entries):
+`jidoka` check wiring. Do **not** drop the skeleton's `check` / `jidoka`
+entries. Layer on the Polaris workspaces, scripts, and app devDependencies:
 
 ```json
 {
@@ -87,17 +86,17 @@ devDependencies (do **not** drop the skeleton's `check` / `jidoka` entries):
 }
 ```
 
-The Deno service `services/polaris-functions/` is **not** a Bun workspace — it
-carries `deno.json`, not `package.json`, so `lint`/`test` run JS and Deno
-tooling in separate steps. `fit-terrain` is a
-**build-time devDependency only** — `setup.sh` and
-`scripts/build-seed.sh` invoke `fit-terrain build` to render the seed from the
-vendored `story.dsl`; no surface imports it. Part 03 verifies the pinned
-version carries prerequisites A (`--output-root`) and B (prose→SQL).
+The Deno service `services/polaris-functions/` is **not** a Bun workspace. It
+carries `deno.json` instead of `package.json`. So `lint` and `test` run the JS
+tooling and the Deno tooling in separate steps. `fit-terrain` is a
+**build-time devDependency only**. `setup.sh` and `scripts/build-seed.sh`
+invoke `fit-terrain build` to render the seed from the vendored `story.dsl`.
+No surface imports it. Part 03 verifies that the pinned version carries
+prerequisites A (`--output-root`) and B (prose→SQL).
 
-`.gitignore` — append the rendered-seed and runtime-data ignores (the skeleton
-already ignores `node_modules/`, `.env`, `*.log`, `wiki/`, `dist/`, `build/`,
-`generated/`, and `apm_modules/`):
+`.gitignore` — the skeleton already ignores `node_modules/`, `.env`, `*.log`,
+`wiki/`, `dist/`, `build/`, `generated/`, and `apm_modules/`. Append the
+rendered-seed and runtime-data ignores:
 
 ```gitignore
 .next/
@@ -115,19 +114,20 @@ infrastructure/*/data/
 ```
 
 Polaris treats the skill packs and agent profiles as reconstitutable build
-output: the skeleton's `scripts/bootstrap.sh` rebuilds them from `apm.yml` on
-every environment (CI and native), so they are gitignored rather than committed.
+output. The skeleton's `scripts/bootstrap.sh` rebuilds them from `apm.yml` on
+every environment (CI and native). So the repository gitignores them and does
+not commit them.
 
-Verify: `bun install` exits 0; `just --list` shows recipes; `bun run check`
+Verify: `bun install` exits 0. `just --list` shows the recipes. `bun run check`
 (jidoka + lint + tsc) passes.
 
 ## Step 3 — Scaffold the Polaris directory tree
 
 The skeleton already carries the Monorepo top-level directories (`products/`,
-`services/`, `infrastructure/`, `websites/`) each with a `README.md`, and the
-`wiki/` working memory (a separate checkout, gitignored — **never committed
-here**). Add only the Polaris-specific subtree (`.gitkeep` where a dir is
-otherwise empty):
+`services/`, `infrastructure/`, `websites/`). Each one has a `README.md`. The
+skeleton also carries the `wiki/` working memory, a separate checkout that the
+repo gitignores. **Never commit the wiki here.** Add only the Polaris-specific
+subtree (`.gitkeep` where a directory is otherwise empty):
 
 ```text
 data/synthetic/                # vendored story.dsl + prose-cache.json (verbatim) + PROVENANCE.md, SOURCE.sha256, SEED.sha256 (part 03 commits); .build/ rendered output is gitignored
@@ -160,8 +160,8 @@ Service definitions (one per `infrastructure/` subdirectory):
 | --- | --- | --- | --- | --- |
 | `kong` | `kong:3.4.3.1` | 8000:8000 | `kong health` | (none) |
 | `postgres` | builds `infrastructure/postgres/` (Dockerfile based on `supabase/postgres:15.6.1.143`, which ships pgvector + pg_cron + pg_net + pgjwt + pgsodium + pgaudit + pgcrypto + uuid-ossp out of the box) | 5432:5432 | `pg_isready -U postgres` | (none) |
-| `pgbouncer` | `edoburu/pgbouncer:1.22.1-p0` (the edoburu tags carry a `-pN` patch suffix; a bare `1.22.1` does not exist) | 6432:6432 | `nc -z 127.0.0.1 6432` | `postgres` |
-| `postgrest` | builds `infrastructure/postgrest/` (`FROM postgrest/postgrest:v12.0.2` with a static busybox copied in — the upstream image is distroless) | 3000:3000 | `/bin/busybox nc -z -w 2 127.0.0.1 3000` | `pgbouncer` |
+| `pgbouncer` | `edoburu/pgbouncer:1.22.1-p0` (the edoburu tags carry a `-pN` patch suffix, and a bare `1.22.1` does not exist) | 6432:6432 | `nc -z 127.0.0.1 6432` | `postgres` |
+| `postgrest` | builds `infrastructure/postgrest/` (`FROM postgrest/postgrest:v12.0.2` with a static busybox copied in, because the upstream image is distroless) | 3000:3000 | `/bin/busybox nc -z -w 2 127.0.0.1 3000` | `pgbouncer` |
 | `gotrue` | `supabase/gotrue:v2.151.0` | 9999:9999 | `wget -q --spider http://127.0.0.1:9999/health` | `postgres` |
 | `realtime` | `supabase/realtime:v2.30.34` | 4000:4000 | `bash -c 'exec 3<>/dev/tcp/127.0.0.1/4000'` | `postgres` |
 | `storage` | `supabase/storage-api:v1.0.6` | 5000:5000 | `wget -q --spider http://127.0.0.1:5000/status` | `postgres`, `minio` |
@@ -171,32 +171,33 @@ Service definitions (one per `infrastructure/` subdirectory):
 | `polaris-site` | builds `products/polaris/site/` (placeholder Dockerfile in this part) | 3001:3000 | `bash -c 'exec 3<>/dev/tcp/127.0.0.1/3000'` | `kong` |
 | `polaris-functions` | builds `services/polaris-functions/` (placeholder Dockerfile) | 8082:8000 | `bash -c 'exec 3<>/dev/tcp/127.0.0.1/8000'` | `kong`, `tei` |
 
-All services share a single Docker network `bionova` (created by compose).
-Postgres password and JWT secret are read from `.env` (template at
-`.env.example` committed; `.env` is gitignored).
+All services share a single Docker network `bionova`. Compose creates it. The
+services read the Postgres password and the JWT secret from `.env`. The
+repository commits the template at `.env.example` and gitignores `.env`.
 
-**Healthchecks use only tools the image actually ships.** The `tei`,
-`polaris-site`, and `polaris-functions` images carry `bash` but neither `curl`
-nor `wget`, so they probe with a `bash` `/dev/tcp` TCP connect; `realtime` has
-`curl` but no `/api/health` route, so it also uses a TCP probe. `postgrest` is
-**distroless** — it ships only the `postgrest` binary, no shell, `wget`, `curl`,
-or `nc` — so a container healthcheck has nothing to run and the probe can never
-pass, leaving the container `unhealthy` forever. Its Dockerfile
-(`infrastructure/postgrest/Dockerfile`) copies a static busybox
-(`FROM busybox:1.36.1-musl`) into the image, and the healthcheck probes the API
-port with `/bin/busybox nc -z -w 2 127.0.0.1 3000`. Probes target `127.0.0.1`,
-never `localhost`: the BusyBox `nc`/`wget` in several images resolve `localhost`
-to IPv6 `::1`, but the services bind IPv4 `0.0.0.0`.
+**Healthchecks use only the tools the image ships.** The `tei`,
+`polaris-site`, and `polaris-functions` images carry `bash`. They carry neither
+`curl` nor `wget`. So they probe with a `bash` `/dev/tcp` TCP connect.
+`realtime` has `curl` but no `/api/health` route, so it also uses a TCP probe.
+`postgrest` is **distroless**. It ships only the `postgrest` binary. It has no
+shell, no `wget`, no `curl`, and no `nc`. So a container healthcheck has
+nothing to run, and the probe can never pass. The container then stays
+`unhealthy` forever. Its Dockerfile (`infrastructure/postgrest/Dockerfile`)
+copies a static busybox (`FROM busybox:1.36.1-musl`) into the image. The
+healthcheck probes the API port with `/bin/busybox nc -z -w 2 127.0.0.1 3000`.
+Probes target `127.0.0.1` and never `localhost`. The BusyBox `nc`/`wget` in
+several images resolve `localhost` to IPv6 `::1`, but the services bind IPv4
+`0.0.0.0`.
 
 **Only `postgrest` connects through pgbouncer.** The transaction pooler exists
 for the high-connection PostgREST data API. `gotrue` and `storage` send a
-`search_path` startup parameter that pgbouncer rejects (FATAL 08P01), and
-`realtime` (Postgrex) depends on session-scoped prepared statements, so those
+`search_path` startup parameter that pgbouncer rejects (FATAL 08P01).
+`realtime` (Postgrex) depends on session-scoped prepared statements. So those
 three connect directly to `postgres:5432`.
 
 **Build context for product services**: `polaris-site` and
 `polaris-functions` need workspace-root access at build time (their
-Dockerfiles `COPY products/polaris/handlers …`). Set explicit build
+Dockerfiles `COPY products/polaris/handlers …`). Set an explicit build
 context in `docker-compose.yml`:
 
 ```yaml
@@ -210,12 +211,13 @@ context in `docker-compose.yml`:
       dockerfile: services/polaris-functions/Dockerfile
 ```
 
-`postgrest` also builds rather than using its image directly, but from its own
-directory (`build: { context: infrastructure/postgrest }`) — its Dockerfile
-only copies a busybox into the distroless image and needs no workspace access.
+`postgrest` also builds. It does not use its image directly. Its build context
+is its own directory (`build: { context: infrastructure/postgrest }`). Its
+Dockerfile only copies a busybox into the distroless image, so it needs no
+workspace access.
 
-Verify: `docker compose config` parses; `docker compose up -d postgres tei`
-brings both healthy within 120s.
+Verify: `docker compose config` parses. `docker compose up -d postgres tei`
+brings both to healthy within 120s.
 
 ## Step 5 — Configure Kong
 
@@ -224,7 +226,7 @@ Created:
 - `infrastructure/kong/kong.yml` — declarative routes
 - `infrastructure/kong/Dockerfile` — copies kong.yml + sets `KONG_DATABASE=off`
 
-Routes (mirroring `products/map/supabase/kong.yml`):
+Routes (these mirror `products/map/supabase/kong.yml`):
 
 | Path | Upstream |
 | --- | --- |
@@ -234,8 +236,8 @@ Routes (mirroring `products/map/supabase/kong.yml`):
 | `/storage/v1/*` | `http://storage:5000` |
 | `/functions/v1/*` | `http://polaris-functions:8000` |
 
-Auth plugin (`key-auth` + `acl`) sits on every route reading `apikey` header;
-service-role and anon keys defined in `.env`.
+The auth plugin (`key-auth` + `acl`) sits on every route and reads the `apikey`
+header. `.env` defines the service-role and anon keys.
 
 Verify: `curl http://localhost:8000/rest/v1/` returns PostgREST root JSON
 after `docker compose up`.
@@ -246,44 +248,45 @@ Created:
 
 - `infrastructure/postgres/Dockerfile` — `FROM supabase/postgres:15.6.1.143`.
   This image ships pgvector, pg_cron, pg_net, pgjwt, pgsodium, pgaudit,
-  pgcrypto, uuid-ossp pre-installed — chosen because the alternative
-  `pgvector/pgvector:pg16` lacks pg_net, which the notify-updates trigger (part
-  04) and pg_cron schedule (part 04) require.
+  pgcrypto, and uuid-ossp pre-installed. This plan chose it because the
+  alternative `pgvector/pgvector:pg16` lacks pg_net. The notify-updates trigger
+  (part 04) and the pg_cron schedule (part 04) need pg_net.
 
-**The `supabase/postgres` image owns its own role and schema bootstrap** — the
-init scripts must cooperate with it, not fight it. The image's bootstrap
-superuser is `supabase_admin` (not `postgres`), and its own `init-scripts/`
-create the Supabase service roles (`anon`, `authenticated`, `service_role`,
-`authenticator`, `supabase_auth_admin`, `supabase_storage_admin`) and schemas
-(`auth`, `storage`, `realtime`, `net`). Two files in
-`infrastructure/postgres/init/` bracket that image bootstrap:
+**The `supabase/postgres` image owns its own role and schema bootstrap.** The
+init scripts must cooperate with it. They must not fight it. The image's
+bootstrap superuser is `supabase_admin` (not `postgres`). Its
+own `init-scripts/` create the Supabase service roles (`anon`,
+`authenticated`, `service_role`, `authenticator`, `supabase_auth_admin`,
+`supabase_storage_admin`) and schemas (`auth`, `storage`, `realtime`, `net`).
+Two files in `infrastructure/postgres/init/` bracket that image bootstrap:
 
 - `00-aaa-bootstrap.sql` — sorts first (`aaa`). The image does not create a
-  `postgres` role before `/docker-entrypoint-initdb.d/*.sql` runs, but pg_net
-  and later scripts reference it, so create it here: `CREATE ROLE postgres
-  SUPERUSER LOGIN CREATEDB CREATEROLE REPLICATION BYPASSRLS`, guarded by an
+  `postgres` role before `/docker-entrypoint-initdb.d/*.sql` runs. But pg_net
+  and later scripts reference it. Create it here with `CREATE ROLE postgres
+  SUPERUSER LOGIN CREATEDB CREATEROLE REPLICATION BYPASSRLS`. Guard it with an
   existence check.
 - `zz-bionova.sh` — sorts **last** (`zz` > the image's `init-scripts`), so
-  every Supabase role already exists. Connecting as `supabase_admin`, it:
-  (1) creates the extensions Polaris needs (`vector`, `pg_net`, `pg_cron`,
-  `pgcrypto`, `uuid-ossp`, `pgjwt CASCADE`); (2) aligns the login passwords of
-  the roles the compose services authenticate as (`postgres`, `authenticator`,
-  `supabase_admin`, `supabase_auth_admin`, `supabase_storage_admin`) with
-  `$POSTGRES_PASSWORD`, and promotes `postgres` to `SUPERUSER` so `supabase db
-  push` can create objects in `public` (PG15 revokes public CREATE; the image
-  leaves `postgres` non-superuser); (3) grants `anon`/`authenticated`/
-  `service_role` to `authenticator` plus `USAGE` on `public` and `net`.
+  every Supabase role already exists. It connects as `supabase_admin`.
+  (1) It creates the extensions Polaris needs (`vector`, `pg_net`, `pg_cron`,
+  `pgcrypto`, `uuid-ossp`, `pgjwt CASCADE`). (2) It aligns the login passwords
+  of the roles the compose services authenticate as (`postgres`,
+  `authenticator`, `supabase_admin`, `supabase_auth_admin`,
+  `supabase_storage_admin`) with `$POSTGRES_PASSWORD`. It also promotes
+  `postgres` to `SUPERUSER` so `supabase db push` can create objects in
+  `public`. PG15 revokes public CREATE, and the image leaves `postgres`
+  non-superuser. (3) It grants `anon`/`authenticated`/`service_role` to
+  `authenticator` plus `USAGE` on `public` and `net`.
 
 Do **not** hand-create the Supabase roles or schemas in a `01-roles.sql` /
-`02-schemas.sql`: on `supabase/postgres` they already exist, and re-creating
-them collides with the image's own bootstrap and fails the container start.
-This is the defect that blocked the first live boot — the earlier draft's
-`01-roles.sql`/`02-schemas.sql` fought the image instead of deferring to it.
+`02-schemas.sql`. On `supabase/postgres` they already exist. If a script
+re-creates them, it collides with the image's own bootstrap and fails the
+container start. This defect blocked the first live boot. The earlier draft's
+`01-roles.sql`/`02-schemas.sql` fought the image and did not defer to it.
 
 Verify: after `docker compose up -d postgres`, `psql -U postgres -c "SELECT
 extname FROM pg_extension ORDER BY extname;"` includes `pg_cron`, `pg_net`,
-`pgcrypto`, `pgjwt`, `uuid-ossp`, `vector`; and `\du` shows the Supabase roles
-with the aligned passwords.
+`pgcrypto`, `pgjwt`, `uuid-ossp`, and `vector`. Also `\du` shows the Supabase
+roles with the aligned passwords.
 
 ## Step 7 — Configure remaining infrastructure services
 
@@ -292,14 +295,14 @@ Created (one config file per service):
 | Service | File | Purpose |
 | --- | --- | --- |
 | `pgbouncer` | env in docker-compose | `DB_HOST=postgres`, `DB_USER=authenticator`, `POOL_MODE=transaction`, `MAX_CLIENT_CONN=200`, `AUTH_TYPE=scram-sha-256`, and `LISTEN_PORT=6432` (the edoburu image defaults to 5432, but the mapping, healthcheck, and postgrest all expect 6432) |
-| `postgrest` | env in docker-compose | `PGRST_DB_URI=postgres://authenticator:…@pgbouncer:6432/postgres`, `PGRST_JWT_SECRET=${JWT_SECRET}`, `PGRST_DB_ANON_ROLE=anon`, `PGRST_DB_SCHEMAS=public,storage`, and — because it runs behind the transaction pooler — `PGRST_DB_PREPARED_STATEMENTS=false` and `PGRST_DB_CHANNEL_ENABLED=false` (otherwise prepared-statement reuse collides, 42P05, and the LISTEN/NOTIFY reload channel cannot span pooled transactions) |
-| `gotrue` | env in docker-compose | `GOTRUE_DB_DRIVER=postgres`, `GOTRUE_DB_DATABASE_URL=postgres://supabase_auth_admin:…@postgres:5432/postgres` (direct, not the pooler), `GOTRUE_JWT_SECRET=${JWT_SECRET}`, `GOTRUE_DISABLE_SIGNUP=false`, `GOTRUE_SITE_URL=http://localhost:3001` |
-| `realtime` | env in docker-compose | `DB_HOST=postgres`, `DB_PORT=5432` (direct, not the pooler), `DB_NAME=postgres`, `SECRET_KEY_BASE=${REALTIME_SECRET}` |
-| `storage` | env in docker-compose | `DATABASE_URL=postgres://supabase_storage_admin:…@postgres:5432/postgres` (direct, not the pooler), `STORAGE_BACKEND=s3`, `GLOBAL_S3_ENDPOINT=http://minio:9000`, `GLOBAL_S3_PROTOCOL=http`, `GLOBAL_S3_FORCE_PATH_STYLE=true`, bucket `trial-documents` created on boot via init script |
+| `postgrest` | env in docker-compose | `PGRST_DB_URI=postgres://authenticator:…@pgbouncer:6432/postgres`, `PGRST_JWT_SECRET=${JWT_SECRET}`, `PGRST_DB_ANON_ROLE=anon`, `PGRST_DB_SCHEMAS=public,storage`, and, because it runs behind the transaction pooler, `PGRST_DB_PREPARED_STATEMENTS=false` and `PGRST_DB_CHANNEL_ENABLED=false` (otherwise prepared-statement reuse collides, 42P05, and the LISTEN/NOTIFY reload channel cannot span pooled transactions) |
+| `gotrue` | env in docker-compose | `GOTRUE_DB_DRIVER=postgres`, `GOTRUE_DB_DATABASE_URL=postgres://supabase_auth_admin:…@postgres:5432/postgres` (a direct connection that bypasses the pooler), `GOTRUE_JWT_SECRET=${JWT_SECRET}`, `GOTRUE_DISABLE_SIGNUP=false`, `GOTRUE_SITE_URL=http://localhost:3001` |
+| `realtime` | env in docker-compose | `DB_HOST=postgres`, `DB_PORT=5432` (a direct connection that bypasses the pooler), `DB_NAME=postgres`, `SECRET_KEY_BASE=${REALTIME_SECRET}` |
+| `storage` | env in docker-compose | `DATABASE_URL=postgres://supabase_storage_admin:…@postgres:5432/postgres` (a direct connection that bypasses the pooler), `STORAGE_BACKEND=s3`, `GLOBAL_S3_ENDPOINT=http://minio:9000`, `GLOBAL_S3_PROTOCOL=http`, `GLOBAL_S3_FORCE_PATH_STYLE=true`. An init script creates the `trial-documents` bucket on boot |
 | `imgproxy` | env in docker-compose | `IMGPROXY_BIND=:8080`, `IMGPROXY_USE_S3=true`, `IMGPROXY_S3_ENDPOINT=http://minio:9000` |
-| `tei` | command in docker-compose | `--model-id BAAI/bge-small-en-v1.5 --max-batch-tokens 16384 --max-client-batch-size 16 --auto-truncate` (auto-truncate keeps condition texts over bge-small's 512-token limit from 413-rejecting). Parametrize the model id and source via `TEI_MODEL_ID` / `TEI_MODEL_SOURCE` (default to HF download); a `just tei-model` recipe fetches the model to a host dir so `tei` can load it with no container network — needed where a TLS-inspecting proxy breaks the huggingface.co download and stalls the whole stack |
+| `tei` | command in docker-compose | `--model-id BAAI/bge-small-en-v1.5 --max-batch-tokens 16384 --max-client-batch-size 16 --auto-truncate` (auto-truncate stops a 413 rejection for condition texts over bge-small's 512-token limit). Parametrize the model id and source with `TEI_MODEL_ID` / `TEI_MODEL_SOURCE` (default to HF download). A `just tei-model` recipe fetches the model to a host directory, so `tei` can load it with no container network. The recipe is necessary where a TLS-inspection proxy breaks the huggingface.co download and stalls the whole stack |
 
-Created: `infrastructure/storage/init-bucket.sh` — uses `mc` CLI in a
+Created: `infrastructure/storage/init-bucket.sh` — uses the `mc` CLI in a
 one-shot sidecar container to create the `trial-documents` bucket against
 MinIO.
 
@@ -314,14 +317,14 @@ Created:
   REALTIME_SECRET, MINIO_ROOT_USER, MINIO_ROOT_PASSWORD (all placeholder
   values).
   **`ANON_KEY` and `SERVICE_ROLE_KEY` are JWTs signed with `JWT_SECRET`**, so
-  they must be regenerated whenever `JWT_SECRET` changes and kept in sync with
-  the same two keys baked into `infrastructure/kong/kong.yml`. A mismatch is
-  silent for anonymous reads (PostgREST falls back to the `anon` role) but fails
-  every verified-JWT path — `embed-seed` upserts and admin writes return 401
-  `JWSError JWSInvalidSignature`.
+  you must regenerate them whenever `JWT_SECRET` changes. Keep them in sync
+  with the same two keys baked into `infrastructure/kong/kong.yml`. A mismatch
+  is silent for anonymous reads (PostgREST falls back to the `anon` role). It
+  fails every verified-JWT path. `embed-seed` upserts and admin writes return
+  401 `JWSError JWSInvalidSignature`.
 - `setup.sh` — bash script, `set -euo pipefail`, idempotent
 
-`setup.sh` skeleton (filled in by parts 02, 03, 04):
+`setup.sh` skeleton (parts 02, 03, and 04 fill it in):
 
 ```sh
 #!/usr/bin/env bash
@@ -351,43 +354,44 @@ for svc in postgres pgbouncer postgrest gotrue tei; do wait_healthy "$svc"; done
 echo "Setup complete."
 ```
 
-Verify: `./setup.sh` exits 0 when all services healthy; non-zero if any
-service unhealthy within 120s.
+Verify: `./setup.sh` exits 0 when all services are healthy. It exits non-zero
+if any service is unhealthy within 120s.
 
 ## Step 9 — Add the bionova-specific CI concerns
 
 `monorepo-setup` already generated the base per-concern check workflows
-(`check-quality`, `check-test`, `check-context`) and wired the repo's Bun/Deno
-lint, test, and `jidoka` scripts into them. This part adds only the concerns
-those do not cover — **one workflow per concern, never folded into a single
-`ci.yml`**, matching the skill's rule. SHA-pin every third-party action.
+(`check-quality`, `check-test`, `check-context`). It also wired the repo's
+Bun/Deno lint, test, and `jidoka` scripts into them. This part adds only the
+concerns those do not cover. **Write one workflow per concern. Never fold them
+into a single `ci.yml`.** This matches the skill's rule. SHA-pin every
+third-party action.
 
 | File | Concern |
 | --- | --- |
 | `.github/workflows/check-compose.yml` | `cp .env.example .env && docker compose config --quiet` |
 | `.github/workflows/check-seed.yml` | seed-render determinism: `bash scripts/build-seed.sh`, assert ≥15 seed migrations, `sha256sum -c data/synthetic/SEED.sha256` |
 | `.github/workflows/check-edge.yml` | `deno check`, `deno test`, `deno lint` in `services/polaris-functions/` |
-| `.github/workflows/check-e2e.yml` | render the seed, **pre-fetch the TEI model on the host** and point `tei` at the local copy (the container cannot fetch through the runner's TLS-inspecting proxy — see Step 7), then boot the stack, `./setup.sh`, `SMOKE_DESTRUCTIVE=1 ./scripts/smoke.sh` (filled in by part 08) |
-| `.github/workflows/deploy.yml` | Railway watch-path deploy on push to `main` (filled in by part 08) |
+| `.github/workflows/check-e2e.yml` | render the seed, **pre-fetch the TEI model on the host** and point `tei` at the local copy (the container cannot fetch through the runner's TLS-inspection proxy. See Step 7), then boot the stack, `./setup.sh`, `SMOKE_DESTRUCTIVE=1 ./scripts/smoke.sh` (part 08 fills it in) |
+| `.github/workflows/deploy.yml` | Railway watch-path deploy on push to `main` (part 08 fills it in) |
 | `.github/CODEOWNERS` | `* @forwardimpact/agent-team` (extend only if `kata-setup` did not already set it) |
 | `.github/pull_request_template.md` | Summary, Test plan (if not already scaffolded) |
 
-The seed and e2e jobs run against the pinned `fit-terrain` devDependency —
-`bun install` drops its bin at `node_modules/.bin/fit-terrain`, so no live
-fetch is needed. The `FIT_TERRAIN` env var points `build-seed.sh` at a local
-checkout only when rendering with an unreleased build.
-Do not add a monolithic `ci.yml` — a failing compose
-validation and a failing edge-function test must read as two distinct red
-checks, per the check-workflow rule the skill enforces.
+The seed and e2e jobs run against the pinned `fit-terrain` devDependency.
+`bun install` drops its bin at `node_modules/.bin/fit-terrain`, so the jobs
+need no live fetch. The `FIT_TERRAIN` env var points `build-seed.sh` at a local
+checkout only when the render uses an unreleased build. Do not add a monolithic
+`ci.yml`. A failed compose validation and a failed edge-function test must read
+as two distinct red checks. The check-workflow rule the skill enforces requires
+this.
 
-Verify: `gh workflow list` shows the base check workflows plus these; each new
+Verify: `gh workflow list` shows the base check workflows plus these. Each new
 workflow validates locally (`docker compose config`, `deno`, `bun`).
 
 ## Step 10 — Commit the Polaris additions + open the part-01 PR
 
-The remote and its `main` branch already exist — `monorepo-setup` created and
+The remote and its `main` branch already exist. `monorepo-setup` created and
 pushed them. Commit the infrastructure and Polaris scaffolding on a feature
-branch and open the first product PR:
+branch. Then open the first product PR:
 
 ```sh
 git checkout -b infra/repo-bootstrap
@@ -405,7 +409,7 @@ Verify: PR opens with green CI (base checks + compose validation pass).
 - [ ] The monorepo-setup skeleton is in place: `scripts/bootstrap.sh`,
       `CLAUDE.md`/`CONTRIBUTING.md`/`JTBD.md`/`.jidoka/`, the base check
       workflows, `.claude/settings.json`, the seeded wiki, and `SETUP.md` all
-      exist; `bun run check` (jidoka) passes clean.
+      exist. `bun run check` (jidoka) passes clean.
 - [ ] `gh repo view forwardimpact/bionova-apps` returns the repo URL.
 - [ ] `docker compose up -d` brings all 12 services to `healthy` within 180s.
 - [ ] `curl -s http://localhost:8000/rest/v1/` returns PostgREST root JSON.

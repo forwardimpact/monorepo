@@ -1,10 +1,10 @@
 /**
  * Embeddings JSONL renderer for clinical entities.
  *
- * Walks `outputConfig.entities`, concatenates fields listed in
- * `outputConfig.text_fields`, and emits one JSONL line per entity with
- * `{ id, table, text }`. Synthetic fields (`prose_*`) resolve against
- * the prose cache; missing entries are silently omitted.
+ * The renderer walks `outputConfig.entities`. It concatenates the fields
+ * that `outputConfig.text_fields` lists. It emits one JSONL line per
+ * entity with `{ id, table, text }`. Synthetic fields (`prose_*`) resolve
+ * against the prose cache. The renderer silently omits missing entries.
  *
  * @module libsyntheticrender/render/render-embeddings
  */

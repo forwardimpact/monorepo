@@ -17,7 +17,7 @@ function makeProc(env = {}) {
 }
 
 describe("SummaryRenderer", () => {
-  test("writes title and aligned items", () => {
+  test("writes the title and the aligned items", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({ process: makeProc() });
     renderer.render(
@@ -40,7 +40,7 @@ describe("SummaryRenderer", () => {
     assert.strictEqual(firstDash, secondDash);
   });
 
-  test("writes only title when items is empty", () => {
+  test("writes only the title when items is empty", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({ process: makeProc() });
     renderer.render({ title: "Done", ok: true, items: [] }, stream);
@@ -65,7 +65,7 @@ describe("SummaryRenderer", () => {
     assert.ok(lines[0].includes("ab    "));
   });
 
-  test("suppresses successful summary when LOG_LEVEL=error", () => {
+  test("suppresses the successful summary when LOG_LEVEL=error", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({
       process: makeProc({ LOG_LEVEL: "error" }),
@@ -77,7 +77,7 @@ describe("SummaryRenderer", () => {
     assert.strictEqual(stream.output, "");
   });
 
-  test("prints failed summary even when LOG_LEVEL=error", () => {
+  test("prints the failed summary even when LOG_LEVEL=error", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({
       process: makeProc({ LOG_LEVEL: "error" }),
@@ -90,7 +90,7 @@ describe("SummaryRenderer", () => {
     assert.ok(stream.output.includes("a"));
   });
 
-  test("prints successful summary at default LOG_LEVEL", () => {
+  test("prints the successful summary at the default LOG_LEVEL", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({ process: makeProc() });
     renderer.render({ title: "Done", ok: true, items: [] }, stream);
@@ -105,7 +105,7 @@ describe("SummaryRenderer", () => {
     );
   });
 
-  test("renders extras after items, subject to the same suppression", () => {
+  test("renders extras after items under the same suppression gate", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({ process: makeProc() });
     renderer.render(
@@ -151,7 +151,7 @@ describe("SummaryRenderer", () => {
     assert.ok(stream.output.startsWith("\nBlock\n"));
   });
 
-  test("does not emit the margin when the block is suppressed", () => {
+  test("does not emit the margin when the renderer suppresses the block", () => {
     const stream = createStream();
     const renderer = new SummaryRenderer({
       process: makeProc({ LOG_LEVEL: "error" }),
@@ -160,7 +160,7 @@ describe("SummaryRenderer", () => {
     assert.strictEqual(stream.output, "");
   });
 
-  test("shouldRender requires explicit boolean", () => {
+  test("shouldRender requires an explicit boolean", () => {
     const renderer = new SummaryRenderer({ process: makeProc() });
     assert.throws(
       () => renderer.shouldRender(),

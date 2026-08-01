@@ -2,7 +2,8 @@
 /**
  * Manage head-hunter agent state files.
  *
- * Provides atomic operations on the 5 state files used by the head-hunter agent:
+ * The script provides atomic operations on the 5 state files that the
+ * head-hunter agent uses:
  *   cursor.tsv   — source rotation state (source, last_checked, position)
  *   seen.tsv     — deduplication index (source, id, date)
  *   prospects.tsv — prospect index (name, source, date, strength, level)
@@ -82,7 +83,7 @@ State dir: ~/.cache/fit/outpost/head-hunter/`);
   process.exit(0);
 }
 
-// --- Ensure state directory exists ---
+// --- Make sure the state directory exists ---
 
 mkdirSync(STATE_DIR, { recursive: true });
 

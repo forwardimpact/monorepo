@@ -1,17 +1,16 @@
 ---
 title: Ship a Service Endpoint
-description: Ship a gRPC service with typed contracts, authentication, retries, and health checks — without reimplementing transport.
+description: Ship a gRPC service with typed contracts, authentication, retries, and health checks. You do not reimplement the transport.
 ---
 
 You need to expose business logic over gRPC or consume an existing gRPC service.
-The transport layer -- connection management, authentication, retries, health
-checks -- is the same every time, and copying it from the last project means
-copying its bugs too. `@forwardimpact/librpc` gives you a typed server and
-client that handle transport so you write only the business logic.
+The transport layer is the same every time. It holds the connections, the
+authentication, the retries, and the health checks. If you copy it from the last
+project, you copy its bugs too. `@forwardimpact/librpc` gives you a typed server
+and a typed client that handle transport. You write only the business logic.
 
-For the full workflow of defining proto contracts and generating typed base
-classes and clients, see
-[Typed Contracts](/docs/libraries/typed-contracts/).
+To define proto contracts and generate typed base classes and clients, see
+[Typed Contracts](/docs/libraries/typed-contracts/) for the full workflow.
 
 ## Prerequisites
 
@@ -22,11 +21,11 @@ classes and clients, see
 npm install @forwardimpact/librpc
 ```
 
-- Generated service definitions produced by `npx fit-codegen generate --all`
-  (this creates the typed base classes and client classes that
+- Service definitions that `npx fit-codegen generate --all` produces (the
+  command creates the typed base classes and client classes that
   `@forwardimpact/librpc` re-exports)
 - The `SERVICE_SECRET` environment variable set (a string of at least 32
-  characters, shared between server and client for HMAC authentication)
+  characters that the server and the client share for HMAC authentication)
 
 ## Create a service
 
@@ -66,8 +65,8 @@ export class GraphService extends GraphBase {
 ```
 
 Each method receives a typed request object and returns a plain response object.
-The generated `getHandlers()` method on the base class takes care of validating
-inbound requests and converting them from wire format.
+The generated `getHandlers()` method on the base class validates inbound
+requests. It also converts them from wire format.
 
 ### Step 2 -- Bootstrap the server
 
@@ -97,20 +96,20 @@ await server.start();
 ```
 
 `Server` takes the service, its config, and an options bag. The `runtime` is
-required -- it carries the process collaborators the server reads, including the
-`SERVICE_SECRET` used for authentication. The `logger` and `tracer` are
-optional. Build the runtime once at the entry point with `createDefaultRuntime`
-and thread it through.
+required. It carries the process collaborators the server reads. These include
+the `SERVICE_SECRET` for authentication. The `logger` and `tracer` are optional.
+Build the runtime once at the entry point with `createDefaultRuntime`. Thread it
+through.
 
 `Server` wraps every handler with HMAC authentication, distributed tracing, and
 error handling. It also registers the standard gRPC health check at
-`grpc.health.v1.Health/Check` automatically -- no extra code needed.
+`grpc.health.v1.Health/Check` automatically. You write no extra code.
 
 ### What you get for free
 
 | Concern              | Handled by                                |
 | -------------------- | ----------------------------------------- |
-| Authentication       | HMAC-SHA256 via `SERVICE_SECRET`          |
+| Authentication       | HMAC-SHA256 with `SERVICE_SECRET`         |
 | Distributed tracing  | Automatic spans per RPC call              |
 | Health checks        | `grpc.health.v1.Health/Check` registered  |
 | Keepalive            | 30s ping interval, 10s timeout            |
@@ -119,52 +118,51 @@ error handling. It also registers the standard gRPC health check at
 
 ## Authenticate with SERVICE_SECRET
 
-Every call between a `librpc` client and server is authenticated with an
+`librpc` authenticates every call between a client and a server with an
 HMAC-SHA256 token. Both sides read the same shared secret from the
-`SERVICE_SECRET` environment variable, so authentication needs no code -- only a
-secret that is present in both processes.
+`SERVICE_SECRET` environment variable. Authentication needs no code. It needs
+only a secret that is present in both processes.
 
 ```sh
 export SERVICE_SECRET="a-shared-secret-of-at-least-32-characters"
 ```
 
-The secret must be at least 32 characters; a shorter value is rejected when the
-server or client starts. How tokens flow:
+The secret must be at least 32 characters. The server or the client rejects a
+shorter value at start. How tokens flow:
 
-- The client signs a `{serviceId}:{timestamp}` payload with the secret and sends
-  it as an `Authorization: Bearer <token>` metadata header on every call. This
-  happens inside a client interceptor, so you never construct a token by hand.
-- The server verifies the signature with a timing-safe comparison and rejects
+- The client signs a `{serviceId}:{timestamp}` payload with the secret. It sends
+  the payload as an `Authorization: Bearer <token>` metadata header on every
+  call. This happens inside a client interceptor, so you never construct a token
+  by hand.
+- The server verifies the signature with a timing-safe comparison. It rejects
   the call with `UNAUTHENTICATED` if the header is missing, malformed, expired,
   or signed with a different secret.
-- Tokens are time-limited (a 60-second lifetime by default), so a captured token
-  cannot be replayed indefinitely. The client mints a fresh token per call, so
-  short lifetimes are invisible to callers.
+- Tokens are time-limited (a 60-second lifetime by default). Nobody can replay a
+  captured token indefinitely. The client mints a fresh token per call, so
+  callers do not notice the short lifetimes.
 
-The health check at `grpc.health.v1.Health/Check` is mounted without
-authentication, so an orchestrator can probe liveness without holding the
-secret.
+`Server` mounts the health check at `grpc.health.v1.Health/Check` without
+authentication. An orchestrator can then probe liveness without the secret.
 
 ## Keepalive
 
 Both the server and the client open the channel with the same keepalive
-settings, so long-lived streams survive idle periods and dead connections are
-detected promptly:
+settings. Long-lived streams then survive idle periods. The keepalive also finds
+dead connections promptly:
 
 | Setting                    | Value      | Effect                                      |
 | -------------------------- | ---------- | ------------------------------------------- |
-| Ping interval              | 30 seconds | A keepalive ping is sent every 30 seconds   |
+| Ping interval              | 30 seconds | The channel sends a keepalive ping every 30 seconds |
 | Ping timeout               | 10 seconds | A missing ack within 10 seconds drops the connection |
-| Ping without active calls  | permitted  | Idle channels are kept warm                 |
+| Ping without active calls  | permitted  | Idle channels stay warm                     |
 
-These are applied for you when you construct a `Server` or call
-`createClient` -- there is nothing to configure.
+`Server` and `createClient` apply these settings for you. You configure nothing.
 
 ## Call an existing service
 
-When you need to reach a service that is already running, use `createClient`.
-It resolves the service name to connection details via `libconfig`, attaches
-authentication, and returns a typed client with built-in retries.
+Use `createClient` when you need to reach a service that already runs. It
+resolves the service name to connection details through `libconfig`. It attaches
+authentication. It returns a typed client with built-in retries.
 
 ```js
 import { createClient, createTracer } from "@forwardimpact/librpc";
@@ -178,17 +176,17 @@ const graphClient = await createClient("graph", logger, tracer);
 ```
 
 The `logger` and `tracer` arguments are optional. Pass a `tracer` to thread
-distributed tracing across the call: the client opens a `CLIENT` span per RPC
-and propagates the trace context to the server, which opens a matching
-`SERVER` span. Build the tracer once at the entry point with `createTracer`,
-hand it to every client and server in that process, and a single trace then
-spans the whole call chain. Omit both arguments for an ad-hoc client that does
-not log or trace -- authentication and retries still apply.
+distributed tracing across the call. The client opens a `CLIENT` span per RPC.
+It propagates the trace context to the server. The server opens a matching
+`SERVER` span. Build the tracer once at the entry point with `createTracer`.
+Hand it to every client and server in that process. A single trace then spans
+the whole call chain. Omit both arguments for an ad-hoc client that does not log
+or trace. Authentication and retries still apply.
 
 ### Make a unary call
 
 The generated client class exposes a typed method for each RPC. Pass a request
-object and receive the response:
+object. The call returns the response:
 
 ```js
 import { graph } from "@forwardimpact/libtype";
@@ -206,20 +204,21 @@ https://acme.example/people/john-smith	https://schema.org/Person
 
 ### How retries work
 
-Transient failures are retried for you. The client wraps every unary and
+The client retries transient failures for you. It wraps every unary and
 streaming call in a retry policy with these defaults:
 
 - **Up to 10 retries** before the call rejects with the underlying error.
-- **Exponential backoff** starting at a 1-second base delay -- the wait roughly
-  doubles each attempt, so a struggling service is not hammered.
-- **Jitter** added to each delay, so a fleet of clients that all failed at the
-  same moment does not retry in lockstep and create a thundering herd.
+- **Exponential backoff** that starts at a 1-second base delay. The wait roughly
+  doubles each attempt, so the client does not hammer a service in trouble.
+- **Jitter** that the client adds to each delay. A fleet of clients that all
+  failed at the same moment then does not retry in lockstep. The clients create
+  no thundering herd.
 
-For a streaming call the retry covers connection establishment: once the first
-chunk arrives the stream is considered connected and later errors surface on the
-stream's `error` event rather than triggering a reconnect. A retried unary call
-is transparent -- your `await` resolves with the eventual response or rejects
-once retries are exhausted.
+For a streaming call the retry covers the connection attempt. After the first
+chunk arrives, the stream counts as connected. Later errors then surface on the
+stream's `error` event. The stream does not reconnect. A retried unary call is
+transparent. Your `await` resolves with the eventual response, or it rejects
+after the client exhausts the retries.
 
 ### Make a streaming call
 
@@ -236,8 +235,8 @@ stream.on("end", () => console.log("stream complete"));
 
 ## Quick test with fit-unary
 
-`fit-unary` is a CLI bundled with `@forwardimpact/librpc` for ad-hoc unary
-calls. Pass the service name, method, and an optional JSON request body:
+`@forwardimpact/librpc` bundles the `fit-unary` CLI for ad-hoc unary calls. Pass
+the service name, the method, and an optional JSON request body:
 
 ```sh
 npx fit-unary graph GetSubjects '{"type":"schema:Person"}'
@@ -249,18 +248,18 @@ npx fit-unary graph GetSubjects '{"type":"schema:Person"}'
 }
 ```
 
-This is useful for verifying a service is reachable before writing client code.
+Use this to check that a service is reachable before you write client code.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - Your service class extends the generated base and implements every RPC method
   declared in the proto definition.
-- `Server.start()` binds to the configured host and port, and
+- `Server.start()` binds to the configured host and port.
   `grpc.health.v1.Health/Check` responds with `SERVING`.
-- `createClient` connects to a running service and `callUnary` returns typed
-  responses.
+- `createClient` connects to a service that already runs. `callUnary` returns
+  typed responses.
 - `fit-unary` returns JSON for a known service and method.
 
 ## What's next

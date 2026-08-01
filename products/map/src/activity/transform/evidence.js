@@ -86,7 +86,7 @@ function buildRows(evidence, byEmail) {
       marker_text: markerText,
       matched: true,
       rationale:
-        "Round-robin placeholder from getdx/evidence.json — not derived from artifact content.",
+        "Round-robin placeholder from getdx/evidence.json. Not derived from artifact content.",
       provenance: PLACEHOLDER_PROVENANCE,
       created_at: ev.observed_at,
     });

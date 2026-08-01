@@ -6,8 +6,8 @@ import { classify } from "./classify.js";
 import { round1, round2 } from "./format.js";
 
 // Apply the event-type slice and the optional route-decision partitions.
-// Each filter is inert unless its option is passed, so a plain analyze
-// returns the same series it always has.
+// Each filter is inert unless the caller passes its option. A plain
+// analyze returns the same series as before.
 function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
   let selected = rows;
   if (eventType !== "*") {
@@ -24,24 +24,24 @@ function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
   return selected;
 }
 
-// Analyze a Kata-metrics CSV. Groups rows by metric, sorts each group by
-// date, computes Wheeler/Vacanti statistics and signals for groups with
-// at least MIN_POINTS observations, and stamps a classification on each.
+// Analyze a Kata-metrics CSV. Group rows by metric. Sort each group by
+// date. Compute Wheeler/Vacanti statistics and signals for groups with at
+// least MIN_POINTS observations. Stamp a classification on each group.
 //
 // Each metric record carries:
 //   - status: 'insufficient_data' | 'predictable' | 'signals_present'
 //   - classification: 'insufficient' | 'stable' | 'signals' | 'chaos' | 'degenerate-zero'
 //   - stats: full-precision numeric stats (consumers round at display time)
 //   - signals: keyed-by-rule signal records
-//   - values, dates: ordered series for chart rendering
-// The eventType default lives here (not in the command layer) so
-// single-argument callers — e.g. libwiki's block renderer — inherit the
-// shift-work slice without a code change. Pass "*" to disable filtering.
+//   - values, dates: ordered series that the chart renderer reads
+// The eventType default lives here. The command layer does not hold it.
+// Single-argument callers such as libwiki's block renderer inherit the
+// shift-work slice without a code change. Pass "*" to disable the filter.
 // When `priorReadAnchor` (a YYYY-MM-DD date) exact-matches a metric's slot
 // date, each fired signal record gains a `provenance` value relative to that
 // slot. A non-corresponding anchor (backfill, correction, beyond series end)
 // and no anchor both leave records untouched.
-/** Group rows by metric (restricted to one event_type, default kata-shift; "*" for all rows), optionally partition by route-decision context, compute XmR statistics and signals, and classify each metric's process behavior; with a corresponding `priorReadAnchor` date, stamp per-signal provenance. */
+/** Group rows by metric, restricted to one event_type (default kata-shift, or "*" for all rows). Partition by route-decision context on request. Compute XmR statistics and signals. Classify each metric's process behavior. Stamp per-signal provenance when the caller gives a corresponding `priorReadAnchor` date. */
 export function analyze(
   csvText,
   {
@@ -116,8 +116,8 @@ export function analyze(
 }
 
 // Round a stats object to display precision. Consumers that need exact
-// values (e.g. the chart renderer) keep the raw stats; consumers that
-// emit values to humans or JSON call this.
+// values (e.g. the chart renderer) keep the raw stats. Consumers that
+// emit values to humans or JSON call this function.
 /** Round a stats object to display precision for human-facing output. */
 export function roundStats(stats) {
   return {

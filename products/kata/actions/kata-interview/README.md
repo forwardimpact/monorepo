@@ -1,19 +1,19 @@
 # Kata Interview
 
-Run a JTBD switching interview in a single step. An isolated agent, briefed
-only with a persona, meets a product cold at a public website and tries to get
-a chosen Job To Be Done done; a supervisor runs the
+Run a JTBD switching interview in a single step. An isolated agent gets only a
+persona as its brief. The agent meets a product cold at a public website. The
+agent tries to get a chosen Job To Be Done done. A supervisor runs the
 [`kata-interview` skill](https://www.npmjs.com/package/@forwardimpact/kata-skills)
 to build the persona, hand off the job in two Asks, and file findings as
 issues.
 
 This action owns the **generic** interview infrastructure: killswitch, GitHub
 App authentication, checkout, environment bootstrap, synthetic-data build, the
-supervised run via
+supervised run through
 [fit-harness](https://www.npmjs.com/package/@forwardimpact/libharness), cost
-reporting, wiki-memory sync, and run-log secret scanning. The **app-specific**
-choices are pluggable inputs, so any repository — not just one running the full
-Forward Impact stack — can wrap it:
+reports, wiki-memory sync, and the run-log secret scan. The **app-specific**
+choices are pluggable inputs. Any repository can wrap this action, even a
+repository that does not run the full Forward Impact stack:
 
 - **`website-url`** — the entry point handed to the persona agent.
 - **`substrate-setup-command`** — brings up a Supabase substrate and emits its
@@ -84,7 +84,7 @@ secrets:
   scan can download the run archive.
 - Repository secrets: `KATA_APP_ID`, `KATA_APP_PRIVATE_KEY`,
   `ANTHROPIC_API_KEY` (plus substrate secrets on the substrate path).
-- The `kata-interview` skill and agent profiles installed (via
+- The `kata-interview` skill and agent profiles installed (with
   `npx skills add forwardimpact/kata-skills`).
 
 ## Inputs
@@ -105,7 +105,7 @@ secrets:
 | `website-url` | Yes      | —       | Public entry point handed to the persona agent (Ask 2) |
 | `product`     | No       | —       | Product to interview about (empty = supervisor picks)  |
 | `job`         | No       | —       | JTBD goal to test (empty = supervisor picks)           |
-| `task-amend`  | No       | —       | Text appended to the task prompt for steering          |
+| `task-amend`  | No       | —       | Text appended to the task prompt to steer the run      |
 
 ### Pluggable domain steps
 
@@ -116,8 +116,8 @@ secrets:
 
 ### Substrate secrets
 
-Forwarded to the setup and persona commands only when the substrate path is
-active (`substrate-setup-command` non-empty).
+The action forwards these secrets to the setup and persona commands only when
+the substrate path is active (`substrate-setup-command` non-empty).
 
 | Input              | Required | Default | Description               |
 | ------------------ | -------- | ------- | ------------------------- |
@@ -138,13 +138,13 @@ active (`substrate-setup-command` non-empty).
 | Output       | Description                                                     |
 | ------------ | --------------------------------------------------------------- |
 | `trace-file` | Absolute path of the raw NDJSON trace file from the run         |
-| `trace-dir`  | Absolute path of the temp directory holding all trace files     |
+| `trace-dir`  | Absolute path of the temp directory that holds all trace files  |
 
 ## Notes
 
 - A composite action cannot declare `concurrency`, a job `timeout-minutes`, or
   read `secrets.*`. Keep concurrency and the (sub-60-minute) timeout on the
-  wrapper workflow, and pass secrets as inputs.
-- On the substrate path, the run's own logs are scanned for the persona JWT and
-  the substrate secrets after the interview; a hit fails the run, and an
+  wrapper workflow. Pass secrets as inputs.
+- On the substrate path, the action scans the run's own logs for the persona
+  JWT and the substrate secrets after the interview. A hit fails the run. An
   unreadable archive fails closed.

@@ -38,7 +38,7 @@ describe("Server", () => {
     mockObserverFn = createMockObserverFn(mockLogFn);
   });
 
-  test("should require service parameter", () => {
+  test("should require the service parameter", () => {
     assertThrowsMessage(
       () =>
         new Server(null, mockConfig, {
@@ -53,7 +53,7 @@ describe("Server", () => {
     );
   });
 
-  test("should require config parameter", () => {
+  test("should require the config parameter", () => {
     assertThrowsMessage(
       () =>
         new Server(mockService, null, {
@@ -82,7 +82,7 @@ describe("Server", () => {
     assert.strictEqual(server.config, mockConfig);
   });
 
-  test("should call service methods during setup", async () => {
+  test("should call the service methods during setup", async () => {
     const getHandlersSpy = spy(() => ({
       TestMethod: async () => ({ result: "test" }),
     }));
@@ -150,7 +150,7 @@ describe("Server", () => {
     assert.strictEqual(result.message, "nope");
   });
 
-  test("should accept tracer parameter", () => {
+  test("should accept the tracer parameter", () => {
     const mockTracer = createMockTracer();
 
     const server = new Server(mockService, mockConfig, {

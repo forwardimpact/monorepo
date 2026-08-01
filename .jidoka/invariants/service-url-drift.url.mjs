@@ -1,12 +1,13 @@
-// Domain helper for the service-url-drift invariant (and the adjacent audit
-// script + test). NOT generic mechanism — it lives beside its rule, not in a
-// shared kit: it encodes how a service's listen URL is derived.
+// Domain helper for the service-url-drift invariant, the adjacent audit
+// script, and the test. This is NOT a generic mechanism. It lives beside its
+// rule. It does not belong in a shared kit. It encodes how a service derives
+// its listen URL.
 //
 // A service's listen URL is the single source of truth declared in its
 // `createServiceConfig("<name>", { … })` defaults. `server.js` is a
-// side-effecting entrypoint (top-level `await service.start()`), so its
-// defaults cannot be read by import — they are extracted statically from the
-// AST and run through libconfig's documented network-default derivation
+// side-effecting entrypoint (top-level `await service.start()`), so an import
+// cannot read its defaults. This module reads them statically from the AST.
+// It then runs them through libconfig's documented network-default derivation
 // (libraries/libconfig/src/config.js `load()`).
 
 import { readFileSync } from "node:fs";
@@ -14,9 +15,9 @@ import { resolve } from "node:path";
 
 import { parse as acornParse } from "acorn";
 
-// Minimal acorn parse + depth-first walk. This file is imported directly by a
-// test and an audit script (outside the invariant engine), so it carries its
-// own AST helpers rather than depending on the kit it cannot import.
+// Minimal acorn parse and depth-first walk. A test and an audit script import
+// this file directly, outside the invariant engine. It cannot import the kit,
+// so it carries its own AST helpers.
 function parseModule(source, filePath) {
   try {
     return acornParse(source, { ecmaVersion: "latest", sourceType: "module" });
@@ -40,15 +41,16 @@ function walkAst(node, visit) {
 }
 
 /**
- * Error thrown when a service's `createServiceConfig` defaults are not a static
- * object literal the AST can read (e.g. a computed/spread defaults object).
+ * `extractDefaults` throws this error when a service's `createServiceConfig`
+ * defaults are not a static object literal the AST can read (e.g. a
+ * computed/spread defaults object).
  */
 export class NonLiteralDefaultsError extends Error {}
 
 function literalValue(node) {
   if (!node) return undefined;
   if (node.type === "Literal") return node.value;
-  // Numeric separators (e.g. 600_000) parse as Literal; bare identifiers and
+  // Numeric separators (e.g. 600_000) parse as Literal. Bare identifiers and
   // expressions are not static values.
   return undefined;
 }
@@ -79,7 +81,7 @@ function readNetworkKeys(objectExpression) {
  * to `createServiceConfig`, or `{}` when the call has no defaults argument.
  *
  * @param {string} source - Module source text.
- * @param {string} filePath - Path used in parse-error messages.
+ * @param {string} filePath - The path parse-error messages show.
  * @param {string} serviceName - The first `createServiceConfig` argument.
  * @returns {{ protocol?: string, host?: string, port?: number, path?: string }}
  */
@@ -110,7 +112,7 @@ export function extractDefaults(source, filePath, serviceName) {
 }
 
 /**
- * Compute a service's manifest-declared listen URL, replaying libconfig's
+ * Compute a service's manifest-declared listen URL. This replays libconfig's
  * network-default derivation (config.js:150-154).
  *
  * @param {string} root - Repository root.
@@ -130,7 +132,7 @@ export function expectedUrl(root, manifestPath, serviceName) {
 
 /**
  * Collapse the host representations that denote the same local endpoint to one
- * token. The manifest binds `0.0.0.0`; consumers and the librpc client
+ * token. The manifest binds `0.0.0.0`. Consumers and the librpc client
  * (client.js:54-57, which maps `0.0.0.0` → `<name>.guide.local`) advertise
  * `localhost`. URL equality must see through that.
  *
@@ -149,7 +151,7 @@ export function normalizeHost(host, serviceName) {
 }
 
 /**
- * URL equality on protocol + port + normalized host.
+ * Compare two URLs on protocol, port, and normalized host.
  *
  * @param {string} a
  * @param {string} b

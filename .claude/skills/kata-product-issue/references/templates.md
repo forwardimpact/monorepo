@@ -1,29 +1,29 @@
 # Product Feedback Templates
 
-Comment, PR, and issue body templates for triage and feedback processing. Every
-comment and PR body is signed `— Product Manager 🌱`.
+Use these comment, PR, and issue body templates when you triage and process
+feedback. Sign every comment and PR body `— Product Manager 🌱`.
 
 ## Issue Comments
 
-`comment` on the issue with the text below, selecting the variant that matches
+`comment` on the issue with the text below. Select the variant that matches
 the triage decision
 ([work-trackers.md](../../../agents/x-work-trackers.md)). For `wontfix`
 and duplicate outcomes, chain `label` and/or `close` after the comment.
 
-| Outcome             | Body text                                                                                                                                 | Follow-up                                   |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **Mechanical fix**  | Thanks for reporting this! I can see the problem — I'll put together a fix now.                                                           | —                                           |
-| **Product-aligned** | Thanks for this suggestion! This aligns with our product direction. I'm going to write up a spec so we can plan the implementation.       | —                                           |
-| **Out of scope**    | Thanks for taking the time to open this! After reviewing it against our product direction, this falls outside our current scope. _<why>_. | `label` wontfix; `close`                    |
-| **Duplicate**       | Thanks for reporting this! This is already tracked in #<original>, so I'll close this one as a duplicate.                                 | `close` (reason "not planned")              |
-| **Needs info**      | Thanks for opening this! I'd like to help, but I need a bit more context: _<specific questions>_.                                         | `label` needs-info (do **not** close)       |
+| Outcome             | Body text                                                                                                                             | Follow-up                             |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| **Mechanical fix**  | Thanks for the report! I can see the problem. I'll put together a fix now.                                                            | —                                     |
+| **Product-aligned** | Thanks for this suggestion! This aligns with our product direction. I will write a spec so we can plan the work.                      | —                                     |
+| **Out of scope**    | Thanks for the time you took to open this! We reviewed it against our product direction. It falls outside our current scope. _<why>_. | `label` wontfix; `close`              |
+| **Duplicate**       | Thanks for the report! #<original> already tracks this, so I'll close this one as a duplicate.                                        | `close` (reason "not planned")        |
+| **Needs info**      | Thanks for the issue! I'd like to help, but I need a bit more context: _<specific questions>_.                                        | `label` needs-info (do **not** close) |
 
-### Adding Feedback to Existing Issues
+### Add Feedback to Existing Issues
 
 `comment` on the issue
 ([work-trackers.md](../../../agents/x-work-trackers.md)):
 
-> Additional feedback observed during user testing of **<product>** in the
+> Additional feedback from user testing of **<product>** in the
 > `<scenario>` evaluation scenario:
 >
 > <description>
@@ -38,15 +38,15 @@ commit type (`fix(<scope>)` vs `spec(<scope>)`), closing keyword (`Closes` vs
 
 ### Branch and Commit
 
-Implement the fix or write the spec on a `<fix|spec>/issue-<number>-…` branch,
-run the repository's check and test commands, and commit with subject
+Implement the fix or write the spec on a `<fix|spec>/issue-<number>-…` branch.
+Run the repository's check and test commands. Commit with subject
 `<fix|spec>(<scope>): <description>` and a `<Closes|Addresses> #<number>`
 trailer.
 
 ### PR Body
 
-`open-change` ([work-trackers.md](../../../agents/x-work-trackers.md))
-titled `<fix|spec>(<scope>): <description>` with this body:
+`open-change` ([work-trackers.md](../../../agents/x-work-trackers.md)) with
+the title `<fix|spec>(<scope>): <description>` and this body:
 
 ```markdown
 ## Summary
@@ -72,9 +72,9 @@ Spec for issue #<number>. Needs review before implementation — see the
 
 ## New Issues from User Testing
 
-`create-issue` ([work-trackers.md](../../../agents/x-work-trackers.md))
-titled `<bug|docs|feat>(<product>): <concise description>`, labeled
-`user-testing`, with this body:
+`create-issue` ([work-trackers.md](../../../agents/x-work-trackers.md)) with
+the title `<bug|docs|feat>(<product>): <concise description>`, the label
+`user-testing`, and this body:
 
 ```markdown
 ## Context
@@ -92,7 +92,7 @@ Actual: <what happened>
 
 ## Report Summary Tables
 
-Inbound triage (existing issues classified):
+Inbound triage (existing issues you classified):
 
 ```text
 | Issue   | Title                           | Category        | Action       | Detail                     |

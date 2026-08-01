@@ -1,7 +1,7 @@
 # Priority Templates
 
-Priorities are **never auto-created** by `extract-entities`. They are set
-deliberately by the user. This template is for manual creation only —
+`extract-entities` **never auto-creates** Priorities. The user sets them
+deliberately. Use this template only for a note you write by hand.
 `extract-entities` and `anarlog-process` only **link to** and **update progress
 on** existing notes.
 

@@ -17,20 +17,20 @@ describe("OntologyProcessor", () => {
   });
 
   describe("constructor", () => {
-    test("creates OntologyProcessor instance", () => {
+    test("creates an OntologyProcessor instance", () => {
       assert.ok(processor instanceof OntologyProcessor);
     });
   });
 
   describe("process", () => {
-    test("handles null quad gracefully", () => {
+    test("handles a null quad gracefully", () => {
       processor.process(null);
       const data = processor.getData();
       const output = serializer.serialize(data);
       assert.ok(typeof output === "string");
     });
 
-    test("processes rdf:type assertion", () => {
+    test("processes an rdf:type assertion", () => {
       const quad = {
         subject: namedNode("http://example.org/person/1"),
         predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
@@ -102,7 +102,7 @@ describe("OntologyProcessor", () => {
       assert.ok(output.includes("sh:class"));
     });
 
-    test("ignores quads without subject", () => {
+    test("ignores quads without a subject", () => {
       const quad = {
         subject: null,
         predicate: namedNode("http://schema.org/name"),
@@ -117,7 +117,7 @@ describe("OntologyProcessor", () => {
       assert.ok(typeof output === "string");
     });
 
-    test("ignores quads without predicate", () => {
+    test("ignores quads without a predicate", () => {
       const quad = {
         subject: namedNode("http://example.org/person/1"),
         predicate: null,
@@ -174,7 +174,7 @@ describe("OntologyProcessor", () => {
       const data = processor.getData();
       const output = serializer.serialize(data);
 
-      // Should include the property even though object is literal
+      // Should include the property even though the object is a literal
       assert.ok(output.includes("http://schema.org/name"));
     });
   });
@@ -196,7 +196,7 @@ describe("OntologyProcessor", () => {
       assert.ok(output.includes("sh:"));
     });
 
-    test("produces empty string for empty processor", () => {
+    test("produces an empty string for an empty processor", () => {
       const data = processor.getData();
       const output = serializer.serialize(data);
 
@@ -241,7 +241,7 @@ describe("OntologyProcessor", () => {
       const data = processor.getData();
       const output = serializer.serialize(data);
 
-      // Person should appear before Organization in output
+      // Person should appear before Organization in the output
       const personIndex = output.indexOf("http://schema.org/Person");
       const orgIndex = output.indexOf("http://schema.org/Organization");
 
@@ -269,7 +269,7 @@ describe("OntologyProcessor", () => {
     });
 
     test("computes inverse predicates", () => {
-      // Create two people with bidirectional relationship
+      // Create two people with a bidirectional relationship
       const person1Type = {
         subject: namedNode("http://example.org/person/1"),
         predicate: namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
@@ -303,7 +303,7 @@ describe("OntologyProcessor", () => {
 
       const data = processor.getData();
 
-      // Should have computed inverse predicates
+      // Should compute the inverse predicates
       assert.ok(data.inversePredicates instanceof Map);
     });
   });

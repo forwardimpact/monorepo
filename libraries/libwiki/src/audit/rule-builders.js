@@ -15,8 +15,8 @@ import {
 // Check builders and the derived matchers they share, extracted from rules.js
 // so the rule table stays under the per-file line cap. Each builder takes a
 // subject (plus optional ctx) and returns null | finding | finding[]. rules.js
-// imports exactly the symbols its rule table references; the pure constants in
-// constants.js/scopes.js it still imports straight from source.
+// imports exactly the symbols its rule table references. It still imports the
+// pure constants in constants.js/scopes.js straight from source.
 
 export const PRIORITY_INDEX_HEADING_RE = new RegExp(
   `^${PRIORITY_INDEX_HEADING}$`,
@@ -28,7 +28,7 @@ export const PRIORITY_SEPARATOR_RE =
 export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // improvement-coach is the storyboard facilitator and carries no domain
-// metrics; only the five domain agents need their own H3.
+// metrics. Only the five domain agents need their own H3.
 const STORYBOARD_DOMAIN_AGENTS = [
   "product-manager",
   "release-engineer",
@@ -69,9 +69,9 @@ export const columnCount = (expected) => (s) =>
 export const exists = (s) => (s.exists ? null : {});
 export const expired = (s, ctx) => (s.expires_at < ctx.today ? {} : null);
 
-// The heading must equal `requiredLine` exactly — a suffixed variant like
-// "### Decision — <summary>" does not satisfy it, but is reported as a
-// near miss so the writer fixes the heading instead of hunting for a
+// The heading must equal `requiredLine` exactly. A suffixed variant like
+// "### Decision — <summary>" does not satisfy it. The rule reports the variant
+// as a near miss, so the writer fixes the heading and does not hunt for a
 // "missing" line that is right there.
 function entryHasDecision(lines, startIdx, requiredLine, stopRe) {
   let seen = 0;
@@ -99,11 +99,11 @@ export const decisionWithin5 =
     return offenders.length === 0 ? null : offenders;
   };
 
-// Flag entry-shaped `## ` headings that the rotation seam-finder would skip —
-// the grammar-drift that degrades a whole file to one unsplittable prologue and
-// is otherwise silent (the decision-block rule matches only dated headings).
-// Uses the same WEEKLY_LOG_SEAM_RE the seam-finder uses, so the flagged set is
-// exactly the complement of the rotatable set.
+// Flag entry-shaped `## ` headings that the rotation seam-finder would skip.
+// This is the grammar-drift that degrades a whole file to one unsplittable
+// prologue and is otherwise silent (the decision-block rule matches only dated
+// headings). The check uses the same WEEKLY_LOG_SEAM_RE the seam-finder uses,
+// so the flagged set is exactly the complement of the rotatable set.
 export const headingGrammarDrift = (s) => {
   const offenders = [];
   for (let i = 0; i < s.fileLines.length; i++) {
@@ -178,7 +178,7 @@ export const weeklyAgentMismatch = (s) => {
 // Carry surface: the H1 agent slug (`# <agent> — Carries`) must agree with the
 // filename prefix (`<agent>-carries.md`), the carry analogue of the summary /
 // weekly-log agreement rules. The H1 is the slug form already, so slugify is a
-// no-op for well-formed files; it normalises a stray capitalisation otherwise.
+// no-op for well-formed files. Otherwise it normalises a stray capitalisation.
 export const carryAgentMismatch = (s) => {
   const m = s.firstLine.match(CARRY_SURFACE_H1_RE);
   if (!m) return null;
@@ -186,10 +186,10 @@ export const carryAgentMismatch = (s) => {
   return titleSlug === s.agentPrefix ? null : { titleSlug };
 };
 
-// Each Carry entry is an H3 block; every block must name a clearance trigger
+// Each Carry entry is an H3 block. Every block must name a clearance trigger
 // (the `**Carry-clearance:**` marker). Walk the file's H3 boundaries and emit
-// one finding per block missing the marker — the finding[]-returning shape
-// `nothingAfterH2` uses.
+// one finding for each block that lacks the marker. This uses the same
+// finding[] shape as `nothingAfterH2`.
 export const carryEntryHasClearance = (s) => {
   const offenders = [];
   let blockStart = -1;
@@ -221,10 +221,11 @@ export const AGENT_H3_REQUIREMENTS = STORYBOARD_DOMAIN_AGENTS.map((agent) => ({
 // -- Metrics CSV duplicate rows --
 
 // Report every data line byte-identical to an earlier data line in the same
-// CSV. Line 1 is the header (positionally) and blank lines are skipped; the
-// header is never a duplicate subject. Keying on exact line equality gives the
-// spec's exit path for free: any column edit (run id or note) on one row makes
-// the pair non-identical and stops the finding firing.
+// CSV. Line 1 is the header (positionally) and the check skips blank lines.
+// The header is never a duplicate subject. The check keys on exact line
+// equality, which gives the spec's exit path for free. Any column edit (run id
+// or note) on one row makes the pair non-identical, so the finding no longer
+// fires.
 export const duplicateCsvRows = (s) => {
   const seen = new Set();
   const findings = [];

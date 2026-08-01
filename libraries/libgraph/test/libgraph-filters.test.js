@@ -140,17 +140,17 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       assert.strictEqual(
         allMessageResults.length,
         2,
-        "Should find all Message types without prefix filter",
+        "Should find all Message types without a prefix filter",
       );
       assert.strictEqual(
         prefixFilteredResults.length,
         2,
-        "Should find Message types matching prefix",
+        "Should find Message types that match the prefix",
       );
       assert.strictEqual(
         noMatchPrefixResults.length,
         0,
-        "Should find no items with non-matching prefix",
+        "Should find no items when the prefix does not match",
       );
 
       const limitedResults = await graphIndex.queryItems(messagePattern, {
@@ -163,12 +163,12 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       assert.strictEqual(
         limitedResults.length,
         1,
-        "Should respect limit filter",
+        "Should respect the limit filter",
       );
       assert.strictEqual(
         zeroLimitResults.length,
         2,
-        "Should return all items when limit is 0",
+        "Should return all items when the limit is 0",
       );
 
       const tokenLimitedResults = await graphIndex.queryItems(messagePattern, {
@@ -181,17 +181,17 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       assert.strictEqual(
         tokenLimitedResults.length,
         1,
-        "Should respect token limit and stop when exceeded",
+        "Should respect the token limit and stop when the total exceeds it",
       );
       assert.strictEqual(
         strictTokenResults.length,
         1,
-        "Should return only first item within strict token limit",
+        "Should return only the first item within a strict token limit",
       );
       assert.strictEqual(
         tokenLimitedResults[0].tokens,
         10,
-        "Should return item with lowest token count first",
+        "Should return the item with the lowest token count first",
       );
 
       const combinedResults = await graphIndex.queryItems(messagePattern, {
@@ -207,13 +207,13 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       );
       assert(
         String(combinedResults[0]).startsWith("common.Message"),
-        "Should match prefix filter",
+        "Should match the prefix filter",
       );
     });
   });
 
   describe("parseGraphQuery", () => {
-    test("parses simple triple query with wildcards", () => {
+    test("parses a simple triple query with wildcards", () => {
       const result = parseGraphQuery("person:john ? ?");
       assert.deepStrictEqual(result, {
         subject: "person:john",
@@ -222,7 +222,7 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       });
     });
 
-    test("parses triple query with quoted object", () => {
+    test("parses a triple query with a quoted object", () => {
       const result = parseGraphQuery('? foaf:name "John Doe"');
       assert.deepStrictEqual(result, {
         subject: "?",
@@ -231,7 +231,7 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       });
     });
 
-    test("parses triple query with all fields specified", () => {
+    test("parses a triple query with every field set", () => {
       const result = parseGraphQuery("person:john foaf:name person:john");
       assert.deepStrictEqual(result, {
         subject: "person:john",
@@ -240,7 +240,7 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       });
     });
 
-    test("parses triple query with all wildcards", () => {
+    test("parses a triple query with all wildcards", () => {
       const result = parseGraphQuery("? ? ?");
       assert.deepStrictEqual(result, {
         subject: "?",
@@ -249,7 +249,7 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       });
     });
 
-    test("parses triple query with rdf:type predicate", () => {
+    test("parses a triple query with an rdf:type predicate", () => {
       const result = parseGraphQuery("person:john rdf:type schema:Person");
       assert.deepStrictEqual(result, {
         subject: "person:john",
@@ -267,22 +267,22 @@ describe("GraphIndex - Filters and parseGraphQuery", () => {
       });
     });
 
-    test("throws error for empty line", () => {
+    test("throws an error for an empty line", () => {
       assertThrowsMessage(() => parseGraphQuery(""), /line cannot be empty/);
     });
 
-    test("throws error for non-string input", () => {
+    test("throws an error for non-string input", () => {
       assertThrowsMessage(() => parseGraphQuery(null), /line must be a string/);
     });
 
-    test("throws error for wrong number of parts", () => {
+    test("throws an error for the wrong number of parts", () => {
       assertThrowsMessage(
         () => parseGraphQuery("person:john foaf:name"),
         /Expected 3 parts/,
       );
     });
 
-    test("throws error for unterminated quotes", () => {
+    test("throws an error for unterminated quotes", () => {
       assertThrowsMessage(
         () => parseGraphQuery('person:john foaf:name "unterminated'),
         /Unterminated quoted string/,

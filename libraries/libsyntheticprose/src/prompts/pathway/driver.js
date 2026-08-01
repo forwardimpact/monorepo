@@ -1,7 +1,7 @@
 import { buildPreamble } from "./preamble.js";
 
 /**
- * Prompt template for drivers.yaml — all drivers in a single call.
+ * Prompt template for drivers.yaml (all drivers in a single call).
  *
  * @param {object[]} drivers - Driver skeletons from DSL
  * @param {object} ctx - Terrain context (includes skillIds, behaviourIds)

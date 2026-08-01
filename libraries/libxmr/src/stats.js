@@ -4,7 +4,7 @@ import { d2, E2, D4, ZONE_SIGMAS } from "./constants.js";
 //
 // Returns the centerlines, σ̂ estimate, natural process limits, the upper
 // range limit, the inner-zone boundaries (μ ± 1.5σ̂), and the moving-range
-// series. LPL is NOT clipped to zero — see Wheeler §"Lower limits below
+// series. The code does NOT clip LPL to zero. See Wheeler §"Lower limits below
 // zero are real signals that the process distribution lives near a hard
 // floor; clipping silently moves the limit and suppresses lower-tail
 // breaches."

@@ -9,7 +9,7 @@ import sanitizeHtml from "sanitize-html";
  */
 
 /**
- * Replaces details/summary tags in text using a callback
+ * Replaces details/summary tags in text through a callback
  * @param {string} text - Text to process
  * @param {Function} replacer - Callback function ({ attributes, summary, content }) => string
  * @returns {string} Processed text
@@ -154,8 +154,8 @@ export class TerminalFormatter {
    * @param {object} marked - Marked markdown parser
    * @param {object} markedTerminal - marked-terminal plugin
    * @param {object} [options]
-   * @param {boolean} [options.colors=true] - Emit ANSI escape codes; pass
-   *   false when the output is not a TTY so pipes receive plain text
+   * @param {boolean} [options.colors=true] - Emit ANSI escape codes. Pass
+   *   false when the output is not a TTY. Pipes then receive plain text
    */
   constructor(marked, markedTerminal, { colors = true } = {}) {
     if (!marked) throw new Error("marked dependency is required");
@@ -166,7 +166,7 @@ export class TerminalFormatter {
     this.#markedTerminal = markedTerminal;
     this.#colors = colors;
 
-    // Initialize the terminal marked instance with plugin
+    // Initialize the terminal marked instance with the plugin
     // Pass ignoreIllegals to suppress highlight.js warnings about unknown languages
     this.#terminalMarked = new this.#marked.Marked({
       silent: true,
@@ -209,7 +209,7 @@ export class TerminalFormatter {
   format(markdown) {
     const processed = this.#formatDetails(markdown);
     const formatted = this.#terminalMarked.parse(processed);
-    // Reduce the length of horizontal lines by replacing long sequences of dashes
+    // Replace long sequences of dashes to shorten horizontal lines
     const normalized = formatted.replace(/-{73,}/g, "-".repeat(72));
     if (this.#colors) return normalized;
     // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI SGR removal is intentional.
@@ -220,19 +220,20 @@ export class TerminalFormatter {
 /**
  * Formats agent trace output (thinking and tool calls) for the terminal.
  *
- * Renders Claude Agent SDK assistant message content blocks as plain
- * ANSI-styled text: thinking in dim, tool calls as bold name with params.
+ * Renders the content blocks of an assistant message from the Claude Agent
+ * SDK as plain ANSI-styled text. Thinking prints in dim. Tool calls print
+ * as a bold name with params.
  *
- * Every output section is self-contained: content followed by a blank
- * separator line. This single rule governs all spacing — callers never
- * need to inject gaps between sections.
+ * Every output section is self-contained. A section holds its content and
+ * then a blank separator line. This single rule governs all spacing.
+ * Callers never need to inject gaps between sections.
  *
  *   thinking text...         ← section (indent, dim)
  *                            ← separator
  *   ⏺ tool_name(params)     ← section (marker)
  *                            ← separator
  *   ⏺                       ← result marker section
- *                            ← separator (result content follows via caller)
+ *                            ← separator (the caller writes the result content)
  */
 export class AgentTraceFormatter {
   #output;
@@ -252,7 +253,8 @@ export class AgentTraceFormatter {
   }
 
   /**
-   * Writes a single section: content line(s) followed by a blank separator.
+   * Writes a single section. The section has one or more content lines and
+   * then a blank separator.
    * @param {string} text - Section content (no trailing newline needed)
    */
   #writeSection(text) {

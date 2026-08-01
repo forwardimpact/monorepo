@@ -1,20 +1,21 @@
 ---
 title: "Ask a Growth Question"
-description: "Get growth advice grounded in your organization's actual skill and behaviour definitions — not generic career guidance."
+description: "Get growth advice grounded in your organization's actual skill and behaviour definitions. Do not settle for generic career guidance."
 ---
 
-You need to ask a focused question about your career growth and get an answer
-grounded in your organization's engineering standard -- not generic advice.
+You need to ask a focused question about your career growth. You need an
+answer grounded in your organization's engineering standard. You do not want
+generic advice.
 
 ## Prerequisites
 
 Complete the
 [Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/)
-guide first. The steps below assume you have Guide installed, codegen complete,
-and the service stack running.
+guide first. The steps below assume you installed Guide and completed codegen.
+They also assume the service stack runs.
 
 You should also know your role coordinates (discipline, level, and track). If
-you have not identified those yet, work through
+you did not identify those yet, work through
 [See What's Expected at Your Level](/docs/products/career-paths/) first.
 
 ## Start a Guide session
@@ -26,11 +27,11 @@ npx fit-guide
 ```
 
 Guide opens a conversational session backed by your organization's engineering
-standard data. You type questions at the prompt and Guide responds with answers
+standard data. You type questions at the prompt. Guide responds with answers
 drawn from your skill definitions, behaviour expectations, and markers.
 
-Lines starting with `>` in the examples below are prompts you type inside the
-Guide session -- they are not shell commands.
+Lines that start with `>` in the examples below are prompts you type inside the
+Guide session. They are not shell commands.
 
 ## Ask about a specific skill gap
 
@@ -65,8 +66,8 @@ The markers your standard defines for this level are:
   - Defines review standards for the area
 ```
 
-Every element in that answer comes from your capability YAML -- not from a
-generic model of what "senior" means.
+Every element in that answer comes from your capability YAML. It does not come
+from a generic model of what "senior" means.
 
 ## Ask about behaviour shifts between levels
 
@@ -131,7 +132,7 @@ how to demonstrate growth in that area:
 > area"? I'm at working-level Architecture Design and need practitioner.
 ```
 
-Guide suggests concrete activities drawn from your standard -- actions that
+Guide suggests concrete activities drawn from your standard. These actions
 would produce artifacts your evidence record can capture:
 
 ```text
@@ -156,29 +157,28 @@ architectural rationale -- that evidences practitioner-level architecture work.
 
 ## Use piped input for quick lookups
 
-When you want a single answer without entering an interactive session, pipe
-your question directly:
+When you want a single answer and do not want to enter an interactive session,
+pipe your question directly:
 
 ```sh
 echo "What markers define practitioner-level architecture design?" | npx fit-guide
 ```
 
-Guide prints the answer and exits. This is useful for quick lookups during your
-workday when you want to check a specific definition without starting a full
-session.
+Guide prints the answer and exits. This helps with quick lookups during your
+workday. Use it to check a specific definition without a full session.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - **You asked a specific question and got a standards-grounded answer.** The
   response referenced your organization's skill definitions, behaviour
-  expectations, or markers -- not generic career advice.
-- **You can name the skill or behaviour you are working on.** Guide pointed you
-  to specific areas defined in your engineering standard, and you can describe
+  expectations, or markers. It did not give generic career advice.
+- **You can name the skill or behaviour you work on.** Guide pointed you
+  to specific areas defined in your engineering standard. You can describe
   what the next proficiency level expects in concrete terms.
-- **You know how to get back here.** For the full workflow -- finding gaps,
-  checking your evidence record, and tracking progress over time -- return to
+- **You know how to get back here.** The full workflow finds gaps, checks your
+  evidence record, and tracks progress over time. Return to
   [Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/).
 
 ## What's next

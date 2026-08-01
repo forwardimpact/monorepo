@@ -4,12 +4,12 @@ import { resource } from "@forwardimpact/libtype";
  * @typedef {object} IndexInterface
  * @property {() => import("@forwardimpact/libstorage").StorageInterface} storage - Returns the storage instance
  * @property {(item: any) => Promise<void>} add - Adds an item to the index
- * @property {(ids: string[]) => Promise<any[]>} get - Gets items by array of IDs, returns array of items
+ * @property {(ids: string[]) => Promise<any[]>} get - Gets items by an array of IDs. Returns an array of items
  * @property {(id: string) => Promise<boolean>} has - Checks if an item exists in the index
  */
 
 /**
- * Base class for index implementations providing shared filtering logic
+ * Base class for index implementations. It provides the shared filter logic
  * @implements {IndexInterface}
  */
 export class IndexBase {
@@ -57,7 +57,7 @@ export class IndexBase {
 
   /**
    * Gets the loaded state
-   * @returns {boolean} True if index is loaded
+   * @returns {boolean} True if the index is loaded
    * @protected
    */
   get loaded() {
@@ -74,10 +74,10 @@ export class IndexBase {
   }
 
   /**
-   * Applies prefix filter to items during query iteration
+   * Applies the prefix filter to items during query iteration
    * @param {string} id - The id to check
    * @param {string} prefix - The prefix to match
-   * @returns {boolean} True if item should be included
+   * @returns {boolean} True if the item passes the filter
    * @protected
    */
   _applyPrefixFilter(id, prefix) {
@@ -86,7 +86,7 @@ export class IndexBase {
   }
 
   /**
-   * Applies limit filter to results
+   * Applies the limit filter to results
    * @param {import("@forwardimpact/libtype").resource.Identifier[]} results - Array of results to filter
    * @param {number} limit - Maximum number of results
    * @returns {import("@forwardimpact/libtype").resource.Identifier[]} Filtered results
@@ -98,7 +98,7 @@ export class IndexBase {
   }
 
   /**
-   * Applies max_tokens filter to results
+   * Applies the max_tokens filter to results
    * @param {import("@forwardimpact/libtype").resource.Identifier[]} results - Array of results to filter
    * @param {number} max_tokens - Maximum total tokens allowed
    * @returns {import("@forwardimpact/libtype").resource.Identifier[]} Filtered results
@@ -113,7 +113,7 @@ export class IndexBase {
     for (const identifier of results) {
       if (identifier.tokens === undefined || identifier.tokens === null) {
         throw new Error(
-          `Identifier missing tokens field: ${JSON.stringify(identifier)}`,
+          `Identifier has no tokens field: ${JSON.stringify(identifier)}`,
         );
       }
 
@@ -152,7 +152,7 @@ export class IndexBase {
   /**
    * Checks if an item with the given ID exists in the index
    * @param {string} id - The ID to check for
-   * @returns {Promise<boolean>} True if item exists, false otherwise
+   * @returns {Promise<boolean>} True if the item exists, false otherwise
    */
   async has(id) {
     if (!this.#loaded) await this.loadData();
@@ -161,7 +161,7 @@ export class IndexBase {
 
   /**
    * Loads data from storage with common logic for all index types
-   * Subclasses can override this method to add type-specific processing
+   * Subclasses can override this method to add steps for a specific type
    * @returns {Promise<void>}
    */
   async loadData() {
@@ -169,7 +169,7 @@ export class IndexBase {
     if (this.#loaded) return;
 
     if (!(await this.#storage.exists(this.#indexKey))) {
-      // Initialize empty index for new systems
+      // Initialize an empty index for new systems
       this.#index.clear();
       this.#loaded = true;
       return;
@@ -181,10 +181,10 @@ export class IndexBase {
     // Populate the memory index
     this.#index.clear();
     for (const item of items) {
-      // Reconstruct identifier as proper protobuf object if present
+      // Reconstruct the identifier as a proper protobuf object if present
       if (item.identifier && typeof item.identifier === "object") {
         item.identifier = resource.Identifier.fromObject(item.identifier);
-        // Recalculate the id using the proper toString() method
+        // Recalculate the id with the proper toString() method
         item.id = String(item.identifier);
       }
       this.#index.set(item.id, item);
@@ -195,31 +195,31 @@ export class IndexBase {
 
   /**
    * Adds an item to the index with generic storage operations
-   * Subclasses should override this to create their specific item structure,
-   * then call super.add(item) to handle storage
+   * Subclasses should override this to create their specific item structure.
+   * They should then call super.add(item) to handle storage
    * @param {object} item - The item object with required and optional properties
-   * @param {string} item.id - Unique string identifier for the item (used as Map key)
+   * @param {string} item.id - Unique string identifier for the item (the Map key)
    * @param {import("@forwardimpact/libtype").resource.Identifier} item.identifier - Resource identifier object
    * @returns {Promise<void>}
    */
   async add(item) {
     if (!this.#loaded) await this.loadData();
 
-    // Store item in memory
+    // Store the item in memory
     this.#index.set(item.id, item);
 
-    // Append item to storage on disk
+    // Append the item to storage on disk
     await this.#storage.append(this.#indexKey, JSON.stringify(item));
   }
 
   /**
    * Replaces the persisted index file with a JSONL serialisation of the
-   * current in-memory live set. Closes the append-only-vs-deletion gap: a
-   * caller that removes an entry from the in-memory `index` Map and then
-   * calls `compact()` ends with that entry absent from both memory and disk.
-   * `storage.put` is a write-tmp + atomic rename on the local backend —
-   * a restart during `compact()` observes either the prior or post-compact
-   * index, never a half-written file.
+   * current in-memory live set. This closes the append-only-vs-deletion gap.
+   * A caller can remove an entry from the in-memory `index` Map and then call
+   * `compact()`. That entry is then absent from both memory and disk.
+   * `storage.put` is a write-tmp + atomic rename on the local backend.
+   * A restart during `compact()` observes either the prior or the post-compact
+   * index. It never observes a half-written file.
    * @returns {Promise<void>}
    */
   async compact() {
@@ -229,7 +229,7 @@ export class IndexBase {
   }
 
   /**
-   * Queries items from the index using basic filtering
+   * Queries items from the index with basic filters
    * Provides a default implementation that applies shared filters to all items
    * Subclasses can override this for more sophisticated query logic
    * @param {import("@forwardimpact/libtype").tool.QueryFilter} filter - Filter object for query constraints

@@ -7,5 +7,5 @@ one row per run.
 | -------------- | ----- | -------------------------------- | ------------ |
 | findings_count | count | New findings identified this run | Audit report |
 
-The coverage map records only the last-audited date per area — it is not a
-store of open debt items, and the open-debt stock is not recorded here.
+The coverage map records only the last-audited date per area. It is not a store
+of open debt items. Do not record the open-debt stock here.

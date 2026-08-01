@@ -9,7 +9,7 @@ describe("EMPTY_STATES", () => {
     assert.ok(EMPTY_STATES.NO_EVIDENCE.includes("Guide"));
   });
 
-  it("NO_MARKERS_FOR_SKILL is a function returning skill-specific message", () => {
+  it("NO_MARKERS_FOR_SKILL is a function that returns a skill-specific message", () => {
     const msg = EMPTY_STATES.NO_MARKERS_FOR_SKILL("task-completion");
     assert.ok(msg.includes("task-completion"));
     assert.ok(msg.includes("markers"));

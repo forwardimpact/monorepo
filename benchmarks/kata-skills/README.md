@@ -1,15 +1,16 @@
 # `kata-skills` task family
 
-Task family for `fit-benchmark` targeting the `forwardimpact/kata-skills`
-skill pack. Runs on manual dispatch via `eval-kata.yml`.
+This task family serves `fit-benchmark`. It targets the
+`forwardimpact/kata-skills` skill pack. It runs on manual dispatch through
+`eval-kata.yml`.
 
-Four tasks exercise the Plan→Do artifact spine — spec → design → plan →
-implement — against **one shared mock app and one feature** (`todo list
---filter`, spec 042). The app is maintained once at the family level; each task
-is seeded with its own *frozen* upstream artifacts, so it runs independently
-while sharing a single coherent narrative. A fifth task, `coordinate-finding`,
-exercises the **coordination half** of the loop — file → open change → gate →
-merge — offline under the filesystem work tracker.
+Four tasks exercise the Plan→Do artifact spine of spec → design → plan →
+implement. They run against **one shared mock app and one feature** (`todo list
+--filter`, spec 042). This family maintains the app once, at the family level.
+Each task carries its own *frozen* upstream artifacts. So each task runs
+independently, and all the tasks share one coherent narrative. A fifth task,
+`coordinate-finding`, exercises the **coordination half** of the loop: file →
+open change → gate → merge. It runs offline under the filesystem work tracker.
 
 ## Tasks
 
@@ -22,23 +23,24 @@ merge — offline under the filesystem work tracker.
 | `coordinate-finding` | work-tracker operations | `.tracker/` work items | Gates: issue and change filed. Scored: change links the issue, `state: merged`, approval recorded. Judge |
 | `product-issue-triage` | `kata-product-issue` | triaged `.tracker/` issue | Gate: issue still exists. Scored: closed, `wontfix`-labelled, rationale comment. Judge |
 
-The work-tracking tasks are offline — run them under the filesystem tracker.
-Run a single task with `--task`:
+The tasks that use the work tracker are offline. Run them under the filesystem
+tracker. Run a single task with `--task`:
 
 ```text
 fit-benchmark run --family=benchmarks/kata-skills --task=product-issue-triage --work-tracker=filesystem
 ```
 
-Omit `--task` to run every task. The default tracker is `github`; production
-leaves it. The artifact-spine tasks never read `LIBEVAL_WORK_TRACKER`, so they
-are inert under `--work-tracker`.
+Omit `--task` to run every task. The default tracker is `github`. Production
+leaves it unchanged. The artifact-spine tasks never read
+`LIBEVAL_WORK_TRACKER`, so they are inert under `--work-tracker`.
 
 ## The shared app — family-level `workdir/`
 
 The mock app lives once at `workdir/app/`. The harness copies a family-level
-`workdir/` into **every** task's agent CWD (convention-over-configuration: it's
-copied if present), so all four tasks get `app/` without any per-task scripting.
-Per-task `workdir/` and `specs/` then overlay on top of this shared base.
+`workdir/` into **every** task's agent CWD. It copies the directory if it is
+present, by convention over configuration. So all four tasks get `app/` with no
+per-task script. Per-task `workdir/` and `specs/` then overlay on top of this
+shared base.
 
 ```text
 workdir/app/                    # the one mock app, shared by all tasks → cwd/app
@@ -48,33 +50,34 @@ tasks/plan-feature/specs/042-todo-filter/      spec.md, design-a.md
 tasks/implement-feature/specs/042-todo-filter/ spec.md, design-a.md, plan-a.md
 ```
 
-**The mock app** (`workdir/app/`) is a tiny `todo` CLI (`add` / `list` / `done`)
-backed by a JSON store. It deliberately uses **only `node:` built-ins**
-(`node:util.parseArgs`, `node:fs`, `node:test`) — no `@forwardimpact/*` or other
-packages — so it runs in the benchmark CWD with **no install step**. Run its
-tests with `node --test` from `workdir/app/`. The `--filter` feature is *not*
-present in the fixture app; implementing it is the `implement-feature` task.
+**The mock app** (`workdir/app/`) is a tiny `todo` CLI (`add` / `list` /
+`done`). A JSON store backs it. It deliberately uses **only `node:` built-ins**
+(`node:util.parseArgs`, `node:fs`, `node:test`). It uses no `@forwardimpact/*`
+package and no other package. So it runs in the benchmark CWD with **no install
+step**. Run its tests with `node --test` from `workdir/app/`. The fixture app
+does *not* have the `--filter` feature. The `implement-feature` task adds it.
 
-To change the app, edit `workdir/app/` once — all four tasks follow. The
-per-task upstream artifacts (spec/design/plan) are deliberately frozen per task
-so a benchmark's inputs never shift when a sibling task changes.
+To change the app, edit `workdir/app/` once. All four tasks then follow. Each
+task deliberately freezes its own upstream artifacts (spec/design/plan). A
+benchmark's inputs never shift when a sibling task changes.
 
 ## Hidden tests
 
 The `implement-feature` hidden suite lives at
-`tasks/implement-feature/tests/` — an overlay mirror of the agent CWD that is
-never copied into it, so the agent never sees the assertions. After the agent
-runs, the harness stages each file at its mirrored path under `app/test/`,
-runs every `*.test.js` check with `node --test`, emits one check row per
-file, and restores the tree. `todo.gate.test.js` (a symlink to the family
-workdir's baseline suite, so the baseline has one source) is the regression
-gate; the five feature checks are scored at weight 1, which is what gives the
-task its capability gradient. `feature-helpers.js` is support material —
-staged, never graded. The task has no `invariants.sh`.
+`tasks/implement-feature/tests/`. It is an overlay mirror of the agent CWD. The
+harness never copies it into the CWD, so the agent never sees the assertions.
+After the agent runs, the harness stages each file at its mirrored path under
+`app/test/`. It runs every `*.test.js` check with `node --test`. It emits one
+check row per file. It then restores the tree. `todo.gate.test.js` is the
+regression gate. It is a symlink to the family workdir's baseline suite, so the
+baseline has one source. The harness scores the five feature checks at weight 1.
+That weight gives the task its capability gradient. `feature-helpers.js` is
+support material. The harness stages it and never grades it. The task has no
+`invariants.sh`.
 
 ## Dependencies
 
-Declared in `apm.yml`. `fit-benchmark run` calls `apm install --target claude`
-automatically before each run — no manual staging step required. The
-`forwardimpact/kata-skills` pack stages every `kata-*` skill the tasks
-reference.
+`apm.yml` declares the dependencies. `fit-benchmark run` calls
+`apm install --target claude` automatically before each run. You stage nothing
+by hand. The `forwardimpact/kata-skills` pack stages every `kata-*` skill the
+tasks reference.

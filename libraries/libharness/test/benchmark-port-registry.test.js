@@ -4,7 +4,10 @@ import { createServer } from "node:net";
 
 import { PortRegistry } from "../src/benchmark/workdir.js";
 
-/** Resolve once the given port can be bound on 127.0.0.1, then release it. */
+/**
+ * Resolve once a server can bind the given port on 127.0.0.1. Then release the
+ * port.
+ */
 function isBindable(port) {
   return new Promise((res) => {
     const server = createServer();
@@ -35,11 +38,11 @@ describe("PortRegistry", () => {
     }
   });
 
-  test("a released port can be re-handed out", async () => {
+  test("the registry can re-hand out a released port", async () => {
     const reg = new PortRegistry();
     const a = await reg.acquire();
     reg.release(a);
-    // With `a` released, repeated acquires are free to reuse it; the registry
+    // With `a` released, repeated acquires are free to reuse it. The registry
     // must not consider it permanently taken.
     const seen = new Set();
     for (let i = 0; i < 5; i++) {
@@ -50,7 +53,7 @@ describe("PortRegistry", () => {
     assert.ok(seen.size >= 1);
   });
 
-  test("held ports are never duplicated across sequential acquires", async () => {
+  test("the registry never duplicates held ports across sequential acquires", async () => {
     const reg = new PortRegistry();
     const held = [];
     for (let i = 0; i < 8; i++) held.push(await reg.acquire());

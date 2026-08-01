@@ -31,7 +31,7 @@ describe("WorkdirManager.teardown", () => {
   test("frees the port and reaps the process group after a background listener", async () => {
     // Synthesize a task whose preflight starts a background HTTP listener
     // on $PORT and then exits 0 itself. The listener lives in the same
-    // process group; teardown should SIGTERM/SIGKILL it.
+    // process group. Teardown should SIGTERM/SIGKILL it.
     const family = await loadTaskFamily(FIXTURE, RT);
     const out = await mkdtemp(join(tmpdir(), "benchmark-wm-listener-"));
     const { stagingDir } = await newInstaller().install(family, out);
@@ -85,7 +85,7 @@ exit 0
 
     const wd = await wm.start(task, 0);
     assert.ok(!wd.preflightError, "listener fixture preflight should pass");
-    // The listener must actually be on the port — verify it boots.
+    // The listener must actually be on the port. Verify it boots.
     const reachable = await new Promise((res) => {
       const s = connect({ port: wd.port, host: "127.0.0.1" }, () => {
         s.destroy();

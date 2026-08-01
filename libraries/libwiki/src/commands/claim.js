@@ -24,9 +24,9 @@ const NOT_PUBLISHED = {
 };
 
 // Failure reasons that, on the claim/release surfaces, are an unsafe-state
-// refusal (D7/D9 family) rather than a saved-locally success (D1): the refusal
-// fires before the local write is publishable, or leaves the tree unsafe for a
-// later whole-tree sweep, so the surface must exit non-zero.
+// refusal (D7/D9 family) rather than a saved-locally success (D1). The refusal
+// fires before the local write is publishable. Or it leaves the tree unsafe
+// for a later whole-tree sweep. So the surface must exit non-zero.
 const UNSAFE_STATE_REASONS = new Set([
   PUSH_REASONS.PRECONDITION,
   PUSH_REASONS.RESIDUE_CONFLICT,
@@ -37,7 +37,7 @@ const UNSAFE_STATE_REASONS = new Set([
 function notPublishedMessage(err) {
   return (
     `${err.message}\n` +
-    "The row was written to MEMORY.md but is NOT published — it remains an " +
+    "The row is in MEMORY.md but is NOT published. It remains an " +
     "uncommitted working-tree change.\n"
   );
 }
@@ -52,23 +52,25 @@ function memoryPath(runtime, options) {
 }
 
 /**
- * Push the claim/release MEMORY.md change and translate the honest outcome
- * (the honest-CLI contract) into a command envelope, composed with the singleton merge
- * discipline (the singleton merge discipline) and the secret/ancestry guards:
- * - landed (grounded or re-applied) ⇒ `{ ok: true }`, success message printed;
+ * Push the claim/release MEMORY.md change. Translate the honest outcome (the
+ * honest-CLI contract) into a command envelope. Compose it with the singleton
+ * merge discipline (the singleton merge discipline) and the secret/ancestry
+ * guards:
+ * - landed (grounded or re-applied) ⇒ `{ ok: true }` with a printed success
+ *   message;
  * - `rejected`/`transport` ⇒ `{ ok: true }` with a saved-locally warning (the
- *   landed-locally row is complete; the session-end push is its retry);
+ *   landed-locally row is complete, and the session-end push is its retry);
  * - `precondition`/`residue-conflict`/`conservation` ⇒ `{ ok: false, code: 1 }`
- *   (D7/D9 unsafe-state family — the row is not published and the tree may be
- *   left unsafe for a later whole-tree sweep);
+ *   (the D7/D9 unsafe-state family, where the row is not published and the
+ *   tree may be left unsafe for a later whole-tree sweep);
  * - a secret-gate refusal ⇒ `{ ok: false, code: 1 }` ({@link refusalEnvelope});
- * - an {@link AncestryRefusal} is rethrown so `pushRowOrRefuse` maps it to the
- *   not-published non-zero envelope;
+ * - this function rethrows an {@link AncestryRefusal} so `pushRowOrRefuse`
+ *   maps it to the not-published non-zero envelope;
  * - any other thrown error is a network/credential failure that degrades to
  *   "saved locally" (`{ ok: true }`).
  *
  * The `reapply` closure re-derives this row against the fresh tip if the
- * landing contends, so a parallel writer's row is never erased.
+ * landing contends, so this command never erases a parallel writer's row.
  *
  * @param {object} wikiSync - The WikiSync collaborator (may be absent in tests).
  * @param {object} runtime - The runtime bag (for stdout/stderr).
@@ -82,37 +84,38 @@ async function pushWiki(wikiSync, runtime, message, reapply) {
   let result;
   try {
     await wikiSync.inheritIdentity();
-    // claim/release contract is a 1-line MEMORY.md change; the pathspec keeps
-    // foreign uncommitted files from parallel writers out of the commit. The
-    // `reapply` closure re-derives this row against the fresh tip if the landing
-    // contends (the singleton merge discipline), so a parallel writer's row is never erased.
+    // The claim/release contract is a 1-line MEMORY.md change. The pathspec
+    // keeps foreign uncommitted files from parallel writers out of the commit.
+    // The `reapply` closure re-derives this row against the fresh tip if the
+    // landing contends (the singleton merge discipline), so this command never
+    // erases a parallel writer's row.
     result = await wikiSync.commitAndPush(message, ["MEMORY.md"], { reapply });
   } catch (err) {
-    // An ancestry-guard refusal pierces the saved-locally degradation: rethrow
-    // so pushRowOrRefuse maps it to the not-published non-zero envelope.
+    // An ancestry-guard refusal pierces the saved-locally degradation. Rethrow
+    // it so pushRowOrRefuse maps it to the not-published non-zero envelope.
     if (err instanceof AncestryRefusal) throw err;
     if (err instanceof WikiPushFailure) {
-      // D7/D9 unsafe-state family: the row is not published and the tree may be
-      // left unsafe for a later sweep — fail the command closed (non-zero).
+      // D7/D9 unsafe-state family. The row is not published, and the tree may
+      // be left unsafe for a later sweep. Fail the command closed (non-zero).
       if (UNSAFE_STATE_REASONS.has(err.reason)) {
         runtime.proc.stderr.write(`${err.message}\n`);
         return { ok: false, code: 1 };
       }
-      // rejected / transport: the local row landed; warn and keep zero exit.
+      // rejected / transport: the local row landed. Warn and keep zero exit.
       runtime.proc.stderr.write(
-        `saved locally — not yet visible to parallel sessions (${err.reason}): ${err.message}\n`,
+        `saved locally, not yet visible to parallel sessions (${err.reason}): ${err.message}\n`,
       );
       return { ok: true };
     }
-    // Any other failure: preserve fire-and-forget "saved locally" — the change
-    // is on disk and the command still succeeds.
+    // Any other failure: preserve fire-and-forget "saved locally". The change
+    // is on disk, and the command still succeeds.
     createLogger("wiki", runtime).warn(
       "claim",
       `push failed (saved locally): ${err.message}`,
     );
     return { ok: true };
   }
-  // A secret-gate refusal fails the command closed; a grounded-landed or a
+  // A secret-gate refusal fails the command closed. A grounded-landed or a
   // re-applied push reports success.
   const refusal = refusalEnvelope(runtime, result);
   if (refusal) return refusal;
@@ -123,16 +126,17 @@ async function pushWiki(wikiSync, runtime, message, reapply) {
 }
 
 /**
- * Push a written claim/release row, mapping an ancestry-guard refusal to the
- * not-published non-zero envelope and any other outcome to `pushWiki`'s
- * envelope. The row is already written to MEMORY.md; on refusal it stays as an
+ * Push a written claim/release row. Map an ancestry-guard refusal to the
+ * not-published non-zero envelope. Map any other outcome to `pushWiki`'s
+ * envelope. The row is already in MEMORY.md. On a refusal it stays as an
  * uncommitted working-tree change. The `reapply` closure re-derives the same
  * row against the fresh tip when the landing contends.
  */
 async function pushRowOrRefuse(wikiSync, runtime, message, reapply) {
   try {
     // Propagate pushWiki's envelope so a secret-gate or unsafe-state refusal
-    // ({ ok: false }) fails the command closed; a clean push returns { ok: true }.
+    // ({ ok: false }) fails the command closed. A clean push returns
+    // { ok: true }.
     return await pushWiki(wikiSync, runtime, message, reapply);
   } catch (err) {
     if (err instanceof AncestryRefusal) {
@@ -143,7 +147,7 @@ async function pushRowOrRefuse(wikiSync, runtime, message, reapply) {
   }
 }
 
-/** Insert a row into MEMORY.md `## Active Claims`. Refuses if (agent, target) already present. */
+/** Insert a row into MEMORY.md `## Active Claims`. It refuses if (agent, target) is already present. */
 export async function runClaimCommand(ctx) {
   const { runtime, wikiSync } = ctx.deps;
   const options = ctx.options;
@@ -162,8 +166,9 @@ export async function runClaimCommand(ctx) {
     };
   }
   const today = options.today || currentDayIso(runtime);
-  // Default expiry is claim+1 day: a claim is a short-lived "actively shipping
-  // this now" assertion, not a long lease. A run that outlives one day re-claims.
+  // Default expiry is claim+1 day. A claim is a short-lived "actively shipping
+  // this now" assertion. It is not a long lease. A run that outlives one day
+  // re-claims.
   const expires = options["expires-at"] || addDays(today, 1);
   const memPath = memoryPath(runtime, options);
   const text = readMemory(runtime, memPath);
@@ -220,8 +225,8 @@ export async function runReleaseCommand(ctx) {
     }
     runtime.fsSync.writeFileSync(memPath, current);
     runtime.proc.stdout.write(`released ${count} expired claim(s)\n`);
-    // Re-derive expiry against the fresh tip so a renewal landed since the stale
-    // read survives; only still-expired rows are removed.
+    // Re-derive expiry against the fresh tip so a renewal landed since the
+    // stale read survives. Remove only the rows that are still expired.
     const reapply = (fresh) => {
       const freshExpired = filterExpired(parseClaims(fresh), today).expired;
       let next = fresh;
@@ -265,8 +270,9 @@ export async function runReleaseCommand(ctx) {
     return { ok: true };
   }
   runtime.proc.stdout.write(`released ${options.target}\n`);
-  // Re-apply the same removal against the fresh tip if the landing contends;
-  // re-removing an absent row is a no-op, so a re-release never resurrects it.
+  // Re-apply the same removal against the fresh tip if the landing contends.
+  // A second removal of an absent row is a no-op, so a re-release never
+  // resurrects it.
   const reapply = (fresh) => {
     const r = removeClaim(fresh, { agent, target: options.target });
     return r.removed ? r.text : null;

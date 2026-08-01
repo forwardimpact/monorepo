@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/kata",
   "private": true,
-  "description": "Run an autonomous, continuously improving development team via a daily Plan-Do-Study-Act loop, shipped as a skill pack under .claude/skills/kata-*/.",
+  "description": "Run an autonomous, continuously improving development team through a daily Plan-Do-Study-Act loop. Kata ships as a skill pack under .claude/skills/kata-*/.",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
@@ -14,7 +14,7 @@
     {
       "user": "Teams Using Agents",
       "goal": "Run a Continuously Improving Agent Team",
-      "trigger": "Agents are shipping work but nobody can tell whether the team is getting better — the only feedback loop is reading every diff.",
+      "trigger": "Agents ship work, but nobody can tell whether the team improves. The only feedback loop is to read every diff.",
       "bigHire": "run an autonomous, continuously improving development team that plans, ships, studies its own traces, and acts on findings.",
       "littleHire": "onboard a Kata installation that runs the Plan-Do-Study-Act loop without per-team prompt engineering.",
       "competesWith": "bespoke per-agent system prompts; manual orchestration scripts; not measuring agent outcomes; abandoning agent investment after a failed pilot",

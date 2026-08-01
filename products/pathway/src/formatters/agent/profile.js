@@ -1,11 +1,12 @@
 /**
  * Agent Profile Formatter
  *
- * Formats agent profile data into .md file content
- * following the Claude Code agent specification.
+ * Formats agent profile data into .md file content.
+ * It follows the Claude Code agent specification.
  *
- * Uses Mustache templates for flexible output formatting.
- * Templates are loaded from data/ directory with fallback to templates/ directory.
+ * Mustache templates keep the output format flexible.
+ * Templates come from the data/ directory. The fallback is the templates/
+ * directory.
  */
 
 import Mustache from "mustache";
@@ -20,10 +21,11 @@ import { flattenToLine } from "../template-preprocess.js";
  */
 
 /**
- * Compact a working-style body into a single inline clause for bullet rendering.
- * Drops a short leading label ("Before taking action:") and collapses an
- * enumerated checklist ("1. a 2. b 3. c") into one semicolon-joined phrase, so
- * the style reads as a trait rather than a multi-line procedure.
+ * Compact a working-style body into a single inline clause for one bullet.
+ * It drops a short label at the start ("Before taking action:"). It collapses
+ * an enumerated checklist ("1. a 2. b 3. c") into one semicolon-joined
+ * phrase. The style then reads as a trait. It does not read as a multi-line
+ * procedure.
  * @param {string} content - Authored working-style markdown
  * @returns {string} Single-line compact clause
  */
@@ -43,14 +45,15 @@ function compactWorkingStyle(content) {
 }
 
 /**
- * Prepare agent profile data for template rendering
- * Normalizes string values by trimming trailing newlines for consistent template output.
+ * Prepare agent profile data for the template
+ * It trims trailing newlines from string values. The template output then
+ * stays consistent.
  * @param {Object} params
  * @param {Object} params.frontmatter - YAML frontmatter data
  * @param {string} params.frontmatter.name - Agent name
  * @param {string} params.frontmatter.description - Agent description
  * @param {string} params.frontmatter.model - Claude Code model (sonnet, opus, haiku)
- * @param {string[]} params.frontmatter.skills - Skill dirnames for auto-loading
+ * @param {string[]} params.frontmatter.skills - Skill dirnames to load automatically
  * @param {Object} params.bodyData - Structured body data
  * @param {string} params.bodyData.title - Agent title
  * @param {string} params.bodyData.identity - Core identity text
@@ -63,9 +66,9 @@ function compactWorkingStyle(content) {
  * @returns {Object} Data object ready for Mustache template
  */
 function prepareAgentProfileData({ frontmatter, bodyData }) {
-  // Discipline and track constraint lists are concatenated in the profile.
-  // De-duplicate so a constraint declared by both the discipline and the track
-  // (or repeated within either) renders only once.
+  // The profile concatenates the discipline and track constraint lists.
+  // De-duplicate them. A constraint renders only once, even when both the
+  // discipline and the track declare it, or one list repeats it.
   const seenConstraints = new Set();
   const dedupeConstraints = (list) =>
     (list || [])
@@ -80,16 +83,16 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
     bodyData.disciplineConstraints,
   );
   const trackConstraints = dedupeConstraints(bodyData.trackConstraints);
-  // Flatten the "Use when" cell so each skill renders on a single physical
-  // table row — multi-line cells break the markdown table and inflate the
+  // Flatten the "Use when" cell so each skill renders on one physical table
+  // row. A multi-line cell breaks the markdown table. It also inflates the
   // profile's line count against its layer cap.
   const skillIndex = trimFields(bodyData.skillIndex, {
     name: "required",
     dirname: "required",
     useWhen: "required",
   }).map((entry) => ({ ...entry, useWhen: flattenToLine(entry.useWhen) }));
-  // Render each working style as a single compact bullet rather than a titled
-  // multi-paragraph block, keeping the profile within its layer cap.
+  // Render each working style as one compact bullet. Do not render a titled
+  // multi-paragraph block. The profile then stays within its layer cap.
   const workingStyles = trimFields(bodyData.workingStyles, {
     title: "required",
     content: "required",
@@ -124,7 +127,7 @@ function prepareAgentProfileData({ frontmatter, bodyData }) {
 }
 
 /**
- * Format agent profile as .md file content using Mustache template
+ * Format agent profile as .md file content with a Mustache template
  * @param {Object} profile - Profile with frontmatter and bodyData
  * @param {Object} profile.frontmatter - YAML frontmatter data
  * @param {string} profile.frontmatter.name - Agent name

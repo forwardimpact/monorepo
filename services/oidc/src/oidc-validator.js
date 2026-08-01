@@ -38,8 +38,8 @@ function toOidcError(err) {
     if (err.claim === "aud") return new OidcError("WRONG_AUDIENCE");
     return new OidcError("INVALID_SIGNATURE", err.message);
   }
-  // Malformed token, bad algorithm, nbf-in-future, etc. — treat as an
-  // unverifiable signature rather than leaking jose internals.
+  // Malformed token, bad algorithm, nbf-in-future, etc. Treat these as an
+  // unverifiable signature. Do not leak jose internals.
   return new OidcError("INVALID_SIGNATURE", "token is not verifiable");
 }
 
@@ -49,11 +49,11 @@ const SIGNATURE_FAILURE_CODES = new Set([
 ]);
 
 /**
- * Validates GitHub Actions OIDC tokens and extracts the `repository`
- * claim. Verifies the JWS signature against the issuer's JWKS, then the
+ * Validates GitHub Actions OIDC tokens. Extracts the `repository` claim.
+ * Verifies the JWS signature against the issuer's JWKS. Then verifies the
  * `iss`, `aud`, `exp`, and `nbf` claims. On a signature failure the
- * validator invalidates the JWKS cache once and retries — recovering from
- * key rotation without a forced restart.
+ * validator invalidates the JWKS cache once and retries. The retry recovers
+ * from key rotation without a forced restart.
  */
 export class OidcValidator {
   #jwks;
@@ -90,7 +90,7 @@ export class OidcValidator {
   }
 
   /**
-   * Verify the JWT, retrying once with a refreshed JWKS on signature
+   * Verify the JWT. Retry once with a refreshed JWKS on a signature
    * failure (JWKS rotation recovery).
    *
    * @param {string} token

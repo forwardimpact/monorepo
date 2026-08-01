@@ -2,10 +2,11 @@
 /**
  * Organize files in a directory by type into subdirectories.
  *
- * Scans the top level of the given directory and moves files into category
- * subdirectories: Screenshots, Documents, Images, Archives, and Installers.
- * Categories are determined by file extension and name prefix. Files that do
- * not match any category are left in place. Does NOT delete anything.
+ * The script scans the top level of the given directory. It moves files into
+ * category subdirectories: Screenshots, Documents, Images, Archives, and
+ * Installers. The file extension and the name prefix set the category. The
+ * script leaves a file in place if it matches no category. It does NOT delete
+ * anything.
  */
 
 import {

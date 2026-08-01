@@ -24,7 +24,7 @@ export function renderNotFound({ entityType, entityId, backPath, backText }) {
 }
 
 /**
- * Create a not found error element (without rendering)
+ * Create a not found error element. The function does not render it.
  * @param {Object} options - Configuration options
  * @param {string} options.entityType - Type of entity not found
  * @param {string} options.entityId - ID that was not found

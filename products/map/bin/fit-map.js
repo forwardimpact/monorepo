@@ -3,8 +3,8 @@
 /**
  * fit-map CLI
  *
- * Map validation, index generation, export, and activity management
- * for Engineering Pathway data.
+ * Validates Engineering Pathway data. Generates index files, exports the
+ * data, and manages activity.
  */
 
 import "@forwardimpact/libpreflight/node22";
@@ -28,15 +28,15 @@ import {
   formatBullet,
 } from "@forwardimpact/libcli";
 
-// The bin is the sole construction site for the injected runtime bag and the
-// only caller of runtime.proc.exit (design Decision 4).
+// The bin is the sole construction site for the injected runtime bag. It is
+// also the only caller of runtime.proc.exit (design Decision 4).
 const runtime = createDefaultRuntime();
 const summary = new SummaryRenderer({ process: runtime.proc });
 const config = await createProductConfig("map");
 
 const definition = {
   name: "fit-map",
-  description: "Data validation and management for Engineering Pathway",
+  description: "Validate and manage data for Engineering Pathway",
   commands: [
     {
       name: "init",
@@ -44,9 +44,12 @@ const definition = {
     },
     {
       name: "validate",
-      description: "Run validation (default: JSON schema)",
+      description: "Validate the data (default: JSON schema)",
       options: {
-        shacl: { type: "boolean", description: "SHACL schema validation" },
+        shacl: {
+          type: "boolean",
+          description: "Validate with the SHACL schema",
+        },
       },
     },
     { name: "generate-index", description: "Generate _index.yaml files" },
@@ -65,7 +68,7 @@ const definition = {
     {
       name: "activity",
       args: "<start|stop|status|migrate|transform|verify|seed|bundle-standard-data>",
-      description: "Manage activity stack",
+      description: "Manage the activity stack",
       options: { out: { type: "string", description: "bundle output path" } },
     },
     {
@@ -133,12 +136,13 @@ const definition = {
       title: "Authoring Agent-Aligned Engineering Standards",
       url: "https://www.forwardimpact.team/docs/products/authoring-standards/index.md",
       description:
-        "End-to-end guide to defining your engineering standard in YAML.",
+        "End-to-end guide that shows how to define your engineering standard in YAML.",
     },
     {
       title: "Validate and Update the Standard",
       url: "https://www.forwardimpact.team/docs/products/authoring-standards/update-standard/index.md",
-      description: "Run validation, interpret errors, and update safely.",
+      description:
+        "Validate the standard, interpret errors, and update safely.",
     },
     {
       title: "Define a New Role",
@@ -164,7 +168,7 @@ const cli = createCli(definition, {
 });
 
 /**
- * Format validation results for display using libcli helpers.
+ * Format the validation results for display with libcli helpers.
  * @param {{valid: boolean, errors: Array, warnings?: Array}} result
  * @returns {string}
  */
@@ -249,7 +253,7 @@ async function findOutputDir(providedPath) {
 }
 
 /**
- * Export command — render every base entity to HTML microdata.
+ * Export command. Render every base entity to HTML microdata.
  */
 async function runExport(dataDir, outputDir) {
   runtime.proc.stdout.write(
@@ -421,7 +425,7 @@ async function dispatchActivity(subcommand, rest, values) {
       return activity.verify(await mapClient(), runtime);
     case "seed": {
       const { dataDir, mapData } = await loadMapDataFor(values);
-      // findDataDir returns .../pathway; seed needs the parent data/ dir
+      // findDataDir returns .../pathway. Seed needs the parent data/ dir
       return activity.seed({
         data: dirname(dataDir),
         supabase: await mapClient(),

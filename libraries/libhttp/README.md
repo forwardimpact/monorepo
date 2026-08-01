@@ -9,9 +9,10 @@ lifecycle, security headers, or health checks.
 
 ## Getting Started
 
-`createHttpService` owns the transport boilerplate (security headers, body
-limit, error envelope, `/health`, port binding, graceful `stop()`). The service
-mounts its routes through the `configure` callback:
+`createHttpService` owns the transport boilerplate. It sets the security
+headers, limits the body, formats the error envelope, serves `/health`, binds
+the port, and stops gracefully with `stop()`. The service mounts its routes
+through the `configure` callback:
 
 ```js
 import { createHttpService } from "@forwardimpact/libhttp";
@@ -30,7 +31,8 @@ await service.start();
 // service.stop()    -> graceful shutdown (runs optional onStop first)
 ```
 
-Signal handling stays in the entry point (`server.js`), not the library:
+The library does not handle signals. Handle them in the entry point
+(`server.js`):
 
 ```js
 for (const sig of ["SIGINT", "SIGTERM"]) {

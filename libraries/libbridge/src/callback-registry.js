@@ -5,14 +5,15 @@ const DEFAULT_SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 
 /**
  * In-memory registry of pending bridge → workflow callbacks. Hosts persist
- * the (token, correlationId) pairs via the discussion store so the registry
- * can be rehydrated after a restart; this class only owns the live token →
- * metadata mapping and TTL sweep.
+ * the (token, correlationId) pairs through the discussion store, so a host
+ * can rehydrate the registry after a restart. This class only owns the live
+ * token → metadata map and the TTL sweep.
  *
  * Every entry is tenant-bound. `register` requires `meta.tenant_id` (single
- * tenant deployments pass `"default"`); `consume` and `peek` require the
- * caller's `tenant_id` and return `null` when the stored value does not
- * match — the same null shape callers already handle for unknown tokens.
+ * tenant deployments pass `"default"`). `consume` and `peek` require the
+ * caller's `tenant_id`. They return `null` when the stored value does not
+ * match. That null shape is the one callers already handle for unknown
+ * tokens.
  */
 export class CallbackRegistry {
   #ttlMs;
@@ -38,7 +39,7 @@ export class CallbackRegistry {
 
   /**
    * @param {string} correlationId
-   * @param {object} meta - Caller-defined metadata; `meta.tenant_id` is required
+   * @param {object} meta - Caller-defined metadata. `meta.tenant_id` is required
    * @returns {string} The newly issued callback token
    */
   register(correlationId, meta) {
@@ -58,9 +59,9 @@ export class CallbackRegistry {
   }
 
   /**
-   * Whether an entry's TTL has elapsed; expired entries are dropped at the
-   * lookup that observes them so a stale token stops being a credential
-   * even when no sweep has run yet.
+   * Whether an entry's TTL elapsed. The lookup that observes an expired
+   * entry drops it. A stale token is then no longer a credential, even
+   * before a sweep runs.
    * @param {{createdAt: number}} entry
    * @param {number} now
    * @returns {boolean}
@@ -92,9 +93,10 @@ export class CallbackRegistry {
   }
 
   /**
-   * Returns a shallow clone of the stored metadata for a token without
-   * consuming it. Returns null on unknown token or `tenant_id` mismatch —
-   * matching `consume`'s shape so callers handle one missing case.
+   * Returns a shallow clone of the stored metadata for a token. It does not
+   * consume the token. Returns null on unknown token or `tenant_id`
+   * mismatch. That shape matches `consume`, so callers handle one missing
+   * case.
    * @param {string} token
    * @param {{tenant_id: string}} bind
    * @returns {{correlationId: string, meta: object, createdAt: number} | null}
@@ -115,15 +117,16 @@ export class CallbackRegistry {
 
   /**
    * Return the bound `tenant_id` for any active token whose correlationId
-   * matches; null if no active token binds the correlation. The inbox
-   * route uses this to verify a path-supplied tenant against the binding
-   * the dispatcher recorded. Single-pass scan of the entries map; the
-   * registry is one entry per in-flight dispatch per bridge process.
+   * matches. Return null if no active token binds the correlation. The
+   * inbox route uses this to verify a path-supplied tenant against the
+   * binding the dispatcher recorded. The method makes a single-pass scan of
+   * the entries map. The registry holds one entry per in-flight dispatch
+   * per bridge process.
    *
-   * Scan-by-design (timing-parity): the bounded-n scan is acceptable only
-   * while the caller preserves response-shape parity — a miss here and a
-   * tenant mismatch must produce the same response (the inbox route
-   * collapses both to 404 `Unknown correlation`), so timing or shape never
+   * Scan-by-design (timing-parity). The bounded-n scan is acceptable only
+   * while the caller preserves response-shape parity. A miss here and a
+   * tenant mismatch must produce the same response. The inbox route
+   * collapses both to 404 `Unknown correlation`, so timing or shape never
    * distinguishes "correlation unknown" from "correlation bound elsewhere".
    * @param {string} correlationId
    * @returns {string | null}
@@ -143,8 +146,8 @@ export class CallbackRegistry {
   }
 
   /**
-   * Drop entries older than ttlMs. Caller drives the clock so tests stay
-   * deterministic.
+   * Drop entries older than ttlMs. The caller drives the clock so tests
+   * stay deterministic.
    * @param {number} [now]
    * @returns {number} Number of entries evicted
    */
@@ -160,9 +163,10 @@ export class CallbackRegistry {
   }
 
   /**
-   * Start the periodic sweep so tokens whose dispatch never calls back are
-   * reclaimed instead of accumulating for the life of the process. Idempotent;
-   * the handle is unref'd so it never holds the process open.
+   * Start the periodic sweep. The sweep reclaims tokens whose dispatch never
+   * calls back, so they do not accumulate for the life of the process. This
+   * method is idempotent. It unrefs the handle, so the timer never holds the
+   * process open.
    * @param {number} [intervalMs]
    */
   startSweepTimer(intervalMs = DEFAULT_SWEEP_INTERVAL_MS) {
@@ -172,7 +176,7 @@ export class CallbackRegistry {
   }
 
   /**
-   * Stop the periodic sweep. Safe to call when no timer is running.
+   * Stop the periodic sweep. Safe to call when no timer runs.
    */
   stopSweepTimer() {
     if (!this.#sweepTimer) return;

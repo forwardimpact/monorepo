@@ -2,13 +2,13 @@
  * ProseGenerator — async LLM-backed prose generation that writes through
  * to a `ProseCache`.
  *
- * Pairs with `ProseCache` (sync). Calls the LLM only when the cache misses
- * and the mode permits generation.
+ * It pairs with `ProseCache` (sync). It calls the LLM only when the cache
+ * misses and the mode permits it.
  *
  * `generatePlain()` keys the cache by entity key directly so the on-disk
  * file is diff-readable and the key set is enumerable.
- * `generateStructured()` keys by `${entityKey}#${hash}` so the entity is
- * still greppable while prompt drift auto-invalidates stale entries.
+ * `generateStructured()` keys by `${entityKey}#${hash}`. The entity stays
+ * greppable. Prompt drift auto-invalidates stale entries.
  *
  * @module libsyntheticprose/engine/generator
  */
@@ -25,7 +25,7 @@ export class ProseGenerator {
    * @param {string} options.mode                  "cached" | "generate" | "no-prose"
    * @param {boolean} [options.strict]             Fail on cache miss
    * @param {{ createCompletions: Function }} [options.llmApi]
-   *        Pre-configured LLM client — required when mode is "generate"
+   *        Pre-configured LLM client. Required when mode is "generate"
    * @param {import('@forwardimpact/libprompt').PromptLoader} options.promptLoader
    * @param {object} options.logger
    * @param {object} [options.runtime]             Runtime collaborator bag
@@ -55,7 +55,7 @@ export class ProseGenerator {
   }
 
   /**
-   * Resolve prose for a key — cache hit, cache miss + generate, or null.
+   * Resolve prose for a key: a cache hit, a cache miss then generate, or null.
    * @param {string} key
    * @param {object} context
    * @returns {Promise<string|null>}
@@ -80,8 +80,8 @@ export class ProseGenerator {
   /**
    * Resolve a structured response from pre-built messages.
    *
-   * Cache key includes both the entity key and the prompt content so
-   * that prompt changes automatically invalidate stale entries.
+   * The cache key includes both the entity key and the prompt content.
+   * Prompt changes then invalidate stale entries automatically.
    *
    * @param {string} key
    * @param {object[]} messages
@@ -177,12 +177,12 @@ export class ProseGenerator {
   /**
    * Build the rendered prompt for a prose-context entry.
    *
-   * The scalar `driver` / `direction` / `magnitude` consumed by the
-   * template's `{{#scenario}}` block are derived from `context.drivers[0]`
-   * — the top driver (sorted by `|magnitude|`). Snapshot-comment and
-   * webhook contexts both populate `drivers: DriverImpact[]`; this method
-   * is a function of the `ProseContext` entry alone, with no per-output
-   * branching.
+   * The template's `{{#scenario}}` block consumes the scalar `driver`,
+   * `direction`, and `magnitude`. This method derives all three from
+   * `context.drivers[0]`, the top driver by `|magnitude|`.
+   * Snapshot-comment and webhook contexts both populate
+   * `drivers: DriverImpact[]`. This method reads the `ProseContext` entry
+   * alone. It does not branch per output.
    *
    * @param {string} key
    * @param {object} context

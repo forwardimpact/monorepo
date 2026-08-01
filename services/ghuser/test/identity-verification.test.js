@@ -143,10 +143,11 @@ describe("ghuser identity verification", () => {
     // Pin the canonical request shape against `services/bridge`
     // `requireTenant` (rejects empty `tenant_id`) and `scopedKey =
     // ${tenant_id}:${link_token}` (must match msbridge's `default`
-    // tenant write). A regression to `tenant_id: ""` would 1) flip
-    // both Begin calls to `proof_missing` in production while still
-    // passing this suite without the assertion, and 2) silently
-    // break msteams linking on the structural-fix tag.
+    // tenant write). A regression to `tenant_id: ""` would do two
+    // things. 1) It would flip both Begin calls to `proof_missing` in
+    // production, and this suite would still pass without the
+    // assertion. 2) It would silently break the msteams link flow on
+    // the structural-fix tag.
     assert.deepStrictEqual(verifyCalls[0], {
       link_token: "link-token-xyz",
       expected_surface: "msteams",
@@ -155,7 +156,7 @@ describe("ghuser identity verification", () => {
     });
   });
 
-  test("bridge-proof keys VerifyPendingDispatch on the resolved tenant, not a literal", async () => {
+  test("bridge-proof keys VerifyPendingDispatch on the resolved tenant and never on a literal", async () => {
     const storage = createMockStorage();
     const verifyCalls = [];
     const { service } = createService(storage, {
@@ -174,8 +175,9 @@ describe("ghuser identity verification", () => {
       tenant_id: "tenant-b",
     });
 
-    // The proof must be scoped to the tenant carried in on Begin (criterion
-    // 3); a regression to a hard-coded literal fails this assertion.
+    // The service must scope the proof to the tenant that Begin carries in
+    // (criterion 3). A regression to a hard-coded literal fails this
+    // assertion.
     assert.deepStrictEqual(verifyCalls[0], {
       link_token: "link-token-xyz",
       expected_surface: "msteams",
@@ -216,7 +218,7 @@ describe("ghuser identity verification", () => {
     ]);
   });
 
-  test("github-discussions matching id binds", async () => {
+  test("github-discussions matched id binds", async () => {
     const storage = createMockStorage();
     const { service, bindings } = createService(storage, {
       getUserId: "42",
@@ -251,7 +253,7 @@ describe("ghuser identity verification", () => {
     assert.strictEqual(binding, null, "no binding created");
   });
 
-  test("client_state round-trip carried through to completion", async () => {
+  test("client_state round-trip carries through to completion", async () => {
     const storage = createMockStorage();
     const { service } = createService(storage, { getUserId: "42" });
 

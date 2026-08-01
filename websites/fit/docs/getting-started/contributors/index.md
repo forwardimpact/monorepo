@@ -1,15 +1,15 @@
 ---
 title: "Getting Started: Contributors"
-description: "Go from a fresh clone to a working development environment — with synthetic data, passing checks, and a clear picture of the project structure."
+description: "Go from a fresh clone to a development environment that works, with synthetic data, checks that pass, and a clear picture of the project structure."
 ---
 
 Set up the Forward Impact monorepo for development. This guide covers
-installation, data generation, and running the quality checks.
+installation, data generation, and the quality checks.
 
-> External users install products via npm (see
+> External users install products with npm (see
 > [Engineering Leaders](/docs/getting-started/leaders/) or
 > [Engineers](/docs/getting-started/engineers/)). This page is for contributors
-> working on the monorepo itself.
+> who work on the monorepo itself.
 
 ## Prerequisites
 
@@ -30,16 +30,16 @@ codegen, and processes resources.
 
 ## Generate synthetic data
 
-The monorepo includes a synthetic data pipeline for testing and development:
+The monorepo includes a synthetic data pipeline for tests and development:
 
 ```sh
 just synthetic
 ```
 
 This uses cached prose from `data/synthetic/prose-cache.json` and requires no
-LLM access. It produces agent-aligned engineering standard definitions,
-organizational documents, and activity data that the products consume during
-development and testing.
+LLM access. It produces definitions for the agent-aligned engineering standard,
+organizational documents, and activity data. The products consume that data
+during development and tests.
 
 Other generation modes:
 
@@ -49,7 +49,7 @@ just synthetic-update     # Regenerate prose via LLM and update the cache
 
 ## Run checks
 
-Run formatting and linting, then unit tests, before committing:
+Run the format and lint checks, then the unit tests, before you commit:
 
 ```sh
 bun run check
@@ -57,10 +57,10 @@ bun run test
 ```
 
 `bun run check` runs `format`, `lint`, `jsdoc`, `invariants`, `context`, and
-`wiki` sequentially so failures are easy to spot. `bun run test` runs unit tests
-(`bun test`) separately so test output does not bury check failures.
+`wiki` sequentially so you can spot failures easily. `bun run test` runs unit
+tests (`bun test`) separately so test output does not bury check failures.
 
-To auto-fix formatting and lint issues:
+To fix format and lint issues automatically:
 
 ```sh
 bun run check:fix
@@ -129,11 +129,11 @@ activity layer. Kata orchestrates an autonomous agent team that ships and
 improves itself. Gear is a meta-package that re-exports all service and library
 CLIs as dependencies.
 
-**Libraries** provide shared logic following OO+DI patterns — classes accept
-dependencies through constructors, factory functions wire real implementations,
-tests inject mocks directly.
+**Libraries** provide shared logic that follows OO+DI patterns. Classes accept
+dependencies through constructors. Factory functions wire real implementations.
+Tests inject mocks directly.
 
-**Services** are gRPC microservices supervised by `fit-rc`. Start them with
+**Services** are gRPC microservices that `fit-rc` supervises. Start them with
 `bunx fit-rc start`.
 
 ## Development workflow
@@ -141,7 +141,7 @@ tests inject mocks directly.
 1. Create a branch from `main`
 2. Make your changes
 3. Run `bun run check` and `bun run test`
-4. Run `just audit` (npm audit + gitleaks secret scanning)
+4. Run `just audit` (npm audit and a gitleaks secret scan)
 5. Commit and push
 
 Commit messages follow conventional format: `type(scope): subject`. Types

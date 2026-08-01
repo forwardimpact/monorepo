@@ -6,15 +6,16 @@
  * one source-attribution rule. `compareTwo` derives per-side identity from
  * each input's basename and threads it into `TraceQuery.compare()`.
  *
- * `load` is injected (the exported `loadTrace` from `commands/trace.js`) so
- * this module stays IO-policy-free and unit-testable with a stub.
+ * The caller injects `load` (the exported `loadTrace` from
+ * `commands/trace.js`). So this module stays IO-policy-free. A stub makes it
+ * unit-testable.
  */
 import { basename } from "node:path";
 
 /**
- * Load each file → `TraceQuery`, run `query(tq)`, tag each emitted record with
- * `source: <basename>` only when more than one file is supplied. Records are
- * concatenated in file-then-record order.
+ * Load each file → `TraceQuery`. Run `query(tq)`. Tag each emitted record
+ * with `source: <basename>` only when the caller supplies more than one file.
+ * Concatenate the records in file-then-record order.
  * @param {string[]} files
  * @param {(tq: object) => object[]} query
  * @param {(file: string) => object} load
@@ -34,10 +35,10 @@ export function runOver(files, query, load) {
 }
 
 /**
- * Merge per-file record arrays by `key(record)`, summing each record's
- * existing `count` field (not occurrence count), and frequency-sort by
- * `count desc`. Merged records carry `sources: string[]` only when more than
- * one file is supplied.
+ * Merge per-file record arrays by `key(record)`. Sum the `count` field that
+ * each record already carries. The merge does not count occurrences.
+ * Frequency-sort by `count desc`. Merged records carry `sources: string[]`
+ * only when the caller supplies more than one file.
  * @param {string[]} files
  * @param {(tq: object) => Array<{count: number}>} query
  * @param {(record: object) => string} key
@@ -67,8 +68,8 @@ export function aggregate(files, query, key, load) {
 }
 
 /**
- * Load two files, derive each side's `{caseName, participant}` from its
- * basename via the `split` convention, and thread them into
+ * Load two files. Derive each side's `{caseName, participant}` from its
+ * basename through the `split` convention. Thread them into
  * `a.compare(b, {aIdentity, bIdentity})`.
  * @param {string} a
  * @param {string} b
@@ -86,8 +87,9 @@ export function compareTwo(a, b, load) {
 
 /**
  * Parse `trace--<case>--<participant>.<role>.ndjson` into `{caseName,
- * participant}`. On no match, `caseName` is the basename minus its final
- * `.ndjson` extension only and `participant` is null.
+ * participant}`. On no match, `caseName` is the basename without its final
+ * `.ndjson` extension. The function removes that one extension only.
+ * `participant` is then null.
  * @param {string} file
  * @returns {{caseName: string, participant: string|null}}
  */

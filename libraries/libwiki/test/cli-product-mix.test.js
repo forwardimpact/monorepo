@@ -10,8 +10,8 @@ import { runProductMixCommand } from "../src/commands/product-mix.js";
 const WINDOW = { until: "2026-06-08", since: "2026-06-01" };
 
 function prsPayload(...specs) {
-  // Each spec is a label name (or null for unlabeled). Returns the JSON shape
-  // `gh pr list --json number,labels,mergedAt` emits.
+  // Each spec is a label name (or null for unlabeled). This returns the JSON
+  // shape `gh pr list --json number,labels,mergedAt` emits.
   return JSON.stringify(
     specs.map((label, i) => ({
       number: i + 1,
@@ -93,7 +93,7 @@ describe("gemba-wiki product-mix", () => {
   });
 
   test("defaults the window to the trailing 7 days from the clock", async () => {
-    // currentDayIso reads runtime.clock.now(); addDays(-7) sets the start.
+    // currentDayIso reads runtime.clock.now(). addDays(-7) sets the start.
     const clock = { now: () => Date.UTC(2026, 5, 8), sleep: async () => {} };
     const { subprocess, run } = runWith(prsPayload("product"), {
       options: { repo: "owner/repo" },

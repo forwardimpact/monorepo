@@ -2,9 +2,9 @@
 /**
  * Extract text from PowerPoint (.pptx) slides.
  *
- * PPTX files are ZIP archives containing XML. This script extracts all text
- * from each slide and outputs it as structured markdown with slide headings.
- * Handles multiple files and outputs to stdout or a file.
+ * A PPTX file is a ZIP archive that holds XML. This script extracts all text
+ * from each slide. It outputs the text as structured markdown with slide
+ * headings. It handles multiple files. It writes to stdout or to a file.
  *
  * Usage:
  *   node scripts/extract-pptx.mjs <path-to-pptx>
@@ -12,7 +12,8 @@
  *   node scripts/extract-pptx.mjs file1.pptx file2.pptx
  *   node scripts/extract-pptx.mjs -h|--help
  *
- * No external dependencies — uses Node.js built-in modules only.
+ * The script needs no external dependencies. It uses Node.js built-in
+ * modules only.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -26,7 +27,7 @@ Usage:
   node scripts/extract-pptx.mjs -h|--help
 
 Options:
-  -o <path>   Write output to file instead of stdout
+  -o <path>   Write output to a file instead of stdout
   -h, --help  Show this help
 
 Output: Markdown-formatted text with ## Slide N headings per slide.
@@ -136,8 +137,8 @@ function readEntry(buf, entry) {
 }
 
 /**
- * Extract all text content from slide XML using the DrawingML namespace.
- * Matches <a:t>text</a:t> elements used by PowerPoint.
+ * Extract all text content from slide XML with the DrawingML namespace.
+ * The pattern matches the <a:t>text</a:t> elements that PowerPoint uses.
  * @param {string} xml
  * @returns {string[]}
  */

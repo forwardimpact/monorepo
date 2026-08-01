@@ -4,13 +4,13 @@ Two worked examples from a hypothetical BioNova-themed installation.
 
 > **These are examples.** Your installation has different teams, people,
 > and projects in its synthetic content. Ground every persona in *your*
-> DSL and prose-cache — never copy the names below into a real interview.
+> DSL and prose-cache. Never copy the names below into a real interview.
 
 ## Shared "About" block
 
-Both examples open with the same `## About <Company>` section, sourced
-from `data/synthetic/story.dsl` (org block, lines 1–278) and
-`prose-cache.json` (`article_clinical`, `article_drug_discovery`):
+Both examples open with the same `## About <Company>` section. That
+section comes from `data/synthetic/story.dsl` (org block, lines 1–278)
+and `prose-cache.json` (`article_clinical`, `article_drug_discovery`):
 
 ```markdown
 ## About BioNova
@@ -23,7 +23,7 @@ culture. Standard: J040–J100; disciplines: Software Engineering, Data
 Engineering, Engineering Management.
 ```
 
-Examples abbreviate as `## About BioNova <see above>`; paste the full
+Examples abbreviate as `## About BioNova <see above>`. Paste the full
 block in the real file.
 
 ---

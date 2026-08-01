@@ -6,17 +6,18 @@
  * Files under `--cwd`:
  *   - `.env` — `<NAME>=<jwt>` (one line, mode 0600). `--token-env` is
  *     required with no default, so no product literal survives in this
- *     library; the caller owns the variable name.
+ *     library. The caller owns the variable name.
  *   - `.substrate.json` — the folded `substrate.discovery` key/values
- *     (spread, not nested) plus `persona_email`, `manager_email`, and
- *     `generated_at` (mode 0600). An absent or empty discovery relation
- *     yields an identity-only file — declared degradation.
+ *     (spread into the top level, never nested) plus `persona_email`,
+ *     `manager_email`, and `generated_at` (mode 0600). An absent or empty
+ *     discovery relation yields an identity-only file. This is declared
+ *     degradation.
  *
  * An optional `--stash <path>` writes the bare JWT to a third
- * caller-private path (mode 0600) so a post-run log scan has a
+ * caller-private path (mode 0600). A post-run log scan then has a
  * tamper-resistant source to grep for.
  *
- * Rejects `kind != "human"` rows on purpose — the substrate path is for
+ * Rejects `kind != "human"` rows on purpose. The substrate path is for
  * personas only, per `substrate.people`'s kind column.
  */
 
@@ -64,8 +65,8 @@ export async function runSubstrateIssue({
   if (row.kind !== "human") {
     throw new Error(
       `substrate issue: ${email} is kind=${row.kind}, not human ` +
-        "(substrate.people kind=human rows are the persona surface; " +
-        "service identities are not issuable here)",
+        "(substrate.people kind=human rows are the persona surface. " +
+        "this verb does not issue service identities)",
     );
   }
 
@@ -88,11 +89,11 @@ export async function runSubstrateIssue({
     await fs.writeFile(envTmp, `${tokenEnv}=${jwt}\n`, { mode: 0o600 });
     await fs.chmod(envTmp, 0o600);
     // Structural invariant (b): the persona IS the manager of ≥1 other row
-    // (verified by findInvariantSatisfyingPersonas), so manager-scoped
-    // queries take the persona's OWN email — not the persona's own manager.
-    // Discovery spreads FIRST: `persona_email`, `manager_email`, and
-    // `generated_at` are reserved identity fields a consumer-defined
-    // discovery row must never overwrite.
+    // (findInvariantSatisfyingPersonas verifies this), so manager-scoped
+    // queries take the persona's OWN email. They never take the persona's
+    // own manager. Discovery spreads FIRST: `persona_email`,
+    // `manager_email`, and `generated_at` are reserved identity fields a
+    // consumer-defined discovery row must never overwrite.
     await fs.writeFile(
       subTmp,
       JSON.stringify(

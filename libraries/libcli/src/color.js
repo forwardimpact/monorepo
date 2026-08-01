@@ -16,7 +16,7 @@ export const colors = {
 };
 
 /**
- * Check if output supports colors.
+ * Check if the output supports colors.
  * @param {object} proc - process-like object with env and stdout
  * @returns {boolean}
  */
@@ -27,7 +27,7 @@ export function supportsColor(proc = process) {
 }
 
 /**
- * Wrap text with ANSI color if supported.
+ * Wrap the text with an ANSI color if the output supports colors.
  * @param {string} text
  * @param {string} color
  * @param {object} proc - process-like object

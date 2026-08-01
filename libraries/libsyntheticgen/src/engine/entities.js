@@ -125,10 +125,10 @@ function fillRemainingPeople(
 }
 
 function generatePeople(ast, rng, teams, domain, logger) {
-  // Use an isolated RNG seeded from ast.seed so people allocation is
-  // stable regardless of how much entropy upstream phases consumed
-  // before this point. The shared `rng` parameter is kept for signature
-  // compatibility but unused.
+  // Use an isolated RNG seeded from ast.seed. People allocation then stays
+  // stable regardless of how much entropy upstream phases consumed before
+  // this point. The function keeps the shared `rng` parameter for signature
+  // compatibility. It does not use the parameter.
   void rng;
   const peopleRng = createSeededRNG(`${ast.seed}:people`);
 
@@ -179,12 +179,13 @@ function generatePeople(ast, rng, teams, domain, logger) {
     domain,
   );
 
-  // Department directors sit one level above the team managers. Each is a real
-  // organization_people row (so the recursive get_team resolves the union of a
-  // department's teams from the director's email); the department's team
-  // managers are re-pointed to report to it. Directors carry no team_id or
-  // getdx_team_id — they manage across teams, not within one, so they never
-  // appear as a leaf-team rollup row.
+  // Department directors sit one level above the team managers. Each one is a
+  // real organization_people row. The recursive get_team then resolves the
+  // union of a department's teams from the director's email.
+  // `addDepartmentDirectors` re-points the department's team managers to
+  // report to the director. Directors carry no team_id or getdx_team_id.
+  // They manage across teams. They do not manage within one team. So they
+  // never appear as a leaf-team rollup row.
   addDepartmentDirectors(ast, teams, people, domain, available);
 
   if (people.length < count && logger) {
@@ -205,18 +206,19 @@ function generatePeople(ast, rng, teams, domain, logger) {
 }
 
 /**
- * For each department that declares a `director`, append a director person and
- * re-point that department's team managers to report to it. Mutates `people`.
+ * For each department that declares a `director`, append a director person.
+ * Re-point that department's team managers to report to it. Mutates `people`.
  *
- * Directors are additive: the fill pass runs identically with or without a
- * director declared, so every generated person is byte-identical to a run with
- * no director. The only conflict is a name collision — a director's
- * name-derived email may equal a fill person's email (the IT director "Zeus"
- * collides with a fill engineer drawn from the same Greek-name pool). That one
- * fill person is renamed to the first pool name no person already holds (the
- * unconsumed shuffle tail), keeping the rename deterministic and leaving the
- * primary key unambiguous. No other person changes, so the prose cache stays
- * valid for every entity except the single renamed fill row.
+ * Directors are additive. The fill pass runs identically with or without a
+ * director declared. So every generated person is byte-identical to a run
+ * with no director. The only conflict is a name collision. A director's
+ * name-derived email may equal a fill person's email (the IT director
+ * "Zeus" collides with a fill engineer drawn from the same Greek-name
+ * pool). `renameToFreeName` renames that one fill person to the first pool
+ * name no person already holds (the unconsumed shuffle tail). The rename
+ * stays deterministic. The primary key stays unambiguous. No other person
+ * changes. So the prose cache stays valid for every entity except the
+ * single renamed fill row.
  *
  * @param {import('../dsl/parser.js').TerrainAST} ast
  * @param {object[]} teams
@@ -246,8 +248,9 @@ function addDepartmentDirectors(ast, teams, people, domain, namePool = []) {
 }
 
 /**
- * Rename a person in place to the first pool name no person already holds,
- * re-deriving every name-derived field. Deterministic given the shuffled pool.
+ * Rename a person in place to the first pool name no person already holds.
+ * Re-derive every name-derived field. The shuffled pool makes the result
+ * deterministic.
  * @param {object} person - person row to rename (mutated)
  * @param {object[]} people - all people (used to test name freedom)
  * @param {string[]} namePool - shuffled Greek-name pool
@@ -283,8 +286,8 @@ function directorName(d) {
 
 /**
  * Build a department-director person row. Directors are managers with no team
- * and no getdx_team_id (they manage across teams), so they are not leaf-team
- * rollup rows; they exist as the resolution root and the named tier identity.
+ * and no getdx_team_id (they manage across teams). So they are not leaf-team
+ * rollup rows. They exist as the resolution root and the named tier identity.
  * @param {{handle: string, name?: string, title?: string, level?: string, discipline?: string}} d
  * @param {string} departmentId
  * @param {string} domain
@@ -349,9 +352,9 @@ function makePerson(
 
 // Service-account rows share organization_people with humans but carry
 // no Pathway job profile. They keep the `kind`, `email`, `name`, and
-// `iri` fields filled; level / manager_email / team / department are
-// null because the DB check constraint enforces `level IS NULL` when
-// `kind = 'service_account'`.
+// `iri` fields filled. The level / manager_email / team / department
+// fields are null because the DB check constraint enforces
+// `level IS NULL` when `kind = 'service_account'`.
 function makeServiceAccount(sa, domain) {
   const id = sa.id.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
   const name = sa.name || sa.id;

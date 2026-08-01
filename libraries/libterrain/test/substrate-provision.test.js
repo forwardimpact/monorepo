@@ -1,7 +1,8 @@
 /**
- * Provisioning reconciles auth.users against the contract roster
- * (`substrate.people`): create missing, restore banned, decommission
- * removed — against a stubbed `auth.admin`.
+ * `runProvision` reconciles auth.users against the contract roster
+ * (`substrate.people`). It creates missing users, restores banned users,
+ * and decommissions removed users. These tests run it against a stubbed
+ * `auth.admin`.
  */
 
 import { test, describe } from "node:test";

@@ -1,11 +1,11 @@
 /**
  * What-if scenario simulation.
  *
- * Given a roster and a scenario, returns a new roster with the
- * requested mutation applied. Diff functions compare before/after
- * coverage and risks snapshots.
+ * Take a roster and a scenario. Return a new roster with the requested
+ * mutation applied. The diff functions compare the coverage and risks
+ * snapshots from before and after.
  *
- * All functions are pure — the input roster is never modified.
+ * All functions are pure. No function modifies the input roster.
  */
 
 import { getNextLevel } from "@forwardimpact/libskill/progression";
@@ -54,7 +54,7 @@ export function buildWhatIfReport({ scenario, teams }) {
  * Apply a scenario to a roster and return the mutated copy.
  *
  * @param {Roster} roster
- * @param {object} data - Loaded Map data (used by promote to resolve levels).
+ * @param {object} data - Loaded Map data (promote resolves levels with it).
  * @param {Scenario} scenario
  * @returns {Roster}
  */
@@ -72,8 +72,8 @@ export function applyScenario(roster, data, scenario) {
 }
 
 /**
- * Pure diff of two TeamCoverage objects, emitting one row per skill in
- * the union of the two inputs.
+ * A pure diff of two TeamCoverage objects. It emits one row for each
+ * skill in the union of the two inputs.
  *
  * @param {import("./coverage.js").TeamCoverage} before
  * @param {import("./coverage.js").TeamCoverage} after
@@ -113,7 +113,8 @@ function snapshotOf(skill) {
 }
 
 /**
- * Diff two TeamRisks objects, producing added/removed/unchanged sets.
+ * Diff two TeamRisks objects. Produce the added, removed, and
+ * unchanged sets.
  *
  * @param {import("./risks.js").TeamRisks} before
  * @param {import("./risks.js").TeamRisks} after
@@ -215,7 +216,7 @@ function doRemove(roster, scenario) {
   );
   if (index === -1) {
     throw new ScenarioError(
-      `summit: No team member named "${scenario.name}" found in "${target.id}".`,
+      `summit: "${target.id}" has no team member named "${scenario.name}".`,
     );
   }
   target.members.splice(index, 1);
@@ -232,7 +233,7 @@ function doMove(roster, scenario) {
   }
   if (source.type !== "reporting" || dest.type !== "reporting") {
     throw new ScenarioError(
-      "summit: --move is only supported between reporting teams.",
+      "summit: --move only works between reporting teams.",
     );
   }
   const index = source.members.findIndex(
@@ -240,7 +241,7 @@ function doMove(roster, scenario) {
   );
   if (index === -1) {
     throw new ScenarioError(
-      `summit: No team member named "${scenario.name}" found in "${source.id}".`,
+      `summit: "${source.id}" has no team member named "${scenario.name}".`,
     );
   }
   const [member] = source.members.splice(index, 1);
@@ -255,7 +256,7 @@ function doPromote(roster, scenario, data) {
   );
   if (!member) {
     throw new ScenarioError(
-      `summit: No team member named "${scenario.name}" found in "${target.id}".`,
+      `summit: "${target.id}" has no team member named "${scenario.name}".`,
     );
   }
   const levels = data.levels ?? [];
@@ -266,7 +267,7 @@ function doPromote(roster, scenario, data) {
   const next = getNextLevel({ level: current, levels });
   if (!next) {
     throw new ScenarioError(
-      `summit: ${scenario.name} is already at the top level (${current.id}); no promotion possible.`,
+      `summit: ${scenario.name} is already at the top level (${current.id}). No promotion is possible.`,
     );
   }
   member.job.level = next.id;

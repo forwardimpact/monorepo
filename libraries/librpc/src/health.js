@@ -1,12 +1,12 @@
 /**
  * gRPC Health Check protocol (grpc.health.v1.Health/Check)
  *
- * Manual service definition — no .proto file or proto-loader needed.
- * Messages use raw protobuf wire encoding (trivial: one string field,
- * one enum/varint field).
+ * This is a manual service definition. It needs no .proto file and no
+ * proto-loader. Messages use raw protobuf wire encoding. The encoding is
+ * trivial: one string field and one enum/varint field.
  */
 
-/** Serving status enum matching grpc.health.v1 */
+/** Serving status enum that matches grpc.health.v1 */
 export const ServingStatus = {
   UNKNOWN: 0,
   SERVING: 1,

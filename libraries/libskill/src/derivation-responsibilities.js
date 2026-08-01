@@ -1,8 +1,9 @@
 /**
  * Job Responsibility Derivation
  *
- * Pure functions for deriving role responsibilities from skill matrices
- * and capability definitions. Extracted from derivation.js for max-lines compliance.
+ * Pure functions that derive role responsibilities from skill matrices
+ * and capability definitions. A refactor moved them out of derivation.js
+ * to meet the max-lines limit.
  */
 
 import { SKILL_PROFICIENCY_ORDER } from "./levels.js";
@@ -48,9 +49,9 @@ function countSkillsAtMaxProficiency(skillMatrix, capabilityProficiencies) {
 /**
  * Derive role responsibilities from skill matrix and capabilities
  *
- * Responsibilities are determined by finding the maximum skill proficiency
- * achieved in each capability, then looking up the corresponding
- * responsibility statement from the capability definition.
+ * This function finds the maximum skill proficiency achieved in each
+ * capability. Then it looks up the corresponding responsibility statement
+ * from the capability definition.
  *
  * @param {Object} params
  * @param {import('./levels.js').SkillMatrixEntry[]} params.skillMatrix - Derived skill matrix for the job

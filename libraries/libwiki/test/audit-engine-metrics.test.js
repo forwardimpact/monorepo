@@ -32,8 +32,8 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed (MEMORY.md + the current-month storyboard for `today`),
-// overlaid with `extra`. buildContext reads these via runtime.fsSync.
+// The clean-wiki seed holds MEMORY.md and the storyboard for `today`'s
+// month. `extra` overlays it. buildContext reads these through runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();
@@ -60,7 +60,7 @@ describe("runRules — metrics-csv.duplicate-row", () => {
   const CSV = `${WIKI}/metrics/improvement-coach/2026.csv`;
   const csvHeader = "date,metric,value,unit,run,note,event_type";
 
-  test("exact-duplicate metrics row fires a finding naming file and line", () => {
+  test("exact-duplicate metrics row fires a finding that names file and line", () => {
     const seed = cleanSeed("2026-05-24", {
       [CSV]: [
         csvHeader,
@@ -78,7 +78,7 @@ describe("runRules — metrics-csv.duplicate-row", () => {
     assert.equal(findings[0].lineNo, 3);
   });
 
-  test("differentiating one duplicate row clears the finding", () => {
+  test("a column edit to one duplicate row clears the finding", () => {
     const seed = cleanSeed("2026-05-24", {
       [CSV]: [
         csvHeader,
@@ -105,7 +105,7 @@ describe("runRules — metrics-csv.duplicate-row", () => {
     assert.ok(!idsOf(audit(seed)).includes("metrics-csv.duplicate-row"));
   });
 
-  test("nested metrics CSVs are discovered recursively", () => {
+  test("the audit discovers nested metrics CSVs recursively", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/metrics/kata-spec/2026.csv`]: [
         csvHeader,

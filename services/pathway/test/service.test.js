@@ -76,7 +76,7 @@ function buildData() {
     capability: "engineering",
     description: "Python programming",
     proficiencyDescriptions: {},
-    // toolReferences is preserved by loadAllData (loader.js:125). The
+    // loadAllData preserves toolReferences (loader.js:125). The
     // ListJobSoftware RPC uses data.skills for the toolkit lookup, so this
     // entry exercises the real code path end-to-end.
     toolReferences: [
@@ -112,9 +112,9 @@ function buildData() {
 function buildService() {
   const config = createMockConfig("pathway");
   const data = buildData();
-  // Bare-minimum agentData / skillsWithAgent — only needed by RPCs we don't
-  // exercise from this hand-built dataset (DescribeAgentProfile is covered
-  // by the integration test).
+  // Bare-minimum agentData / skillsWithAgent. Only the RPCs we do not
+  // exercise from this hand-built dataset need them. The integration test
+  // covers DescribeAgentProfile.
   const agentData = { disciplines: [], tracks: [], behaviours: [] };
   const skillsWithAgent = [];
   return new PathwayService(config, { data, agentData, skillsWithAgent });
@@ -172,8 +172,8 @@ describe("PathwayService RPCs", () => {
       predicate: RDF_TYPE,
       object: `${FIT}Job`,
     });
-    // Two levels x (trackless + 1 track) = up to 4 combos (depending on
-    // validation). At minimum we expect more than one job.
+    // Two levels x (trackless + 1 track) = up to 4 combos. The exact count
+    // depends on validation. At minimum we expect more than one job.
     assert.ok(jobs.length >= 2, `expected >=2 jobs, got ${jobs.length}`);
     // Every job IRI must be under fit:job/
     for (const j of jobs) {
@@ -231,7 +231,7 @@ describe("PathwayService RPCs", () => {
     assert.ok(skillIris.includes(`${FIT}skill/python`));
   });
 
-  test("DescribeJob with track produces a job IRI containing the track", async () => {
+  test("DescribeJob with track produces a job IRI that contains the track", async () => {
     const result = await service.DescribeJob({
       discipline: "fde",
       level: "l2",
@@ -291,9 +291,9 @@ describe("PathwayService RPCs", () => {
       }),
     );
 
-    // The python skill fixture has two toolReferences — assert both are
-    // emitted as fit:software predicates with fit:Tool IRIs. This guards
-    // against a regression where data.skills stops carrying toolReferences.
+    // The python skill fixture has two toolReferences. Assert that both
+    // become fit:software predicates with fit:Tool IRIs. This guards against
+    // a regression where data.skills no longer carries toolReferences.
     const softwareIris = findAll(quads, {
       subject: jobIri,
       predicate: `${FIT}software`,
@@ -329,9 +329,9 @@ describe("PathwayService RPCs", () => {
     const first = parseQuads(result.content);
     assert.ok(first.length > 0);
 
-    // Re-serialize parsed quads with N3 Writer, then re-parse. The set of
-    // (subject, predicate, object) triples — ignoring blank-node identity —
-    // must match between rounds.
+    // Re-serialize the parsed quads with N3 Writer. Then re-parse them. The
+    // set of (subject, predicate, object) triples must match between rounds.
+    // Ignore blank-node identity.
     const { Writer } = pkg;
     const reserialize = (quads) =>
       new Promise((resolve, reject) => {
@@ -343,9 +343,9 @@ describe("PathwayService RPCs", () => {
     const second = parseQuads(await reserialize(first));
     assert.strictEqual(second.length, first.length);
 
-    // Compare structural shape: named-node subjects/predicates/objects must
-    // match exactly; blank nodes may be relabelled but the count per
-    // predicate must match.
+    // Compare the structural shape. Named-node subjects, predicates, and
+    // objects must match exactly. A writer may relabel blank nodes, but the
+    // count per predicate must match.
     const namedKey = (q) =>
       `${q.subject.termType === "BlankNode" ? "_" : q.subject.value}|${q.predicate.value}|${q.object.termType === "BlankNode" ? "_" : q.object.value}`;
     const firstKeys = first.map(namedKey).sort();

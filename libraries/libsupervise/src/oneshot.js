@@ -66,8 +66,8 @@ export class OneshotProcess {
       detached: false,
     });
 
-    // A defined pid means the child spawned; undefined is a spawn failure
-    // (the contract's analogue of the old `error` event).
+    // A defined pid means the child spawned. An undefined pid is a spawn
+    // failure (the contract's analogue of the old `error` event).
     if (child.pid === undefined) {
       throw new Error(`failed to spawn oneshot ${this.#name}: ${command}`);
     }

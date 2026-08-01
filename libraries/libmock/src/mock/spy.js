@@ -2,7 +2,7 @@
  * Portable mock function helper. Replaces `mock.fn` from `node:test` so the
  * test suite can run under either node:test or bun:test.
  *
- * Shape matches node:test's `mock.fn` to keep call-inspection sites
+ * The shape matches node:test's `mock.fn` to keep call-inspection sites
  * (`fn.mock.calls[0].arguments`, `fn.mock.callCount()`, `fn.mock.resetCalls()`)
  * unchanged across the codebase.
  *

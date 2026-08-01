@@ -136,11 +136,11 @@ describe("estimateBestFitLevel", () => {
       selfAssessment: { skillProficiencies: {} },
       levels: unsortedLevels,
     });
-    // Should still return lowest ordinalRank
+    // estimateBestFitLevel still returns the lowest ordinalRank
     assert.strictEqual(result.level.id, "l1");
   });
 
-  test("undefined skillProficiencies treated as empty", () => {
+  test("treats undefined skillProficiencies as empty", () => {
     const result = estimateBestFitLevel({
       selfAssessment: {},
       levels,

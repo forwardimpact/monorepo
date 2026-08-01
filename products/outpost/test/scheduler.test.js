@@ -1,7 +1,7 @@
 /**
  * Outpost scheduler unit tests
  *
- * Tests the scheduling functions exported from scheduler.js.
+ * These tests cover the scheduler functions that scheduler.js exports.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -59,7 +59,7 @@ describe("scheduler", () => {
       assert.strictEqual(cronMatches("0 7 * * *", d), true);
     });
 
-    test("rejects non-matching time", () => {
+    test("rejects a time that does not match", () => {
       const d = new Date(2025, 0, 15, 8, 0, 0);
       assert.strictEqual(cronMatches("0 7 * * *", d), false);
     });
@@ -104,16 +104,16 @@ describe("scheduler", () => {
       );
     });
 
-    test("returns false when no schedule", () => {
+    test("returns false when schedule is missing", () => {
       assert.strictEqual(shouldWake({}, {}, new Date()), false);
     });
 
-    test("interval: wakes when no previous wake", () => {
+    test("interval: wakes when no previous wake exists", () => {
       const agent = { schedule: { type: "interval", minutes: 5 } };
       assert.strictEqual(shouldWake(agent, {}, new Date()), true);
     });
 
-    test("interval: wakes when enough time elapsed", () => {
+    test("interval: wakes when enough time elapses", () => {
       const now = new Date(2025, 0, 15, 10, 10, 0);
       const agent = { schedule: { type: "interval", minutes: 5 } };
       const state = {
@@ -122,7 +122,7 @@ describe("scheduler", () => {
       assert.strictEqual(shouldWake(agent, state, now), true);
     });
 
-    test("interval: does not wake when not enough time", () => {
+    test("interval: does not wake before enough time elapses", () => {
       const now = new Date(2025, 0, 15, 10, 3, 0);
       const agent = { schedule: { type: "interval", minutes: 5 } };
       const state = {
@@ -146,7 +146,7 @@ describe("scheduler", () => {
       assert.strictEqual(shouldWake(agent, state, now), false);
     });
 
-    test("once: wakes when runAt has passed and not previously woken", () => {
+    test("once: wakes when runAt passed and no earlier wake exists", () => {
       const now = new Date(2025, 0, 15, 10, 0, 0);
       const agent = {
         schedule: {
@@ -157,7 +157,7 @@ describe("scheduler", () => {
       assert.strictEqual(shouldWake(agent, {}, now), true);
     });
 
-    test("once: does not wake if already woken", () => {
+    test("once: does not wake if it woke already", () => {
       const now = new Date(2025, 0, 15, 10, 0, 0);
       const agent = {
         schedule: {
@@ -201,7 +201,7 @@ describe("scheduler", () => {
       assert.strictEqual(computeNextWakeAt({}, {}, new Date()), null);
     });
 
-    test("interval: returns now if no previous wake", () => {
+    test("interval: returns now if no previous wake exists", () => {
       const now = new Date(2025, 0, 15, 10, 0, 0);
       const agent = { schedule: { type: "interval", minutes: 5 } };
       assert.strictEqual(computeNextWakeAt(agent, {}, now), now.toISOString());
@@ -219,14 +219,14 @@ describe("scheduler", () => {
       );
     });
 
-    test("once: returns runAt if not yet woken", () => {
+    test("once: returns runAt if no wake happened yet", () => {
       const now = new Date(2025, 0, 15, 10, 0, 0);
       const runAt = "2025-01-15T12:00:00.000Z";
       const agent = { schedule: { type: "once", runAt } };
       assert.strictEqual(computeNextWakeAt(agent, {}, now), runAt);
     });
 
-    test("once: returns null if already woken", () => {
+    test("once: returns null if it woke already", () => {
       const agent = {
         schedule: { type: "once", runAt: "2025-01-15T12:00:00.000Z" },
       };
@@ -234,7 +234,7 @@ describe("scheduler", () => {
       assert.strictEqual(computeNextWakeAt(agent, state, new Date()), null);
     });
 
-    test("cron: finds next matching minute", () => {
+    test("cron: finds the next minute that matches", () => {
       const now = new Date(2025, 0, 15, 6, 59, 0);
       const agent = { schedule: { type: "cron", expression: "0 7 * * *" } };
       const result = computeNextWakeAt(agent, {}, now);

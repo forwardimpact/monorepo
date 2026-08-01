@@ -1,14 +1,14 @@
 /**
- * Enforces that no newly introduced handler uses the legacy parameter shapes:
+ * This test makes sure that no new handler uses the legacy parameter shapes:
  * - ({ data, args, options }) — CLI-side legacy (any superset of all three keys)
  * - (params) — web-side legacy (single identifier named "params")
  *
- * Replaces an earlier ESLint rule (Biome lacks custom AST rules). This test
- * achieves the same enforcement — it runs during `bun run test` which gates
+ * It replaces an earlier ESLint rule. Biome has no custom AST rules. This
+ * test enforces the same rule. It runs during `bun run test`, which gates
  * every commit.
  *
- * Scope: libraries/libui/, libraries/libcli/. products/pathway/ is added once
- * its migration completes.
+ * Scope: libraries/libui/, libraries/libcli/. products/pathway/ joins the
+ * scope after it migrates.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";

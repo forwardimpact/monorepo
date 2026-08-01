@@ -36,14 +36,14 @@ const fullDefinition = {
 
 describe("HelpRenderer", () => {
   describe("render", () => {
-    test("includes header line with name, version, description", () => {
+    test("includes a header line with the name, version, and description", () => {
       const stream = createStream();
       createRenderer().render(fullDefinition, stream);
       assert.ok(stream.output.includes("fit-test 1.0.0"));
       assert.ok(stream.output.includes("A test CLI"));
     });
 
-    test("includes one-line-per-command with aligned descriptions", () => {
+    test("includes one line per command with aligned descriptions", () => {
       const stream = createStream();
       createRenderer().render(fullDefinition, stream);
       assert.ok(stream.output.includes("run <file>"));
@@ -60,14 +60,14 @@ describe("HelpRenderer", () => {
       assert.ok(stream.output.includes("--help, -h"));
     });
 
-    test("includes examples section", () => {
+    test("includes the examples section", () => {
       const stream = createStream();
       createRenderer().render(fullDefinition, stream);
       assert.ok(stream.output.includes("fit-test run main.js"));
       assert.ok(stream.output.includes("fit-test check --verbose"));
     });
 
-    test("omits commands section when definition has no commands", () => {
+    test("omits the commands section when the definition has no commands", () => {
       const stream = createStream();
       const def = {
         name: "fit-simple",
@@ -79,20 +79,20 @@ describe("HelpRenderer", () => {
       assert.ok(!stream.output.includes("Commands:"));
     });
 
-    test("uses custom usage string when provided", () => {
+    test("uses the custom usage string when the definition provides one", () => {
       const stream = createStream();
       const def = { name: "fit-query", usage: "fit-query <s> <p> <o>" };
       createRenderer().render(def, stream);
       assert.ok(stream.output.includes("Usage: fit-query <s> <p> <o>"));
     });
 
-    test("includes hint line when commands exist", () => {
+    test("includes the hint line when commands exist", () => {
       const stream = createStream();
       createRenderer().render(fullDefinition, stream);
       assert.ok(stream.output.includes("--help for command-specific options"));
     });
 
-    test("omits hint line when no commands exist", () => {
+    test("omits the hint line when no commands exist", () => {
       const stream = createStream();
       const def = {
         name: "fit-simple",
@@ -104,7 +104,7 @@ describe("HelpRenderer", () => {
       assert.ok(!stream.output.includes("--help for command-specific options"));
     });
 
-    test("global help shows only globalOptions, not per-command options", () => {
+    test("global help shows only globalOptions and hides per-command options", () => {
       const stream = createStream();
       const def = {
         name: "fit-test",
@@ -162,7 +162,7 @@ describe("HelpRenderer", () => {
       assert.ok(stream.output.includes("fit-test run main.js"));
     });
 
-    test("omits Options section when command has no options", () => {
+    test("omits the Options section when the command has no options", () => {
       const stream = createStream();
       const def = {
         name: "fit-test",
@@ -180,7 +180,7 @@ describe("HelpRenderer", () => {
   });
 
   describe("documentation section", () => {
-    test("renders Documentation section when entries are present", () => {
+    test("renders the Documentation section when the definition has entries", () => {
       const stream = createStream();
       const def = {
         name: "fit-test",
@@ -210,7 +210,7 @@ describe("HelpRenderer", () => {
       assert.ok(stream.output.includes("Trace Analysis"));
     });
 
-    test("omits description line when entry has no description", () => {
+    test("omits the description line when the entry has no description", () => {
       const stream = createStream();
       const def = {
         name: "fit-test",
@@ -229,7 +229,7 @@ describe("HelpRenderer", () => {
       assert.strictEqual(lines[idx + 2].trim(), "");
     });
 
-    test("omits Documentation section when documentation is missing or empty", () => {
+    test("omits the Documentation section when documentation is missing or empty", () => {
       const stream = createStream();
       createRenderer().render(fullDefinition, stream);
       assert.ok(!stream.output.includes("Documentation:"));
@@ -239,7 +239,7 @@ describe("HelpRenderer", () => {
       assert.ok(!stream2.output.includes("Documentation:"));
     });
 
-    test("renderJson includes documentation array verbatim", () => {
+    test("renderJson includes the documentation array verbatim", () => {
       const stream = createStream();
       const def = {
         name: "fit-test",
@@ -258,7 +258,7 @@ describe("HelpRenderer", () => {
   });
 
   describe("renderJson", () => {
-    test("produces valid JSON matching the definition", () => {
+    test("produces valid JSON that matches the definition", () => {
       const stream = createStream();
       createRenderer().renderJson(fullDefinition, stream);
       const parsed = JSON.parse(stream.output);
@@ -267,7 +267,7 @@ describe("HelpRenderer", () => {
       assert.strictEqual(parsed.commands[0].name, "run");
     });
 
-    test("per-command JSON includes documentation from parent definition", () => {
+    test("per-command JSON includes documentation from the parent definition", () => {
       const stream = createStream();
       const def = {
         name: "fit-test",
@@ -321,7 +321,7 @@ describe("HelpRenderer", () => {
   });
 
   describe("args: string[] with argsUsage", () => {
-    test("renders argsUsage in commands list when args is an array", () => {
+    test("renders argsUsage in the commands list when args is an array", () => {
       const stream = createStream();
       const def = {
         name: "fit-test",

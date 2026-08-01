@@ -16,7 +16,7 @@ describe("Cli", () => {
       assert.strictEqual(result.values.output, "out.txt");
     });
 
-    test("returns null and writes help when --help is passed", () => {
+    test("returns null and writes help when the caller passes --help", () => {
       const proc = createProc();
       const cli = createCli(proc);
       const result = cli.parse(["--help"]);
@@ -25,7 +25,7 @@ describe("Cli", () => {
       assert.ok(proc.stdout.output.includes("Test CLI"));
     });
 
-    test("returns null and writes JSON when --help --json is passed", () => {
+    test("returns null and writes JSON when the caller passes --help --json", () => {
       const proc = createProc();
       const cli = createCli(proc);
       const result = cli.parse(["--help", "--json"]);
@@ -34,7 +34,7 @@ describe("Cli", () => {
       assert.strictEqual(parsed.name, "fit-test");
     });
 
-    test("returns null and writes version when --version is passed", () => {
+    test("returns null and writes version when the caller passes --version", () => {
       const proc = createProc();
       const cli = createCli(proc);
       const result = cli.parse(["--version"]);
@@ -85,8 +85,8 @@ describe("Cli", () => {
     });
   });
 
-  describe("command-specific option scoping", () => {
-    test("throws on command-specific option used with wrong command", () => {
+  describe("command-specific option scope", () => {
+    test("throws when the caller uses a command-specific option with the wrong command", () => {
       const proc = createProc();
       const def = {
         name: "fit-test",
@@ -169,7 +169,7 @@ describe("Cli", () => {
   });
 
   describe("option name collision", () => {
-    test("throws on command option colliding with global option", () => {
+    test("throws when a command option collides with a global option", () => {
       const proc = createProc();
       assertThrowsMessage(
         () =>

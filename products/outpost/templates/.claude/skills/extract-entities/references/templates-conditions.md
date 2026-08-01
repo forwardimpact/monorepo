@@ -1,8 +1,8 @@
 # Condition Template
 
 Conditions are time-bound organizational states that affect multiple entities.
-They can be **auto-created** by the librarian agent when cross-cutting patterns
-are detected, or manually created by the user. Lifecycle: active → resolved.
+The librarian agent can **auto-create** them when it detects cross-cutting
+patterns. The user can also create them manually. Lifecycle: active → resolved.
 
 ```markdown
 # {Condition Name}

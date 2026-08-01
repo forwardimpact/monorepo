@@ -14,13 +14,13 @@ import { runFixCommand } from "./commands/fix.js";
 import { runLedgerCommand } from "./commands/ledger.js";
 
 /**
- * Build the `gemba-wiki` libcli definition. Agent identity is never resolved from
- * the environment: agent-scoped subcommands require an explicit `--agent`
- * (`--from` for `memo`) and fail closed without it, so this module carries no
- * ambient agent identity. The version is resolved by libcli's `createCli` from
- * the bin's `packageJsonUrl`. Each subcommand carries a `handler` and (for
- * subcommand-bearing commands) `args`/`argsUsage` so `cli.dispatch` can route to
- * the per-command handler with a frozen `ctx`.
+ * Build the `gemba-wiki` libcli definition. This module never resolves agent
+ * identity from the environment. Agent-scoped subcommands require an explicit
+ * `--agent` (`--from` for `memo`). They fail closed without it, so this module
+ * carries no ambient agent identity. libcli's `createCli` resolves the version
+ * from the bin's `packageJsonUrl`. Each subcommand carries a `handler`. A
+ * command that takes subcommands also carries `args`/`argsUsage`, so
+ * `cli.dispatch` can route to the per-command handler with a frozen `ctx`.
  *
  * @returns {object} The libcli definition.
  */
@@ -48,12 +48,12 @@ export function createDefinition() {
 
   return {
     name: "gemba-wiki",
-    description: "Wiki lifecycle management for the Kata agent system",
+    description: "Manage the wiki lifecycle for the Kata agent system",
     commands: [
       {
         name: "boot",
         description:
-          "Print on-boot digest (priorities, claims, storyboard items) as JSON",
+          "Print the on-boot digest (priorities, claims, storyboard items) as JSON",
         handler: runBootCommand,
         options: {
           ...agentOpt,
@@ -101,9 +101,12 @@ export function createDefinition() {
           ...todayOpt,
           target: {
             type: "string",
-            description: "What is being claimed (spec id, PR id, etc.)",
+            description: "Target to claim (spec id, PR id, etc.)",
           },
-          branch: { type: "string", description: "Branch carrying the work" },
+          branch: {
+            type: "string",
+            description: "Branch that carries the work",
+          },
           pr: { type: "string", description: "Optional PR id" },
           "expires-at": {
             type: "string",
@@ -142,7 +145,7 @@ export function createDefinition() {
           },
           owner: {
             type: "string",
-            description: "Owner field when promoting (default: --agent)",
+            description: "Owner field for promote (default: --agent)",
           },
         },
       },
@@ -190,7 +193,7 @@ export function createDefinition() {
           "dry-run": {
             type: "boolean",
             description:
-              "Print the issue body and intended action without calling gh",
+              "Print the issue body and intended action. Do not call gh",
           },
         },
       },
@@ -217,7 +220,7 @@ export function createDefinition() {
           to: {
             type: "string",
             description:
-              'Target agent name, or "all" to broadcast (sender is skipped)',
+              'Target agent name, or "all" to broadcast (skips the sender)',
           },
           message: {
             type: "string",
@@ -287,7 +290,7 @@ export function createDefinition() {
             type: "string",
             multiple: true,
             description:
-              "Pathspec(s) limiting the write-set; omit to land the session's dirty set",
+              "Pathspec(s) that limit the write-set. Omit to land the session's dirty set",
           },
         },
       },
@@ -330,7 +333,7 @@ export function createDefinition() {
           gapped: {
             type: "boolean",
             description:
-              "Render double-allocation losers as a gap, not a renumber",
+              "Render double-allocation losers as a gap instead of a renumber",
           },
           issue: {
             type: "string",

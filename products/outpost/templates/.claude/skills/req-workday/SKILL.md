@@ -2,8 +2,8 @@
 name: req-workday
 description: >
   Import candidates from a Workday requisition export (.xlsx) into
-  Knowledge/Candidates/. Parses requisition metadata and candidate data,
-  creates candidate briefs and CV.md files from resume text, and integrates
+  Knowledge/Candidates/. It parses requisition metadata and candidate data.
+  It creates candidate briefs and CV.md files from resume text. It integrates
   with the existing req-track pipeline. Use when the user provides a
   Workday export file or asks to import candidates from an XLSX requisition
   export.
@@ -12,9 +12,9 @@ description: >
 # Workday Requisition Import
 
 Import candidates from a Workday requisition export (`.xlsx`) into
-`Knowledge/Candidates/`. Extract requisition metadata and candidate profiles,
-create standardized briefs and `CV.md` files from the embedded resume text, and
-integrate with the `req-track` pipeline format.
+`Knowledge/Candidates/`. Extract requisition metadata and candidate profiles.
+Create standardized briefs and `CV.md` files from the embedded resume text.
+Integrate with the `req-track` pipeline format.
 
 ## Trigger
 
@@ -45,18 +45,18 @@ integrate with the `req-track` pipeline format.
 <do_confirm_checklist goal="Verify the Workday import is consistent with
 req-track">
 
-- [ ] XLSX parsed; candidate count matches the parser summary.
+- [ ] XLSX parsed. Candidate count matches the parser summary.
 - [ ] Requisition metadata extracted (ID, title; HM/recruiter when available).
 - [ ] Each candidate has a directory under `Knowledge/Candidates/{Clean Name}/`
       (annotation stripped).
-- [ ] `CV.md` created for every candidate with resume text — faithfully
-      reproduced (no rewriting).
-- [ ] Pipeline status mapped from **Step / Disposition** (not Stage); raw step
+- [ ] `CV.md` created for every candidate with resume text. Text reproduced
+      faithfully, with no rewrite.
+- [ ] Pipeline status mapped from **Step / Disposition** (not Stage). Raw step
       preserved in the Pipeline entry.
 - [ ] Internal/External derived from name annotations and source.
-- [ ] Existing candidates updated via targeted edits (not duplicated).
-- [ ] Skills tagged with standard IDs; Gender set to `—` (export has no signal);
-      Channel = `hr`; Req backlinks to the Role file.
+- [ ] Existing candidates updated with targeted edits (not duplicated).
+- [ ] Skills tagged with standard IDs. Gender set to `—` (export has no signal).
+      Channel = `hr`. Req backlinks to the Role file.
 
 </do_confirm_checklist>
 
@@ -66,9 +66,9 @@ Process **10 candidates per run**.
 
 ### 1. Set up
 
-Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
-`person-identify` skill first if it is missing or stale). Confirm the XLSX path.
-Ensure the parser dependency is installed:
+Read the user's identity from `~/.cache/fit/outpost/state/identity.md`. Run the
+`person-identify` skill first if that file is missing or stale. Confirm the
+XLSX path. Make sure the parser dependency is installed:
 
 ```bash
 bun pm ls read-excel-file 2>/dev/null || bun install read-excel-file
@@ -81,7 +81,7 @@ node .claude/skills/req-workday/scripts/parse-workday.mjs "<path>" --summary
 ```
 
 Review the summary for sanity (candidate count, header detection). For the JSON
-consumed by later steps:
+that later steps consume:
 
 ```bash
 node .claude/skills/req-workday/scripts/parse-workday.mjs "<path>"
@@ -99,13 +99,13 @@ ls Knowledge/Roles/ | grep "{Req ID}"
 
 New role files go in `Knowledge/Roles/` with `**Status:** open`. Use the
 **Role file stub** in
-[references/templates.md](references/templates.md). Resolve the domain lead by:
+[references/templates.md](references/templates.md). Resolve the domain lead:
 
 1. `rg "{Req ID}" Knowledge/` — look in project timelines, People notes, Topics
    for context.
-2. Reading the hiring manager's People note for `**Reports to:**` and walking up
-   to a VP or senior leader.
-3. Falling back to `Domain lead: —` for later cycles.
+2. Read the hiring manager's People note for `**Reports to:**` and walk up to a
+   VP or senior leader.
+3. Fall back to `Domain lead: —` for later cycles.
 
 If the Role file already exists, follow the existing-file rules in
 `references/templates.md`.
@@ -121,14 +121,14 @@ accents, spelling variations).
 
 ### 5. Determine pipeline status
 
-Map **Step / Disposition** to the `req-track` status using
+Map **Step / Disposition** to the `req-track` status with
 [references/status-mapping.md](references/status-mapping.md). Preserve the raw
 step value in the Pipeline entry.
 
 ### 6. Write `CV.md`
 
 For every candidate with resume text, create
-`Knowledge/Candidates/{Clean Name}/CV.md` using the **CV.md template** in
+`Knowledge/Candidates/{Clean Name}/CV.md` with the **CV.md template** in
 [references/templates.md](references/templates.md).
 
 ### 7. Write or update the brief
@@ -141,12 +141,12 @@ Brief layout (new candidates) and edit rules (existing candidates):
 mkdir -p "Knowledge/Candidates/{Clean Name}"
 ```
 
-For existing candidates, apply targeted Edit operations only — never rewrite the
+For existing candidates, apply targeted Edit operations only. Never rewrite the
 file.
 
 ### 8. Capture insights
 
-After the batch, review for strategic observations and add bullets to
+After the batch, review for strategic observations. Add bullets to
 `Knowledge/Candidates/Insights.md` under `## Placement Notes` with
 `[[Candidates/Name/brief|Name]]` links. See `req-track` Step 5b for the
 inclusion criteria.

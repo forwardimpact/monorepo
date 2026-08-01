@@ -51,33 +51,33 @@
     <p>
       Open <strong>Outpost</strong> from
       <code>/Applications/Forward Impact/</code> to start the scheduler. It runs
-      as a menu bar app — look for the tent icon.
+      as a menu bar app. Look for the tent icon.
     </p>
     <p><strong>Grant privacy access:</strong></p>
     <p>
       Outpost reads from Apple Mail, Calendar, and Contacts. Grant every
-      permission to one app &mdash; <strong>Outpost</strong>, from
-      <code>/Applications/Forward Impact/</code> &mdash; and the scheduler and
-      the agents it runs are covered. You never grant access to
-      <code>node</code>, <code>claude</code>, or any other helper process.
+      permission to one app. That app is <strong>Outpost</strong>, from
+      <code>/Applications/Forward Impact/</code>. This covers the scheduler and
+      the agents it runs. You never grant access to <code>node</code>,
+      <code>claude</code>, or any other helper process.
     </p>
     <p>
       <strong>1. Files &amp; Folders</strong> &mdash;
       <code
         >System Settings &rarr; Privacy &amp; Security &rarr; Files &amp;
         Folders</code
-      >. Prefer this over Full Disk Access: grant <strong>Outpost</strong> only
+      >. Prefer this over Full Disk Access. Grant <strong>Outpost</strong> only
       the folders it needs. When macOS prompts, allow access to your knowledge
-      base folder and to Mail and Calendar as each sync first reads them.
-      Without these grants, calendar and mail sync fail silently.
+      base folder and to Mail and Calendar. Each sync reads them first. Without
+      these grants, calendar and mail sync fail silently.
     </p>
     <p>
       <strong>2. Automation</strong> &mdash;
       <code
         >System Settings &rarr; Privacy &amp; Security &rarr; Automation</code
-      >. The <code>draft-emails</code> skill sends mail by driving Apple Mail
-      through AppleScript. On first send attempt macOS will prompt &ldquo;allow
-      Outpost to control Mail&rdquo; &mdash; click <strong>Allow</strong>.
+      >. The <code>draft-emails</code> skill drives Apple Mail through
+      AppleScript to send mail. On the first send attempt, macOS prompts
+      &ldquo;allow Outpost to control Mail&rdquo;. Click <strong>Allow</strong>.
     </p>
     <p><strong>Next steps:</strong></p>
     <p>1. Populate your identity from the corporate directory:</p>
@@ -88,11 +88,11 @@
     <p class="cmd">
       <code>fit-outpost status</code>
     </p>
-    <p>4. Stop the scheduler gracefully (before upgrading):</p>
+    <p>4. Stop the scheduler gracefully (before you upgrade):</p>
     <p class="cmd">
       <code>fit-outpost stop</code>
     </p>
-    <p>5. Update skills in all knowledge bases (after upgrading):</p>
+    <p>5. Update skills in all knowledge bases (after you upgrade):</p>
     <p class="cmd">
       <code>fit-outpost update</code>
     </p>
@@ -105,8 +105,8 @@
     </p>
     <p class="note">
       <strong>Intel Macs:</strong> this <code>.pkg</code> ships only an Apple
-      Silicon binary. On Intel hardware, install instead via the Homebrew cask:
-      <code>brew install --cask forwardimpact/tap/fit-outpost</code>.
+      Silicon binary. On Intel hardware, install instead through the Homebrew
+      cask: <code>brew install --cask forwardimpact/tap/fit-outpost</code>.
     </p>
   </body>
 </html>

@@ -2,12 +2,12 @@
  * Text renderers for `gemba-trace` query output.
  *
  * One named export per renderable verb. Each renderer accepts the query result
- * plus `{multi, signatures}` and returns a string. `multi` controls
- * source-attribution prefixing (`grep -H` convention); record-per-line
- * renderers prepend `<basename>:`, block renderers emit `# <basename>` headers.
+ * plus `{multi, signatures}` and returns a string. `multi` controls the
+ * source-attribution prefix (`grep -H` convention). A record-per-line renderer
+ * prepends `<basename>:`. A block renderer emits `# <basename>` headers.
  *
- * Internal module — imported by `commands/trace.js` and tests by relative
- * path, never re-exported from `src/index.js`.
+ * This is an internal module. `commands/trace.js` and the tests import it by
+ * relative path. `src/index.js` never re-exports it.
  */
 
 /** Collapse newlines/tabs in a value to a single-line, grep-friendly string. */
@@ -16,7 +16,7 @@ function oneLine(value) {
   return str.replace(/[\r\n\t]+/g, " ").trim();
 }
 
-/** Group records by their `source` field (multi-file path), preserving order. */
+/** Group records by their `source` field (multi-file path). Keep the order. */
 function groupBySource(records) {
   const groups = new Map();
   for (const record of records) {
@@ -28,8 +28,8 @@ function groupBySource(records) {
 }
 
 /**
- * Render record-per-line output, prefixing each line with `<source>:` when
- * multi-file. `lineOf` maps one record to its text line.
+ * Render record-per-line output. Prefix each line with `<source>:` when
+ * `multi` is true. `lineOf` maps one record to its text line.
  * @param {object[]} records
  * @param {(record: object) => string} lineOf
  * @param {{multi: boolean}} opts
@@ -42,8 +42,8 @@ function renderLines(records, lineOf, { multi }) {
 }
 
 /**
- * Render a block per source. `blockOf` maps one record to a multi-line string;
- * multi-file output separates groups with `# <source>` headers.
+ * Render a block per source. `blockOf` maps one record to a multi-line
+ * string. Multi-file output separates groups with `# <source>` headers.
  * @param {object[]} records
  * @param {(record: object) => string} blockOf
  * @param {{multi: boolean}} opts
@@ -167,11 +167,11 @@ function multiPrefix(record, { multi }) {
 }
 
 /**
- * Default renderer for every other renderable verb: one record per block,
- * fields rendered as `key: value` lines (no JSON braces or quotes, so the
- * default output is grep/awk-friendly and does not parse as JSON). Nested
- * values are collapsed to a single grep-friendly line. Multi-file output
- * separates source groups with `# <source>` headers (`renderBlocks`
+ * Default renderer for every other renderable verb. It emits one record per
+ * block. It renders the fields as `key: value` lines. The output has no JSON
+ * braces or quotes, so it is grep/awk-friendly and does not parse as JSON.
+ * It collapses nested values to a single grep-friendly line. Multi-file
+ * output separates source groups with `# <source>` headers (`renderBlocks`
  * convention).
  * @param {object[]|object} result
  * @param {{multi: boolean}} opts
@@ -183,8 +183,8 @@ export function renderDefault(result, opts = {}) {
 }
 
 /**
- * Render one record as `key: value` lines. Scalars render verbatim; objects
- * and arrays collapse to a single line via `oneLine`. A non-object record
+ * Render one record as `key: value` lines. Scalars render verbatim. Objects
+ * and arrays collapse to a single line through `oneLine`. A non-object record
  * (string/number) renders as its own single line.
  * @param {*} record
  * @returns {string}
@@ -201,7 +201,7 @@ function recordBlock(record) {
     .join("\n");
 }
 
-/** Drop the orchestrator-injected `source` field before textifying. */
+/** Drop the orchestrator-injected `source` field before text output. */
 function stripSource(record) {
   if (record == null || typeof record !== "object" || Array.isArray(record)) {
     return record;

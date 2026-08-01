@@ -92,8 +92,8 @@ const { values, positionals } = parsed;
 const [command] = positionals;
 
 /**
- * Discovers storage prefixes from local data directory.
- * Lists subdirectories in data/, filtering out non-data directories.
+ * Discovers the storage prefixes from the local data directory.
+ * Lists the subdirectories in data/. Excludes the non-data directories.
  * @returns {Promise<string[]>} Array of discovered prefixes
  */
 async function discoverLocalPrefixes() {
@@ -108,13 +108,13 @@ async function discoverLocalPrefixes() {
 }
 
 /**
- * Discovers storage prefixes from remote S3 bucket.
- * Lists top-level "directories" using delimiter.
+ * Discovers the storage prefixes from the remote S3 bucket.
+ * Lists the top-level "directories" with a delimiter.
  * @returns {Promise<string[]>} Array of discovered prefixes
  */
 async function discoverRemotePrefixes() {
   const storage = createStorage("");
-  // Use findByPrefix with delimiter to get top-level "directories"
+  // Use findByPrefix with a delimiter to get the top-level "directories"
   const prefixes = await storage.findByPrefix("", "/");
   return prefixes
     .filter((p) => p.endsWith("/"))
@@ -127,7 +127,7 @@ const prefixList = values.prefix || [];
 const commands = {
   async "create-bucket"() {
     await createScriptConfig("storage");
-    // Use empty prefix for bucket-level operations
+    // Use an empty prefix for the bucket-level operations
     const storage = createStorage("");
     const created = await storage.ensureBucket();
     process.stdout.write(
@@ -162,7 +162,7 @@ const commands = {
       return;
     }
 
-    // Ensure bucket exists before upload
+    // Make sure the bucket exists before the upload
     const storage = createStorage("");
     await storage.ensureBucket();
 

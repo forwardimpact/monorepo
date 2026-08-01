@@ -2,70 +2,72 @@
 
 > The Kata realization of the [shared design language](../index.md): a
 > monochrome design system for the Kata Agent Team, built around the metaphor
-> of a **mid-century Toyota production floor**. Six agent personas — the
-> **Staff Engineer**, **Release Engineer**, **Security Engineer**, **Product
-> Manager**, **Technical Writer**, and **Improvement Coach** — work the line
-> together, the way Taiichi Ohno's foremen worked the shop floor in the 1940s
-> and 50s.
+> of a **mid-century Toyota production floor**. Six agent personas work the
+> line together: the **Staff Engineer**, **Release Engineer**, **Security
+> Engineer**, **Product Manager**, **Technical Writer**, and **Improvement
+> Coach**. They work it the way Taiichi Ohno's foremen worked the shop floor
+> in the 1940s and 50s.
 >
 > The brand evokes the dignity of practiced work: pressed suits, soft flat
 > caps, andon cords, kanban rails, the chalk circle on a polished concrete
-> floor. Stamp-ink red on a white card. The calm authority of someone who has
+> floor. Stamp-ink red on a white card. The calm authority of someone who
 > stood on the gemba long enough to know what good looks like.
 
 This file specifies what is Kata-specific: the production-floor metaphor, the
 six agent personas, the concrete color palette, the typography choices, the
 type scale, the layout patterns, the agent visual language, and the CSS design
-tokens. For the abstract design language — color, typography, spacing,
-components, motion, and accessibility — see [../index.md](../index.md).
+tokens. The abstract design language covers color, typography, spacing,
+components, motion, and accessibility. See [../index.md](../index.md).
 
 Kata is a typography- and motif-driven brand. It does not ship a character
-system or illustrated scenes; its visual identity is carried by the PDSA wheel,
-the kanban-rail texture, the hanko stamp ink, and the slab-serif wordmark.
+system or illustrated scenes. The PDSA wheel, the kanban-rail texture, the
+hanko stamp ink, and the slab-serif wordmark carry its visual identity.
 
 ---
 
 ## 1. The Production-Floor Metaphor
 
-"The shop floor" — _gemba_ — draws from three simultaneous meanings:
+"The shop floor", or _gemba_, draws from three simultaneous meanings:
 
 1. **The Toyota Production System era**: 1940s–50s post-war Japan. Taiichi Ohno
-   walking the floor in a soft cap and pressed suit, drawing chalk circles,
-   asking "why" five times. The unglamorous discipline of making work visible
-   and improving it one experiment at a time.
+   walked the floor in a soft cap and pressed suit. He drew chalk circles. He
+   asked "why" five times. The unglamorous discipline makes work visible. It
+   improves the work one experiment at a time.
 2. **Kata as deliberate practice**: A pattern repeated until it becomes reflex.
    The improvement kata and coaching kata are the same five questions day after
-   day, against an ever-moving target condition. Repetition is the point, not
-   the problem.
+   day, against a target condition that always moves. Repetition is the point.
+   It is not the problem.
 3. **Industrial restraint**: Letterpress typography, stamped paperwork, cotton
    lab coats, brass keys, manila folders, hand-lettered signage. Tools designed
-   for forty-year service lives. Nothing decorative; nothing wasted.
+   for forty-year service lives. Nothing decorative. Nothing wasted.
 
-The name **Kata** captures all three: a form practiced by hand, on the floor,
-with the calm conviction that the next iteration will be a little better than
-this one.
+The name **Kata** captures all three. It names a form practiced by hand, on the
+floor. The form carries the calm conviction that the next iteration will be a
+little better than this one.
 
 The metaphor surfaces in motif and wordmark. The UI itself is clean and
-functional, not themed like a heritage poster.
+functional. It is not themed like a heritage poster.
 
 ---
 
 ## 2. The Six Agent Personas
 
-Kata's "products" are the six agent personas — each a recognizable archetype
-from the mid-century shop floor, mapped to a contemporary engineering role.
+Kata's "products" are the six agent personas. Each persona is a recognizable
+archetype from the mid-century shop floor. Each one maps to a contemporary
+engineering role.
 
 | Agent                 | Question it answers                                                |
 | --------------------- | ------------------------------------------------------------------ |
 | **Staff Engineer**    | What is the next experiment, and how do we run it?                 |
-| **Release Engineer**  | Is the line moving, and is the next release ready to ship?         |
-| **Security Engineer** | Is the floor safe — supply chain, dependencies, secrets?           |
+| **Release Engineer**  | Is the line in motion, and is the next release ready to ship?      |
+| **Security Engineer** | Is the floor safe across supply chain, dependencies, and secrets?  |
 | **Product Manager**   | What enters the line, and what is ready to merge into main?        |
 | **Technical Writer**  | Is the manual accurate, and does the wiki reflect what we learned? |
 | **Improvement Coach** | What is the current condition, and what did we learn yesterday?    |
 
-Each agent has its own visual motif — drawn from the production-floor metaphor
-— that surfaces in headings and accent marks, but never in structural UI.
+Each agent has its own visual motif, drawn from the production-floor metaphor.
+The motif surfaces in headings and accent marks. It never surfaces in
+structural UI.
 
 | Agent                 | Motif                                  |
 | --------------------- | -------------------------------------- |
@@ -78,20 +80,20 @@ Each agent has its own visual motif — drawn from the production-floor metaphor
 
 ### The PDSA Wheel
 
-Above the six personas sits the **PDSA wheel** — a four-quadrant chalk circle
-marked **P · D · S · A** clockwise, the spine of [KATA.md](../../KATA.md) made
-visible. It is the brand's repeating motif, used as:
+Above the six personas sits the **PDSA wheel**. The wheel is a four-quadrant
+chalk circle marked **P · D · S · A** clockwise. It makes the spine of
+[KATA.md](../../KATA.md) visible. The brand repeats this motif. Use it as:
 
 - The optional accent above the second `A` in the **KATA** wordmark.
-- A section divider on long pages — drawn at 16px, `--gray-300` stroke, centred,
-  with 96px of vertical breathing room either side.
-- A loading state — the wheel rotates one quadrant per 800ms, looping P → D → S
-  → A → P, respecting `prefers-reduced-motion` (static wheel).
+- A section divider on long pages. Draw it at 16px with a `--gray-300` stroke,
+  centred. Leave 96px of vertical space either side.
+- A loading state. The wheel rotates one quadrant per 800ms. It loops P → D → S
+  → A → P. It respects `prefers-reduced-motion` (static wheel).
 
 Each agent's "phase coverage" in [KATA.md § Skills](../../KATA.md#skills) maps
-to wheel quadrants, so the wheel is also functional: a Staff Engineer profile
-page may show the wheel with **P** and **D** lit; an Improvement Coach profile
-may show **S** lit. Lit quadrants use a 1.5px stroke; unlit quadrants use a
+to wheel quadrants. So the wheel is also functional. A Staff Engineer profile
+page may show the wheel with **P** and **D** lit. An Improvement Coach profile
+may show **S** lit. Lit quadrants use a 1.5px stroke. Unlit quadrants use a
 0.5px stroke. No fills.
 
 ```text
@@ -111,9 +113,9 @@ may show **S** lit. Lit quadrants use a 1.5px stroke; unlit quadrants use a
 ### Core Palette
 
 Warm-tinted grays, pulled toward the _sumi_ ink and pressed-paper end of the
-ramp. Slightly cooler than Forward Impact Engineering's sandstone bias, slightly
-more graphite — think of a black-and-white photograph that has been kept in a
-manila folder for seventy years.
+ramp. They are slightly cooler than Forward Impact Engineering's sandstone
+bias, and slightly more graphite. Think of a black-and-white photograph that
+sat in a manila folder for seventy years.
 
 | Token          | Hex       | Usage                                       |
 | -------------- | --------- | ------------------------------------------- |
@@ -132,8 +134,8 @@ manila folder for seventy years.
 ### The Warm Signal: Hanko (Stamp Ink)
 
 A vermillion red drawn from the Japanese hanko (signature stamp) used to mark
-approved paperwork on the shop floor. Reads as ink on a card — the visible trace
-of a decision made.
+approved paperwork on the shop floor. It reads as ink on a card. It is the
+visible trace of a decision.
 
 | Token       | Hex       | Usage                                  |
 | ----------- | --------- | -------------------------------------- |
@@ -145,12 +147,12 @@ of a decision made.
 
 **Usage rule:** Hanko appears in backgrounds, borders, the terminal prompt, the
 andon-cord highlight, and the stamp-mark accent. **Never in body text or
-interactive elements.** It is the single warm signal — the ink on the card, not
-the card itself.
+interactive elements.** It is the single warm signal. It is the ink on the
+card. It is not the card itself.
 
 All grays are warm-tinted with a subtle graphite shift (~3–5% pull toward
-neutral-warm). The difference accumulates across a page — quieter than
-sandstone, but still warmer than pure neutral. Like archival paper.
+neutral-warm). The difference accumulates across a page. The result is quieter
+than sandstone, but still warmer than pure neutral. Like archival paper.
 
 ---
 
@@ -165,17 +167,17 @@ sandstone, but still warmer than pure neutral. Like archival paper.
 | **Body**           | `"IBM Plex Sans"`                | Same                                                        |
 | **Mono / Code**    | `"IBM Plex Mono"` (Google Fonts) | `"SF Mono", Consolas, "Liberation Mono", monospace`         |
 
-**Roboto Slab** is Kata's reading of the family's display serif: an industrial
-slab serif that evokes mid-century training manuals, factory signage, and
-stencilled crate markings — the vocabulary of writing things down on the shop
-floor.
+**Roboto Slab** is Kata's reading of the family's display serif. It is an
+industrial slab serif. It evokes mid-century training manuals, factory signage,
+and stencilled crate markings. These are the vocabulary of written records on
+the shop floor.
 
-**IBM Plex Sans** is the sans pairing — a typeface designed explicitly to evoke
-mid-century corporate identity, with the geometric calm of a 1950s form. It
-pairs naturally with Roboto Slab through shared mid-century DNA.
+**IBM Plex Sans** is the sans pairing. It is a typeface designed explicitly to
+evoke mid-century corporate identity, with the geometric calm of a 1950s form.
+It pairs naturally with Roboto Slab through shared mid-century DNA.
 
-**IBM Plex Mono** completes the family — typewriter cadence without the
-typewriter's irregularity, suited for terminals and ledger-style data.
+**IBM Plex Mono** completes the family. It gives typewriter cadence without the
+typewriter's irregularity. It suits terminals and ledger-style data.
 
 ### Type Scale
 
@@ -193,8 +195,8 @@ typewriter's irregularity, suited for terminals and ledger-style data.
 | `--text-mono`          | `0.875rem` (14px) | 400    | 1.6         | IBM Plex Mono | `--gray-500` |
 
 The Kata display weight is heavier than Forward Impact Engineering's (700
-vs 400) — slab serifs carry mid-century industrial weight, more poster than
-journal.
+vs 400). Slab serifs carry mid-century industrial weight. They are more poster
+than journal.
 
 ### Hero Pattern
 
@@ -216,10 +218,9 @@ IBM Plex Sans, 18px, weight 400, gray-400:
 
 The Kata wordmark sets the four letters **KATA** in Roboto Slab 700 with
 generous letter-spacing (`0.18em`). Above the second `A` sits a small **PDSA
-wheel** — the four-quadrant chalk circle defined in
-[§ 2 The PDSA Wheel](#the-pdsa-wheel) — sized at 0.5em. The wheel acts as the
-brand's signature: a quiet visible reminder that every Kata page is a turn of
-the cycle.
+wheel**, sized at 0.5em. [§ 2 The PDSA Wheel](#the-pdsa-wheel) defines that
+four-quadrant chalk circle. The wheel acts as the brand's signature. It is a
+quiet visible reminder that every Kata page is a turn of the cycle.
 
 ```text
    K A T A
@@ -227,23 +228,22 @@ the cycle.
 ```
 
 At very small sizes (under 16px wordmark height), the PDSA wheel reduces to a
-simple **stroke-only** circle in `--gray-700` — the quadrant marks are dropped,
-but the no-fill rule is preserved. Below 8px wordmark height the wheel is
-omitted entirely.
+simple **stroke-only** circle in `--gray-700`. Drop the quadrant marks. Keep
+the no-fill rule. Below 8px wordmark height, omit the wheel entirely.
 
 ---
 
 ## 5. Layout Patterns
 
-The brand surfaces in four real places, ordered from the fullest rendering down
-to plain markdown. `KATA.md` is the authoritative source inside the monorepo;
-the public site is the external home.
+The brand surfaces in four real places. The list runs from the fullest
+treatment down to plain markdown. `KATA.md` is the authoritative source inside
+the monorepo. The public site is the external home.
 
 ### Surface 1 — The Public Site (`www.kata.team`)
 
-The canonical web rendering is `websites/kata/index.md`, served at
-`www.kata.team`. This is where the brand renders in full for anyone evaluating
-or adopting the Kata Agent Team.
+The canonical web page is `websites/kata/index.md`, served at
+`www.kata.team`. The brand renders in full there for anyone who evaluates or
+adopts the Kata Agent Team.
 
 ```text
 ┌──────────────────────────────────────────────┐
@@ -280,33 +280,33 @@ or adopting the Kata Agent Team.
 
 ### Surface 2 — `KATA.md` Rendered on GitHub
 
-`KATA.md` at the repo root is read by every agent at the start of a Kata run
-(per the L1 instruction layer). On GitHub it renders as plain flavored markdown
-— the brand cannot inject CSS — so the brand surfaces through **structural
-cues** only: section headings that match the persona names, the hanko stamp
+Every agent reads `KATA.md` at the repo root at the start of a Kata run (per
+the L1 instruction layer). On GitHub it renders as plain flavored markdown. The
+brand cannot inject CSS. So the brand surfaces through **structural cues**
+only: section headings that match the persona names, and the hanko stamp
 emoji-equivalent (`🟥`) reserved for the Trust Boundary section.
 
 ### Surface 3 — Agent Comments and PR/Issue Bodies
 
-When a Kata agent posts on a PR or issue (via `kata-dispatch`), it signs with
-its persona. The signature line is a single line of IBM Plex Mono using the
-convention:
+When a Kata agent posts on a PR or issue (through `kata-dispatch`), it signs
+with its persona. The signature line is a single line of IBM Plex Mono. It
+follows this convention:
 
 ```text
 — {persona icon} {Persona Name} · {phase} · {run-id}
 ```
 
 Example: `— 📐 Staff Engineer · Plan · run-2026-04-28-night`. The icon is the
-persona's icon glyph; the phase is one of P/D/S/A; the run-id ties the comment
+persona's icon glyph. The phase is one of P/D/S/A. The run-id ties the comment
 back to the trace artifact.
 
 ### Surface 4 — Storyboard Markdown and Wiki Summaries
 
 Daily storyboard files (`wiki/storyboard/{YYYY-MM-DD}.md`) and per-agent wiki
-summaries (`wiki/{persona}.md`) follow a fixed Kata template — the brand's
-typographic discipline applied to plain markdown. Persona name as H1, current
-condition as a blockquote, target condition as a level-2 heading, the five kata
-questions as level-3 subsections, metrics as a mono-table.
+summaries (`wiki/{persona}.md`) follow a fixed Kata template. The template
+applies the brand's typographic discipline to plain markdown. Persona name as
+H1, current condition as a blockquote, target condition as a level-2 heading,
+the five kata questions as level-3 subsections, metrics as a mono-table.
 
 ### Warm/Cool Section Rhythm
 
@@ -320,8 +320,8 @@ Footer:    gray-900 (#161513)       — Dark footer (inverted), licenses
 ```
 
 The kata-rail texture is Kata's equivalent of Forward Impact Engineering's
-contour lines: a repeating thin horizontal line in `--gray-100` on
-`--white-warm` or `--ink-50` sections, evoking the wire on which kanban cards
+contour lines. It is a thin horizontal line that repeats in `--gray-100` on
+`--white-warm` or `--ink-50` sections. It evokes the wire on which kanban cards
 slide. 1px stroke, spaced 28px apart, opacity 0.35. Never on pure white
 backgrounds.
 
@@ -332,23 +332,23 @@ instantiate with Kata colors:
 
 - **Buttons (Primary):** `background: --gray-900`, text `#ffffff`. Hover shifts
   background to `--black`. The warm signal does not appear on interactive
-  elements — the brand's stamp-mark accent lives on cards, paper, and the
-  terminal prompt, never on a button or link.
+  elements. The brand's stamp-mark accent lives on cards, paper, and the
+  terminal prompt. It never appears on a button or link.
 - **Buttons (Secondary / Product):** `border: 1.5px solid --gray-200`, text
   `--gray-900`. Hover darkens border to `--gray-700`.
 - **Cards:** `background: --white` (on warm bg) or `--white-warm` (on white bg),
   `border: 1.5px solid --gray-200`. Selected/active state adds a `--ink-400`
-  left edge — the kanban-card "approved" stamp.
+  left edge, the kanban-card "approved" stamp.
 - **Terminal / Code Blocks:** `background: --gray-900` (`#161513`), text
   `#ebe8e1`, prompt `❯` in `--ink-400`, comments in `--gray-400`.
-- **Kanban-Rail Texture:** Repeating thin horizontal lines in `--gray-100` on
+- **Kanban-Rail Texture:** Thin horizontal lines that repeat in `--gray-100` on
   `--white-warm` or `--ink-50` sections. 1px stroke, 28px spacing, opacity 0.35.
 - **Footer (Dark):** `background: --gray-900`, primary text `#ebe8e1`, secondary
   text `--gray-300`, dividers `--gray-700`. The word **KATA** (Roboto Slab 700,
   letter-spaced) plus the PDSA wheel in white. Licenses (Apache-2.0 code, CC BY
   4.0 docs) in `--gray-300`. (`--gray-300` is the on-dark equivalent of
-  `--gray-400` on light — a brand convention since Kata's `--gray-400` is darker
-  than the family default to satisfy AA on white.)
+  `--gray-400` on light. This is a brand convention, because Kata's
+  `--gray-400` is darker than the family default to satisfy AA on white.)
 
 ---
 
@@ -370,18 +370,18 @@ Each agent shares the core design system with subtle differentiators:
 - **Staff Engineer**: Plan documents render on a faint blueprint grid in
   `--gray-100`. Spec / design / plan stages display as a 3-stage progress line
   with stamped milestones.
-- **Release Engineer**: Release notes use a manifest layout — version, date,
-  payload, signer — rendered as a stamped shipping label.
-- **Security Engineer**: Vulnerability dashboards use a "lantern" pattern: the
-  unresolved CVE rows glow softly in `--ink-100`; resolved rows fall back to
+- **Release Engineer**: Release notes use a manifest layout with version, date,
+  payload, and signer. The layout renders as a stamped shipping label.
+- **Security Engineer**: Vulnerability dashboards use a "lantern" pattern. The
+  unresolved CVE rows glow softly in `--ink-100`. Resolved rows fall back to
   `--gray-50`.
 - **Product Manager**: Issue and PR queues render as a kanban rail (horizontal
-  lanes, cards sliding right). The merge gate is a stamped seal.
+  lanes, cards that slide right). The merge gate is a stamped seal.
 - **Technical Writer**: Wiki pages and weekly logs render in a "ledger"
-  treatment — narrow column, IBM Plex Mono for metadata lines, faint horizontal
+  treatment: narrow column, IBM Plex Mono for metadata lines, faint horizontal
   rule between entries.
-- **Improvement Coach**: Storyboard meeting notes render inside a circle — the
-  Ohno circle — with the five kata questions arrayed around it. XmR charts use a
+- **Improvement Coach**: Storyboard meeting notes render inside a circle, the
+  Ohno circle, with the five kata questions arrayed around it. XmR charts use a
   stamped grid.
 
 ---
@@ -469,8 +469,8 @@ Each agent shares the core design system with subtle differentiators:
 ```
 
 The Kata radii are slightly tighter than Forward Impact Engineering (6/10/14 vs
-8/12/16) — closer to the squared corners of mid-century industrial cards and
-stamped paper.
+8/12/16). They are closer to the squared corners of mid-century industrial
+cards and stamped paper.
 
 ---
 

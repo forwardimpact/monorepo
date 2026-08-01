@@ -28,8 +28,8 @@ function commonContext(runtime, options) {
 }
 
 function lastDateHeading(text) {
-  // Match `## YYYY-MM-DD` at the start of a line, optionally followed by
-  // suffix text (e.g. `## 2026-05-19 (third activation)`).
+  // Match `## YYYY-MM-DD` at the start of a line. Suffix text can follow
+  // (e.g. `## 2026-05-19 (third activation)`).
   const re = new RegExp(WEEKLY_LOG_SEAM_RE.source, "gm");
   let last = null;
   let match;
@@ -38,12 +38,13 @@ function lastDateHeading(text) {
 }
 
 /**
- * Rotate before an append, never blocking it. A bisecting seal may now produce
- * multiple parts; the append still proceeds against the fresh current file. An
- * `incomplete` residue (a lone over-cap day-section sealed as its own part —
- * never the live file) is surfaced to stderr but does not block the append. A
- * thrown fs error is reported and swallowed: the writer rolled back, so the
- * (intact) current file still receives the new entry.
+ * Rotate before an append. The rotation never blocks the append. A seal that
+ * bisects can now produce multiple parts, and the append still proceeds
+ * against the fresh current file. An `incomplete` residue is a lone over-cap
+ * day-section sealed as its own part, never the live file. The function
+ * reports that residue to stderr, and it does not block the append. The
+ * function reports a thrown fs error and swallows it. The writer rolled back,
+ * so the (intact) current file still receives the new entry.
  */
 function rotateBeforeAppend(wikiRoot, agent, today, body, runtime) {
   try {
@@ -60,7 +61,7 @@ function rotateBeforeAppend(wikiRoot, agent, today, body, runtime) {
       createLogger("wiki", runtime).warn(
         "log",
         `day-section ${res.residue.section} alone exceeds the budget ` +
-          `(${res.residue.lines} lines, ${res.residue.words} words); ` +
+          `(${res.residue.lines} lines, ${res.residue.words} words), ` +
           `sealed as ${res.residue.path} for manual recovery`,
       );
     }
@@ -70,10 +71,11 @@ function rotateBeforeAppend(wikiRoot, agent, today, body, runtime) {
 }
 
 /**
- * Report the just-written weekly log's budget state — value, cap, and remaining
- * headroom for both the line and word budget — so a writer sees the ceiling
- * before composing the next entry rather than discovering it via a red gate.
- * Runs after every successful append, on the rotated and non-rotated path alike.
+ * Report the budget state of the weekly log just written. The report gives the
+ * value, the cap, and the headroom left for both the line budget and the word
+ * budget. A writer then sees the ceiling before the next entry, and does not
+ * find it at a red gate. This runs after every successful append, on the
+ * rotated path and the non-rotated path alike.
  */
 function reportBudget(target, runtime) {
   const text = runtime.fsSync.existsSync(target)
@@ -131,13 +133,13 @@ function runNote(runtime, options) {
     return { ok: false, code: 2 };
   }
   const fieldBlock = `### ${options.field}\n\n${options.body}\n`;
-  // Conservative budget: assume we'll prepend a date heading. Rotate on the
-  // larger `withHeading` body so the word/line projection never under-counts.
+  // Conservative budget: assume a prepended date heading. Rotate on the larger
+  // `withHeading` body so the word/line projection never under-counts.
   const withHeading = `## ${today}\n\n${fieldBlock}`;
   rotateBeforeAppend(wikiRoot, agent, today, withHeading, runtime);
   const target = weeklyLogPath(wikiRoot, agent, today);
-  // Append under the open entry if the file's last `## YYYY-MM-DD` is today;
-  // otherwise open a new entry by prepending a date heading.
+  // Append under the open entry if the file's last `## YYYY-MM-DD` is today.
+  // If it is not, prepend a date heading to open a new entry.
   const existing = runtime.fsSync.existsSync(target)
     ? runtime.fsSync.readFileSync(target, "utf-8")
     : "";

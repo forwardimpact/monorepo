@@ -41,7 +41,7 @@ describe("buildHookEnv", () => {
     assert.equal(env.HOME, "/root");
   });
 
-  test("null familyDir is coerced to empty string", () => {
+  test("coerces a null familyDir to an empty string", () => {
     const env = buildHookEnv(
       {},
       {

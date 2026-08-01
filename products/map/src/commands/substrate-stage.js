@@ -1,15 +1,15 @@
 /**
  * `fit-map substrate stage` — workspace-prep terminal phase for the
- * kata-interview workflow targeting Landmark. Runs init against the
- * target dir, copies the activity data and pathway standard from the
- * same data root, brings up the local Supabase stack, discovers its
- * URL/anon key, migrates the schema, seeds the activity data,
- * provisions auth.users for the roster, proves the seeded roster's
- * levels against the staged standard, and runs a self-smoke against
- * every gated Landmark command.
+ * kata-interview workflow that targets Landmark. The command runs init
+ * against the target dir. It copies the activity data and the pathway
+ * standard from the same data root. It brings up the local Supabase
+ * stack. It discovers the stack's URL and anon key. It migrates the
+ * schema. It seeds the activity data. It provisions auth.users for the
+ * roster. It proves the seeded roster's levels against the staged
+ * standard. It runs a self-smoke against every gated Landmark command.
  *
- * Designed to be invoked once per interview run from CI; not a developer
- * verb (use `fit-map activity start` + manual seed in dev flows).
+ * Call this once per interview run from CI. It is not a developer verb.
+ * Use `fit-map activity start` and a manual seed in dev flows.
  */
 
 import path from "node:path";
@@ -20,14 +20,14 @@ import { createProductConfig } from "@forwardimpact/libconfig";
 import { formatSuccess } from "@forwardimpact/libcli";
 
 /**
- * Run the staging pipeline. Each phase is wrapped so failures surface
- * with a `[substrate stage: <phase>] <reason>` error so the CI step's
- * stderr identifies which substrate step failed.
+ * Run the stage pipeline. The function wraps each phase so failures
+ * surface with a `[substrate stage: <phase>] <reason>` error. The CI
+ * step's stderr then identifies which substrate step failed.
  *
- * Dependencies are injectable for tests; production callers pass only
- * `config` (and optionally `target`) and the defaults wire up the real
- * Supabase CLI, mapClient, data-dir resolver, init, seed, provision,
- * and smoke surfaces.
+ * Tests inject the dependencies. Production callers pass only `config`
+ * and optionally `target`. The defaults then wire up the real Supabase
+ * CLI, mapClient, data-dir resolver, init, seed, provision, and smoke
+ * surfaces.
  *
  * @param {object} params
  * @param {object} params.config - libconfig product config for "map".
@@ -35,7 +35,7 @@ import { formatSuccess } from "@forwardimpact/libcli";
  *   (default: `runtime.proc.cwd()`).
  * @param {string} [params.emitEnv] - Path to append `SUPABASE_URL=` /
  *   `SUPABASE_ANON_KEY=` to after the `url-discovery` phase (e.g.
- *   `$GITHUB_ENV`). Omit to skip the emit; all phases are unchanged.
+ *   `$GITHUB_ENV`). Omit to skip the emit. All phases are unchanged.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} params.runtime - Injected collaborators.
  * @param {object} [deps]
  * @returns {Promise<number>}
@@ -62,8 +62,8 @@ export async function runStageCommand(
       import("./substrate-smoke.js").then((m) => m.runSelfSmoke),
     // Anchor the re-read at `target` so the post-init load observes the
     // bootstrapped target/config/config.json. fit-map.js's module-top
-    // createProductConfig("map") ran from cwd before init — in CI that's
-    // the monorepo root, not the agent workspace — so a plain
+    // createProductConfig("map") ran from cwd before init. In CI that cwd
+    // is the monorepo root. It is not the agent workspace. So a plain
     // createProductConfig() here would re-read the same root config and
     // silently no-op against the writer's contribution.
     reloadConfig = (stageTarget) =>
@@ -90,11 +90,11 @@ export async function runStageCommand(
     await copyActivity({ source, target: stageTarget, runtime });
   });
 
-  // Activity and pathway are a matched pair from the same data root: the
-  // roster seeded below carries level ids the standard must define, so
-  // the staged pathway ships from the same source as the activity data
-  // (init's starter copy stays as the fallback when no source pathway
-  // exists).
+  // Activity and pathway are a matched pair from the same data root. The
+  // roster seeded below carries level ids the standard must define. So
+  // the staged pathway ships from the same source as the activity data.
+  // When no source pathway exists, init's starter copy stays as the
+  // fallback.
   const copyPathway = await loadCopyPathway();
   await runPhase("copy-pathway", async () => {
     const source = await findDataDir(undefined, runtime);
@@ -112,14 +112,14 @@ export async function runStageCommand(
     const status = JSON.parse(json);
     if (!status.API_URL) throw new Error("supabase status: no API_URL");
     if (!status.ANON_KEY) throw new Error("supabase status: no ANON_KEY");
-    // libconfig's #env() reads env first; setting these here makes the
-    // createMapClient call below (and any same-process children) observe
-    // the live local-stack values.
+    // libconfig's #env() reads env first. Set these here so the
+    // createMapClient call below observes the live local-stack values.
+    // Any same-process children observe them too.
     runtime.proc.env.SUPABASE_URL = status.API_URL;
     runtime.proc.env.SUPABASE_ANON_KEY = status.ANON_KEY;
-    // Carry the same two lines across CI steps when asked. Same emit shape
-    // as `fit-terrain substrate up --emit-env`, so a consumer can swap the
-    // FI stage for the generic bring-up without changing the action.
+    // Carry the same two lines across CI steps when asked. The emit shape
+    // matches `fit-terrain substrate up --emit-env`, so a consumer can swap
+    // the FI stage for the generic bring-up and keep the action unchanged.
     if (emitEnv) {
       await runtime.fs.appendFile(
         emitEnv,
@@ -130,11 +130,11 @@ export async function runStageCommand(
 
   await runPhase("migrate", () => cli.run(["db", "reset"]));
 
-  // Two clients from here on: the activity-schema client serves seed (vendor
-  // tables), while provision and the smoke run the libterrain-owned substrate
-  // capability, whose queries name contract relations and need a client bound
-  // to the `substrate` schema — the activity client would fail them with
-  // "relation people not found".
+  // Two clients run from here on. The activity-schema client serves seed
+  // (vendor tables). Provision and the smoke run the libterrain-owned
+  // substrate capability. Its queries name contract relations and need a
+  // client bound to the `substrate` schema. The activity client would fail
+  // them with "relation people not found".
   const supabase = createMapClient({ config: stageConfig });
   const substrateClient = createMapClient({
     config: stageConfig,
@@ -150,8 +150,8 @@ export async function runStageCommand(
   );
 
   // Prove the seeded roster against the standard this workspace actually
-  // ships — the seed phase checked against the source data root; this
-  // one checks the staged copy end-to-end.
+  // ships. The seed phase checked against the source data root. This
+  // phase checks the staged copy end-to-end.
   const assertSeededLevelsCovered = await loadAssertLevels();
   await runPhase("roster-standard", () =>
     assertSeededLevelsCovered({
@@ -177,8 +177,8 @@ async function runPhase(name, fn) {
   try {
     await fn();
   } catch (err) {
-    // Prefix the phase onto the original error rather than wrapping it,
-    // so the stack still points at the failing frame.
+    // Prefix the phase onto the original error. Do not wrap the error, so
+    // the stack still points at the frame that failed.
     err.message = `[substrate stage: ${name}] ${err.message}`;
     throw err;
   }

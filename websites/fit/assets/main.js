@@ -63,7 +63,7 @@ if (navToggle) {
   });
 }
 
-/* ── Active Nav Highlighting ───────────────────────────────────── */
+/* ── Active Nav Highlight ──────────────────────────────────────── */
 
 const path = window.location.pathname;
 document.querySelectorAll(".nav-products a").forEach((link) => {

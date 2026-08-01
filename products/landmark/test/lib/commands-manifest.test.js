@@ -1,14 +1,15 @@
 /**
  * Drift-guard tests for `products/landmark/src/lib/commands-manifest.js`.
  *
- * Two directions of drift are guarded:
+ * These tests guard two directions of drift:
  *
  *   1. `SUBCOMMAND_EXPANSIONS`/`FLAT_SMOKE_OPTIONS` cover every
  *      needsSupabase command from the canonical COMMANDS map.
- *   2. The bin's libcli `commands` array — read as text + regex-extracted
- *      — declares user-visible subcommands whose top-level name is
- *      represented by either `SUBCOMMAND_EXPANSIONS[top]` (space-separated
- *      names) or `FLAT_SMOKE_OPTIONS[top]` (flat names).
+ *   2. The bin's libcli `commands` array declares user-visible
+ *      subcommands. The test reads that array as text and extracts the
+ *      names with a regex. Either `SUBCOMMAND_EXPANSIONS[top]`
+ *      (space-separated names) or `FLAT_SMOKE_OPTIONS[top]` (flat names)
+ *      must represent each top-level name.
  */
 
 import { describe, test } from "node:test";
@@ -49,8 +50,8 @@ describe("commands-manifest covers every gated command", () => {
     while ((m = nameRegex.exec(binSource))) names.push(m[1]);
 
     // Filter to the user-visible command names (those that match a top-level
-    // COMMANDS key). marker is the only top-level name we permit to lack
-    // smoke options since marker.needsSupabase is false.
+    // COMMANDS key). marker is the only top-level name that can lack smoke
+    // options, because marker.needsSupabase is false.
     for (const fullName of names) {
       const top = fullName.split(" ")[0];
       if (!Object.hasOwn(COMMANDS, top)) continue;

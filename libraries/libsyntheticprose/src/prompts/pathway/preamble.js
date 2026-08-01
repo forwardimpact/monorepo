@@ -1,8 +1,8 @@
 /**
  * Shared system preamble for all pathway prompt builders.
  *
- * Establishes consistent voice, terminology, and naming conventions
- * across all 8 entity prompt builders.
+ * This preamble gives all 8 entity prompt builders the same voice, the
+ * same terminology, and the same naming conventions.
  */
 
 import {
@@ -17,10 +17,10 @@ import {
  */
 export function buildPreamble(standardName) {
   return [
-    `You are writing content for the "${standardName}" agent-aligned engineering standard.`,
+    `You write content for the "${standardName}" agent-aligned engineering standard.`,
     `Use these exact proficiency level names: ${PROFICIENCY_LEVELS.join(", ")}.`,
     `Use these exact maturity level names: ${MATURITY_LEVELS.join(", ")}.`,
     `Write in professional, concise, third-person voice.`,
-    `Use consistent terminology across all entities — prefer precise terms over synonyms.`,
+    `Use consistent terminology across all entities. Prefer precise terms over synonyms.`,
   ].join("\n");
 }

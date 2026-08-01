@@ -6,9 +6,9 @@ import { tmpdir } from "node:os";
 
 import { capture, verify } from "../scripts/capture-cli-golden.mjs";
 
-// capture()/verify() spawn a real stub bin and compare golden files on disk, so
-// these exercise the harness end-to-end against the real filesystem. The pure
-// applyTransforms unit test lives in capture-cli-golden.test.js.
+// capture()/verify() spawn a real stub bin and compare golden files on disk.
+// These tests exercise the harness end-to-end against the real filesystem. The
+// pure applyTransforms unit test lives in capture-cli-golden.test.js.
 describe("capture + verify against a stub bin", () => {
   let dir;
   let stub;
@@ -16,7 +16,8 @@ describe("capture + verify against a stub bin", () => {
   beforeEach(() => {
     dir = mkdtempSync(join(tmpdir(), "golden-"));
     stub = join(dir, "stub.js");
-    // Deterministic except a timestamp token the transform normalises.
+    // The output is deterministic except for a timestamp token. The
+    // transform normalises that token.
     writeFileSync(
       stub,
       `process.stdout.write("hello stamp=" + "RUN-ABC123\\n");`,

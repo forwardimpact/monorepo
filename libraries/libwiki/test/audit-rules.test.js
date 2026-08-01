@@ -75,14 +75,14 @@ describe("RULES catalogue", () => {
     }
   });
 
-  test("structure hints steer to the log commands; part-budget hints drop the by-hand clause", () => {
+  test("structure hints steer to the log commands. Part-budget hints drop the by-hand clause", () => {
     const hintOf = (id) => RULES.find((r) => r.id === id).hint;
     // The drift rule and the decision-block rule both name a log command.
     assert.match(hintOf("weekly-log.heading-grammar"), /gemba-wiki log/);
     assert.match(hintOf("weekly-log-part.heading-grammar"), /gemba-wiki log/);
     assert.match(hintOf("decision-block.heading-within-5"), /gemba-wiki log/);
-    // The sealed-part budget hints no longer direct a hand-split; `gemba-wiki fix`
-    // now sub-splits at the block seam.
+    // The sealed-part budget hints no longer direct a hand-split.
+    // `gemba-wiki fix` now sub-splits at the block seam.
     for (const id of [
       "weekly-log-part.line-budget",
       "weekly-log-part.word-budget",
@@ -92,11 +92,12 @@ describe("RULES catalogue", () => {
     }
   });
 
-  test("weekly-log budget hints are functions resolving to a correctly-targeted rotate command", () => {
-    // Copy-paste-safe: the agent comes from the flagged file's prefix, with no
-    // placeholder for the caller to substitute. The libutil engine resolves a
-    // function hint once per finding (covered in libutil's rules.test.js); here
-    // we assert the rule definition produces the right command from the subject.
+  test("weekly-log budget hints are functions that resolve to a correctly-targeted rotate command", () => {
+    // The hint is copy-paste-safe. The agent comes from the flagged file's
+    // prefix, with no placeholder for the caller to substitute. The libutil
+    // engine resolves a function hint once per finding (libutil's
+    // rules.test.js covers that). Here we assert the rule definition produces
+    // the right command from the subject.
     const subject = { agentPrefix: "product-manager" };
     const budgetRules = RULES.filter(
       (r) =>
@@ -121,11 +122,11 @@ describe("RULES catalogue", () => {
       "weekly-log.line-budget": "rotate",
       "weekly-log.word-budget": "rotate",
       // decision-block.heading-within-5 defaults to "agent" (the writer inserts
-      // the heading); part budgets re-bisect deterministically like main logs.
+      // the heading). Part budgets re-bisect deterministically like main logs.
       "weekly-log-part.line-budget": "rotate",
       "weekly-log-part.word-budget": "rotate",
-      // A non-grammar filename is flagged for a human — a wrong automated move
-      // or delete destroys memory, so admission never auto-fixes.
+      // The rule flags a non-grammar filename for a human. A wrong automated
+      // move or delete destroys memory, so admission never auto-fixes.
       "admission.not-in-grammar": "flag",
     };
     for (const rule of RULES) {

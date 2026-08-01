@@ -30,7 +30,7 @@ describe("GraphProcessor", () => {
     );
 
     // GraphProcessor accesses this.logger directly, so we need to expose it
-    // This is a test-specific workaround for accessing the protected logger
+    // This test-specific workaround exposes the protected logger
     Object.defineProperty(processor, "logger", {
       get() {
         return mockLogger;
@@ -40,18 +40,18 @@ describe("GraphProcessor", () => {
   });
 
   describe("constructor", () => {
-    test("creates GraphProcessor with required dependencies", () => {
+    test("creates a GraphProcessor with the required dependencies", () => {
       assert.ok(processor instanceof GraphProcessor);
     });
 
-    test("validates graphIndex parameter", () => {
+    test("validates the graphIndex parameter", () => {
       assert.throws(
         () => new GraphProcessor(null, mockResourceIndex, mockLogger),
         { message: /graphIndex is required/ },
       );
     });
 
-    test("validates resourceIndex parameter", () => {
+    test("validates the resourceIndex parameter", () => {
       assert.throws(
         () => new GraphProcessor(mockGraphIndex, null, mockLogger),
         { message: /resourceIndex is required/ },
@@ -139,7 +139,7 @@ describe("GraphProcessor", () => {
 
       assert.ok(addedQuads !== null);
       assert.strictEqual(addedQuads.length, 3);
-      // First quad should be rdf:type
+      // The first quad should be rdf:type
       assert.strictEqual(
         addedQuads[0].predicate.value,
         "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",

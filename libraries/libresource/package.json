@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/libresource",
   "version": "0.1.118",
-  "description": "Typed resources with identifiers and rich context chunks — trustworthy, retrievable knowledge for agent grounding.",
+  "description": "Typed resources with identifiers and rich context chunks — trustworthy, retrievable knowledge that grounds agents.",
   "keywords": [
     "resource",
     "rdf",
@@ -23,7 +23,7 @@
       "goal": "Ground Agents in Context",
       "trigger": "Passing context to an agent and realizing the payload is an untyped blob with no provenance or access control.",
       "bigHire": "give agents typed, retrievable knowledge they can trust.",
-      "littleHire": "resolve a resource by identifier and get a rich context chunk, not a raw file.",
+      "littleHire": "resolve a resource by identifier and get a rich context chunk instead of a raw file.",
       "competesWith": "passing raw file contents; untyped JSON payloads; skipping provenance and hoping the agent figures it out"
     }
   ],

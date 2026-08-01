@@ -23,13 +23,13 @@ const definition = {
       title: "Ship a Service Endpoint",
       url: "https://www.forwardimpact.team/docs/libraries/typed-contracts/ship-endpoint/index.md",
       description:
-        "Ship and consume a gRPC service with typed contracts, authentication, retries, and health checks; fit-unary is the command-line client for it.",
+        "Ship and consume a gRPC service with typed contracts, authentication, retries, and health checks. fit-unary is the command-line client for it.",
     },
     {
       title: "Keep Types Synced with Proto Definitions",
       url: "https://www.forwardimpact.team/docs/libraries/typed-contracts/index.md",
       description:
-        "The full workflow for defining proto contracts and generating typed base classes and clients.",
+        "The full workflow to define proto contracts and generate typed base classes and clients.",
     },
   ],
 };

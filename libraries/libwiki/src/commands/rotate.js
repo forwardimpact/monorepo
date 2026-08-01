@@ -6,8 +6,8 @@ import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 /**
  * Rotate the current weekly log to a sealed part file. Refuses an under-budget
- * target (exit 2) unless `--force`; the header-only floor stays a zero-exit
- * no-op even under `--force`; a missing target exits 2.
+ * target (exit 2) unless you pass `--force`. The header-only floor stays a
+ * zero-exit no-op even under `--force`. A missing target exits 2.
  */
 export function runRotateCommand(ctx) {
   const { runtime } = ctx.deps;
@@ -21,8 +21,8 @@ export function runRotateCommand(ctx) {
   const agent = resolved.agent;
   const wikiRoot = resolveWikiRoot(runtime, options);
   const today = options.today || currentDayIso(runtime);
-  // Name the resolved target before any seal: the file follows from agent +
-  // current week, not from any audit finding.
+  // Name the resolved target before any seal. The file follows from agent plus
+  // current week. No audit finding decides it.
   runtime.proc.stdout.write(
     `target → ${weeklyLogPath(wikiRoot, agent, today)}\n`,
   );
@@ -43,8 +43,8 @@ export function runRotateCommand(ctx) {
   }
   switch (result.status) {
     case "noop":
-      // The header-only floor is a benign no-op; an under-budget or missing
-      // target fails closed so a stale/typo'd invocation cannot pass silently.
+      // The header-only floor is a benign no-op. An under-budget or missing
+      // target fails closed. A stale or typo'd invocation cannot pass silently.
       if (result.reason === "floor") {
         runtime.proc.stdout.write(`no rotation needed for ${agent}\n`);
         return { ok: true };
@@ -79,14 +79,15 @@ export function runRotateCommand(ctx) {
         `section ${section} alone exceeds the budget ` +
           `(${lines} lines, ${words} words) and has no finer seam to split ` +
           `at: ${residuePath}\n` +
-          `recover it by hand — shorten the section ` +
+          `recover it by hand. Shorten the section ` +
           `(see the memory protocol's manual-recovery convention)`,
       );
       return { ok: false, code: 1 };
     }
     default:
       // Defensive: the tagged union is exhaustive above, so this is
-      // unreachable; kept so a future status can't fall through to no return.
+      // unreachable. It stays so a future status cannot fall through to no
+      // return.
       return { ok: true };
   }
 }

@@ -40,7 +40,7 @@ function renderMarkdown(digest) {
   return lines.join("\n");
 }
 
-/** Print the on-boot digest for the calling agent. JSON by default; --format markdown renders prose. */
+/** Print the on-boot digest for the agent that runs it. JSON by default. --format markdown renders prose. */
 export function runBootCommand(ctx) {
   const { runtime } = ctx.deps;
   const options = ctx.options;

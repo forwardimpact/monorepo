@@ -22,7 +22,7 @@ import {
 
 const summary = (lines) => lines.join("\n") + "\n";
 
-// A summary missing the **Last run** line fails exactly summary.last-run-marker.
+// A summary without the **Last run** line fails only summary.last-run-marker.
 const MISSING_LAST_RUN = summary([
   "# Staff Engineer — Summary",
   "",
@@ -35,8 +35,8 @@ const MISSING_LAST_RUN = summary([
   "- none",
 ]);
 
-// Adds the Last run line but appends a section after Open Blockers — trades the
-// first violation for summary.open-blockers-last.
+// This adds the Last run line but appends a section after Open Blockers. It
+// trades the first violation for summary.open-blockers-last.
 const SECTION_AFTER_BLOCKERS = summary([
   "# Staff Engineer — Summary",
   "",
@@ -55,7 +55,7 @@ const SECTION_AFTER_BLOCKERS = summary([
   "- old",
 ]);
 
-// Satisfies every summary invariant.
+// This satisfies every summary invariant.
 const VALID_SUMMARY = summary([
   "# Staff Engineer — Summary",
   "",
@@ -101,7 +101,8 @@ describe("gemba-wiki fix CLI (in-process)", () => {
     const summaryPath = join(wikiRoot, "staff-engineer.md");
     writeFileSync(summaryPath, MISSING_LAST_RUN);
 
-    // First edit only trades one violation for another; the resume fixes it.
+    // The first edit only trades one violation for another. The resume then
+    // fixes it.
     const calls = [];
     const query = scriptedQuery(
       summaryPath,
@@ -120,7 +121,7 @@ describe("gemba-wiki fix CLI (in-process)", () => {
 
     assert.equal(result.ok, true);
     assert.match(harness.stdout, /fixed: wiki audit is clean/);
-    assert.equal(calls.length, 2, "should run once then resume once");
+    assert.equal(calls.length, 2, "runs once, then resumes once");
     assert.equal(calls[0].resume, null, "first call is a fresh run");
     assert.equal(
       calls[1].resume,
@@ -149,9 +150,9 @@ describe("gemba-wiki fix CLI (in-process)", () => {
     );
 
     // A summary trim that parks narrative in a non-convention file (e.g.
-    // -history.md) fragments the log series invisibly to the audit, so the
-    // task must confine trimmed history to existing weekly-log files, forbid
-    // minting filenames, and prefer a pointer over a copy.
+    // -history.md) fragments the log series invisibly to the audit. So the
+    // task must confine trimmed history to existing weekly-log files. It must
+    // forbid new filenames and prefer a pointer over a copy.
     const task = calls[0].prompt;
     assert.match(task, /existing\nweekly-log file/);
     assert.match(task, /never a new file/);
@@ -165,7 +166,7 @@ describe("gemba-wiki fix CLI (in-process)", () => {
     const summaryPath = join(wikiRoot, "staff-engineer.md");
     writeFileSync(summaryPath, MISSING_LAST_RUN);
 
-    // The agent never fixes the file, so the audit keeps failing.
+    // The agent never fixes the file, so the audit continues to fail.
     const calls = [];
     const query = scriptedQuery(summaryPath, [MISSING_LAST_RUN], calls);
     const harness = makeRuntime({ cwd: dir });
@@ -196,8 +197,9 @@ describe("gemba-wiki fix CLI (in-process)", () => {
     writeFileSync(summaryPath, MISSING_LAST_RUN);
 
     // An iterator that rejects on the first step with no prior event → no
-    // sessionId, mimicking the SDK failing to launch (e.g. the root guard
-    // rejecting --dangerously-skip-permissions: it exits before any NDJSON).
+    // sessionId. This mimics an SDK that fails to launch. For example, the
+    // root guard rejects --dangerously-skip-permissions, so the process exits
+    // before any NDJSON.
     const calls = [];
     const query = () => {
       calls.push(1);
@@ -230,7 +232,7 @@ describe("gemba-wiki fix CLI (in-process)", () => {
   test("hands a missing ### Decision to the writer, which inserts one", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
-    // In-budget weekly log whose dated entry lacks a leading ### Decision.
+    // An in-budget weekly log whose dated entry lacks a leading ### Decision.
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
     writeFileSync(
       logPath,
@@ -244,8 +246,8 @@ describe("gemba-wiki fix CLI (in-process)", () => {
       ].join("\n"),
     );
 
-    // The writer opens the entry with a ### Decision drawn from its narrative;
-    // the re-audit is then clean.
+    // The writer opens the entry with a ### Decision drawn from its narrative.
+    // The re-audit is then clean.
     const FIXED = [
       "# Staff Engineer — 2026-W21",
       "",
@@ -278,16 +280,17 @@ describe("gemba-wiki fix CLI (in-process)", () => {
     assert.doesNotMatch(harness.stderr, /need human judgment/);
   });
 
-  test("a non-grammar file is flagged for a human and left byte-identical", async () => {
+  test("flags a non-grammar file for a human and leaves it byte-identical", async () => {
     seedCleanWiki(wikiRoot);
-    // No git state under wikiRoot, so the admission universe is the whole walk:
-    // this rogue is in scope and rejected by the grammar.
+    // No git state exists under wikiRoot, so the admission universe is the
+    // whole walk. This rogue is in scope, and the grammar rejects it.
     const roguePath = join(wikiRoot, "product-manager-2026-W24-history.md");
     const ROGUE = "# rogue narrative\n\nsome memory siphoned here\n";
     writeFileSync(roguePath, ROGUE);
     const harness = makeRuntime({ cwd: dir });
 
-    // No agent query is supplied: a flag-only run must never spawn the writer.
+    // The test supplies no agent query. A flag-only run must never spawn the
+    // writer.
     const result = await runFixCommand(
       ctxFor({ runtime: harness.runtime, options: { today: "2026-05-24" } }),
     );
@@ -295,7 +298,7 @@ describe("gemba-wiki fix CLI (in-process)", () => {
     assert.deepEqual(result, { ok: false, code: 2 });
     assert.match(harness.stderr, /need human judgment/);
     assert.match(harness.stderr, /product-manager-2026-W24-history\.md/);
-    // The flagged file is never moved or rewritten.
+    // The fix never moves or rewrites the flagged file.
     assert.equal(readFileSync(roguePath, "utf-8"), ROGUE);
   });
 });

@@ -1,8 +1,8 @@
 /**
- * Unit tests for the copyPathway staging helper: wholesale replacement
- * (never a merge that blends starter and source files), the starter
- * fallback when no source pathway exists, and the self-copy guard when
- * staging into the data root itself.
+ * Unit tests for the copyPathway stage helper. It replaces the staged
+ * pathway wholesale. It never merges starter and source files. It falls
+ * back to the starter when no source pathway exists. It guards against a
+ * self-copy when the target is the data root itself.
  */
 
 import { test, describe } from "node:test";

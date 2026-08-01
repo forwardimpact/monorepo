@@ -3,69 +3,69 @@ name: kata-product-issue
 description: >
   Triage open GitHub issues against the product vision. Classify each as
   mechanical fix, product-aligned spec, or out-of-scope, and produce a report
-  the agent acts on. Operates on issues only — PR mergeability is
-  kata-release-merge.
+  the agent acts on. This skill operates on issues only. kata-release-merge
+  handles PR mergeability.
 ---
 
 # Product Issue Triage
 
-Triage open GitHub issues against the product vision and decide the appropriate
-action for each — but do not take it. The triage produces a report; the agent
-then uses follow-up skills (`kata-spec` for features, direct git operations for
-mechanical fixes) to execute on the recommendations.
+Triage open GitHub issues against the product vision. Decide the appropriate
+action for each. Do not take the action. The triage produces a report. The
+agent then uses follow-up skills (`kata-spec` for features, direct git
+operations for mechanical fixes) to execute on the recommendations.
 
-This is the Study half of the product feedback loop. The Act half lives in the
-agent's workflow, calling `kata-spec` or making fix PRs directly based on the
-triage decisions captured here.
+This is the Study half of the product feedback loop. The Act half lives in
+the agent's workflow. That workflow calls `kata-spec` or makes fix PRs
+directly from the triage decisions this skill captures.
 
 ## When to Use
 
-- A scheduled run finds open issues awaiting triage
+- A scheduled run finds open issues that await triage
 - A specific issue needs an on-demand product-alignment decision
-- Never for PRs — use [`kata-release-merge`](../kata-release-merge/SKILL.md)
+- Never for PRs. Use [`kata-release-merge`](../kata-release-merge/SKILL.md)
 
 ## Prerequisites
 
 All comment templates are in `references/templates.md`.
 
-For grading experiments from agent traces, the procedure for locating trace
-slices inside the dispatch workflow's artifacts is in
-`references/trace-discovery.md`.
+To grade experiments from agent traces, use the procedure in
+`references/trace-discovery.md`. It locates trace slices inside the dispatch
+workflow's artifacts.
 
 ## Checklists
 
 <read_do_checklist goal="Hold the triage boundary before classifying issues">
 
-- [ ] This skill stops at the triage report — do not implement fixes or write
-      specs from within triage.
-- [ ] Classify against the product vision (CLAUDE.md § Products), not personal
-      judgment about usefulness.
+- [ ] Stop at the triage report. Do not implement fixes or write specs
+      inside triage.
+- [ ] Classify against the product vision (CLAUDE.md § Products). Do not
+      classify on personal judgment about usefulness.
 - [ ] Skip issues already labeled `triaged` or `wontfix`.
-- [ ] Record reasoning for each classification — future runs audit decisions.
+- [ ] Record reasoning for each classification. Future runs audit decisions.
 
 </read_do_checklist>
 
 ## Classification
 
-The mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests are defined once
-in
-[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests);
-this table maps those work-types to the triage-specific action and labels.
-Product alignment (the **Product-aligned** row) is this skill's own criterion —
-see § Product Vision Alignment below.
+[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests)
+defines the mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests once.
+This table maps those work-types to the triage-specific action and labels.
+Product alignment (the **Product-aligned** row) is this skill's own criterion.
+See § Product Vision Alignment below.
 
 Triage also assigns each issue's product-vs-internal value from the shared
 rubric in
-[work-definition.md § Product-aligned vs internal](../../agents/x-work-definition.md#product-aligned-vs-internal),
-and the resulting spec or fix carries the matching `product` / `internal`
-label. The § Product Vision Alignment judgment decides whether an issue is in
-scope; the axis value itself comes from the rubric, not a private definition.
+[work-definition.md § Product-aligned vs internal](../../agents/x-work-definition.md#product-aligned-vs-internal).
+The spec or fix that follows carries the `product` or `internal` label that
+matches. The § Product Vision Alignment judgment decides whether an issue is
+in scope. The axis value itself comes from the rubric. No private definition
+sets it.
 
 | Category                 | Recommended action                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Mechanical fix/bug**   | Fix PR (direct git ops, no spec)                                                                                    |
-| **Product-aligned**      | Write spec via the `kata-spec` skill                                                                                |
-| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](../../agents/x-coordination-protocol.md)); label `triaged` |
+| **Product-aligned**      | Write a spec with the `kata-spec` skill                                                                             |
+| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](../../agents/x-coordination-protocol.md)), then label `triaged` |
 | **Out of scope**         | Comment + label `triaged`/`wontfix`                                                                                 |
 
 ## Product Vision Alignment
@@ -82,13 +82,13 @@ project's products should fulfil for its personas.
 Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process.
-Extract issues previously processed and recurring themes from prior entries.
+Process. Extract the issues you processed before and recurring themes from
+prior entries.
 
 ### Step 1: List Open Issues
 
-`list` open issues (cap ~50), excluding `experiment` and `obstacle` labels,
-reading number, title, body, author, labels, and timestamps
+`list` open issues (cap ~50). Exclude the `experiment` and `obstacle` labels.
+Read number, title, body, author, labels, and timestamps
 ([work-trackers.md](../../agents/x-work-trackers.md)).
 
 Skip issues with `triaged` or `wontfix` labels.
@@ -108,9 +108,9 @@ one-line rationale. The report is the deliverable of this skill.
 
 ### Step 4: Hand Off
 
-The triage report is consumed by the calling agent, which acts on each category
-per the classification table above. Templates are in `references/templates.md`.
-Label each processed issue `triaged`.
+The agent that called this skill consumes the triage report. It acts on each
+category per the classification table above. Templates are in
+`references/templates.md`. Label each processed issue `triaged`.
 
 The READ-DO checklist defines this phase boundary.
 
@@ -120,7 +120,7 @@ Append to the current week's log (see agent profile for the file path):
 
 - **Issue triage table** — Each issue with category, action, and rationale
 - **Recurring themes** — Patterns across issues, with frequency and alignment
-- **Hand-offs** — Which follow-up skills were invoked for which issues
+- **Hand-offs** — Which follow-up skills you invoked for which issues
 - **Metrics** — Append one row per run to `wiki/metrics/{skill}/`
   per `references/metrics.md`. See KATA.md § Metrics for the
   recording-eligibility rule.
@@ -132,10 +132,10 @@ This skill produces these non-wiki outputs (per
 
 - **Issue comment** — Triage classification, clarification requests, "not now"
   closures with rationale.
-- **Discussion** — Cross-product policy questions surfaced from triage.
+- **Discussion** — Cross-product policy questions that triage surfaces.
 
 Hold every published body to
 [citation integrity](../../agents/x-citation-integrity.md).
 
-If an inbound issue comment addressed to this agent is ambiguous, follow
+If an inbound issue comment for this agent is ambiguous, follow
 [coordination-protocol.md § Inbound: unclear addressed comments](../../agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).

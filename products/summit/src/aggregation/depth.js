@@ -2,8 +2,8 @@
  * Proficiency-threshold helpers shared across aggregation, risk,
  * what-if, growth, and evidence code paths.
  *
- * The "working+" threshold is the canonical depth decision in Summit —
- * this module encapsulates it so future refactors touch one place.
+ * The "working+" threshold is the canonical depth decision in Summit.
+ * This module encapsulates it so future refactors touch one place.
  */
 
 import {
@@ -12,7 +12,7 @@ import {
 } from "@forwardimpact/libskill/levels";
 
 /**
- * Is a proficiency at working level or above?
+ * Check whether a proficiency is at working level or above.
  *
  * @param {string} proficiency
  * @returns {boolean}

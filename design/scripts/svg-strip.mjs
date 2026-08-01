@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
-// Strip SVG metadata and collapse all colours to greyscale equivalents.
+// Strip SVG metadata. Collapse all colours to greyscale equivalents.
 //
-// Removes comments, processing instructions, DOCTYPE, <title>, <desc>,
-// <metadata>, and editor-specific namespaces (inkscape, sodipodi, rdf,
-// cc, dc).  Converts every fill="…" and stroke="…" colour to a
-// greyscale hex using Rec. 601 luma (Y = 0.299R + 0.587G + 0.114B).
-// rgba()/hsla() alpha is split out into a fill-opacity / stroke-opacity
-// attribute so the colour itself stays a clean #gg hex.
+// This script removes comments, processing instructions, DOCTYPE,
+// <title>, <desc>, <metadata>, and editor-specific namespaces
+// (inkscape, sodipodi, rdf, cc, dc).  It converts every fill="…" and
+// stroke="…" colour to a greyscale hex with Rec. 601 luma
+// (Y = 0.299R + 0.587G + 0.114B).  It splits rgba()/hsla() alpha out
+// into a fill-opacity / stroke-opacity attribute.  The colour itself
+// then stays a clean #gg hex.
 //
 // Usage:
 //   node design/scripts/svg-strip.mjs <file ...>
@@ -80,8 +81,8 @@ function parseColor(value) {
 
   if (v.startsWith("#")) return parseHexColor(v.slice(1));
 
-  // rgba() syntax pattern. The optional alpha clause is anchored between
-  // literal commas and a closing paren — no nested quantifiers.
+  // rgba() syntax pattern. Literal commas and a closing paren anchor the
+  // optional alpha clause. It has no nested quantifiers.
   const rgb = v.match(
     /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+)\s*)?\)$/,
   );

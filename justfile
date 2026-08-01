@@ -1,4 +1,4 @@
-# Monorepo command runner — run `just --list` to list recipes.
+# Monorepo command runner. Run `just --list` to list the recipes.
 
 set dotenv-load
 set quiet
@@ -11,11 +11,11 @@ ARGS := ""
 wiki-pull:
     bunx gemba-wiki pull
 
-# Commit and push agent memory to wiki. Run as the session-end Stop hook: a
-# push failure (non-zero CLI exit) is translated to exit 2 so Claude Code
-# blocks the stop and feeds the failure reason back for a remediation turn
-# (D4 hook fidelity). The CLI status is read directly — a single command, no
-# pipeline that could mask it with another process's status.
+# Commit and push agent memory to wiki. Run this as the session-end Stop hook.
+# A push failure (non-zero CLI exit) becomes exit 2. Claude Code then blocks
+# the stop. It feeds the failure reason back for a remediation turn (D4 hook
+# fidelity). The recipe reads the CLI status directly. It runs a single
+# command, with no pipeline that could mask it with another process's status.
 wiki-push:
     bunx gemba-wiki push || exit 2
 
@@ -45,14 +45,14 @@ quickstart: env-reset env-setup synthetic data-init codegen process-fast _quicks
     echo ""
     echo "Next: just rc-start && just cli-chat"
 
-# Conditionally seed if Docker is running
+# Seed only when Docker runs
 _quickstart-seed:
     #!/usr/bin/env bash
     if timeout 3 docker info --format '{{"{{"}}.ID{{"}}"}}' >/dev/null 2>&1; then
-      echo "Docker detected — seeding activity database..."
+      echo "Docker detected. Seeding activity database..."
       just supabase-up && just supabase-migrate && just seed
     else
-      echo "Docker not running — skipping activity seed (run 'just seed-full' later)"
+      echo "Docker not running. Skipping activity seed (run 'just seed-full' later)"
     fi
 
 # ── Synthetic ─────────────────────────────────────────────────────
@@ -126,15 +126,15 @@ data-reset: data-clean data-init codegen
 
 # ── Services ──────────────────────────────────────────────────────
 
-# Start services via rc
+# Start services with rc
 rc-start:
     bunx fit-rc start
 
-# Stop services via rc
+# Stop services with rc
 rc-stop:
     bunx fit-rc stop
 
-# Restart services via rc
+# Restart services with rc
 rc-restart:
     bunx fit-rc restart
 
@@ -148,7 +148,7 @@ rc-status:
 msbridge-tunnel:
     bunx fit-rc start msbridge-tunnel
 
-# Package the Teams App for sideloading (reads tunnel domain from .env)
+# Package the Teams App so you can sideload it (reads tunnel domain from .env)
 msbridge-package *ARGS:
     bun scripts/msteams-package.js {{ARGS}}
 
@@ -166,7 +166,7 @@ cli-chat:
 cli-search:
     bunx --workspace=@forwardimpact/librag fit-rag search {{ARGS}}
 
-# Graph triple pattern queries
+# Queries with graph triple patterns
 cli-query:
     bunx --workspace=@forwardimpact/librag fit-rag query {{ARGS}}
 
@@ -178,7 +178,7 @@ cli-subjects:
 cli-visualize:
     bunx --workspace=@forwardimpact/libtelemetry fit-visualize {{ARGS}}
 
-# Token counting
+# Count tokens
 cli-tiktoken:
     bunx --workspace=@forwardimpact/libutil fit-tiktoken {{ARGS}}
 
@@ -186,7 +186,7 @@ cli-tiktoken:
 cli-unary:
     bunx --workspace=@forwardimpact/librpc fit-unary {{ARGS}}
 
-# XmR control chart analysis
+# Analysis of XmR control charts
 cli-xmr:
     bunx --workspace=@forwardimpact/gemba gemba-xmr {{ARGS}}
 
@@ -196,12 +196,12 @@ cli-xmr:
 build-binary NAME TARGET="bun-darwin-arm64":
     bash build/build-binary.sh "{{NAME}}" "{{TARGET}}"
 
-# Build every distributable binary for TARGET, driven by build/cli-manifest.json
+# Build every distributable binary for TARGET from build/cli-manifest.json
 build-all TARGET="bun-darwin-arm64": codegen
     bash build/build-all.sh "{{TARGET}}"
 
-# Assemble dist/apps/fit-<BUNDLE>.app — one manifest-driven path for every
-# bundle (gear and products alike; outpost's launcher is manifest data)
+# Assemble dist/apps/fit-<BUNDLE>.app. One manifest-driven path builds every
+# bundle, gear and products alike. Outpost's launcher is manifest data.
 build-app BUNDLE:
     bash build/build-app.sh "{{BUNDLE}}"
 
@@ -211,7 +211,7 @@ build-app BUNDLE:
 check-instructions:
     bunx jidoka instructions
 
-# Run security audit (vulnerability + secret scanning)
+# Run security audit (vulnerability and secret scans)
 audit: audit-vulnerabilities audit-secrets
 
 # Check dependencies for known vulnerabilities
@@ -233,20 +233,21 @@ audit-secrets:
     if command -v gitleaks >/dev/null 2>&1; then
         gitleaks detect --source . --verbose
     else
-        echo "Error: gitleaks not installed — install it (brew install gitleaks) or skip with: just audit-vulnerabilities" >&2
+        echo "Error: gitleaks not installed. Install it (brew install gitleaks) or skip this step with 'just audit-vulnerabilities'" >&2
         exit 1
     fi
 
 # ── Sibling actions ───────────────────────────────────────────────
 
-# Replay an external sibling PR into its monorepo prefix, preserving authorship.
-# Sibling main is a projection of the monorepo, so external PRs are reviewed on
-# the sibling but land here: the result is a normal monorepo PR under the usual
-# gates, and the next outbound split republishes it. format-patch --binary plus
-# am -3 cover binary hunks and merge fallback; --directory rewrites each patched
-# path into the prefix; am preserves the original author. For a fork-based PR,
-# first fetch the fork's <pr-head> into the clone so origin/main..<pr-head>
-# resolves. On a conflict, run `git am --abort` and re-apply by hand.
+# Replay an external sibling PR into its monorepo prefix. It keeps the original
+# authorship. Sibling main is a projection of the monorepo. So reviewers review
+# an external PR on the sibling. The PR still lands here. The result is a normal
+# monorepo PR under the usual gates. The next outbound split republishes it.
+# format-patch --binary plus am -3 cover binary hunks and merge fallback.
+# --directory rewrites each patched path into the prefix. am preserves the
+# original author. For a fork-based PR, first fetch the fork's <pr-head> into
+# the clone so origin/main..<pr-head> resolves. On a conflict, run
+# `git am --abort` and apply the patch again by hand.
 # Usage: just action-pullback <sibling-clone> <pr-head> <prefix>
 action-pullback clone head prefix:
     git -C {{clone}} format-patch origin/main..{{head}} --stdout --binary \
@@ -254,7 +255,7 @@ action-pullback clone head prefix:
 
 # ── Environment ───────────────────────────────────────────────────
 
-# Generate every secret in .env (idempotent — preserves all values across runs)
+# Generate every secret in .env (idempotent, preserves all values across runs)
 env-setup:
     bun scripts/env-setup.js
 
@@ -323,7 +324,7 @@ storage-list:
 
 # ── Activity Seed ─────────────────────────────────────────────────
 
-# Seed the activity database from synthetic data (requires Supabase running)
+# Seed the activity database from synthetic data (requires Supabase to be up)
 seed:
     bunx fit-map activity seed
 
@@ -337,7 +338,7 @@ supabase-install:
     #!/usr/bin/env bash
     which supabase >/dev/null 2>&1 || brew install supabase/tap/supabase
 
-# Start local Supabase instance (JWT_SECRET comes from .env via dotenv-load)
+# Start local Supabase instance (JWT_SECRET comes from .env through dotenv-load)
 supabase-up:
     cd products/map && supabase start --workdir .
 
@@ -359,20 +360,20 @@ supabase-setup: supabase-up
 
 # ── TEI ───────────────────────────────────────────────────────────
 
-# Install TEI binary via cargo
+# Install TEI binary with cargo
 tei-install:
     cargo install --git https://github.com/huggingface/text-embeddings-inference --features candle text-embeddings-router
 
-# Start TEI embedding service via rc
+# Start TEI embedding service with rc
 tei-start:
     bunx fit-rc start embedding
 
 # ── Synthetic data dependencies ───────────────────────────────────
 
-# Install synthetic-data generation deps (Synthea JAR, SDV, faker) on demand
+# Install deps for synthetic-data generation (Synthea JAR, SDV, faker) on demand
 synthetic-deps:
     bash scripts/synthetic-deps.sh
 
-# Report synthetic-data dependency status without installing
+# Report synthetic-data dependency status and install nothing
 synthetic-deps-check:
     bash scripts/synthetic-deps.sh --check

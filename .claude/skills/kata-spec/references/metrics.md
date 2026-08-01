@@ -7,6 +7,6 @@ one row per run.
 | ------------- | ----- | ---------------------------------- | ----------- |
 | specs_drafted | count | Spec PRs opened or pushed this run | `list` changes |
 
-Open spec PRs and draft age (`list` changes —
-[work-trackers.md](../../../agents/x-work-trackers.md) — plus
-`git log`) are queried, not recorded.
+Query open spec PRs and draft age with `list` changes
+([work-trackers.md](../../../agents/x-work-trackers.md)) plus `git log`. Do not
+record them.

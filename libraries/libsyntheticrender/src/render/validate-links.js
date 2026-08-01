@@ -1,8 +1,8 @@
 /**
  * Link Validator — validates IRI consistency and link density.
  *
- * Checks that generated HTML files contain valid cross-file IRI links
- * and that every entity meets minimum link density requirements.
+ * The validator checks that generated HTML files contain valid cross-file
+ * IRI links. It also checks that every entity meets the minimum link density.
  *
  * @module libterrain/render/validate-links
  */
@@ -43,17 +43,21 @@ function checkIriNamespace(linked, domain) {
 
   for (const proj of linked.projects) {
     if (!proj.iri.startsWith(prefix)) {
-      errors.push(`Project ${proj.id}: IRI ${proj.iri} doesn't match domain`);
+      errors.push(
+        `Project ${proj.id}: IRI ${proj.iri} doesn't match the domain`,
+      );
     }
   }
   for (const drug of linked.drugs) {
     if (!drug.iri.startsWith(prefix)) {
-      errors.push(`Drug ${drug.id}: IRI ${drug.iri} doesn't match domain`);
+      errors.push(`Drug ${drug.id}: IRI ${drug.iri} doesn't match the domain`);
     }
   }
   for (const plat of linked.platforms) {
     if (!plat.iri.startsWith(prefix)) {
-      errors.push(`Platform ${plat.id}: IRI ${plat.iri} doesn't match domain`);
+      errors.push(
+        `Platform ${plat.id}: IRI ${plat.iri} doesn't match the domain`,
+      );
     }
   }
 
@@ -62,7 +66,7 @@ function checkIriNamespace(linked, domain) {
     passed: errors.length === 0,
     message:
       errors.length === 0
-        ? "All IRIs use consistent namespace"
+        ? "All IRIs use a consistent namespace"
         : `${errors.length} IRI namespace violations: ${errors[0]}`,
   };
 }
@@ -200,7 +204,7 @@ function checkPlatformDAG(linked) {
     name: "platform_dag",
     passed: !cycle,
     message: cycle
-      ? `Platform dependency cycle detected at: ${cycle}`
+      ? `Platform dependencies form a cycle at ${cycle}`
       : "Platform dependencies form a valid DAG",
   };
 }
@@ -290,7 +294,7 @@ function checkEnrichedIriNamespace(htmlFiles, domain) {
     passed: errors.length === 0,
     message:
       errors.length === 0
-        ? "All HTML itemid values use domain namespace"
+        ? "All HTML itemid values use the domain namespace"
         : `${errors.length} off-domain IRIs: ${errors[0]}`,
   };
 }
@@ -310,7 +314,7 @@ function checkOrphanedLinks(htmlFiles) {
   for (const [filename, html] of htmlFiles) {
     for (const m of html.matchAll(LINK_HREF_RE)) {
       const href = m[1];
-      // Skip relative URLs — only check IRI references against itemid corpus
+      // Skip relative URLs. Only check IRI references against the itemid corpus
       if (!href.startsWith("https://")) continue;
       if (!allItemIds.has(href)) {
         allHrefs.push(`${filename}: link href ${href} not found as any itemid`);

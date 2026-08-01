@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Service manager CLI (s6-rc equivalent).
- * Communicates with svscan daemon via Unix socket.
+ * Communicates with the svscan daemon through a Unix socket.
  */
 import "@forwardimpact/libpreflight/node22";
 

@@ -16,7 +16,7 @@ const STORYBOARD_AGENTS = [
   "technical-writer",
 ];
 
-// A clean wiki seed; `extra` overlays files that introduce audit failures.
+// A clean wiki seed. `extra` overlays files that introduce audit failures.
 function cleanWiki(extra = {}) {
   return createMockFs({
     [`${WIKI_ROOT}/MEMORY.md`]: [
@@ -63,7 +63,7 @@ describe("gemba-wiki curate", () => {
     const { harness, subprocess, run } = curate(cleanWiki());
     const result = await run;
     assert.equal(result.ok, true);
-    // The audit shells out to `git ls-files`; what must not happen is any gh
+    // The audit shells out to `git ls-files`. The command must not make any gh
     // routing call.
     assert.ok(!subprocess.calls.some((c) => c.cmd === "gh"));
     assert.match(harness.stdout, /clean/);
@@ -90,7 +90,7 @@ describe("gemba-wiki curate", () => {
       create.args[create.args.indexOf("--label") + 1],
       "wiki-curation",
     );
-    // Body rides a temp file, never argv.
+    // The body rides a temp file. It never rides argv.
     assert.ok(create.args.includes("--body-file"));
     assert.ok(!create.args.some((a) => a === "--body"));
     // No comment call when there is no existing issue.
@@ -123,7 +123,7 @@ describe("gemba-wiki curate", () => {
 
   test("an over-large finding set truncates the body under GitHub's limit", async () => {
     // Many distinct over-budget summaries push the full findings JSON past
-    // GitHub's 65536-char body limit; curate must still post a fitting body.
+    // GitHub's 65536-char body limit. curate must still post a body that fits.
     const many = {};
     for (let i = 0; i < 300; i++) {
       many[`${WIKI_ROOT}/staff-engineer-${i}.md`] =

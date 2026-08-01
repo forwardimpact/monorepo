@@ -43,7 +43,10 @@ export async function validate(filePath, dataDir, runtime) {
   return 0;
 }
 
-/** Upload a people roster file to Supabase storage and transform it into the organization_people table. */
+/**
+ * Upload a people roster file to Supabase storage. Transform it into the
+ * organization_people table.
+ */
 export async function push(filePath, supabase, runtime) {
   runtime.proc.stdout.write(
     formatHeader(`Pushing people file: ${filePath}`) + "\n\n",

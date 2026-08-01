@@ -104,7 +104,7 @@ describe("SupabaseStorage", () => {
     );
   });
 
-  test("ensureBucket creates bucket via REST API when successful", async () => {
+  test("ensureBucket creates bucket through the REST API when successful", async () => {
     global.fetch = spy(() =>
       Promise.resolve({
         ok: true,

@@ -7,20 +7,21 @@
  *             data-slide-selector=".slide"
  *             data-label-selector=".slide-num"></script>
  *
- * Click the “✎ Review” button (bottom-left), select text on a slide, optionally
- * add a note, and Add. Annotations autosave to localStorage immediately. Click
- * “Connect folder” once to (a) write a real sidecar JSON next to the page and
- * (b) resolve each highlight to its SOURCE line/column + context lines by
- * reading the page’s own source file. No build step, no server, no deps.
+ * Click the “✎ Review” button (bottom-left). Select text on a slide. Add an
+ * optional note. Then click Add. Annotations autosave to localStorage
+ * immediately. Click “Connect folder” once. The tool then writes a real
+ * sidecar JSON next to the page. It also reads the page’s own source file, so
+ * it resolves each highlight to its SOURCE line/column + context lines. The
+ * tool needs no build step, no server, and no dependencies.
  *
- * The connected folder is remembered across reloads (the directory handle is
- * stored in IndexedDB). On reload it reconnects silently if the browser still
- * grants permission; otherwise the button reads “Reconnect folder” and one
- * click re-grants access without re-picking the folder.
+ * The tool remembers the connected folder across reloads. It stores the
+ * directory handle in IndexedDB. On reload it reconnects silently if the
+ * browser still grants permission. If not, the button reads “Reconnect
+ * folder”. One click then re-grants access without a new folder pick.
  *
- * Optional host hook: if the page defines `window.deckGoto(index)` the panel’s
- * “Go” buttons will navigate to the right slide. Without it, the tool still
- * works (it falls back to scrollIntoView).
+ * Optional host hook. If the page defines `window.deckGoto(index)`, the
+ * panel’s “Go” buttons navigate to the right slide. Without it, the tool
+ * still works (it falls back to scrollIntoView).
  *
  * SIDECAR JSON SCHEMA (what an agent reads to act on the feedback):
  * {
@@ -120,7 +121,8 @@
 ::highlight(sa-all){background:rgba(255,221,0,.45);text-decoration:underline;text-decoration-color:#caا}\
 ::highlight(sa-active){background:rgba(255,0,110,.35)}\
 @media print{.sa-ui{display:none!important}}";
-  // (one stray glyph above is harmless inside a CSS comment-free value; replaced below)
+  // The stray glyph above is harmless in a comment-free CSS value.
+  // The next line replaces it.
   css = css.replace("#caا", "#b38f00");
   var styleEl = document.createElement("style");
   styleEl.textContent = css;
@@ -160,13 +162,14 @@
   ui.note = ui.pop.querySelector("textarea");
   var onlyThisSlide = false;
 
-  // Keep the tool's own keystrokes from leaking to the host page (e.g. a deck's
-  // Space / arrow-key slide navigation) while typing a note or using a panel
-  // button. We stop propagation in the BUBBLE phase, so: (a) our capture-phase
-  // Esc handler has already run, and (b) the default action — typing the
-  // character, moving the caret — still happens. Scoped to the tool's own UI,
-  // so arrow/Space navigation still works when focus is on the page itself.
-  // Independent of any host: we never touch the host's handlers, just our own.
+  // Keep the tool's own keystrokes away from the host page. One example is a
+  // deck's Space and arrow-key slide navigation. This applies while the user
+  // types a note or uses a panel button. We stop propagation in the BUBBLE
+  // phase. So our capture-phase Esc handler already ran. The default action
+  // also still happens. The character appears and the caret moves. We scope
+  // this to the tool's own UI. Arrow and Space navigation still works when
+  // focus is on the page itself. This works with any host. We never touch
+  // the host's handlers, only our own.
   [ui.fab, ui.banner, ui.panel, ui.pop].forEach(function (node) {
     ["keydown", "keyup", "keypress"].forEach(function (type) {
       node.addEventListener(type, function (e) { e.stopPropagation(); });
@@ -210,10 +213,11 @@
     else if (review) { toggle(false); e.stopPropagation(); }
   }, true);
 
-  // In review mode, swallow ONLY the click that ends a text-selection drag, so a
-  // host with click-to-advance can't navigate out from under the highlight. Plain
-  // clicks (with no active selection) pass through untouched — footer dots, links
-  // and buttons keep working. Non-invasive and host-agnostic.
+  // In review mode, swallow ONLY the click that ends a text-selection drag.
+  // A host with click-to-advance then cannot navigate out from under the
+  // highlight. Plain clicks (with no active selection) pass through
+  // untouched. Footer dots, links and buttons keep working. The tool does
+  // not intrude, and it works with any host.
   function clickSuppressor(e) {
     if (e.target.closest(".sa-ui")) return;
     var sel = window.getSelection();
@@ -252,9 +256,10 @@
     var off = offsets(slide, range);
     var text = slide.textContent;
     var slides = allSlides();
-    // Anchor on the underlying DOM text (text.slice), NOT Selection.toString():
-    // the latter applies text-transform (e.g. uppercase headings) and would no
-    // longer match the source or the slide's textContent.
+    // Anchor on the underlying DOM text (text.slice). Do NOT use
+    // Selection.toString(). It applies text-transform (e.g. uppercase
+    // headings). The result would no longer match the source or the slide's
+    // textContent.
     var storedQuote = text.slice(off.start, off.end) || quote;
 
     pending = {
@@ -394,7 +399,7 @@
     if (!list.length) {
       ui.list.innerHTML = '<div class="sa-empty">' +
         (onlyThisSlide ? "No annotations on this slide." :
-        "No annotations yet.<br><br>Select text on a slide to highlight it. Highlights autosave locally; click <b>Connect folder</b> to write the sidecar JSON and capture source line numbers.") +
+        "No annotations yet.<br><br>Select text on a slide to highlight it. Highlights autosave locally. Click <b>Connect folder</b> to write the sidecar JSON and capture source line numbers.") +
         '</div>';
       return;
     }
@@ -417,7 +422,7 @@
   function currentSlideIndex() {
     var slides = allSlides();
     for (var i = 0; i < slides.length; i++) if (slides[i].classList.contains("active")) return i;
-    // else the slide most centered in viewport
+    // else the slide most centered in the viewport
     var best = 0, bestD = Infinity, cx = window.innerWidth / 2, cy = window.innerHeight / 2;
     slides.forEach(function (s, i) {
       var r = s.getBoundingClientRect();
@@ -442,12 +447,13 @@
     if (ui.count) ui.count.textContent = state.annotations.length;
   }
 
-  /* Persist the connected directory handle across reloads. FileSystemHandles are
-   * structured-cloneable, so they live in IndexedDB (localStorage is strings
-   * only). Re-granting read/write permission after a reload needs a user
-   * gesture, so a remembered folder reconnects with one click via the same
-   * "Connect folder" button rather than the full directory picker. Keyed by
-   * cfg.target so distinct decks in a folder don't clobber each other. */
+  /* Persist the connected directory handle across reloads. FileSystemHandles
+   * are structured-cloneable, so they live in IndexedDB (localStorage holds
+   * strings only). A re-grant of read/write permission after a reload needs
+   * a user gesture. So a remembered folder reconnects with one click through
+   * the same "Connect folder" button. It does not open the full directory
+   * picker. The key is cfg.target, so distinct decks in a folder do not
+   * clobber each other. */
   var IDB_NAME = "slide-annotator", IDB_STORE = "handles";
   function idbOpen() {
     return new Promise(function (resolve, reject) {
@@ -484,16 +490,17 @@
       : rememberedHandle ? "Reconnect folder" : "Connect folder";
   }
 
-  // Adopt a (freshly picked or re-granted) handle: link source, load any
-  // sidecar, and remember it for next time. Shared by connect and restore.
+  // Adopt a freshly picked or re-granted handle. Link the source, load any
+  // sidecar, and remember the handle for next time. Both connect and restore
+  // call this.
   async function adoptFolder(handle) {
     dirHandle = handle;
-    // read page source → enables source line/column resolution
+    // read the page source → the tool can then resolve source line/column
     try {
       var fh = await dirHandle.getFileHandle(cfg.target);
       sourceText = await (await fh.getFile()).text();
       state.annotations.forEach(function (a) { a.source = locateInSource(a); });
-    } catch (e) { sourceText = null; setStatus("Connected, but '" + cfg.target + "' not found in folder — line numbers unavailable."); }
+    } catch (e) { sourceText = null; setStatus("Connected, but the folder has no '" + cfg.target + "'. Line numbers are unavailable."); }
     // load an existing sidecar if present
     try {
       var sh = await dirHandle.getFileHandle(SIDECAR);
@@ -503,12 +510,13 @@
     rememberedHandle = null;
     updateConnectLabel();
     persistLocal(); renderPanel(); renderHighlights();
-    setStatus("Connected. Saving to " + SIDECAR + (sourceText ? " · source linked" : ""));
+    setStatus("Connected. Saves to " + SIDECAR + (sourceText ? " · source linked" : ""));
   }
 
   async function connectFolder() {
-    // Prefer a folder remembered from a prior session: re-granting permission is
-    // a single click (this click IS the required user gesture), no picker.
+    // Prefer a folder remembered from a prior session. A permission re-grant
+    // takes a single click (this click IS the required user gesture). The
+    // picker does not open.
     if (rememberedHandle) {
       try {
         var perm = await rememberedHandle.requestPermission({ mode: "readwrite" });
@@ -524,10 +532,11 @@
     }
   }
 
-  // On load, try to restore a previously connected folder. queryPermission needs
-  // no gesture; if it's still "granted" we reconnect silently. If it's "prompt",
-  // we keep the handle so the next "Connect folder" click reconnects with one
-  // grant dialog (no picker). Handles cleared/denied storage are ignored.
+  // On load, try to restore a previously connected folder. queryPermission
+  // needs no gesture. If it is still "granted", we reconnect silently. If it
+  // is "prompt", we keep the handle. The next "Connect folder" click then
+  // reconnects with one grant dialog (no picker). We ignore a handle from
+  // cleared or denied storage.
   function restoreFolder() {
     idbGet(cfg.target).then(function (handle) {
       if (!handle || typeof handle.queryPermission !== "function") return;
@@ -535,7 +544,7 @@
         if (perm === "granted") { adoptFolder(handle); }
         else {
           rememberedHandle = handle; updateConnectLabel();
-          if (review) setStatus("Folder '" + cfg.target + "' remembered — click Reconnect folder.");
+          if (review) setStatus("Folder '" + cfg.target + "' remembered. Click Reconnect folder.");
         }
       }).catch(function () {});
     });
@@ -553,7 +562,7 @@
       } catch (e) { setStatus("Disk write failed (" + e.name + "). Downloaded instead."); }
     }
     download(SIDECAR, json);
-    setStatus("Downloaded " + SIDECAR + " — move it next to the deck.");
+    setStatus("Downloaded " + SIDECAR + ". Move it next to the deck.");
   }
 
   async function loadDisk() {
@@ -669,7 +678,7 @@
     // Supply page source to resolve source line/column without the folder picker.
     setSource: function (text) { sourceText = text; state.annotations.forEach(function (a) { a.source = locateInSource(a); }); persistLocal(); renderPanel(); },
     get state() { return state; },
-    // for automation/testing:
+    // for automation and tests:
     _capture: captureSelection,
     _confirm: function (note) { if (pending) { ui.note.value = note || ""; confirmPending(); } }
   };

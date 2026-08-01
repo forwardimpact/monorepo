@@ -31,7 +31,7 @@ export function createMockRequest(options = {}) {
 }
 
 /**
- * Creates a mock HTTP response with tracking
+ * Creates a mock HTTP response that tracks calls
  * @returns {object} Mock response
  */
 export function createMockResponse() {

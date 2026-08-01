@@ -1,13 +1,14 @@
 /**
- * First-visit banner dismissal flag, backed by localStorage.
+ * Flag for the dismissal of the first-visit banner. It lives in localStorage.
  *
- * The banner shows on the Pathway landing page until dismissed. Dismissal is
- * recorded as a single string value under {@link STORAGE_KEY} so we leave
- * room for a future versioned re-show key without colliding with this one.
+ * The banner shows on the Pathway landing page until the user dismisses it.
+ * This module records the dismissal as one string value under
+ * {@link STORAGE_KEY}. That leaves room for a future versioned re-show key
+ * that does not collide with this one.
  *
- * Storage access is guarded: private browsing, disabled storage, and quota
- * errors all degrade to "not dismissed" rather than throwing — re-showing the
- * orientation is preferable to breaking the landing render.
+ * The module guards every storage access. Private browsing, disabled storage,
+ * and quota errors all degrade to "not dismissed". They never throw. It is
+ * better to re-show the orientation than to break the landing render.
  */
 
 const STORAGE_KEY = "pathway:first-visit-banner:dismissed";
@@ -21,8 +22,8 @@ function getStorage() {
 }
 
 /**
- * Has the first-visit banner been dismissed in this browser?
- * @returns {boolean} false when storage is unavailable or read fails.
+ * Report whether the user dismissed the first-visit banner in this browser.
+ * @returns {boolean} false when storage is unavailable or the read fails.
  */
 export function isDismissed() {
   const storage = getStorage();
@@ -35,9 +36,9 @@ export function isDismissed() {
 }
 
 /**
- * Record that the user has dismissed the first-visit banner.
- * Silent no-op on storage error (quota, disabled storage); the banner will
- * re-show on the next visit, which is acceptable per spec § 9.
+ * Record that the user dismissed the first-visit banner.
+ * A storage error (quota, disabled storage) causes a silent no-op. The banner
+ * then re-shows on the next visit. Spec § 9 accepts that.
  * @returns {void}
  */
 export function markDismissed() {
@@ -46,6 +47,6 @@ export function markDismissed() {
   try {
     storage.setItem(STORAGE_KEY, "1");
   } catch {
-    /* quota / disabled storage — accept re-show on next visit */
+    /* on a quota error or disabled storage, accept a re-show on next visit */
   }
 }

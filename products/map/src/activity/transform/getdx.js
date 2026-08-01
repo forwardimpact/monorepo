@@ -1,10 +1,11 @@
 /**
  * GetDX Transform
  *
- * Reads stored GetDX API response documents from Supabase Storage and produces
- * structured rows in getdx_snapshots, getdx_teams, and
+ * Reads stored GetDX API response documents from Supabase Storage. Produces
+ * structured rows in the getdx_snapshots, getdx_teams, and
  * getdx_snapshot_team_scores tables.
- * Idempotent where possible (upsert on teams and snapshots, insert on scores).
+ * This transform is idempotent where possible (upsert on teams and
+ * snapshots, insert on scores).
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";
@@ -83,7 +84,7 @@ async function transformTeams(supabase, path) {
   const raw = JSON.parse(await readRaw(supabase, path));
   const teams = raw.teams || [];
 
-  // Build name → email lookup from org people
+  // Build the name → email lookup from org people
   const { data: people } = await supabase
     .from("organization_people")
     .select("email, name");
@@ -223,7 +224,7 @@ async function transformSnapshotComments(supabase, path, runtime) {
   // Derive snapshot_id from the path (filename is {snapshot_id}.json)
   const snapshotId = path.split("/").pop().replace(".json", "");
 
-  // Build email → team lookup
+  // Build the email → team lookup
   const { data: people } = await supabase
     .from("organization_people")
     .select("email, manager_email");

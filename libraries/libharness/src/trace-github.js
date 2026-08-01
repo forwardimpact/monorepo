@@ -7,8 +7,8 @@ import { isoTimestamp } from "@forwardimpact/libutil";
 const API = "https://api.github.com";
 
 /**
- * GitHub API client for trace-related operations: listing workflow runs
- * and downloading trace artifacts.
+ * GitHub API client for trace-related operations. It lists workflow runs
+ * and downloads trace artifacts.
  */
 export class TraceGitHub {
   /**
@@ -17,7 +17,7 @@ export class TraceGitHub {
    * @param {string} deps.owner - Repository owner
    * @param {string} deps.repo  - Repository name
    * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime -
-   *   Ambient collaborators; uses `fs`, `subprocess`, `clock`.
+   *   Ambient collaborators. The class uses `fs`, `subprocess`, `clock`.
    */
   constructor({ token, owner, repo, runtime }) {
     if (!runtime) throw new Error("runtime is required");
@@ -28,27 +28,30 @@ export class TraceGitHub {
   }
 
   /**
-   * List recent workflow runs, optionally filtered by name pattern and by the
-   * participant whose trace lane a run carries.
+   * List recent workflow runs. Filter them by name pattern, and by the
+   * participant whose trace lane a run carries. Both filters are optional.
    *
-   * Without `participant`, behaviour is unchanged: the workflow-name pattern is
-   * the only filter. With `participant`, each name-matched run is resolved
-   * against its trace lane (see {@link runMatchesParticipant}) and annotated
-   * with a `match` field:
+   * Without `participant`, the behaviour does not change. The workflow-name
+   * pattern is the only filter. With `participant`, the method resolves each
+   * name-matched run against its trace lane
+   * (see {@link runMatchesParticipant}). It then annotates the run with a
+   * `match` field:
    *   - `"confirmed"` — the participant's lane is present in the run's
    *     artifacts (matrix artifact name, or a member filename in the shared
    *     dispatch artifact).
    *   - `"unconfirmed-pending-artifacts"` — the run's workflow mints trace
    *     artifacts but none exist yet (still running, or completed-but-not-yet
-   *     uploaded); reported as a candidate, never silently dropped.
-   * Runs that have artifacts but no matching lane are omitted. Participant
-   * identity is read from artifact/file *names* only, never from trace content.
+   *     uploaded). The method reports the run as a candidate. It never drops
+   *     the run silently.
+   * The method omits runs that have artifacts but no matching lane. It reads
+   * participant identity from artifact/file *names* only. It never reads
+   * trace content.
    *
    * @param {object} [opts]
-   * @param {string} [opts.pattern] - Case-insensitive regex to match workflow name (default: "kata|agent" — covers `Kata: Shift`, `Kata: Dispatch`, and any `agent`-named workflow)
+   * @param {string} [opts.pattern] - Case-insensitive regex to match workflow name (default: "kata|agent", which covers `Kata: Shift`, `Kata: Dispatch`, and any `agent`-named workflow)
    * @param {number} [opts.limit=50] - Max runs to return from GitHub API
    * @param {string} [opts.lookback="7d"] - How far back to search (e.g. "7d", "24h", "2w")
-   * @param {string} [opts.participant] - Participant name; when set, filter/annotate runs by trace lane
+   * @param {string} [opts.participant] - Participant name. When set, the method filters and annotates runs by trace lane
    * @returns {Promise<object[]>} Array of {workflow, runId, status, conclusion, createdAt, branch, url[, match]}
    */
   async listRuns(opts = {}) {
@@ -97,15 +100,17 @@ export class TraceGitHub {
    * Decide whether a run carries a participant's trace lane.
    *
    * Matrix hosts name the participant in an artifact name
-   * (`trace--<participant>`); dispatch hosts name it in a member filename
-   * (`trace--<case>--<participant>.<role>.ndjson`) inside one shared `trace--*`
-   * artifact. The GitHub artifacts API exposes only artifact-level metadata, so
-   * a matrix lane confirms from the inventory alone, while a dispatch lane
-   * requires downloading the shared artifact and listing its extracted member
-   * filenames — names only, never trace content.
+   * (`trace--<participant>`). Dispatch hosts name it in a member filename
+   * (`trace--<case>--<participant>.<role>.ndjson`) inside one shared
+   * `trace--*` artifact. The GitHub artifacts API exposes only
+   * artifact-level metadata. So a matrix lane confirms from the inventory
+   * alone. For a dispatch lane, the method downloads the shared artifact.
+   * Then it lists the extracted member filenames. It reads names only. It
+   * never reads trace content.
    *
    * A run whose trace artifacts are absent (still running, or
-   * completed-but-not-yet-uploaded) is a candidate, not a drop.
+   * completed-but-not-yet-uploaded) is a candidate. The method does not
+   * drop it.
    *
    * @param {number|string} runId
    * @param {string} participant
@@ -119,8 +124,9 @@ export class TraceGitHub {
       a.name.startsWith("trace--"),
     );
 
-    // No trace artifacts yet: a candidate the matcher must report, not drop —
-    // the lane may upload when the host completes.
+    // No trace artifacts yet. The matcher must report this run as a
+    // candidate. It must not drop the run. The lane may upload when the
+    // host completes.
     if (traceArtifacts.length === 0) return "unconfirmed-pending-artifacts";
 
     // Matrix host: the participant is an artifact name. No download.
@@ -146,10 +152,11 @@ export class TraceGitHub {
 
   /**
    * Resolve a participant's lane trace path for a known run in one keyed
-   * lookup — no run enumeration, no trace-content inspection.
+   * lookup. The method does not enumerate runs. It does not inspect trace
+   * content.
    *
    * Matrix host: the artifact name carries the participant (no download).
-   * Dispatch host: download the shared `trace--*` artifact and return the
+   * Dispatch host: download the shared `trace--*` artifact. Return the
    * extracted member file whose name carries the participant.
    *
    * @param {number|string} runId
@@ -208,12 +215,12 @@ export class TraceGitHub {
   }
 
   /**
-   * Download a trace artifact from a workflow run and extract it.
+   * Download a trace artifact from a workflow run. Extract it.
    *
-   * When `opts.name` is set, looks up that exact artifact. Otherwise picks
-   * the single `trace--*` artifact if exactly one exists, or throws with a
-   * disambiguation list when matrix workflows emit multiple per-participant
-   * artifacts (see {@link pickTraceArtifact}).
+   * With `opts.name` set, the method looks up that exact artifact.
+   * Otherwise it picks the single `trace--*` artifact when exactly one
+   * exists. When matrix workflows emit multiple per-participant artifacts,
+   * it throws with a disambiguation list (see {@link pickTraceArtifact}).
    *
    * @param {number|string} runId
    * @param {object} [opts]
@@ -296,13 +303,14 @@ export class TraceGitHub {
 /**
  * Test whether a participant's trace lane is present in a list of names.
  *
- * Matches the two trace-naming shapes by *name* only (never by content):
+ * This function matches the two trace-name shapes by *name* only (never by
+ * content):
  *   - matrix artifact name: `trace--<participant>`
  *   - dispatch member filename: `trace--<case>--<participant>.<role>.ndjson`
  *
- * The participant segment is delimited by `--` and ends at the next `--`, `.`,
- * or end-of-string, so a substring like `release` does not match
- * `release-engineer` and vice versa.
+ * The `--` separator delimits the participant segment. The segment ends at
+ * the next `--`, at a `.`, or at the end of the string. So a substring like
+ * `release` does not match `release-engineer` and vice versa.
  *
  * @param {string[]} names - Artifact names or extracted member filenames.
  * @param {string} participant - Participant name to look for.
@@ -326,11 +334,12 @@ export function participantInNames(names, participant) {
 /**
  * Pick the trace artifact to download from a workflow run's artifact list.
  *
- * When `name` is given, returns the exact match or throws with the available
- * names. When `name` is omitted, returns the only `trace--*` artifact if
- * there is exactly one; if there are multiple (matrix workflows like
- * `kata-shift.yml` emit one `trace--<participant>` per cell), throws and
- * lists them so the caller can pass `--name` to disambiguate.
+ * With `name` given, this function returns the exact match. If it finds no
+ * match, it throws with the available names. Without `name`, it returns the
+ * only `trace--*` artifact when exactly one exists. With more than one
+ * (matrix workflows like `kata-shift.yml` emit one `trace--<participant>`
+ * per cell), it throws and lists them. The caller can then pass `--name` to
+ * disambiguate.
  *
  * @param {Array<{name: string}>} artifacts - Artifact list from the GitHub API.
  * @param {string} [name] - Exact artifact name to match.
@@ -407,7 +416,7 @@ export function parseGitRemote(remote) {
  * Detect the current GitHub repository slug as `{owner, repo}`.
  *
  * Resolution order:
- *   1. `GITHUB_REPOSITORY` env var (set automatically by GitHub Actions).
+ *   1. `GITHUB_REPOSITORY` env var (GitHub Actions sets it automatically).
  *   2. `git remote get-url origin` in the current working directory.
  *
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
@@ -442,12 +451,12 @@ export async function detectRepoSlug(runtime) {
 }
 
 /**
- * Create a TraceGitHub instance. The caller is responsible for resolving
- * the GitHub token — typically via `Config.ghToken()` — so credential
- * loading stays at the CLI entry point.
+ * Create a TraceGitHub instance. The caller must resolve the GitHub token,
+ * typically with `Config.ghToken()`. So the CLI entry point loads the
+ * credentials.
  *
  * Breaking change from the prior signature: `token` is now a required
- * caller input. Construct a `Config` via `@forwardimpact/libconfig` and
+ * caller input. Construct a `Config` with `@forwardimpact/libconfig`. Then
  * pass `config.ghToken()`.
  *
  * @param {object} opts

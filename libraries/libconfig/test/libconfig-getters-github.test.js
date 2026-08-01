@@ -19,7 +19,7 @@ describe("libconfig - Config getters (core + github)", () => {
       get: spy(() => Promise.resolve("")),
     });
 
-  test("init returns init config from file data", async () => {
+  test("init returns the init config from the file data", async () => {
     const mockStorage = createMockStorage({
       get: spy(() =>
         Promise.resolve({
@@ -50,7 +50,7 @@ describe("libconfig - Config getters (core + github)", () => {
     assert.strictEqual(config.init.shutdown_timeout, 5000);
   });
 
-  test("init returns null when not present in file", async () => {
+  test("init returns null when it is not present in the file", async () => {
     const mockStorage = createMockStorage({
       get: spy(() => Promise.resolve({})),
     });
@@ -71,7 +71,7 @@ describe("libconfig - Config getters (core + github)", () => {
     assert.strictEqual(config.init, null);
   });
 
-  test("rootDir returns parent of config directory", async () => {
+  test("rootDir returns the parent of the config directory", async () => {
     const mockStorage = createMockStorage({
       get: spy(() => Promise.resolve({})),
       path: spy(() => "/project/root/config"),
@@ -93,7 +93,7 @@ describe("libconfig - Config getters (core + github)", () => {
     assert.strictEqual(config.rootDir, "/project/root");
   });
 
-  test("ghToken throws when not set in environment and gh cli fails", async () => {
+  test("ghToken throws when env vars are unset and gh cli fails", async () => {
     // gh exits non-zero (e.g. not authenticated / not installed).
     const subprocess = createMockSubprocess({
       responses: { gh: { exitCode: 1, stderr: "gh: not authenticated" } },
@@ -108,7 +108,7 @@ describe("libconfig - Config getters (core + github)", () => {
     assert.throws(() => config.ghToken(), /GH_TOKEN not found in environment/);
   });
 
-  test("ghToken returns from environment", async () => {
+  test("ghToken returns the value from the environment", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { GH_TOKEN: "gh-cli-token" },
@@ -173,7 +173,7 @@ describe("libconfig - Config getters (core + github)", () => {
     assert.deepStrictEqual(subprocess.calls[0].args, ["auth", "token"]);
   });
 
-  test("ghToken caches gh auth token result", async () => {
+  test("ghToken caches the result of gh auth token", async () => {
     const subprocess = createMockSubprocess({
       responses: { gh: { stdout: "fake-gh-cli-token" } },
     });

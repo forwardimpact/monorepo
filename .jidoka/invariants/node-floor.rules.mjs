@@ -1,6 +1,6 @@
 // Triangulate the Node.js floor across four surface families:
 //   - every package.json#engines.node lower bound parses to a major ≥ 22
-//   - every file referenced by a published package.json#bin includes
+//   - every file a published package.json#bin references includes
 //     `import "@forwardimpact/libpreflight/nodeNN"` as its first import,
 //     with NN equal to the owning manifest's engines.node lower-bound major
 //   - every getting-started/{leaders,engineers}/**/index.md that names
@@ -9,7 +9,7 @@
 //     node22.js body all agree on the same integer
 //
 // Discovery-based: future bins, packages, and pages land under the check
-// without amending this module.
+// with no edit to this module.
 
 import { join, relative } from "node:path";
 
@@ -178,7 +178,7 @@ export default {
   rules: ({ parseError }) => [
     parseError("manifest", {
       id: "node-floor.manifest-unparseable",
-      hint: "fix the JSON so the engines floor can be read",
+      hint: "fix the JSON so the check can read the engines floor",
     }),
     {
       id: "node-floor.unparseable-range",
@@ -207,7 +207,7 @@ export default {
       check: (s) => (s.floor === null ? {} : null),
       message: (s) =>
         `${s.pkgDir}/package.json ships a bin but has no parseable engines.node`,
-      hint: "declare engines.node on the publishing manifest",
+      hint: "declare engines.node on the manifest that ships the bin",
     },
     {
       id: "node-floor.bin-unreadable",
@@ -216,7 +216,7 @@ export default {
       when: (s) => s.floor !== null,
       check: (s) => (s.readError ? { msg: s.readError } : null),
       message: (s, r) => r.msg,
-      hint: "the package.json#bin entry must point at an existing file",
+      hint: "the package.json#bin entry must point at a file that exists",
     },
     {
       id: "node-floor.bin-missing-preflight",
@@ -232,7 +232,7 @@ export default {
       },
       message: (s, r) =>
         r.missing
-          ? `no import statement; missing libpreflight/node${s.floor}`
+          ? `no import statement. libpreflight/node${s.floor} is missing`
           : `first import is not "@forwardimpact/libpreflight/node${s.floor}"`,
       hint: "the preflight import must be the bin's first import so the version check runs before any package code",
     },
@@ -263,7 +263,7 @@ export default {
       },
       message: (s, r) =>
         `names "Node.js ${r.major}+" — expected "Node.js ${REQUIRED_FLOOR}+"`,
-      hint: "getting-started pages state one Node.js floor; update the page to the required major",
+      hint: "getting-started pages state one Node.js floor. Update the page to the required major",
     },
     {
       id: "node-floor.source-error",

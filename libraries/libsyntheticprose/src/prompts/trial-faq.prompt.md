@@ -15,8 +15,8 @@ Eligibility overview:
 - Exclusion: {{exclusion_summary}}.
 {{/clinical_criteria}}
 
-Write a FAQ document with common patient questions about participating in
+Write a FAQ document with common patient questions about participation in
 this trial. Cover: eligibility, what to expect, time commitment, costs,
-risks, and how to enroll. Each answer should be 2-3 sentences.
+risks, and how to enroll. Make each answer 2-3 sentences.
 
 {{#orgName}}Company: {{orgName}}.{{/orgName}}

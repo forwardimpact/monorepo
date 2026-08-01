@@ -40,7 +40,7 @@ describe("validateCallbackPayload", () => {
     });
   });
 
-  test("passes through verdict and summary, truncating to MAX_FIELD_LENGTH", () => {
+  test("passes through verdict and summary and truncates them to MAX_FIELD_LENGTH", () => {
     const long = "x".repeat(MAX_FIELD_LENGTH + 100);
     const payload = validateCallbackPayload({
       correlation_id: "c-1",

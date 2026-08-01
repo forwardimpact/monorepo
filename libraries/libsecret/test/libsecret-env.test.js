@@ -9,7 +9,7 @@ import {
 } from "../src/index.js";
 import { TEST_ENV_PATH, makeRuntime } from "./libsecret-helpers.js";
 
-describe("libsecret — duration parsing and env-file persistence", () => {
+describe("libsecret — duration parser and env-file persistence", () => {
   describe("parseDuration", () => {
     test("parses hours", () => {
       assert.strictEqual(parseDuration("1h"), 3600);
@@ -30,17 +30,17 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.throws(() => parseDuration("60"), /invalid duration/);
     });
 
-    test("rejects unknown suffix", () => {
+    test("rejects an unknown suffix", () => {
       assert.throws(() => parseDuration("5m"), /invalid duration/);
     });
 
-    test("rejects empty string", () => {
+    test("rejects an empty string", () => {
       assert.throws(() => parseDuration(""), /invalid duration/);
     });
   });
 
   describe("updateEnvFile", () => {
-    test("creates new .env file when it does not exist", async () => {
+    test("creates a new .env file when it does not exist", async () => {
       const runtime = makeRuntime();
       await updateEnvFile("TEST_KEY", "test-value", TEST_ENV_PATH, runtime);
 
@@ -48,7 +48,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.ok(content.includes("TEST_KEY=test-value"));
     });
 
-    test("adds new key to existing .env file", async () => {
+    test("adds a new key to an existing .env file", async () => {
       const runtime = makeRuntime({
         [TEST_ENV_PATH]: "EXISTING_KEY=existing-value\n",
       });
@@ -59,7 +59,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.ok(content.includes("NEW_KEY=new-value"));
     });
 
-    test("updates existing key in .env file", async () => {
+    test("updates an existing key in the .env file", async () => {
       const runtime = makeRuntime({ [TEST_ENV_PATH]: "MY_KEY=old-value\n" });
       await updateEnvFile("MY_KEY", "new-value", TEST_ENV_PATH, runtime);
 
@@ -68,7 +68,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.ok(!content.includes("old-value"));
     });
 
-    test("uncomments and updates commented key", async () => {
+    test("uncomments and updates a commented key", async () => {
       const runtime = makeRuntime({
         [TEST_ENV_PATH]: "# TEST_KEY=commented-value\n",
       });
@@ -78,7 +78,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(content.trim(), "TEST_KEY=new-value");
     });
 
-    test("handles file without trailing newline", async () => {
+    test("handles a file without a trailing newline", async () => {
       const runtime = makeRuntime({ [TEST_ENV_PATH]: "FIRST_KEY=value" });
       await updateEnvFile("SECOND_KEY", "second-value", TEST_ENV_PATH, runtime);
 
@@ -87,28 +87,28 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.ok(content.includes("SECOND_KEY=second-value"));
     });
 
-    test("output always ends with trailing newline", async () => {
+    test("the output always ends with a trailing newline", async () => {
       const runtime = makeRuntime();
       await updateEnvFile("KEY_A", "value-a", TEST_ENV_PATH, runtime);
       let content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
-      assert.ok(content.endsWith("\n"), "new file should end with newline");
+      assert.ok(content.endsWith("\n"), "a new file should end with a newline");
 
       await updateEnvFile("KEY_B", "value-b", TEST_ENV_PATH, runtime);
       content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(
         content.endsWith("\n"),
-        "file with appended key should end with newline",
+        "a file with an appended key should end with a newline",
       );
 
       await updateEnvFile("KEY_A", "updated", TEST_ENV_PATH, runtime);
       content = await runtime.fs.readFile(TEST_ENV_PATH, "utf8");
       assert.ok(
         content.endsWith("\n"),
-        "file with updated key should end with newline",
+        "a file with an updated key should end with a newline",
       );
     });
 
-    test("uses provided env path", async () => {
+    test("uses the provided env path", async () => {
       const customPath = "/test/custom.env";
       const runtime = makeRuntime();
       await updateEnvFile("KEY", "value", customPath, runtime);
@@ -117,7 +117,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.ok(content.includes("KEY=value"));
     });
 
-    test("calls chmod(path, 0o600) on new file", async () => {
+    test("calls chmod(path, 0o600) on a new file", async () => {
       const runtime = makeRuntime();
       await updateEnvFile("SECRET", "s3cret", TEST_ENV_PATH, runtime);
 
@@ -129,7 +129,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(runtime.fs.chmod.mock.calls[0].arguments[1], 0o600);
     });
 
-    test("calls chmod(path, 0o600) on update", async () => {
+    test("calls chmod(path, 0o600) on an update", async () => {
       const runtime = makeRuntime({ [TEST_ENV_PATH]: "PRIOR=value\n" });
       await updateEnvFile("PRIOR", "updated", TEST_ENV_PATH, runtime);
 
@@ -139,13 +139,13 @@ describe("libsecret — duration parsing and env-file persistence", () => {
   });
 
   describe("readEnvFile", () => {
-    test("returns undefined when file does not exist", async () => {
+    test("returns undefined when the file does not exist", async () => {
       const runtime = makeRuntime();
       const value = await readEnvFile("MISSING_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, undefined);
     });
 
-    test("returns undefined when key does not exist", async () => {
+    test("returns undefined when the key does not exist", async () => {
       const runtime = makeRuntime({
         [TEST_ENV_PATH]: "OTHER_KEY=other-value\n",
       });
@@ -153,13 +153,13 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(value, undefined);
     });
 
-    test("returns value for existing key", async () => {
+    test("returns the value for an existing key", async () => {
       const runtime = makeRuntime({ [TEST_ENV_PATH]: "MY_KEY=my-value\n" });
       const value = await readEnvFile("MY_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, "my-value");
     });
 
-    test("returns value with equals sign in it", async () => {
+    test("returns a value that contains an equals sign", async () => {
       const runtime = makeRuntime({ [TEST_ENV_PATH]: "JWT_TOKEN=abc=def==\n" });
       const value = await readEnvFile("JWT_TOKEN", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, "abc=def==");
@@ -173,7 +173,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(value, undefined);
     });
 
-    test("returns first matching key when duplicates exist", async () => {
+    test("returns the first match when duplicates exist", async () => {
       const runtime = makeRuntime({
         [TEST_ENV_PATH]: "MY_KEY=first-value\nMY_KEY=second-value\n",
       });
@@ -181,7 +181,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(value, "first-value");
     });
 
-    test("handles empty value", async () => {
+    test("handles an empty value", async () => {
       const runtime = makeRuntime({ [TEST_ENV_PATH]: "EMPTY_KEY=\n" });
       const value = await readEnvFile("EMPTY_KEY", TEST_ENV_PATH, runtime);
       assert.strictEqual(value, "");
@@ -189,7 +189,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
   });
 
   describe("getOrGenerateSecret", () => {
-    test("returns existing value when key exists", async () => {
+    test("returns the existing value when the key exists", async () => {
       const runtime = makeRuntime({
         [TEST_ENV_PATH]: "MY_SECRET=existing-secret\n",
       });
@@ -203,7 +203,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(value, "existing-secret");
     });
 
-    test("calls generator when key does not exist", async () => {
+    test("calls the generator when the key does not exist", async () => {
       const runtime = makeRuntime();
       const generator = () => "generated-secret";
       const value = await getOrGenerateSecret(
@@ -215,7 +215,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(value, "generated-secret");
     });
 
-    test("does not call generator when key exists", async () => {
+    test("does not call the generator when the key exists", async () => {
       const runtime = makeRuntime({
         [TEST_ENV_PATH]: "MY_SECRET=existing-secret\n",
       });
@@ -228,7 +228,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(generatorCalled, false);
     });
 
-    test("calls generator when file does not exist", async () => {
+    test("calls the generator when the file does not exist", async () => {
       const runtime = makeRuntime();
       const generator = () => "generated-secret";
       const value = await getOrGenerateSecret(
@@ -240,7 +240,7 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       assert.strictEqual(value, "generated-secret");
     });
 
-    test("throws when generator is not a function", async () => {
+    test("throws when the generator is not a function", async () => {
       const runtime = makeRuntime();
       await assert.rejects(
         async () =>
@@ -254,12 +254,12 @@ describe("libsecret — duration parsing and env-file persistence", () => {
       );
     });
 
-    test("does not write to file (no side effects)", async () => {
+    test("does not write to the file (no side effects)", async () => {
       const runtime = makeRuntime();
       const generator = () => "generated-secret";
       await getOrGenerateSecret("MY_SECRET", generator, TEST_ENV_PATH, runtime);
 
-      // writeFile should never have been called
+      // The code never calls writeFile
       assert.strictEqual(runtime.fs.writeFile.mock.callCount(), 0);
     });
   });

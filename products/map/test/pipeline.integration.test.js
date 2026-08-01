@@ -1,21 +1,22 @@
 /**
  * End-to-end pipeline test for the export → resource → graph flow.
  *
- * Wires the Stream A exporter into the real libresource ResourceProcessor
- * and libgraph GraphProcessor, then asserts that
+ * The test wires the Stream A exporter into the real libresource
+ * ResourceProcessor and libgraph GraphProcessor. It then asserts that
  * `GraphIndex.getSubjects("fit:Skill")` returns the fixture skill's IRI.
  *
- * This is the only test that exercises the `RDF_PREFIXES` registration: the
- * `fit:Skill` short form must expand via the N3 Store's prefix table or the
- * query degrades to a literal and misses all subjects. It is also the only
- * test that proves ResourceProcessor's `ALLOWED_TYPE_PREFIXES` accepts the
- * fit: vocabulary — if that widening regresses, the parser rejects every main
- * item and no subjects are loaded into the graph.
+ * This is the only test that exercises the `RDF_PREFIXES` registration.
+ * The `fit:Skill` short form must expand through the N3 Store's prefix
+ * table. If it does not, the query degrades to a literal and misses all
+ * subjects. It is also the only test that proves ResourceProcessor's
+ * `ALLOWED_TYPE_PREFIXES` accepts the fit: vocabulary. If ResourceProcessor
+ * stops accepting it, the parser rejects every main item and loads no
+ * subjects into the graph.
  *
- * The test uses real filesystem LocalStorage instances for both the
- * knowledge directory (from the exporter) and the graph index directory,
- * and an in-memory mock for the ResourceIndex (Map-backed) so we don't
- * need to wire libpolicy and a second storage backend.
+ * The test uses real filesystem LocalStorage instances for the knowledge
+ * directory (from the exporter) and for the graph index directory. It uses
+ * an in-memory mock (Map-backed) for the ResourceIndex. That mock removes
+ * the need to wire libpolicy and a second storage backend.
  */
 
 import { test, describe, beforeEach, afterEach } from "node:test";
@@ -49,8 +50,9 @@ const SILENT_LOGGER = {
 
 /**
  * Minimal Map-backed ResourceIndex mock that satisfies the surface the
- * ResourceProcessor (put) and GraphProcessor (findAll, get, has) use. Keeps
- * the test self-contained — no libpolicy, no second storage backend.
+ * ResourceProcessor (put) and GraphProcessor (findAll, get, has) use. It
+ * keeps the test self-contained with no libpolicy and no second storage
+ * backend.
  */
 function createInMemoryResourceIndex() {
   const store = new Map();
@@ -94,7 +96,7 @@ describe("end-to-end export → resource → graph pipeline", () => {
     assert.strictEqual(errors.length, 0, "export should produce no errors");
 
     // 2. Wire LocalStorage at <tempKnowledge>/pathway/ so the resource
-    //    processor walks the HTML files produced by the exporter.
+    //    processor walks the HTML files the exporter produced.
     const knowledgeStorage = new LocalStorage(join(outputDir, "pathway"), fsp);
 
     // 3. In-memory resource index (shared between ResourceProcessor's put
@@ -112,11 +114,11 @@ describe("end-to-end export → resource → graph pipeline", () => {
     );
     await resourceProcessor.process(".html");
 
-    // Sanity check: resource index has at least one resource whose Turtle
-    // content mentions the fit: skill subject. If the parser widening
-    // regressed, zero main items would be produced.
+    // Sanity check. The resource index has at least one resource whose
+    // Turtle content mentions the fit: skill subject. If the widened
+    // parser regressed, it would produce zero main items.
     const ids = await resourceIndex.findAll();
-    assert.ok(ids.length > 0, "ResourceProcessor should have stored resources");
+    assert.ok(ids.length > 0, "ResourceProcessor should store resources");
     const stored = await resourceIndex.get(ids);
     const turtle = stored.map((r) => r.content || "").join("\n");
     assert.ok(
@@ -139,7 +141,7 @@ describe("end-to-end export → resource → graph pipeline", () => {
     );
     await graphProcessor.process("test-actor");
 
-    // 7. RDF prefix check — the fit: prefix must be registered so
+    // 7. RDF prefix check. The code must register the fit: prefix so
     //    `fit:Skill` expands to the full IRI. If this regresses, the
     //    subjects map comes back empty.
     const subjects = await graphIndex.getSubjects("fit:Skill");

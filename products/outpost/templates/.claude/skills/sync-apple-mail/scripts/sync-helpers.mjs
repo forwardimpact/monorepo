@@ -11,9 +11,10 @@ import { basename, join, resolve, sep } from "node:path";
 import { homedir } from "node:os";
 import { globSync } from "node:fs";
 
-// node:sqlite is loaded lazily via createRequire so this module can be imported
-// in test environments (bun, older node) that lack the built-in. The only call
-// site is openDb below; production runs on Node 22+ where node:sqlite resolves.
+// This module loads node:sqlite lazily through createRequire. Test environments
+// (bun, older node) that lack the built-in can then import this module. The
+// only call site is openDb below. Production runs on Node 22+, where
+// node:sqlite resolves.
 const requireModule = createRequire(import.meta.url);
 
 const HOME = homedir();
@@ -31,13 +32,15 @@ export function findDb() {
     .sort()
     .reverse();
   if (paths.length === 0) {
-    console.error("Error: Apple Mail database not found. Is Mail configured?");
+    console.error(
+      "Error: Apple Mail database not found. Check that Mail is configured.",
+    );
     process.exit(1);
   }
   return paths[0];
 }
 
-/** Open a read-only SQLite connection, retrying once if the database is locked. */
+/** Open a read-only SQLite connection. Retry once if the database is locked. */
 export function openDb(dbPath) {
   const { DatabaseSync } = requireModule("node:sqlite");
   try {
@@ -51,7 +54,7 @@ export function openDb(dbPath) {
   }
 }
 
-/** Execute a SQL query and return all rows, logging errors and returning an empty array on failure. */
+/** Execute a SQL query and return all rows. Log the error and return an empty array on failure. */
 export function query(db, sql) {
   try {
     return db.prepare(sql).all();
@@ -61,7 +64,7 @@ export function query(db, sql) {
   }
 }
 
-/** Load the last sync timestamp from disk, falling back to daysBack days ago on first run. */
+/** Load the last sync timestamp from disk. Use daysBack days ago on the first run. */
 export function loadLastSync(daysBack = 30) {
   try {
     const iso = readFileSync(STATE_FILE, "utf-8").trim();
@@ -84,7 +87,7 @@ export function saveSyncState(lastRowid = null) {
   }
 }
 
-/** Load the last-seen message ROWID from disk, returning 0 on first run. */
+/** Load the last-seen message ROWID from disk. Return 0 on the first run. */
 export function loadLastRowid() {
   try {
     const val = readFileSync(ROWID_STATE_FILE, "utf-8").trim();
@@ -108,7 +111,7 @@ export function unixToReadable(ts) {
   }
 }
 
-/** Detect whether the messages table uses conversation_id or thread_id for threading. */
+/** Detect whether the messages table uses conversation_id or thread_id as the thread column. */
 export function discoverThreadColumn(db) {
   const rows = query(db, "PRAGMA table_info(messages);");
   const columns = new Set(rows.map((r) => r.name));
@@ -137,7 +140,7 @@ export function findChangedThreads(db, threadCol, sinceTs, lastRowid) {
   );
 }
 
-/** Fetch all messages in a thread ordered by date, including sender and summary metadata. */
+/** Fetch all messages in a thread ordered by date, with sender and summary metadata. */
 export function fetchThreadMessages(db, threadCol, tid) {
   return query(
     db,
@@ -217,13 +220,13 @@ export function fetchAttachments(db, messageIds) {
 }
 
 const FALLBACK_ATTACHMENT_NAME = "unnamed";
-// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional — stripping ASCII control bytes from attacker-controlled filenames.
+// biome-ignore lint/suspicious/noControlCharactersInRegex: intentional. It strips ASCII control bytes from attacker-controlled filenames.
 const CONTROL_CHARS_RE = /[\x00-\x1f\x7f]/g;
 
 /**
  * Coerce an arbitrary `attachments.name` value into a single, non-empty
  * basename safe to join under a per-thread destDir. Strips path separators
- * (POSIX and win32), strips ASCII control bytes, then takes the last
+ * (POSIX and win32). Strips ASCII control bytes. Then takes the last
  * non-empty/non-dot segment. Returns `"unnamed"` for any input that
  * collapses to empty, `.`, or `..`. Never throws.
  */
@@ -341,7 +344,7 @@ function copySingleAttachment(
   }
 }
 
-/** Copy all attachments for a thread's messages into the cache directory, deduplicating filenames. `attachmentsDir` defaults to the module-level `ATTACHMENTS_DIR`; tests inject a temp directory. */
+/** Copy all attachments for a thread's messages into the cache directory and deduplicate the filenames. `attachmentsDir` defaults to the module-level `ATTACHMENTS_DIR`. Tests inject a temp directory. */
 export function copyThreadAttachments(
   threadId,
   messages,

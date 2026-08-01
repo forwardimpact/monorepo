@@ -10,15 +10,16 @@ import {
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
- * Build a runtime for in-process command tests: a `proc` whose `cwd()`/`env`
- * are test-controlled and whose stdout/stderr are captured, a real `Finder`,
- * a real clock (unless `now` is given), and fs surfaces that default to the
- * real `node:fs` but accept a libmock `createMockFs()` override so a command's
+ * Build a runtime for in-process command tests. The runtime holds a `proc`
+ * whose `cwd()`/`env` the test controls and whose stdout/stderr it captures.
+ * The runtime holds a real `Finder`. It holds a real clock, unless the caller
+ * gives `now`. It holds fs surfaces that default to the real `node:fs`. Those
+ * surfaces also accept a libmock `createMockFs()` override, so a command's
  * reads can stay in memory.
  *
  * @param {object} [options]
- * @param {string} [options.cwd] - Working directory `proc.cwd()` returns.
- * @param {Record<string,string>} [options.env] - The `proc.env` backing map.
+ * @param {string} [options.cwd] - The working directory `proc.cwd()` returns.
+ * @param {Record<string,string>} [options.env] - The map that backs `proc.env`.
  * @param {number} [options.now] - Fixed clock time in ms (defaults to real clock).
  * @param {object} [options.fs] - Async fs surface override (default real `node:fs/promises`).
  * @param {object} [options.fsSync] - Sync fs surface override (default real `node:fs`).
@@ -65,8 +66,8 @@ export function makeRuntime({
     proc,
     clock,
     subprocess: createDefaultSubprocess(),
-    // findProjectRoot is called with an explicit start path (proc.cwd()), so
-    // the shared real-fs finder traverses fixtures correctly without needing
+    // findProjectRoot receives an explicit start path (proc.cwd()). So the
+    // shared real-fs finder traverses fixtures correctly. It does not need
     // the test's custom proc bound into it.
     finder: createDefaultRuntime().finder,
   });
@@ -85,8 +86,8 @@ export function makeRuntime({
 }
 
 /**
- * Assemble an InvocationContext-shaped object for invoking a command handler
- * directly in-process (without going through `cli.dispatch`).
+ * Assemble an InvocationContext-shaped object to invoke a command handler
+ * directly in-process. The call skips `cli.dispatch`.
  *
  * @param {{ runtime: object, options?: object, args?: object }} parts
  * @returns {object}

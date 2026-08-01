@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
 
-test("loads front page successfully", async ({ page }) => {
+test("front page loads successfully", async ({ page }) => {
   const errors = [];
 
   page.on("pageerror", (error) => {
     errors.push(error.message);
   });
 
-  // Abort external requests (fonts, prism) that are non-essential
+  // Abort the non-essential external requests (fonts, prism)
   await page.route(
     (url) => !url.hostname.includes("localhost"),
     (route) => route.abort(),
@@ -15,9 +15,9 @@ test("loads front page successfully", async ({ page }) => {
 
   await page.goto("./", { waitUntil: "domcontentloaded" });
 
-  // Wait for the landing page h1 to appear (rendered by JavaScript).
-  // Match on "Pathway" alone — the full title comes from the synthetic
-  // standard.yaml and varies with each LLM regeneration of the prose
+  // Wait for the landing page h1 to appear. JavaScript renders it.
+  // Match on "Pathway" alone. The full title comes from the synthetic
+  // standard.yaml. It changes each time an LLM regenerates the prose
   // cache (e.g. "BioNova Engineering Excellence Pathway").
   await expect(page.locator("h1")).toContainText("Pathway");
 

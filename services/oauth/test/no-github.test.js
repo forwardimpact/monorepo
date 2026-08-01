@@ -8,7 +8,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const serviceDir = resolve(__dirname, "..");
 
 describe("oauth no-github (SC#3)", () => {
-  test("no github or octokit references in oauth source (excluding tests and docs)", () => {
+  test("oauth source has no github or octokit references (tests and docs excluded)", () => {
     let output = "";
     try {
       output = execSync(

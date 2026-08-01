@@ -13,7 +13,7 @@ describe("waitFor", () => {
     );
   });
 
-  test("resolves immediately when condition is true", async () => {
+  test("resolves immediately when the condition is true", async () => {
     let callCount = 0;
     await waitFor(
       () => {
@@ -27,7 +27,7 @@ describe("waitFor", () => {
     assert.strictEqual(callCount, 1);
   });
 
-  test("retries until condition becomes true", async () => {
+  test("retries until the condition becomes true", async () => {
     let callCount = 0;
     await waitFor(
       () => {
@@ -41,7 +41,7 @@ describe("waitFor", () => {
     assert.strictEqual(callCount, 3);
   });
 
-  test("throws error on timeout", async () => {
+  test("throws an error on timeout", async () => {
     await assert.rejects(
       () =>
         waitFor(
@@ -53,7 +53,7 @@ describe("waitFor", () => {
     );
   });
 
-  test("ignores errors during polling", async () => {
+  test("ignores errors while it polls", async () => {
     let callCount = 0;
     await waitFor(
       () => {
@@ -70,7 +70,7 @@ describe("waitFor", () => {
     assert.strictEqual(callCount, 3);
   });
 
-  test("uses default options when not provided", async () => {
+  test("uses the default options when the caller omits them", async () => {
     let called = false;
     await waitFor(
       () => {
@@ -84,7 +84,7 @@ describe("waitFor", () => {
     assert.strictEqual(called, true);
   });
 
-  test("increases interval with exponential backoff", async () => {
+  test("increases the interval with exponential backoff", async () => {
     const intervals = [];
     let lastTime = Date.now();
     let callCount = 0;
@@ -103,7 +103,7 @@ describe("waitFor", () => {
       delay,
     );
 
-    // Intervals should generally increase (with some tolerance for timing)
+    // The intervals should generally increase (with some tolerance for timing)
     assert.ok(intervals.length >= 2);
   });
 });

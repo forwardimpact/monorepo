@@ -14,8 +14,8 @@ import {
 } from "../index.js";
 
 /**
- * Whether an error is a missing-module error — the signal that this install
- * omitted the optional proto-compiler toolchain.
+ * Whether an error is a missing-module error. That error signals that this
+ * install omitted the optional proto-compiler toolchain.
  * @param {NodeJS.ErrnoException} err
  * @returns {boolean}
  */
@@ -28,8 +28,8 @@ function isMissingModule(err) {
 }
 
 /**
- * Derive the generation flags from parsed option values. `--all` implies every
- * kind; the individual flags select one kind each.
+ * Derive the generation flags from the parsed option values. `--all` implies
+ * every kind. The individual flags select one kind each.
  * @param {Record<string, boolean|undefined>} values
  * @returns {object}
  */
@@ -55,8 +55,8 @@ function computeFlags(values) {
 }
 
 /**
- * Create tar.gz bundle of all directories inside sourcePath
- * @param {string} sourcePath - Path containing directories to bundle
+ * Create a tar.gz bundle of all the directories inside sourcePath
+ * @param {string} sourcePath - Path that holds the directories to bundle
  * @param {object} fs - Sync filesystem surface (runtime.fsSync)
  * @param {object} subprocess - Subprocess surface (runtime.subprocess)
  */
@@ -73,7 +73,7 @@ function createBundle(sourcePath, fs, subprocess) {
     return; // No directories to bundle
   }
 
-  // Create tar.gz archive using system tar command
+  // Create the tar.gz archive with the system tar command
   const result = subprocess.runSync(
     "tar",
     ["-czf", bundlePath, "-C", sourcePath, ...directories],
@@ -267,11 +267,11 @@ async function executeGeneration(codegens, sourcePath, flags) {
 }
 
 /**
- * Run code generation pipeline
+ * Run the code generation pipeline
  * @param {object} args
  * @param {string[]} args.protoDirs - Discovered proto directories
  * @param {string} args.projectRoot - Project root directory path
- * @param {object} args.finder - Finder instance for path management
+ * @param {object} args.finder - Finder instance that manages the paths
  * @param {object} args.flags - Parsed generation flags
  * @param {object} args.mustache - Mustache module
  * @param {object} args.protoLoader - Proto loader module
@@ -294,11 +294,12 @@ async function runCodegen({
 
   await generatedStorage.ensureBucket();
 
-  // Full regeneration (--all) clears the content directories first so that a
-  // renamed or removed proto leaves no orphaned per-proto artifacts. The
-  // services exports step scans the services/ directory, so a stale service
-  // dir would otherwise be re-exported and import types that no longer exist.
-  // Partial flags intentionally preserve sibling artifacts and are not cleaned.
+  // A full regeneration (--all) clears the content directories first. A
+  // renamed or removed proto then leaves no orphaned per-proto artifacts. The
+  // services exports step scans the services/ directory. Without the clear,
+  // that step would re-export a stale service dir, which imports types that no
+  // longer exist. Partial flags preserve sibling artifacts on purpose, so the
+  // code does not clear the directories for them.
   if (flags.doAll) {
     for (const dir of ["types", "services", "definitions", "proto"]) {
       fs.rmSync(path.join(sourcePath, dir), { recursive: true, force: true });
@@ -315,9 +316,9 @@ async function runCodegen({
     );
   }
 
-  // Inject the embedded-overlay sync fs so loadTemplate's reads of the virtual
-  // template mount hit the inlined registry in a compiled binary. In
-  // source/npx execution withEmbeddedAssets is a no-op and this is the full
+  // Inject the embedded-overlay sync fs. In a compiled binary, loadTemplate's
+  // reads of the virtual template mount then hit the inlined registry. In
+  // source/npx execution withEmbeddedAssets is a no-op. This is then the full
   // node:fs sync surface, identical to the runtime.fsSync used above.
   const codegenFs = withEmbeddedAssets(runtime).fsSync;
   const codegens = createCodegen(
@@ -339,7 +340,7 @@ async function runCodegen({
 /**
  * `fit-codegen generate` — generate protobuf types, service clients, and
  * definitions from proto files. Needs the optional proto-compiler toolchain
- * (`@grpc/proto-loader`, `mustache`, `protobufjs-cli`); a production install
+ * (`@grpc/proto-loader`, `mustache`, `protobufjs-cli`). A production install
  * that omitted the optional dependencies gets a friendly reinstall hint.
  * @param {object} ctx
  * @param {Record<string, boolean|undefined>} ctx.values - Parsed generation flags
@@ -359,7 +360,7 @@ export async function run({ values, runtime, cli }) {
   }
 
   // Bind protobufjs's util.Long before the proto-loader descriptor extension
-  // evaluates (see long-init.js), then load the proto-compiler toolchain.
+  // evaluates (see long-init.js). Then load the proto-compiler toolchain.
   await import("../long-init.js");
 
   let protoLoader;
@@ -367,8 +368,9 @@ export async function run({ values, runtime, cli }) {
   try {
     ({ default: protoLoader } = await import("@grpc/proto-loader"));
     ({ default: mustache } = await import("mustache"));
-    // protobufjs-cli is resolved at runtime by types.js — verify it is present
-    // so a missing toolchain surfaces here as one friendly hint, not mid-run.
+    // types.js resolves protobufjs-cli at runtime. Verify it is present here.
+    // A missing toolchain then surfaces as one friendly hint. It does not
+    // surface in the middle of the run.
     createRequire(import.meta.url).resolve("protobufjs-cli/bin/pbjs");
   } catch (err) {
     if (isMissingModule(err)) {
@@ -384,17 +386,17 @@ export async function run({ values, runtime, cli }) {
   }
 
   const logger = new Logger("codegen", runtime);
-  // The shared runtime.finder carries a no-op logger; bind this CLI's logger
-  // so createPackageSymlinks (the one logging Finder consumer) keeps emitting
-  // symlink debug logs.
+  // The shared runtime.finder carries a no-op logger. Bind this CLI's logger
+  // so createPackageSymlinks still emits its symlink debug logs.
+  // createPackageSymlinks is the one Finder consumer that logs.
   const finder = runtime.finder.withLogger(logger);
   const projectRoot = finder.findProjectRoot(proc.cwd());
 
   const protoDirs = discoverProtoDirs(projectRoot, runtime.fsSync);
   if (protoDirs.length === 0) {
     throw new Error(
-      "No proto directories found. Ensure @forwardimpact packages " +
-        "with proto/ directories are installed, or add proto files " +
+      "No proto directories found. Install @forwardimpact packages " +
+        "with proto/ directories, or add proto files " +
         "to your project's proto/ directory.",
     );
   }

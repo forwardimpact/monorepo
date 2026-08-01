@@ -1,5 +1,5 @@
 /**
- * Level formatting for markdown/CLI output
+ * Level formatter for markdown/CLI output
  */
 
 import { tableToMarkdown, capitalize } from "../shared.js";

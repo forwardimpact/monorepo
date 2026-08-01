@@ -8,8 +8,8 @@ import { parseConcludeFromTrace } from "../src/benchmark/judge.js";
 const TRACE_PATH = "/traces/trace.ndjson";
 
 /**
- * Seed the trace file in an in-memory fs and return `{ path, runtime }` for
- * `parseConcludeFromTrace`, which reads via `runtime.fs.readFile`.
+ * Seed the trace file in an in-memory fs. Return `{ path, runtime }` for
+ * `parseConcludeFromTrace`. That function reads through `runtime.fs.readFile`.
  */
 function traceRuntime(lines) {
   const body = lines.map((l) => JSON.stringify(l)).join("\n") + "\n";
@@ -55,7 +55,7 @@ describe("parseConcludeFromTrace", () => {
     assert.strictEqual(parsed, null);
   });
 
-  test("two Conclude calls — last one wins", async () => {
+  test("the last of two Conclude calls wins", async () => {
     const { path, runtime } = traceRuntime([
       envelopeAssistant("supervisor", [concludeBlock("success", "first")]),
       envelopeAssistant("supervisor", [concludeBlock("failure", "second")]),
@@ -64,7 +64,7 @@ describe("parseConcludeFromTrace", () => {
     assert.deepStrictEqual(parsed, { verdict: "fail", summary: "second" });
   });
 
-  test("agent-source Conclude is ignored (only supervisor counts)", async () => {
+  test("the parser ignores an agent-source Conclude (only supervisor counts)", async () => {
     const { path, runtime } = traceRuntime([
       envelopeAssistant("agent", [concludeBlock("success", "agent lies")]),
     ]);

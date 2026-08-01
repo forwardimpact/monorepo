@@ -5,16 +5,16 @@
  * ## Declaration-order contract
  *
  * The `init.services` array in config.json doubles as a dependency graph.
- * Earlier entries are treated as infrastructure that later entries depend
- * on (e.g. tunnels before bridges). Three operations exploit this ordering:
+ * The manager treats earlier entries as infrastructure that later entries
+ * depend on (e.g. tunnels before bridges). Three operations use this order:
  *
  *   start(name)   — bring up [first … name]      (dependencies, then target)
- *   stop(name)    — tear down [name … last]       (dependents, then target — reversed)
+ *   stop(name)    — tear down [name … last]       (dependents, then target, reversed)
  *   restart(name) — stop [name … last], start [name … last]
  *
  * `restart` intentionally does NOT re-run `start(name)`, because start's
  * scope ([first … name]) would miss dependents that stop just tore down.
- * Instead it starts the same [name … last] slice that was stopped.
+ * Instead it starts the same [name … last] slice that stop tore down.
  */
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -52,17 +52,17 @@ const SVSCAN_BIN = require.resolve(
 
 /**
  * @typedef {object} Logger
- * @property {Function} debug - Debug logging
- * @property {Function} info - Info logging
- * @property {Function} error - Error logging
+ * @property {Function} debug - Logs a debug message
+ * @property {Function} info - Logs an info message
+ * @property {Function} error - Logs an error message
  */
 
 /**
  * @typedef {object} Dependencies
  * @property {typeof import("node:child_process").spawn} [spawn] - Spawn function.
- *   In production wire from the bin (which is allowed to import child_process).
+ *   In production, wire it from the bin. The bin may import child_process.
  * @property {typeof import("node:child_process").execSync} [execSync] - ExecSync function.
- *   In production wire from the bin (which is allowed to import child_process).
+ *   In production, wire it from the bin. The bin may import child_process.
  * @property {function(string, object): Promise<object>} [sendCommand] - Socket command sender
  * @property {function(string, number): Promise<boolean>} [waitForSocket] - Socket waiter
  * @property {import("@forwardimpact/libutil/runtime").Runtime} [runtime] - Runtime bag.
@@ -99,14 +99,14 @@ export class ServiceManager {
 
     this.#config = config;
     this.#logger = logger;
-    // The injected runtime's sync-fs is the full node:fs module, so it exposes
+    // The injected runtime's sync-fs is the full node:fs module. So it exposes
     // createReadStream for logs() alongside the readFileSync/openSync/etc. the
     // lifecycle methods use.
     this.#fs = runtime.fsSync;
-    // spawn and execSync must be provided by the caller (bin or test); there
-    // is no runtime-level equivalent that covers detached stdio-redirect
-    // spawning. Fail fast with a clear message rather than a late TypeError
-    // when start()/status() first dereferences them.
+    // The caller (bin or test) must provide spawn and execSync. No
+    // runtime-level equivalent covers a detached spawn that redirects stdio.
+    // Fail fast with a clear message rather than a late TypeError when
+    // start()/status() first dereferences them.
     if (!deps.spawn || !deps.execSync) {
       throw new Error(
         "ServiceManager requires deps.spawn and deps.execSync (the bin injects them from node:child_process)",
@@ -114,19 +114,19 @@ export class ServiceManager {
     }
     this.#spawn = deps.spawn;
     this.#execSync = deps.execSync;
-    // proc supplies kill() (liveness probe) and env (child env) via the
-    // injected runtime — no ambient `process` fallback.
+    // proc supplies kill() (liveness probe) and env (child env) through the
+    // injected runtime. There is no ambient `process` fallback.
     this.#proc = runtime.proc;
     this.#sendCommand = deps.sendCommand;
     this.#waitForSocket = deps.waitForSocket;
-    // logs() pipes a read stream into this Writable; runtime.proc.stdout is now
-    // a pipeline-grade Writable, so the log stream routes through the injected
+    // logs() pipes a read stream into this Writable. runtime.proc.stdout is now
+    // a pipeline-grade Writable. So the log stream routes through the injected
     // process surface with no ambient global stream.
     this.#stdout = runtime.proc.stdout;
   }
 
   /**
-   * Gets runtime file paths for supervision daemon.
+   * Gets the runtime file paths for the supervision daemon.
    * @returns {RuntimePaths} Runtime paths
    */
   getRuntimePaths() {
@@ -138,7 +138,7 @@ export class ServiceManager {
   }
 
   /**
-   * Checks if svscan daemon is running.
+   * Checks if the svscan daemon is running.
    * @returns {boolean} True if svscan is running
    */
   isSvscanRunning() {
@@ -159,7 +159,7 @@ export class ServiceManager {
   }
 
   /**
-   * Spawns svscan daemon in background.
+   * Spawns the svscan daemon in the background.
    * @returns {Promise<void>}
    */
   async spawnSvscan() {
@@ -207,7 +207,7 @@ export class ServiceManager {
   }
 
   /**
-   * Executes a oneshot command for service lifecycle.
+   * Executes a oneshot command for the service lifecycle.
    * @param {string} name - Service name
    * @param {string} cmd - Command to execute
    * @param {"up"|"down"} direction - Lifecycle direction
@@ -241,7 +241,7 @@ export class ServiceManager {
   }
 
   /**
-   * Finds index of named service, throws if not found.
+   * Finds the index of the named service. Throws if the service is unknown.
    * @param {string} serviceName - Service name to find
    * @returns {number} Index in services array
    */
@@ -271,7 +271,7 @@ export class ServiceManager {
   /**
    * Stop scope: [target … last] in reverse declaration order.
    * Everything after the target depends on it and must come down first.
-   * Reversed so dependents stop before the thing they depend on.
+   * The reverse order stops each dependent before the thing it depends on.
    * @param {string} [serviceName] - Target service (all if omitted)
    * @returns {ServiceConfig[]}
    */
@@ -291,18 +291,18 @@ export class ServiceManager {
     try {
       await this.#sendCommand(socketPath, { command: "shutdown" });
     } catch {
-      // The daemon closes the socket as part of shutting down, so the
-      // send always fails with a connection-reset — that IS the success signal.
+      // The daemon closes the socket when it shuts down. So the send always
+      // fails with a connection-reset. That IS the success signal.
     }
     try {
       this.#fs.unlinkSync(socketPath);
     } catch {
-      // Socket file may already be gone if the daemon cleaned up first.
+      // The socket file may already be gone if the daemon cleaned up first.
     }
   }
 
   /**
-   * Starts a oneshot service. Returns true if the service was skipped
+   * Starts a oneshot service. Returns true if it skips the service
    * (optional and failed), false otherwise. Throws on non-optional failure.
    * @param {ServiceConfig} svc - Service configuration
    * @returns {Promise<boolean>} True if skipped
@@ -324,7 +324,7 @@ export class ServiceManager {
   }
 
   /**
-   * Starts a longrun service via the svscan daemon.
+   * Starts a longrun service through the svscan daemon.
    * @param {ServiceConfig} svc - Service configuration
    * @param {string} socketPath - Path to the svscan socket
    * @returns {Promise<void>}
@@ -337,7 +337,8 @@ export class ServiceManager {
       cmd: svc.command,
       cwd: this.#config.rootDir,
     });
-    // "already exists" means svscan is already supervising it — idempotent success.
+    // "already exists" means svscan already supervises it. That is an
+    // idempotent success.
     if (response.ok || response.error?.includes("already exists")) {
       this.#logger.info(svc.name, "Service started");
     } else if (svc.optional) {
@@ -350,8 +351,8 @@ export class ServiceManager {
   }
 
   /**
-   * Start services from first through target (bringing up dependencies).
-   * Idempotent for services already supervised by svscan.
+   * Start services from first through target. This brings up the dependencies.
+   * Idempotent for services that svscan already supervises.
    * @param {string} [serviceName] - Target service (starts first through target)
    * @returns {Promise<void>}
    */
@@ -365,9 +366,9 @@ export class ServiceManager {
     });
 
     if (this.isSvscanRunning()) {
-      // Bare `start` (no name) replaces the daemon so it picks up
-      // config changes; `start <name>` reuses the running daemon
-      // because we only need to add services, not reset the world.
+      // Bare `start` (no name) replaces the daemon so it picks up config
+      // changes. `start <name>` reuses the running daemon, because it only
+      // needs to add services. It does not reset the world.
       if (!serviceName) {
         this.#logger.debug("svscan", "Restarting daemon (fresh environment)");
         await this.#shutdownSvscan(paths.socketPath);
@@ -389,7 +390,7 @@ export class ServiceManager {
   }
 
   /**
-   * Stops a longrun service via the svscan daemon.
+   * Stops a longrun service through the svscan daemon.
    * @param {ServiceConfig} svc - Service configuration
    * @param {string} socketPath - Path to the svscan socket
    * @returns {Promise<void>}
@@ -406,7 +407,7 @@ export class ServiceManager {
         });
       }
     } catch {
-      // Throws when the service was never added to svscan — harmless
+      // Throws when the service was never added to svscan. This is harmless
       // during teardown of services that weren't running.
     }
   }
@@ -415,13 +416,14 @@ export class ServiceManager {
    * Restart scope: stop [name … last], then start [name … last].
    *
    * This deliberately does NOT delegate to `start(name)` for the
-   * start phase. `start(name)` brings up [first … name] (the
-   * dependency prefix), which would leave dependents — the services
-   * after the target that `stop` just tore down — dead. Instead we
-   * start the same [name … last] slice so every stopped service
-   * comes back.
+   * start phase. `start(name)` brings up [first … name], the
+   * dependency prefix. That scope would leave the dependents dead.
+   * The dependents are the services after the target that `stop`
+   * just tore down. Instead we start the same [name … last] slice
+   * so every stopped service comes back.
    *
-   * Dependencies before the target are left untouched throughout.
+   * This method leaves the dependencies before the target untouched
+   * throughout.
    *
    * @param {string} [serviceName] - Target service (all if omitted)
    * @returns {Promise<void>}
@@ -450,9 +452,9 @@ export class ServiceManager {
   }
 
   /**
-   * Stop services from target through last (tearing down dependents first).
-   * Bare `stop` (no name) also shuts down the svscan daemon itself;
-   * `stop <name>` leaves the daemon running so surviving services
+   * Stop services from target through last. This tears down the dependents
+   * first. Bare `stop` (no name) also shuts down the svscan daemon itself.
+   * `stop <name>` leaves the daemon running so the services that survive
    * keep their supervisor.
    * @param {string} [serviceName] - Target service (stops target through last)
    * @returns {Promise<void>}
@@ -489,7 +491,7 @@ export class ServiceManager {
   }
 
   /**
-   * Shows status of configured services.
+   * Shows the status of the configured services.
    * @param {string} [serviceName] - Target service (shows all if omitted)
    * @returns {Promise<void>}
    */

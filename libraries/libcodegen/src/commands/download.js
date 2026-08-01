@@ -4,10 +4,10 @@ import { createLogger } from "@forwardimpact/libtelemetry";
 import { createBundleDownloader } from "@forwardimpact/libutil";
 
 /**
- * Exec a trailing `-- <command>` after the download, forwarding stdio and
- * termination signals, then exit with the child's status. Returns without
- * spawning when no `-- <command>` follows. Reads the command line from
- * `runtime.proc.argv`, skipping the `download` subcommand token.
+ * Exec a trailing `-- <command>` after the download. Forward the stdio and
+ * the termination signals. Then exit with the child's status. Returns without
+ * a spawn when no `-- <command>` follows. Reads the command line from
+ * `runtime.proc.argv` and skips the `download` subcommand token.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<void>}
  */
@@ -32,9 +32,9 @@ async function execTrailingCommand(runtime) {
 
 /**
  * `fit-codegen download` — download the generated code bundle from remote
- * storage and unpack it, then optionally exec a trailing `-- <command>`.
- * Carries none of the generation toolchain, so a production image can fetch the
- * bundle without the proto compiler.
+ * storage and unpack it. Then optionally exec a trailing `-- <command>`.
+ * Carries none of the generation toolchain, so a production image can fetch
+ * the bundle without the proto compiler.
  * @param {object} ctx
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime
  * @returns {Promise<void>}

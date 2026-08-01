@@ -9,7 +9,7 @@ import {
 } from "../src/render/palette.js";
 
 describe("palette.colorForSource", () => {
-  test("is deterministic — same name always maps to the same color", () => {
+  test("is deterministic, so the same name always maps to the same color", () => {
     const first = colorForSource("staff-engineer");
     for (let i = 0; i < 100; i++) {
       assert.strictEqual(colorForSource("staff-engineer"), first);
@@ -68,7 +68,7 @@ describe("palette.colorForSource", () => {
   test("palette has at least 8 colors (≥ largest cast + headroom)", () => {
     assert.ok(
       paletteSize() >= 8,
-      `palette must cover ≥ 6 agents with headroom; got ${paletteSize()}`,
+      `palette must cover ≥ 6 agents with headroom, got ${paletteSize()}`,
     );
   });
 

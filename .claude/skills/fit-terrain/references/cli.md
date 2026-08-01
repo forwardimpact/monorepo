@@ -17,13 +17,13 @@ Run `npx fit-terrain <verb> --help` for verb-scoped options.
 
 ## Verbs
 
-| Verb       | Outcome                                         | Exit code     |
-| ---------- | ----------------------------------------------- | ------------- |
-| `check`    | Cache hit-rate report; fails on miss            | 0 hit, 1 miss |
-| `validate` | Entity + cross-content checks, no writes        | 0 / 1         |
-| `build`    | Render and write to `data/`                     | 0 / 1         |
-| `generate` | LLM prose generation, write cache, then `build` | 0 / 1         |
-| `inspect`  | Dump intermediate stage output (Phase D)        | 2 (deferred)  |
+| Verb       | Outcome                                               | Exit code     |
+| ---------- | ----------------------------------------------------- | ------------- |
+| `check`    | Cache hit-rate report. Fails on miss                  | 0 hit, 1 miss |
+| `validate` | Entity + cross-content checks, no writes              | 0 / 1         |
+| `build`    | Render and write to `data/`                           | 0 / 1         |
+| `generate` | Generate prose with an LLM, write cache, then `build` | 0 / 1         |
+| `inspect`  | Dump intermediate stage output (Phase D)              | 2 (deferred)  |
 
 ### Content Types
 
@@ -31,20 +31,20 @@ Run `npx fit-terrain <verb> --help` for verb-scoped options.
 
 | Type       | Output Directory | Contents                                                            |
 | ---------- | ---------------- | ------------------------------------------------------------------- |
-| `html`     | `data/knowledge` | Articles, guides, FAQs, courses; plus the seven clinical pages when the DSL declares a `clinical {}` block |
+| `html`     | `data/knowledge` | Articles, guides, FAQs, courses. Also the seven clinical pages when the DSL declares a `clinical {}` block |
 | `pathway`  | `data/pathway`   | YAML standard files                                                 |
 | `raw`      | `data/activity`  | Roster, GitHub events, evidence                                     |
 | `markdown` | `data/personal`  | Briefings, notes, KB content                                        |
 
-Dataset outputs (declared via `output` blocks in the DSL) are written
-regardless of `--only` to the paths each `output` block names.
+The DSL declares dataset outputs in `output` blocks. `fit-terrain` writes them
+regardless of `--only`, to the paths each `output` block names.
 
 ## Substrate Verbs
 
-Identity capability against the
+These verbs run the identity capability against the
 [Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md).
-Stack-facing verbs need `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`;
-`issue` also needs `JWT_SECRET`; `init` is offline.
+Stack-facing verbs need `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. The
+`issue` verb also needs `JWT_SECRET`. The `init` verb runs offline.
 
 ```sh
 npx fit-terrain substrate up --cwd . --emit-env "$GITHUB_ENV"  # Start stack, emit URL/anon key
@@ -58,7 +58,7 @@ npx fit-terrain substrate issue --email <e> --cwd <dir> --token-env <NAME> [--tt
 
 | Verb        | Outcome                                                         | Exit code |
 | ----------- | --------------------------------------------------------------- | --------- |
-| `up`        | Local Supabase started; URL/anon key emitted                    | 0 / 1     |
+| `up`        | Local Supabase started. URL and anon key emitted                | 0 / 1     |
 | `init`      | Timestamped starter migration under `<cwd>/supabase/migrations` | 0 / 1     |
 | `check`     | One diagnostic per missing/malformed relation                   | 1 only when a required relation fails |
 | `provision` | auth.users created/restored/decommissioned from the roster      | 0 / 1     |

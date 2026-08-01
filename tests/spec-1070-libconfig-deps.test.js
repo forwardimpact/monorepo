@@ -1,8 +1,8 @@
 /**
  * Manifest assertion: each of the four products (map, landmark, summit, guide)
  * declares `@forwardimpact/libconfig` in `dependencies` at a range whose
- * `semver.minVersion` is exactly `0.1.79` — the first published version
- * that ships `bootstrapProject`.
+ * `semver.minVersion` is exactly `0.1.79`. That version is the first published
+ * version that ships `bootstrapProject`.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -15,7 +15,7 @@ const PRODUCTS = ["map", "landmark", "summit", "guide"];
 const FLOOR = "0.1.79";
 const PACKAGE = "@forwardimpact/libconfig";
 
-describe("libconfig declared at floor 0.1.79", () => {
+describe("products declare libconfig at floor 0.1.79", () => {
   for (const product of PRODUCTS) {
     test(`products/${product}/package.json declares ${PACKAGE} at >= ${FLOOR}`, () => {
       const manifest = JSON.parse(
@@ -37,7 +37,7 @@ describe("libconfig declared at floor 0.1.79", () => {
       assert.strictEqual(
         min.version,
         FLOOR,
-        `products/${product}/package.json declares ${PACKAGE} at ${range} (minVersion ${min.version}); libconfig dependency must meet minVersion ${FLOOR}`,
+        `products/${product}/package.json declares ${PACKAGE} at ${range} (minVersion ${min.version}). The libconfig dependency must meet minVersion ${FLOOR}`,
       );
     });
   }

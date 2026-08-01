@@ -11,11 +11,12 @@ function asyncIterableOf(str) {
 }
 
 /**
- * A captured-chunks sink for a spawned child's writable stdin. A real
- * `node:stream` Writable (so it is a valid `pipe()` destination, the way a
- * supervisor pipes a service's output into its logger) that records every
- * written chunk on `chunks` instead of forwarding it anywhere. Mirrors the
- * `stdin` the production `createDefaultSubprocess().spawn` exposes.
+ * A captured-chunks sink for a spawned child's writable stdin. The sink is a
+ * real `node:stream` Writable, so it is a valid `pipe()` destination. A
+ * supervisor pipes a service's output into its logger in the same way. The
+ * sink records every written chunk on `chunks`. It does not forward the chunk
+ * anywhere. It mirrors the `stdin` that the production
+ * `createDefaultSubprocess().spawn` exposes.
  */
 function createMockStdinSink() {
   const chunks = [];
@@ -30,14 +31,14 @@ function createMockStdinSink() {
 }
 
 /**
- * Creates a mock subprocess collaborator matching the `Runtime.subprocess`
- * surface. `run(cmd, args, opts)` resolves to `{ stdout, stderr, exitCode }`
- * consulting `responses[cmd]` (default: empty success); `runSync` is its
- * synchronous sibling returning the same shape. `spawn` returns a streaming
- * quad backed by the same responses (its result carries `stdout`/`stderr`
+ * Creates a mock subprocess collaborator that matches the `Runtime.subprocess`
+ * surface. `run(cmd, args, opts)` consults `responses[cmd]` (default: empty
+ * success) and resolves to `{ stdout, stderr, exitCode }`. `runSync` is its
+ * synchronous sibling and returns the same shape. `spawn` returns a streaming
+ * quad backed by the same responses. Its result carries `stdout`/`stderr`
  * AsyncIterables, a captured-chunks `stdin` sink, `exitCode`/`signal` Promises,
- * a `kill(signal)` spy recording on `kills`, and `pid`). All invocations are
- * recorded on `calls`.
+ * a `kill(signal)` spy that records on `kills`, and `pid`. The mock records
+ * every invocation on `calls`.
  *
  * @param {object} [options]
  * @param {Record<string, {stdout?: string, stderr?: string, exitCode?: number}>} [options.responses]
@@ -70,11 +71,13 @@ export function createMockSubprocess({ responses = {} } = {}) {
     return {
       stdout: asyncIterableOf(r.stdout),
       stderr: asyncIterableOf(r.stderr),
-      // A captured-chunks writable; `null` only when a response explicitly
-      // sets `stdin: null` (matching a child spawned without a stdin pipe).
+      // A captured-chunks writable. It is `null` only when a response
+      // explicitly sets `stdin: null`. That matches a child spawned without a
+      // stdin pipe.
       stdin: r.stdin === null ? null : createMockStdinSink(),
       exitCode: Promise.resolve(r.exitCode),
-      // Terminating signal: `null` (clean exit) unless a response overrides it.
+      // The signal that stopped the child is `null` (clean exit) unless a
+      // response overrides it.
       signal: Promise.resolve(r.signal ?? null),
       kills,
       kill: spy((signal) => {

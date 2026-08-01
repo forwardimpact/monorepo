@@ -2,7 +2,7 @@
   "name": "todo-fixture",
   "version": "0.0.0",
   "private": true,
-  "description": "Zero-dependency mock todo CLI used as the shared kata-skills benchmark fixture.",
+  "description": "Zero-dependency mock todo CLI. It is the shared fixture for the kata-skills benchmark.",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",

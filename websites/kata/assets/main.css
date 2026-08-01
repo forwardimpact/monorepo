@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════
    Kata — Brand Layer
    Tokens, fonts, brand-specific surfaces, and scroll-section styles.
-   Loaded after the shared base/layout/components stylesheets.
+   The page loads this file after the shared base, layout, and
+   components stylesheets.
    ══════════════════════════════════════════════════════════════════ */
 
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap");

@@ -8,21 +8,21 @@ describe("ShaclSerializer - basics", () => {
   let serializer;
 
   describe("constructor", () => {
-    test("creates ShaclSerializer instance", () => {
+    test("creates a ShaclSerializer instance", () => {
       serializer = new ShaclSerializer();
       assert.ok(serializer instanceof ShaclSerializer);
     });
   });
 
   describe("serialize - validation and empty data", () => {
-    test("throws error for null ontologyData", () => {
+    test("throws an error for null ontologyData", () => {
       serializer = new ShaclSerializer();
       assertThrowsMessage(() => {
         serializer.serialize(null);
       }, /ontologyData is required/);
     });
 
-    test("throws error for undefined ontologyData", () => {
+    test("throws an error for undefined ontologyData", () => {
       serializer = new ShaclSerializer();
       assertThrowsMessage(() => {
         serializer.serialize(undefined);
@@ -45,7 +45,7 @@ describe("ShaclSerializer - basics", () => {
       assert.ok(output.includes("@prefix"));
     });
 
-    test("produces valid SHACL Turtle with single class", () => {
+    test("produces valid SHACL Turtle with a single class", () => {
       serializer = new ShaclSerializer();
       const data = {
         classSubjects: new Map([
@@ -123,7 +123,7 @@ describe("ShaclSerializer - basics", () => {
       );
     });
 
-    test("handles missing predicate map gracefully", () => {
+    test("handles an absent predicate map gracefully", () => {
       serializer = new ShaclSerializer();
       const data = {
         classSubjects: new Map([

@@ -42,7 +42,7 @@ const definition = {
       title: "Start, Stop, or Check a Service",
       url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md",
       description:
-        "Manage services through one interface, including tuning log rotation with fit-logger.",
+        "Manage services through one interface. This includes how to tune log rotation with fit-logger.",
     },
     {
       title: "Manage Service Lifecycle from One Interface",

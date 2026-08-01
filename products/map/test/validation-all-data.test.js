@@ -62,7 +62,7 @@ describe("validateAllData K3/K5", () => {
     assert.ok(matches[0].message.includes(CONTRACT_URL));
   });
 
-  test("shape-violating professionalTitle is rejected", () => {
+  test("validateAllData rejects a professionalTitle with the wrong shape", () => {
     const result = validateAllData(
       makeData({ level: { professionalTitle: "Senior Manager" } }),
     );
@@ -85,7 +85,7 @@ describe("validateAllData K3/K5", () => {
     assert.equal(matches.length, 2);
   });
 
-  test("third-person autonomyExpectation is rejected", () => {
+  test("validateAllData rejects a third-person autonomyExpectation", () => {
     const result = validateAllData(
       makeData({
         level: { expectations: { autonomyExpectation: "Works independently" } },

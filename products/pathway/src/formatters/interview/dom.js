@@ -1,5 +1,5 @@
 /**
- * Interview formatting for DOM output
+ * Interview formatter for DOM output
  */
 
 import { div, heading1, heading2, p, span } from "../../lib/render.js";

@@ -13,7 +13,7 @@ const mockLogger = createSilentLogger();
 
 describe("libutil", () => {
   describe("createBundleDownloader", () => {
-    test("creates BundleDownloader instance with correct dependencies", () => {
+    test("creates a BundleDownloader instance with the correct dependencies", () => {
       const mockStorageFactory = spy();
 
       const downloader = createBundleDownloader(
@@ -27,7 +27,7 @@ describe("libutil", () => {
       assert.ok(typeof downloader.download === "function");
     });
 
-    test("validates storageFactory parameter", () => {
+    test("validates the storageFactory parameter", () => {
       assert.throws(
         () => createBundleDownloader(null, mockLogger, createTestRuntime()),
         {
@@ -36,7 +36,7 @@ describe("libutil", () => {
       );
     });
 
-    test("validates logger parameter", () => {
+    test("validates the logger parameter", () => {
       const mockStorageFactory = spy();
       assert.throws(
         () =>
@@ -47,7 +47,7 @@ describe("libutil", () => {
       );
     });
 
-    test("validates runtime parameter", () => {
+    test("validates the runtime parameter", () => {
       const mockStorageFactory = spy();
       assert.throws(
         () => createBundleDownloader(mockStorageFactory, mockLogger),

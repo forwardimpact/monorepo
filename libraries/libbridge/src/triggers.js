@@ -6,8 +6,8 @@
  * @property {string} [elapsed] - Required for `kind: "elapsed"`.
  *   ISO-8601 duration, e.g. `"P14D"`, `"PT12H"`, `"P1DT6H"`.
  * @property {string} [signal] - Required for `kind: "escalation_needed"`.
- *   Reserved for future use. The bridge throws when evaluating this kind
- *   until signal-based resume support lands.
+ *   Reserved for future use. Until signal-based resume support lands, the
+ *   bridge throws when it evaluates this kind.
  */
 
 const ISO_8601_DURATION =
@@ -18,8 +18,8 @@ const MS_IN_HOUR = 60 * MS_IN_MINUTE;
 const MS_IN_DAY = 24 * MS_IN_HOUR;
 
 /**
- * Parse an ISO-8601 duration into milliseconds. Supports the day/hour/
- * minute/second subset used by the resume-trigger contract.
+ * Parse an ISO-8601 duration into milliseconds. It supports the
+ * day/hour/minute/second subset that the resume-trigger contract uses.
  *
  * @param {string} duration - e.g. `"P14D"`, `"PT12H"`, `"P1DT6H"`, `"PT30M"`
  * @returns {number} Duration in milliseconds
@@ -42,7 +42,7 @@ export function parseIsoDuration(duration) {
 }
 
 /**
- * Evaluate whether a resume trigger has fired.
+ * Evaluate whether a resume trigger fired.
  *
  * @param {ResumeTrigger} trigger
  * @param {{replies?: number, opened_at?: number}} observed

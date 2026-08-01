@@ -1,10 +1,10 @@
 /**
  * Coverage for the synthetic DSL's `director` sub-block under a `department`.
- * Asserts both the parser shape and the entity-generation pipeline: a director
- * is a real organization_people row (is_manager, no team, no manager_email)
- * and the department's team managers are re-pointed to report to it, so a
- * single recursive get_team from the director's email resolves the whole
- * department.
+ * The tests assert the parser shape and the entity-generation pipeline. A
+ * director is a real organization_people row (is_manager, no team, no
+ * manager_email). The generator re-points the department's team managers to
+ * report to the director. One recursive get_team from the director's email
+ * then resolves the whole department.
  */
 
 import { describe, test } from "node:test";
@@ -19,8 +19,9 @@ function parseDsl(source) {
   return parse(tokenize(source));
 }
 
-// Two departments — one with a director, one without — so the test can assert
-// that re-pointing is scoped to the director's own department.
+// The DSL declares two departments. One has a director. One does not. The
+// test can then assert that the generator re-points only the director's own
+// department.
 const DSL = (directorBlock) => `terrain test {
   domain "example.test"
   seed 1
@@ -102,7 +103,7 @@ describe("DSL director block", () => {
     assert.equal(thoth.manager_email, null);
   });
 
-  test("no director, no re-pointing and no extra row", () => {
+  test("without a director the generator re-points nothing and adds no extra row", () => {
     const { people } = build(DSL(""));
     assert.equal(
       people.filter((p) => p.is_manager && p.team_id === null).length,
@@ -116,7 +117,7 @@ describe("DSL director block", () => {
     assert.equal(athena.manager_email, null);
   });
 
-  test("a director email collision yields no duplicate, exactly one director", () => {
+  test("a director email collision yields no duplicate and exactly one director", () => {
     const { people } = build(DSL(DIRECTOR_BLOCK));
     const emails = people.map((p) => p.email);
     assert.equal(emails.length, new Set(emails).size);
@@ -126,12 +127,13 @@ describe("DSL director block", () => {
     );
   });
 
-  // The director must be purely additive: declaring one does not perturb the
-  // RNG-driven fill pass, so every non-director, non-renamed person is
-  // byte-identical to a run with no director. This is the property that keeps
-  // the committed prose cache valid — a perturbed fill pass shifts the prompt
-  // hashes of unrelated PR/review/comment prose and forces a full regenerate.
-  test("declaring a director leaves the fill pass byte-identical", () => {
+  // The director must be purely additive. A declared director does not
+  // perturb the RNG-driven fill pass. Every non-director, non-renamed person
+  // stays byte-identical to a run with no director. This property keeps the
+  // committed prose cache valid. A perturbed fill pass shifts the prompt
+  // hashes of unrelated PR/review/comment prose. It then forces a full
+  // regenerate.
+  test("a declared director leaves the fill pass byte-identical", () => {
     const withDirector = build(DSL(DIRECTOR_BLOCK)).people;
     const withoutDirector = build(DSL("")).people;
 

@@ -1,13 +1,13 @@
 /**
- * Toolkit formatting for markdown/CLI output
+ * Toolkit formatter for markdown/CLI output
  *
- * Displays toolkit as a markdown table with tools, icons, and descriptions.
+ * Display the toolkit as a markdown table with tools, icons, and descriptions.
  */
 
 import { tableToMarkdown } from "../shared.js";
 
 /**
- * Format toolkit as markdown table
+ * Format the toolkit as a markdown table
  * @param {Array<{name: string, description: string, url?: string, simpleIcon?: string, skillIds: string[]}>} toolkit - Derived toolkit entries
  * @returns {string}
  */
@@ -25,7 +25,7 @@ export function toolkitToMarkdown(toolkit) {
 }
 
 /**
- * Format toolkit as a plain list of tool names (for --tools flag)
+ * Format the toolkit as a plain list of tool names (for the --tools flag)
  * @param {Array<{name: string}>} toolkit - Derived toolkit entries
  * @returns {string}
  */

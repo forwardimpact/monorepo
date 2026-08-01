@@ -1,7 +1,7 @@
 /**
  * Policy Thresholds, Scores, and Weights
  *
- * Named constants for filter thresholds, scoring, and priority weights.
+ * Named constants for filter thresholds, scores, and priority weights.
  * Grep for THRESHOLD_, SCORE_, WEIGHT_ to find all policy values.
  */
 
@@ -12,8 +12,8 @@
 /**
  * Match tier score thresholds
  *
- * These thresholds determine how candidate match scores are classified.
- * Adjust these to change how lenient/strict match tiers are.
+ * These thresholds classify the candidate match scores.
+ * Adjust them to make the match tiers more lenient or more strict.
  *
  * @see matching.js:classifyMatch
  */
@@ -56,8 +56,8 @@ export const SCORE_GAP = {
 /**
  * Skill priority weights by tier
  *
- * Core skills are deep competencies and get highest priority.
- * Used for interview question selection and development prioritization.
+ * Core skills are deep competencies. They get the highest priority.
+ * Use these weights to select interview questions and prioritize development.
  *
  * @see interview.js:calculateSkillPriority
  */
@@ -166,9 +166,9 @@ export const WEIGHT_DEV_AI_BOOST = 1.5;
 /**
  * Maximum number of skills shown in agent profile body
  *
- * Limits the skill index table and before-handoff checklist to keep
- * agent context focused. All skills are still exported as SKILL.md files
- * and listed via --skills.
+ * The limit applies to the skill index table and the before-handoff
+ * checklist. It keeps the agent context focused. All skills are still
+ * exported as SKILL.md files. The --skills flag still lists them all.
  *
  * @see agent.js:buildStageProfileBodyData
  */
@@ -202,10 +202,10 @@ export const DEFAULT_DECOMPOSITION_QUESTION_MINUTES = 15;
 export const DEFAULT_SIMULATION_QUESTION_MINUTES = 20;
 
 /**
- * Tolerance above target interview budget before stopping selection (minutes)
+ * Tolerance above the target interview budget before selection stops (minutes)
  *
- * Interview question selection allows exceeding the time budget by this amount
- * to avoid under-filling interviews.
+ * Question selection can go over the time budget by this amount. This
+ * keeps interviews from having too few questions.
  */
 export const TOLERANCE_INTERVIEW_BUDGET_MINUTES = 5;
 
@@ -226,7 +226,7 @@ export const WEIGHT_CAPABILITY_DECOMP_SCALE = 8;
 export const WEIGHT_CAPABILITY_DECOMP_RELIABILITY = 6;
 
 /**
- * Priority boost applied to focus-area questions in focused interviews
+ * Priority boost for focus-area questions in focused interviews
  *
  * @see interview.js:deriveFocusedInterview
  */
@@ -237,10 +237,10 @@ export const WEIGHT_FOCUS_BOOST = 10;
 // =============================================================================
 
 /**
- * Minimum ordinalRank for a level to be considered "senior" (Staff+)
+ * Minimum ordinalRank that makes a level "senior" (Staff+)
  *
- * Used to determine when additional expectations scoring applies
- * in job matching.
+ * Job matching uses this threshold to decide when the additional
+ * expectations score applies.
  *
  * @see derivation.js:isSeniorLevel
  */
@@ -251,17 +251,18 @@ export const THRESHOLD_SENIOR_LEVEL = 5;
 // =============================================================================
 
 /**
- * Default skill weight when track does not specify assessment weights
+ * Default skill weight when the track does not specify assessment weights
  */
 export const WEIGHT_ASSESSMENT_SKILL_DEFAULT = 0.5;
 
 /**
- * Default behaviour weight when track does not specify assessment weights
+ * Default behaviour weight when the track does not specify assessment weights
  */
 export const WEIGHT_ASSESSMENT_BEHAVIOUR_DEFAULT = 0.5;
 
 /**
- * Base weight for overall score in senior role matching (non-expectations portion)
+ * Base weight for the overall score in senior role matching
+ * (non-expectations portion)
  */
 export const WEIGHT_SENIOR_BASE = 0.9;
 
@@ -296,9 +297,9 @@ export const RANGE_LEVEL_OFFSET = 1;
 /**
  * Level offset below highest strong/good match for ready-tier filtering
  *
- * Strong and Good matches are shown up to this many levels below the
- * highest matched level. Stretch and Aspirational matches are only shown
- * at or above the highest matched level.
+ * The output shows Strong and Good matches up to this many levels below
+ * the highest matched level. It shows Stretch and Aspirational matches
+ * only at or above the highest matched level.
  */
 export const RANGE_READY_LEVEL_OFFSET = 2;
 
@@ -307,11 +308,13 @@ export const RANGE_READY_LEVEL_OFFSET = 2;
 // =============================================================================
 
 /**
- * Minimum skill proficiency for a skill to count as "covered" in driver analysis
+ * Minimum skill proficiency for a skill to count as "covered" in driver
+ * analysis
  */
 export const THRESHOLD_DRIVER_SKILL_PROFICIENCY = "working";
 
 /**
- * Minimum behaviour maturity for a behaviour to count as "covered" in driver analysis
+ * Minimum behaviour maturity for a behaviour to count as "covered" in
+ * driver analysis
  */
 export const THRESHOLD_DRIVER_BEHAVIOUR_MATURITY = "practicing";

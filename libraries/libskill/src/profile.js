@@ -1,13 +1,14 @@
 /**
  * Unified Profile Derivation
  *
- * Shared functions for deriving skill and behaviour profiles for both
+ * Shared functions that derive skill and behaviour profiles for both
  * human jobs and AI agents.
  *
- * - prepareBaseProfile() - core derivation (skills, behaviours, responsibilities)
- * - prepareAgentProfile() - agent-specific derivation using composed policies
+ * - prepareBaseProfile() - core derivation (skills, behaviours,
+ *   responsibilities)
+ * - prepareAgentProfile() - agent-specific derivation with composed policies
  *
- * @see policies/composed.js - Agent filtering and sorting policies
+ * @see policies/composed.js - Policies that filter and sort skills for agents
  */
 
 import {
@@ -26,7 +27,7 @@ import {
 // =============================================================================
 
 /**
- * Build set of capabilities with positive track modifiers
+ * Build a set of capabilities with positive track modifiers
  * @param {Object} track - Track definition
  * @returns {Set<string>} Set of capability IDs with positive modifiers
  */
@@ -46,7 +47,8 @@ export function getPositiveTrackCapabilities(track) {
  * @typedef {Object} BaseProfile
  * @property {Array} skillMatrix - Derived skill matrix
  * @property {Array} behaviourProfile - Derived behaviour profile
- * @property {Array} derivedResponsibilities - Derived responsibilities (if capabilities provided)
+ * @property {Array} derivedResponsibilities - Derived responsibilities
+ *   (if you pass capabilities)
  * @property {Object} discipline - The discipline
  * @property {Object} track - The track
  * @property {Object} level - The level
@@ -55,11 +57,11 @@ export function getPositiveTrackCapabilities(track) {
 /**
  * Prepare a base profile with raw derivation
  *
- * Core derivation entry point shared by jobs and agents. Produces the
- * raw skill matrix, behaviour profile, and responsibilities without
- * any filtering or sorting. Consumers apply policies as needed:
+ * Jobs and agents share this entry point for core derivation. It
+ * produces the raw skill matrix, behaviour profile, and responsibilities.
+ * It does not filter or sort them. Consumers apply policies as needed:
  *
- * - Human jobs: use raw output directly (sorted by type in derivation)
+ * - Human jobs: use the raw output directly (derivation sorts it by type)
  * - AI agents: use prepareAgentProfile() which applies composed policies
  *
  * @param {Object} params
@@ -68,7 +70,8 @@ export function getPositiveTrackCapabilities(track) {
  * @param {Object} params.level - The level
  * @param {Array} params.skills - All available skills
  * @param {Array} params.behaviours - All available behaviours
- * @param {Array} [params.capabilities] - Optional capabilities for responsibility derivation
+ * @param {Array} [params.capabilities] - Optional capabilities to derive
+ *   responsibilities from
  * @returns {BaseProfile} The prepared profile
  */
 export function prepareBaseProfile({
@@ -94,7 +97,7 @@ export function prepareBaseProfile({
     behaviours,
   });
 
-  // Derive responsibilities if capabilities provided
+  // Derive responsibilities if the caller passes capabilities
   let derivedResponsibilities = [];
   if (capabilities && capabilities.length > 0) {
     derivedResponsibilities = deriveResponsibilities({
@@ -117,7 +120,7 @@ export function prepareBaseProfile({
 /**
  * Prepare a profile optimized for agent generation
  *
- * Applies agent-specific policies from composed.js:
+ * It applies agent-specific policies from composed.js:
  * - Excludes human-only skills
  * - Keeps only skills at the highest derived level
  * - Sorts skills by level descending

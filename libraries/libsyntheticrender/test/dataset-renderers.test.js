@@ -5,7 +5,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 const _rt = createDefaultRuntime();
 import { assertRejectsMessage } from "@forwardimpact/libmock";
 
-// apache-arrow and parquet-wasm are optional peer dependencies — the parquet
+// apache-arrow and parquet-wasm are optional peer dependencies. The parquet
 // renderer degrades gracefully when they are absent. Detect availability once
 // so the parquet test self-skips on installs that opted out of the ~31 MB pair.
 const PARQUET_AVAILABLE = await (async () => {
@@ -133,7 +133,8 @@ describe("dataset renderers", () => {
       };
       const result = await renderDataset(ds, "csv", { path: "n.csv" }, _rt);
       const content = result.get("n.csv");
-      // Nested object is serialized as JSON, then CSV-escaped (quotes doubled)
+      // The renderer serializes the nested object as JSON, then CSV-escapes it
+      // (quotes doubled)
       assert.ok(content.includes('{""key"":""val""}'));
     });
   });
@@ -258,8 +259,9 @@ describe("dataset renderers", () => {
   });
 
   describe("Parquet", () => {
-    // Conditional registration (not `{ skip }`, which bun's node:test ignores):
-    // when the optional deps are not installed, the parquet test is omitted.
+    // Register conditionally. `{ skip }` does not work here, because bun's
+    // node:test ignores it. When the optional deps are not installed, this
+    // block omits the parquet test.
     if (!PARQUET_AVAILABLE) return;
     test("renders parquet buffer", async () => {
       const simpleDs = {

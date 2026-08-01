@@ -16,13 +16,13 @@ describe("ghbridge tenant extractor", () => {
     ).toEqual({ owner: "acme", name: "api" });
   });
 
-  test("extractRepo returns null when no repository is named", () => {
+  test("extractRepo returns null when the payload names no repository", () => {
     expect(extractRepo({})).toBeNull();
   });
 
   test("single installation, many repos: each delivery resolves its own repo", async () => {
     // One installation (id 99) covers both acme/web and acme/api. The
-    // resolver disambiguates by repo — each delivery names exactly one.
+    // resolver disambiguates by repo. Each delivery names exactly one.
     const rows = {
       "acme/web": { tenant_id: "t-web", state: "active" },
       "acme/api": { tenant_id: "t-api", state: "active" },

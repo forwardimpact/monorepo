@@ -64,7 +64,7 @@ describe("scanMarkers", () => {
     assert.equal(pairs.length, 0);
   });
 
-  test("malformed close marker is not recognized", () => {
+  test("does not recognize a malformed close marker", () => {
     const text = [
       "<!-- xmr:metric:path.csv -->",
       "content",
@@ -92,7 +92,7 @@ describe("scanMarkers", () => {
     assert.equal(pairs[0].closeLine, 4);
   });
 
-  test("close without open is ignored", () => {
+  test("ignores a close without an open", () => {
     const text = ["<!-- /xmr -->", "stray close"].join("\n");
 
     const pairs = scanMarkers(text);

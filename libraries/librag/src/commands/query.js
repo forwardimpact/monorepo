@@ -1,8 +1,8 @@
 import { createGraphIndex, parseGraphQuery } from "@forwardimpact/libgraph";
 
 /**
- * Format one `fit-rag query` result line — the bare identifier, byte-identical
- * to the old `fit-rag query` output.
+ * Format one `fit-rag query` result line as the bare identifier. The result is
+ * byte-identical to the old `fit-rag query` output.
  * @param {unknown} identifier
  * @returns {string}
  */
@@ -12,7 +12,7 @@ export function formatQueryLine(identifier) {
 
 /**
  * `fit-rag query` — query the graph index with a triple pattern. Ports
- * `fit-rag query`; prints one bare identifier per line.
+ * `fit-rag query`. Prints one bare identifier per line.
  * @param {object} ctx
  * @param {string[]} ctx.positionals - Subcommand arguments: `<subject> <predicate> <object>`
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime

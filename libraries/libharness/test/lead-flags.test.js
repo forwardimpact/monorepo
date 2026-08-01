@@ -8,9 +8,9 @@ import { parseFacilitateOptions } from "../src/commands/facilitate.js";
 import { parseDiscussOptions } from "../src/commands/discuss.js";
 import { AGENT_MODEL, LEAD_MODEL } from "@forwardimpact/libutil/models";
 
-// All cases below use --task-text, so the runtime's fs is never read (the
-// only fs path is supervise's temp-dir fallback for --task-file). An in-memory
-// fs therefore suffices. The env map is isolated so discuss's
+// All cases below use --task-text, so nothing reads the runtime's fs. The
+// only fs path is supervise's temp-dir fallback for --task-file. An
+// in-memory fs is enough. The env map stays isolated so discuss's
 // CALLBACK_URL/INBOX_URL reads stay deterministic.
 function makeRuntime(env = {}) {
   return { fs: createMockFs(), proc: { env: { ...env } } };
@@ -24,7 +24,7 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
         "agent-cwd": ".",
         "lead-profile": "judge",
         "lead-model": "claude-fable-5[1m]",
-        // legacy keys: must be ignored — no soft fallback
+        // legacy keys: the parser must ignore these, with no soft fallback
         "supervisor-profile": "old-judge",
         "supervisor-model": "claude-sonnet-4-6",
       },
@@ -129,8 +129,8 @@ describe("--lead-profile / --lead-model consolidation across modes", () => {
 });
 
 describe("--advisor-model / --advisor-max-uses across lead modes", () => {
-  // run's parser is covered in run-advisor.test.js.
-  test("supervise surfaces the advisor options with max-uses defaulting to 3", async () => {
+  // run-advisor.test.js covers run's parser.
+  test("supervise surfaces the advisor options with max-uses that defaults to 3", async () => {
     const defaults = await parseSuperviseOptions(
       { "task-text": "x", "agent-cwd": "." },
       makeRuntime(),
@@ -159,7 +159,7 @@ describe("--advisor-model / --advisor-max-uses across lead modes", () => {
     );
   });
 
-  test("facilitate surfaces the advisor options with max-uses defaulting to 3", () => {
+  test("facilitate surfaces the advisor options with max-uses that defaults to 3", () => {
     const base = { "task-text": "x", "agent-profiles": "alpha" };
     const defaults = parseFacilitateOptions(base, makeRuntime());
     assert.strictEqual(defaults.advisorModel, undefined);
@@ -182,7 +182,7 @@ describe("--advisor-model / --advisor-max-uses across lead modes", () => {
     );
   });
 
-  test("discuss surfaces the advisor options with max-uses defaulting to 3", () => {
+  test("discuss surfaces the advisor options with max-uses that defaults to 3", () => {
     const defaults = parseDiscussOptions({ "task-text": "x" }, makeRuntime());
     assert.strictEqual(defaults.advisorModel, undefined);
     assert.strictEqual(defaults.advisorMaxUses, 3);

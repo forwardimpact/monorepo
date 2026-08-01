@@ -2,7 +2,8 @@ import grpc from "@grpc/grpc-js";
 
 /**
  * gRPC interceptor for HMAC-based service authentication
- * Handles automatic token attachment for outgoing requests and validation for incoming requests
+ * Adds a token to each outgoing request automatically and validates each
+ * incoming request
  */
 export class Interceptor {
   #authenticator;
@@ -82,14 +83,14 @@ export class Interceptor {
         };
       }
 
-      // Add service ID to call context for potential use by handlers
+      // Add the service ID to the call context so handlers can use it
       call.serviceId = verification.serviceId;
     };
   }
 
   /**
    * Validates an incoming gRPC call's authentication
-   * This is a helper method for manual authentication validation
+   * This helper method validates the authentication manually
    * @param {object} call - gRPC call object
    * @returns {object} Verification result with isValid, serviceId, and error properties
    */

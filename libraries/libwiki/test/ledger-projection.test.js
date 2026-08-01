@@ -24,7 +24,7 @@ describe("ledger projection", () => {
     assert.equal(conflicts.length, 0);
   });
 
-  test("a double-allocation resolves first-published-wins and is reported", () => {
+  test("a double-allocation resolves first-published-wins and the fold reports it", () => {
     const { assignments, conflicts } = foldAnchors([
       rec(100, "occ", ["#97"], "first"),
       rec(150, "occ", ["#97"], "second"),
@@ -54,7 +54,7 @@ describe("ledger projection", () => {
     assert.equal(a.missingProse.length, 0);
   });
 
-  test("anchor-cited prose with a missing anchor is reported, not dropped", () => {
+  test("renderLedgerPage reports anchor-cited prose with a missing anchor and does not drop it", () => {
     const fold = foldAnchors([rec(100, "meta", ["M47"], "aaa")]);
     const { body, missingProse } = renderLedgerPage(fold, [
       { anchorId: 100, text: "M47 renumber map: resolve by event SHA." },
@@ -85,12 +85,12 @@ describe("ledger projection", () => {
     assert.deepEqual(recovered, [
       { anchorId: 100, text: "M47 renumber map: resolve by event SHA." },
     ]);
-    // Re-rendering with the recovered prose is stable (rebuild preserves it).
+    // A re-render with the recovered prose is stable (rebuild preserves it).
     const second = renderLedgerPage(fold, recovered);
     assert.equal(first.body, second.body);
   });
 
-  test("MEMORY row reports next-free indices per kind, no page edit needed", () => {
+  test("MEMORY row reports next-free indices per kind and needs no page edit", () => {
     const fold = foldAnchors([
       rec(100, "occ", ["#96", "#97"], "aaa"),
       rec(110, "nm", ["NM37"], "bbb"),
@@ -103,7 +103,7 @@ describe("ledger projection", () => {
     assert.match(row, /4 ids assigned/);
   });
 
-  test("writeMemoryRowRegion appends a region when absent, preserving narrative", () => {
+  test("writeMemoryRowRegion appends a region when absent and keeps the narrative", () => {
     const fold = foldAnchors([rec(100, "occ", ["#96"], "aaa")]);
     const narrative =
       "# Memory Index\n\n| Parallel-collision authored narrative |\n";
@@ -129,7 +129,7 @@ describe("ledger projection", () => {
     assert.match(after, /next free #98/);
   });
 
-  test("readMemoryRowRegion round-trips the written row, null when absent", () => {
+  test("readMemoryRowRegion round-trips the written row and returns null when absent", () => {
     assert.equal(readMemoryRowRegion("no region here\n"), null);
     const fold = foldAnchors([rec(100, "nm", ["NM37"], "bbb")]);
     const body = writeMemoryRowRegion("x\n", fold);

@@ -13,7 +13,7 @@ import { SupervisionTree } from "./tree.js";
  * @param {string} logDir - Base directory for process logs
  * @param {object} options - Factory options
  * @param {import("@forwardimpact/libutil/runtime").Runtime} options.runtime
- *   Injected runtime bag (the bin is the sole construction site).
+ *   Injected runtime bag. The bin is the sole construction site.
  * @param {number} [options.shutdownTimeout] - Timeout for graceful shutdown in ms
  * @returns {SupervisionTree}
  */

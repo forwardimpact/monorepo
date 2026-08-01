@@ -4,7 +4,7 @@ Reference for `extract-entities` Step 10 and Step 7c (Priorities).
 
 ## Bidirectional link rules
 
-After writing, verify each link goes both ways.
+After you write, verify each link goes both ways.
 
 | If you add...          | Then also add...                             |
 | ---------------------- | -------------------------------------------- |
@@ -24,10 +24,10 @@ Use absolute paths everywhere: `[[People/Sarah Chen]]`,
 Match source themes against priority names and descriptions.
 
 - Add `[[Priorities/{Priority}]]` to a Project or Topic `## Related` section if
-  not already present.
+  it is not already present.
 - Update the Priority's `## Projects` section when a new project emerges that
   serves it.
 
-**Never auto-create Priorities.** Don't over-link — a project that already links
-to a Priority through a related Topic doesn't need a redundant direct Priority
-link.
+**Never auto-create Priorities.** Don't over-link. A project that already links
+to a Priority through a related Topic doesn't need a redundant direct link to
+the Priority.

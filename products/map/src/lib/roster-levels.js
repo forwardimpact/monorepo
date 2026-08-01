@@ -1,10 +1,11 @@
 /**
- * Seeding invariant: every level carried by a seeded person must exist
- * in the installed standard's `levels.yaml`. A roster row whose level
- * the standard does not define makes every level-gated consumer fail
- * with "Unknown level" long after seeding, so seeding fails fast
- * instead. When no standard is installed at the given pathway dir the
- * invariant is vacuous and the check is skipped.
+ * The seed invariant: every level a seeded person carries must exist in
+ * the installed standard's `levels.yaml`. A roster row whose level the
+ * standard does not define makes every level-gated consumer fail with
+ * "Unknown level". That failure comes long after the seed runs. So the
+ * seed fails fast instead. When no standard is installed at the given
+ * pathway dir, the invariant is vacuous. This function then skips the
+ * check.
  */
 
 import { join } from "node:path";

@@ -1,7 +1,7 @@
 /**
- * Shared AgentRunner test setup, lifted so `agent-runner.test.js` and its
- * `agent-runner-privilege.test.js` sibling reuse one set of mock collaborators
- * (per .claude/rules/test-file-shape.md).
+ * This module holds the shared AgentRunner test setup. It is lifted here so
+ * `agent-runner.test.js` and its `agent-runner-privilege.test.js` sibling
+ * reuse one set of mock collaborators (per .claude/rules/test-file-shape.md).
  */
 import {
   spy,
@@ -23,16 +23,17 @@ export const MANIFEST = {
 export const DRAFT_TOKENS =
   "Skill(draft-emails) Skill(organize-files) Skill(send-chat)";
 
-/** The posture-config object every AgentRunner construction needs. */
+/** The posture-config object every AgentRunner needs when you build it. */
 export const postureCfg = () => ({
   posturePath: POSTURE_PATH,
   manifestPath: MANIFEST_PATH,
 });
 
 /**
- * Create a mock spawn module that records calls and returns a successful result.
- * Captures all six positional args, including the 5th (`runtime`) and 6th
- * (`disclaim`) so the privilege tests can assert the disclaim value.
+ * Create a mock spawn module that records calls and returns a successful
+ * result. The mock captures all six positional args. These include the 5th
+ * (`runtime`) and the 6th (`disclaim`). The privilege tests can then assert
+ * the disclaim value.
  * @param {Object} [options]
  * @param {number} [options.exitCode=0]
  * @param {string} [options.stdout="ok"]
@@ -69,8 +70,8 @@ export function createMockStateManager() {
 }
 
 /**
- * Build a runtime whose mock fs reports TEST_KB as existing and whose proc env
- * carries the supplied vars.
+ * Build a runtime whose mock fs reports that TEST_KB exists. The proc env of
+ * that runtime carries the supplied vars.
  * @param {Record<string,string>} env
  * @param {Record<string,string>} [files]
  */

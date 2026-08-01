@@ -45,7 +45,8 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
 
       const result = await visualizer.visualize(null, { trace_id: "trace1" });
 
-      // Should not crash, but CLIENT span without SERVER won't generate interactions
+      // The call does not crash. A CLIENT span without a SERVER span
+      // generates no interactions.
       assert.ok(
         result.includes("sequenceDiagram"),
         "Should include sequenceDiagram",
@@ -56,7 +57,7 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
       );
     });
 
-    test("handles spans with missing attributes gracefully", async () => {
+    test("handles spans without attributes gracefully", async () => {
       await traceIndex.add(
         spanType.SpanItem.fromObject({
           trace_id: "trace1",
@@ -66,7 +67,7 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
           kind: spanType.Kind.CLIENT,
           start_time_unix_nano: "1000000",
           end_time_unix_nano: "2000000",
-          attributes: {}, // Missing service.name and rpc.method
+          attributes: {}, // No service.name and no rpc.method
           events: [],
           status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
@@ -82,7 +83,7 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
           kind: spanType.Kind.SERVER,
           start_time_unix_nano: "1100000",
           end_time_unix_nano: "1900000",
-          attributes: {}, // Missing service.name and rpc.method
+          attributes: {}, // No service.name and no rpc.method
           events: [],
           status: { code: spanType.Code.OK, message: "" },
           resource: { attributes: {} },
@@ -91,7 +92,8 @@ describe("TraceVisualizer - edge cases and complex scenarios", () => {
 
       const result = await visualizer.visualize(null, { trace_id: "trace1" });
 
-      // Should not crash, but spans without required attributes won't generate interactions
+      // The call does not crash. Spans without the required attributes
+      // generate no interactions.
       assert.ok(
         result.includes("sequenceDiagram"),
         "Should include sequenceDiagram",

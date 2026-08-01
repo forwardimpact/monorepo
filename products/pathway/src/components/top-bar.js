@@ -1,11 +1,11 @@
 /**
  * Top Bar Component
  *
- * Fixed bar across the top of the app with:
+ * A fixed bar sits across the top of the app. It holds:
  * - Sidebar toggle button (left)
  * - CLI command display with copy button (center)
  *
- * Similar to Safari's URL bar with sidebar toggle.
+ * It is similar to Safari's URL bar with a sidebar toggle.
  */
 
 import { getCliCommand } from "../lib/cli-command.js";
@@ -17,8 +17,8 @@ let commandDisplay = null;
 let copyButton = null;
 
 /**
- * Set up the top bar: wire toggle and initial command display.
- * Call after DOM is ready.
+ * Set up the top bar. Wire the toggle and the initial command display.
+ * Call this after the DOM is ready.
  */
 export function setupTopBar() {
   const app = document.getElementById("app");
@@ -39,8 +39,8 @@ export function setupTopBar() {
     copyBtn.addEventListener("click", handleCopy);
   }
 
-  // Intercept history.replaceState so CLI command updates when pages
-  // change the hash without triggering hashchange (e.g. agent builder)
+  // Intercept history.replaceState so the CLI command updates when a page
+  // changes the hash and does not fire hashchange (e.g. agent builder)
   const originalReplaceState = history.replaceState.bind(history);
   history.replaceState = (...args) => {
     originalReplaceState(...args);
@@ -67,7 +67,7 @@ export function updateCommand() {
 }
 
 /**
- * Copy the current CLI command to clipboard
+ * Copy the current CLI command to the clipboard
  */
 async function handleCopy() {
   if (!commandDisplay || !copyButton) return;

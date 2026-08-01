@@ -12,7 +12,7 @@ import { jobToDOM } from "../formatters/job/dom.js";
 let jobTemplateCache = null;
 
 /**
- * Load job template with caching
+ * Load the job template and cache it
  * @returns {Promise<string>}
  */
 async function getJobTemplate() {
@@ -46,7 +46,7 @@ export async function renderJobDetail(params) {
     return;
   }
 
-  // If trackId was provided but not found, error
+  // Show an error if trackId exists but no track matches it
   if (trackId && !track) {
     renderError({
       title: "Job Not Found",
@@ -78,7 +78,7 @@ export async function renderJobDetail(params) {
     return;
   }
 
-  // Show loading while fetching template
+  // Show the loading state while the page fetches the template
   render(
     div(
       { className: "job-detail-page" },

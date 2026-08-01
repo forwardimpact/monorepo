@@ -2,45 +2,45 @@
 name: fit-map
 description: >
   Define what good engineering means so roles have clear, defensible
-  expectations, and provision activity-database substrates. Use when
-  defining or updating skills, capabilities, behaviours, disciplines,
-  tracks, levels, or questions; when pushing rosters, syncing GetDX
-  snapshots, or ingesting GitHub artifacts; or when staging a seeded
+  expectations. Provision activity-database substrates. Use when you
+  define or update skills, capabilities, behaviours, disciplines,
+  tracks, levels, or questions. Use when you push rosters, sync GetDX
+  snapshots, or ingest GitHub artifacts. Use when you stage a seeded
   substrate.
 ---
 
 # Map Product
 
 Map is the foundation of all Forward Impact products. It ships three
-operator surfaces — each owns a different consumer:
+operator surfaces. Each surface owns a different consumer:
 
 - **Standard layer** — YAML validated against JSON Schema and RDF/SHACL.
   Engineering-leaders edit this directly.
-- **Activity layer** — bundled Supabase project carrying
-  `organization_people`, GitHub artifacts, GetDX snapshots, marker
+- **Activity layer** — bundled Supabase project with
+  `organization_people`, GitHub artifacts, GetDX snapshots, and marker
   evidence. Leaders ingest into this over time.
-- **Substrate** — a single-shot provisioning pipeline that collapses
-  activity-layer setup into one verb and implements the Substrate
-  Contract as views, so the generic `fit-terrain substrate` identity
-  verbs run against the seeded database.
+- **Substrate** — a single-shot pipeline that provisions the database.
+  It collapses activity-layer setup into one verb. It implements the
+  Substrate Contract as views. The generic `fit-terrain substrate`
+  identity verbs then run against the seeded database.
 
-Standard and activity entities are published in structured formats so
-agents can interpret them reliably.
+Map publishes standard and activity entities in structured formats.
+Agents can then interpret them reliably.
 
 ## When to Use
 
-- Defining or tailoring an engineering standard, or editing JSON Schema /
-  RDF / SHACL definitions.
-- Validating, indexing, or exporting standard data.
-- Managing the activity database — starting Supabase, pushing rosters,
-  syncing GetDX, reprocessing the raw bucket, verifying ingest.
-- Provisioning a **substrate** — staging the database in one shot for
-  persona work with `fit-terrain substrate`.
+- Define or tailor an engineering standard. Edit JSON Schema / RDF /
+  SHACL definitions.
+- Validate, index, or export standard data.
+- Manage the activity database. Start Supabase, push rosters, sync
+  GetDX, reprocess the raw bucket, and verify ingest.
+- Provision a **substrate**. Stage the database in one shot for persona
+  work with `fit-terrain substrate`.
 
 ## Standard Layer
 
 Edit YAML under `data/pathway/`. Entity files use co-located `human:` and
-`agent:` sections; skills live nested inside capability files.
+`agent:` sections. Skills live nested inside capability files.
 
 Run `npx fit-map validate` after every change. Validation runs in two
 phases:
@@ -52,19 +52,19 @@ phases:
    `contributingSkills`/`contributingBehaviours`, level `minLevel`).
 
 When the standard's JSON Schemas change (libskill's `schema/json/`),
-update map's `schema/rdf/` in the same commit — the two formats must
+update map's `schema/rdf/` in the same commit. The two formats must
 stay in sync.
 
 Generate browser indexes with `npx fit-map generate-index`. Render base
-entities to HTML microdata with `npx fit-map export`. Common authoring
-tasks (add a skill, add interview questions, add an agent section, add a
-tool reference) live in [`references/tasks.md`](references/tasks.md).
+entities to HTML microdata with `npx fit-map export`. Common tasks for
+authors (add a skill, add interview questions, add an agent section, add
+a tool reference) live in [`references/tasks.md`](references/tasks.md).
 
 ## Activity Layer
 
-Activity commands wrap the bundled Supabase project; consumers never
-`cd` into `node_modules/@forwardimpact/map`. The CLI finds Supabase via
-Homebrew, npm, or falls back to `npx supabase`.
+Activity commands wrap the bundled Supabase project. Consumers never
+`cd` into `node_modules/@forwardimpact/map`. The CLI finds Supabase
+through Homebrew or npm. It falls back to `npx supabase`.
 
 ```sh
 npx fit-map activity start              # Start local Supabase
@@ -78,26 +78,26 @@ npx fit-map activity verify             # Smoke-test the database
 ```
 
 `people push` and `getdx sync` write the raw payload to the `raw` bucket
-first, then upsert on natural keys — safe to re-run. The same code
-ships as four edge functions (`github-webhook`, `people-upload`,
+first, then upsert on natural keys. Both are safe to re-run. The same
+code ships as four edge functions (`github-webhook`, `people-upload`,
 `getdx-sync`, `transform`) in the bundled Supabase project for hosted
 deployments.
 
 ## Substrate
 
-One verb provisions an invariant-satisfying activity database. The
-pipeline collapses the activity-layer flow above — when running
+One verb provisions an activity database that satisfies the invariants.
+The pipeline collapses the activity-layer flow above. When you run
 substrate, `init`, `migrate`, `seed`, `people push`, and `provision` are
 all internal phases. Do not invoke them separately.
 
-Three entry points prepare an activity database — pick one:
+Three entry points prepare an activity database. Pick one:
 
-- `substrate stage` — one-shot pipeline for CI and interview runs;
-  every phase below is internal.
-- `activity start` + `activity seed` — dev flow: bring the stack up,
-  then seed it from `./data/activity`.
-- `activity migrate` — migrations only; resets the schema (drops data)
-  without seeding.
+- `substrate stage` — a one-shot pipeline for CI and interview runs.
+  Every phase below is internal.
+- `activity start` + `activity seed` — the dev flow. Bring the stack up.
+  Then seed it from `./data/activity`.
+- `activity migrate` — migrations only. It resets the schema (drops
+  data) and does not seed.
 
 ### One-shot stage
 
@@ -106,7 +106,7 @@ npx fit-map substrate stage --cwd <agent_dir>
 ```
 
 Phases (failures surface as `[substrate stage: <phase>] <reason>` so CI
-identifies the failing step):
+identifies the step that failed):
 
 | Phase             | What it does                                                     |
 | ----------------- | ---------------------------------------------------------------- |
@@ -122,13 +122,12 @@ identifies the failing step):
 | `smoke`           | Invoke every gated product command end-to-end                    |
 
 Activity data and the pathway standard ship from the same data root, so
-the seeded roster and the installed standard always match. Seeding
-itself enforces the same invariant on every path: `activity seed` fails
-fast when the roster names a level the installed standard does not
-define.
+the seeded roster and the installed standard always match. The seed step
+enforces the same invariant on every path. `activity seed` fails fast
+when the roster names a level the installed standard does not define.
 
 `SUBSTRATE_FORCE_EMPTY_CORPUS=true` forces the smoke phase to fail with
-the empty-corpus diagnostic — used by CI to assert the failure path.
+the empty-corpus diagnostic. CI uses it to assert the failure path.
 Set `FIT_DEBUG=1` to print the full stack trace when a command fails.
 
 ### Persona selection
@@ -145,7 +144,7 @@ npx fit-terrain substrate issue --email <e> --cwd <agent_dir> --token-env <NAME>
 See the
 [Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)
 guide for the relations, invariants, and degradation semantics.
-Service-account JWTs use `fit-map auth issue` — the substrate path is for
+Service-account JWTs use `fit-map auth issue`. The substrate path is for
 engineer personas only.
 
 ## Verification
@@ -157,8 +156,8 @@ npx fit-map validate
 ```
 
 After substrate changes, the `smoke` phase verifies every gated
-product command against the seeded database — a non-zero exit names
-the failing command.
+product command against the seeded database. A non-zero exit names
+the command that failed.
 
 ## Documentation
 

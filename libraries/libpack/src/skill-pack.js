@@ -6,12 +6,13 @@ const LICENSE = "Apache-2.0";
 const AUTHOR = "forwardimpact";
 
 /**
- * Publish a monorepo skill pack into a sibling repository's working tree using
- * APM's canonical `.apm/` source layout, so a bare `apm install <owner>/<repo>`
- * discovers and installs skills and agents together.
+ * Publish a monorepo skill pack into a sibling repository's working tree.
+ * Use APM's canonical `.apm/` source layout. A bare
+ * `apm install <owner>/<repo>` then discovers and installs skills and agents
+ * together.
  *
- * This is the single code path for the sibling-pack layout: the publish
- * workflow drives it through the `fit-pack` CLI, and the same layout constants
+ * This is the single code path for the sibling-pack layout. The publish
+ * workflow drives it through the `fit-pack` CLI. The same layout constants
  * back the Pathway git packs (see `PackStager.stageApmGit`).
  */
 export class SkillPackPublisher {
@@ -27,18 +28,20 @@ export class SkillPackPublisher {
    * Stage the pack into `targetDir`.
    *
    * @param {object} opts
-   * @param {string} opts.sourceDir - Directory holding `skills/` and `agents/`
+   * @param {string} opts.sourceDir - Directory with `skills/` and `agents/`
    *   (the monorepo's `.claude` directory).
    * @param {string|string[]} opts.prefix - Skill directory prefix(es) to
    *   select. Each prefix selects `skills/<prefix>-*` plus the exact-name
    *   `skills/<prefix>` (e.g. `gemba` selects both `gemba` and `gemba-*`).
-   *   Ignored when `all` is set.
+   *   This option has no effect when `all` is set.
    * @param {boolean} [opts.all] - Stage every skill in `sourceDir` regardless of
    *   prefix. Use when the source directory is itself the pack boundary (e.g. a
    *   product-local `.claude` whose skills share no common prefix).
-   * @param {string} opts.targetDir - Sibling repo working tree to write into.
-   * @param {string} opts.name - APM package name (sibling repo short name).
-   * @param {string} opts.version - Stamped into apm.yml and SKILL.md metadata.
+   * @param {string} opts.targetDir - Sibling-repo working tree to write into.
+   * @param {string} opts.name - APM package name (short name of the sibling
+   *   repo).
+   * @param {string} opts.version - Version to stamp into apm.yml and SKILL.md
+   *   metadata.
    * @param {boolean} [opts.withAgents] - Also sync agent profiles.
    * @param {string} [opts.description] - apm.yml description.
    * @param {string} [opts.readmeTitle] - README H1.
@@ -69,9 +72,9 @@ export class SkillPackPublisher {
   }
 
   /**
-   * Copy skills into `.apm/skills/`, injecting frontmatter. Selects
-   * `skills/<prefix>` and `skills/<prefix>-*` for each prefix by default, or
-   * every skill when `all` is set.
+   * Copy skills into `.apm/skills/` and inject frontmatter. Select
+   * `skills/<prefix>` and `skills/<prefix>-*` for each prefix by default.
+   * Select every skill when `all` is set.
    */
   async #stageSkills({ sourceDir, prefix, all, targetDir, version }) {
     const { mkdir, readdir, cp, readFile, writeFile } = this.#fs;
@@ -105,16 +108,16 @@ export class SkillPackPublisher {
   }
 
   /**
-   * Stage the flat `agents/*.md` directory into `.apm/agents/`, partitioning
+   * Stage the flat `agents/*.md` directory into `.apm/agents/`. Partition
    * each file by frontmatter.
    *
    * A file is a **profile** when it carries both `name` and `description`
-   * frontmatter — the same test Claude Code's agent loader applies — and a
-   * **reference** otherwise. Profiles ship as `<stem>.agent.md` and feed the
-   * agents table, but only when `withAgents` is set (non-agent packs ship no
-   * profiles). References always ship flat as `<stem>.md` and never enter the
-   * agents table, so every pack carries the references skills and profiles
-   * cite, agent-syncing or not.
+   * frontmatter. Claude Code's agent loader applies the same test. Every
+   * other file is a **reference**. Profiles ship as `<stem>.agent.md` and
+   * feed the agents table, but only when `withAgents` is set. A non-agent
+   * pack ships no profiles. References always ship flat as `<stem>.md` and
+   * never enter the agents table. So every pack carries the references that
+   * skills and profiles cite, with agents or without them.
    *
    * @returns {Promise<object[]>} the staged profiles (empty without agents).
    */
@@ -170,7 +173,7 @@ export class SkillPackPublisher {
     );
   }
 
-  /** Write the README with install command and skill/agent tables. */
+  /** Write the README with the install command and the skill/agent tables. */
   async #writeReadme(opts, skills, agents) {
     const { targetDir, name, readmeTitle, readmeIntro, withAgents } = opts;
     const lines = [
@@ -214,8 +217,8 @@ export class SkillPackPublisher {
 
 /**
  * Insert `license` and a `metadata` block (version + author) just before the
- * closing `---` of a SKILL.md's YAML frontmatter. Content without frontmatter
- * is returned unchanged.
+ * closing `---` of a SKILL.md's YAML frontmatter. Return the content
+ * unchanged when it has no frontmatter.
  * @param {string} content
  * @param {string} version
  * @returns {string}
@@ -244,8 +247,8 @@ export function injectFrontmatter(content, version) {
 
 /**
  * A `.claude/agents/*.md` file is a **profile** when it carries both `name`
- * and `description` frontmatter — the test Claude Code's agent loader applies
- * to decide what loads as an agent — and a **reference** otherwise.
+ * and `description` frontmatter. Claude Code's agent loader applies the same
+ * test to decide what loads as an agent. Every other file is a **reference**.
  * @param {string} content
  * @returns {boolean}
  */
@@ -262,7 +265,7 @@ function frontmatterField(content, key) {
 }
 
 /**
- * Read a frontmatter field that may be a folded block scalar (`>-`), joining
+ * Read a frontmatter field that may be a folded block scalar (`>-`). Join
  * 2-space-indented continuation lines into one space-separated string.
  * @param {string} content
  * @param {string} key

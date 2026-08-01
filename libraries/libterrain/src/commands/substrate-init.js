@@ -2,9 +2,10 @@
  * `fit-terrain substrate init --cwd <dir>` — offline scaffold. Writes one
  * timestamped starter migration into `<cwd>/supabase/migrations/`: the
  * `substrate` schema, service-role grants, and one commented example view
- * per contract relation, generated from `SUBSTRATE_CONTRACT` so the
- * scaffold and the `check` probe cannot drift apart. The consumer edits
- * the example views to map its own tables onto the contract columns.
+ * per contract relation. The command builds the views from
+ * `SUBSTRATE_CONTRACT`, so the scaffold and the `check` probe cannot drift
+ * apart. The consumer edits the example views to map its own tables onto
+ * the contract columns.
  */
 
 import path from "node:path";

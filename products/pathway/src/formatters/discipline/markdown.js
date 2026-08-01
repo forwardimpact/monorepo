@@ -1,5 +1,5 @@
 /**
- * Discipline formatting for markdown/CLI output
+ * Discipline formatter for markdown/CLI output
  */
 
 import { tableToMarkdown, formatModifier } from "../shared.js";
@@ -63,7 +63,7 @@ function appendSkillSection(lines, heading, skillList) {
  * @param {Object} context - Additional context
  * @param {Array} context.skills - All skills
  * @param {Array} context.behaviours - All behaviours
- * @param {Array} [context.tracks] - All tracks (for showing valid track names)
+ * @param {Array} [context.tracks] - All tracks (to show valid track names)
  * @param {boolean} [context.showBehaviourModifiers=true] - Whether to show behaviour modifiers section
  * @returns {string}
  */

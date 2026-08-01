@@ -1,6 +1,7 @@
 /**
  * `fit-summit compare <team1> <team2>` — diff two teams' coverage
- * and risks snapshots. Reuses diffCoverage/diffRisks from Part 04.
+ * and risks snapshots. It reuses diffCoverage and diffRisks from
+ * Part 04.
  */
 
 import { loadRoster } from "../roster/index.js";
@@ -73,8 +74,9 @@ export async function runCompareCommand({
 
 /**
  * Parse one side of a `compare` target. Each side can be a positional
- * team id, or a `--left-project` / `--right-project` flag pointing at a
- * project team in the roster file.
+ * team id. Each side can also be a `--left-project` or
+ * `--right-project` flag that points at a project team in the roster
+ * file.
  */
 function parseCompareTarget(positional, options, projectOptionKey) {
   const projectId = options[projectOptionKey];

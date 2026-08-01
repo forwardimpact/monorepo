@@ -9,10 +9,11 @@ import {
   createTraceQuery,
 } from "@forwardimpact/libharness";
 
-// Exercises gemba-trace stats result-event parity against repro-derived and
-// synthetic fixtures, loaded via the same exported path the `gemba-trace` CLI's
-// loadTrace uses: createTraceCollector for NDJSON, createTraceQuery for
-// structured JSON. Totals must agree with the trace's own result events.
+// The suite checks gemba-trace stats for result-event parity. It uses
+// repro-derived and synthetic fixtures. It loads them through the same
+// exported path the `gemba-trace` CLI's loadTrace uses: createTraceCollector
+// for NDJSON, createTraceQuery for structured JSON. Totals must agree with
+// the trace's own result events.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dir = path.join(__dirname, "fixtures", "trace-parity");
@@ -97,7 +98,7 @@ describe("gemba-trace stats result-event parity", () => {
     assert.strictEqual(s.totals.resultEventTurns, 5);
   });
 
-  test("duration is the sum of result-event durations, labeled", () => {
+  test("duration is the sum of result-event durations and carries a label", () => {
     const s = load("multi-result.ndjson").stats();
     // Six result events at 30000ms each.
     assert.strictEqual(s.totals.durationMs, 180000);
@@ -113,11 +114,12 @@ describe("gemba-trace stats result-event parity", () => {
     assert.strictEqual(mu.cacheReadInputTokens, 742072);
     assert.strictEqual(mu.cacheCreationInputTokens, 110587);
     assert.strictEqual(mu.costUSD.toFixed(5), "2.58877");
-    // Non-additive field carried first-seen, not multiplied by six.
+    // A non-additive field keeps its first-seen value. The code does not
+    // multiply it by six.
     assert.strictEqual(mu.contextWindow, 200000);
   });
 
-  test("perTurn is one row per API message, not per stream event", () => {
+  test("perTurn groups stream events into one row per API message", () => {
     const s = load("multi-result.ndjson").stats();
     // 34 assistant stream events span 14 unique message ids.
     assert.strictEqual(s.perTurn.length, 14);
@@ -128,7 +130,7 @@ describe("gemba-trace stats result-event parity", () => {
     }
   });
 
-  test("populations are labeled on totals, perTurn, and overview", () => {
+  test("totals, perTurn, and overview each carry a population label", () => {
     for (const file of ["single-result.ndjson", "multi-result.ndjson"]) {
       const q = load(file);
       const s = q.stats();
@@ -157,7 +159,7 @@ describe("gemba-trace stats result-event parity", () => {
     assert.strictEqual(s.totals.resultEventTurns, null);
   });
 
-  test("divergence is surfaced while result-event totals stay authoritative", () => {
+  test("stats surfaces divergence while result-event totals stay authoritative", () => {
     const s = load("divergence.ndjson").stats();
     assert.strictEqual(s.totals.inputTokens, 999);
     assert.ok(s.divergence);
@@ -172,10 +174,10 @@ describe("gemba-trace stats result-event parity", () => {
     assert.strictEqual(s.perTurn[0].population, "carried-document-per-turn");
   });
 
-  test("rendering commands are unaffected by the measurement change", () => {
+  test("the measurement change does not affect timeline, head, tail, or turn", () => {
     for (const file of ["single-result.ndjson", "multi-result.ndjson"]) {
       const q = load(file);
-      // Timeline, head, tail, and turn-by-index all read turns, not stats.
+      // Timeline, head, tail, and turn-by-index read turns. None read stats.
       assert.ok(q.timeline().length > 0);
       assert.strictEqual(q.head(3).length, 3);
       assert.strictEqual(q.tail(3).length, 3);

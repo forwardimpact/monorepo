@@ -20,7 +20,7 @@ export const needsSupabase = true;
  * @param {object} params.mapData
  * @param {object} params.supabase
  * @param {string} params.format
- * @param {object} [params.queries] - Injectable query module for testing.
+ * @param {object} [params.queries] - Injectable query module for tests.
  */
 export async function runSnapshotCommand({
   args,
@@ -131,7 +131,7 @@ export function collectDriverWarnings(scores, mapData) {
   for (const row of scores) {
     if (row.item_id && !driverIds.has(row.item_id)) {
       warnings.push(
-        `Unknown item_id "${row.item_id}" in snapshot scores — no matching driver in drivers.yaml.`,
+        `Unknown item_id "${row.item_id}" in snapshot scores. No matching driver in drivers.yaml.`,
       );
     }
   }

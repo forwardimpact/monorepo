@@ -1,7 +1,7 @@
 /**
  * People Validation
  *
- * Node-only CLI validation for local people files. Cross-references
+ * Node-only. Validates local people files from the CLI. Cross-references
  * discipline, level, and track values against the standard. Does not
  * talk to Supabase.
  */
@@ -42,7 +42,7 @@ function validatePersonRow(person, ids) {
   if (!person.name) rowErrors.push("missing name");
 
   // Service-account rows carry no Pathway job profile. Validate just the
-  // shape (email/name above; level-null below) and skip the discipline/
+  // shape (email/name above, level-null below). Skip the discipline/
   // level/track checks the human rows go through. The DB check
   // constraint enforces level IS NULL for these rows.
   if (person.kind === "service_account") {
@@ -91,7 +91,7 @@ function normalizePersonRecord(person) {
  * Validate people against standard data.
  * Checks that discipline, level, and track values exist in the standard.
  * @param {Array<object>} people - Array of person objects
- * @param {string} dataDir - Path to standard data directory
+ * @param {string} dataDir - Path to the standard data directory
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs).
  * @returns {Promise<{valid: Array<object>, errors: Array<{row: number, message: string}>}>}
  */

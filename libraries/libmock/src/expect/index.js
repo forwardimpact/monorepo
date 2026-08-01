@@ -1,7 +1,8 @@
 /**
  * Dependency-free, runner-independent `expect()` shim. Replaces `expect` from
- * `bun:test` so the test suite can run under `node --test` (which ships no
- * `expect`) as well as `bun test`. Mirrors how `spy()` replaced `mock.fn`.
+ * `bun:test` so the test suite can run under `node --test` and under
+ * `bun test`. `node --test` ships no `expect`. Mirrors how `spy()` replaced
+ * `mock.fn`.
  *
  * Covers exactly the matcher surface the converged test files use: `toBe`,
  * `toEqual`, `toMatchObject`, `toBeNull`, `toBeUndefined`, `toBeDefined`,
@@ -16,9 +17,9 @@ import { AssertionError } from "node:assert";
 import { isDeepStrictEqual } from "node:util";
 
 /**
- * Render a value for assertion messages without throwing on circular refs.
+ * Render a value for assertion messages. It does not throw on circular refs.
  * @param {unknown} value - Value to stringify.
- * @returns {string} Human-readable rendering.
+ * @returns {string} Human-readable text.
  */
 function show(value) {
   if (typeof value === "string") {
@@ -41,12 +42,13 @@ function show(value) {
 }
 
 /**
- * Throw or, when negated, swallow — the single choke point that makes `.not`
- * invert every matcher. `pass` is the un-negated truth of the assertion.
+ * Throw, or swallow when negated. This function is the single choke point
+ * that makes `.not` invert every matcher. `pass` is the un-negated truth of
+ * the assertion.
  * @param {boolean} pass - Whether the positive assertion holds.
  * @param {boolean} negated - Whether `.not` is active.
- * @param {string} message - Message for the failing (positive) direction.
- * @param {string} [negatedMessage] - Message for the failing negated direction.
+ * @param {string} message - Message for a failed positive assertion.
+ * @param {string} [negatedMessage] - Message for a failed negated assertion.
  */
 function settle(pass, negated, message, negatedMessage) {
   if (negated) {
@@ -65,7 +67,8 @@ function settle(pass, negated, message, negatedMessage) {
 const ASYMMETRIC = Symbol.for("libmock.expect.asymmetric");
 
 /**
- * Whether `value` is an asymmetric matcher produced by `expect.any` / friends.
+ * Whether `value` is an asymmetric matcher from `expect.any` or a sibling
+ * helper.
  * @param {unknown} value - Candidate.
  * @returns {boolean} True when `value` carries the asymmetric marker.
  */
@@ -98,7 +101,8 @@ function equals(actual, expected) {
     }
     return expected.every((e, i) => equals(actual[i], e));
   }
-  // No asymmetric matcher anywhere → exact deep equality is correct and cheap.
+  // No asymmetric matcher anywhere, so exact deep equality is correct and
+  // cheap.
   if (!containsAsymmetric(expected)) {
     return isDeepStrictEqual(actual, expected);
   }
@@ -128,8 +132,9 @@ function containsAsymmetric(value) {
 }
 
 /**
- * Deep subset match: every own enumerable key of `subset` matches the same key
- * in `actual` (recursively for plain objects, asymmetric-aware).
+ * Deep subset match. Every own enumerable key of `subset` matches the same
+ * key in `actual`. The match recurses into plain objects. The match also
+ * understands asymmetric matchers.
  * @param {unknown} actual - Candidate object.
  * @param {unknown} subset - Expected subset.
  * @returns {boolean} Whether `actual` contains `subset`.
@@ -164,7 +169,7 @@ function matchesObject(actual, subset) {
 }
 
 /**
- * Run a possibly-throwing function and apply the `toThrow` predicate.
+ * Run a function that may throw. Then apply the `toThrow` predicate.
  * @param {() => unknown} fn - The thunk under test.
  * @param {unknown} matcher - undefined, a string (substring), or a RegExp.
  * @param {boolean} negated - Whether `.not` is active.
@@ -343,8 +348,9 @@ function matchers(actual, negated) {
 }
 
 /**
- * Build the async matcher object for a promise-producing actual. Each matcher
- * awaits the promise and applies the underlying matcher to the settled value.
+ * Build the async matcher object for an actual value that produces a promise.
+ * Each matcher awaits the promise. Then it applies the underlying matcher to
+ * the settled value.
  * @param {unknown} actual - A promise (or thenable) under test.
  * @param {boolean} negated - Whether `.not` is active.
  * @param {"resolves" | "rejects"} mode - Which settlement to assert on.
@@ -381,8 +387,9 @@ function asyncMatchers(actual, negated, mode) {
     (name) =>
     (...args) => {
       if (name === "toThrow") {
-        // `rejects.toThrow(x)` asserts the rejection's message; the settled value
-        // here is the rejection itself, so wrap it back into a throwing thunk.
+        // `rejects.toThrow(x)` asserts the rejection's message. The settled
+        // value here is the rejection itself. So wrap it back into a thunk
+        // that throws.
         return wrap((settled) => {
           const thunk = () => {
             throw settled;
@@ -438,8 +445,9 @@ export function expect(actual) {
 }
 
 /**
- * Asymmetric matcher: matches any value constructed by / typed as `ctor`,
- * for use inside `toEqual` / `toMatchObject`. Mirrors Jest/bun `expect.any`.
+ * An asymmetric matcher. It matches any value that `ctor` constructed, or any
+ * value typed as `ctor`. Use it inside `toEqual` and `toMatchObject`. Mirrors
+ * Jest/bun `expect.any`.
  * @param {Function} ctor - A constructor or primitive wrapper (String, Number…).
  * @returns {object} An asymmetric matcher.
  */
@@ -467,7 +475,7 @@ expect.any = (ctor) => ({
 });
 
 /**
- * Asymmetric matcher: matches any non-null, non-undefined value.
+ * An asymmetric matcher. It matches any non-null, non-undefined value.
  * @returns {object} An asymmetric matcher.
  */
 expect.anything = () => ({

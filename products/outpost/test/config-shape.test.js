@@ -2,9 +2,9 @@
  * Config-shape guard on the shipped `config/scheduler.json`.
  *
  * Every bundled agent must declare a valid privilege level and a knowledge base
- * outside every TCC-protected folder. This asserts the shipped file only — it
- * adds no runtime path constraint in the code. Paths are stored `~`-prefixed
- * and unexpanded, so the checks are literal `startsWith`.
+ * outside every TCC-protected folder. This asserts the shipped file only. It
+ * adds no runtime path constraint in the code. The config file stores paths
+ * `~`-prefixed and unexpanded, so the checks are literal `startsWith`.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";

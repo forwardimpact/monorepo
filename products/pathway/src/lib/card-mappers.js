@@ -1,8 +1,8 @@
 /**
  * Card Mapper Functions
  *
- * Reusable functions that map entities to card configurations.
- * Used by both regular pages and overview slides.
+ * These reusable functions map entities to card configurations.
+ * Regular pages and overview slides both use them.
  */
 
 import { createBadge } from "../components/card.js";
@@ -10,7 +10,7 @@ import { formatLevel } from "./render.js";
 import { getCapabilityEmoji } from "@forwardimpact/libskill/levels";
 
 /**
- * Create an external link element styled as a badge
+ * Create an external link element with the badge style
  * @param {string} text - Link text
  * @param {string} url - External URL
  * @returns {HTMLElement}
@@ -22,12 +22,12 @@ function createExternalLink(text, url) {
   link.rel = "noopener noreferrer";
   link.className = "badge badge-primary";
   link.textContent = text;
-  link.addEventListener("click", (e) => e.stopPropagation()); // Don't trigger card click
+  link.addEventListener("click", (e) => e.stopPropagation()); // Do not trigger the card click
   return link;
 }
 
 /**
- * Map discipline to card config
+ * Map a discipline to a card config
  * @param {Object} discipline
  * @returns {Object}
  */
@@ -56,7 +56,7 @@ export function disciplineToCardConfig(discipline) {
 }
 
 /**
- * Map skill to card config
+ * Map a skill to a card config
  * @param {Object} skill
  * @param {Array} capabilities
  * @returns {Object}
@@ -76,7 +76,7 @@ export function skillToCardConfig(skill, capabilities) {
 }
 
 /**
- * Map behaviour to card config
+ * Map a behaviour to a card config
  * @param {Object} behaviour
  * @returns {Object}
  */
@@ -89,7 +89,7 @@ export function behaviourToCardConfig(behaviour) {
 }
 
 /**
- * Map driver to card config
+ * Map a driver to a card config
  * @param {Object} driver
  * @returns {Object}
  */
@@ -109,7 +109,7 @@ export function driverToCardConfig(driver) {
 }
 
 /**
- * Map level to card config (for timeline)
+ * Map a level to a card config (for the timeline)
  * @param {Object} level
  * @returns {Object}
  */
@@ -138,7 +138,7 @@ export function levelToCardConfig(level) {
 }
 
 /**
- * Map track to card config
+ * Map a track to a card config
  * @param {Object} track
  * @returns {Object}
  */
@@ -152,7 +152,7 @@ export function trackToCardConfig(track) {
 }
 
 /**
- * Map job combination to card config
+ * Map a job combination to a card config
  * @param {Object} job
  * @returns {Object}
  */
@@ -172,16 +172,16 @@ export function jobToCardConfig(job) {
 }
 
 /**
- * Map tool to card config
+ * Map a tool to a card config
  * @param {Object} tool - Aggregated tool with usages
- * @param {Array} capabilities - Capability entities for emoji lookup
+ * @param {Array} capabilities - Capability entities to look up the emoji
  * @returns {Object}
  */
 export function toolToCardConfig(tool, capabilities) {
-  // Create skills list as card content
+  // Create the skills list as the card content
   const skillsList = createSkillsList(tool.usages, capabilities);
 
-  // Create icon element if available
+  // Create the icon element if the tool has one
   const icon = tool.simpleIcon
     ? createToolIcon(tool.simpleIcon, tool.name)
     : null;
@@ -189,7 +189,7 @@ export function toolToCardConfig(tool, capabilities) {
   return {
     title: tool.name,
     description: tool.description,
-    // Docs link in header badges (upper right)
+    // Put the docs link in the header badges (upper right)
     badges: tool.url ? [createExternalLink("Docs ↗", tool.url)] : [],
     content: skillsList,
     icon,
@@ -197,20 +197,20 @@ export function toolToCardConfig(tool, capabilities) {
 }
 
 /**
- * Create a tool icon element using Simple Icons CDN
+ * Create a tool icon element from the Simple Icons CDN
  * @param {string} slug - Simple Icons slug (e.g., 'terraform', 'docker')
- * @param {string} name - Tool name for alt text
+ * @param {string} name - Tool name for the alt text
  * @returns {HTMLElement}
  */
 export function createToolIcon(slug, name) {
   const img = document.createElement("img");
-  // Use black color for consistent monochrome appearance
+  // Use the black color for a consistent monochrome appearance
   img.src = `https://cdn.simpleicons.org/${slug}/000000`;
   img.alt = `${name} icon`;
   img.className = "tool-icon";
   img.width = 28;
   img.height = 28;
-  // Gracefully handle missing icons
+  // Degrade gracefully when an icon does not load
   img.onerror = () => {
     img.style.display = "none";
   };
@@ -241,7 +241,7 @@ function createSkillsList(usages, capabilities) {
 }
 
 /**
- * Format capability for badge display (short, tag-like)
+ * Format a capability to show in a badge (short, tag-like)
  * @param {string} capabilityId
  * @param {Array} capabilities
  * @returns {string}

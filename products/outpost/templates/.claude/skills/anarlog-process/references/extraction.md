@@ -12,35 +12,38 @@ Look for names in:
   platform team").
 - `_meta.json` participants.
 
-For each: resolve against the knowledge index (Step 0); extract role,
-organization, relationship to the user; note what was discussed.
+For each name, resolve it against the knowledge index (Step 0). Extract the
+role, the organization, and the relationship to the user. Note what they
+discussed.
 
 ## Organizations
 
-Explicit mentions ("Acme Corp"), or inferred from people's roles or the
-surrounding context.
+Look for explicit mentions ("Acme Corp"). Also infer an organization from a
+person's role or from the context.
 
 ## Projects
 
-Explicit project names ("Customer Portal", "Q2 Migration") or described
-initiatives ("the hiring pipeline", "the product launch").
+Look for explicit project names ("Customer Portal", "Q2 Migration"). Also look
+for initiatives that the text describes ("the hiring pipeline", "the product
+launch").
 
 ## Topics
 
-Recurring themes ("AI coding agents", "interview process", "architecture
-decisions"). Only create a Topic note when the subject spans multiple meetings
-or is strategically important.
+Look for themes that repeat ("AI coding agents", "interview process",
+"architecture decisions"). Only create a Topic note when the subject spans
+multiple meetings or is strategically important.
 
 ## Self-exclusion
 
-Never create or update a note for the user — match against name, email, or
-`@domain` from `~/.cache/fit/outpost/state/identity.md`.
+Never create or update a note for the user. Match against the name, the email,
+or the `@domain` from `~/.cache/fit/outpost/state/identity.md`.
 
 ## Interview sessions (special case)
 
-If the title or memo indicates "interview with {Name}", the interviewee is a
-**candidate** — create or update their note in `Knowledge/Candidates/` (using
-the candidate brief template from `req-track`), **not** in `Knowledge/People/`.
+If the title or the memo says "interview with {Name}", the interviewee is a
+**candidate**. Create or update their note in `Knowledge/Candidates/` with the
+candidate brief template from `req-track`. **Never** write it in
+`Knowledge/People/`.
 
 ## Content signals
 
@@ -51,13 +54,14 @@ the candidate brief template from `req-track`), **not** in `Knowledge/People/`.
 ### Commitments / action items
 
 "will share", "plans to", "needs to", "to be created", "will upload". Extract
-owner, action, deadline (if any), status (default `open`).
+the owner, the action, the deadline (if any), and the status (default `open`).
 
 ### Key facts
 
-Specific numbers (headcount, budget, timeline), preferences ("non-traditional
-backgrounds"), process details (interview stages, evaluation criteria),
-strategic context (market trends, competitive landscape). Skip filler.
+Look for specific numbers (headcount, budget, timeline) and preferences
+("non-traditional backgrounds"). Look for process details (interview stages,
+evaluation criteria) and strategic context (market trends, competitive
+landscape). Skip filler.
 
 ### Activity summary
 
@@ -71,8 +75,8 @@ One line per session per entity:
 
 ### Interview notes (for candidates)
 
-Add to the candidate's `## Notes` section: impressions, technical assessment,
-strengths and concerns, any interview scoring or decisions.
+Add these to the candidate's `## Notes` section: impressions, the technical
+assessment, strengths and concerns, and any interview scores or decisions.
 
 ## Linking rules
 
@@ -80,5 +84,5 @@ Use absolute paths everywhere: `[[People/Name]]`, `[[Organizations/Name]]`,
 `[[Projects/Name]]`, `[[Priorities/Priority Name]]`.
 
 When meeting content references an existing Priority, follow the linking
-rules in `extract-entities` Step 7c — update progress and add backlinks, but
-**never** auto-create Priority notes.
+rules in `extract-entities` Step 7c. Update the progress and add the backlinks.
+**Never** auto-create Priority notes.

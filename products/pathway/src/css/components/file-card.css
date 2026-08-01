@@ -1,8 +1,8 @@
 /**
  * File Card
  *
- * Unified card surface for displaying files with collapsible panes.
- * Single bordered surface — no nested borders from code-display or wrappers.
+ * Unified card surface that shows files with collapsible panes.
+ * Single bordered surface. No nested borders from code-display or wrappers.
  */
 
 @layer components {

@@ -1,8 +1,9 @@
 /**
  * View builder for skill entities.
  *
- * Pure function that flattens a raw skill YAML object into the flat shape
- * consumed by `templates/skill.html` and the `skill-inline.html` partial.
+ * A pure function flattens a raw skill YAML object into a flat shape.
+ * `templates/skill.html` and the `skill-inline.html` partial consume that
+ * shape.
  */
 
 import {

@@ -44,9 +44,10 @@ describe("scanConflictMarkers", () => {
     assert.equal(hits[0].lineNo, 2);
   });
 
-  test("close marker fires alone; lone separator above it does NOT", () => {
-    // Seal-severed second half: separator + close, no open above. The
-    // separator is block-conditioned (openDepth 0) so only the close fires.
+  test("close marker fires alone but a lone separator above it does NOT", () => {
+    // The seal-severed second half has a separator and a close with no open
+    // above. The separator is block-conditioned (openDepth 0). So only the
+    // close fires.
     const text = ["theirs-content", "=======", ">>>>>>> origin/master"].join(
       "\n",
     );
@@ -95,7 +96,7 @@ describe("scanConflictMarkers", () => {
   });
 
   test("fires on a bare CRLF marker block (CR before the line ending)", () => {
-    // A CRLF checkout leaves "<<<<<<<\r" / ">>>>>>>\r"; the CR must not let an
+    // A CRLF checkout leaves "<<<<<<<\r" / ">>>>>>>\r". The CR must not let an
     // unlabeled block escape the anchor.
     const text = "<<<<<<<\r\nours\r\n=======\r\ntheirs\r\n>>>>>>>\r\n";
     assert.deepEqual(kinds(scanConflictMarkers(text)), [
@@ -105,7 +106,7 @@ describe("scanConflictMarkers", () => {
     ]);
   });
 
-  test("separator inside an open block but tilde-fenced is still suppressed when prose", () => {
+  test("fenceExempt still suppresses a separator inside a tilde-fenced open block", () => {
     const text = ["~~~", "<<<<<<< a", "=======", ">>>>>>> b", "~~~"].join("\n");
     assert.deepEqual(scanConflictMarkers(text, { fenceExempt: true }), []);
   });

@@ -16,7 +16,7 @@ import {
 } from "./model-fixtures.js";
 
 describe("deriveResponsibilities", () => {
-  it("returns empty array when no capabilities provided", () => {
+  it("returns an empty array when the caller provides no capabilities", () => {
     const skillMatrix = [
       { skillId: "skill_a", capability: "scale", proficiency: "working" },
     ];
@@ -102,7 +102,7 @@ describe("deriveResponsibilities", () => {
 });
 
 describe("deriveJob with capabilities", () => {
-  it("includes derived responsibilities when capabilities provided", () => {
+  it("includes derived responsibilities when the caller provides capabilities", () => {
     const job = deriveJob({
       discipline: testDiscipline,
       level: testLevel,
@@ -118,7 +118,7 @@ describe("deriveJob with capabilities", () => {
     assert.ok(job.derivedResponsibilities.length > 0);
   });
 
-  it("returns empty responsibilities when no capabilities provided", () => {
+  it("returns empty responsibilities when the caller provides no capabilities", () => {
     const job = deriveJob({
       discipline: testDiscipline,
       level: testLevel,

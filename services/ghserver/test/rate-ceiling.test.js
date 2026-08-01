@@ -13,7 +13,7 @@ describe("RateCeiling", () => {
     assert.strictEqual(ceiling.exceeds("t-1"), false);
   });
 
-  test("blocks once the limit is reached within the window", () => {
+  test("blocks once mints reach the limit within the window", () => {
     const clock = createMockClock({ start: 0 });
     const ceiling = new RateCeiling({ clock, limit: 3 });
     ceiling.record("t-1");

@@ -2,7 +2,7 @@
  * Markdown Renderer — generates personal knowledge-base content
  * for Outpost personas.
  *
- * Uses TemplateLoader from libtemplate for all output.
+ * This module uses TemplateLoader from libtemplate for all output.
  */
 
 import { isoDate } from "@forwardimpact/libutil";

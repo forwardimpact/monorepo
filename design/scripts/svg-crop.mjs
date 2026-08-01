@@ -2,32 +2,35 @@
 
 // Crop an SVG to the bounding box of its drawn shapes.
 //
-// Computes the union bounding box of every visible shape (<path>,
-// <rect>, <circle>, <ellipse>, <line>, <polyline>, <polygon>) and
-// rewrites the root <svg> width, height, and viewBox to match.  Path
-// d attributes are parsed with command awareness (M L H V C S Q T A
-// Z, absolute and relative).  Bezier control points are included in
-// the bounding box, which over-approximates curves slightly — fine
-// for cropping since the result is never tighter than the true bbox.
+// This script computes the union bounding box of every visible shape
+// (<path>, <rect>, <circle>, <ellipse>, <line>, <polyline>,
+// <polygon>).  It then rewrites the root <svg> width, height, and
+// viewBox to match.  The parser reads path d attributes with command
+// awareness (M L H V C S Q T A Z, absolute and relative).  The
+// bounding box includes Bezier control points.  This
+// over-approximates curves slightly.  The crop stays correct because
+// the result is never tighter than the true bbox.
 //
-// Shapes with fill="none" and no stroke are treated as invisible and
-// excluded.  Shapes whose fill is lighter than --fill-cutoff are also
-// excluded — they render as faint shading and dropping them lets the
-// crop reach the visually meaningful content (mirroring the PNG
-// alpha-threshold heuristic).  Stroke widths and transforms are
-// ignored — for the fit assets these are absent or negligible.
+// The script treats shapes with fill="none" and no stroke as
+// invisible.  It excludes them.  It also excludes shapes whose fill
+// is lighter than --fill-cutoff.  Those shapes render as faint
+// shading.  When the script drops them, the crop reaches the content
+// that matters (the same rule as the PNG alpha-threshold heuristic).
+// The script ignores stroke widths and transforms.  For the fit
+// assets these are absent or negligible.
 //
-// Files whose basename starts with "icon-" are forced to a 1:1 square
-// canvas — the smaller dimension of the cropped bbox is symmetrically
-// expanded so the icon stays centred in a square viewBox.
+// The script forces files whose basename starts with "icon-" to a
+// 1:1 square canvas.  It expands the smaller dimension of the cropped
+// bbox symmetrically.  The icon then stays centred in a square
+// viewBox.
 //
 // Usage:
 //   node design/scripts/svg-crop.mjs [--fill-cutoff N] [--padding N] <file ...>
 //
-// --fill-cutoff  paths whose fill min(R,G,B) exceeds this value are
-//                excluded from the bbox (default 200, excludes
-//                #d0d0d0 and lighter).  Pass 255 to include every
-//                visible path regardless of lightness.
+// --fill-cutoff  the bbox excludes paths whose fill min(R,G,B)
+//                exceeds this value (default 200, excludes #d0d0d0
+//                and lighter).  Pass 255 to include every visible
+//                path regardless of lightness.
 // --padding      user-unit margin to keep around the content
 //                (default 0).
 
@@ -88,16 +91,16 @@ function isEmpty(box) {
 }
 
 // Tokenises an SVG path "d" attribute into command letters and number tokens.
-// The two number-shape sub-groups are independent (mantissa, exponent) and
-// cannot backtrack across each other — eslint's unsafe-regex heuristic flags
-// the optional exponent suffix even though it's bounded.
+// The two number-shape sub-groups are independent (mantissa, exponent). They
+// cannot backtrack across each other. But eslint's unsafe-regex heuristic
+// flags the optional exponent suffix even though it is bounded.
 const TOKEN_RE = /([MmLlHhVvCcSsQqTtAaZz])|(-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)/g;
 const isLetter = (t) => /^[A-Za-z]$/.test(t);
 
 // Per-command bbox extenders. Each handler reads its operand stride from the
-// token cursor (`ctx.num()`), updates the current point on `ctx`, and includes
-// any geometric extrema in `box`. Splitting per-command keeps pathBox below the
-// complexity lint threshold.
+// token cursor (`ctx.num()`). Each handler updates the current point on `ctx`.
+// Each handler includes any geometric extrema in `box`. One handler per
+// command keeps pathBox below the complexity lint threshold.
 const PATH_HANDLERS = {
   M(ctx, box, abs) {
     const x = ctx.rx(ctx.num());
@@ -169,7 +172,7 @@ const PATH_HANDLERS = {
 };
 PATH_HANDLERS.Q = PATH_HANDLERS.S;
 
-// Advance the command cursor when a letter token is encountered.
+// Advance the command cursor when the parser reads a letter token.
 // Returns true when the caller should `continue` (Z close or null command).
 function advanceCommand(ctx, tokens) {
   if (!isLetter(tokens[ctx.i])) return false;
@@ -183,7 +186,7 @@ function advanceCommand(ctx, tokens) {
   return false;
 }
 
-// Dispatch the current command's handler and include geometry in the box.
+// Dispatch the current command's handler. Include the geometry in the box.
 function dispatchPathCommand(ctx, tokens, box) {
   if (ctx.cmd === null) {
     ctx.i++;
@@ -226,7 +229,8 @@ function pathBox(d) {
 
 function getAttr(attrs, name) {
   // `name` is always a hard-coded SVG attribute identifier from this module
-  // (e.g. "x", "y", "rx") — never user input — so the dynamic RegExp is safe.
+  // (e.g. "x", "y", "rx"). It is never user input. So the dynamic RegExp is
+  // safe.
   const m = attrs.match(new RegExp(`\\b${name}="([^"]+)"`));
   return m ? parseFloat(m[1]) : null;
 }
@@ -276,8 +280,9 @@ function lineBox(attrs) {
 function pointsBox(attrs) {
   const m = attrs.match(/\bpoints="([^"]+)"/);
   if (!m) return null;
-  // Number pattern with a single optional fractional suffix — bounded, no
-  // nested quantifiers — but eslint's heuristic flags any optional sub-group.
+  // Number pattern with a single optional fractional suffix. It is bounded
+  // and has no nested quantifiers. But eslint's heuristic flags any optional
+  // sub-group.
   const nums = m[1].match(/-?\d+(?:\.\d+)?/g);
   if (!nums || nums.length < 2) return null;
   const box = makeBox();
@@ -312,9 +317,9 @@ function parseColor(value) {
     return null;
   }
 
-  // rgba() syntax pattern. The optional alpha clause is a single bounded group
-  // anchored between literal commas and a closing paren — no nested quantifiers
-  // can backtrack across the rest of the pattern.
+  // rgba() syntax pattern. The optional alpha clause is a single bounded
+  // group. Literal commas and a closing paren anchor it. No nested
+  // quantifiers can backtrack across the rest of the pattern.
   const rgb = v.match(
     /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)$/,
   );
@@ -372,8 +377,8 @@ function fmt(n) {
 }
 
 function setOrInsert(tag, name, value) {
-  // `name` is one of {"width", "height", "viewBox"} — closed literal set, not
-  // user input. Dynamic RegExp is safe.
+  // `name` is one of {"width", "height", "viewBox"}. That is a closed literal
+  // set. It is not user input. The dynamic RegExp is safe.
   if (new RegExp(`\\b${name}=`).test(tag)) {
     return tag.replace(new RegExp(`\\b${name}="[^"]*"`), `${name}="${value}"`);
   }

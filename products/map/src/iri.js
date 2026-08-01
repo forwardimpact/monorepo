@@ -1,15 +1,15 @@
 /**
  * Shared IRI helpers and constants for the fit: vocabulary.
  *
- * Both the Map base-entity export pipeline and the Pathway derivation
- * service consume this module so that the IRIs they emit are byte-identical.
- * Any drift between the two would cause graph queries to silently miss
- * subjects, so this is the single source of truth.
+ * Both the Map pipeline for base-entity export and the Pathway derivation
+ * service consume this module. The IRIs they emit are then byte-identical.
+ * Any drift between the two would make graph queries miss subjects
+ * silently. So this module is the single source of truth.
  */
 
 export const VOCAB_BASE = "https://www.forwardimpact.team/schema/rdf/";
 
-// Base entity IRI helpers — used by the Map export view-builders.
+// IRI helpers for base entities. The Map export view-builders use them.
 export const skillIri = (id) => `${VOCAB_BASE}skill/${id}`;
 export const capabilityIri = (id) => `${VOCAB_BASE}capability/${id}`;
 export const levelIri = (id) => `${VOCAB_BASE}level/${id}`;
@@ -19,11 +19,12 @@ export const trackIri = (id) => `${VOCAB_BASE}track/${id}`;
 export const driverIri = (id) => `${VOCAB_BASE}driver/${id}`;
 export const toolIri = (id) => `${VOCAB_BASE}tool/${id}`;
 
-// Derived entity IRI helpers — used by the Pathway service's serialize.js.
+// IRI helpers for derived entities. The Pathway service's serialize.js
+// uses them.
 //
-// Map export templates must NEVER emit Job/AgentProfile/Progression types —
-// they are derived-only and have no place in the indexed graph. The Pathway
-// service serializer is the only emitter.
+// Map export templates must NEVER emit Job/AgentProfile/Progression types.
+// They are derived-only and have no place in the indexed graph. The
+// Pathway service serializer is the only emitter.
 export const jobIri = (discipline, level, track) =>
   track
     ? `${VOCAB_BASE}job/${discipline}/${level}/${track}`
@@ -39,21 +40,22 @@ export const progressionIri = (discipline, from, to, track) =>
 
 /**
  * Canonical list of derived-entity rdf:type values that ONLY the pathway
- * service may emit. The Map export renderer test imports this list and
- * asserts that no template emits any of these as a main itemtype —
- * guaranteeing the resource processor never materializes derived entities
- * into the graph.
+ * service may emit. The test for the Map export renderer imports this
+ * list. It asserts that no template emits any of these as a main
+ * itemtype. That guarantees the resource processor never materializes
+ * derived entities into the graph.
  *
- * Adding a new derived class? Add it here. Both the Map export negative
- * assertion and any Pathway service serializer code that wants to enumerate
- * "what we emit" will pick it up automatically. This eliminates the textual
- * coupling between the two systems.
+ * Add any new derived class here. The negative assertion in the Map
+ * export picks it up automatically. So does any Pathway service
+ * serializer code that enumerates "what we emit". This eliminates the
+ * textual coupling between the two systems.
  *
- * Note: `SkillModifier` is intentionally NOT in this list. Skill modifiers
- * are part of the base Track definition (they live in the YAML, not in any
- * derived view), so the Map export renders them as nested typed items under
- * `track.html`. SkillProficiency, SkillChange and BehaviourChange remain
- * derived: they only exist as part of Job/AgentProfile/Progression outputs.
+ * Note: `SkillModifier` is intentionally NOT in this list. Skill
+ * modifiers are part of the base Track definition. They live in the YAML.
+ * They do not live in any derived view. So the Map export renders them as
+ * nested typed items under `track.html`. SkillProficiency, SkillChange
+ * and BehaviourChange remain derived. They only exist as part of
+ * Job/AgentProfile/Progression outputs.
  */
 export const DERIVED_ENTITY_TYPES = [
   `${VOCAB_BASE}Job`,

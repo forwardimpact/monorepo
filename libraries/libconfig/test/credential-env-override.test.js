@@ -5,7 +5,7 @@ import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 
 const CWD = "/project";
 
-// In-memory fs (holding the .env the config loader reads) with a
+// In-memory fs that holds the .env the config loader reads, with a
 // test-controlled proc.
 const runtimeWith = (proc, files) =>
   createTestRuntime({ fs: createMockFs(files), proc });
@@ -65,7 +65,7 @@ describe("PRODUCT_LANDMARK_TOKEN credential override", () => {
       ),
       mockStorageFn,
     );
-    // .env wins, not ""
+    // .env wins over the empty string
     assert.equal(config.token, "env-value");
   });
 });

@@ -1,11 +1,13 @@
 /**
- * Renderer tests — verify each entity type renders to a complete HTML
- * document whose microdata, when parsed by the same parser libresource
- * uses, produces the expected fit: vocabulary quads.
+ * Renderer tests. They verify that each entity type renders to a complete
+ * HTML document. They parse the microdata with the same parser that
+ * libresource uses. The microdata must produce the expected
+ * fit: vocabulary quads.
  *
- * Quad-level assertions (rather than raw HTML string matching) keep these
- * tests resilient to whitespace and template restructuring while still
- * catching real semantic regressions.
+ * These tests assert at the quad level. They do not match raw HTML
+ * strings. Quad-level assertions keep the tests resilient to whitespace
+ * changes and to restructured templates. The tests still catch real
+ * semantic regressions.
  */
 
 import { test, describe } from "node:test";
@@ -132,7 +134,7 @@ describe("Renderer", () => {
     );
   });
 
-  test("renderCapability nests its owned skills via the skill-inline partial", async () => {
+  test("renderCapability nests its owned skills through the skill-inline partial", async () => {
     const html = renderer.renderCapability(CAPABILITY, CTX);
     const quads = await parseQuads(html);
     const types = typesOf(quads);

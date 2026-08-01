@@ -4,7 +4,7 @@ import { tokenize } from "../src/dsl/tokenizer.js";
 import { parse } from "../src/dsl/parser.js";
 
 /**
- * Helper: tokenize then parse a DSL source string.
+ * Helper: tokenize a DSL source string. Then parse the result.
  * @param {string} source
  * @returns {import('../dsl/parser.js').TerrainAST}
  */

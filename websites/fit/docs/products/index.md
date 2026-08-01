@@ -89,5 +89,5 @@ toc: false
 
 </div>
 
-Looking for library-level utilities or service integration? See
+For library-level utilities or service integration, see
 [Library Guides](/docs/libraries/) and [Service Guides](/docs/services/).

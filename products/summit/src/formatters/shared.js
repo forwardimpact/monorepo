@@ -1,6 +1,7 @@
 /**
- * Shared terminal rendering helpers used by every command's text formatter.
- * All functions are pure — take explicit parameters, return strings.
+ * Shared helpers that render terminal output for every command's text
+ * formatter.
+ * All functions are pure. They take explicit parameters and return strings.
  */
 
 const FILLED = "█";
@@ -22,7 +23,7 @@ export function renderBar(value, max, width = 10) {
 }
 
 /**
- * Header rendered as "  Title" followed by a blank line.
+ * Render the header as "  Title" with a blank line after it.
  *
  * @param {string} title
  * @returns {string}

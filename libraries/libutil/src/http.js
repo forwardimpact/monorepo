@@ -1,7 +1,8 @@
 /**
  * Parses the JSON body from an incoming HTTP request.
  * @param {import('http').IncomingMessage} req - The HTTP request object.
- * @returns {Promise<object>} The parsed JSON object, or an empty object if parsing fails.
+ * @returns {Promise<object>} The parsed JSON object, or an empty object when
+ *   the parse fails.
  */
 export function parseJsonBody(req) {
   return new Promise((resolve, reject) => {

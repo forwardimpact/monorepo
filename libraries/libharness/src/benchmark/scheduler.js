@@ -1,11 +1,12 @@
 /**
- * CellScheduler — bounded concurrent execution of benchmark cells.
+ * CellScheduler — runs benchmark cells concurrently under a bound.
  *
- * Keeps at most `concurrency` `runCell(cell)` calls in flight at once and
- * yields each settled record in **completion order** (not grid order). The
- * runner's drain loop consumes this async iterable as the sole writer of
- * `results.jsonl`, so concurrency lives here in execution while the ledger
- * stays single-writer — no write mutex on the hot path.
+ * The scheduler keeps at most `concurrency` `runCell(cell)` calls in flight
+ * at once. It yields each settled record in **completion order**. It does
+ * not yield them in grid order. The runner's drain loop consumes this async
+ * iterable as the sole writer of `results.jsonl`. Concurrency lives here in
+ * execution, and the ledger stays single-writer. The hot path needs no write
+ * mutex.
  */
 
 /** Bounded pool that streams settled cell records in completion order. */
@@ -14,10 +15,10 @@ export class CellScheduler {
    * @param {object} opts
    * @param {number} opts.concurrency - Max cells in flight (integer ≥ 1).
    * @param {(cell: {task: object, runIndex: number}) => Promise<object>} opts.runCell -
-   *   Runs one cell to a settled record. By contract `runCell` never rejects —
-   *   the runner's `#runOne` catches setup, agent, and schema failures and
-   *   returns a record rather than throwing — but a rejection is still guarded
-   *   so one bad cell cannot wedge the drain.
+   *   Runs one cell to a settled record. By contract `runCell` never rejects.
+   *   The runner's `#runOne` catches setup, agent, and schema failures. It
+   *   returns a record instead of a throw. The scheduler still guards against
+   *   a rejection, so one bad cell cannot wedge the drain.
    */
   constructor({ concurrency, runCell }) {
     if (!Number.isInteger(concurrency) || concurrency < 1)
@@ -29,7 +30,7 @@ export class CellScheduler {
   }
 
   /**
-   * Run every cell with bounded concurrency, yielding each settled record the
+   * Run every cell with bounded concurrency. Yield each settled record the
    * moment its cell completes.
    * @param {{task: object, runIndex: number}[]} cells
    * @returns {AsyncGenerator<object>}
@@ -42,8 +43,8 @@ export class CellScheduler {
     const launch = () => {
       const cell = cells[next++];
       // The wrapper resolves to its own handle (for O(1) removal) plus the
-      // settled record, and never rejects — a thrown runCell becomes a fail
-      // record so the drain keeps consuming.
+      // settled record. It never rejects. A thrown runCell becomes a fail
+      // record, so the drain keeps consuming.
       const p = Promise.resolve()
         .then(() => this.runCell(cell))
         .then(
@@ -64,9 +65,9 @@ export class CellScheduler {
 }
 
 /**
- * Defensive fallback when `runCell` rejects (contract says it cannot). Keeps
- * the drain consumable; the record is intentionally minimal and will be
- * skipped by `report`'s schema validation, counted as skipped.
+ * Defensive fallback when `runCell` rejects (the contract says it cannot).
+ * The fallback keeps the drain consumable. The record is deliberately
+ * minimal. `report`'s schema validation skips it and counts it as skipped.
  */
 function schedulerFailRecord(cell, error) {
   return {

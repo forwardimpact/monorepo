@@ -1,7 +1,7 @@
 /**
  * The active work-item tracker selects which column of the work-trackers
  * matrix realizes each coordination operation (see the agent reference
- * `work-trackers.md`). `github` is the production binding; the offline
+ * `work-trackers.md`). `github` is the production binding. The offline
  * coordination benchmark runs under `filesystem`.
  */
 export const DEFAULT_WORK_TRACKER = "github";
@@ -14,10 +14,11 @@ export const KNOWN_WORK_TRACKERS = ["github", "filesystem"];
  * flag, then an inherited `LIBHARNESS_WORK_TRACKER` on the environment (so a CI
  * job or harness can select it without the flag), then the `github` default.
  * The harness writes the result to `LIBHARNESS_WORK_TRACKER` on the agent
- * environment, mirroring `--agent-profile` → `LIBHARNESS_AGENT_PROFILE`.
+ * environment. This mirrors `--agent-profile` → `LIBHARNESS_AGENT_PROFILE`.
  * @param {Record<string, string|undefined>} values - Parsed option values
  * @param {Record<string, string|undefined>} [env] - Process environment
- *   (e.g. `runtime.proc.env`); read for the `LIBHARNESS_WORK_TRACKER` fallback.
+ *   (e.g. `runtime.proc.env`). The function reads it for the
+ *   `LIBHARNESS_WORK_TRACKER` fallback.
  * @returns {string}
  * @throws {Error} if the resolved tracker is unknown
  */

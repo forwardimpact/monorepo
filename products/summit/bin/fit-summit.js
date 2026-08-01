@@ -109,7 +109,7 @@ const definition = {
         to: {
           type: "string",
           description:
-            "Destination team for --move (receives the member); the diff covers both teams",
+            "Destination team for --move (receives the member). The diff covers both teams.",
         },
         promote: {
           type: "string",

@@ -18,12 +18,12 @@ Field map and resolution rules for Step 2 of `req-track`.
 | Skills            | Email body, CV                                               | If available        |
 | Gender            | Pronouns or gendered titles only                             | If identifiable     |
 | Summary           | Email body, CV                                               | Yes — 2-3 sentences |
-| Role              | Internal requisition profile being hired against             | If available        |
+| Role              | Internal requisition profile you hire against                | If available        |
 | Req               | Requisition ID from hiring system                            | If available        |
 | Channel           | `hr` or `vendor` — see below                                 | Yes                 |
 | Hiring manager    | Cross-source inference — see below                           | If determinable     |
 | Domain lead       | Resolved from hiring manager's reporting chain               | If determinable     |
-| Internal/External | Whether candidate is internal or external                    | If available        |
+| Internal/External | Whether the candidate is internal or external                | If available        |
 | Model             | Engagement model (B2B, Direct Hire, etc.)                    | If available        |
 | Current title     | CV or email body                                             | If available        |
 | Email             | Email body, CV, signature                                    | If available        |
@@ -35,46 +35,47 @@ Field map and resolution rules for Step 2 of `req-track`.
 
 - `vendor` — Source links to an `[[Organizations/...]]` flagged as
   vendor/partner (keywords: supplier, recruitment partner, contractor,
-  staffing), or Req contains "via {vendor name}" rather than a system ID.
-- `hr` — candidate came through a hiring system (numeric Req), applied
-  internally, or was submitted by an internal recruiter.
+  staffing). A Req that contains "via {vendor name}" instead of a system ID
+  also means `vendor`.
+- `hr` — the candidate came through a hiring system (numeric Req), or applied
+  internally, or an internal recruiter submitted the candidate.
 
 ## Hiring manager and domain lead — resolution chain
 
 Stop at the first match:
 
-1. **Req-first inheritance** — search `Knowledge/Roles/` for a file matching the
-   Req number or role description (use filename substring lookup for req-less
-   roles); check the `**Status:**` field (open/closed), then inherit Hiring
-   manager and Domain lead from the Role file.
+1. **Req-first inheritance** — search `Knowledge/Roles/` for a file that matches
+   the Req number or the role description. Use a filename substring lookup for
+   req-less roles. Check the `**Status:**` field (open/closed). Then inherit
+   Hiring manager and Domain lead from the Role file.
 2. **Calendar inference** —
    `rg -l "{Candidate Name}" ~/.cache/fit/outpost/apple_calendar/`. The non-user
    organizer of an interview event is likely the hiring manager.
-3. **Email inference** — internal To/CC recipients (besides the user)
-   cross-checked against `Knowledge/People/`.
-4. **Reporting chain** — read the hiring manager's `**Reports to:**` field; walk
+3. **Email inference** — cross-check internal To/CC recipients (besides the
+   user) against `Knowledge/People/`.
+4. **Reporting chain** — read the hiring manager's `**Reports to:**` field. Walk
    up to a VP / senior leader for the domain lead.
 5. **Staffing project timeline** — search staffing notes for the candidate or
-   vendor; surrounding context often names the manager.
+   vendor. The nearby context often names the manager.
 
 If none resolve, set `—` and revisit on the next cycle.
 
 ## Gender
 
-Record only when **explicitly stated**:
+Record only when the source states it **explicitly**:
 
 - Pronouns from the recruiter ("she is available", "her CV attached")
 - Gendered titles ("Ms.", "Mrs.", "Mr.")
 
 Record as `Woman`, `Man`, or `—` (unknown). When uncertain, use `—`. **Never
-infer gender from names** — name-based inference is unreliable and culturally
-biased. The field supports aggregate diversity tracking; it has no bearing on
+infer gender from names.** Name-based inference is unreliable and culturally
+biased. The field lets you track diversity in aggregate. It has no bearing on
 hiring decisions, assessment criteria, or candidate visibility.
 
 ## Source and recruiter
 
-- Map sender email domain to an organization in `Knowledge/Organizations/`.
-- The person who sent or forwarded the profile is the recruiter — link with
+- Map the sender email domain to an organization in `Knowledge/Organizations/`.
+- The person who sent or forwarded the profile is the recruiter. Link with
   `[[People/Name]]`.
 - Create the organization or recruiter notes if missing.
 

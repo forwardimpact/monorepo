@@ -5,7 +5,7 @@
  */
 
 /**
- * Get GitHub artifacts, optionally filtered by person or type.
+ * Get GitHub artifacts, with optional filters for person or type.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase - Supabase client
  * @param {Object} [options]
  * @param {string} [options.email] - Filter by person email
@@ -43,7 +43,7 @@ export async function getArtifacts(supabase, options = {}) {
 
 /**
  * Get artifacts that have no associated evidence rows.
- * Used by Guide to find unscored artifacts for interpretation.
+ * Guide uses this to find unscored artifacts to interpret.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase - Supabase client
  * @param {Object} [options]
  * @param {string} [options.email] - Filter by person email

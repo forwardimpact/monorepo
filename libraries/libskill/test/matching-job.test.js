@@ -45,7 +45,7 @@ describe("calculateJobMatch", () => {
     assert.strictEqual(result.tier.tier, MatchTier.STRONG);
   });
 
-  test("exceeding requirements returns score of 1.0", () => {
+  test("returns score of 1.0 when the assessment exceeds requirements", () => {
     const selfAssessment = {
       skillProficiencies: { s1: "expert" },
       behaviourMaturities: { b1: "exemplifying" },
@@ -106,7 +106,7 @@ describe("calculateJobMatch", () => {
     assert.strictEqual(result.gaps[0].gap, 2);
   });
 
-  test("missing skill in self-assessment counts as max gap", () => {
+  test("counts a skill absent from the self-assessment as max gap", () => {
     const selfAssessment = {
       skillProficiencies: {},
       behaviourMaturities: {},
@@ -166,7 +166,7 @@ describe("calculateJobMatch", () => {
     });
   });
 
-  test("uses track assessmentWeights when provided", () => {
+  test("uses track assessmentWeights when the track provides them", () => {
     const selfAssessment = {
       skillProficiencies: { s1: "working" },
       behaviourMaturities: { b1: "practicing" },
@@ -217,7 +217,7 @@ describe("calculateJobMatch", () => {
     assert.strictEqual(result.overallScore, 1.0);
   });
 
-  test("priorityGaps limited to 3 items", () => {
+  test("limits priorityGaps to 3 items", () => {
     const selfAssessment = {
       skillProficiencies: {},
       behaviourMaturities: {},
@@ -263,7 +263,7 @@ describe("calculateJobMatch", () => {
     assert.strictEqual(result.priorityGaps.length, 3);
   });
 
-  test("gaps are sorted by gap size descending", () => {
+  test("sorts gaps by gap size descending", () => {
     const selfAssessment = {
       skillProficiencies: {
         s1: "awareness",

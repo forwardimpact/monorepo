@@ -2,15 +2,16 @@ import { join } from "node:path";
 import Mustache from "mustache";
 
 /**
- * Prompt loader with Mustache templating.
- * Loads .prompt.md files from a directory and renders them with variable substitution.
+ * Prompt loader with Mustache templates.
+ * Loads .prompt.md files from a directory. Renders them and substitutes the
+ * variables.
  */
 export class PromptLoader {
   #promptDir;
   #fsSync;
 
   /**
-   * @param {string} promptDir - Directory containing .prompt.md files
+   * @param {string} promptDir - Directory that contains .prompt.md files
    * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
    */
   constructor(promptDir, runtime) {
@@ -37,7 +38,7 @@ export class PromptLoader {
   }
 
   /**
-   * Load and render a prompt with Mustache templating.
+   * Load a prompt. Render it with Mustache templates.
    * @param {string} promptName - Name of the prompt (without .prompt.md extension)
    * @param {object} data - Data to render into the template
    * @returns {string} Rendered prompt content

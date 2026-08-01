@@ -2,10 +2,11 @@
 /**
  * Sync Apple Calendar events to ~/.cache/fit/outpost/apple_calendar/ as JSON.
  *
- * Queries the macOS Calendar SQLite database (via node:sqlite) for events in a
- * sliding window — N days in the past through 14 days in the future. Writes one
- * JSON file per event and removes files for events that fall outside the window.
- * Attendee details (name, email, status, role) are batch-fetched and included.
+ * Queries the macOS Calendar SQLite database (through node:sqlite) for events
+ * in a sliding window. The window runs from N days in the past to 14 days in
+ * the future. Writes one JSON file per event. Removes the files for events
+ * outside the window. Fetches attendee details (name, email, status, role) in
+ * one batch and includes them.
  *
  * Requires macOS with Calendar app configured and Full Disk Access granted.
  */
@@ -74,7 +75,7 @@ function findDb() {
   const db = DB_PATHS.find((p) => existsSync(p));
   if (!db) {
     console.error(
-      "Error: Apple Calendar database not found. Is Calendar configured?",
+      "Error: Apple Calendar database not found. Check that Calendar is configured.",
     );
     process.exit(1);
   }
@@ -82,7 +83,7 @@ function findDb() {
 }
 
 /**
- * Open the database in read-only mode with retry on lock.
+ * Open the database in read-only mode. Retry once if the database is locked.
  * @param {string} dbPath
  * @returns {import("node:sqlite").DatabaseSync}
  */
@@ -114,7 +115,7 @@ function query(db, sql) {
 }
 
 /**
- * Convert Core Data timestamp to ISO 8601.
+ * Convert a Core Data timestamp to ISO 8601.
  * @param {number | null} ts - Seconds since 2001-01-01
  * @param {string | null} tzName
  * @returns {string | null}
@@ -138,7 +139,7 @@ function coredataToIso(ts, tzName) {
 }
 
 /**
- * Get UTC offset string for a timezone at a given instant.
+ * Get the UTC offset string for a timezone at a given instant.
  * @param {Date} dt
  * @param {string} tzName
  * @returns {string} e.g. "+02:00" or "-05:00"

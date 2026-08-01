@@ -71,7 +71,7 @@
 
   /*
    * Table cells: 60px row height = 16px padding-top + 28px content + 16px padding-bottom
-   * Matches list-item height for visual consistency
+   * This matches the list-item height for visual consistency
    */
   .tools-table th,
   .tools-table td {

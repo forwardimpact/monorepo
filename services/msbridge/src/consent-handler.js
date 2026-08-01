@@ -1,20 +1,20 @@
 const CHANNEL = "msteams";
 
 /**
- * Microsoft Teams consent onboarding. When the hosted Teams app is added
- * to a Microsoft Entra tenant, the Bot Framework fires an
- * `installationUpdate` activity with `action = "add"`. This handler
- * registers the tenant in the registry with `state = "pending_consent"` —
- * the repo mapping is set later through the hosted onboarding endpoint
- * (see `onboard-handler.js`), which transitions the tenant to `active`.
+ * Microsoft Teams consent onboarding. The Bot Framework fires an
+ * `installationUpdate` activity with `action = "add"` when someone adds the
+ * hosted Teams app to a Microsoft Entra tenant. This handler registers the
+ * tenant in the registry with `state = "pending_consent"`. The hosted
+ * onboarding endpoint (see `onboard-handler.js`) sets the repo mapping
+ * later. That endpoint transitions the tenant to `active`.
  *
  * The registry upsert is idempotent per channel key, so a redelivered
  * `installationUpdate` is safe.
  */
 
 /**
- * Whether a Bot Framework activity is a consent (`installationUpdate` /
- * `action = "add"`) onboarding signal.
+ * Report whether a Bot Framework activity is a consent
+ * (`installationUpdate` / `action = "add"`) onboarding signal.
  *
  * @param {object} activity
  * @returns {boolean}
@@ -24,7 +24,7 @@ export function isConsentActivity(activity) {
 }
 
 /**
- * Register the consenting tenant in the registry as `pending_consent`.
+ * Register the tenant that consented in the registry as `pending_consent`.
  *
  * @param {object} activity - The Bot Framework activity
  * @param {object} deps

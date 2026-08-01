@@ -3,8 +3,8 @@ import assert from "node:assert";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-// Per-bin smoke tests: spawn each gemba bin with `--version`
-// and assert it exits 0 and prints a semver-shaped line. This is the one
+// Per-bin smoke tests: spawn each gemba bin with `--version`. Assert that it
+// exits 0. Assert that it prints a semver-shaped line. This is the one
 // legitimate subprocess test per binary, so it lives in an
 // `*.integration.test.js` file (exempt from the subprocess-in-tests invariant).
 

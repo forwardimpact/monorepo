@@ -1,10 +1,12 @@
 /* ══════════════════════════════════════════════════════════════════
    Jidoka — Brand Layer
-   Tokens, fonts, brand-specific surfaces, and scroll-section styles.
-   Loaded after the shared base/layout/components stylesheets.
+   This file holds tokens, fonts, brand-specific surfaces, and
+   scroll-section styles. The page loads it after the shared base,
+   layout, and components stylesheets.
 
-   Metaphor: instruction layers — a stepped stack, most general at the
-   base, most specific at the top. Cool indigo signal (blueprint ink).
+   Metaphor: instruction layers. The stack is stepped. The most general
+   layer sits at the base. The most specific layer sits at the top. The
+   signal is a cool indigo (blueprint ink).
    ══════════════════════════════════════════════════════════════════ */
 
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
@@ -19,7 +21,7 @@
   --bg-hover: #e2e5f3;
   --bg-inverted: #13141b;
 
-  /* Indigo (cool signal — blueprint ink) */
+  /* Indigo (cool signal, blueprint ink) */
   --ink-50: #eef1fc;
   --ink-100: #dde3f8;
   --ink-200: #b6c2ef;
@@ -41,7 +43,7 @@
   --text-tertiary: #a6a8b8;
   --text-on-dark: #e7e8ef;
 
-  /* Grays — cool-leaning */
+  /* Grays — cool tone */
   --gray-50: #f1f2f8;
   --gray-100: #e2e5f0;
   --gray-200: #cbcedd;

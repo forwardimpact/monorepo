@@ -1,9 +1,9 @@
 /**
  * Shared vocabulary constants for synthetic data generation.
  *
- * Single source of truth for proficiency levels, maturity levels,
- * and stage names used across libsyntheticgen, libsyntheticprose,
- * and libsyntheticrender.
+ * This file is the single source of truth for the proficiency levels, the
+ * maturity levels, and the stage names. Three libraries use them:
+ * libsyntheticgen, libsyntheticprose, and libsyntheticrender.
  */
 
 /** @type {string[]} */

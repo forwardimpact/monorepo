@@ -1,8 +1,8 @@
 /**
- * Interview Question Selection Helpers
+ * Helpers for Interview Question Selection
  *
- * Pure functions for selecting and budgeting interview questions.
- * Extracted from interview.js to satisfy max-lines and complexity rules.
+ * Pure functions that select and budget interview questions.
+ * The split from interview.js satisfies the max-lines and complexity rules.
  */
 
 import {
@@ -114,9 +114,9 @@ export function calculateBehaviourPriority(behaviour) {
 }
 
 /**
- * Select questions within a time budget, prioritizing coverage diversity
+ * Select questions within a time budget and prioritize coverage diversity
  * First pass: one question per target (highest priority first)
- * Second pass: fill remaining budget with additional questions
+ * Second pass: fill the budget that is left with more questions
  * @param {Array} allQuestions - All candidate questions sorted by priority
  * @param {number} timeBudget - Time budget in minutes
  * @param {number} defaultMinutes - Default question duration

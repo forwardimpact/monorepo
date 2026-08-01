@@ -1,7 +1,8 @@
 // @ts-check
 
 /**
- * Create a TCC-disclaiming spawn function from the given posix-spawn primitives.
+ * Create a spawn function that disclaims TCC responsibility. It uses the
+ * given posix-spawn primitives.
  *
  * @param {{ spawn: Function, waitForExit: Function, readOutput: Function }} deps
  * @returns {(executable: string, args: string[], env?: Record<string, string>, cwd?: string) => Promise<{ exitCode: number, stdout: string, stderr: string }>}

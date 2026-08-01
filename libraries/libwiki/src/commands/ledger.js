@@ -38,7 +38,7 @@ function nextFreeIds(fold, kind, count) {
   return ids;
 }
 
-/** Read the ordered anchor sequence and fold it, resolving the repo slug. */
+/** Read the ordered anchor sequence, fold it, and resolve the repo slug. */
 async function loadFold({ gitClient, ghClient, wikiDir, issue }) {
   const url = await gitClient.remoteGetUrl("origin", { cwd: wikiDir });
   const { owner, repo } = parseOwnerRepo(url);
@@ -70,10 +70,10 @@ async function allocate(env, options) {
     };
   }
   const { fold, owner, repo } = await loadFold(env);
-  // Backfill registers an anchor for ids that predate the anchor surface, named
-  // explicitly via --ids; their event keys already exist in history. A plain
-  // allocate mints the next free ids of the kind. The conflict detector at
-  // rebuild guards against double-registering an id that already has an anchor.
+  // Backfill registers an anchor for ids that predate the anchor surface. The
+  // --ids flag names them, and their event keys already exist in history. A
+  // plain allocate mints the next free ids of the kind. The conflict detector
+  // at rebuild guards against an id that already has an anchor.
   let ids;
   if (options.ids) {
     ids = options.ids
@@ -93,8 +93,8 @@ async function allocate(env, options) {
     ids = nextFreeIds(fold, kind, count);
   }
   const body = renderAnchorBody({ kind, ids, event, note: options.note ?? "" });
-  // The anchor publication is the allocation; no projection is written here.
-  // The printed ids are provisional — a rebuild over the published sequence is
+  // The anchor publication is the allocation. This code writes no projection.
+  // The printed ids are provisional. A rebuild over the published sequence is
   // authoritative and resolves any concurrent interleave first-published-wins.
   await ghClient.apiPost(
     `repos/${owner}/${repo}/issues/${env.issue}/comments`,
@@ -118,7 +118,7 @@ function readLedgerPage(runtime, wikiDir) {
     : "";
 }
 
-/** Project the anchor record onto the ledger-page body, preserving cited prose. */
+/** Project the anchor record onto the ledger-page body. Keep cited prose. */
 async function project(env, options) {
   const { runtime, wikiDir } = env;
   const labelMode = options.gapped ? "gapped" : "renumber";
@@ -183,9 +183,9 @@ const SUBS = { allocate, rebuild, verify };
 /**
  * `gemba-wiki ledger <allocate|rebuild|verify>` — the allocation procedure that
  * keeps identity off the merge-contested page. Allocation publishes an anchor
- * comment to the obstacle issue with no projection write at allocation time;
- * rebuild and verify project the anchor record onto the ledger page and MEMORY
- * row, preserving anchor-cited prose.
+ * comment to the obstacle issue and writes no projection at allocation time.
+ * Rebuild and verify project the anchor record onto the ledger page and MEMORY
+ * row. Both keep anchor-cited prose.
  */
 export async function runLedgerCommand(ctx) {
   const { runtime, gitClient, ghClient } = ctx.deps;

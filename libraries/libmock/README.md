@@ -75,7 +75,7 @@ for narrower imports.
 
 Canonical fakes for the `runtime` collaborator surfaces. Every test that needs
 a fake imports it from here so production and test wire the same shape.
-`createTestRuntime` assembles them into a frozen bag mirroring libutil's
+`createTestRuntime` assembles them into a frozen bag that mirrors libutil's
 `createDefaultRuntime`.
 
 | Surface | Production shape | Factory | Example |
@@ -92,16 +92,17 @@ a fake imports it from here so production and test wire the same shape.
 | grpc health def | stripped `{ Check: { path, … } }` shape | `createMockGrpcHealthDefinition` | `const def = createMockGrpcHealthDefinition();` |
 | repl env | readline/process/os/formatter/storage bundle | `createReplEnvironment` | `const { readline, process } = createReplEnvironment();` |
 
-`test/runtime-completeness.test.js` asserts every field on libutil's `Runtime`
-typedef has a matching fake here, so the fakes can't drift behind the bag.
+`test/runtime-completeness.test.js` asserts that every field on libutil's
+`Runtime` typedef has a matching fake here. So the fakes cannot drift behind
+the bag.
 
 ## When to extend libmock
 
-Before adding a helper locally in a test file, check `src/index.js`. If the
-helper doesn't exist and would be reused across two or more files, add it to
-libmock in the same PR instead of inlining. See
+Check `src/index.js` before you add a helper locally in a test file. If the
+helper does not exist, and two or more files would use it, add it to libmock
+in the same PR. Do not inline it. See
 [CONTRIBUTING.md](../../CONTRIBUTING.md) READ-DO and DO-CONFIRM checklists for
-the enforced policy and `.jidoka/invariants/libmock.rules.mjs` for the
+the enforced policy. See `.jidoka/invariants/libmock.rules.mjs` for the
 pre-commit guard that flags inline reimplementations.
 
 ## `spy` vs `node:test`'s `mock.fn`
@@ -118,5 +119,5 @@ fn.mock.resetCalls();
 fn.mock.mockImplementation((x) => x + 1);
 ```
 
-Prefer `spy` over `node:test`'s `mock.fn` — `spy` works under both `bun test`
+Prefer `spy` over `node:test`'s `mock.fn`. `spy` works under both `bun test`
 (the default runner) and `node --test`.

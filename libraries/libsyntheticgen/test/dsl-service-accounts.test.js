@@ -1,6 +1,6 @@
 /**
  * Coverage for the synthetic DSL's `service_account` sub-block under
- * `people {}`. Asserts both the parser shape and the entity-generation
+ * `people {}`. The tests assert the parser shape and the entity-generation
  * pipeline (`kind="service_account"` rows, no level, no manager_email,
  * discipline "system").
  */

@@ -1,8 +1,8 @@
 /**
- * Substrate subcommand dispatch — extracted from `bin/fit-terrain.js` so
- * the CLI entry point stays under biome's `nursery/noExcessiveLinesPerFile`
+ * Substrate subcommand dispatch. This code moved out of `bin/fit-terrain.js`
+ * so the CLI entry point stays under biome's `nursery/noExcessiveLinesPerFile`
  * cap. The caller threads `runtime` (the injected collaborator bag) and the
- * parsed option values; this module owns building the script config and the
+ * parsed option values. This module builds the script config and the
  * schema-bound client for the stack-facing verbs.
  */
 
@@ -18,8 +18,8 @@ import { createSubstrateClient } from "../src/substrate/client.js";
 
 /**
  * Build the service-role substrate client from script config. Every
- * stack-facing substrate verb funnels through here; `substrate init` and
- * `substrate up` are offline/bring-up and never touch it.
+ * stack-facing substrate verb funnels through here. `substrate init` and
+ * `substrate up` are offline or bring-up verbs and never touch it.
  */
 async function substrateClient() {
   const config = await createScriptConfig("terrain");
@@ -80,8 +80,9 @@ const HANDLERS = {
 };
 
 /**
- * Dispatch one substrate subcommand. Returns the verb's exit code, or
- * `null` when the subcommand is unknown (caller renders the usage error).
+ * Dispatch one substrate subcommand. Returns the verb's exit code. Returns
+ * `null` when the subcommand is unknown. The caller then renders the usage
+ * error.
  *
  * @param {string} subcommand
  * @param {Record<string, string|boolean|undefined>} values

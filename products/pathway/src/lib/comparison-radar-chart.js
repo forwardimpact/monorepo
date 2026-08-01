@@ -24,8 +24,8 @@ function diffColor(diff) {
 }
 
 /**
- * Create a styled SVG <text> element for one radar label,
- * including diff annotation and multi-line tspan wrapping.
+ * Create a styled SVG <text> element for one radar label. The element carries
+ * the diff annotation. It wraps long text across multiple tspan lines.
  */
 function createLabelElement(x, y, angle, label, diff) {
   const hasDiff = diff !== 0;
@@ -95,7 +95,7 @@ export class ComparisonRadarChart {
     this.tooltip = null;
   }
 
-  /** Clear the container and draw the full comparison radar chart with rings, axes, polygons, and labels. */
+  /** Clear the container. Draw the full comparison radar chart with rings, axes, polygons, and labels. */
   render() {
     this.container.innerHTML = "";
 
@@ -124,7 +124,7 @@ export class ComparisonRadarChart {
     this.container.appendChild(this.svg);
   }
 
-  /** Draw a filled SVG polygon connecting data points at their scaled positions on the radar. */
+  /** Draw a filled SVG polygon that connects the data points at their scaled positions on the radar. */
   drawDataPolygon(data, color, opacity) {
     const points = data.map((d, i) => {
       const angle = this.angleSlice * i - Math.PI / 2;
@@ -153,7 +153,7 @@ export class ComparisonRadarChart {
     this.svg.appendChild(polygon);
   }
 
-  /** Draw interactive SVG circles at each data point position with optional tooltip support. */
+  /** Draw interactive SVG circles at each data point position, with optional tooltips. */
   drawDataPoints(data, color, type) {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.classList.add("radar-points", `radar-points-${type}`);
@@ -191,7 +191,7 @@ export class ComparisonRadarChart {
     this.svg.appendChild(group);
   }
 
-  /** Draw axis labels with color-coded diff annotations showing the gap between current and target. */
+  /** Draw axis labels with color-coded diff annotations. Each annotation shows the gap between current and target. */
   drawLabels() {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.classList.add("radar-labels");
@@ -220,7 +220,7 @@ export class ComparisonRadarChart {
     this.svg.appendChild(group);
   }
 
-  /** Position and display a tooltip showing the value for a single current or target data point. */
+  /** Position a tooltip. Show the value for one current or target data point. */
   showTooltip(event, data, type) {
     if (!this.tooltip) return;
 
@@ -241,7 +241,7 @@ export class ComparisonRadarChart {
     this.tooltip.style.opacity = "1";
   }
 
-  /** Position and display a tooltip comparing current vs target values with a directional diff indicator. */
+  /** Position a tooltip. Show the current and target values with a directional diff indicator. */
   showComparisonTooltip(event, currentData, targetData) {
     if (!this.tooltip) return;
 

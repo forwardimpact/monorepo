@@ -1,9 +1,9 @@
 /**
- * `gemba-benchmark report` — aggregate `results.jsonl` into pass@k via the
- * OpenAI HumanEval estimator. Output is JSON by default; pass --format=text
- * to render a markdown table. --detail=compact drops the per-task detail
- * sections so a sharded run's per-shard summary stays short (the merge job
- * renders the full report over the combined ledger).
+ * `gemba-benchmark report` — aggregate `results.jsonl` into pass@k with the
+ * OpenAI HumanEval estimator. The command writes JSON by default. Pass
+ * --format=text to render a markdown table. --detail=compact drops the
+ * per-task detail sections, so a sharded run's per-shard summary stays short.
+ * The merge job renders the full report over the combined ledger.
  */
 
 import { resolve } from "node:path";

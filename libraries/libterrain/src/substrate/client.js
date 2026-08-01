@@ -1,9 +1,9 @@
 /**
- * Supabase client factory for the substrate verbs — the only construction
- * site. Binding `db.schema` to the contract's `substrate` schema here means
- * every query in this module tree reads contract relations, never a vendor
- * table that happens to share a name (map's `activity.evidence` is the
- * standing example).
+ * Supabase client factory for the substrate verbs. It is the only
+ * construction site. It binds `db.schema` to the contract's `substrate`
+ * schema. Every query in this module tree then reads contract relations. No
+ * query reads a vendor table that happens to share a name (map's
+ * `activity.evidence` is the standing example).
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -15,7 +15,7 @@ import { SUBSTRATE_CONTRACT } from "./contract.js";
  * @param {object} params
  * @param {{supabaseUrl: () => string, supabaseServiceRoleKey: () => string}} params.config
  *   libconfig accessor bag (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`).
- * @param {typeof createClient} [params.createClientFn] - Injected for tests.
+ * @param {typeof createClient} [params.createClientFn] - Tests inject this.
  * @returns {import("@supabase/supabase-js").SupabaseClient}
  */
 export function createSubstrateClient({

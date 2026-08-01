@@ -1,15 +1,15 @@
 /**
- * ReportAggregator — read a run-output directory's `results.jsonl`, group
- * records by `taskId`, and compute pass@k via the OpenAI HumanEval
+ * ReportAggregator — read a run-output directory's `results.jsonl`. Group
+ * the records by `taskId`. Compute pass@k with the OpenAI HumanEval
  * unbiased estimator: `1 - C(n-c, k) / C(n, k)`.
  *
  * When `includeRuns` is true, each task carries per-run detail (invariant
- * checks, judge commentary, cost, duration) and the text renderer produces
+ * checks, judge commentary, cost, duration). The text renderer then produces
  * a full markdown report instead of just the pass@k table.
  *
- * Records that fail schema validation are skipped with a stderr warning
- * (counted under `totals.skipped`) so a corrupt line cannot abort the
- * whole report.
+ * The loader skips records that fail schema validation. It writes a stderr
+ * warning and counts each skip under `totals.skipped`. A corrupt line cannot
+ * abort the whole report.
  */
 
 import { join } from "node:path";
@@ -37,7 +37,7 @@ import { mergeRows } from "./grade.js";
  * @typedef {object} TaskReport
  * @property {string} taskId
  * @property {number} n - Total runs.
- * @property {number} c - Passing runs.
+ * @property {number} c - Runs that passed.
  * @property {Record<string|number, number|null>} passAtK
  * @property {RunDetail[]} [runs] - Per-run detail (only when includeRuns).
  */
@@ -109,12 +109,12 @@ export async function aggregate({
 
 /**
  * Attach `meanScore` and `scoreAtK` to a scored task group. A group is
- * scored iff any record carries an effective score; a score-less record in
- * a scored group (a preflight failure never reached grading, or a binary
- * run) contributes its verdict as the degenerate score — skipping it would
- * inflate the mean exactly when the agent fails hardest. Binary groups gain
- * neither field.
- * @param {object} task - Mutated.
+ * scored iff any record carries an effective score. A score-less record in a
+ * scored group contributes its verdict as the degenerate score. Such a record
+ * comes from a preflight failure that never reached the grade step, or from a
+ * binary run. A skip would inflate the mean exactly when the agent fails
+ * hardest. Binary groups gain neither field.
+ * @param {object} task - The function mutates it.
  * @param {object[]} group
  * @param {number[]} kValues
  */
@@ -127,9 +127,9 @@ function applyScoreFields(task, group, kValues) {
 }
 
 /**
- * Build a normalized per-run detail object and accumulate duration/turn
- * samples for median calculation. Extracted from `aggregate` to keep its
- * cognitive complexity below the lint ceiling.
+ * Build a normalized per-run detail object. Accumulate duration/turn samples
+ * so the caller can calculate the median. It is separate from `aggregate` to
+ * keep that function's cognitive complexity below the lint ceiling.
  * @param {object} r - Raw record.
  * @param {{allDurations: number[], allTurns: number[]}} acc
  * @returns {RunDetail}
@@ -155,9 +155,9 @@ function buildRunDetail(r, acc) {
 
 /**
  * Render an aggregate report as markdown. When the report contains per-run
- * detail (from `includeRuns: true`), renders a full report with summary,
- * pass@k table, and per-task detail sections. Otherwise falls back to the
- * compact pass@k table.
+ * detail (from `includeRuns: true`), the renderer produces a full report.
+ * That report has a summary, a pass@k table, and per-task detail sections.
+ * Otherwise the renderer falls back to the compact pass@k table.
  * @param {Awaited<ReturnType<typeof aggregate>>} report
  * @param {number[]} kValues
  * @returns {string}
@@ -170,10 +170,10 @@ export function renderTextReport(report, kValues) {
 }
 
 // ---------------------------------------------------------------------------
-// Compact report — status line + pass@k table, no per-task detail. Selected by
-// `report --detail=compact` (aggregate without `includeRuns`); the per-shard
-// summary uses it so a sharded run stays short while the merge job renders the
-// full report over the combined ledger.
+// Compact report — status line + pass@k table, no per-task detail.
+// `report --detail=compact` selects it (aggregate without `includeRuns`).
+// The per-shard summary uses it so a sharded run stays short. The merge job
+// renders the full report over the combined ledger.
 // ---------------------------------------------------------------------------
 
 function renderCompactReport(report, kValues) {
@@ -500,17 +500,18 @@ function median(arr) {
 // Record loading
 // ---------------------------------------------------------------------------
 
-// Directories never worth descending for a `results.jsonl`.
+// The walk never descends into these directories for a `results.jsonl`.
 const SKIP_DIRS = new Set([".git", "node_modules"]);
 
 /**
  * Load and union every `results.jsonl` found recursively under `inputDir`.
  *
- * A single non-sharded run has one root-level ledger — the trivial one-match
- * case of the same walk. A sharded run lays each shard's partial ledger in its
- * own subdirectory; merging them equals reporting a single run over the same
- * cells. An *existing* dir with no ledger yields the empty union (exit 0); a
- * *missing* dir lets `readdir`'s ENOENT propagate so `report` still errors.
+ * A single non-sharded run has one root-level ledger. That is the trivial
+ * one-match case of the same walk. A sharded run lays each shard's partial
+ * ledger in its own subdirectory. A merge of those ledgers equals a report of
+ * a single run over the same cells. An *existing* dir with no ledger yields
+ * the empty union (exit 0). A *missing* dir lets `readdir`'s ENOENT
+ * propagate, so `report` still errors.
  * @param {string} inputDir
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<{records: object[], skipped: number}>}
@@ -520,10 +521,10 @@ async function loadRecords(inputDir, runtime) {
   try {
     files = await collectResultsFiles(inputDir, runtime);
   } catch (e) {
-    // Re-throw with the stack collapsed to the message line so the CLI's
-    // error rendering stays free of node-internal async `readdir` frames
-    // (a missing --input dir surfaces its ENOENT as exit 1, matching the
-    // pre-1370 stream-error shape the golden captured).
+    // Re-throw with the stack collapsed to the message line. The CLI error
+    // output then stays free of node-internal async `readdir` frames. A
+    // missing --input dir surfaces its ENOENT as exit 1, which matches the
+    // pre-1370 stream-error shape the golden captured.
     const err = new Error(e.message);
     if (e.code) err.code = e.code;
     err.stack = `Error: ${e.message}`;
@@ -540,11 +541,12 @@ async function loadRecords(inputDir, runtime) {
 }
 
 /**
- * Parse one ledger's JSONL into `records`, skipping malformed or schema-invalid
- * lines with a stderr warning. Returns the skipped count. Extracted from
- * `loadRecords` to keep its cognitive complexity under the lint ceiling.
+ * Parse one ledger's JSONL into `records`. Skip each malformed or
+ * schema-invalid line and write a stderr warning. Return the skipped count.
+ * It is separate from `loadRecords` to keep that function's cognitive
+ * complexity under the lint ceiling.
  * @param {string} content
- * @param {object[]} records - Accumulator, appended in place.
+ * @param {object[]} records - Accumulator. The function appends in place.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {number} Skipped line count.
  */
@@ -567,7 +569,7 @@ function parseLedgerInto(content, records, runtime) {
       validateResultRecord(record);
     } catch (e) {
       runtime.proc.stderr.write(
-        `benchmark report: skipped record failing schema — ${describeError(e)}\n`,
+        `benchmark report: skipped schema-invalid record — ${describeError(e)}\n`,
       );
       skipped++;
       continue;
@@ -578,10 +580,10 @@ function parseLedgerInto(content, records, runtime) {
 }
 
 /**
- * Recursively collect paths of every file named `results.jsonl` under `dir`,
- * skipping `.git`/`node_modules` and never following symlinks. A purpose-built
- * `readdir` walk — `task-family.js`'s private `walkFiles` resolves symlinks and
- * is unexported, which is the wrong contract here.
+ * Recursively collect paths of every file named `results.jsonl` under `dir`.
+ * Skip `.git` and `node_modules`. Never follow a symlink. This is a
+ * purpose-built `readdir` walk. `task-family.js`'s private `walkFiles`
+ * resolves symlinks and is unexported, which is the wrong contract here.
  * @param {string} dir
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<string[]>}
@@ -604,10 +606,10 @@ async function collectResultsFiles(dir, runtime) {
 }
 
 /**
- * Warn (do not silently merge) when a `(taskId, runIndex)` cell appears more
- * than once across shard ledgers. The shard partition guarantees uniqueness, so
- * a duplicate signals misconfiguration; both copies stay in the group so the
- * count is honest.
+ * Warn when a `(taskId, runIndex)` cell appears more than once across shard
+ * ledgers. Do not silently merge the copies. The shard partition guarantees
+ * uniqueness, so a duplicate signals misconfiguration. Both copies stay in
+ * the group so the count is honest.
  * @param {object[]} records
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  */
@@ -620,7 +622,7 @@ function warnOnDuplicateCells(records, runtime) {
   for (const [key, n] of counts) {
     if (n > 1)
       runtime.proc.stderr.write(
-        `benchmark report: duplicate cell ${key} appears ${n} times across shard ledgers — the shard partition should make each cell unique\n`,
+        `benchmark report: duplicate cell ${key} appears ${n} times across shard ledgers. The shard partition should make each cell unique\n`,
       );
   }
 }
@@ -660,14 +662,15 @@ function passAtKValue(n, c, k) {
 
 /**
  * score@k — the expected **maximum** score over k runs drawn without
- * replacement from the n recorded scores; the continuous analog of pass@k.
- * With scores sorted ascending s₍₁₎…s₍ₙ₎:
+ * replacement from the n recorded scores. It is the continuous analog of
+ * pass@k. With scores sorted ascending s₍₁₎…s₍ₙ₎:
  *
  *   score@k = Σ_{i=k..n} s₍ᵢ₎ · C(i−1, k−1) / C(n, k)
  *
  * Each term weights s₍ᵢ₎ by the probability it is the k-subset's maximum.
  * Binary scores reduce exactly to the pass@k estimator (same BigInt binomial
- * helper); `k > n` yields the same `{error}` value — one idiom.
+ * helper). `k > n` yields the same `{error}` value, so both functions use
+ * one idiom.
  * @param {number[]} scores - Effective per-record scores.
  * @param {number} k
  * @returns {number | {error: string}}

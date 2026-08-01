@@ -9,8 +9,9 @@ import { runCallbackCommand } from "../src/commands/callback.js";
 const TRACE_PATH = "/callback/trace.ndjson";
 
 /**
- * Invoke the callback handler with an InvocationContext-shaped object backed
- * by an in-memory fs (the trace file is read via `runtime.fsSync`).
+ * Invoke the callback handler with an InvocationContext-shaped object. An
+ * in-memory fs backs it. The handler reads the trace file through
+ * `runtime.fsSync`.
  */
 function callback(values, fsSync = createMockFs()) {
   return runCallbackCommand({

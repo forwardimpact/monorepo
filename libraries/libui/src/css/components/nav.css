@@ -1,8 +1,8 @@
 /**
  * Navigation Drawer
  *
- * Left-hand drawer with vertically stacked links, toggled by top bar button.
- * Open by default on desktop, overlays on mobile.
+ * Left-hand drawer with vertically stacked links. The top bar button toggles
+ * it. On desktop it is open by default. On mobile it overlays.
  */
 
 @layer components {

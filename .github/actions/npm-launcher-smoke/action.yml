@@ -1,11 +1,11 @@
 name: Stamp, pack, and smoke launchers
 description: >
-  Pre-publish gate (registry untouched on failure): stamp each matching launcher
-  with the source's package.json version, pack source + launchers, install all
-  tarballs into a clean dir, then assert per launcher that (1) --help names the
-  invoked bin, (2) the source version resolved from the launcher's own context
-  equals the stamped version, and (3) exactly one physical copy exists, nothing
-  nested under the launcher.
+  Run the pre-publish gate. A failure leaves the registry untouched. Stamp every
+  matched launcher with the source's package.json version. Pack the source and
+  the launchers. Install all tarballs into a clean dir. Then assert three things
+  per launcher: (1) --help names the invoked bin, (2) the source version
+  resolved from the launcher's own context equals the stamped version, and
+  (3) exactly one physical copy exists, with nothing nested under the launcher.
 
 inputs:
   npm-name:
@@ -50,25 +50,25 @@ runs:
         for L in $LAUNCHER_DIRS; do
           CLI=$(basename "$L")
           if [ -z "$SKIP_BANNER" ]; then
-            # Invoke by package path, not node_modules/.bin — the source
-            # tarball ships the same bin names, so the shared install's
-            # .bin shims are a source-vs-launcher collision that --force
-            # resolves arbitrarily; the package path is unambiguous and
-            # still resolves from the launcher's own context.
+            # Invoke by package path. Do not invoke through node_modules/.bin.
+            # The source tarball ships the same bin names, so the shared
+            # install's .bin shims collide between source and launcher.
+            # --force resolves that collision arbitrarily. The package path is
+            # unambiguous. It still resolves from the launcher's own context.
             OUT=$(timeout 30 node "node_modules/$CLI/bin/$CLI.js" --help)
             echo "$OUT" | grep -qF "$CLI" \
               || { echo "::error::$CLI --help banner does not name $CLI"; exit 1; }
           else
-            echo "::notice::Skipping $CLI banner run — source os field excludes this platform"
+            echo "::notice::The source os field excludes this platform, so this run skips the $CLI banner"
           fi
           CLI="$CLI" NPM_NAME="$NPM_NAME" SRC_VERSION="$SRC_VERSION" node --input-type=module <<'EOF'
         import { createRequire } from "node:module";
         import { dirname, join, resolve } from "node:path";
         import { existsSync, readFileSync } from "node:fs";
         const { CLI, NPM_NAME, SRC_VERSION } = process.env;
-        // Resolve the bin subpath, not <src>/package.json — most sources do
-        // not export ./package.json, and a top-level read is vacuous for
-        // the wrong-pin-at-published-version case this assertion catches.
+        // Resolve the bin subpath. Do not resolve <src>/package.json. Most
+        // sources do not export ./package.json. A top-level read is vacuous
+        // for the wrong-pin-at-published-version case this assertion catches.
         const req = createRequire(resolve(`node_modules/${CLI}/bin/${CLI}.js`));
         const binPath = req.resolve(`${NPM_NAME}/bin/${CLI}.js`);
         const pkg = JSON.parse(
@@ -79,11 +79,11 @@ runs:
           process.exit(1);
         }
         if (existsSync(`node_modules/${CLI}/node_modules`)) {
-          console.error(`::error::${CLI} nests its own ${NPM_NAME} copy — the launcher would run the wrong code`);
+          console.error(`::error::${CLI} nests its own ${NPM_NAME} copy. The launcher would run the wrong code`);
           process.exit(1);
         }
         EOF
-          # A physical copy carries "resolved" in npm ls --json; deduped
+          # A physical copy carries "resolved" in npm ls --json. Deduped
           # references are bare {version} objects (npm 10).
           npm ls "$NPM_NAME" --all --json | NPM_NAME="$NPM_NAME" SRC_VERSION="$SRC_VERSION" CLI="$CLI" node -e "
             const data = JSON.parse(require('node:fs').readFileSync(0, 'utf8'));
@@ -97,7 +97,7 @@ runs:
               }
             })(data);
             if (copies !== 1 || !versions.has(SRC_VERSION)) {
-              console.error(\`::error::expected one physical \${NPM_NAME}@\${SRC_VERSION} for \${CLI} — found \${copies} copy(ies) at [\${[...versions].join(', ')}]\`);
+              console.error(\`::error::expected one physical \${NPM_NAME}@\${SRC_VERSION} for \${CLI}. Found \${copies} copy(ies) at [\${[...versions].join(', ')}]\`);
               process.exit(1);
             }
           "

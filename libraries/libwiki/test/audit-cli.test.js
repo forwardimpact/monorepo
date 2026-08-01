@@ -7,8 +7,8 @@ import { makeRuntime, ctxFor } from "./helpers.js";
 
 const PROJECT_ROOT = "/project";
 const WIKI_ROOT = `${PROJECT_ROOT}/wiki`;
-// A finder stub so the audit command resolves a fixed project root (the text
-// emitter relativizes finding paths against it → "wiki/<file>").
+// A finder stub gives the audit command a fixed project root. The text emitter
+// relativizes finding paths against that root → "wiki/<file>".
 const FINDER = { findProjectRoot: () => PROJECT_ROOT };
 const STORYBOARD_AGENTS = [
   "product-manager",
@@ -18,9 +18,10 @@ const STORYBOARD_AGENTS = [
   "technical-writer",
 ];
 
-// The clean-wiki seed every case starts from. `extra` overlays additional
-// wiki files (e.g. an over-budget summary). audit reads these via runtime.fsSync;
-// `wiki-root` is passed explicitly so no real project tree is consulted.
+// Every case starts from this clean-wiki seed. `extra` overlays more wiki
+// files (e.g. an over-budget summary). audit reads these through
+// runtime.fsSync. The caller passes `wiki-root` explicitly, so audit consults
+// no real project tree.
 function cleanWiki(extra = {}) {
   return createMockFs({
     [`${WIKI_ROOT}/MEMORY.md`]: [

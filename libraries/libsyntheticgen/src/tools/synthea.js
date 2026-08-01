@@ -1,10 +1,13 @@
 /**
- * Synthea tool — generates FHIR R4 patient data via Java subprocess.
+ * Synthea tool — generates FHIR R4 patient data through a Java subprocess.
  */
 
 import { join } from "path";
 
-/** Generate synthetic FHIR R4 patient data by running the Synthea JAR via a Java subprocess. */
+/**
+ * Generate synthetic FHIR R4 patient data. Run the Synthea JAR through a
+ * Java subprocess.
+ */
 export class SyntheaTool {
   /**
    * @param {object} deps
@@ -43,15 +46,15 @@ export class SyntheaTool {
   }
 
   /**
-   * Generate FHIR patient data, returning one dataset per resource type.
+   * Generate FHIR patient data. Return one dataset per resource type.
    * @param {object} config
    * @param {string} config.name - Dataset name from DSL
    * @param {number} [config.population=100] - Number of patients
    * @param {string[]} [config.modules] - Synthea modules to enable
-   * @param {string[]} [config.conditions] - Clinical condition IDs to filter
-   *   patients by, matched against `Condition.code.coding[].code` exactly or
-   *   `.display` normalized to `lowercase_underscored` form (the DSL
-   *   condition-id convention).
+   * @param {string[]} [config.conditions] - Clinical condition IDs that
+   *   filter the patients. The filter matches `Condition.code.coding[].code`
+   *   exactly, or it matches `.display` normalized to
+   *   `lowercase_underscored` form (the DSL condition-id convention).
    * @param {number} config.seed - RNG seed
    * @returns {Promise<Dataset[]>}
    */
@@ -125,13 +128,14 @@ export class SyntheaTool {
 
 /**
  * Restrict the flattened FHIR resources to patients whose Condition entries
- * match one of the supplied clinical condition IDs. Matches on `code.coding[].code`
- * exactly, or `code.coding[].display` normalized to lowercase-underscored form
- * (the DSL convention).
+ * match one of the supplied clinical condition IDs. The filter matches
+ * `code.coding[].code` exactly, or it matches `code.coding[].display`
+ * normalized to lowercase-underscored form (the DSL convention).
  *
- * Mutates `byType` in place. No-op when conditions is empty/undefined, when
- * there are no FHIR Condition resources, or when no patients match (so a
- * mis-spelled condition does not silently drop the entire dataset).
+ * The function mutates `byType` in place. It does nothing when conditions is
+ * empty or undefined, when no FHIR Condition resources exist, or when no
+ * patients match. A mis-spelled condition then does not silently drop the
+ * entire dataset.
  */
 function filterByConditions(byType, conditions) {
   if (!conditions?.length) return;
@@ -159,7 +163,7 @@ function filterByConditions(byType, conditions) {
       records.filter((r) => {
         // Patient resources carry their own UUID in `id`. All other FHIR
         // resources (Condition, Encounter, Observation, ...) also carry their
-        // own UUID in `id` — the link back to the patient lives on
+        // own UUID in `id`. The link back to the patient lives on
         // `subject.reference`. Prefer the patient reference when present.
         const subjectId = normalizePatientRef(r.subject?.reference);
         if (subjectId) return matchedPatientIds.has(subjectId);
@@ -171,10 +175,10 @@ function filterByConditions(byType, conditions) {
 }
 
 /**
- * Strip the `urn:uuid:` or `Patient/` prefix from a FHIR reference so
- * the bare patient id can be matched against records elsewhere in the
- * bundle. Exported so `buildFhirCrossRef` in `libsyntheticrender` keys
- * patients by the same id `filterByConditions` does.
+ * Strip the `urn:uuid:` or `Patient/` prefix from a FHIR reference. The
+ * caller can then match the bare patient id against records elsewhere in
+ * the bundle. The module exports this function so `buildFhirCrossRef` in
+ * `libsyntheticrender` keys patients by the same id as `filterByConditions`.
  *
  * @param {string|undefined|null} ref - A FHIR reference (e.g.
  *   `Patient/<id>` or `urn:uuid:<id>`)

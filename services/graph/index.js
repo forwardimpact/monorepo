@@ -3,7 +3,7 @@ import { services } from "@forwardimpact/librpc";
 const { GraphBase } = services;
 
 /**
- * Graph service for querying RDF graph data
+ * Graph service that queries RDF graph data
  */
 export class GraphService extends GraphBase {
   #graphIndex;
@@ -37,7 +37,7 @@ export class GraphService extends GraphBase {
   }
 
   /**
-   * Query graph index using pattern matching
+   * Query the graph index by pattern
    * @param {import("@forwardimpact/libtype").graph.PatternQuery} req - Pattern query request
    * @returns {Promise<import("@forwardimpact/libtype").tool.ToolCallResult>} Tool call result object
    */

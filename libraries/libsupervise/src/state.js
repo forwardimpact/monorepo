@@ -4,7 +4,7 @@
  */
 
 /**
- * Process state tracking
+ * Tracks the state of a process
  */
 export class ProcessState {
   #clock;
@@ -82,7 +82,7 @@ export class ProcessState {
 
   /**
    * Gets the restart count
-   * @returns {number} Number of restarts since last manual start
+   * @returns {number} Number of restarts since the last manual start
    */
   getRestartCount() {
     return this.#restartCount;
@@ -94,7 +94,7 @@ export class ProcessState {
   }
 
   /**
-   * Checks if the service is in a running state
+   * Checks if the service is starting or up
    * @returns {boolean} True if starting or up
    */
   isRunning() {

@@ -23,7 +23,7 @@ describe("TraceVisualizer - basics", () => {
   });
 
   describe("Constructor", () => {
-    test("throws error when traceIndex is not provided", () => {
+    test("throws error when the caller does not provide traceIndex", () => {
       assertThrowsMessage(
         () => new TraceVisualizer(null),
         /traceIndex is required/,
@@ -39,7 +39,7 @@ describe("TraceVisualizer - basics", () => {
       );
     });
 
-    test("creates visualizer instance when traceIndex is provided", () => {
+    test("creates visualizer instance when the caller provides traceIndex", () => {
       const vis = new TraceVisualizer(traceIndex);
       assert.ok(vis, "Should create instance successfully");
     });

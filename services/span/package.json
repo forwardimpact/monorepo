@@ -20,10 +20,10 @@
     {
       "user": "Platform Builders",
       "goal": "Prove Agent Changes",
-      "trigger": "Finishing an agent improvement and realizing there is no centralized place to store and compare spans.",
-      "bigHire": "collect spans from any product without each one managing its own storage.",
-      "littleHire": "send spans from a product and trust they are queryable later.",
-      "competesWith": "per-product span files; manual log comparison; skipping observability entirely"
+      "trigger": "An engineer finishes an agent improvement. No centralized place exists to store and compare spans.",
+      "bigHire": "collect spans from any product without separate storage in each one.",
+      "littleHire": "send spans from a product. Trust they are queryable later.",
+      "competesWith": "per-product span files; manual log comparison; no observability at all"
     }
   ],
   "type": "module",

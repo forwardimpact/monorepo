@@ -11,11 +11,12 @@ permissions:
   contents: read
 
 jobs:
-  # Fan the kata-skills family (6 tasks × runs:5 = 30 cells) across machines via
-  # the benchmark reusable workflow, then merge the shard ledgers into one
-  # pass@k. Sharding — not a raised per-job timeout — keeps the run inside the
-  # GitHub Actions ceiling. The filesystem work-tracker is the reusable
-  # workflow's env contract; this caller only picks the family and shard count.
+  # Fan the kata-skills family (6 tasks × runs:5 = 30 cells) across machines
+  # through the benchmark reusable workflow. Then merge the shard ledgers into
+  # one pass@k. The shards keep the run inside the GitHub Actions ceiling. A
+  # raised per-job timeout does not. The filesystem work-tracker is the
+  # reusable workflow's env contract. This caller only picks the family and
+  # shard count.
   benchmark:
     uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@027b1a5947f5e1bf6752fba7b68a753d8957fde9 # v1.0.8
     with:

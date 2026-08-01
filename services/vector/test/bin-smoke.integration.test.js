@@ -4,11 +4,11 @@ import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// Smoke tests: spawn the real server.js with each short-circuit token under an
-// env with every SERVICE_* variable stripped (the env a freshly-installed cask
-// user has). Each token must print output and exit 0 without binding a port —
-// the "listening" log line is written via the telemetry logger to stderr, so
-// the capture merges stdout and stderr to make the no-port-bind guard real.
+// Smoke tests. Spawn the real server.js with each short-circuit token. Strip
+// every SERVICE_* variable from the env, which is the env a freshly-installed
+// cask user has. Each token must print output, exit 0, and bind no port. The
+// telemetry logger writes the "listening" log line to stderr, so the capture
+// merges stdout and stderr to make the no-port-bind guard real.
 const serverJs = join(
   dirname(fileURLToPath(import.meta.url)),
   "..",

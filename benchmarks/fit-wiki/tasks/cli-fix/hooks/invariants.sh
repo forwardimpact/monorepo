@@ -1,7 +1,7 @@
 #!/bin/sh
 set -u
-# Emit one check row per probe; the rows carry the verdict and the exit code
-# stays script health only.
+# Emit one check row per probe. The rows carry the verdict. The exit code
+# reports script health only.
 row() {
   name="$1"; extra="$2"; shift 2
   if "$@" >/dev/null 2>&1; then
@@ -11,11 +11,11 @@ row() {
   fi
 }
 
-# The fix must resolve the audit findings AND leave the seeded content
-# standing. `test -f` only proves the file still exists — a fix that guts
-# the body (or truncates it to satisfy the audit markers) would still pass.
-# The "intact" probes are anti-tamper gates so integrity failures can never
-# be traded for partial credit; the audit outcome is the scored check.
+# The fix must resolve the audit findings AND leave the seeded content in
+# place. `test -f` only proves the file still exists. A fix that guts the
+# body (or truncates it to satisfy the audit markers) would still pass.
+# The "intact" probes are anti-tamper gates. They make sure nobody trades an
+# integrity failure for partial credit. The audit outcome is the scored check.
 row audit-passes '' \
   sh -c 'cd "$1" && npx fit-wiki audit --today 2026-05-24' _ "$AGENT_CWD"
 row summary-intact ',"gate":true' \

@@ -1,9 +1,9 @@
 name: Curate wiki
 
-# The shared-state wiki audit, on a defined cadence. This is the SOLE home of
-# the shared-wiki audit verdict — the per-PR `wiki` check (check-context.yml)
-# no longer reads live wiki state. See the gate doc beside the `wiki` job in
-# check-context.yml.
+# The shared-state wiki audit runs on a defined cadence. This is the SOLE home
+# of the shared-wiki audit verdict. The per-PR `wiki` check
+# (check-context.yml) no longer reads live wiki state. See the gate doc beside
+# the `wiki` job in check-context.yml.
 on:
   schedule:
     - cron: "0 6 * * *" # daily 06:00 UTC
@@ -13,7 +13,7 @@ permissions:
   contents: read
   issues: write
 
-# Serialize overlapping runs (a manual dispatch during the daily tick) so the
+# Serialize runs that overlap (a manual dispatch during the daily tick) so the
 # search-then-create issue logic below cannot open a second issue.
 concurrency:
   group: curate-wiki
@@ -32,9 +32,10 @@ jobs:
         with:
           repository: ${{ github.repository }}.wiki
           path: wiki
-      # Audit the shared wiki and, when dirty, route findings to the single
-      # wiki-curation issue (create or comment). The label/search/create-or-
-      # comment logic lives in `gemba-wiki curate`, not here.
+      # Audit the shared wiki. When it is dirty, route the findings to the
+      # single wiki-curation issue (create or comment). `gemba-wiki curate`
+      # holds the label, search, and create-or-comment logic. This workflow
+      # does not.
       - name: Audit and route findings
         env:
           GH_TOKEN: ${{ github.token }}

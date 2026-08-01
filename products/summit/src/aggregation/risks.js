@@ -12,14 +12,15 @@
  *    level in the same capability at the same proficiency.
  *
  * All functions are pure transformations over already-computed
- * coverage — no new aggregation pass is needed.
+ * coverage. They need no new aggregation pass.
  */
 
 import { expandModifiersToSkills } from "@forwardimpact/libskill/modifiers";
 
 /**
- * Minimum engineer count for a concentration risk to register. Exposed
- * as a constant so it can be tuned without touching the detector body.
+ * Minimum engineer count for a concentration risk to register. The
+ * module exports it as a constant so you can tune it without a change
+ * to the detector body.
  */
 export const CONCENTRATION_THRESHOLD = 3;
 
@@ -56,7 +57,7 @@ export const CONCENTRATION_THRESHOLD = 3;
  */
 
 /**
- * Orchestrator — run all three detectors and return a combined
+ * Orchestrator. Run all three detectors and return a combined
  * `TeamRisks` object.
  *
  * @param {object} params
@@ -102,12 +103,13 @@ export function detectSinglePointsOfFailure(coverage) {
 }
 
 /**
- * Detect critical gaps — skills the team's composition implies it
- * needs, but where no member holds working+ proficiency.
+ * Detect critical gaps. A critical gap is a skill the team's
+ * composition implies it needs. No member holds it at working+
+ * proficiency.
  *
- * The "needed" set is the union of each member's discipline core +
- * supporting + broad skills, plus any skills in capabilities where the
- * member's track applies a positive modifier.
+ * The "needed" set is the union of each member's discipline core,
+ * supporting, and broad skills. It also includes any skills in
+ * capabilities where the member's track applies a positive modifier.
  *
  * @param {import("./coverage.js").ResolvedTeam} resolvedTeam
  * @param {import("./coverage.js").TeamCoverage} coverage
@@ -186,8 +188,9 @@ function buildCriticalGaps(needed, coverage) {
 }
 
 /**
- * Detect concentration risks — (level, capability, proficiency) buckets
- * with three or more team members all clustered together.
+ * Detect concentration risks. A concentration risk is a (level,
+ * capability, proficiency) bucket with three or more team members all
+ * clustered together.
  *
  * @param {import("./coverage.js").ResolvedTeam} resolvedTeam
  * @param {import("./coverage.js").TeamCoverage} coverage

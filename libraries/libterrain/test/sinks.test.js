@@ -25,8 +25,8 @@ function makeLogger() {
 }
 
 // Build an in-memory fs (optionally pre-seeded) and a runtime over it. WriteSink
-// performs every write/clean through `runtime.fs`, so reads of the seeded map
-// back-verify what the sink materialised — no real tmpdir needed.
+// runs every write and clean through `runtime.fs`, so reads of the seeded map
+// back-verify what the sink materialised. The test needs no real tmpdir.
 function fsRuntime(seed = {}) {
   const fs = createMockFs(seed);
   return { fs, runtime: createTestRuntime({ fs }) };
@@ -117,7 +117,7 @@ describe("WriteSink", () => {
     assert.deepStrictEqual(evidence, { events: [{ id: 1 }] });
   });
 
-  test("cleans top-level subdirectories of files before writing", async () => {
+  test("cleans top-level subdirectories of files before it writes", async () => {
     // Pre-seed a stale file that the cleanup step should delete.
     const stalePath = join(ROOT, "data/knowledge/stale.html");
     const { fs, runtime } = fsRuntime({ [stalePath]: "<p>stale</p>" });
@@ -140,7 +140,7 @@ describe("WriteSink", () => {
     );
   });
 
-  test("skips evidence sidecar when entities.activity.evidence is absent", async () => {
+  test("skips the evidence sidecar when entities.activity.evidence is absent", async () => {
     const { fs, runtime } = fsRuntime();
     const result = makeResult({
       files: new Map([["data/knowledge/x.html", "<p>hi</p>"]]),
@@ -158,7 +158,7 @@ describe("WriteSink", () => {
     );
   });
 
-  test("writes under a caller-chosen outputRoot, not the project root", async () => {
+  test("writes under a caller-chosen outputRoot and never under the project root", async () => {
     const BUILD = "/build/.synthetic";
     const { fs, runtime } = fsRuntime();
     const result = makeResult({
@@ -179,15 +179,15 @@ describe("WriteSink", () => {
     assert.strictEqual(
       fs.existsSync(join(ROOT, "products/polaris/site/seed.sql")),
       false,
-      "nothing should be written under the project root",
+      "nothing should land under the project root",
     );
   });
 
   test("refuses to clean a directory that escapes the output root", async () => {
     const { runtime } = fsRuntime();
-    // A relative path climbing out of the output root would otherwise resolve
-    // the clean target to a sibling of the root — the catastrophic rm the guard
-    // exists to prevent.
+    // A relative path that climbs out of the output root would otherwise
+    // resolve the clean target to a sibling of the root. That is the
+    // catastrophic rm the guard prevents.
     const result = makeResult({
       files: new Map([["../../evil/x.txt", "boom"]]),
     });
@@ -217,7 +217,7 @@ describe("WriteSink", () => {
 });
 
 describe("LoadSink", () => {
-  test("uploads formatted raw to Supabase without touching the filesystem", async () => {
+  test("uploads formatted raw to Supabase and never touches the filesystem", async () => {
     const { fs, runtime } = fsRuntime();
     const result = makeResult({
       files: new Map([["data/knowledge/x.html", "<p>x</p>"]]),
@@ -241,7 +241,7 @@ describe("LoadSink", () => {
     });
     const stats = await sink.accept(result);
 
-    // LoadSink owns Supabase upload only — no local writes.
+    // LoadSink owns the Supabase upload only. It makes no local writes.
     assert.strictEqual(stats.filesWritten, 0);
     assert.strictEqual(stats.rawLoaded, 1);
     assert.strictEqual(stats.rawWritten, 0);
@@ -251,11 +251,12 @@ describe("LoadSink", () => {
       filepath: "alice/note.md",
     });
     assert.strictEqual(calls[0].content, expected);
-    // No local writes: the in-memory fs stays empty under the root.
+    // The sink makes no local writes. The in-memory fs stays empty under
+    // the root.
     assert.strictEqual(fs.readdirSync(ROOT).length, 0);
   });
 
-  test("surfaces Supabase load errors via loadErrorMessages", async () => {
+  test("surfaces Supabase load errors through loadErrorMessages", async () => {
     const result = makeResult({
       rawDocuments: new Map([["alice/note.md", "body"]]),
     });
@@ -325,11 +326,11 @@ describe("CompositeSink", () => {
     assert.strictEqual(stats.rawWritten, 1);
     assert.strictEqual(stats.rawLoaded, 1);
     assert.strictEqual(stats.loadErrors, 0);
-    // Composite preserves the local copy written by WriteSink.
+    // Composite preserves the local copy that WriteSink wrote.
     assert.ok(fs.existsSync(join(ROOT, "data/activity/raw/alice/note.md")));
   });
 
-  test("rejects empty sink list", () => {
+  test("rejects an empty sink list", () => {
     assert.throws(() => new CompositeSink([]), /non-empty/);
   });
 });
@@ -386,7 +387,7 @@ describe("ProseCacheWriteSink", () => {
     assert.strictEqual(cache.savedTo, cachePath);
   });
 
-  test("constructor requires a cache", () => {
+  test("the constructor requires a cache", () => {
     assert.throws(() => new ProseCacheWriteSink({}), /cache is required/);
   });
 });

@@ -27,13 +27,14 @@ describe("prepareJobDetail", () => {
       capabilities: makeCapabilities(),
     });
 
-    // derivedResponsibilities is sorted by proficiency desc, then skill count, then ordinalRank
+    // derivedResponsibilities comes back sorted by proficiency desc, then
+    // skill count, then ordinalRank
     const expectedOrder = view.derivedResponsibilities.map((r) => r.capability);
     assert.deepStrictEqual(view.capabilityOrder, expectedOrder);
     assert.ok(view.capabilityOrder.length > 0);
   });
 
-  test("capabilityOrder is empty when no capabilities provided", () => {
+  test("capabilityOrder is empty when the call omits capabilities", () => {
     const view = prepareJobDetail({
       discipline: makeDiscipline(),
       level: makeLevel(),

@@ -36,7 +36,7 @@ describe("ElapsedScheduler", () => {
     expect(fired).toEqual(["c-past"]);
   });
 
-  test("scheduling the same id replaces the previous timer", async () => {
+  test("schedule with the same id replaces the previous timer", async () => {
     const fired = [];
     const scheduler = new ElapsedScheduler({
       clock,
@@ -49,7 +49,7 @@ describe("ElapsedScheduler", () => {
     expect(scheduler.size).toBe(0);
   });
 
-  test("cancel prevents firing", async () => {
+  test("cancel stops the timer before it fires", async () => {
     const fired = [];
     const scheduler = new ElapsedScheduler({
       clock,
@@ -71,7 +71,7 @@ describe("ElapsedScheduler", () => {
     expect(scheduler.size).toBe(0);
   });
 
-  test("rejections from onFire are surfaced to onError, not unhandled", async () => {
+  test("the scheduler sends onFire rejections to onError and never leaves them unhandled", async () => {
     const errors = [];
     const scheduler = new ElapsedScheduler({
       clock,

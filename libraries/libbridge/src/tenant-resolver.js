@@ -3,8 +3,9 @@
  *
  * Bridges supply a resolver to libbridge primitives (`Dispatcher`,
  * `CallbackRegistry`, callback handlers). The two implementations share a
- * duck-typed surface — `resolve`, `resolveByRepo`, `resolveByTenantId` —
- * so libbridge depends on the shape, not the implementation.
+ * duck-typed surface: `resolve`, `resolveByRepo`, and `resolveByTenantId`.
+ * So libbridge depends on the shape. It does not depend on the
+ * implementation.
  *
  * @typedef {object} Tenant
  * @property {string} tenant_id
@@ -21,7 +22,7 @@
 
 /**
  * Single-tenant resolver. Returns one fixed `default` tenant for every
- * resolution call. Used in single-tenant deployments where the bridge does
+ * resolution call. Single-tenant deployments use it when the bridge does
  * not reach `services/tenancy`.
  */
 export class DefaultTenantResolver {
@@ -61,11 +62,11 @@ export class DefaultTenantResolver {
 }
 
 /**
- * Multi-tenant resolver. Wraps a `services/tenancy` gRPC client; returns
- * only `active` tenants from `resolve` and `resolveByRepo` (callers must
- * treat a `null` return as "no active tenant"). `resolveByTenantId` returns
- * the registry row regardless of state so callback verification can compare
- * the URL's tenant id against any known tenant.
+ * Multi-tenant resolver. It wraps a `services/tenancy` gRPC client. It
+ * returns only `active` tenants from `resolve` and `resolveByRepo`. Callers
+ * must treat a `null` return as "no active tenant". `resolveByTenantId`
+ * returns the registry row for any state. Callback verification can then
+ * compare the URL's tenant id against any known tenant.
  */
 export class RegistryTenantResolver {
   #client;
@@ -102,10 +103,10 @@ export class RegistryTenantResolver {
 }
 
 /**
- * Fail fast when a bridge is in multi-tenant mode but the tenancy client that
- * mode requires was not injected. The bridge's `tenancy_mode` config is the
- * single source of truth; a multi config missing its collaborators is a wiring
- * error, not single-tenant mode.
+ * Fail fast when a bridge runs in multi-tenant mode without the tenancy
+ * client that the mode requires. The bridge's `tenancy_mode` config is the
+ * single source of truth. A multi config without its collaborators is a
+ * wiring error. It is not single-tenant mode.
  *
  * @param {boolean} multiTenant
  * @param {object} [tenancyClient]

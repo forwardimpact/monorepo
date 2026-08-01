@@ -1,28 +1,28 @@
 ---
 name: monorepo-setup
 description: >
-  Stand up a new Monorepo-standard repository end to end — bootstrap the
+  Stand up a new Monorepo-standard repository end to end. Bootstrap the
   skeleton, install the skill packs, run jidoka-setup then kata-setup, and
   fill the seams neither owns (root package.json, directory tree, agent
-  profiles, CI, remote creation). Use when creating a Forward Impact-style repo
-  from nothing, or when one exists but the cross-cutting wiring is missing.
+  profiles, CI, remote creation). Use when you create a Forward Impact-style
+  repo from nothing, or when one exists but the cross-cutting wiring is
+  missing.
 ---
 
 # Set Up a Monorepo
 
 Orchestrate a full repository bootstrap to the three standards: structure
-([Monorepo](https://www.monorepo.team/)),
-instruction architecture (via the `jidoka-setup` skill), and the agent team
-(via the `kata-setup` skill).
+([Monorepo](https://www.monorepo.team/)), instruction architecture (through the
+`jidoka-setup` skill), and the agent team (through the `kata-setup` skill).
 
-This skill owns only the **seams** — the order of operations and the artifacts
-the two setup skills assume but never create. It does not restate their
-procedures: when a sub-skill changes, follow it; this skill stays put. Run it
-once per repository.
+This skill owns only the **seams**. The seams are the order of operations and
+the artifacts the two setup skills assume but never create. It does not restate
+their procedures. When a sub-skill changes, follow it. This skill stays put.
+Run it once per repository.
 
 ## When to Use
 
-- Creating a Forward Impact-style repository from nothing
+- You create a Forward Impact-style repository from nothing
 - A repository exists but the cross-cutting wiring (root manifest, directory
   tree, agent profiles, CI, remote) is missing
 
@@ -30,28 +30,33 @@ once per repository.
 
 <read_do_checklist goal="Confirm the ground before touching the repo">
 
-- [ ] `gh auth status` shows access to the target owner; `apm` is on PATH.
-- [ ] The target repo does not exist yet (`gh repo view <owner>/<name>`).
-- [ ] Decide name, visibility, and timezone before generating anything.
+- [ ] Confirm `gh auth status` shows access to the target owner. Confirm `apm`
+      is on PATH.
+- [ ] Confirm the target repo does not exist (`gh repo view <owner>/<name>`).
+- [ ] Decide the name, the visibility, and the timezone before you generate
+      anything.
 
 </read_do_checklist>
 
 <do_confirm_checklist goal="Verify the repo stands before handing off">
 
-- [ ] Git, the root `package.json`, and the Monorepo directory tree exist.
-- [ ] `scripts/bootstrap.sh` exists and is executable (the `bootstrap` action
-      runs it).
-- [ ] Both skill packs and the kata agent profiles are under `.claude/`.
-- [ ] `jidoka-setup` and `kata-setup` were each invoked as skills and ran to
-      completion — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, `.jidoka/`, and
-      the agent workflows all exist.
-- [ ] The check workflows exist (`check-quality`, `check-test`, `check-context`)
-      and `jidoka` runs clean.
-- [ ] The remote exists, the wiki is on, and `KATA_KILLSWITCH` is engaged.
-- [ ] `.claude/settings.json` drives session bootstrap (curl `fit-install.sh`,
-      then `scripts/bootstrap.sh`) and the wiki lifecycle, and the wiki holds
-      `Home.md`, `MEMORY.md`, and `STATUS.md`.
-- [ ] `SETUP.md` lists the operator's remaining credential steps.
+- [ ] Confirm git, the root `package.json`, and the Monorepo directory tree
+      exist.
+- [ ] Confirm `scripts/bootstrap.sh` exists and is executable (the `bootstrap`
+      action runs it).
+- [ ] Confirm both skill packs and the kata agent profiles are under
+      `.claude/`.
+- [ ] Confirm you invoked `jidoka-setup` and `kata-setup` as skills and ran
+      each to completion. `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`,
+      `.jidoka/`, and the agent workflows all exist.
+- [ ] Confirm the check workflows exist (`check-quality`, `check-test`,
+      `check-context`) and `jidoka` runs clean.
+- [ ] Confirm the remote exists, the wiki is on, and `KATA_KILLSWITCH` is
+      engaged.
+- [ ] Confirm `.claude/settings.json` drives session bootstrap (curl
+      `fit-install.sh`, then `scripts/bootstrap.sh`) and the wiki lifecycle.
+      Confirm the wiki holds `Home.md`, `MEMORY.md`, and `STATUS.md`.
+- [ ] Confirm `SETUP.md` lists the operator's remaining credential steps.
 
 </do_confirm_checklist>
 
@@ -59,22 +64,21 @@ once per repository.
 
 ### Step 1: Bootstrap the skeleton
 
-`git init`, default branch `main`, then the seam files from
+Run `git init` with default branch `main`. Then add the seam files from
 [references/repo-skeleton.md](references/repo-skeleton.md): `.gitignore`,
-`scripts/bootstrap.sh` (the `bootstrap` action runs it in every Kata workflow —
-without it they fail `exit 127`), and the [Monorepo standard][monorepo]
-top-level directories, each with a `README.md` naming its jobs. See [the
-Monorepo standard][monorepo] for what each directory is for — do not invent
-structure. Commit.
+`scripts/bootstrap.sh`, and the [Monorepo standard][monorepo] top-level
+directories. Give each directory a `README.md` that names its jobs. The
+`bootstrap` action runs `scripts/bootstrap.sh` in every Kata workflow. Without
+it the workflows fail with `exit 127`. See [the Monorepo standard][monorepo]
+for what each directory is for. Do not invent structure. Commit.
 
 ### Step 2: Add the root package.json
 
 Create the root manifest from
-[references/repo-skeleton.md](references/repo-skeleton.md). This is the seam
-`jidoka-setup` assumes: it wires `jidoka` into the check task but never
-creates the manifest. The `jidoka` bin ships in the product package
-`@forwardimpact/jidoka` (no bare launcher), so add that package as a
-devDependency (0.2.0+).
+[references/repo-skeleton.md](references/repo-skeleton.md). `jidoka-setup`
+assumes this seam. It wires `jidoka` into the check task. It never creates the
+manifest. The `jidoka` bin ships in the product package `@forwardimpact/jidoka`
+(no bare launcher). So add that package as a devDependency (0.2.0+).
 
 ### Step 3: Install the skill packs
 
@@ -83,63 +87,65 @@ apm install forwardimpact/jidoka-skills forwardimpact/kata-skills --target claud
 ```
 
 Both sub-skills assume their packs sit in `.claude/skills/`. APM integrates
-skills only — confirm the kata **agent profiles** also landed in
-`.claude/agents/`. If missing, copy them from the kata-skills repo
+skills only. Confirm the kata **agent profiles** also landed in
+`.claude/agents/`. If they are missing, copy them from the kata-skills repo
 (`agents/*.agent.md` → `.claude/agents/<name>.md`, with the flat
 `agents/x-*.md` reference files).
 
-The `apm.yml` this writes makes the packs reconstitutable:
-`scripts/bootstrap.sh` runs `apm install` on every fresh environment (Step 1),
-so you may commit `.claude/skills/` and `.claude/agents/` or gitignore them as
-build output — either satisfies the run-time requirement that they be present.
+The `apm.yml` this writes makes the packs reconstitutable.
+`scripts/bootstrap.sh` runs `apm install` on every fresh environment (Step 1).
+So you may commit `.claude/skills/` and `.claude/agents/`, or you may gitignore
+them as build output. Either choice satisfies the run-time requirement that
+they be present.
 
 ### Step 4: Invoke jidoka-setup, then kata-setup
 
 These two upstream skills are the reason this orchestration exists. **Invoke
-each one as a skill and run it to completion** — do not read them for reference
-and hand-roll their work, and do not move on while one is unfinished. This is a
-hard gate, not a pointer: the most common failure of this step is treating
-"run jidoka-setup" as prose and skipping the actual skill invocation.
+each one as a skill and run it to completion.** Do not read them for reference
+and hand-roll their work. Do not move on while one is unfinished. This is a
+hard gate. It is not a pointer. The most common failure of this step is to
+treat "run jidoka-setup" as prose and to skip the actual skill invocation.
 
-Invoke `jidoka-setup` first, then `kata-setup`. Order matters: the root
-identity files must exist before the agent team references them. Each skill owns
-its domain end to end — follow it, do not restate its steps here. Answer their
-configuration prompts with the choices from the entry checklist.
+Invoke `jidoka-setup` first, then `kata-setup`. Order matters. The root
+identity files must exist before the agent team references them. Each skill
+owns its domain end to end. Follow it. Do not restate its steps here. Answer
+their configuration prompts with the choices from the entry checklist.
 
-Do not proceed to Step 5 until both have run. Confirm each left its artifacts:
-`jidoka-setup` — `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and
-`.jidoka/`; `kata-setup` — the agent workflows under `.github/workflows/`. If
-an artifact is missing, the skill did not run — invoke it before continuing.
+Do not proceed to Step 5 until both skills finish. Confirm each skill left its
+artifacts. `jidoka-setup` leaves `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`, and
+`.jidoka/`. `kata-setup` leaves the agent workflows under `.github/workflows/`.
+If an artifact is missing, the skill did not run. Invoke it before you continue.
 
 ### Step 5: Add the check CI
 
-`jidoka-setup` wires `jidoka` into the check task; add the check workflows
-that run on push and pull request — separate from the agent workflows
-`kata-setup` generates. One workflow per concern, never a single `check.yml`: at
-minimum `check-quality.yml`, `check-test.yml`, and `check-context.yml`. SHA-pin
-every action. Templates in
+`jidoka-setup` wires `jidoka` into the check task. Add the check workflows that
+run on push and pull request. They stay separate from the agent workflows
+`kata-setup` generates. Use one workflow per concern. Never use a single
+`check.yml`. Add at minimum `check-quality.yml`, `check-test.yml`, and
+`check-context.yml`. SHA-pin every action. The templates are in
 [references/check-workflows.md](references/check-workflows.md).
 
 ### Step 6: Create the remote, then seed and initialize the wiki
 
-`gh repo create <owner>/<name> --source=. --push` at the chosen visibility, then
-enable the wiki and **pre-engage the killswitch** (`gh variable set
-KATA_KILLSWITCH --body 1`) so the agent workflows stay dormant until the
-operator finishes `kata-setup`'s App and secret steps. Those credential-bound
-steps cannot run from here — record them in an operator runbook (`SETUP.md`).
+Run `gh repo create <owner>/<name> --source=. --push` at the chosen visibility.
+Then enable the wiki and **pre-engage the killswitch**
+(`gh variable set KATA_KILLSWITCH --body 1`). The agent workflows then stay
+dormant until the operator finishes `kata-setup`'s App and secret steps. Those
+credential-bound steps cannot run from here. Record them in an operator runbook
+(`SETUP.md`).
 
-Then stand up the agent team's memory: add the `.claude/settings.json` session
-hooks (SessionStart curls the pinned `fit-install.sh` release, then runs
-`scripts/bootstrap.sh`; Stop pushes the wiki), `gemba-wiki init` the wiki, seed
-the three named ledgers (`Home.md`, `MEMORY.md`, `STATUS.md`)
-empty-but-scaffolded, and `gemba-wiki push`. Full sequence in
+Then stand up the agent team's memory. Add the `.claude/settings.json` session
+hooks. SessionStart curls the pinned `fit-install.sh` release, then runs
+`scripts/bootstrap.sh`. Stop pushes the wiki. Run `gemba-wiki init` on the
+wiki. Seed the three named ledgers (`Home.md`, `MEMORY.md`, `STATUS.md`)
+empty-but-scaffolded. Then run `gemba-wiki push`. The full sequence is in
 [references/wiki-init.md](references/wiki-init.md).
 
 ### Step 7: Verify the composition
 
-Run the check task: `jidoka` passes clean with the vendored packs and agent
-profiles present. Confirm `gh workflow list` shows the generated workflows, and
-that the wiki clones with its three ledgers via `gemba-wiki pull`.
+Run the check task. `jidoka` passes clean with the vendored packs and agent
+profiles present. Confirm `gh workflow list` shows the generated workflows.
+Confirm the wiki clones with its three ledgers through `gemba-wiki pull`.
 
 ## Documentation
 

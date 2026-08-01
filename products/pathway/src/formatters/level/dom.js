@@ -1,5 +1,5 @@
 /**
- * Level formatting for DOM output
+ * Level formatter for DOM output
  */
 
 import {
@@ -121,7 +121,7 @@ function createBaseProfileSection(view) {
   );
 }
 
-/** Build a level detail page DOM tree with titles, expectations, and job builder links. */
+/** Build a DOM tree for the level detail page with titles, expectations, and job builder links. */
 export function levelToDOM(level, { standard, showBackLink = true } = {}) {
   const view = prepareLevelDetail(level);
   const emoji = standard ? getConceptEmoji(standard, "level") : "📊";

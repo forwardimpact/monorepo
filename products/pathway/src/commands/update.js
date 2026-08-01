@@ -1,8 +1,8 @@
 /**
  * Update Command
  *
- * Re-downloads the distribution bundle from the published site URL
- * and updates the local ~/.fit/data/pathway/ installation.
+ * Re-downloads the distribution bundle from the published site URL.
+ * Updates the local ~/.fit/data/pathway/ installation.
  * Updates the global @forwardimpact/pathway package if the version changed.
  */
 
@@ -17,8 +17,9 @@ const INSTALL_DIR = join(BASE_DIR, "pathway");
 
 /**
  * Run the update command.
- * Reads siteUrl from the installed standard.yaml, re-downloads the bundle,
- * extracts data, and updates the global pathway package if the version changed.
+ * Reads siteUrl from the installed standard.yaml. Re-downloads the bundle.
+ * Extracts the data. Updates the global pathway package if the version
+ * changed.
  *
  * @param {Object} params - Command parameters
  * @param {string} params.dataDir - Path to data directory (may be the installed one)
@@ -36,7 +37,7 @@ export async function runUpdateCommand({
   } catch {
     console.error("Error: No local installation found at ~/.fit/data/pathway/");
     console.error(
-      "Install first using the install.sh script from your organization's pathway site.",
+      "Install first with the install.sh script from your organization's pathway site.",
     );
     runtime.proc.exit(1);
   }
@@ -144,7 +145,7 @@ export async function runUpdateCommand({
 }
 
 /**
- * Run a subprocess through the injected collaborator, throwing on non-zero exit.
+ * Run a subprocess through the injected collaborator. Throw on a non-zero exit.
  * Preserves the fail-fast behavior of the previous `execFileSync` calls.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
  * @param {string} cmd - Command to run

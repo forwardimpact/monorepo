@@ -3,7 +3,7 @@ import { DataFactory } from "n3";
 import { generateHash } from "@forwardimpact/libsecret";
 
 /**
- * Skolemizer for converting blank nodes to URIs using content-based hashing
+ * Skolemizer that converts blank nodes to URIs with a content-based hash
  */
 export class Skolemizer {
   #baseUri;
@@ -17,22 +17,23 @@ export class Skolemizer {
   }
 
   /**
-   * Skolemize blank nodes using content-based hashing for cross-document deduplication
+   * Skolemize blank nodes with a content-based hash to deduplicate them
+   * across documents
    * @param {Array} quads - Array of quad objects to skolemize
-   * @returns {Array} Array of quads with blank nodes replaced by skolem URIs
+   * @returns {Array} Array of quads where skolem URIs replace the blank nodes
    */
   skolemize(quads) {
     const blankNodeMap = new Map();
     const { namedNode } = DataFactory;
 
-    // Create deterministic skolem IRI based on blank node content
+    // Create a deterministic skolem IRI from the blank node content
     const getSkolemIri = (blankNodeId) => {
       if (!blankNodeMap.has(blankNodeId)) {
-        // Collect all quads where this blank node appears as subject
+        // Collect all quads where this blank node appears as the subject
         const nodeQuads = quads
           .filter((q) => q.subject.value === blankNodeId)
           .map((q) => {
-            // Create canonical representation of each triple
+            // Create a canonical representation of each triple
             const obj =
               q.object.termType === "BlankNode"
                 ? `_:${q.object.value}`
@@ -42,10 +43,10 @@ export class Skolemizer {
           .sort()
           .join("\n");
 
-        // Hash the content for deterministic URI
+        // Hash the content for a deterministic URI
         const hash = generateHash(nodeQuads);
 
-        // Use global skolem namespace (same base for ALL documents)
+        // Use the global skolem namespace (same base for ALL documents)
         const skolemIri = `${this.#baseUri}${hash}`;
 
         blankNodeMap.set(blankNodeId, skolemIri);

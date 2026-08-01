@@ -1,7 +1,7 @@
 /**
  * Simple Markdown to HTML converter
  *
- * Converts common markdown syntax to HTML. Designed for job descriptions
+ * Converts common markdown syntax to HTML. Use it for job descriptions
  * with headings, lists, bold text, and paragraphs.
  */
 
@@ -29,7 +29,7 @@ function classifyLine(line) {
   return { type: "paragraph", html: `<p>${formatInlineMarkdown(line)}</p>` };
 }
 
-/** Render classified tokens to HTML, managing list open/close state. */
+/** Render classified tokens to HTML. Manage the list open/close state. */
 function renderTokens(tokens) {
   const htmlLines = [];
   let inList = false;
@@ -50,7 +50,7 @@ function renderTokens(tokens) {
       htmlLines.push(token.html);
       continue;
     }
-    // heading or paragraph — close any open list first
+    // Close any open list before a heading or a paragraph
     if (inList) {
       htmlLines.push("</ul>");
       inList = false;

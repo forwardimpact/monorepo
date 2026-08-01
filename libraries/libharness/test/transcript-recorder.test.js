@@ -4,7 +4,7 @@ import assert from "node:assert";
 import { createTranscriptRecorder } from "../src/transcript-recorder.js";
 import { createNoopRedactor } from "../src/redaction.js";
 
-/** Redactor stub replacing a fixed needle in every string it walks. */
+/** Redactor stub that replaces a fixed needle in every string it walks. */
 const needleRedactor = (needle, placeholder) => ({
   redactValue: (value) =>
     typeof value === "string" ? value.split(needle).join(placeholder) : value,
@@ -60,7 +60,7 @@ describe("createTranscriptRecorder", () => {
     assert.match(rendered, /Prompt with \[REDACTED\] too\./);
   });
 
-  test("message lines pass through unredacted by the recorder", () => {
+  test("the recorder passes message lines through unredacted", () => {
     const recorder = createTranscriptRecorder({
       redactor: needleRedactor("hunter2", "[REDACTED]"),
     });

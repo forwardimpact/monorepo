@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // One-shot migration script — retroactive protocol compliance for wiki memory.
 // Recoverable from git history if re-needed.
-// Do NOT extend this script — file a follow-up spec for additional migrations.
+// Do NOT extend this script. File a follow-up spec for additional migrations.
 
 import {
   readFileSync,
@@ -15,9 +15,9 @@ import {
 import path from "node:path";
 import { parseArgs } from "node:util";
 
-// Constants inlined (mirrors `libraries/libwiki/src/constants.js`). Inlined
-// rather than imported because this script is one-shot and runs before any
-// workspace dependency install — see header comment.
+// Constants inlined (mirrors `libraries/libwiki/src/constants.js`). The script
+// inlines them and does not import them, because it is one-shot and runs
+// before any workspace dependency install. See the header comment.
 const WEEKLY_LOG_LINE_BUDGET = 500;
 const DECISION_HEADING = "### Decision";
 const SUMMARY_LINE_BUDGET = 80;
@@ -29,7 +29,7 @@ const STUB_FIRST_LINE =
 
 const STUB = `### Decision
 
-*${STUB_FIRST_LINE} The original entry predates the Decision-block contract; Surveyed / Alternatives / Chosen / Rationale not recoverable from the entry text alone. Original entry follows.*
+*${STUB_FIRST_LINE} The original entry predates the Decision-block contract. Surveyed / Alternatives / Chosen / Rationale are not recoverable from the entry text alone. Original entry follows.*
 
 `;
 
@@ -175,13 +175,13 @@ function compactSummary(filePath, dryRun) {
   const text = readFileSync(filePath, "utf-8");
   const lines = countLines(text);
   if (lines <= SUMMARY_LINE_BUDGET) return null;
-  // Conservative compaction: do nothing automatically — print a warning so the
-  // human reviewer can decide what to trim. (The plan called for an automatic
-  // move-to-current-week pass; in a sandbox where the wiki is a separate repo
-  // and we cannot guarantee the live week file, we surface the violation
-  // instead and exit cleanly.)
+  // Conservative compaction. Do nothing automatically. Print a warning so the
+  // human reviewer can decide what to trim. The plan called for an automatic
+  // move-to-current-week pass. In a sandbox the wiki is a separate repo, and
+  // we cannot guarantee the live week file. So we surface the violation
+  // instead and exit cleanly.
   process.stderr.write(
-    `compact: ${filePath} has ${lines} lines (limit ${SUMMARY_LINE_BUDGET}) — manual trim required\n`,
+    `compact: ${filePath} has ${lines} lines (limit ${SUMMARY_LINE_BUDGET}), manual trim required\n`,
   );
   if (dryRun) return { path: filePath, lines };
   return { path: filePath, lines };

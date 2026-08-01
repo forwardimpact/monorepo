@@ -12,7 +12,7 @@ import { fmt1, round1 } from "../format.js";
 import { resolveSlice } from "./slice.js";
 import { withIntegrityGuard } from "./guard.js";
 
-/** Read a CSV, optionally filter to a single metric, and print a full report (chart + stats table + signals) in text mode or a stamped JSON object with source path and generation date. */
+/** Read a CSV and filter to a single metric on request. In text mode, print a full report with the chart, the stats table, and the signals. In JSON mode, print a stamped object with the source path and the generation date. */
 export function runAnalyzeCommand(ctx) {
   const {
     options: values,
@@ -67,7 +67,8 @@ export function runAnalyzeCommand(ctx) {
   return { ok: true };
 }
 
-// Strip raw values/dates and round stats for human/agent JSON consumption.
+// Strip the raw values and dates. Round the stats so humans and agents can
+// read the JSON.
 function jsonReport(report) {
   return {
     source: report.source,

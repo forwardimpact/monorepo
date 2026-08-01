@@ -2,19 +2,20 @@ import { bridge } from "@forwardimpact/libtype";
 
 /**
  * Long-poll handler for the per-correlation inbox. The run's InboxPoller
- * fetches injected messages via this endpoint.
+ * fetches injected messages through this endpoint.
  *
  * The handler verifies the path `tenant_id` against the tenant bound to
- * the `correlationId` in `callbacks` (the `CallbackRegistry`) before
- * entering the poll loop. Unknown or mismatched correlations return
- * `404 {error: "Unknown correlation"}` — the same shape the sister
- * callback route emits for an unknown token (`callback-handler.js:100`).
+ * the `correlationId` in `callbacks` (the `CallbackRegistry`). It runs
+ * this check before the poll loop. Unknown or mismatched correlations
+ * return `404 {error: "Unknown correlation"}`. That shape matches the
+ * sister callback route, which emits it for an unknown token
+ * (`callback-handler.js:100`).
  *
  * @param {object} deps
  * @param {object} deps.client - Bridge gRPC client with DrainInbox
  * @param {object} deps.logger
  * @param {import("./callback-registry.js").CallbackRegistry} deps.callbacks
- * @param {number} [deps.pollTimeoutMs] - Max wait before returning empty (default 30s)
+ * @param {number} [deps.pollTimeoutMs] - Max wait before the handler returns empty (default 30s)
  * @param {number} [deps.pollIntervalMs] - Poll interval (default 1s)
  * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [deps.clock]
  * @returns {(c: import("hono").Context) => Promise<Response>}

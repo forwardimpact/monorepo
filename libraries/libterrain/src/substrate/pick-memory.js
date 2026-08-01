@@ -1,7 +1,7 @@
 /**
  * Pick-memory log for the `substrate pick` verb. Append-only CSV at a
- * caller-supplied path. Schema: `picked_at,persona_email,run_id`. CSV
- * quoting is deliberately omitted — all three values are bounded shapes
+ * caller-supplied path. Schema: `picked_at,persona_email,run_id`. This log
+ * deliberately omits CSV quotes. All three values are bounded shapes
  * (ISO timestamp, email, numeric CI run id) with no commas or newlines.
  */
 
@@ -41,7 +41,7 @@ export async function readPickMemory(memoryPath, windowN, runtime) {
 /**
  * Append one pick to the log. Creates the parent directory and the
  * header line when the file is absent. The caller supplies
- * `persona_email`; `picked_at` is stamped here; `run_id` defaults to the
+ * `persona_email`. This helper stamps `picked_at`. `run_id` defaults to the
  * empty string.
  *
  * @param {string} memoryPath

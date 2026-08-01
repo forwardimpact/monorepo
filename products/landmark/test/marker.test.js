@@ -6,8 +6,8 @@ import { runMarkerCommand } from "../src/commands/marker.js";
 import { MAP_DATA } from "./fixtures.js";
 
 // Marker tests exercise per-skill marker lookup. We derive two variants from
-// the shared MAP_DATA: one where task-completion keeps its markers but
-// planning has no markers block, and one where no skill has any markers.
+// the shared MAP_DATA. In the first, task-completion keeps its markers and
+// planning has no markers block. In the second, no skill has any markers.
 const MAP_DATA_WITH_MARKERS = {
   ...MAP_DATA,
   skills: [
@@ -38,7 +38,7 @@ describe("marker command", () => {
     assert.equal(result.meta.emptyState, undefined);
   });
 
-  it("returns empty state for skill without markers", async () => {
+  it("returns empty state for a skill without markers", async () => {
     const result = await runMarkerCommand({
       args: ["planning"],
       options: {},
@@ -49,7 +49,7 @@ describe("marker command", () => {
     assert.ok(result.meta.emptyState.includes("planning"));
   });
 
-  it("returns empty state when no markers exist in data", async () => {
+  it("returns empty state when no markers exist in the data", async () => {
     const result = await runMarkerCommand({
       args: ["task-completion"],
       options: {},
@@ -71,7 +71,7 @@ describe("marker command", () => {
     assert.equal(result.view.markers.awareness, undefined);
   });
 
-  it("returns empty state for unknown level filter", async () => {
+  it("returns empty state for an unknown level filter", async () => {
     const result = await runMarkerCommand({
       args: ["task-completion"],
       options: { level: "expert" },
@@ -82,7 +82,7 @@ describe("marker command", () => {
     assert.ok(result.meta.emptyState.includes("expert"));
   });
 
-  it("returns empty state for unknown skill", async () => {
+  it("returns empty state for an unknown skill", async () => {
     const result = await runMarkerCommand({
       args: ["nonexistent"],
       options: {},
@@ -93,7 +93,7 @@ describe("marker command", () => {
     assert.ok(result.meta.emptyState.includes("nonexistent"));
   });
 
-  it("throws when skill id is missing", async () => {
+  it("throws when the skill id is missing", async () => {
     await assertRejectsMessage(
       () =>
         runMarkerCommand({

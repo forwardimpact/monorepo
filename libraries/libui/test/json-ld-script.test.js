@@ -63,7 +63,7 @@ describe("createJsonLdScript", () => {
     assert.strictEqual(parsed.name, "Testing");
   });
 
-  test("body fields are merged into the payload", () => {
+  test("merges body fields into the payload", () => {
     const ctx = freezeInvocationContext({
       data: {},
       args: { id: "clarity" },

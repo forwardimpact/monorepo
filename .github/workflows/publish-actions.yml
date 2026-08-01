@@ -1,17 +1,18 @@
 name: "Publish: Actions"
 
-# Outbound mirror for the seven co-located composite actions — the four
+# Outbound mirror for the seven co-located composite actions: the four
 # agent-run actions under products/gemba/actions/, the two Kata actions under
 # products/kata/actions/, and the Jidoka product's check action under
 # products/jidoka/actions/. Each leg splits its monorepo prefix with the pinned
-# splitsh-lite and non-force-pushes the projection to its sibling repo's main
-# (see ./.github/actions/split-and-push). Add or retire an action by editing
-# one matrix entry.
+# splitsh-lite. It then non-force-pushes the projection to its sibling repo's
+# main (see ./.github/actions/split-and-push). Edit one matrix entry to add or
+# retire an action.
 #
-# Fires on every push to main that touches an action source (paths-filtered),
-# plus manual dispatch. The lineage was seeded once (the only sanctioned force);
-# every run here is a non-force fast-forward, and a non-fast-forward — a sibling
-# main that diverged from the projection — is rejected and fails the run.
+# This workflow fires on every push to main that touches an action source
+# (paths-filtered), plus manual dispatch. The lineage was seeded once, and that
+# force push is the only sanctioned one. Every run here is a non-force
+# fast-forward. A non-fast-forward means a sibling main diverged from the
+# projection. The workflow rejects it and the run fails.
 on:
   push:
     branches: [main]
@@ -61,15 +62,15 @@ jobs:
           private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           repositories: ${{ matrix.action.repo }}
 
-      # Check out the monorepo (full history — the split needs it). The split
-      # and the local-action references below resolve against this checkout,
-      # never a sibling.
+      # Check out the monorepo with full history, which the split needs. The
+      # split and the local-action references below resolve against this
+      # checkout, never a sibling.
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
-          # Do not leave the default-token http.extraheader in git config; it
-          # would override the App token in the cross-repo push URL and the push
-          # would be denied as github-actions[bot].
+          # Do not leave the default-token http.extraheader in git config. It
+          # would override the App token in the cross-repo push URL. GitHub
+          # would then deny the push as github-actions[bot].
           persist-credentials: false
 
       - uses: ./.github/actions/audit

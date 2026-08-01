@@ -1,13 +1,13 @@
 /**
  * Top Bar
  *
- * Fixed bar across the top of the viewport with sidebar toggle and
- * CLI command display. Inspired by Safari's URL bar + sidebar layout.
+ * Fixed bar across the top of the viewport with a sidebar toggle and a
+ * CLI command display. Safari's URL bar and sidebar layout inspired it.
  */
 
 @layer components {
   /* --------------------------------------------------------------------------
-   Bar container - fixed across top
+   Bar container - fixed across the top
    -------------------------------------------------------------------------- */
   .top-bar {
     position: fixed;
@@ -64,7 +64,7 @@
     stroke-linejoin: round;
   }
 
-  /* Highlight toggle when drawer is open */
+  /* Highlight the toggle when the drawer is open */
   .drawer-open .top-bar__toggle {
     color: var(--color-primary);
     background: rgba(59, 130, 246, 0.08);
@@ -159,7 +159,7 @@
   }
 
   .top-bar__copy.copied svg {
-    /* Swap from copy icon to checkmark via CSS — JS swaps the class */
+    /* Swap from the copy icon to the checkmark with CSS. JS swaps the class */
   }
 
   /* --------------------------------------------------------------------------

@@ -3,8 +3,8 @@
  * starter `references` entry (criterion 5 + criterion 6 on the build-packs
  * path).
  *
- * Lives in its own file (not build-packs.test.js) because that file is at the
- * 400-line ESLint cap.
+ * build-packs.test.js is at the 400-line ESLint cap. So this suite lives in
+ * its own file.
  */
 
 import { test, describe, before, after } from "node:test";
@@ -62,19 +62,19 @@ describe("generatePacks — references emission", () => {
     if (workDir) rmSync(workDir, { recursive: true, force: true });
   });
 
-  test("packs include one references/{name}.md per starter entry; no REFERENCE.md", async () => {
-    // Starter ships incident-response with two references entries:
+  test("packs include one references/{name}.md per starter entry and no REFERENCE.md", async () => {
+    // The starter ships incident-response with two references entries:
     // runbooks + postmortem-template. The build-packs writer must produce
-    // both files (verbatim YAML order, byte-identical to the CLI writer
-    // path because both share writeSkillReferences) and must not produce
-    // the legacy REFERENCE.md anywhere.
+    // both files in verbatim YAML order. Both files must be byte-identical
+    // to the CLI writer path, because both paths share writeSkillReferences.
+    // The writer must not produce the legacy REFERENCE.md anywhere.
     const rawDir = join(outputDir, "packs", "raw");
-    // incident-response lives in the platform track only; pin the pack so
+    // incident-response lives in the platform track only. Pin the pack so
     // the test does not depend on readdir() order.
     const archive = "se-platform.tar.gz";
     assert.ok(
       existsSync(join(rawDir, archive)),
-      `expected ${archive} to be emitted`,
+      `expected build-packs to emit ${archive}`,
     );
 
     const extractDir = mkdtempSync(join(tmpdir(), "fit-pathway-refs-extract-"));

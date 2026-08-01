@@ -1,7 +1,8 @@
 /**
  * Track CLI Command
  *
- * Handles track summary, listing, and detail display in the terminal.
+ * Shows the track summary, the track list, and the track detail in the
+ * terminal.
  *
  * Usage:
  *   npx fit-pathway track              # Summary with stats
@@ -58,7 +59,8 @@ function formatSummary(tracks, data, runtime) {
 }
 
 /**
- * Format track detail output - receives entity and context as single object
+ * Format track detail output. It receives the entity and the context as a
+ * single object.
  * @param {Object} viewAndContext - Contains track entity and data context
  * @param {Object} standard - Standard config
  */

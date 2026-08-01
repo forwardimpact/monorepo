@@ -51,7 +51,7 @@ describe("snapshot list", () => {
     assert.equal(result.view.snapshots.length, 2);
   });
 
-  it("returns empty state when no snapshots", async () => {
+  it("returns empty state when there are no snapshots", async () => {
     const result = await runSnapshotCommand({
       args: ["list"],
       options: {},
@@ -140,7 +140,7 @@ describe("snapshot compare", () => {
 });
 
 describe("collectDriverWarnings", () => {
-  it("warns on unknown item_id", () => {
+  it("warns on an unknown item_id", () => {
     const scores = [{ item_id: "quality" }, { item_id: "unknown_driver" }];
     const warnings = collectDriverWarnings(scores, MAP_DATA);
     assert.equal(warnings.length, 1);
@@ -154,7 +154,7 @@ describe("collectDriverWarnings", () => {
 });
 
 describe("snapshot subcommand validation", () => {
-  it("throws for unknown subcommand", async () => {
+  it("throws for an unknown subcommand", async () => {
     await assertRejectsMessage(
       () =>
         runSnapshotCommand({

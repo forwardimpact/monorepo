@@ -2,10 +2,11 @@
  * Code Display Component
  *
  * Collapsible read-only code block with copy buttons and syntax highlighting.
- * Wrapped in a <details>/<summary> element with the filename and copy buttons
- * always visible in the summary. Content is lazy-rendered on first open.
+ * The component wraps the block in a <details>/<summary> element. The summary
+ * always shows the filename and the copy buttons. The body renders on first
+ * open.
  *
- * Used for markdown content, agent profiles, skills, and code snippets.
+ * Use it for markdown content, agent profiles, skills, and code snippets.
  */
 
 /* global Prism */
@@ -15,7 +16,7 @@ const COPY_LABEL = "📋 Copy";
 const COPY_HTML_LABEL = "Copy as HTML";
 
 /**
- * Create a copy button that copies content to clipboard
+ * Create a copy button that copies content to the clipboard
  * @param {string} content - The text content to copy
  * @returns {HTMLElement}
  */
@@ -49,7 +50,7 @@ export function createCopyButton(content) {
 }
 
 /**
- * Create a copy button that copies HTML to clipboard (for rich text pasting)
+ * Create a copy button that copies HTML to the clipboard for a rich-text paste
  * @param {string} html - The HTML content to copy
  * @returns {HTMLElement}
  */
@@ -117,16 +118,16 @@ function createCodeBlock({ content, language, minHeight, maxHeight }) {
 /**
  * Create a collapsible code display component with syntax highlighting and copy buttons.
  *
- * Always rendered as a <details>/<summary> element. The filename and copy buttons
- * appear in the summary (always visible). The code block is in the collapsible body
- * and is lazy-rendered on first open.
+ * The component always renders a <details>/<summary> element. The filename and
+ * copy buttons appear in the summary (always visible). The code block sits in
+ * the collapsible body. It renders on first open.
  *
  * @param {Object} options
  * @param {string} options.content - The code content to display
  * @param {string} [options.language="markdown"] - Language for syntax highlighting
  * @param {string} [options.filename] - Filename to display in summary
  * @param {string} [options.description] - Optional description text shown in body
- * @param {Function} [options.toHtml] - Function to convert content to HTML (enables "Copy as HTML" button)
+ * @param {Function} [options.toHtml] - Function to convert content to HTML (adds the "Copy as HTML" button)
  * @param {number} [options.minHeight] - Optional minimum height in pixels
  * @param {number} [options.maxHeight] - Optional maximum height in pixels
  * @param {boolean} [options.open=false] - Whether the details element starts open
@@ -196,7 +197,7 @@ export function createCodeDisplay({
 
 /**
  * Wire accordion behaviour on an array of <details> elements.
- * Opening one pane closes all others.
+ * When one pane opens, all others close.
  *
  * @param {HTMLDetailsElement[]} panes - Details elements to accordion
  */

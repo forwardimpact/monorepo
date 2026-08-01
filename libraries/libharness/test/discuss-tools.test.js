@@ -38,11 +38,11 @@ describe("DiscussTools handlers", () => {
     assert.strictEqual(
       ctx.replies.length,
       0,
-      "replies should not be populated by RFC",
+      "RFC should not populate replies",
     );
   });
 
-  test("RequestForComment emits a single anonymous RFC when no addressees are listed", async () => {
+  test("RequestForComment emits a single anonymous RFC when the call lists no addressees", async () => {
     const ctx = makeCtx();
     const handler = createRequestForCommentHandler(ctx);
 
@@ -54,7 +54,7 @@ describe("DiscussTools handlers", () => {
     assert.strictEqual(ctx.rfcs[0].channel, "msteams");
   });
 
-  test("RequestForComment works on a context without discuss augmentation", async () => {
+  test("RequestForComment works on a context that discuss did not augment", async () => {
     const ctx = createOrchestrationContext();
     const handler = createRequestForCommentHandler(ctx);
 

@@ -77,7 +77,7 @@ export class MockMetadata {
   /**
    * Gets metadata value by key
    * @param {string} key - The metadata key
-   * @returns {string[]} Array containing the value, or empty array if not found
+   * @returns {string[]} Array with the value, or empty array if not found
    */
   get(key) {
     const value = this.data.get(key);

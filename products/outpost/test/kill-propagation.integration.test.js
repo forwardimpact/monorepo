@@ -3,11 +3,12 @@ import assert from "node:assert";
 
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-// Validates the streaming subprocess.spawn surface end-to-end against a real
-// child (plan-a-05-b, outpost: "spawn(...).kill(signal) must propagate to the
-// child"). This is the same cancellation contract the long-running supervision
-// path relies on; here we assert it against a real sleep-bound child. Lives in
-// *.integration.test.js because it spawns a real process.
+// This test validates the streaming subprocess.spawn surface end-to-end
+// against a real child (plan-a-05-b, outpost: "spawn(...).kill(signal) must
+// propagate to the child"). The long-running supervision path relies on the
+// same cancellation contract. Here we assert that contract against a real
+// sleep-bound child. The test lives in *.integration.test.js because it
+// spawns a real process.
 
 describe("subprocess.spawn kill propagation (real child)", () => {
   test("kill(signal) terminates a sleep-bound child", async () => {
@@ -28,7 +29,7 @@ describe("subprocess.spawn kill propagation (real child)", () => {
     child.kill("SIGTERM");
 
     const [code, signal] = await Promise.all([child.exitCode, child.signal]);
-    // The child was terminated by the signal, never running to completion.
+    // The signal terminated the child. The child never ran to completion.
     assert.ok(
       signal === "SIGTERM" || code === 128 || code !== 0,
       `expected a signal-terminated child, got code=${code} signal=${signal}`,

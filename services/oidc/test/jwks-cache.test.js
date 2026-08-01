@@ -39,7 +39,7 @@ describe("JwksCache", () => {
     });
     await cache.getKeys();
     await cache.getKeys();
-    assert.strictEqual(f.jwksCalls, 1, "second call is served from cache");
+    assert.strictEqual(f.jwksCalls, 1, "the cache serves the second call");
   });
 
   test("re-fetches after the TTL expires", async () => {
@@ -58,7 +58,7 @@ describe("JwksCache", () => {
     assert.strictEqual(f.jwksCalls, 2, "expired cache re-fetches");
   });
 
-  test("invalidate forces a re-fetch once the cooldown has passed", async () => {
+  test("invalidate forces a re-fetch once the cooldown passes", async () => {
     const clock = createMockClock({ start: 0 });
     const f = stubFetch({ keys: [{ kid: "a" }] });
     const cache = new JwksCache({
@@ -75,7 +75,7 @@ describe("JwksCache", () => {
     assert.strictEqual(f.jwksCalls, 2, "invalidate drops the cache");
   });
 
-  test("invalidate within the cooldown serves last-known-good keys without refetching", async () => {
+  test("invalidate within the cooldown serves last-known-good keys and does not refetch", async () => {
     const clock = createMockClock({ start: 0 });
     const f = stubFetch({ keys: [{ kid: "a" }] });
     const cache = new JwksCache({
@@ -90,7 +90,7 @@ describe("JwksCache", () => {
     clock.advance(29_999);
     const second = await cache.getKeys();
     assert.strictEqual(f.jwksCalls, 1, "cooldown suppresses the refetch");
-    assert.deepStrictEqual(second, first, "stale keys are served as-is");
+    assert.deepStrictEqual(second, first, "the cache serves stale keys as-is");
   });
 
   test("repeated invalidate calls cannot drive one fetch per request", async () => {

@@ -38,7 +38,7 @@ function printStatusSummary(summary, result, proc) {
 }
 
 /**
- * Check Guide service health, data counts, and credentials, returning a
+ * Check Guide service health, data counts, and credentials. Return a
  * ready/not-ready verdict.
  * @param {object} options - Command options.
  * @param {boolean} options.json - Emit machine-readable JSON instead of a summary.

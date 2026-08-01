@@ -9,9 +9,9 @@ import {
 } from "node:fs";
 import path from "node:path";
 
-// Frozen copy of the six-column header this one-shot operated on. Kept
-// local — not imported from libxmr — so the script's record of what it
-// wrote cannot drift when the live schema gains columns.
+// Frozen copy of the six-column header this one-shot operated on. It stays
+// local. The script does not import it from libxmr. So the script's record
+// of what it wrote cannot drift when the live schema gains columns.
 const LEGACY_HEADER = "date,metric,value,unit,run,note";
 
 const WIKI_METRICS = path.resolve("wiki/metrics");

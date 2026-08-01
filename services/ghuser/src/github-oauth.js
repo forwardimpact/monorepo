@@ -1,5 +1,6 @@
 /**
- * Thrown when GitHub reports a token grant as revoked.
+ * The OAuth client throws this error when GitHub reports a token grant as
+ * revoked.
  */
 export class RevokedError extends Error {
   /** @param {string} [message] */

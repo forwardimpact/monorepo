@@ -6,17 +6,16 @@ Record per KATA.md § Metrics. Append one row per metric per run to
 | Metric                     | Unit  | Description                                                                                                    | Data source                                                                |
 | -------------------------- | ----- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | prs_merged                 | count | PRs merged this run                                                                                            | Run actions                                                                |
-| approvals_recorded_per_run | count | Inbound human approval signals — `<phase>:approved` label-add events + APPROVED review events — observed in `[prev_run_start, current_run_start)`. These signals feed `wiki/STATUS.md` via `kata-dispatch`. | `read` each item's label-add and review events ([work-trackers.md](../../../agents/x-work-trackers.md)) |
+| approvals_recorded_per_run | count | Inbound human approval signals observed in `[prev_run_start, current_run_start)`. They are `<phase>:approved` label-add events plus APPROVED review events. These signals feed `wiki/STATUS.md` through `kata-dispatch`. | `read` each item's label-add and review events ([work-trackers.md](../../../agents/x-work-trackers.md)) |
 
-Backlog (`list` changes —
-[work-trackers.md](../../../agents/x-work-trackers.md)) is queried, not
-recorded.
+Query the backlog with `list` changes
+([work-trackers.md](../../../agents/x-work-trackers.md)). Do not record it.
 
 ## Collection
 
-Capture the current run's start once, then the previous completed `agent-team`
-run's start (which is the most recent completed run, since this run is
-in-progress and excluded by `--status=completed`):
+Capture the current run's start once. Then capture the previous completed
+`agent-team` run's start. That run is the most recent completed one, because
+this run is in progress and `--status=completed` excludes it.
 
 ```sh
 current_run_start=$(date -u +%FT%TZ)
@@ -33,24 +32,25 @@ Window: `[prev_run_start, current_run_start)` (half-open).
 
 Cohort: every PR seen in SKILL.md Step 1 (open phase PRs) plus every phase PR
 merged this run (Step 8). The cohort undercounts approvals on PRs merged in a
-prior run still within the window — accepted at boundaries; the storyboard
-meeting reads run-over-run, not per-PR.
+prior run that are still within the window. Accept that at the boundaries. The
+storyboard meeting reads run-over-run. It does not read per-PR.
 
-For each cohort PR, `read` its label-add events (filtering `event=="labeled"`
-with `label.name` matching `^(spec|design|plan):approved$`, keyed by
-`created_at`) and its APPROVED reviews (filtering `state=="APPROVED"`, keyed by
-`submitted_at`) —
-[work-trackers.md](../../../agents/x-work-trackers.md).
+For each cohort PR, `read` its label-add events and its APPROVED reviews. See
+[work-trackers.md](../../../agents/x-work-trackers.md). Filter the label-add
+events to `event=="labeled"` with a `label.name` that matches
+`^(spec|design|plan):approved$`, keyed by `created_at`. Filter the reviews to
+`state=="APPROVED"`, keyed by `submitted_at`.
 
-Filter events to `ts ∈ [prev_run_start, current_run_start)` and sum across all
-cohort PRs to `approvals_recorded_per_run` (no per-event de-dup — record the
-raw count).
+Filter events to `ts ∈ [prev_run_start, current_run_start)`. Sum across all
+cohort PRs into `approvals_recorded_per_run`. Do not de-dup per event. Record
+the raw count.
 
-CSV row schema (mirror existing `prs_merged` rows):
-`run_ts,metric,unit,value,note` — where `note="window=[<prev>,<curr>)"`. Zero is
-recorded as `0`. If any per-PR call fails (rate limit, scope), skip that PR and
-append `;api_errors=N` to `note`; a blanket failure records `0` with non-empty
-`api_errors=` so producer health is visible at the next storyboard meeting.
+CSV row schema, which mirrors the existing `prs_merged` rows:
+`run_ts,metric,unit,value,note`, where `note="window=[<prev>,<curr>)"`. Record
+zero as `0`. If any per-PR call fails (rate limit, scope), skip that PR and
+append `;api_errors=N` to `note`. A blanket failure records `0` with a
+non-empty `api_errors=`, so the next storyboard meeting can see producer
+health.
 
-GNU `date -u -d` syntax assumes the GitHub-hosted Ubuntu runner; macOS BSD
-`date` rejects it — run this skill from CI, not a local shell.
+GNU `date -u -d` syntax assumes the GitHub-hosted Ubuntu runner. The macOS BSD
+`date` rejects it. Run this skill from CI. Do not run it from a local shell.

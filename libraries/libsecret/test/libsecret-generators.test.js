@@ -10,13 +10,13 @@ import {
 
 describe("libsecret — generators", () => {
   describe("generateHash", () => {
-    test("generates deterministic hash from single value", () => {
+    test("generates a deterministic hash from a single value", () => {
       const hash1 = generateHash("test-value");
       const hash2 = generateHash("test-value");
       assert.strictEqual(hash1, hash2);
     });
 
-    test("generates deterministic hash from multiple values", () => {
+    test("generates a deterministic hash from multiple values", () => {
       const hash1 = generateHash("value1", "value2", "value3");
       const hash2 = generateHash("value1", "value2", "value3");
       assert.strictEqual(hash1, hash2);
@@ -34,7 +34,7 @@ describe("libsecret — generators", () => {
       assert.strictEqual(hash1, hash2);
     });
 
-    test("returns 8-character hex string", () => {
+    test("returns an 8-character hex string", () => {
       const hash = generateHash("test");
       assert.strictEqual(hash.length, 8);
       assert.match(hash, /^[0-9a-f]{8}$/);
@@ -42,7 +42,7 @@ describe("libsecret — generators", () => {
   });
 
   describe("generateUUID", () => {
-    test("generates valid UUID format", () => {
+    test("generates a UUID in the valid format", () => {
       const uuid = generateUUID();
       assert.match(
         uuid,
@@ -58,13 +58,13 @@ describe("libsecret — generators", () => {
   });
 
   describe("generateSecret", () => {
-    test("generates 64-character hex string by default (32 bytes)", () => {
+    test("generates a 64-character hex string by default (32 bytes)", () => {
       const secret = generateSecret();
       assert.strictEqual(secret.length, 64);
       assert.match(secret, /^[0-9a-f]{64}$/);
     });
 
-    test("generates correct length for custom byte count", () => {
+    test("generates the correct length for a custom byte count", () => {
       const secret = generateSecret(16);
       assert.strictEqual(secret.length, 32); // 16 bytes = 32 hex chars
     });
@@ -77,13 +77,13 @@ describe("libsecret — generators", () => {
   });
 
   describe("generateBase64Secret", () => {
-    test("generates base64url-encoded string by default", () => {
+    test("generates a base64url-encoded string by default", () => {
       const secret = generateBase64Secret();
       // Base64url uses only alphanumeric chars, -, and _
       assert.match(secret, /^[A-Za-z0-9_-]+$/);
     });
 
-    test("generates correct length for custom byte count", () => {
+    test("generates the correct length for a custom byte count", () => {
       const secret = generateBase64Secret(16);
       // 16 bytes encoded in base64 = ceil(16 * 4 / 3) = ~22 chars
       assert.ok(secret.length >= 21 && secret.length <= 24);

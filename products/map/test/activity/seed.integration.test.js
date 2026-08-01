@@ -122,7 +122,7 @@ describe("activity/seed", () => {
     );
     assert.strictEqual(rawUploads.length, 2);
 
-    // Transform ran — people were upserted
+    // The transform ran and upserted people
     assert.ok(fake.upsertCalls.length > 0);
 
     await rm(tmpDir, { recursive: true });

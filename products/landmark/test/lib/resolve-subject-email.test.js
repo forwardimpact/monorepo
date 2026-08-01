@@ -1,7 +1,7 @@
 /**
- * Subject defaulting for subject-scoped commands: explicit --email wins,
- * the signed-in identity fills when omitted, and the error names the
- * sign-in path when both are absent.
+ * How subject-scoped commands default the subject. An explicit --email
+ * wins. The signed-in identity fills the subject when the caller omits
+ * --email. The error names the sign-in path when both are absent.
  */
 
 import { describe, it } from "node:test";
@@ -18,7 +18,7 @@ describe("resolveSubjectEmail", () => {
     assert.equal(email, "explicit@example.com");
   });
 
-  it("fills from the signed-in identity when --email is omitted", () => {
+  it("fills from the signed-in identity when the caller omits --email", () => {
     const email = resolveSubjectEmail({}, { email: "identity@example.com" });
     assert.equal(email, "identity@example.com");
   });

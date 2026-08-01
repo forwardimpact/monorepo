@@ -23,10 +23,10 @@ permissions:
   contents: read
 
 jobs:
-  # One job body, three packs. Each pack syncs its skills (kata also its agents)
-  # into the matching sibling repo, regenerates apm.yml + README.md, and tags at
-  # the pack's package version. Add or retire a pack by editing one matrix entry;
-  # the shared mechanics live in ./.github/actions/publish-skill-pack.
+  # One job body, three packs. Each pack syncs its skills (kata also its
+  # agents) into its sibling repo, regenerates apm.yml + README.md, and tags at
+  # the pack's package version. Edit one matrix entry to add or retire a pack.
+  # The shared mechanics live in ./.github/actions/publish-skill-pack.
   publish:
     name: ${{ matrix.pack.repo }}
     runs-on: ubuntu-latest
@@ -36,8 +36,8 @@ jobs:
         pack:
           # The fit leg carries two prefixes: the fit-* skills plus the gemba
           # product and gemba-* capability skills ship in the same fit-skills
-          # pack. Requires a bootstrap pin whose fit-pack accepts repeated
-          # --prefix flags (gear@v0.2.0+).
+          # pack. This leg needs a bootstrap pin whose fit-pack accepts
+          # repeated --prefix flags (gear@v0.2.0+).
           - prefix: fit gemba
             repo: fit-skills
             version-file: products/gear/package.json
@@ -54,16 +54,16 @@ jobs:
             sync-agents: "false"
             readme-title: Jidoka Skills
             readme-intro: >-
-              Skills for maintaining the
+              Skills that maintain the
               [Jidoka](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md)
-              instruction architecture with the `jidoka` CLI (installed via
-              `npx @forwardimpact/jidoka` or the platform bootstrap). Renamed
-              from `coaligned-skills` — migrate with `git mv .coaligned
-              .jidoka`, reinstall this pack, and swap the CLI name.
+              instruction architecture with the `jidoka` CLI (install it with
+              `npx @forwardimpact/jidoka` or the platform bootstrap). This pack
+              was renamed from `coaligned-skills`. To migrate, run `git mv
+              .coaligned .jidoka`. Reinstall this pack. Swap the CLI name.
             apm-description: >-
-              Skills for maintaining the Jidoka instruction architecture —
-              setup, instruction layers, jobs, invariants, and the check suite
-              that stops the line the moment a layer drifts.
+              Skills that maintain the Jidoka instruction architecture: setup,
+              instruction layers, jobs, invariants, and the check suite that
+              stops the line the moment a layer drifts.
           - prefix: kata
             repo: kata-skills
             version-file: products/gear/package.json
@@ -73,7 +73,7 @@ jobs:
               Agents and skills for the [Forward Impact](https://forwardimpact.team)
               Kata Agent Team.
             apm-description: >-
-              Forward Impact Kata Agent Team — domain agents and skills for the
+              Forward Impact Kata Agent Team: domain agents and skills for the
               spec → design → plan → implement workflow, releases, security, and
               product-issue triage.
           - prefix: monorepo
@@ -82,17 +82,19 @@ jobs:
             sync-agents: "false"
             readme-title: Monorepo Skills
             readme-intro: >-
-              Skills for standing up and maintaining a
-              [Forward Impact](https://forwardimpact.team)-style monorepo — the
-              cross-cutting setup that composes the Jidoka and Kata packs.
+              Skills that stand up and maintain a
+              [Forward Impact](https://forwardimpact.team)-style monorepo. They
+              are the cross-cutting setup that composes the Jidoka and Kata
+              packs.
             apm-description: >-
-              Skills for bootstrapping a Forward Impact-style monorepo end to
-              end — repository structure, instruction architecture, and the Kata
-              Agent Team — composing the Jidoka and Kata packs.
-          # Outpost is a product-local pack: its skills and agents live under
-          # the installation template, not repo-root .claude, and its skills
-          # share no common prefix — the directory itself is the pack boundary,
-          # so it stages with `all: "true"` instead of a prefix.
+              Skills that bootstrap a Forward Impact-style monorepo end to end:
+              repository structure, instruction architecture, and the Kata
+              Agent Team. They compose the Jidoka and Kata packs.
+          # Outpost is a product-local pack. Its skills and agents live under
+          # the installation template. They do not live under repo-root
+          # .claude. Its skills share no common prefix. The directory itself is
+          # the pack boundary, so it stages with `all: "true"` instead of a
+          # prefix.
           - prefix: ""
             repo: outpost-skills
             version-file: products/outpost/package.json
@@ -104,7 +106,7 @@ jobs:
               Agents and skills for [Outpost](https://forwardimpact.team), the
               personal chief-of-staff that tracks people, projects, and threads.
             apm-description: >-
-              Outpost agents and skills — the chief-of-staff, concierge,
+              Outpost agents and skills: the chief-of-staff, concierge,
               librarian, postman, and recruiter agents plus the skills they run
               to sync, triage, and brief.
     steps:

@@ -15,7 +15,7 @@ import { scanPages } from "./page-tree.js";
 import { resolvePartials, defaultRegistry } from "./partials.js";
 
 /**
- * Pages builder for converting Markdown files to HTML
+ * Converts Markdown files to HTML pages
  */
 export class PagesBuilder {
   #fs;
@@ -71,7 +71,7 @@ export class PagesBuilder {
     this.#marked.use(
       markedHighlight({
         langPrefix: "language-",
-        // Prism.js handles highlighting on the client side
+        // Prism.js highlights the code on the client side
         highlight(code, _lang) {
           return code;
         },
@@ -83,7 +83,7 @@ export class PagesBuilder {
    * Copy directory recursively
    * @param {string} src - Source directory
    * @param {string} dest - Destination directory
-   * @returns {boolean} True if directory was copied
+   * @returns {boolean} True if the method copied the directory
    */
   #copyDir(src, dest) {
     if (!this.#fs.existsSync(src)) return false;

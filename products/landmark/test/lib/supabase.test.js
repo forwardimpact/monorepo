@@ -30,7 +30,7 @@ describe("createLandmarkClient", () => {
     );
   });
 
-  it("throws SupabaseUnavailableError when URL accessor fails", () => {
+  it("throws SupabaseUnavailableError when the URL accessor fails", () => {
     assert.throws(
       () =>
         createLandmarkClient({ jwt: "x", config: makeConfig({ url: null }) }),
@@ -38,7 +38,7 @@ describe("createLandmarkClient", () => {
     );
   });
 
-  it("throws SupabaseUnavailableError when anon-key accessor fails", () => {
+  it("throws SupabaseUnavailableError when the anon-key accessor fails", () => {
     assert.throws(
       () =>
         createLandmarkClient({

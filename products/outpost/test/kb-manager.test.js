@@ -8,7 +8,7 @@ import { createMockFs, createTestRuntime } from "@forwardimpact/libmock";
 function noop() {}
 
 /**
- * Build a runtime over a mock async fs seeded with `files`.
+ * Build a runtime over a mock async fs. The mock fs holds `files`.
  * @param {Record<string, string>} files
  */
 function makeRuntime(files = {}) {
@@ -80,7 +80,7 @@ describe("KBManager", () => {
 
     test("uses cp for skill and agent trees", async () => {
       await km.copyBundledFiles("/tpl", "/dest");
-      // One cp per top-level subdir: skills, agents.
+      // Expect one cp per top-level subdir: skills, agents.
       assert.strictEqual(fs.cp.mock.callCount(), 2);
     });
 
@@ -119,9 +119,9 @@ describe("KBManager", () => {
       assert.ok(built.fs.data.has("/kb/CLAUDE.md"));
       assert.ok(built.fs.data.has("/kb/apm.yml"));
       assert.ok(built.fs.data.has("/kb/.claude/agents/postman.md"));
-      // Only the top-level roots are created: the shared `Knowledge/` graph and
-      // the personal `Drafts/` and `Briefings/`. Entity subdirs are created on
-      // demand by the skills, so `Knowledge/` starts empty.
+      // `init` creates only the top-level roots: the shared `Knowledge/` graph
+      // and the personal `Drafts/` and `Briefings/`. The skills create entity
+      // subdirs on demand. So `Knowledge/` starts empty.
       assert.ok(built.fs.dirs.has("/kb/Knowledge"));
       assert.ok(built.fs.dirs.has("/kb/Drafts"));
       assert.ok(built.fs.dirs.has("/kb/Briefings"));
@@ -157,7 +157,7 @@ describe("KBManager", () => {
       assert.strictEqual(built.fs.data.get(link), "existing user file");
     });
 
-    test("succeeds even when the ~/Documents link cannot be created", async () => {
+    test("succeeds even when it cannot create the ~/Documents link", async () => {
       const built = makeRuntime({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
@@ -185,7 +185,7 @@ describe("KBManager", () => {
   });
 
   describe("update", () => {
-    test("returns error envelope when no KB found", async () => {
+    test("returns error envelope when it finds no KB", async () => {
       const built = makeRuntime({ "/tpl/CLAUDE.md": "# Instructions" });
       const km = new KBManager(built.runtime, noop);
       const result = await km.update("/kb", "/tpl");
@@ -197,7 +197,7 @@ describe("KBManager", () => {
   });
 
   describe("mergeSettings", () => {
-    test("adds new permission entries without duplicating", async () => {
+    test("adds new permission entries without duplicates", async () => {
       const built = makeRuntime({
         "/tpl/.claude/settings.json": JSON.stringify({
           permissions: { allow: ["Bash(ls *)"], deny: ["Bash(rm *)"] },

@@ -64,7 +64,10 @@ function writeBroadcast(
   return { ok: true };
 }
 
-/** Write a memo to a target agent's summary file (or broadcast to all except the sender); the sender is the required --from flag. */
+/**
+ * Write a memo to a target agent's summary file. A broadcast reaches every
+ * agent except the sender. The required --from flag names the sender.
+ */
 export function runMemoCommand(ctx) {
   const { runtime } = ctx.deps;
   const options = ctx.options;

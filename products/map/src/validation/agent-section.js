@@ -1,7 +1,8 @@
 import { createError } from "./common.js";
 
 /**
- * Validate agent identity/priority/constraints section (shared by discipline and track)
+ * Validate the agent identity/priority/constraints section. Discipline and
+ * track share this section.
  * @param {Object} agent
  * @param {string} agentPath
  * @param {string} entityName

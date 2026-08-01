@@ -12,10 +12,10 @@
 
 Every guide maps to a Big Hire or Little Hire from [JTBD.md](/JTBD.md),
 [libraries/README.md](/libraries/README.md), or
-[services/README.md](/services/README.md). Big Hire guides are directory roots;
-Little Hire guides are nested children. A job formed by merging earlier jobs
-keeps multiple Big Hire trees — slugs are published URLs and do not move
-(see [CLAUDE.md § Guide Pages](CLAUDE.md)).
+[services/README.md](/services/README.md). Big Hire guides are directory roots.
+Little Hire guides are nested children. When earlier jobs merge into one job,
+that job keeps multiple Big Hire trees. Slugs are published URLs and do not
+move (see [CLAUDE.md § Guide Pages](CLAUDE.md)).
 
 ### Product Guides
 

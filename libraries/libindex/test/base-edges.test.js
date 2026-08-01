@@ -34,7 +34,7 @@ describe("IndexBase - Implementation and Edge Cases", () => {
   });
 
   describe("New IndexBase Implementation", () => {
-    test("add uses parent class storage logic", async () => {
+    test("add uses parent-class storage logic", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "test.Item",
         name: "test1",
@@ -56,7 +56,7 @@ describe("IndexBase - Implementation and Edge Cases", () => {
       );
     });
 
-    test("queryItems provides default filtering implementation", async () => {
+    test("queryItems provides a default filter implementation", async () => {
       const items = [
         { type: "common.Message", name: "msg1", tokens: 10 },
         { type: "common.Message", name: "msg2", tokens: 20 },
@@ -286,7 +286,7 @@ describe("IndexBase - Implementation and Edge Cases", () => {
       );
     });
 
-    test("add handles items with missing optional fields", async () => {
+    test("add handles items without optional fields", async () => {
       const identifier = resource.Identifier.fromObject({
         type: "test.Item",
         name: "minimal",

@@ -38,7 +38,7 @@ function seedSupervise() {
   return { ctx, messageBus };
 }
 
-/** Resolve askId of the only pending ask addressed to `from`. */
+/** Resolve the askId of the only pending ask addressed to `from`. */
 function answerDispatcher(ctx, from, message) {
   const handler = createAnswerHandler(ctx, { from });
   return async () => {
@@ -88,7 +88,7 @@ describe("Supervisor - constructor validation", () => {
 });
 
 describe("Supervisor - sync session flow", () => {
-  test("Conclude on turn 0 ends the session without starting the agent", async () => {
+  test("Conclude on turn 0 ends the session and never starts the agent", async () => {
     const { ctx, messageBus } = seedSupervise();
     const concludeHandler = createConcludeHandler(ctx);
 
@@ -245,7 +245,7 @@ describe("Supervisor - sync session flow", () => {
 });
 
 describe("Supervisor - bidirectional Ask", () => {
-  test("agent-initiated Ask routes to the supervisor; supervisor answers via Answer", async () => {
+  test("agent-initiated Ask routes to the supervisor, which answers with Answer", async () => {
     const { ctx, messageBus } = seedSupervise();
     const concludeHandler = createConcludeHandler(ctx);
     const supAskHandler = createAskHandler(ctx, {
@@ -257,8 +257,8 @@ describe("Supervisor - bidirectional Ask", () => {
       defaultTo: "supervisor",
     });
 
-    // Supervisor delegates work. When the agent's Ask comes back in the
-    // tool_result's `incoming` field, supervisor answers it via Answer
+    // The supervisor delegates work. When the agent's Ask comes back in the
+    // tool_result's `incoming` field, the supervisor answers it with Answer
     // and then concludes.
     const supervisorAnswerDispatcher = async () => {
       const owed = [...ctx.pendingAsks.values()].find(
@@ -291,8 +291,8 @@ describe("Supervisor - bidirectional Ask", () => {
       },
     );
 
-    // Agent answers the supervisor's question (with a question of its own
-    // alongside, which is a sync Ask back).
+    // The agent answers the supervisor's question. The agent sends a
+    // question of its own alongside, which is a sync Ask back.
     const agentAnswerDispatcher = async () => {
       const owed = [...ctx.pendingAsks.values()].find(
         (e) => e.addresseeName === "agent",

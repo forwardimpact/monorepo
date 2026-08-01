@@ -1,15 +1,15 @@
 ---
 title: "Build a Web Surface with libui"
-description: "Assemble the browser side of a shared capability — components, reactive state, a global store, routing, slide decks, and an error boundary that keeps a bad page from blanking the whole app."
+description: "Assemble the browser side of a shared capability. Use components, reactive state, a global store, routes, slide decks, and an error boundary. A bad page then does not blank the whole app."
 ---
 
 The [shared-surface guide](/docs/libraries/every-surface/) shows the route
 descriptor that binds one presenter to both the terminal and the browser. The
-browser still needs a body: cards and grids to render the view, state that
-reacts when the user types in a search box, and a router that survives a handler
-that throws. `@forwardimpact/libui` ships all of it as small functions you
-compose, so the web side of a capability is assembled, not hand-built from raw
-DOM.
+browser still needs a body. It needs cards and grids to render the view. It
+needs state that reacts when the user types in a search box. It needs a router
+that survives a handler that throws. `@forwardimpact/libui` ships all of it as
+small functions you compose. You assemble the web side of a capability. You do
+not hand-build it from raw DOM.
 
 ## Prerequisites
 
@@ -20,16 +20,16 @@ DOM.
 npm install @forwardimpact/libui
 ```
 
-This page assumes you have read the
-[shared-surface guide](/docs/libraries/every-surface/) and have a working
-`createBoundRouter` with at least one `defineRoute`. Everything here renders
-into the page that router displays.
+This page assumes you read the
+[shared-surface guide](/docs/libraries/every-surface/). It also assumes you have
+a `createBoundRouter` that works, with at least one `defineRoute`. Everything
+here renders into the page that router displays.
 
 ## Build the page from components
 
 libui's component functions return plain DOM elements. You pass a config object
 and get back a node you can hand to `render` or nest inside another component.
-There are fourteen-plus factories; these are the ones most pages reach for.
+There are more than fourteen factories. These are the ones most pages reach for.
 
 ```js
 import { render, div } from "@forwardimpact/libui";
@@ -62,10 +62,10 @@ function renderCity(view) {
 }
 ```
 
-A card with an `href` becomes clickable and navigates by setting the URL hash,
-so cards link into other routes without any extra wiring. `createAutoGrid` takes
-a size (`xs`, `sm`, `md`, `lg`) that sets the minimum column width and reflows
-to fit the viewport.
+A card with an `href` becomes clickable. It sets the URL hash to navigate. So
+cards link into other routes and you add no extra code. `createAutoGrid` takes a
+size (`xs`, `sm`, `md`, `lg`). The size sets the minimum column width. The grid
+reflows to fit the viewport.
 
 The factory families group by purpose:
 
@@ -80,8 +80,8 @@ The factory families group by purpose:
 
 ## React to input with local state
 
-A search box needs to filter a list as the user types without re-fetching data
-or re-registering the route. `createReactive` holds a value, notifies
+A search box must filter a list as the user types. It must not re-fetch data. It
+must not re-register the route. `createReactive` holds a value, notifies
 subscribers when it changes, and hands back an unsubscribe function.
 
 ```js
@@ -121,13 +121,14 @@ function renderCityList(cities) {
 ```
 
 `createComputed` derives a value from one or more reactives and recomputes
-whenever any dependency changes. `bind` is the third reactive helper: it ties a
-reactive value directly to an element property, so
+whenever any dependency changes. `bind` is the third reactive helper. It ties a
+reactive value directly to an element property. So
 `bind(count, badge, "textContent")` keeps a badge in sync without a manual
 subscriber.
 
-Reactive state is local to one page render. For values that several routes read
-and write — a logged-in user, a loaded dataset, a theme — use the global store.
+Reactive state is local to one page render. Several routes read and write some
+values. Examples are a logged-in user, a loaded dataset, and a theme. Use the
+global store for those values.
 
 ## Share state across routes with a store
 
@@ -154,13 +155,13 @@ const unsubscribe = store.subscribe((state) => {
 });
 ```
 
-A reactive is the right tool for state that lives and dies with a single page; a
+A reactive is the right tool for state that lives and dies with a single page. A
 store is the right tool for state that outlives any one route.
 
 ## Survive a handler that throws
 
 A page handler that throws should not blank the entire application. Wrap a
-render function with `withErrorBoundary` and a thrown error renders a friendly
+render function with `withErrorBoundary`. A thrown error then renders a friendly
 message instead of an empty screen.
 
 ```js
@@ -174,17 +175,17 @@ const safePage = withErrorBoundary(renderCity, {
 ```
 
 The bound router from the shared-surface guide already wraps every registered
-`page` in an error boundary, so you get this protection for free on routed
+`page` in an error boundary. So you get this protection for free on routed
 pages. Reach for `withErrorBoundary` directly only when you render outside the
-router — for example, a one-off page mounted at startup. The boundary recognises
-libui's `NotFoundError` and `InvalidCombinationError` and renders the matching
-message; any other error falls back to a generic notice.
+router. An example is a one-off page mounted at startup. The boundary recognises
+libui's `NotFoundError` and `InvalidCombinationError`. It renders the message
+that matches. Any other error falls back to a generic notice.
 
 ## Present a guided sequence with the slide router
 
-Some surfaces are a linear walkthrough — an onboarding tour, a generated report
-deck — rather than a tree of pages. `createSlideRouter` extends the core router
-with an ordered sequence and keyboard navigation.
+Some surfaces are a linear walkthrough. They are not a tree of pages. Examples
+are an onboarding tour and a generated report deck. `createSlideRouter` extends
+the core router with an ordered sequence and keyboard navigation.
 
 ```js
 import { createSlideRouter } from "@forwardimpact/libui";
@@ -200,18 +201,19 @@ slides.startKeyboardNav();
 slides.start();
 ```
 
-Once an order is set, arrow keys, space, and `PageUp`/`PageDown` move between
-slides; `Home` and `Escape` return to the first. `setSlideOrder` accepts chapter
-boundaries as a second argument, and `ArrowUp`/`ArrowDown` then jump between
-chapters. Use the slide router for sequences and the bound router for everything
-else; they are separate tools, not layered.
+After you set an order, arrow keys, space, and `PageUp`/`PageDown` move between
+slides. `Home` and `Escape` return to the first slide. `setSlideOrder` accepts
+chapter boundaries as a second argument. `ArrowUp`/`ArrowDown` then jump between
+chapters. Use the slide router for sequences. Use the bound router for
+everything else. They are separate tools. You do not layer them.
 
 ## Emit a machine-readable channel alongside the page
 
-The route descriptor carries three channels, not two. `page` renders for people,
-`cli` shows the terminal equivalent in the command bar, and `graph` emits a
-machine-readable representation of the same route — a Turtle or JSON-LD fragment
-an agent can consume without scraping the HTML.
+The route descriptor carries three channels. It does not carry two. `page`
+renders for people. `cli` shows the terminal equivalent in the command bar.
+`graph` emits a machine-readable representation of the same route. That
+representation is a Turtle or JSON-LD fragment. An agent can consume it and does
+not scrape the HTML.
 
 ```js
 import { defineRoute } from "@forwardimpact/libui";
@@ -228,21 +230,21 @@ router.register(defineRoute({
 }));
 ```
 
-All three channels call the same presenter, so the page a person sees, the
+All three channels call the same presenter. So the page a person sees, the
 command an agent copies, and the graph fragment a crawler reads never disagree.
-`graph` is optional — routes without it simply offer no machine channel.
+`graph` is optional. Routes without it simply offer no machine channel.
 
 ## Verify
 
-- [ ] A `createCard` with an `href` navigates to that hash when clicked.
-- [ ] Typing in a `createSearchBar` updates the reactive and re-renders the
-      filtered list.
+- [ ] A `createCard` with an `href` navigates to that hash when you click it.
+- [ ] When you type in a `createSearchBar`, the reactive updates and the
+      filtered list re-renders.
 - [ ] `store.updateState(path, value)` fires every subscriber registered with
       `store.subscribe`.
 - [ ] A page handler that throws renders the error boundary's message instead of
       a blank screen.
-- [ ] Arrow keys move between slides once `setSlideOrder` and `startKeyboardNav`
-      are called.
+- [ ] Arrow keys move between slides after you call `setSlideOrder` and
+      `startKeyboardNav`.
 - [ ] A route with a `graph` function returns a fragment built from the same
       presenter as its `page`.
 

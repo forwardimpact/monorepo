@@ -4,7 +4,7 @@ import assert from "node:assert";
 import { resolveClaudeCodeExecutable } from "@forwardimpact/libharness";
 
 describe("resolveClaudeCodeExecutable", () => {
-  test("returns undefined from source (not compiled), never touching PATH", () => {
+  test("returns undefined from source (not compiled) and never touches PATH", () => {
     let called = false;
     const which = () => {
       called = true;

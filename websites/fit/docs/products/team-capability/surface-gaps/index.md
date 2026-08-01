@@ -1,11 +1,11 @@
 ---
 title: "Surface Capability Gaps"
-description: "See capability gaps before they become incidents — structural risks, coverage trends, and growth opportunities made visible."
+description: "See capability gaps before they become incidents: structural risks, coverage trends, and growth opportunities made visible."
 ---
 
 You need to find capability gaps in your team before someone gets set up to
-fail -- not after a post-mortem reveals them. This guide walks through three
-complementary views: structural risks, coverage trajectory, and growth
+fail. Do not wait for a post-mortem to reveal them. This guide walks through
+three complementary views: structural risks, coverage trajectory, and growth
 alignment.
 
 ## Prerequisites
@@ -52,18 +52,18 @@ Each category tells you something different:
   but no one covers at the working level. These are the gaps that surface in
   post-mortems.
 - **Concentration risks** flag groups of engineers clustered at the same level
-  and proficiency in the same capability area, creating a bottleneck where
-  everyone has the same ceiling.
+  and proficiency in the same capability area. The group becomes a bottleneck
+  because everyone has the same ceiling.
 
-When a single point of failure involves a part-time allocation (below 1.0), the
-severity is elevated. A `[high]` severity means the sole holder is allocated
-less than half-time to the team.
+When a single point of failure involves a part-time allocation (below 1.0),
+Summit raises the severity. A `[high]` severity means the sole holder works
+less than half-time for the team.
 
 ## Track coverage over time
 
 A point-in-time risk snapshot tells you what is fragile now. The `trajectory`
-command shows how coverage has changed across quarters, revealing whether gaps
-are forming or closing:
+command shows how coverage changed across quarters. It reveals whether gaps
+form or close:
 
 ```sh
 npx fit-summit trajectory platform --roster ./summit.yaml --quarters=4
@@ -94,15 +94,15 @@ Expected output:
 ```
 
 The **persistent gaps** line names skills that had zero depth across every
-quarter shown. These are the gaps most likely to cause failures -- they are not
-new and they are not trending toward resolution.
+quarter shown. These are the gaps most likely to cause failures. They are not
+new. They do not trend toward resolution.
 
 Trajectory requires a version-controlled `summit.yaml` so Summit can read
 historical roster snapshots from git.
 
 ## Compare teams to find relative weaknesses
 
-When you lead multiple teams, a gap on one team may be covered by another:
+When you lead multiple teams, another team may cover a gap on one team:
 
 ```sh
 npx fit-summit compare platform delivery --roster ./summit.yaml
@@ -124,14 +124,14 @@ Expected output:
   Risks unique to Delivery:  estimation (single point of failure)
 ```
 
-Unique risks are the ones to address first -- no other team compensates for
-them. When both teams share the same gap, the problem is organizational, not
-team-specific.
+Address unique risks first. No other team compensates for them. When both teams
+share the same gap, the problem is organizational. It is not specific to one
+team.
 
 ## Identify growth opportunities that close gaps
 
-The `growth` command recommends which team members are best positioned to close
-the gaps you found:
+The `growth` command names the team members in the best position to close the
+gaps you found:
 
 ```sh
 npx fit-summit growth platform --roster ./summit.yaml
@@ -153,18 +153,18 @@ npx fit-summit growth platform --roster ./summit.yaml
       carlos.ruiz (J060, foundational) or dana.wu (J060, foundational) could develop this skill.
 ```
 
-Recommendations are grouped by impact. High-impact items address critical gaps
--- skills nobody covers. Medium-impact items reduce single points of failure.
-Low-impact items strengthen existing coverage by adding depth.
+Summit groups the recommendations by impact. High-impact items address critical
+gaps, the skills nobody covers. Medium-impact items reduce single points of
+failure. Low-impact items add depth and strengthen existing coverage.
 
 Each recommendation names the team members closest to the target proficiency.
-Growing someone from `foundational` to `working` is a shorter path than growing
-from `awareness`.
+The path from `foundational` to `working` is shorter than the path from
+`awareness`.
 
 ## Strip names for broader audiences
 
-When sharing risk or growth reports beyond the direct team, use the `--audience`
-flag to control individual-level detail:
+When you share risk or growth reports beyond the direct team, use the
+`--audience` flag to control individual-level detail:
 
 ```sh
 npx fit-summit risks platform --roster ./summit.yaml --audience director
@@ -179,25 +179,25 @@ npx fit-summit risks platform --roster ./summit.yaml --audience director
     observability             No engineer at working+
 ```
 
-Names are replaced with aggregate counts. The structural findings remain the
+Summit replaces names with aggregate counts. The structural findings remain the
 same.
 
 ## Verify
 
-You have completed this guide when you can answer these questions from your
-Summit output:
+You complete this guide when you can answer these questions from your Summit
+output:
 
-- **What are the team's structural risks right now?** You have run
-  `npx fit-summit risks` and can name the single points of failure, critical
+- **What are the team's structural risks right now?** You ran
+  `npx fit-summit risks`. You can name the single points of failure, critical
   gaps, and concentration risks.
-- **Are gaps forming or closing?** You have run
-  `npx fit-summit trajectory` and can identify persistent gaps and coverage
+- **Do gaps form or close?** You ran
+  `npx fit-summit trajectory`. You can identify persistent gaps and coverage
   trends.
-- **Which gaps are unique to this team?** If you lead multiple teams, you have
-  run `npx fit-summit compare` and can distinguish team-specific risks from
+- **Which gaps are unique to this team?** If you lead multiple teams, you ran
+  `npx fit-summit compare`. You can distinguish team-specific risks from
   organizational ones.
-- **Who is best positioned to close the gaps?** You have run
-  `npx fit-summit growth` and can name the recommended growth paths for
+- **Who is in the best position to close the gaps?** You ran
+  `npx fit-summit growth`. You can name the recommended growth paths for
   high-impact gaps.
 
 ## What's next

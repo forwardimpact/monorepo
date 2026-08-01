@@ -1,12 +1,12 @@
 /**
  * Collects Claude Code stream-json NDJSON events into structured traces.
  *
- * Accepts one NDJSON line at a time via addLine(), then produces either a
- * structured JSON trace (toJSON) or human-readable text (toText).
+ * Accepts one NDJSON line at a time through addLine(). Then produces either
+ * a structured JSON trace (toJSON) or human-readable text (toText).
  *
- * Human text rendering is delegated to the pure modules under `./render/`
- * so the live `TeeWriter` stream and the offline `toText()` replay share
- * one formatting path.
+ * The pure modules under `./render/` render the human text. So the live
+ * `TeeWriter` stream and the offline `toText()` replay use one shared path
+ * to format the text.
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";
@@ -18,12 +18,12 @@ import { isSuppressedOrchestratorEvent } from "./render/orchestrator-filter.js";
 export class TraceCollector {
   /**
    * @param {object} [deps]
-   * @param {function} [deps.now] - Returns an ISO timestamp string. Injected
-   *   so the collector never reads the wall clock directly; construct it as
-   *   `() => isoTimestamp(runtime.clock.now())`. When omitted (pure
-   *   structural/replay use where every event already carries a `timestamp`),
-   *   the fallback formats the epoch — a deterministic sentinel, not a clock
-   *   read.
+   * @param {function} [deps.now] - Returns an ISO timestamp string. Inject it
+   *   so the collector never reads the wall clock directly. Construct it as
+   *   `() => isoTimestamp(runtime.clock.now())`. Omit it for pure
+   *   structural or replay use, where every event already carries a
+   *   `timestamp`. The fallback then formats the epoch. The epoch is a
+   *   deterministic sentinel. The fallback does not read a clock.
    */
   constructor(deps = {}) {
     /** @type {function} */
@@ -44,7 +44,7 @@ export class TraceCollector {
 
   /**
    * Parse one NDJSON line and accumulate state.
-   * Malformed lines are silently skipped.
+   * This method silently skips malformed lines.
    * @param {string} line - A single JSON line from stream-json output
    */
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: NDJSON envelope unwrap + orchestrator/system/assistant/user dispatch
@@ -60,8 +60,8 @@ export class TraceCollector {
     }
 
     // Unwrap combined supervised trace format {source, seq, event}. The
-    // Supervisor / Facilitator emits this wrapper; when replayed through
-    // addLine the inner event is the one we care about. Carry the envelope
+    // Supervisor / Facilitator emits this wrapper. On replay through
+    // addLine, the inner event is the one we care about. Carry the envelope
     // `source` onto each new turn so the renderer can color it correctly.
     let source = null;
     if (event.event && !event.type && typeof event.source === "string") {
@@ -69,11 +69,11 @@ export class TraceCollector {
       event = event.event;
     }
 
-    // Orchestrator lifecycle events carry no content and are suppressed
-    // from turns entirely — the NDJSON artifact keeps them separately.
+    // Orchestrator lifecycle events carry no content. The collector drops
+    // them from turns entirely. The NDJSON artifact keeps them separately.
     if (source === "orchestrator" && isSuppressedOrchestratorEvent(event)) {
-      // The summary event carries the supervisor/facilitator verdict —
-      // capture it before dropping the event, so the result footer can
+      // The summary event carries the supervisor/facilitator verdict.
+      // Capture it before you drop the event, so the result footer can
       // surface verdict="failure" instead of the SDK's per-runner status.
       if (event.type === "summary") {
         this.orchestratorSummary = {
@@ -219,11 +219,11 @@ export class TraceCollector {
   }
 
   /**
-   * Accumulate a result event into the running summary. Facilitated and
+   * Accumulate a result event into the summary so far. Facilitated and
    * supervised sessions emit one result event per runner invocation, so a
-   * single trace can carry several — cost, duration, turn, and token
-   * figures sum across all of them. `result` reflects the latest event;
-   * `isError` is true once any event errored.
+   * single trace can carry several. Cost, duration, turn, and token figures
+   * sum across all of them. `result` reflects the latest event. `isError`
+   * is true once any event errored.
    * @param {object} event
    */
   handleResult(event) {
@@ -270,15 +270,17 @@ export class TraceCollector {
   }
 
   /**
-   * Render the accumulated turns as human-readable text — the same path the
-   * live `TeeWriter` stream uses, so `gemba-harness output --format=text` over a
-   * captured trace reproduces what the live workflow log showed.
+   * Render the accumulated turns as human-readable text. This is the same
+   * path the live `TeeWriter` stream uses. So
+   * `gemba-harness output --format=text` over a captured trace reproduces
+   * what the live workflow log showed.
    *
-   * Source prefixes are emitted whenever at least one turn has a non-null
-   * source (supervised / facilitated traces). A pure `run` trace has no
-   * envelope, all turn sources are null, and the renderer drops the prefix.
+   * The renderer emits source prefixes whenever at least one turn has a
+   * non-null source (supervised / facilitated traces). A pure `run` trace
+   * has no envelope. All turn sources are null. The renderer drops the
+   * prefix.
    *
-   * @returns {string} Formatted text output including ANSI escapes
+   * @returns {string} Formatted text output with ANSI escapes
    */
   toText() {
     const withPrefix = this.turns.some((t) => t.source);
@@ -290,22 +292,22 @@ export class TraceCollector {
 
     const tail = this.#formatResultTail();
 
-    // Each rendered line already ends with `\n`; concatenate, drop the
-    // trailing newline, then append the tail so the output shape stays
-    // compatible with existing consumers (no double-blank line before
-    // the result footer when there are turns, no leading blank when there
-    // are not).
+    // Each rendered line already ends with `\n`. Concatenate the lines.
+    // Drop the trailing newline. Then append the tail so the output shape
+    // stays compatible with existing consumers. With turns, there is no
+    // double-blank line before the result footer. Without turns, there is
+    // no leading blank.
     const body = out.join("").replace(/\n$/, "");
     return body + tail;
   }
 
   /**
-   * Format the trailing result summary line. When an orchestrator
-   * summary is present (supervised / facilitated mode), the headline word is
-   * the supervisor's verdict ("success" / "failure") rather than the SDK's
-   * per-runner subtype, so the footer aligns with the CI exit code. Turn,
-   * cost, and duration figures are the accumulated totals across every
-   * result event in the trace, not the last event's.
+   * Format the trailing result summary line. With an orchestrator summary
+   * (supervised / facilitated mode), the headline word is the supervisor's
+   * verdict ("success" / "failure"). It is not the SDK's per-runner
+   * subtype. The footer then aligns with the CI exit code. Turn, cost, and
+   * duration figures are the accumulated totals across every result event
+   * in the trace. They are not the last event's figures.
    * @returns {string}
    */
   #formatResultTail() {
@@ -320,7 +322,7 @@ export class TraceCollector {
   }
 }
 
-/** Identity element for result-event accumulation in handleResult. */
+/** Identity element that handleResult uses to accumulate result events. */
 const EMPTY_RESULT = {
   isError: false,
   totalCostUsd: 0,
@@ -347,7 +349,7 @@ function normalizeUsage(usage) {
 
 /**
  * Sum two token-usage records field-by-field. Either side may be null
- * (a result event without usage); the sum is null only when both are.
+ * (a result event without usage). The sum is null only when both are null.
  * @param {object|null} a
  * @param {object|null} b
  * @returns {object|null}
@@ -365,9 +367,10 @@ function sumTokenUsage(a, b) {
 }
 
 /**
- * Per-model fields that sum additively across result events — token counts,
- * per-model cost, and request counters. Every other per-model field (e.g. a
- * context-window size) is carried first-seen, never summed.
+ * Per-model fields that sum additively across result events: token counts,
+ * per-model cost, and request counters. The merge carries every other
+ * per-model field (e.g. a context-window size) from the first event that
+ * set it. The merge never sums those fields.
  */
 const ADDITIVE_MODEL_FIELDS = [
   "inputTokens",
@@ -380,8 +383,9 @@ const ADDITIVE_MODEL_FIELDS = [
 
 /**
  * Merge two per-model usage maps across result events. Additive fields
- * (token counts, cost, request counters) sum; non-additive fields are carried
- * from the first event that set them (prev wins). Either side may be null.
+ * (token counts, cost, request counters) sum. The merge carries
+ * non-additive fields from the first event that set them (prev wins).
+ * Either side may be null.
  * @param {object|null} prevMU
  * @param {object|null} nextMU
  * @returns {object|null}
@@ -401,7 +405,8 @@ function mergeModelUsage(prevMU, nextMU) {
 }
 
 /**
- * Merge one model's usage: additive fields sum, others carry first-seen (a).
+ * Merge one model's usage. Additive fields sum. Other fields carry the
+ * first-seen value (a).
  * @param {object} a - First-seen (prev) per-model usage.
  * @param {object} b - Next per-model usage.
  * @returns {object}

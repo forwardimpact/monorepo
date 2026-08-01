@@ -22,7 +22,7 @@ function makeProcess(nodeVersion) {
 }
 
 describe("libpreflight check(22)", () => {
-  test("returns silently when major satisfies floor", () => {
+  test("returns silently when the major version satisfies the floor", () => {
     const proc = makeProcess("22.0.0");
     check(22, proc);
     assert.deepStrictEqual(proc.stderrCalls, []);

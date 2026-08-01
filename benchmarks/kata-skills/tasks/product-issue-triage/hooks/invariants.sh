@@ -3,10 +3,10 @@ set -u
 ISSUE="$AGENT_CWD/.tracker/issues/req-emoji-social.md"
 check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }
 
-# The issue must still exist; the triage edits it in place.
+# The issue must still exist. The triage edits it in place.
 check issue-present --gate --exists "$ISSUE"
 
-# Triaged out of scope: closed, labelled wontfix, and carrying a rationale
+# Triaged out of scope: closed, labelled wontfix, and with a rationale
 # comment. Together these evidence the read -> comment -> label -> close loop
 # the filesystem tracker realizes.
 # Tolerate quoted front-matter values, the wont-fix / wont fix label spellings,

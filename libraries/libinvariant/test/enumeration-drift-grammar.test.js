@@ -76,7 +76,7 @@ describe("probeFsGlob", () => {
     const root = withRepo({
       "services/bridge/package.json": "{}",
       "services/vector/package.json": "{}",
-      "services/empty/README.md": "x", // no package.json → excluded by tail
+      "services/empty/README.md": "x", // no package.json → the tail drops it
     });
     const set = probeFsGlob(
       { pattern: "services/*/package.json", id: "dirname" },
@@ -187,9 +187,10 @@ describe("bareSlug + probeMdTable", () => {
     rmSync(root, { recursive: true, force: true });
   });
 
-  // The real `.github/CLAUDE.md` table: a `Action (`@v1`)` header and
+  // The real `.github/CLAUDE.md` table has a `Action (`@v1`)` header and
   // markdown-link cells whose URL carries the `forwardimpact/` org. The
-  // selector must match this shape, not the bare-token form above.
+  // selector must match this shape. It must not match the bare-token form
+  // above.
   test("md-table matches the real sibling-action table shape", () => {
     const root = withRepo({
       ".github/CLAUDE.md": [
@@ -233,7 +234,7 @@ describe("extractCount / extractCounts", () => {
   test("first integer wins", () => {
     assert.equal(extractCount("there are 15 services and 39 libs"), 15);
   });
-  test("word-number recognized", () => {
+  test("extractCount reads a word-number", () => {
     assert.equal(extractCount("Sixteen skills"), 16);
   });
   test("no number → null", () => {
@@ -276,8 +277,9 @@ describe("extractList grammar", () => {
   });
 
   test("code spans mixed with prose are NOT a bare list", () => {
-    // A leftover word means the span is ambiguous; the code-span shape declines
-    // so the reading falls through (here: no other shape matches → empty).
+    // A leftover word means the span is ambiguous. The code-span shape
+    // declines, so the reading falls through. Here no other shape matches, so
+    // the set is empty.
     const set = extractList("uses `harness` and `wiki` internally");
     assert.equal(set.size, 0);
   });

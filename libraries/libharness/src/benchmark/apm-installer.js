@@ -1,13 +1,13 @@
 /**
  * ApmInstaller — runs `apm install --target claude` in the family root to
- * materialise skills and agents, copies the resulting `.claude/` into a
- * staging directory, and computes the manifest fingerprint from the lockfile.
- * Per-task copy happens later in WorkdirManager.
+ * materialise skills and agents. It copies the resulting `.claude/` into a
+ * staging directory. It computes the manifest fingerprint from the lockfile.
+ * WorkdirManager makes the per-task copy later.
  *
- * Subprocess and filesystem access route through the injected `runtime` bag
- * (`runtime.subprocess.spawn` for the streaming `apm` child, `runtime.fs` for
- * the async staging copies). See `createApmInstaller` for the real-dependency
- * wiring; `installApm` is a thin free-function wrapper.
+ * Subprocess and filesystem access route through the injected `runtime` bag.
+ * The `apm` child streams through `runtime.subprocess.spawn`. The async
+ * staging copies use `runtime.fs`. See `createApmInstaller`, which wires the
+ * real dependencies. `installApm` is a thin free-function wrapper.
  */
 
 import { createHash } from "node:crypto";
@@ -18,7 +18,7 @@ export class ApmInstaller {
   /**
    * @param {object} deps
    * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime -
-   *   Ambient collaborators; uses `subprocess.spawn` and `fs`.
+   *   Ambient collaborators. The installer uses `subprocess.spawn` and `fs`.
    */
   constructor({ runtime }) {
     if (!runtime) throw new Error("runtime is required");
@@ -30,8 +30,8 @@ export class ApmInstaller {
    * @param {string} outputDir - The benchmark run's output directory.
    * @param {object} [options]
    * @param {string|null} [options.skillsFrom] - Stage `.claude/` from this
-   *   directory instead of running apm install. The path is a root containing
-   *   a `.claude/` tree (e.g. a working tree), letting a run exercise local,
+   *   directory and do not run apm install. The path is a root that contains
+   *   a `.claude/` tree (e.g. a working tree). A run can then exercise local,
    *   unpublished skills.
    * @returns {Promise<{stagingDir: string, skillSetHash: string, judgeProfilesDir: string}>}
    */
@@ -44,7 +44,7 @@ export class ApmInstaller {
       : join(family.rootPath, ".claude");
     const apmYml = join(family.rootPath, "apm.yml");
 
-    // --skills-from takes precedence over apm install: the caller is supplying
+    // --skills-from takes precedence over apm install. The caller supplies
     // the skill tree explicitly, so no remote fetch runs.
     const hasApm =
       !skillsFrom &&
@@ -59,7 +59,7 @@ export class ApmInstaller {
         await fs.access(sourceClaude);
       } catch {
         throw new Error(
-          `apm install did not produce .claude/ at ${sourceClaude}; check the family's apm.yml`,
+          `apm install did not produce .claude/ at ${sourceClaude}. Check the family's apm.yml`,
         );
       }
     }
@@ -78,18 +78,18 @@ export class ApmInstaller {
       await fs.mkdir(stagedClaude, { recursive: true });
     }
 
-    // apm's claude target deploys a pack's skills/ into .claude/skills/ but
-    // never its agents/ subtree (agent profiles + references). Stage that from
-    // the installed apm_modules into .claude/agents/ so a skill that cites an
-    // agent reference (e.g. the work-item tracker matrix) resolves in the
-    // agent CWD. No-op when --skills-from supplied a tree or no apm_modules
-    // exist.
+    // apm's claude target deploys a pack's skills/ into .claude/skills/. It
+    // never deploys that pack's agents/ subtree (agent profiles +
+    // references). Stage that subtree from the installed apm_modules into
+    // .claude/agents/. A skill that cites an agent reference (e.g. the
+    // work-item tracker matrix) then resolves in the agent CWD. This is a
+    // no-op when --skills-from supplied a tree or no apm_modules exist.
     if (!skillsFrom) {
       await this.#stageApmAgents(family.rootPath, stagedClaude);
     }
 
-    // Stage the family-local judge profile outside .claude/ so it is available
-    // to the judge but never copied into the agent-under-test's CWD.
+    // Stage the family-local judge profile outside .claude/, so the judge can
+    // reach it. Nothing copies it into the agent-under-test's CWD.
     const judgeSource = join(family.rootPath, "judge.md");
     const judgeProfilesDir = join(stagingDir, "judge-profiles");
     try {
@@ -106,7 +106,7 @@ export class ApmInstaller {
         "sha256:" +
         createHash("sha256").update(normalizeLf(lockBytes)).digest("hex");
     } catch {
-      // No lockfile — family doesn't use skill packs.
+      // No lockfile. The family doesn't use skill packs.
     }
 
     return { stagingDir, skillSetHash, judgeProfilesDir };
@@ -115,8 +115,8 @@ export class ApmInstaller {
   /**
    * Merge each installed pack's `agents/` subtree (profiles + references) from
    * `apm_modules/<owner>/<pack>/agents/` into the staged `.claude/agents/`.
-   * apm's claude target deploys `skills/` only, so without this an agent
-   * reference a skill cites is absent from the agent CWD.
+   * apm's claude target deploys `skills/` only. Without this merge, an agent
+   * reference that a skill cites is absent from the agent CWD.
    * @param {string} familyRoot
    * @param {string} stagedClaude
    */
@@ -127,7 +127,7 @@ export class ApmInstaller {
     try {
       owners = await fs.readdir(modulesRoot, { withFileTypes: true });
     } catch {
-      return; // no apm_modules — nothing to stage
+      return; // no apm_modules, so nothing to stage
     }
     const stagedAgents = join(stagedClaude, "agents");
     for (const owner of owners) {
@@ -159,8 +159,8 @@ export class ApmInstaller {
       ["install", "--target", "claude"],
       { cwd, stdio: ["ignore", "pipe", "pipe"] },
     );
-    // Drain stdout concurrently so the child never blocks on backpressure;
-    // capture stderr for the failure message.
+    // Drain stdout concurrently so the child never blocks on backpressure.
+    // Capture stderr for the failure message.
     let stderr = "";
     const drainStdout = (async () => {
       for await (const _chunk of child.stdout) {
@@ -199,8 +199,8 @@ export function createApmInstaller(deps) {
  * @param {import("./task-family.js").TaskFamily} family
  * @param {string} outputDir
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
- * @param {object} [options] - Forwarded to `ApmInstaller.install` (e.g.
- *   `{ skillsFrom }`).
+ * @param {object} [options] - This function forwards these to
+ *   `ApmInstaller.install` (e.g. `{ skillsFrom }`).
  */
 export function installApm(family, outputDir, runtime, options = {}) {
   return new ApmInstaller({ runtime }).install(family, outputDir, options);

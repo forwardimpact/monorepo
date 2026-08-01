@@ -1,8 +1,8 @@
 /**
- * Telemetry attribute mapping configuration
- * Maps protobuf fields to span attributes with type handling
+ * Configuration for the telemetry attribute map
+ * Maps protobuf fields to span attributes and handles each value type
  * @typedef {object} AttributeConfig
- * @property {string} key - Field name in request/response object (can be nested like 'usage.total_tokens')
+ * @property {string} key - Field name in the request/response object (can be nested like 'usage.total_tokens')
  * @property {string} type - Type: 'string' for direct value, 'count' for array length, 'number' for numeric value
  */
 
@@ -63,7 +63,7 @@ export function extractAttributes(data) {
     const value = getNestedValue(data, config.key);
     if (value === undefined || value === null) continue;
 
-    // Replace dots in keys with underscores for easier JMESPath parsing
+    // Replace dots in keys with underscores so JMESPath parses them easily
     const key = config.key.replace(/\./g, "_");
 
     switch (config.type) {

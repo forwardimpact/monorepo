@@ -7,24 +7,24 @@ conversations and the Kata agent team.
 
 <!-- END:description -->
 
-For the trust model when this bridge runs as the hosted Forward Impact
-service vs the customer's self-hosted deployment, see
-[TRUST.md](../../TRUST.md).
+See [TRUST.md](../../TRUST.md) for the trust model. It covers this bridge as
+the hosted Forward Impact service and as the customer's self-hosted
+deployment.
 
-For configuring the Azure AD (Entra) app behind this bridge (self-hosted
-single-tenant vs hosted multi-tenant), see [azure-app.md](azure-app.md).
+See [azure-app.md](azure-app.md) to configure the Azure AD (Entra) app behind
+this bridge. It covers self-hosted single-tenant and hosted multi-tenant.
 
 ## Prerequisites
 
-- A Microsoft 365 developer tenant with an Azure Bot resource registered
-  for the Teams channel — see
+- A Microsoft 365 developer tenant with an Azure Bot resource registered for
+  the Teams channel. See
   [config-msteams.md § 1–3](../../specs/1200-teams-agent-bridge/config-msteams.md).
-- The **Microsoft Teams channel** must be enabled on the Azure Bot resource
+- The Azure Bot resource must have the **Microsoft Teams channel** enabled
   (Settings → Channels → add Microsoft Teams).
-- The `ghuser` service running and reachable (provides per-user GitHub
-  tokens for dispatch). Each user who triggers a dispatch must have linked
-  their GitHub account through the OAuth flow — the bridge prompts on the
-  channel when a link is missing.
+- The `ghuser` service must run and be reachable. It provides per-user GitHub
+  tokens for dispatch. Each user who triggers a dispatch must link their GitHub
+  account through the OAuth flow first. The bridge prompts on the channel when
+  a link is missing.
 
 ### Dependencies
 
@@ -33,76 +33,75 @@ single-tenant vs hosted multi-tenant), see [azure-app.md](azure-app.md).
 | `bridge` | Canonical discussion and origin store (gRPC) |
 | `ghuser` | Per-user GitHub token for `workflow_dispatch` |
 
-Discussion state is owned by `services/bridge`; the bridge talks to it
-over gRPC and keeps no on-disk discussion state of its own. Operators
-upgrading from a bridge that predates this service can safely delete
-legacy `data/bridges/msbridge/` files; they expire under their existing
-24-hour TTL regardless.
+`services/bridge` owns the discussion state. This bridge talks to it over
+gRPC and keeps no on-disk discussion state of its own. Operators who upgrade
+from a bridge that predates this service can safely delete legacy
+`data/bridges/msbridge/` files. Those files expire under their existing
+24-hour TTL anyway.
 
 ## Tenancy mode
 
 `SERVICE_MSBRIDGE_TENANCY_MODE` selects the deployment shape:
 
 - **`single`** (default, self-hosted) — the Bot Framework authenticator runs
-  in `SingleTenant` mode bound to the static `MICROSOFT_APP_TENANT_ID`; the
-  literal tenant id `default` threads through every `services/bridge` RPC via
+  in `SingleTenant` mode bound to the static `MICROSOFT_APP_TENANT_ID`. The
+  literal tenant id `default` threads through every `services/bridge` RPC with
   a `DefaultTenantResolver`. Per-user OAuth (`services/ghuser`) supplies the
   `workflow_dispatch` credential.
 - **`multi`** (hosted) — the Bot Framework authenticator runs in Microsoft's
-  documented **`MultiTenant`** mode: `MicrosoftAppType` is `MultiTenant` and
-  `MICROSOFT_APP_TENANT_ID` is omitted, so the SDK accepts JWTs issued by any
+  documented **`MultiTenant`** mode. `MicrosoftAppType` is `MultiTenant` and
+  `MICROSOFT_APP_TENANT_ID` is omitted. The SDK then accepts JWTs issued by any
   consenting Entra tenant. Each inbound activity's Entra tenant id
-  (`channelData.tenant.id`) resolves to a registry tenant; non-active
-  (`pending_consent`) tenants are rejected. The GitHub `workflow_dispatch`
-  credential is the dispatching user's per-user OAuth token (`services/ghuser`),
-  the same per-user path as single-tenant — so hosted workflow commits are
-  authored as the human dispatcher. The Bot Framework reply credential stays in
-  process.
+  (`channelData.tenant.id`) resolves to a registry tenant. The bridge rejects
+  non-active (`pending_consent`) tenants. The GitHub `workflow_dispatch`
+  credential is the per-user OAuth token of the user who dispatches
+  (`services/ghuser`). That is the same per-user path as single-tenant, so a
+  hosted workflow commit carries the human dispatcher as its author. The Bot
+  Framework reply credential stays in process.
 
 ### Multi-tenant onboarding
 
-1. A tenant adds the Teams app → Bot Framework fires `installationUpdate`
-   (`action = add`) → the consent handler registers the tenant
+1. A tenant adds the Teams app. Bot Framework fires `installationUpdate`
+   (`action = add`). The consent handler registers the tenant as
    `pending_consent` in `services/tenancy`, keyed by the Entra tenant id.
 2. The customer calls `POST /onboard` with `{ repo: { owner, name } }`. The
-   handler verifies the caller's Entra `tid` (signature-bound via the injected
-   `authenticateTenant` verifier), then resolves-and-transitions that `tid`'s
-   registry row in one state-agnostic upsert: `UpsertByChannelKey({ channel:
-   "msteams", channel_tenant_key: tid, state: "active" })` finds the
-   `pending_consent` row by `(channel, key)` regardless of state, flips it
-   `active`, and returns its registry `tenant_id` (a UUID). The repo is then
-   bound to that UUID via `SetRepo`. An active-only resolve would never see the
-   `pending_consent` row, so the upsert is what makes the consent → active
-   transition reachable. The `tid` and the registry `tenant_id` live in
-   different id-spaces; the channel key comes only from the authenticated `tid`
-   and the UUID comes only from the resolved row, so a body-supplied registry
-   id is never trusted. A `tid` with no prior consent row is created fresh as
-   `active`, since the `tid` is signature-bound (the caller provably owns that
-   Entra tenant).
+   handler verifies the caller's Entra `tid`. The injected `authenticateTenant`
+   verifier binds that `tid` to a signature. The handler then resolves and
+   transitions that `tid`'s registry row in one state-agnostic upsert.
+   `UpsertByChannelKey({ channel: "msteams", channel_tenant_key: tid, state:
+   "active" })` finds the `pending_consent` row by `(channel, key)` regardless
+   of state. It flips the row to `active` and returns its registry `tenant_id`
+   (a UUID). `SetRepo` then binds the repo to that UUID. An active-only resolve
+   would never see the `pending_consent` row, so the upsert makes the
+   consent → active transition reachable. The `tid` and the registry
+   `tenant_id` live in different id-spaces. The channel key comes only from
+   the authenticated `tid`. The UUID comes only from the resolved row. So the
+   handler never trusts a body-supplied registry id. For a `tid` with no prior
+   consent row, the upsert creates a fresh row as `active`. The `tid` is
+   signature-bound, so the caller provably owns that Entra tenant.
 
 The injected `authenticateTenant` verifier validates the inbound Bot Framework
-bearer JWT through the same `ConfigurationBotFrameworkAuthentication` the
-`/api/messages` path uses (one SDK validation path), so the caller's `tid` is
-cryptographically proven. A request whose `tid` is proven onboards as above; an
+bearer JWT. It uses the same `ConfigurationBotFrameworkAuthentication` the
+`/api/messages` path uses (one SDK validation path). This proves the caller's
+`tid` cryptographically. A request with a proven `tid` onboards as above. An
 absent or forged proof returns 401 before any registry read. The caller must
 present a Bot Framework-issued bearer token whose audience is the bot's
-`MICROSOFT_APP_ID` — a Graph or Entra user token is rejected. The resolved-`tid`
-→ registry-row → `SetRepo` contract is exercised by
-`test/onboard-handler.test.js` and the verifier by
-`test/onboard-verifier.test.js`.
+`MICROSOFT_APP_ID`. The handler rejects a Graph or Entra user token.
+`test/onboard-handler.test.js` exercises the resolved-`tid` → registry-row →
+`SetRepo` contract. `test/onboard-verifier.test.js` exercises the verifier.
 
 ### Documented limitation: multi-tenant elapsed-recess re-arm on restart
 
 In `single` mode, the bridge re-arms time-based (`elapsed`-trigger) recesses at
-startup via `ResumeScheduler.rearm()`, which reads the open recesses for the
-one tenant (`default`). In `multi` mode there is no single tenant at boot and
-the registry exposes no cross-tenant enumeration of open recesses, so `rearm()`
-returns nothing. A hosted bridge that restarts while an `elapsed` recess is
-pending therefore does not fire that recess on a timer; instead, multi-tenant
-`elapsed`-trigger recesses re-arm lazily on the next inbound activity on the
-thread (the resume lifecycle runs through `processInbound`). `missing_input`
-recesses are unaffected — they resume on the next reply regardless of restart.
-Self-hosted (`single`) re-arm behaviour is unchanged.
+startup with `ResumeScheduler.rearm()`. That call reads the open recesses for
+the one tenant (`default`). In `multi` mode there is no single tenant at boot.
+The registry also exposes no cross-tenant enumeration of open recesses, so
+`rearm()` returns nothing. A hosted bridge that restarts while an `elapsed`
+recess is pending does not fire that recess on a timer. Multi-tenant
+`elapsed`-trigger recesses instead re-arm lazily on the next inbound activity
+on the thread. The resume lifecycle runs through `processInbound`.
+`missing_input` recesses are unaffected. They resume on the next reply
+regardless of restart. Self-hosted (`single`) re-arm behaviour is unchanged.
 
 ### Multi-tenant dependencies
 
@@ -113,7 +112,7 @@ Self-hosted (`single`) re-arm behaviour is unchanged.
 
 ### Configuration
 
-Loaded via `createServiceConfig("msbridge")`:
+Loaded with `createServiceConfig("msbridge")`:
 
 | Env var | Purpose |
 | --- | --- |
@@ -128,11 +127,10 @@ Loaded via `createServiceConfig("msbridge")`:
 
 ## Running
 
-Add `mstunnel` and `msbridge` to `config/config.json` under
-`init.services` — see [`config/CLAUDE.md`](../../config/CLAUDE.md) for the
-entry format. List the tunnel with the other tunnels (before services) so
-that restarting the bridge does not cycle the tunnel (declaration order
-determines restart scope).
+Add `mstunnel` and `msbridge` to `config/config.json` under `init.services`.
+See [`config/CLAUDE.md`](../../config/CLAUDE.md) for the entry format. List the
+tunnel with the other tunnels (before services). A bridge restart then does not
+cycle the tunnel. Declaration order determines restart scope.
 
 Start both services:
 
@@ -141,7 +139,7 @@ bunx fit-rc start
 ```
 
 The tunnel uses a quick `trycloudflare.com` hostname that changes on
-every restart. After starting, check the tunnel log for the assigned URL:
+every restart. After you start it, check the tunnel log for the assigned URL:
 
 ```sh
 cat data/logs/mstunnel/current | grep trycloudflare.com
@@ -153,7 +151,7 @@ In the Azure portal (Settings → Configuration), set the messaging endpoint
 to `https://<tunnel-domain>/api/messages`.
 
 Set `SERVICE_MSBRIDGE_CALLBACK_BASE_URL` in `.env` to the tunnel domain
-(without any path), then restart only the bridge:
+(without any path). Then restart only the bridge:
 
 ```sh
 bunx fit-rc restart msbridge
@@ -163,15 +161,15 @@ The tunnel keeps its hostname across bridge restarts.
 
 ## Service supervision
 
-If you supervise `msbridge` via `fit-rc`, list `bridge` ahead of the bridge
+If you supervise `msbridge` with `fit-rc`, list `bridge` ahead of the bridge
 entries in `init.services` so `createClient('bridge', …)` resolves at startup.
 
 ### Corporate network considerations
 
-The bridge must be able to reach `api.github.com` to dispatch workflows.
-If you are on a corporate VPN with tenant restrictions, outbound calls
-to Azure AD and GitHub may be blocked. Disconnect from the VPN before
-starting the bridge, or allowlist the required endpoints.
+The bridge must reach `api.github.com` to dispatch workflows. If you are on a
+corporate VPN with tenant restrictions, the VPN may block outbound calls to
+Azure AD and GitHub. Disconnect from the VPN before you start the bridge, or
+allowlist the required endpoints.
 
 ## Packaging the Teams App
 
@@ -179,29 +177,30 @@ starting the bridge, or allowlist the required endpoints.
 just msbridge-package
 ```
 
-Reads `MICROSOFT_APP_ID` from `.env` via libconfig and the tunnel domain
-from `SERVICE_MSBRIDGE_CALLBACK_BASE_URL`. Produces
-`dist/kata-agent-bridge.zip` (git-ignored) containing the manifest and
-placeholder icons. Override the tunnel domain with
-`--tunnel-domain=<host>` if needed.
+The recipe reads `MICROSOFT_APP_ID` from `.env` with libconfig. It reads the
+tunnel domain from `SERVICE_MSBRIDGE_CALLBACK_BASE_URL`. It produces
+`dist/kata-agent-bridge.zip` (git-ignored), which holds the manifest and
+placeholder icons. Override the tunnel domain with `--tunnel-domain=<host>` if
+needed.
 
-The manifest uses Teams schema v1.17. The package can be rebuilt and
-re-uploaded without removing the app from Teams — the Azure Bot
-messaging endpoint is what controls routing, not the package contents.
+The manifest uses Teams schema v1.17. You do not have to remove the app from
+Teams to rebuild and re-upload the package. The Azure Bot messaging endpoint
+controls routing. The package contents do not.
 
 ## Sideloading
 
 1. In
    [Teams Admin Center](https://admin.teams.microsoft.com/policies/manage-apps),
-   ensure **Org-wide app settings → Allow interaction with custom apps** is on.
-2. In **Setup policies → Global**, ensure **Upload custom apps** is on.
+   make sure **Org-wide app settings → Allow interaction with custom apps** is
+   on.
+2. In **Setup policies → Global**, make sure **Upload custom apps** is on.
 3. Open Teams → Apps → Manage your apps → **Upload an app** →
    **Upload a custom app** → select `kata-agent-bridge.zip`.
 4. Add the app to a team or group chat.
 
 ## Smoke test
 
-Send `@Kata Agent hello` in the configured team or chat. The bot shows
-a randomized status word ("Moonwalking...", "Crafting...", etc.) while
-the agent team works, then posts the facilitator's response back in the
-same thread once the session completes.
+Send `@Kata Agent hello` in the configured team or chat. The bot shows a
+randomized status word ("Moonwalking...", "Crafting...", etc.) while the agent
+team works. The bot then posts the facilitator's response back in the same
+thread once the session completes.

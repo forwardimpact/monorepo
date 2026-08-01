@@ -1,5 +1,5 @@
 /**
- * Score aggregation and rendering coverage for `report`: per-task mean
+ * Coverage of how `report` aggregates and renders scores: per-task mean
  * score, the score@k expected-best estimator, and the score columns /
  * merged checks table / malformed warnings in the text renderer.
  */
@@ -124,7 +124,7 @@ describe("score rendering", () => {
       /\| scored \| 1 \| 0 \| 0\.0000 \| 0\.5000 \| 0\.5000 \|/,
     );
     assert.match(text, /\| binary \| 1 \| 1 \| 1\.0000 \| — \| — \|/);
-    // Runs table gains a Score column; the binary run renders —.
+    // Runs table gains a Score column. The binary run renders —.
     assert.match(text, /\| Run \| Verdict \| Checks \| Judge \| Score \|/);
   });
 

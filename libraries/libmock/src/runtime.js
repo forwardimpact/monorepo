@@ -5,9 +5,9 @@ import { createMockSubprocess } from "./mock/subprocess.js";
 import { createMockFinder } from "./mock/finder.js";
 
 /**
- * Build a frozen mock runtime bag for tests, matching the production
- * `Runtime` typedef. Every field defaults to its canonical
- * libmock fake and is independently overridable via `overrides`.
+ * Build a frozen mock runtime bag for tests. The bag matches the production
+ * `Runtime` typedef. Every field defaults to its canonical libmock fake.
+ * Override each field independently through `overrides`.
  *
  * @param {object} [overrides] - Per-field replacements.
  * @param {object} [overrides.fs] - Async fs surface (default `createMockFs()`).

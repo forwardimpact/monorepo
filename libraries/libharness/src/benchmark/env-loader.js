@@ -1,17 +1,20 @@
 /**
  * Env-loader — auto-discover `.env` / `.env.local` files in a task family
- * and its tasks, load them into `process.env`, and render the merged result
+ * and its tasks. Load them into `process.env`. Render the merged result
  * into each agent CWD.
  *
- * Discovery paths (loaded in this order, first value per key wins):
- *   1. process.env  (CI secrets, shell env — never overwritten)
+ * The loader reads the discovery paths in this order. The first value per
+ * key wins:
+ *   1. process.env  (CI secrets and shell env, which the loader never
+ *      overwrites)
  *   2. <family>/.env.local
  *   3. <family>/.env
  *   4. tasks/<id>/.env.local
  *   5. tasks/<id>/.env
  *
- * Every discovered env file — family or task — is loaded into process.env
- * AND rendered (with resolved values) into the agent working directory.
+ * The loader loads every discovered env file, family or task, into
+ * process.env. It also renders the file (with resolved values) into the
+ * agent working directory.
  */
 
 import { join } from "node:path";
@@ -20,7 +23,8 @@ const ENV_FILES = [".env.local", ".env"];
 
 /**
  * Parse a `.env` file into an array of {key, value} pairs.
- * Handles KEY=VALUE, # comments, blank lines, and single/double-quoted values.
+ * It handles KEY=VALUE, # comments, blank lines, and single/double-quoted
+ * values.
  * @param {string} content
  * @returns {Array<{key: string, value: string}>}
  */
@@ -46,7 +50,7 @@ export function parseEnvFile(content) {
 }
 
 /**
- * Read and parse an env file, returning [] if the file does not exist.
+ * Read and parse an env file. Return [] if the file does not exist.
  * @param {object} fs - Async filesystem surface (`runtime.fs`).
  * @param {string} filePath
  * @returns {Promise<Array<{key: string, value: string}>>}
@@ -62,10 +66,11 @@ async function readEnvFile(fs, filePath) {
 }
 
 /**
- * Load entries into the process env map. Existing keys are never overwritten.
+ * Load entries into the process env map. This function never overwrites an
+ * existing key.
  * @param {Record<string, string|undefined>} env - The `runtime.proc.env` map.
  * @param {Array<{key: string, value: string}>} entries
- * @returns {string[]} var names that were loaded
+ * @returns {string[]} the var names it loaded
  */
 function applyToProcessEnv(env, entries) {
   const names = [];
@@ -79,7 +84,8 @@ function applyToProcessEnv(env, entries) {
 }
 
 /**
- * Load one env file: apply to the env map, record keys in the merged map.
+ * Load one env file. Apply it to the env map. Record the keys in the merged
+ * map.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string} dir
  * @param {string} file
@@ -100,7 +106,7 @@ async function loadOneEnvFile(runtime, dir, file, names, merged) {
 }
 
 /**
- * Scan directories for env files, load into the env map, and collect
+ * Scan directories for env files. Load them into the env map. Collect
  * a merged key manifest per filename.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {string[]} dirs
@@ -118,7 +124,7 @@ async function collectEnvEntries(runtime, dirs) {
 }
 
 /**
- * Write resolved env files into the agent CWD and warn about empty values.
+ * Write resolved env files into the agent CWD. Warn about empty values.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @param {Map<string, Map<string, true>>} merged
  * @param {string} agentCwd
@@ -142,14 +148,16 @@ async function renderEnvFiles(runtime, merged, agentCwd) {
 }
 
 /**
- * Discover `.env` / `.env.local` in one or more directories, load them
- * into the process env map, and render the resolved values into the agent CWD.
+ * Discover `.env` / `.env.local` in one or more directories. Load them
+ * into the process env map. Render the resolved values into the agent CWD.
  *
  * @param {string[]} dirs - Directories to scan (family root, task dir, etc.)
  * @param {string} agentCwd - Agent working directory to render into.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Ambient
- *   collaborators; uses `fs` (async read/write), `proc.env`, `proc.stderr`.
- * @returns {Promise<string[]>} All var names discovered (for redaction).
+ *   collaborators. It uses `fs` (async read/write), `proc.env`, and
+ *   `proc.stderr`.
+ * @returns {Promise<string[]>} Every var name the loader discovered (for
+ *   redaction).
  */
 export async function loadEnv(dirs, agentCwd, runtime) {
   const { names, merged } = await collectEnvEntries(runtime, dirs);

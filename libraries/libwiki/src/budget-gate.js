@@ -1,14 +1,14 @@
 // Post-landing, pre-push budget re-validation on the size (word/line) axis.
 //
 // The wiki landing flow re-runs the audit's budget predicates over the
-// outgoing tree between landing and push, and refuses a push that introduces
+// outgoing tree between landing and push. It refuses a push that introduces
 // or deepens a per-file budget breach this writer's push would publish. The
-// gate reuses the audit's budget rules by reference: it resolves the rule
-// objects named by `BUDGET_RULE_IDS` and calls each rule's own `check` (the
-// over-cap predicate) plus the same `countWords` / `countLines` the audit
-// builds its subjects from. It never re-defines a budget, never routes through
-// the `runRules` engine (which drops the numeric value and emits nothing under
-// cap), and never edits — it refuses, keeping commits local.
+// gate reuses the audit's budget rules by reference. It resolves the rule
+// objects named by `BUDGET_RULE_IDS`. It then calls each rule's own `check`
+// (the over-cap predicate) plus the same `countWords` / `countLines` the audit
+// builds its subjects from. It never re-defines a budget. It never routes
+// through the `runRules` engine, which drops the numeric value and emits
+// nothing under cap. It never edits. It refuses, which keeps commits local.
 
 import path from "node:path";
 import { BUDGET_RULE_IDS, RULES } from "./audit/rules.js";
@@ -16,9 +16,10 @@ import { buildContext, resolveScope } from "./audit/scopes.js";
 import { countLines, countWords } from "./budget.js";
 
 /**
- * Resolve `BUDGET_RULE_IDS` to their rule objects in `RULES`, tagging each with
- * the count axis its id implies. Throws if a named id is missing from `RULES`,
- * so a rule rename surfaces here rather than silently dropping a predicate.
+ * Resolve `BUDGET_RULE_IDS` to their rule objects in `RULES`. Tag each one with
+ * the count axis its id implies. It throws if a named id is missing from
+ * `RULES`, so a rule rename surfaces here and does not silently drop a
+ * predicate.
  * @returns {Array<{id: string, scope: string, axis: 'words'|'lines', check: Function}>}
  */
 export function budgetRules() {
@@ -36,10 +37,10 @@ export function budgetRules() {
 }
 
 /**
- * Enumerate which wiki files are budgeted, by reusing the audit's
- * classification. Subjects carry an absolute `path`, so each is reduced to the
- * `<file>` half of `git show <ref>:<file>` relative to `wikiRoot`. No count is
- * read off the working-dir subject — only the file identity and its scope.
+ * Enumerate which wiki files are budgeted. Reuse the audit's classification.
+ * Subjects carry an absolute `path`. Reduce each one to the `<file>` half of
+ * `git show <ref>:<file>`, relative to `wikiRoot`. This function reads no count
+ * off the working-dir subject. It reads only the file identity and its scope.
  * @param {object} ctx - An audit context from `buildContext`.
  * @param {string} wikiRoot - The wiki clone directory the paths are relative to.
  * @returns {Array<{relPath: string, scope: string}>}
@@ -56,12 +57,12 @@ export function budgetedFiles(ctx, wikiRoot) {
 }
 
 /**
- * Measure the budget predicates for the tree at `ref`. Reads each budgeted
- * file's blob via the cwd-bound `showFile`, counts it once with the audit's
- * counters, then for every budget rule on that file's scope records the axis
+ * Measure the budget predicates for the tree at `ref`. Read each budgeted
+ * file's blob through the cwd-bound `showFile`. Count it once with the audit's
+ * counters. Then, for every budget rule on that file's scope, record the axis
  * value and whether the rule's own `check` flags it over cap. An absent path
- * at the ref counts as 0 (matching the audit's "missing counts as empty"
- * posture); an unreadable ref makes `showFile` throw, which propagates.
+ * at the ref counts as 0. This matches the audit's "missing counts as empty"
+ * posture. An unreadable ref makes `showFile` throw, and the throw propagates.
  * @param {(ref: string, file: string) => Promise<string|null>} showFile
  * @param {string} ref - The tree-ish to measure (e.g. "HEAD", a SHA).
  * @param {Array<{relPath: string, scope: string}>} budgeted
@@ -88,15 +89,16 @@ export async function measureRef(showFile, ref, budgeted) {
 }
 
 /**
- * Compare the outgoing tree against the two push-input baselines and return the
+ * Compare the outgoing tree against the two push-input baselines. Return the
  * per-file/per-predicate refusal delta. For each (file, rule) the baseline is
- * the worse (higher) of the session-base and origin-tip values, treating an
- * absent measurement as 0. A predicate refuses iff the outgoing value is over
- * cap AND strictly exceeds that baseline — so equal-or-better states pass, and
- * a foreign breach the writer did not worsen passes. A `summary.*` breach on a
- * file listed in `exemptSummaryFiles` is surfaced instead of refused — the
- * memo-delivery seam, where blocking a delivery into deficient headroom would
- * enforce a contradiction the memo-headroom measures exist to resolve.
+ * the worse (higher) of the session-base and origin-tip values. An absent
+ * measurement counts as 0. A predicate refuses iff the outgoing value is over
+ * cap AND strictly exceeds that baseline. So equal-or-better states pass, and
+ * a foreign breach the writer did not worsen passes. The gate surfaces a
+ * `summary.*` breach on a file listed in `exemptSummaryFiles` instead of
+ * refusing it. Those files are the memo-delivery seam. A block on a delivery
+ * into deficient headroom would enforce a contradiction. The memo-headroom
+ * measures exist to resolve that contradiction.
  *
  * @param {object} args
  * @param {Map<string, Map<string, {value: number, overCap: boolean}>>} args.outgoing
@@ -137,14 +139,14 @@ export function revalidateBudgets({
 }
 
 /**
- * Run the gate end to end over the outgoing tree. Builds the audit context,
- * enumerates the budgeted files, measures the committed `HEAD` (what publishes)
- * and the two push-input baselines through the one `measureRef` path, then
- * computes the per-file/per-predicate delta. An unreadable baseline ref makes
- * `showFile` throw, which aborts the gate WITHOUT refusing — the gate only
- * refuses a regression it can prove, so a read failure surfaces (the push
- * proceeds) rather than fabricating a value-0 baseline that would wrongly block
- * a foreign pre-existing breach.
+ * Run the gate end to end over the outgoing tree. Build the audit context.
+ * Enumerate the budgeted files. Measure the committed `HEAD` (what publishes)
+ * and the two push-input baselines through the one `measureRef` path. Then
+ * compute the per-file/per-predicate delta. An unreadable baseline ref makes
+ * `showFile` throw, which aborts the gate WITHOUT refusing. The gate only
+ * refuses a regression it can prove. So a read failure surfaces and the push
+ * proceeds. The gate does not fabricate a value-0 baseline that would wrongly
+ * block a foreign pre-existing breach.
  *
  * @param {object} args
  * @param {(ref: string, file: string) => Promise<string|null>} args.showFile
@@ -181,7 +183,8 @@ export async function runBudgetGate({
     }
     originTip = await measureRef(showFile, originRef, budgeted);
   } catch {
-    // Cannot prove a regression (unreadable ref) ⇒ do not refuse; fail-visible.
+    // Cannot prove a regression (unreadable ref) ⇒ do not refuse. This is the
+    // fail-visible posture.
     return { refusals: [], surfaced: [] };
   }
   return revalidateBudgets({

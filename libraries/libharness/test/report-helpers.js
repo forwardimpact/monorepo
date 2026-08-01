@@ -40,7 +40,7 @@ export const jsonl = (records) =>
   records.map((r) => JSON.stringify(r)).join("\n") + "\n";
 
 /**
- * Build a runtime whose mock fs holds the given `{path: records[]}` map;
+ * Build a runtime whose mock fs holds the given `{path: records[]}` map.
  * `captureStderr` swaps stderr for a collector and returns its buffer.
  * @param {Record<string, object[]>} files
  * @param {{captureStderr?: boolean}} [opts]
@@ -57,8 +57,8 @@ export function runtimeWith(files, { captureStderr } = {}) {
 }
 
 /**
- * Seed `results.jsonl` for `records` under `INPUT_DIR` and return a runtime;
- * `aggregate` walks `inputDir` and reads the ledger via `runtime.fs`.
+ * Seed `results.jsonl` for `records` under `INPUT_DIR` and return a runtime.
+ * `aggregate` walks `inputDir` and reads the ledger through `runtime.fs`.
  * @param {object[]} records
  */
 export function jsonlRuntime(records) {

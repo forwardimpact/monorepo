@@ -1,6 +1,6 @@
 /**
- * Unit tests for products/map/src/validation/skill.js — covers the
- * multiple-references validation rules and the deprecated
+ * Unit tests for products/map/src/validation/skill.js. They cover the
+ * multiple-references validation rules. They also cover the deprecated
  * `implementationReference` rejection.
  */
 
@@ -54,7 +54,7 @@ describe("validateSkill — references field", () => {
     );
   });
 
-  test("non-array references is rejected", () => {
+  test("validateSkill rejects non-array references", () => {
     const { errors } = validateSkill(
       baseSkill({ references: "not-an-array" }),
       0,
@@ -141,10 +141,10 @@ describe("validateSkill — references field", () => {
     assert.ok(err, "expected MISSING_REQUIRED on missing name");
   });
 
-  test("exact-duplicate names rejected via seenNames Set", () => {
+  test("the seenNames Set rejects exact-duplicate names", () => {
     // Both entries pass the regex, so the duplicate path in seenNames is
-    // the rule that fires. Distinct from the case-only test below, which
-    // is caught earlier by the lowercase-only regex.
+    // the rule that fires. The case-only test below is different. The
+    // lowercase-only regex catches that one earlier.
     const { errors } = validateSkill(
       baseSkill({
         references: [
@@ -159,11 +159,11 @@ describe("validateSkill — references field", () => {
     assert.match(err.message, /[Dd]uplicate/, "message names duplicate");
   });
 
-  test("case-only collision rejected (foo vs Foo) — by regex, not seenNames", () => {
+  test("the regex rejects a case-only collision (foo vs Foo), and seenNames does not", () => {
     // Spec criterion 3 requires "duplicate `name` values within one skill,
     // including case-only collisions (foo vs Foo)" → INVALID_VALUE at
-    // .references[i].name. Implementation enforces this by rejecting any
-    // uppercase letter in the regex (Foo fails) — so the dedicated
+    // .references[i].name. The implementation enforces this because the
+    // regex rejects any uppercase letter (Foo fails). So the dedicated
     // case-insensitive comparison is defence-in-depth for any future regex
     // relaxation. Either way, the second entry must error.
     const { errors } = validateSkill(
@@ -240,7 +240,7 @@ describe("validateSkill — references field", () => {
 });
 
 describe("validateSkill — deprecated implementationReference", () => {
-  test("any implementationReference value is rejected", () => {
+  test("validateSkill rejects any implementationReference value", () => {
     const { errors } = validateSkill(
       baseSkill({ implementationReference: "anything" }),
       0,
@@ -254,7 +254,7 @@ describe("validateSkill — deprecated implementationReference", () => {
     );
   });
 
-  test("non-string implementationReference is also rejected with same message", () => {
+  test("validateSkill also rejects a non-string implementationReference with the same message", () => {
     const { errors } = validateSkill(
       baseSkill({ implementationReference: { x: 1 } }),
       0,

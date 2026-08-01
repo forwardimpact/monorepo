@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 #
-# Compile every distributable binary for TARGET, driven by build/cli-manifest.json.
+# Compile every distributable binary for TARGET. build/cli-manifest.json
+# drives this script.
 #
 #   Usage: build/build-all.sh [TARGET]
 #
-# Selects the manifest CLIs whose `targets` include TARGET and compiles each via
-# build/build-binary.sh.
+# This script selects the manifest CLIs whose `targets` include TARGET. It
+# compiles each one with build/build-binary.sh.
 set -euo pipefail
 
 TARGET="${1:-bun-darwin-arm64}"

@@ -17,7 +17,7 @@ function makeFakeProcess() {
 function renderCacheReport(stats, ok) {
   const { proc, chunks } = makeFakeProcess();
   const summary = new SummaryRenderer({ process: proc });
-  // Pass proc.stdout directly — printCacheReport now accepts it as the fourth arg.
+  // Pass proc.stdout directly. printCacheReport now accepts it as the fourth arg.
   printCacheReport({ stats: { prose: stats } }, summary, ok, proc.stdout);
   return chunks.join("");
 }
@@ -43,7 +43,7 @@ describe("printCacheReport", () => {
     assert.ok(out.indexOf("Cache report") > zetaIdx);
   });
 
-  test("on fully-hit run, the miss-key section is omitted", () => {
+  test("on fully-hit run, omits the miss-key section", () => {
     const out = renderCacheReport(
       { hits: 5, generated: 0, misses: 0, missKeys: new Set() },
       true,

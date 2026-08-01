@@ -1,9 +1,9 @@
 /**
- * Recursive-merge coverage for `report`: `loadRecords` discovers every
- * `results.jsonl` under `--input` recursively and unions the records, so
- * merging shard partials equals reporting a single non-sharded run over the
- * same cells. Split from `benchmark-report.test.js` (near the LOC ceiling) to
- * keep each file under the test-file-shape ceiling.
+ * Recursive-merge coverage for `report`. `loadRecords` discovers every
+ * `results.jsonl` under `--input` recursively. It then unions the records. So
+ * a merge of shard partials equals a report over a single non-sharded run of
+ * the same cells. Split from `benchmark-report.test.js` (near the LOC
+ * ceiling) to keep each file under the test-file-shape ceiling.
  */
 
 import { describe, test } from "node:test";
@@ -98,7 +98,8 @@ describe("report recursive merge", () => {
       kValues: [1],
       runtime: rt,
     });
-    // Both copies counted (honest count), not silently merged.
+    // The report counts both copies (honest count). It does not merge them
+    // silently.
     assert.strictEqual(report.tasks[0].n, 2);
     assert.ok(
       errs.some((e) => /duplicate cell x#0/.test(e)),
@@ -107,7 +108,7 @@ describe("report recursive merge", () => {
   });
 
   test("an existing dir with no results.jsonl is the empty union (zero tasks)", async () => {
-    // A directory that exists (registered via mkdir) but holds no ledger.
+    // A directory that exists (registered through mkdir) but holds no ledger.
     const rt = createTestRuntime({ fs: createMockFs({}) });
     await rt.fs.mkdir(`${ROOT}/empty`, { recursive: true });
     const report = await aggregate({

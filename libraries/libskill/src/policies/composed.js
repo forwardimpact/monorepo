@@ -1,10 +1,10 @@
 /**
  * Composed Policy Definitions
  *
- * Named policy compositions for specific use cases.
- * Each POLICY_* export defines a complete filtering/sorting strategy.
+ * This module composes named policies for specific use cases.
+ * Each POLICY_* export defines a complete strategy to filter and sort.
  *
- * These are the high-level policies used by consuming code.
+ * The code that consumes this module uses these high-level policies.
  */
 
 import { isAgentEligible } from "./predicates.js";
@@ -24,13 +24,13 @@ import { LIMIT_AGENT_PROFILE_SKILLS } from "./thresholds.js";
 /**
  * Filter for agent-eligible skills at highest derived level
  *
- * Agents receive skills after:
- * 1. Excluding human-only skills (isAgentEligible)
- * 2. Keeping only skills at the highest derived level
+ * Agents receive skills after these steps:
+ * 1. Exclude human-only skills (isAgentEligible)
+ * 2. Keep only skills at the highest derived level
  *
- * This ensures agents focus on their peak competencies and
- * respects track modifiers (a broad skill boosted to the same
- * level as core skills will be included).
+ * This makes sure agents focus on their peak competencies. It also
+ * respects track modifiers. The filter includes a broad skill that a
+ * modifier boosts to the same level as core skills.
  */
 export const filterAgentSkills = composeFilters(
   isAgentEligible,
@@ -44,13 +44,13 @@ export const filterAgentSkills = composeFilters(
 /**
  * Filter for toolkit extraction
  *
- * Tools are extracted only from highest-level skills,
- * keeping the toolkit focused on core competencies.
+ * Tools are extracted only from highest-level skills.
+ * This keeps the toolkit focused on core competencies.
  */
 export const filterToolkitSkills = composeFilters(filterHighestLevel);
 
 // =============================================================================
-// Sorting Policies
+// Sort Policies
 // =============================================================================
 
 /**
@@ -85,14 +85,15 @@ export function sortJobSkills(skills) {
 // =============================================================================
 
 /**
- * Select the focused subset of agent skills for profile body
+ * Select the focused subset of agent skills for the profile body
  *
  * Agent profiles include a limited skill index to avoid context bloat.
- * Skills are ranked by priority (level desc, type asc, capability
- * ordinalRank asc) and the top N are returned, where
+ * This function ranks skills by priority (level desc, type asc,
+ * capability ordinalRank asc). It returns the top N skills, where
  * N = LIMIT_AGENT_PROFILE_SKILLS.
  *
- * All skills are still exported as SKILL.md files and listed via --skills.
+ * All skills are still exported as SKILL.md files. The --skills flag
+ * lists them.
  *
  * @param {Array} skills - Agent-eligible skills (already filtered and sorted)
  * @returns {Array} Top N skills by priority

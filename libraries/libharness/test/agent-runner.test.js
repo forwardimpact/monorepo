@@ -87,7 +87,7 @@ describe("AgentRunner", () => {
     assert.strictEqual(runner.sessionId, null);
   });
 
-  test("run() writes NDJSON lines to output stream", async () => {
+  test("run() writes NDJSON lines to the output stream", async () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "sess-1" },
       { type: "assistant", content: "Working on it..." },
@@ -114,7 +114,7 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.sessionId, "sess-1");
   });
 
-  test("run() captures sessionId from init event", async () => {
+  test("run() captures sessionId from the init event", async () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "my-session" },
       { type: "result", subtype: "success", result: "OK" },
@@ -188,7 +188,7 @@ describe("AgentRunner", () => {
     assert.strictEqual(captured.options.maxTurns, Number.MAX_SAFE_INTEGER);
   });
 
-  test("run() returns success=false on non-success subtype", async () => {
+  test("run() returns success=false on a non-success subtype", async () => {
     const messages = [{ type: "result", subtype: "error", result: "Stopped" }];
 
     const output = new PassThrough();
@@ -204,10 +204,10 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.text, "Stopped");
   });
 
-  test("run() returns success=false when result reports success but did no model work", async () => {
+  test("run() returns success=false when the result reports success with no model work", async () => {
     // The SDK reports a failed init (e.g. invalid API key) as a clean
     // "success" with zero turns, zero cost, and zero token usage. That must
-    // not pass as a green run — require evidence the model actually ran.
+    // not pass as a green run. Require evidence that the model ran.
     const messages = [
       { type: "system", subtype: "init", session_id: "sess-noauth" },
       {
@@ -234,7 +234,7 @@ describe("AgentRunner", () => {
     assert.match(result.error.message, /no model work|authentication/i);
   });
 
-  test("run() returns success=true when result reports success with real token usage", async () => {
+  test("run() returns success=true when the result reports success with real token usage", async () => {
     const messages = [
       { type: "system", subtype: "init", session_id: "sess-ok" },
       {
@@ -260,7 +260,7 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.error, null);
   });
 
-  test("run() returns success=false when result is flagged is_error despite success subtype", async () => {
+  test("run() returns success=false when the result carries is_error despite a success subtype", async () => {
     const messages = [
       {
         type: "result",
@@ -284,7 +284,7 @@ describe("AgentRunner", () => {
     assert.strictEqual(result.success, false);
   });
 
-  test("resume() passes sessionId via options.resume", async () => {
+  test("resume() passes sessionId in options.resume", async () => {
     let resumeCapture = null;
 
     const initMessages = [
@@ -322,14 +322,15 @@ describe("AgentRunner", () => {
   });
 
   test("resume() forwards every per-call option that run() forwards", async () => {
-    // Regression: SDK options are call-attached, not session-attached
-    // (sdk.d.ts:1027-1507). Resume that drops cwd, allowedTools,
-    // disallowedTools, systemPrompt, settingSources, or maxTurns lets the
-    // agent silently lose its sandbox, tool restrictions, persona, CLAUDE.md
-    // loading, or turn budget between turns. The cwd case was the original
-    // bug — the session lookup fails with "No conversation found with session
-    // ID: …" because the SDK falls back to process.cwd(). The others are
-    // silent correctness failures (tools/prompt/settings drift on resume).
+    // Regression. The SDK attaches options per call. It does not attach them
+    // per session (sdk.d.ts:1027-1507). A resume may drop cwd, allowedTools,
+    // disallowedTools, systemPrompt, settingSources, or maxTurns. The agent
+    // then silently loses its sandbox, its tool restrictions, its persona,
+    // the CLAUDE.md load, or its turn budget between turns. The cwd case was
+    // the original bug. The session lookup fails with "No conversation found
+    // with session ID: …" because the SDK falls back to process.cwd(). The
+    // others are silent correctness failures (tools/prompt/settings drift on
+    // resume).
     let resumeCapture = null;
     let callCount = 0;
     const query = async function* (params) {
@@ -446,11 +447,11 @@ describe("AgentRunner", () => {
     assert.deepStrictEqual(
       resumeCapture.options.mcpServers,
       mcpServers,
-      "mcpServers must be passed on resume",
+      "resume must pass mcpServers",
     );
   });
 
-  test("run() captures error when query throws and still emits the lines yielded before the throw", async () => {
+  test("run() captures the error when query throws and still emits the lines yielded before the throw", async () => {
     async function* failingQuery() {
       yield { type: "system", subtype: "init", session_id: "sess-err" };
       yield { type: "assistant", content: "Partial work" };
@@ -478,7 +479,7 @@ describe("AgentRunner", () => {
     assert.strictEqual(lines.length, 2);
   });
 
-  test("resume() captures error when query throws", async () => {
+  test("resume() captures the error when query throws", async () => {
     const initMessages = [
       { type: "system", subtype: "init", session_id: "sess-r" },
       { type: "result", subtype: "success", result: "OK" },
@@ -510,7 +511,7 @@ describe("AgentRunner", () => {
     assert.match(result.error.message, /Process crashed/);
   });
 
-  test("run() succeeds when SDK throws after emitting successful result", async () => {
+  test("run() succeeds when the SDK throws after it emits a successful result", async () => {
     async function* creditExhaustedQuery() {
       yield { type: "system", subtype: "init", session_id: "sess-credit" };
       yield { type: "assistant", content: "Analysis complete." };

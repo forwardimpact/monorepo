@@ -1,11 +1,12 @@
 /**
  * Token-usage accounting for structured trace documents.
  *
- * `stats()` reports totals that name their population: result-event sums when
- * the trace carries them (authoritative), the per-message fallback otherwise,
- * or the carried last-wins summary for a pre-change document. These helpers
- * compute the per-message accounting and surface any divergence against the
- * result-event sums so a mismatch is reported, never silently absorbed.
+ * `stats()` reports totals that name their population. It reports the
+ * result-event sums when the trace carries them (authoritative). It falls
+ * back to the per-message totals otherwise. For a pre-change document it
+ * reports the carried last-wins summary. These helpers compute the
+ * per-message accounting. They also report any divergence against the
+ * result-event sums. No mismatch disappears in silence.
  */
 
 /** Zero-valued token usage, used as the carried-document fallback. */
@@ -17,8 +18,8 @@ export const ZERO_USAGE = {
 };
 
 /**
- * Per-stream-event breakdown for a pre-change document, labeled as carried —
- * old documents lack message identity, so rows stay keyed by turn index.
+ * Per-stream-event breakdown for a pre-change document, labeled as carried.
+ * Old documents lack message identity, so rows stay keyed by turn index.
  * @param {object[]} turns
  * @returns {object[]}
  */
@@ -40,8 +41,9 @@ export function carriedPerTurn(turns) {
 
 /**
  * Whether a structured-document version predates per-message accounting
- * (1.2.0). A trace with no version (collected by this build from NDJSON) is
- * not pre-change. Compares numeric version parts so 1.10.0 reads as post-change.
+ * (1.2.0). A trace with no version is not pre-change. This build collects
+ * those traces from NDJSON. Compares numeric version parts so 1.10.0 reads
+ * as post-change.
  * @param {string|undefined|null} version
  * @returns {boolean}
  */
@@ -51,17 +53,17 @@ export function isPreChangeDoc(version) {
     .split(".")
     .map((part) => parseInt(part, 10) || 0);
   if (major !== 1) return major < 1;
-  // Per-message accounting arrived in 1.2.0; any 1.2.x is post-change.
+  // Per-message accounting arrived in 1.2.0. Any 1.2.x is post-change.
   return minor < 2;
 }
 
 /**
- * Account assistant usage once per API message. Turns are grouped by
- * `messageId` (a null id is its own singleton message); per message the
- * field-wise max across its snapshots is taken — order-insensitive, equal to
- * the single value when a message's duplicate snapshots are byte-identical
- * (zero residual against result-event sums), and a floor for output (the
- * largest streaming snapshot, never an overstatement).
+ * Account assistant usage once per API message. This function groups turns
+ * by `messageId`. A null id is its own singleton message. For each message
+ * it takes the field-wise max across the snapshots. The max ignores order.
+ * The max equals the single value when a message's duplicate snapshots are
+ * byte-identical (zero residual against result-event sums). For output the
+ * max is a floor. It is the largest streaming snapshot. It never overstates.
  * @param {object[]} turns
  * @returns {{perMessage: object[], totals: object}}
  */
@@ -128,10 +130,11 @@ function accumulateMessage(byMessage, key, turn) {
 }
 
 /**
- * Compare per-message sums against the result-event sums on the fields the
- * spec guarantees parity for (input, cacheRead, cacheCreation — never output,
- * which always diverges by mechanism 2). Returns the first divergent field as
- * `{field, perMessageSum, resultEventSum}`, or null when all agree.
+ * Compare per-message sums against the result-event sums. The spec
+ * guarantees parity for input, cacheRead, and cacheCreation only. Output
+ * always diverges by mechanism 2, so the comparison skips it. Returns the
+ * first divergent field as `{field, perMessageSum, resultEventSum}`, or
+ * null when all agree.
  * @param {object} perMessageTotals
  * @param {object} resultEventUsage
  * @returns {object|null}
@@ -155,9 +158,9 @@ export function computeDivergence(perMessageTotals, resultEventUsage) {
 const NO_TOOL = "(no-tool)";
 
 /**
- * Attribute per-turn usage to per-tool buckets: each `tool_use` block gets an
- * equal share of its host turn's usage; assistant turns with no `tool_use`
- * block contribute full usage to the `(no-tool)` bucket.
+ * Attribute per-turn usage to per-tool buckets. Each `tool_use` block gets
+ * an equal share of its host turn's usage. An assistant turn with no
+ * `tool_use` block contributes full usage to the `(no-tool)` bucket.
  * @param {object[]} turns
  * @returns {{buckets: Map<string, {inputTokens: number, outputTokens: number}>, bucketTurns: Map<string, Set<number>>}}
  */
@@ -192,11 +195,11 @@ export function bucketUsageByTool(turns) {
 }
 
 /**
- * Scale per-tool buckets onto the headline totals so the input, output, and
- * `costShare` columns each sum to the corresponding `totals` value (and 1.0)
- * exactly, regardless of population (result-event-sum, per-message-fallback, or
- * carried-document). The largest bucket absorbs the rounding residual on each
- * axis (criterion-6 invariant).
+ * Scale per-tool buckets onto the headline totals. The input, output, and
+ * `costShare` columns then each sum exactly to the corresponding `totals`
+ * value (and 1.0). This holds for every population (result-event-sum,
+ * per-message-fallback, or carried-document). The largest bucket absorbs
+ * the rounding residual on each axis (criterion-6 invariant).
  * @param {Map<string, {inputTokens: number, outputTokens: number}>} buckets
  * @param {Map<string, Set<number>>} bucketTurns
  * @param {object} totals

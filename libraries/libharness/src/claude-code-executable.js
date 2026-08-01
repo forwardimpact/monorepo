@@ -3,26 +3,26 @@
  *
  * `query()` spawns a native `claude` binary that the SDK resolves from its own
  * platform-specific optional dependency (`@anthropic-ai/claude-agent-sdk-<platform>`).
- * `bun build --compile` bundles the SDK's JavaScript but not that separate
- * native package — it is not part of the import graph — so a compiled fit-*
- * binary can't self-resolve it and `query()` throws "Native CLI binary for
- * <platform> not found".
+ * `bun build --compile` bundles the SDK's JavaScript. It does not bundle that
+ * separate native package, which is not part of the import graph. So a
+ * compiled fit-* binary cannot self-resolve it, and `query()` throws "Native
+ * CLI binary for <platform> not found".
  *
- * In a compiled binary we point the SDK at the standalone `claude` on PATH,
- * installed beside gemba-harness by the bootstrap action's `fit-install.sh`.
- * Running from source keeps `node_modules`, where the SDK resolves its own
- * version-matched binary, so there we return undefined and defer to the SDK.
+ * In a compiled binary we point the SDK at the standalone `claude` on PATH.
+ * The bootstrap action's `fit-install.sh` installs it beside gemba-harness. A
+ * run from source keeps `node_modules`, where the SDK resolves its own
+ * version-matched binary. There we return undefined and defer to the SDK.
  */
 import { LIBCLI_IS_COMPILED } from "@forwardimpact/libcli";
 
 /**
  * @param {object} [deps]
  * @param {(cmd: string) => string | null | undefined} [deps.which] -
- *   PATH resolver (injected for testing).
+ *   PATH resolver (tests inject it).
  * @param {boolean} [deps.isCompiled] -
- *   Whether this is a `bun --compile` binary (injected for testing).
+ *   Whether this is a `bun --compile` binary (tests inject it).
  * @returns {string | undefined} absolute path to `claude`, or undefined to
- *   defer resolution to the SDK.
+ *   let the SDK resolve it.
  */
 export function resolveClaudeCodeExecutable({
   which = defaultWhich,

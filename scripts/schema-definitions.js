@@ -1,11 +1,13 @@
 /**
  * Schema.org Type Definitions
  *
- * Predefined Schema.org vocabulary knowledge used for top-down ontology generation.
- * Based on Schema.org specifications and observed usage patterns in data/knowledge/
+ * Predefined Schema.org vocabulary knowledge for top-down ontology generation.
+ * Based on Schema.org specifications and observed usage patterns in
+ * data/knowledge/
  *
- * Schema definitions are loaded from schema-definitions.json to keep this file
- * within linting limits (similar to how ontology.js loads ontology-prompt.md).
+ * This file loads the schema definitions from schema-definitions.json. The
+ * split keeps this file within the lint limits, the same way ontology.js loads
+ * ontology-prompt.md.
  */
 
 import { readFile } from "node:fs/promises";
@@ -27,7 +29,7 @@ async function loadSchemaDefinitions() {
 
 /**
  * Schema.org type definitions with expected properties and their ranges
- * Loaded from schema-definitions.json at module initialization
+ * The module loads them from schema-definitions.json when it starts
  * @type {Record<string, {properties: Record<string, {range: string, cardinality?: string}>}>}
  */
 export const SCHEMA_DEFINITIONS = await loadSchemaDefinitions();

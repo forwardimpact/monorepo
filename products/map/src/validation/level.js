@@ -231,7 +231,7 @@ export function checkProfessionalTitleShape(value) {
   if (typeof value !== "string" || !PROFESSIONAL_TITLE_SHAPE.test(value)) {
     return {
       ok: false,
-      reason: `professionalTitle must be a single capitalised rank word, a "Senior Staff"/"Senior Principal" seniority-qualified rank, or "Level <numeral>"; got ${JSON.stringify(value)}`,
+      reason: `professionalTitle must be a single capitalised rank word, a "Senior Staff"/"Senior Principal" seniority-qualified rank, or "Level <numeral>". Got ${JSON.stringify(value)}`,
     };
   }
   return { ok: true };
@@ -271,7 +271,7 @@ export function checkAutonomyExpectation(value) {
   if (firstToken === "Is" || AUTONOMY_THIRD_PERSON.test(firstToken)) {
     return {
       ok: false,
-      reason: `autonomyExpectation must open with a base-form verb (e.g. "Work…"); got third-person opener ${JSON.stringify(firstToken)}`,
+      reason: `autonomyExpectation must open with a base-form verb (e.g. "Work…"). Got third-person opener ${JSON.stringify(firstToken)}`,
     };
   }
   return { ok: true };

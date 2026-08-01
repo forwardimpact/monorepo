@@ -1,8 +1,8 @@
 /**
- * Engineering Pathway Matching Functions
+ * Match Functions for the Engineering Pathway
  *
- * This module provides pure functions for self-assessment validation,
- * job matching, and tier classification.
+ * This module holds pure functions. They validate a self-assessment,
+ * match jobs, and classify tiers.
  */
 
 import {
@@ -63,7 +63,7 @@ export const CONFIG_MATCH_TIER = {
     label: "Aspirational",
     color: "gray",
     minScore: 0,
-    description: "Long-term career goal requiring significant growth",
+    description: "Long-term career goal that needs significant growth",
   },
 };
 
@@ -108,7 +108,7 @@ export function calculateGapScore(gap) {
 }
 
 /**
- * Calculate skill match score using smooth decay scoring
+ * Calculate a skill match score with smooth decay
  * @param {Object<string, string>} selfSkills - Self-assessed skill proficiencies
  * @param {Array} jobSkills - Required job skill proficiencies
  * @returns {{score: number, gaps: Array}}
@@ -160,7 +160,7 @@ function calculateSkillScore(selfSkills, jobSkills) {
 }
 
 /**
- * Calculate behaviour match score using smooth decay scoring
+ * Calculate a behaviour match score with smooth decay
  * @param {Object<string, string>} selfBehaviours - Self-assessed behaviour maturities
  * @param {Array} jobBehaviours - Required job behaviour maturities
  * @returns {{score: number, gaps: Array}}
@@ -297,7 +297,7 @@ export function calculateJobMatch(selfAssessment, job) {
 }
 
 /**
- * Find matching jobs for a self-assessment
+ * Find the jobs that match a self-assessment
  * @param {Object} params
  * @param {Object} params.selfAssessment - The self-assessment
  * @param {Array} params.disciplines - All disciplines

@@ -3,8 +3,8 @@
  * evolved over calendar quarters.
  *
  * This part only implements the git-history source. Map historical
- * snapshots are a future extension — when the --roster flag is not
- * provided, the handler prints the "not yet supported" message from
+ * snapshots are a future extension. When the caller omits the --roster
+ * flag, the handler prints the "not yet supported" message from
  * spec.md:522–524.
  */
 
@@ -42,14 +42,14 @@ export async function runTrajectoryCommand({ data, args, options, runtime }) {
 
   if (!options.roster) {
     runtime.proc.stdout.write(
-      "  Historical roster data not available. Showing current-state only. Trajectory requires quarterly roster snapshots in Map or version-controlled summit.yaml.\n",
+      "  Historical roster data is not available. Summit shows the current state only. Trajectory requires quarterly roster snapshots in Map or version-controlled summit.yaml.\n",
     );
     return;
   }
 
   if (options.evidenced) {
     runtime.proc.stdout.write(
-      "  Evidence on trajectory is not yet supported. Historical evidence snapshots would require new Map infrastructure. Run `fit-summit trajectory <team>` without --evidenced to see derivation-only trajectory.\n",
+      "  Summit does not yet support evidence on trajectory. Historical evidence snapshots would require new Map infrastructure. Run `fit-summit trajectory <team>` without --evidenced to see derivation-only trajectory.\n",
     );
     return;
   }
@@ -65,15 +65,15 @@ export async function runTrajectoryCommand({ data, args, options, runtime }) {
   } catch (e) {
     if (e instanceof GitUnavailableError) {
       runtime.proc.stdout.write(
-        `  ${e.message}\n  Showing current-state only.\n`,
+        `  ${e.message}\n  Summit shows the current state only.\n`,
       );
       return;
     }
     throw e;
   }
 
-  // `git show <sha>:<path>` interprets <path> as repo-root-relative,
-  // so compute the path from the repo root, not from the roster's dir.
+  // `git show <sha>:<path>` interprets <path> as repo-root-relative.
+  // So compute the path from the repo root. Do not use the roster's dir.
   const relativePath = relative(repoRoot, absolute);
 
   let commits;
@@ -82,7 +82,7 @@ export async function runTrajectoryCommand({ data, args, options, runtime }) {
   } catch (e) {
     if (e instanceof GitUnavailableError) {
       runtime.proc.stdout.write(
-        `  ${e.message}\n  Showing current-state only.\n`,
+        `  ${e.message}\n  Summit shows the current state only.\n`,
       );
       return;
     }
@@ -91,7 +91,7 @@ export async function runTrajectoryCommand({ data, args, options, runtime }) {
 
   if (commits.length === 0) {
     runtime.proc.stdout.write(
-      "  Historical roster data not available. Showing current-state only.\n",
+      "  Historical roster data is not available. Summit shows the current state only.\n",
     );
     return;
   }
@@ -131,9 +131,9 @@ async function loadHistoricalRosters(buckets, relativePath, cwd, runtime) {
       const roster = parseRosterYaml(yaml);
       out.push({ quarter: bucket.quarter, roster });
     } catch (e) {
-      // Skip quarters whose historical file cannot be parsed.
+      // Skip a quarter when the parser cannot read its historical file.
       runtime.proc.stderr.write(
-        `summit: skipping quarter ${bucket.quarter} — ${e.message}\n`,
+        `summit: skipped quarter ${bucket.quarter} — ${e.message}\n`,
       );
     }
   }

@@ -1,8 +1,8 @@
 /**
  * Reconcile Supabase `auth.users` against the contract roster
- * (`substrate.people`) via the admin API, and look up individual auth
+ * (`substrate.people`) through the admin API. Also look up individual auth
  * users by email. The contract's auth model: email identities, RLS keyed
- * on `auth.email()`, service-role key for provisioning.
+ * on `auth.email()`, and a service-role key to provision.
  */
 
 import {
@@ -11,10 +11,10 @@ import {
   formatBullet,
 } from "@forwardimpact/libcli";
 
-const BAN_FOREVER = "876000h"; // ≈100 years; gotrue parses to a future banned_until.
+const BAN_FOREVER = "876000h"; // ≈100 years. gotrue parses to a future banned_until.
 
 /**
- * Look up a Supabase `auth.users` row by email via the admin API.
+ * Look up a Supabase `auth.users` row by email through the admin API.
  * Iterates pages so it works on rosters larger than the API's page size.
  *
  * @param {import("@supabase/supabase-js").SupabaseClient} supabase
@@ -22,7 +22,7 @@ const BAN_FOREVER = "876000h"; // ≈100 years; gotrue parses to a future banned
  * @returns {Promise<object | null>} The matching user row, or null if absent.
  */
 export async function findAuthUser(supabase, email) {
-  // listUsers() is paginated; iterate so rosters larger than one page
+  // listUsers() is paginated. Iterate so rosters larger than one page
   // still resolve.
   let page = 1;
   while (true) {
@@ -49,10 +49,10 @@ async function listAuthUsers(supabase) {
     if (error) throw new Error(`listUsers: ${error.message}`);
     if (!data.users.length) break;
     for (const u of data.users) {
-      // Skip auth.users rows without an email — non-roster identities
-      // (phone-auth users, pre-confirmed test seeds) the reconciler has
-      // no opinion on. They are not product callers because RLS keys
-      // off auth.email().
+      // Skip auth.users rows without an email. These are non-roster
+      // identities (phone-auth users, pre-confirmed test seeds) that the
+      // reconciler has no opinion on. They are not product callers
+      // because RLS keys off auth.email().
       if (typeof u.email !== "string" || !u.email) continue;
       out.set(u.email, u);
     }
@@ -94,11 +94,11 @@ async function decommissionUser(supabase, email, user, nowMs) {
     ban_duration: BAN_FOREVER,
   });
   if (error) throw new Error(`ban ${email}: ${error.message}`);
-  // gotrue's parsing of duration values >8760h is undocumented in older
-  // releases; assert the resulting banned_until lands ≥50 years out so a
-  // silent parse downgrade fails loudly rather than letting a still-active
-  // account masquerade as decommissioned. NaN (missing / unparseable
-  // banned_until) is treated as 0 — never as a passing comparison.
+  // Older releases do not document how gotrue parses duration values
+  // >8760h. So assert the new banned_until lands ≥50 years out. A silent
+  // parse downgrade then fails loudly. A still-active account cannot
+  // masquerade as decommissioned. The check treats NaN (missing or
+  // unparseable banned_until) as 0. NaN never counts as a pass.
   const parsed = data?.user?.banned_until
     ? Date.parse(data.user.banned_until)
     : 0;
@@ -107,16 +107,16 @@ async function decommissionUser(supabase, email, user, nowMs) {
     throw new Error(
       `ban ${email}: banned_until=${
         data?.user?.banned_until ?? "<missing>"
-      } is < 50yr — refusing to silently downgrade decommission`,
+      } is < 50yr, refusing to silently downgrade decommission`,
     );
   }
 }
 
 /**
- * Reconcile `auth.users` against the `substrate.people` roster: create an
- * `auth.users` row for every roster email, restore rows previously banned,
- * and decommission rows whose roster entry has been removed by setting
- * `banned_until` ≥100 years out.
+ * Reconcile `auth.users` against the `substrate.people` roster. Create an
+ * `auth.users` row for every roster email. Restore rows that were banned
+ * before. Decommission rows that no longer have a roster entry. To
+ * decommission a row, set `banned_until` ≥100 years out.
  *
  * @param {object} params
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase -

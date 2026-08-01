@@ -1,8 +1,8 @@
 /**
  * First-visit banner — modal overlay on the Pathway landing page.
  *
- * Fixed backdrop dims the page; banner is centered on top.
- * Animation gated behind `prefers-reduced-motion`.
+ * The fixed backdrop dims the page. The banner sits centered on top.
+ * `prefers-reduced-motion` gates the animation.
  */
 
 @layer components {

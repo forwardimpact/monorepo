@@ -1,6 +1,6 @@
 /**
- * Greek mythology name pool for synthetic people generation.
- * Names are deterministically assigned based on seed order.
+ * A pool of Greek mythology names for synthetic people generation.
+ * The entity generator assigns the names deterministically by seed order.
  */
 
 export const GREEK_NAMES = [
@@ -270,7 +270,8 @@ export const MANAGER_NAMES = {
 };
 
 /**
- * Derive a GitHub username by lowercasing, stripping non-alphanumeric characters, and appending "-bio".
+ * Derive a GitHub username. Lower-case the name. Remove every
+ * non-alphanumeric character. Append "-bio".
  * @param {string} name
  * @returns {string}
  */

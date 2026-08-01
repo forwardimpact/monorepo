@@ -11,7 +11,7 @@ import { runSkillCommand } from "../src/commands/skill.js";
 
 /**
  * Run an entity command against an injected mock runtime and return the
- * captured stdout — no global `process.stdout` patching.
+ * captured stdout. This helper never patches the global `process.stdout`.
  * @param {Function} runner - The entity command handler.
  * @param {object} params - Handler params (data/args/options).
  * @returns {Promise<string>} The captured stdout as a string.
@@ -25,9 +25,9 @@ async function runCapturing(runner, params) {
 const fixture = {
   levels: [{ id: "J040" }, { id: "J060" }],
   disciplines: [{ id: "software-engineering" }, { id: "data-engineering" }],
-  // track.js configures `sortItems: sortTracksByName`, which sorts before the
-  // --list short-circuit and reads `.name.localeCompare` — so `name` is
-  // required on each track fixture entry even though `--list` does not print it.
+  // track.js configures `sortItems: sortTracksByName`. That sort runs before
+  // the --list short-circuit and reads `.name.localeCompare`. So each track
+  // fixture entry needs `name`, even though `--list` does not print it.
   tracks: [
     { id: "platform", name: "Platform Engineering" },
     { id: "sre", name: "Site Reliability Engineering" },

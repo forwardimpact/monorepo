@@ -12,7 +12,7 @@ export class HmacAuth {
 
   /**
    * Creates a new HMAC authenticator instance
-   * @param {string} secret - Shared secret key for HMAC generation (minimum 32 characters)
+   * @param {string} secret - Shared secret key to generate the HMAC (minimum 32 characters)
    * @param {number} tokenLifetimeSeconds - Token lifetime in seconds (default: 60)
    * @param {object} [options] - Optional collaborators
    * @param {() => number} [options.now] - Injectable clock (default: Date.now)
@@ -36,7 +36,7 @@ export class HmacAuth {
 
   /**
    * Generates an HMAC token for the specified service
-   * @param {string} serviceId - Identifier of the service requesting authentication
+   * @param {string} serviceId - Identifier of the service that requests authentication
    * @returns {string} Base64 encoded HMAC token
    * @throws {Error} When serviceId is invalid
    */
@@ -59,7 +59,7 @@ export class HmacAuth {
   /**
    * Verifies an HMAC token and extracts service information
    * @param {string} token - Base64 encoded HMAC token to verify
-   * @returns {object} Verification result containing serviceId and isValid
+   * @returns {object} Verification result with serviceId and isValid
    * @throws {Error} When token format is invalid
    */
   verifyToken(token) {
@@ -95,7 +95,7 @@ export class HmacAuth {
         };
       }
 
-      // Check token expiration
+      // Check whether the token expired
       const now = this.#now();
       if (now - timestamp > this.#tokenLifetimeMs) {
         return {
@@ -152,7 +152,8 @@ export class HmacAuth {
 
 /**
  * gRPC interceptor for HMAC-based service authentication
- * Handles automatic token attachment for outgoing requests and validation for incoming requests
+ * Adds a token to each outgoing request automatically and validates each
+ * incoming request
  */
 export class Interceptor {
   #authenticator;
@@ -232,14 +233,14 @@ export class Interceptor {
         };
       }
 
-      // Add service ID to call context for potential use by handlers
+      // Add the service ID to the call context so handlers can use it
       call.serviceId = verification.serviceId;
     };
   }
 
   /**
    * Validates an incoming gRPC call's authentication
-   * This is a helper method for manual authentication validation
+   * This helper method validates the authentication manually
    * @param {object} call - gRPC call object
    * @returns {object} Verification result with isValid, serviceId, and error properties
    */

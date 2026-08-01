@@ -22,7 +22,7 @@ describe("gradeChecks — scored rows", () => {
     assert.equal(grade.score, 1 / 2);
   });
 
-  test("weight: 0 rows are diagnostics — never graded", () => {
+  test("weight: 0 rows are diagnostics and never graded", () => {
     const grade = gradeChecks(
       [pass("a"), { test: "detail", weight: 0, note: "free-form" }],
       true,
@@ -32,7 +32,7 @@ describe("gradeChecks — scored rows", () => {
     assert.equal(grade.malformed, 0);
   });
 
-  test("gate rows are excluded from the score", () => {
+  test("gradeChecks excludes gate rows from the score", () => {
     const grade = gradeChecks(
       [pass("g", { gate: true }), pass("a"), fail("b")],
       true,
@@ -40,7 +40,7 @@ describe("gradeChecks — scored rows", () => {
     assert.equal(grade.score, 1 / 2);
   });
 
-  test("full marks over all-passing scored rows → verdict pass, score 1", () => {
+  test("full marks over scored rows that all pass → verdict pass, score 1", () => {
     const grade = gradeChecks([pass("a"), pass("b", { weight: 2 })], true);
     assert.deepEqual(grade, {
       verdict: "pass",
@@ -72,7 +72,7 @@ describe("gradeChecks — scored rows", () => {
 });
 
 describe("gradeChecks — gates and health", () => {
-  test("failing gate → gatesPass false with the score still derived", () => {
+  test("a gate that fails → gatesPass false, score still derived", () => {
     const grade = gradeChecks(
       [fail("g", { gate: true }), pass("a"), pass("b")],
       true,
@@ -82,7 +82,7 @@ describe("gradeChecks — gates and health", () => {
     assert.equal(grade.score, 1);
   });
 
-  test("unhealthy grader with all-passing rows → verdict fail", () => {
+  test("unhealthy grader with rows that all pass → verdict fail", () => {
     const grade = gradeChecks([pass("a"), pass("g", { gate: true })], false);
     assert.equal(grade.verdict, "fail");
     assert.equal(grade.gatesPass, true);
@@ -159,7 +159,7 @@ describe("gradeChecks — malformed rows", () => {
     assert.equal(grade.verdict, "fail");
   });
 
-  test("the source stamp is ignored by classification", () => {
+  test("classification ignores the source stamp", () => {
     const grade = gradeChecks(
       [
         pass("a", { source: "tests" }),

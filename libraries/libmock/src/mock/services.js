@@ -1,5 +1,5 @@
 /**
- * Mock service utilities for testing
+ * Mock service utilities for tests
  */
 
 /**

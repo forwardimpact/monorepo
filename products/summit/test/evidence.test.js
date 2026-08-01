@@ -86,7 +86,7 @@ teams:
   assert.equal(planning.evidencedDepth, 0);
 });
 
-test("decorateRisksWithEvidence flips a skill into SPOF when only one practitioner", () => {
+test("decorateRisksWithEvidence flips a skill into SPOF when evidence shows only one practitioner", () => {
   const roster = parseRosterYaml(`
 teams:
   a:
@@ -100,8 +100,8 @@ teams:
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
   const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
-  // Both Alice and Bob hold task-completion at working so it's not a SPOF
-  // by derivation.
+  // Both Alice and Bob hold task-completion at working. So it is not a
+  // SPOF by derivation.
   assert.equal(
     risks.singlePointsOfFailure.find((s) => s.skillId === "task-completion"),
     undefined,
@@ -148,7 +148,7 @@ teams:
   const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
 
   // Evidence says task-completion has TWO practitioners, but only one
-  // is on the team — the other is from another team. The team-intersect
+  // is on the team. The other belongs to another team. The team-intersect
   // must drop the outsider and leave decoratedRisks with a SPOF for
   // task-completion.
   const evidence = new Map();
@@ -172,7 +172,7 @@ teams:
   );
 });
 
-test("loadEvidence filters by team emails when team is provided", async () => {
+test("loadEvidence filters by team emails when the caller passes a team", async () => {
   const fakeRows = [
     {
       skill_id: "task-completion",

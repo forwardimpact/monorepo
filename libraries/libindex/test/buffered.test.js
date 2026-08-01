@@ -121,7 +121,7 @@ describe("BufferedIndex - Buffered Write Operations", () => {
   });
 
   describe("Automatic Flush Behavior", () => {
-    test("forces flush when max_buffer_size is reached", async () => {
+    test("forces flush when the buffer reaches max_buffer_size", async () => {
       const config = { flush_interval: 10000, max_buffer_size: 2 };
       bufferedIndex = new BufferedIndex(mockStorage, "test.jsonl", config, {
         clock,

@@ -1,8 +1,9 @@
 /**
  * Stable error classes for Summit aggregation.
  *
- * CLI handlers branch on `error.code` rather than string matching —
- * this avoids coupling the handler layer to the human-readable message.
+ * CLI handlers branch on `error.code`. They do not match the message
+ * string. This keeps the handler layer independent of the
+ * human-readable message.
  */
 
 /** Signals that a requested team ID does not exist in the roster. */
@@ -29,13 +30,14 @@ export class EmptyTeamError extends Error {
   }
 }
 
-/** Signals that a job profile references a discipline, level, or track not defined in Map data. */
+/**
+ * Signals that a job profile references a discipline, level, or track
+ * that Map data does not define.
+ */
 export class UnknownJobFieldError extends Error {
   /** Create an UnknownJobFieldError for the invalid field name and value. */
   constructor(field, value) {
-    super(
-      `Invalid job profile: ${field} "${value}" is not defined in Map data.`,
-    );
+    super(`Invalid job profile. Map data does not define ${field} "${value}".`);
     this.code = "SUMMIT_UNKNOWN_JOB_FIELD";
     this.field = field;
     this.value = value;

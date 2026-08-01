@@ -9,12 +9,12 @@ const b64 = (s) => Buffer.from(s, "utf8").toString("base64");
 /** Strip trailing `=` padding to get the unpadded standard-base64 variant. */
 const unpad = (s) => s.replace(/=+$/, "");
 /**
- * The offset-invariant base64 core of `secret` at byte alignment k (0/1/2),
- * mirroring the production recipe — the substring that actually carries the
- * secret's interior bytes when it sits at alignment k inside a larger
- * plaintext. Asserting this is absent after redaction is the load-bearing
- * non-recoverability check (a bare-encoding slice is absent at non-zero
- * alignments anyway and would pass vacuously).
+ * The offset-invariant base64 core of `secret` at byte alignment k (0/1/2).
+ * It mirrors the production recipe. It is the substring that carries the
+ * secret's interior bytes at alignment k inside a larger plaintext. An
+ * assertion that this core is absent after redaction is the load-bearing
+ * non-recoverability check. A check on a bare-encoding slice would pass
+ * vacuously, because that slice is absent at non-zero alignments anyway.
  */
 const offsetCore = (secret, k) => {
   const enc = b64("\0".repeat(k) + secret).replace(/=+$/, "");
@@ -151,7 +151,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     assert.ok(out.includes("[REDACTED:env:SUPABASE_SERVICE_ROLE_KEY]"));
   });
 
-  test("multiple occurrences of the same sentinel in a single string all redacted", () => {
+  test("redacts every occurrence of the same sentinel in a single string", () => {
     const SENT = "MULTI_HIT_SENTINEL";
     const r = createRedactor({ runtime: _rt, env: { GH_TOKEN: SENT } });
     const out = r.redactValue(`${SENT} and ${SENT} again ${SENT}`);
@@ -166,7 +166,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
       runtime: _rt,
       env: { GH_TOKEN: "", GITHUB_TOKEN: "", ANTHROPIC_API_KEY: "" },
     });
-    // Empty string input must come through identically; redactor must
+    // Empty string input must come through identically. The redactor must
     // not turn every empty string into a placeholder.
     assert.strictEqual(r.redactValue(""), "");
     assert.strictEqual(r.redactValue("hello"), "hello");
@@ -175,7 +175,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     assert.deepStrictEqual(out, { a: "", b: "x" });
   });
 
-  test("LIBHARNESS_REDACTION_ENV_VARS replaces (not extends) the default allowlist", () => {
+  test("LIBHARNESS_REDACTION_ENV_VARS replaces the default allowlist. It does not extend it", () => {
     const r = createRedactor({
       runtime: _rt,
       env: {
@@ -187,7 +187,7 @@ describe("Redactor — env-var allowlist (criterion 1)", () => {
     });
     assert.strictEqual(r.redactValue("foo-secret"), "[REDACTED:env:FOO]");
     assert.strictEqual(r.redactValue("bar-secret"), "[REDACTED:env:BAR]");
-    // Default name not in override is NOT redacted via env layer.
+    // The env layer does NOT redact a default name outside the override.
     assert.strictEqual(r.redactValue("anth-secret"), "anth-secret");
   });
 
@@ -236,9 +236,9 @@ describe("Redactor — credential patterns (criterion 2)", () => {
     );
   });
 
-  test("base64 x-access-token extraheader credential redacted across padding variants", () => {
+  test("redacts the base64 credential in the x-access-token extraheader across padding variants", () => {
     const r = createRedactor({ runtime: _rt, env: {} });
-    // Token lengths chosen so the encoded blob ends with "==", "=", and
+    // These token lengths make the encoded blob end with "==", "=", and
     // no padding respectively.
     for (const len of [36, 37, 38]) {
       const blob = Buffer.from(
@@ -256,7 +256,7 @@ describe("Redactor — credential patterns (criterion 2)", () => {
     }
   });
 
-  test("bare base64 credential blob (no AUTHORIZATION header) redacted", () => {
+  test("redacts a bare base64 credential blob (no AUTHORIZATION header)", () => {
     const r = createRedactor({ runtime: _rt, env: {} });
     const blob = Buffer.from(`x-access-token:ghs_${"C".repeat(36)}`).toString(
       "base64",
@@ -268,7 +268,7 @@ describe("Redactor — credential patterns (criterion 2)", () => {
     assert.ok(out.includes("[REDACTED:pattern:gh-b64-basic-credential]"));
   });
 
-  test("b64 prefix without a credential payload is left unchanged", () => {
+  test("the redactor leaves a b64 prefix without a credential payload unchanged", () => {
     const r = createRedactor({ runtime: _rt, env: {} });
     // The fixed 20-char prefix alone (e.g. quoted in a finding or doc)
     // carries no secret and must not match.
@@ -276,7 +276,7 @@ describe("Redactor — credential patterns (criterion 2)", () => {
     assert.strictEqual(r.redactValue(prose), prose);
   });
 
-  test("anthropic pattern hit inside tool_result.content JSON-string", () => {
+  test("redacts an anthropic pattern hit inside a tool_result.content JSON-string", () => {
     const r = createRedactor({ runtime: _rt, env: {} });
     const anth = "sk-ant-" + "z".repeat(95);
     const message = {
@@ -300,11 +300,11 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
   // criterion 2: the standard base64 of any env-allowlisted secret, at any
   // byte offset within the encoded plaintext, padded and unpadded.
   for (const name of DEFAULT_ENV_ALLOWLIST) {
-    // Synthetic, credential-length value derived from the name — never the
-    // captured fixture's bytes (spec anti-fixture requirement).
+    // Synthetic, credential-length value derived from the name. It is
+    // never the captured fixture's bytes (spec anti-fixture requirement).
     const value = `${name}-0123456789abcdef0123456789abcdef`;
 
-    test(`${name}: bare base64 redacted (padded + unpadded)`, () => {
+    test(`${name}: redacts bare base64 (padded + unpadded)`, () => {
       const r = createRedactor({ runtime: _rt, env: { [name]: value } });
       for (const blob of [b64(value), unpad(b64(value))]) {
         const out = r.redactValue(`prefix ${blob} suffix`);
@@ -313,10 +313,10 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
       }
     });
 
-    test(`${name}: embedded at all three byte offsets redacted (padded + unpadded)`, () => {
+    test(`${name}: redacts the secret embedded at all three byte offsets (padded + unpadded)`, () => {
       const r = createRedactor({ runtime: _rt, env: { [name]: value } });
-      // Usernames of length 0/1/2 mod 3 put the secret at each alignment;
-      // a trailing run forces a non-trivial suffix group.
+      // Usernames of length 0/1/2 mod 3 put the secret at each alignment.
+      // A trailing run forces a non-trivial suffix group.
       for (const user of ["", "u", "me"]) {
         const prefix = `${user}:`;
         const k = Buffer.byteLength(prefix, "utf8") % 3;
@@ -343,10 +343,11 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
     });
   }
 
-  test("criterion 1 — extraheader basic-auth via env layer (all alignments)", () => {
+  test("criterion 1 — extraheader basic-auth through the env layer (all alignments)", () => {
     const token = `ghs_${"D".repeat(36)}`;
     const r = createRedactor({ runtime: _rt, env: { GITHUB_TOKEN: token } });
-    // x-access-token: is 15 bytes (0 mod 3) → token at k=0; user:/me: shift it.
+    // x-access-token: is 15 bytes (0 mod 3) → token at k=0. The user: and
+    // me: prefixes shift it.
     for (const prefix of ["x-access-token:", "user:", "me:"]) {
       const k = Buffer.byteLength(prefix, "utf8") % 3;
       const core = offsetCore(token, k);
@@ -361,7 +362,7 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
     }
   });
 
-  test("criterion 4 — reconstructed run 27288359408 leak shape fully redacted", () => {
+  test("criterion 4 — fully redacts the reconstructed leak shape from run 27288359408", () => {
     // Synthetic token (the literal leaked bytes were never recorded).
     const token = `ghs_${"E".repeat(36)}`;
     const blob = b64(`x-access-token:${token}`);
@@ -386,7 +387,7 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
     assert.ok(out.includes("[REDACTED:env:GITHUB_TOKEN]"));
   });
 
-  test("criterion 5 — benign base64 carrying no secret is unchanged", () => {
+  test("criterion 5 — benign base64 that carries no secret is unchanged", () => {
     // Empty allowlist: ordinary base64 content must round-trip.
     const r0 = createRedactor({ runtime: _rt, env: {} });
     const fileBlob = b64(
@@ -408,9 +409,10 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
     assert.strictEqual(r1.redactValue(toolOut), toolOut);
   });
 
-  test("short secret (below floor) is not matched in encoded form", () => {
-    // An 8-byte secret is below MIN_ENCODED_SECRET_BYTES (9): no encoded
-    // needle is generated, so its base64 passes the env layer untouched.
+  test("the redactor does not match a short secret (below floor) in encoded form", () => {
+    // An 8-byte secret is below MIN_ENCODED_SECRET_BYTES (9). The redactor
+    // generates no encoded needle, so its base64 passes the env layer
+    // untouched.
     const short = "abcdefgh";
     const r = createRedactor({ runtime: _rt, env: { GH_TOKEN: short } });
     const blob = b64(`x:${short}:y`);
@@ -420,7 +422,7 @@ describe("Redactor — env-allowlist encoded forms (criterion 2)", () => {
   });
 });
 
-describe("Redactor — word boundary adversarial cases (Risks table)", () => {
+describe("Redactor — adversarial cases for word boundaries (Risks table)", () => {
   const r = createRedactor({ runtime: _rt, env: {} });
   const body = "A".repeat(36);
   const token = `ghp_${body}`;
@@ -472,7 +474,7 @@ describe("Redactor — benign content unchanged (criterion 3)", () => {
     "7dd76efba1234567890abcdef0123456789abcde",
     // UUID
     "550e8400-e29b-41d4-a716-446655440000",
-    // ghp_ prefix at less than 36 chars — should NOT match
+    // ghp_ prefix at less than 36 chars. It should NOT match
     "ghp_short",
     "ghp_" + "A".repeat(35),
     // quoted shell commands

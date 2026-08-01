@@ -12,11 +12,11 @@ import {
 } from "../src/index.js";
 import { makeRuntime } from "./libsecret-helpers.js";
 
-describe("libsecret — JWT and Supabase minting", () => {
+describe("libsecret — JWT and Supabase mint helpers", () => {
   describe("generateJWT", () => {
     const testSecret = "test-secret-key-12345";
 
-    test("generates valid JWT format", () => {
+    test("generates a JWT in the valid format", () => {
       const payload = {
         sub: "user-123",
         exp: Math.floor(Date.now() / 1000) + 3600,
@@ -27,7 +27,7 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.strictEqual(parts.length, 3);
     });
 
-    test("generates JWT with correct header", () => {
+    test("generates a JWT with the correct header", () => {
       const payload = { sub: "user-123" };
       const jwt = generateJWT(payload, testSecret);
 
@@ -37,7 +37,7 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.deepStrictEqual(header, { alg: "HS256", typ: "JWT" });
     });
 
-    test("generates JWT with correct payload", () => {
+    test("generates a JWT with the correct payload", () => {
       const payload = { sub: "user-123", role: "admin" };
       const jwt = generateJWT(payload, testSecret);
 
@@ -49,7 +49,7 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.deepStrictEqual(decodedPayload, payload);
     });
 
-    test("generates JWT with valid signature", () => {
+    test("generates a JWT with a valid signature", () => {
       const payload = { sub: "user-123" };
       const jwt = generateJWT(payload, testSecret);
 
@@ -78,7 +78,7 @@ describe("libsecret — JWT and Supabase minting", () => {
   describe("mintSupabaseJwt", () => {
     const secret = "supabase-test-secret";
 
-    test("mints a 3-part JWT with HS256 header and Supabase claims", () => {
+    test("mints a 3-part JWT with an HS256 header and Supabase claims", () => {
       const jwt = mintSupabaseJwt(
         { email: "alice@example.com", secret },
         makeRuntime(),
@@ -143,21 +143,21 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.strictEqual(s, expected);
     });
 
-    test("throws when secret missing", () => {
+    test("throws when the secret is missing", () => {
       assert.throws(
         () => mintSupabaseJwt({ email: "x@y", secret: "" }, makeRuntime()),
         /secret required/,
       );
     });
 
-    test("throws when email missing", () => {
+    test("throws when the email is missing", () => {
       assert.throws(
         () => mintSupabaseJwt({ email: "", secret }, makeRuntime()),
         /email required/,
       );
     });
 
-    test("uses injected clock.now() for iat/exp", () => {
+    test("uses the injected clock.now() for iat/exp", () => {
       const fixedMs = 1_700_000_000_000;
       const runtime = createTestRuntime({
         clock: createMockClock({ start: fixedMs }),
@@ -182,7 +182,7 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.deepStrictEqual(header, { alg: "HS256", typ: "JWT" });
     });
 
-    test("payload contains role: anon and iss: supabase", () => {
+    test("the payload contains role: anon and iss: supabase", () => {
       const jwt = mintSupabaseAnonKey({ secret }, makeRuntime());
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
@@ -210,7 +210,7 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.strictEqual(s, expected);
     });
 
-    test("throws when secret missing", () => {
+    test("throws when the secret is missing", () => {
       assert.throws(
         () => mintSupabaseAnonKey({ secret: "" }, makeRuntime()),
         /mintSupabaseAnonKey: secret required/,
@@ -230,7 +230,7 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.deepStrictEqual(header, { alg: "HS256", typ: "JWT" });
     });
 
-    test("payload contains role: service_role and iss: supabase", () => {
+    test("the payload contains role: service_role and iss: supabase", () => {
       const jwt = mintSupabaseServiceRoleKey({ secret }, makeRuntime());
       const payload = JSON.parse(
         Buffer.from(jwt.split(".")[1], "base64url").toString(),
@@ -256,7 +256,7 @@ describe("libsecret — JWT and Supabase minting", () => {
       assert.strictEqual(s, expected);
     });
 
-    test("throws when secret missing", () => {
+    test("throws when the secret is missing", () => {
       assert.throws(
         () => mintSupabaseServiceRoleKey({ secret: "" }, makeRuntime()),
         /mintSupabaseServiceRoleKey: secret required/,

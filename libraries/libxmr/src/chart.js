@@ -1,8 +1,9 @@
 // Render the canonical Wheeler/Vacanti X+mR chart as 14 lines of monospace
-// text. Pure function — no I/O, no state, no side effects.
+// text. The function is pure. It does no I/O. It keeps no state. It has no
+// side effects.
 //
-// The 14 lines are: 7 X-chart rows, 1 blank separator, 6 mR-chart rows
-// (the last of which is the shared time axis serving both charts).
+// The 14 lines are: 7 X-chart rows, 1 blank separator, 6 mR-chart rows.
+// The last mR-chart row is the shared time axis for both charts.
 //
 // Spec: SCRATCHPAD-4.md §6, §7, §8, §9, §11.
 
@@ -44,13 +45,14 @@ export function renderChart(values, stats, signals, options = {}) {
     throw new Error("renderChart requires at least one value");
   }
 
-  // Edge case: single observation. mR is undefined, no limits, no zones.
+  // Edge case: single observation. mR is undefined. The chart has no
+  // limits and no zones.
   if (n === 1) {
     return renderSinglePoint(values[0], glyphs, slotWidth);
   }
 
-  // Edge case: zero observed variation. R = 0 collapses every limit to μ;
-  // emit a measurement-resolution warning and a flat chart.
+  // Edge case: zero observed variation. R = 0 collapses every limit to μ.
+  // Emit a measurement-resolution warning and a flat chart.
   if (stats.R === 0) {
     return renderFlat(values, stats, glyphs, slotWidth, ascii);
   }
@@ -131,9 +133,9 @@ function bucketXValues(values, stats) {
 
 // X chart — 7 rows: UPL marker, outer-upper, inner-upper, μ centerline,
 // inner-lower, outer-lower, LPL marker. The UPL, μ, and LPL rows show
-// only their label + data marks; the running chart skips full-width
-// fill on those rows because the ruler labels already tell the reader
-// where each level sits.
+// only their label + data marks. The chart skips full-width fill on those
+// rows because the ruler labels already tell the reader where each level
+// sits.
 function renderXChart({
   values,
   stats,
@@ -215,7 +217,7 @@ function renderXChart({
 
 // mR chart — 6 rows: URL line, above-R, R centerline, below-R, zero
 // baseline, shared time axis. Slot 1 is empty in zone rows (mR undefined
-// at t=1); the axis still labels slot 1.
+// at t=1). The axis still labels slot 1.
 function renderMRChart({
   stats,
   mask,
@@ -289,8 +291,9 @@ function renderMRChart({
   ];
 }
 
-// A limit row — label + ruler-edge glyph + blank plot, breach slots marked
-// with `●`. The edge glyph caps the vertical ruler (upper or lower).
+// A limit row — label + ruler-edge glyph + blank plot. The `●` glyph marks
+// each breach slot. The edge glyph caps the vertical ruler (upper or
+// lower).
 function limitRow(
   label,
   labelWidth,
@@ -308,8 +311,9 @@ function limitRow(
   return `${rightAlign(label, labelWidth)} ${edge}${plot.join("")}`;
 }
 
-// A zone row — vertical edge, spaces in plot, `·` (or `●` for signals) at
-// each participating slot's right-aligned column.
+// A zone row — vertical edge, spaces in the plot, and `·` at the
+// right-aligned column of each slot that takes part. A signal slot gets
+// `●` instead.
 function zoneRow(label, labelWidth, slots, mask, plotWidth, slotWidth, glyphs) {
   const plot = Array(plotWidth).fill(" ");
   for (const slot of slots) {
@@ -319,8 +323,9 @@ function zoneRow(label, labelWidth, slots, mask, plotWidth, slotWidth, glyphs) {
   return `${rightAlign(label, labelWidth)} ${glyphs.vertical}${plot.join("")}`;
 }
 
-// A centerline row — `┼` edge (vertical ruler with centre cross), blank
-// plot, on-centerline slots marked with the point (or signal) glyph.
+// A centerline row — `┼` edge (vertical ruler with centre cross) and a
+// blank plot. The point glyph or the signal glyph marks each on-centerline
+// slot.
 function centerlineRow(
   label,
   labelWidth,
@@ -338,8 +343,8 @@ function centerlineRow(
   return `${rightAlign(label, labelWidth)} ${glyphs.cross}${plot.join("")}`;
 }
 
-// The mR zero baseline — `┴` lower-end edge, blank plot, zero-mR slots
-// marked with the point (or signal) glyph.
+// The mR zero baseline — `┴` lower-end edge and a blank plot. The point
+// glyph or the signal glyph marks each zero-mR slot.
 function baselineRow(
   label,
   labelWidth,
@@ -357,8 +362,8 @@ function baselineRow(
   return `${rightAlign(label, labelWidth)} ${glyphs.lowerEnd}${plot.join("")}`;
 }
 
-// Shared time axis — slot numbers right-aligned in each slot. Edge is a
-// single space so the digits don't sit flush against the label area.
+// Shared time axis — slot numbers right-aligned in each slot. The edge is
+// a single space so the digits do not sit flush against the label area.
 function axisRow(labelWidth, n, slotWidth) {
   const cells = [];
   for (let k = 1; k <= n; k++) {
@@ -396,8 +401,8 @@ function rightAlign(s, width) {
   return s.padStart(width, " ");
 }
 
-// Edge case: n=1. No mR, no limits — just one point on a degenerate
-// centerline. Spec §11 requires a note about needing n≥2 for mR.
+// Edge case: n=1. The chart has no mR and no limits. One point sits on a
+// degenerate centerline. Spec §11 requires a note that mR needs n≥2.
 function renderSinglePoint(value, glyphs, slotWidth) {
   const label = `${glyphs.mu} ${fmt1(value)}`;
   const plot = Array(slotWidth).fill(" ");
@@ -413,9 +418,9 @@ function renderSinglePoint(value, glyphs, slotWidth) {
   return lines.join("\n");
 }
 
-// Edge case: R = 0 (every value identical). Limits collapse to μ, σ̂ = 0,
-// every zone has zero width. Render the X chart flat with a single
-// centerline-and-points row, plus the spec's verbatim warning.
+// Edge case: R = 0 (every value identical). The limits collapse to μ. σ̂
+// becomes 0. Every zone has zero width. Render the X chart flat with a
+// single centerline-and-points row, plus the spec's verbatim warning.
 function renderFlat(values, stats, glyphs, slotWidth, ascii) {
   const n = values.length;
   const plotWidth = n * slotWidth;

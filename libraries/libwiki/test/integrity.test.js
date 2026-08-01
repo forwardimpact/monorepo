@@ -54,7 +54,7 @@ describe("findAbsent", () => {
     assert.deepStrictEqual(out, []);
   });
 
-  test("erased line is named absent (crit 2)", () => {
+  test("findAbsent names an erased line absent (crit 2)", () => {
     const out = findAbsent([change("a.md", ["x"])], "other\n", normLine);
     assert.deepStrictEqual(out, [{ contentId: "x", pushHome: "a.md" }]);
   });
@@ -68,7 +68,7 @@ describe("findAbsent", () => {
     assert.deepStrictEqual(out, []);
   });
 
-  test("own-deleted line is never reported absent (crit 5)", () => {
+  test("findAbsent never reports an own-deleted line absent (crit 5)", () => {
     const out = findAbsent(
       [change("a.md", ["x"]), change("a.md", [], ["x"])],
       "nothing\n",
@@ -81,7 +81,7 @@ describe("findAbsent", () => {
     assert.deepStrictEqual(findAbsent([], "anything\n", normLine), []);
   });
 
-  test("blank assertions are ignored", () => {
+  test("findAbsent ignores blank assertions", () => {
     assert.deepStrictEqual(
       findAbsent([change("a.md", ["", "  "])], "", normLine),
       [],

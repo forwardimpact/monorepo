@@ -1,7 +1,7 @@
 import { ProcessorBase } from "@forwardimpact/libutil";
 
 /**
- * VectorProcessor class for processing resources into vector embeddings
+ * The VectorProcessor class processes resources into vector embeddings
  * @augments {ProcessorBase}
  */
 export class VectorProcessor extends ProcessorBase {
@@ -43,7 +43,7 @@ export class VectorProcessor extends ProcessorBase {
         !String(id).startsWith("tool.ToolFunction"),
     );
 
-    // 3. Load the full resources using the identifiers
+    // 3. Load the full resources with the identifiers
     const resources = await this.#resourceIndex.get(filteredIdentifiers, actor);
 
     // 4. Pre-filter resource contents that already exist in the content vector index
@@ -58,7 +58,7 @@ export class VectorProcessor extends ProcessorBase {
       .filter((check) => check.exists)
       .forEach((check) => existing.add(check.id));
 
-    // Filter resources to only those that need processing
+    // Filter resources to only those that the processor must handle
     const resourcesToProcess = [];
     for (const resource of resources) {
       const text = resource.content;
@@ -67,7 +67,7 @@ export class VectorProcessor extends ProcessorBase {
         continue; // Skip resources with no text
       }
 
-      // Skip if already exists
+      // Skip the resource if it already exists
       if (existing.has(String(resource.id))) {
         continue; // Skip existing resources
       }
@@ -78,7 +78,7 @@ export class VectorProcessor extends ProcessorBase {
       });
     }
 
-    // 5. Use ProcessorBase to handle the batch processing
+    // 5. Use ProcessorBase to handle the batches
     await super.process(resourcesToProcess, "content");
   }
 
@@ -87,7 +87,7 @@ export class VectorProcessor extends ProcessorBase {
    * @param {Array<{text: string, identifier: any}>} batch - Batch of items to process
    * @param {number} processed - Number of items already processed
    * @param {number} total - Total number of items
-   * @param {string} context - Processing context label
+   * @param {string} context - Context label
    * @returns {Promise<void>}
    */
   async processBatch(batch, processed, total, context) {
@@ -100,11 +100,11 @@ export class VectorProcessor extends ProcessorBase {
       context,
     });
 
-    // Collect all texts and make a single embedding request. A failure
-    // aborts the run: the client's retry layer already absorbed
-    // transient errors, so what reaches here is systemic (embedding
-    // service down, deadline exceeded) and every later batch would fail
-    // the same slow way.
+    // Collect all texts. Make a single embedding request. A failure
+    // aborts the run. The client's retry layer already absorbed the
+    // transient errors. So an error that reaches here is systemic
+    // (embedding service down, deadline exceeded). Every later batch
+    // would fail the same slow way.
     const texts = batch.map((item) => item.text);
     const embeddings = await this.#llm.createEmbeddings(texts);
 

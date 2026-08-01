@@ -26,11 +26,12 @@ const fixtureFile = join(here, "fixtures", "trace-1220.ndjson");
 const fixtureDir = join(here, "fixtures", "trace-query-1220");
 const fixtureBody = readFileSync(fixtureFile, "utf8");
 
-// Seed the fixture under a literal path in a mock fs (resolveFiles never calls
-// globSync for a literal path, so the mock needs no glob stub), then hand-build
-// the InvocationContext the handler consumes — the package's established
-// handler-test pattern (trace-cost.test.js). createDefaultRuntime() is unusable
-// here because its frozen proc.stdout forwards to the real stdout.
+// Seed the fixture under a literal path in a mock fs. resolveFiles never
+// calls globSync for a literal path, so the mock needs no glob stub. Then
+// hand-build the InvocationContext the handler consumes. This is the
+// package's established handler-test pattern (trace-cost.test.js).
+// createDefaultRuntime() is unusable here because its frozen proc.stdout
+// forwards to the real stdout.
 const FILE = "/fixtures/trace-1220.ndjson";
 
 /**
@@ -54,8 +55,9 @@ async function capture(handler, options, args = {}) {
 }
 
 /**
- * Capture a cross-trace handler (file via --file) under --format json, parse it
- * and the committed baseline fixture, and assert deep structural equality.
+ * Capture a cross-trace handler (file from --file) under --format json. Parse
+ * the capture and the committed baseline fixture. Assert deep structural
+ * equality.
  */
 async function assertEquivalentMulti(handler, name, options = {}) {
   const actual = JSON.parse(
@@ -100,7 +102,7 @@ describe("gemba-trace --format json structural-equivalence", () => {
     assertEquivalentArgs(runBatchCommand, "batch", { from: "0", to: "3" }));
   test("stats", () => assertEquivalentMulti(runStatsCommand, "stats"));
 
-  test("--signatures controls thinking-signature inclusion under --format json", async () => {
+  test("--signatures controls whether thinking signatures appear under --format json", async () => {
     const stripped = await capture(runFilterCommand, { file: [FILE] });
     const kept = await capture(runFilterCommand, {
       file: [FILE],
@@ -110,7 +112,7 @@ describe("gemba-trace --format json structural-equivalence", () => {
     assert.ok(kept.includes("signaturebase64blob"));
   });
 
-  test("stats --by-tool token sums equal un-flagged totals", async () => {
+  test("stats --by-tool token sums equal the un-flagged totals", async () => {
     const plain = JSON.parse(await capture(runStatsCommand, { file: [FILE] }));
     const byTool = JSON.parse(
       await capture(runStatsCommand, { file: [FILE], "by-tool": true }),

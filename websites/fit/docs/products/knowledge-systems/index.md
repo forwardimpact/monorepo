@@ -1,32 +1,31 @@
 ---
 title: "Keep Track of Context Without Effort"
-description: "Stop walking into meetings cold — Outpost assembles and maintains awareness of people, projects, and threads in the background."
+description: "Outpost assembles and maintains awareness of people, projects, and threads in the background, so you never walk into a meeting cold."
 ---
 
 You have context scattered across email threads, calendar invites, chat
-messages, and last week's notes. Keeping track of it all depends on memory --
-yours -- and memory drops things. Outpost is a personal operations center that
-runs AI agents on a schedule, syncing your email and calendar, building a
-knowledge graph of the people and projects you work with, and preparing
-briefings before meetings. You set it up once; it keeps working in the
+messages, and last week's notes. To keep track of it all, you depend on your
+memory. Memory drops things. Outpost is a personal operations center that runs
+AI agents on a schedule. The agents sync your email and calendar. They build a
+knowledge graph of the people and projects you work with. They prepare
+briefings before meetings. You set it up once. It keeps working in the
 background.
 
-By the end of this guide, Outpost will be running against your knowledge base,
-maintaining a continuously updated picture of your work context.
+By the end of this guide, Outpost runs against your knowledge base. It
+maintains a continuously updated picture of your work context.
 
 ## Prerequisites
 
 Complete the
 [Getting Started: Outpost for Engineers](/docs/getting-started/engineers/outpost/)
-guide first. That guide covers installation, knowledge base initialization, and
-starting the scheduler. This guide assumes you have a working knowledge base
-and a running scheduler.
+guide first. That guide covers how to install Outpost, how to initialize the
+knowledge base, and how to start the scheduler. This guide assumes your
+knowledge base works and your scheduler runs.
 
-## See what your agents are doing
+## See what your agents do
 
-Outpost ships with six agents, each responsible for a slice of your context.
-After the scheduler has been running for a cycle or two, check what is
-happening:
+Outpost ships with six agents. Each agent is responsible for a slice of your
+context. After the scheduler runs for a cycle or two, check what happened:
 
 ```sh
 npx fit-outpost status
@@ -64,8 +63,8 @@ Agents:
 ```
 
 Each agent has a `+` or `-` prefix (enabled or disabled), a knowledge base
-path, a schedule, and a running tally of wakes and last actions. The four
-agents that matter most for day-to-day context tracking are:
+path, a schedule, and a cumulative tally of wakes and last actions. The four
+agents that matter most when you track context day to day are:
 
 | Agent              | What it maintains                                        |
 | ------------------ | -------------------------------------------------------- |
@@ -75,15 +74,15 @@ agents that matter most for day-to-day context tracking are:
 | **chief-of-staff** | Reads all agent state and compiles a daily overview      |
 
 The recruiter and head-hunter agents handle engineering recruitment workflows.
-They are included in the default configuration but will not activate unless you
-have candidate data in your knowledge base.
+The default configuration includes them. They do not activate unless you have
+candidate data in your knowledge base.
 
 ## Understand the knowledge graph
 
 As agents sync email, calendar, and chat data, the librarian processes it into
-a knowledge graph -- plain markdown files organized by entity type. Only the
-`Knowledge/` graph is shared with the team over a synced filesystem (e.g.
-OneDrive); the rest of the workspace stays personal and local:
+a knowledge graph. The graph is plain markdown files organized by entity type.
+You share only the `Knowledge/` graph with the team over a synced filesystem
+(e.g. OneDrive). The rest of the workspace stays personal and local:
 
 ```text
 ~/.local/share/fit/outpost/Team/          # Your workspace root -- NOT shared
@@ -100,9 +99,9 @@ OneDrive); the rest of the workspace stays personal and local:
     └── skills/                # Skill definitions agents use
 ```
 
-Notes use Obsidian-compatible `[[backlinks]]`, so the graph is browsable in
+Notes use Obsidian-compatible `[[backlinks]]`, so you can browse the graph in
 Obsidian or any markdown editor. Each person note accumulates context from
-every email, meeting, and conversation where they appeared -- the kind of
+every email, meeting, and conversation where they appeared. That is the kind of
 background you would otherwise reconstruct from memory before a meeting.
 
 You can search the graph directly:
@@ -118,20 +117,20 @@ Projects/Auth Migration.md:12:Lead: [[Sarah Chen]]
 Topics/Platform Reliability.md:5:Raised by [[Sarah Chen]] in Q1 review
 ```
 
-This surfaces every note that mentions the person, across all entity types --
-giving you the full picture rather than a single file.
+This surfaces every note that mentions the person across all entity types. You
+get the full picture instead of a single file.
 
 ## Customize agent schedules
 
 The default schedule runs agents during business hours on weekdays. You may
-want to adjust timing -- for example, if you work across time zones or want
-briefings earlier.
+want to adjust when agents run. For example, adjust it if you work across time
+zones or want briefings earlier.
 
 Agent schedules live in the Outpost configuration file at
 `~/.fit/outpost/scheduler.json`. Each agent entry specifies a knowledge base
-path, a required `privilege` level (`full` for agents that sync the live
-mail/calendar stores or send mail, `restricted` for agents that only process
-already-synced content), a schedule, and whether the agent is enabled:
+path, a required `privilege` level, a schedule, and whether the agent is
+enabled. Use `full` for agents that sync the live mail/calendar stores or send
+mail. Use `restricted` for agents that only process already-synced content:
 
 ```json
 {
@@ -160,8 +159,8 @@ The `schedule` object supports three types:
 | `interval` | Minutes between wakes in `{ "type": "interval", "minutes": N }` | `{ "type": "interval", "minutes": 10 }` |
 | `once`     | Single run at a specific time in `{ "type": "once", "runAt": "..." }` | `{ "type": "once", "runAt": "2026-05-05T09:00:00Z" }` |
 
-To disable an agent without removing its configuration, set `"enabled": false`.
-After editing the file, restart the daemon:
+To disable an agent and keep its configuration, set `"enabled": false`.
+Restart the daemon after you edit the file:
 
 ```sh
 npx fit-outpost stop
@@ -188,8 +187,8 @@ Waking postman...
   Done (4.2s)
 ```
 
-This is useful when you know new email has arrived and you want it synced
-before a meeting, or when you want a fresh briefing:
+This is useful when you know new email arrived and you want it synced before a
+meeting. It is also useful when you want a fresh briefing:
 
 ```sh
 npx fit-outpost wake chief-of-staff
@@ -203,7 +202,7 @@ Waking chief-of-staff...
 
 The chief-of-staff reads triage files from all other agents and compiles a
 briefing in `Briefings/`. Each briefing summarizes what changed since
-the last one -- new emails, upcoming meetings, open threads, and action items.
+the last one: new emails, upcoming meetings, open threads, and action items.
 
 ## Update agents and skills
 
@@ -232,13 +231,13 @@ npx fit-outpost update
 ```
 
 The update copies the latest `CLAUDE.md`, agent definitions, skill files, and
-settings into your knowledge base, merging new permissions into your existing
-`settings.json` without overwriting your customizations.
+settings into your knowledge base. It merges new permissions into your existing
+`settings.json`. It does not overwrite your customizations.
 
 ## Validate your setup
 
-After updating or making changes to agent configurations, confirm everything
-is wired correctly:
+After you update or change agent configurations, confirm everything is wired
+correctly:
 
 ```sh
 npx fit-outpost validate
@@ -259,23 +258,23 @@ Validating agents...
 All OK.
 ```
 
-The validator checks that each configured agent has a matching agent definition
-file in `.claude/agents/` (either in the knowledge base or in your global
-`~/.claude/agents/` directory). A `[FAIL]` result means the agent definition
-is missing -- run `npx fit-outpost update <path>` (or `npx fit-outpost update`
-from inside the knowledge base) to restore it.
+The validator checks that each configured agent has a matching agent
+definition file in `.claude/agents/` (either in the knowledge base or in your
+global `~/.claude/agents/` directory). A `[FAIL]` result means the agent
+definition is missing. Run `npx fit-outpost update <path>` (or
+`npx fit-outpost update` from inside the knowledge base) to restore it.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `npx fit-outpost status` shows agents with recent wake times and action
-  summaries -- context is being tracked automatically.
+  summaries. Outpost tracks context automatically.
 - Your knowledge base contains notes under `Knowledge/People/`,
-  `Knowledge/Projects/`, and `Knowledge/Organizations/` -- the knowledge graph
-  is being built from your email and calendar.
-- `Briefings/` contains at least one daily briefing -- the
-  chief-of-staff is compiling context across all agents.
+  `Knowledge/Projects/`, and `Knowledge/Organizations/`. The agents build the
+  knowledge graph from your email and calendar.
+- `Briefings/` contains at least one daily briefing. The chief-of-staff
+  compiles context across all agents.
 - You can search the graph with `rg "name" Knowledge/` and find cross-referenced
   context about a person or project.
 

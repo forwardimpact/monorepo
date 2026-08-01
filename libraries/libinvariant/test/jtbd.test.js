@@ -60,7 +60,7 @@ describe("checkJtbd", () => {
     assert.deepStrictEqual(result.stale, []);
   });
 
-  test("rejects a job entry whose bigHire is missing the trailing period", async () => {
+  test("rejects a job entry whose bigHire has no trailing period", async () => {
     const pkg = {
       name: "@x/libfoo",
       description: "Foo.",

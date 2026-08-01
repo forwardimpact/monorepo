@@ -193,7 +193,7 @@ describe("Dispatcher", () => {
     expect(reloaded).not.toBeNull();
   });
 
-  test("ackTarget omitted: no reaction is added", async () => {
+  test("ackTarget omitted: adds no reaction", async () => {
     const ctx = makeCtx();
     await dispatcher.dispatch({
       ctx,
@@ -219,7 +219,7 @@ describe("Dispatcher", () => {
     expect(body.inputs.resume_context).toBe('{"r":1}');
   });
 
-  test("on workflow_dispatch failure: ack is finished, callback consumed, pending_callbacks cleaned, error rethrown", async () => {
+  test("on workflow_dispatch failure: finishes ack, consumes callback, cleans pending_callbacks, rethrows error", async () => {
     fetchStub.restore();
     fetchStub = stubFetch({
       onWorkflowDispatch: () =>
@@ -262,7 +262,7 @@ describe("Dispatcher", () => {
     expect(Object.keys(ctx.pending_callbacks)).toHaveLength(0);
   });
 
-  test("token resolver result is used as the dispatch token", async () => {
+  test("the dispatcher uses the token resolver result as the dispatch token", async () => {
     dispatcher = new Dispatcher({
       clock,
       callbacks,
@@ -449,7 +449,7 @@ describe("Dispatcher", () => {
     expect(peek.meta.tenant_id).toBe("t-1");
   });
 
-  test("tenant resolver returning null yields a transient result, no callback registered", async () => {
+  test("tenant resolver that returns null yields a transient result, no callback registered", async () => {
     const nullResolver = {
       resolve: async () => null,
       resolveByRepo: async () => null,

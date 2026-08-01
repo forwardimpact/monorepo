@@ -3,12 +3,12 @@ import assert from "node:assert/strict";
 
 import { runRules } from "../src/rules.js";
 
-// A single-scope resolver returning the supplied subjects verbatim.
+// A single-scope resolver that returns the supplied subjects verbatim.
 const resolverFor = (subjects) => ({
   resolveScope: (scope) => (scope === "s" ? subjects : []),
 });
 
-describe("runRules hint resolution", () => {
+describe("runRules resolves hints", () => {
   test("renders a static-string hint unchanged", () => {
     const rules = [
       {

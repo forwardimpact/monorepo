@@ -1,6 +1,6 @@
 /**
- * Posture module unit tests — record read/write, the posture-less default,
- * manifest loading, and draft-side resolution.
+ * Posture module unit tests. They cover record read/write, the posture-less
+ * default, the manifest load, and how the code resolves the draft side.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";

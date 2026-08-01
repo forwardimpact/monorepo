@@ -7,7 +7,7 @@ import { d2, E2, D4 } from "../src/constants.js";
 const APPROX = 1e-9;
 
 describe("constants", () => {
-  test("Wheeler/Vacanti exact values for n=2", () => {
+  test("the constants hold the Wheeler/Vacanti exact values for n=2", () => {
     assert.strictEqual(d2, 1.128);
     assert.strictEqual(E2, 2.66);
     assert.strictEqual(D4, 3.268);
@@ -34,13 +34,13 @@ describe("computeXmR", () => {
   });
 
   test("does NOT clip LPL to zero", () => {
-    // Large variation relative to mean — LPL is negative.
+    // The variation is large relative to the mean. So LPL is negative.
     const values = [1, 10, 1, 10, 1, 10];
     const stats = computeXmR(values);
     assert.ok(stats.LPL < 0, `expected negative LPL, got ${stats.LPL}`);
   });
 
-  test("zero variation collapses limits to mu", () => {
+  test("zero variation collapses the limits to mu", () => {
     const stats = computeXmR([7, 7, 7, 7, 7]);
     assert.strictEqual(stats.mu, 7);
     assert.strictEqual(stats.R, 0);
@@ -50,7 +50,7 @@ describe("computeXmR", () => {
     assert.strictEqual(stats.URL, 0);
   });
 
-  test("single value has empty mr series", () => {
+  test("a single value has an empty mr series", () => {
     const stats = computeXmR([5]);
     assert.strictEqual(stats.mu, 5);
     assert.strictEqual(stats.R, 0);

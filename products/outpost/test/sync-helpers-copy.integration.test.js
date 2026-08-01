@@ -1,10 +1,11 @@
 /**
  * copyThreadAttachments containment integration tests.
  *
- * Injects a temp `attachmentsDir` via the dedicated DI parameter — no HOME
- * override (bun's `os.homedir()` ignores `process.env.HOME` and reads
- * `getpwuid()` directly, so DI is the only correct isolation channel under
- * `bun test`). Asserts that no traversal-shaped name causes a write outside
+ * These tests inject a temp `attachmentsDir` through the dedicated DI
+ * parameter. They do not override HOME. Bun's `os.homedir()` ignores
+ * `process.env.HOME` and reads `getpwuid()` directly. So DI is the only
+ * correct isolation channel under `bun test`. The tests assert that no
+ * traversal-shaped name causes a write outside
  * `<attachmentsDir>/<THREAD_ID>/`.
  */
 import { test, describe, before, after } from "node:test";

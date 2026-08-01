@@ -85,7 +85,7 @@ describe("JIDOKA L0 — leads describe Ask as async and surface auto-resume", ()
   }
 });
 
-describe("JIDOKA L0 — agents describe inbox arrival of questions", () => {
+describe("JIDOKA L0 — agents describe how questions arrive in the inbox", () => {
   for (const [name, prompt] of AGENT_PROMPTS) {
     test(`${name} states questions arrive in the inbox as [ask#N]`, () => {
       assert.ok(
@@ -100,15 +100,16 @@ describe("JIDOKA L0 — agents describe inbox arrival of questions", () => {
   }
 });
 
-describe("JIDOKA L0 — leads state delegation constraint", () => {
-  // Supervisor is excluded: it has its own tools (incl. Bash) to do its own
-  // work, so it delegates only the agent's task — not all work — via Ask.
+describe("JIDOKA L0 — leads state the delegation constraint", () => {
+  // This list excludes the supervisor. The supervisor has its own tools
+  // (incl. Bash) to do its own work. It delegates only the agent's task
+  // through Ask. It does not delegate all work.
   const NO_TOOL_LEADS = [
     ["FACILITATOR_SYSTEM_PROMPT", FACILITATOR_SYSTEM_PROMPT],
     ["DISCUSS_SYSTEM_PROMPT", DISCUSS_SYSTEM_PROMPT],
   ];
   for (const [name, prompt] of NO_TOOL_LEADS) {
-    test(`${name} contains delegation constraint`, () => {
+    test(`${name} contains the delegation constraint`, () => {
       assert.ok(
         prompt.includes("no tools to perform work yourself"),
         `${name} must state that the lead cannot do work directly`,
@@ -117,12 +118,12 @@ describe("JIDOKA L0 — leads state delegation constraint", () => {
   }
 });
 
-describe("JIDOKA L0 — agents name Answer and carry recursion guard", () => {
+describe("JIDOKA L0 — agents name Answer and carry the recursion guard", () => {
   for (const [name, prompt] of AGENT_PROMPTS) {
     test(`${name} names Answer`, () => {
       assert.ok(prompt.includes("Answer"));
     });
-    test(`${name} carries recursion guard`, () => {
+    test(`${name} carries the recursion guard`, () => {
       assert.ok(
         prompt.includes("Do not redo completed work"),
         `${name} must carry the recursion guard`,
@@ -131,7 +132,7 @@ describe("JIDOKA L0 — agents name Answer and carry recursion guard", () => {
   }
 });
 
-describe("JIDOKA L0 — prompts carry no enforcement phrasing", () => {
+describe("JIDOKA L0 — prompts carry no enforcement phrases", () => {
   const forbidden = [
     "then Answer",
     "then Share",

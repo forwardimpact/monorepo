@@ -52,7 +52,7 @@ describe("ProseCache", () => {
     assert.strictEqual(cache.has("k"), true);
   });
 
-  test("save writes dirty cache; reload restores entries", () => {
+  test("save writes dirty cache and reload restores entries", () => {
     const cachePath = "/cache/cache.json";
     const mockFs = createMockFs();
 
@@ -76,14 +76,14 @@ describe("ProseCache", () => {
       [cachePath]: JSON.stringify({ pre: "loaded" }),
     });
     const cache = makeCache(cachePath, mockFs);
-    // No mutation — save should not rewrite the file.
+    // Nothing mutates the cache. The save call should not rewrite the file.
     const before = mockFs.readFileSync(cachePath, "utf-8");
     cache.save();
     const after = mockFs.readFileSync(cachePath, "utf-8");
     assert.strictEqual(before, after);
   });
 
-  test("schema-mismatched cache file is discarded", () => {
+  test("discards a schema-mismatched cache file", () => {
     const cachePath = "/cache/cache.json";
     const mockFs = createMockFs({
       [cachePath]: JSON.stringify({ _schema: 99, leftover: "x" }),

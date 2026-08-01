@@ -5,7 +5,7 @@ import {
 } from "@forwardimpact/libsyntheticgen/vocabulary.js";
 
 /**
- * Prompt template for levels.yaml — all levels in a single call.
+ * Prompt template for levels.yaml (all levels in a single call).
  *
  * @param {object[]} levels - Level skeletons from DSL
  * @param {object} ctx - Terrain context

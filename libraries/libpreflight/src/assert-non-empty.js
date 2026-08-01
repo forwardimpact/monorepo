@@ -1,10 +1,11 @@
 /**
  * Fail the process at startup if a required configuration value is empty.
- * Empty means: empty string, zero-length array, or empty Set; also undefined or null.
+ * Empty means an empty string, a zero-length array, or an empty Set.
+ * Undefined and null are also empty.
  *
  * @param {unknown} value Configuration value to check.
- * @param {string} label Human-readable name written into the stderr message.
- * @param {NodeJS.Process} [processObj] Process-like object for injection in tests.
+ * @param {string} label Human-readable name that the stderr message shows.
+ * @param {NodeJS.Process} [processObj] Process-like object to inject in tests.
  * @returns {void}
  */
 export function assertNonEmpty(value, label, processObj = process) {

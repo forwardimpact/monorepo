@@ -1,12 +1,12 @@
 ---
 title: Pathway
-description: See what's expected at every level — generate job definitions, career paths, and agent profiles from one shared engineering standard.
+description: See what's expected at every level. Generate job definitions, career paths, and agent profiles from one shared engineering standard.
 layout: product
 toc: false
 hero:
   image: /assets/scene-pathway.svg
   alt: An engineer, an AI robot, and a business professional stand at the base of mountains, studying the trail ahead
-  subtitle: Navigate the trail. Pathway makes expectations visible — feed it a discipline, track, and level and it produces a complete job definition. Drop the level and you get an agent profile instead. Same standard, different outputs.
+  subtitle: Navigate the trail. Pathway makes expectations visible. Feed it a discipline, track, and level. It produces a complete job definition. Drop the level and you get an agent profile instead. Same standard, different outputs.
   cta:
     - label: View on GitHub
       href: https://github.com/forwardimpact/monorepo/tree/main/products/pathway
@@ -17,28 +17,28 @@ hero:
 
 'Meets expectations' on the review form has no definition anyone can point to.
 An agent's work was rejected because it followed generic practices instead of
-the organization's standards. Pathway resolves both — one shared standard that
-produces definitions for humans and agents alike.
+the organization's standards. Pathway resolves both. It is one shared standard
+that produces definitions for humans and agents alike.
 
 ## What becomes possible
 
 ### For Engineering Leaders
 
 Define what good engineering means so roles have clear, defensible
-expectations. Make staffing decisions you can defend by seeing what each role
-requires.
+expectations. See what each role requires. Then make staffing decisions you can
+defend.
 
 - Complete job definitions from discipline + track + level
 - Interview question sets grounded in actual skill expectations
-- A static site export for publishing the standard organization-wide
+- A static site export that publishes the standard organization-wide
 
 ### For Empowered Engineers
 
-See exactly what's expected at your level, what changes at the next level, and
-configure agents to meet the expectations the organization holds for humans —
-without bespoke prompts.
+See exactly what's expected at your level. See what changes at the next level.
+Configure agents to meet the expectations the organization holds for humans.
+You need no bespoke prompts.
 
-- An interactive career browser showing skills and level progression
+- An interactive career browser that shows skills and level progression
 - Agent profiles and skill files derived from organizational standards
 - Side-by-side level comparisons to identify growth areas
 
@@ -50,9 +50,9 @@ without bespoke prompts.
   definitions with skill matrices and behaviour profiles
 - **Browse skills** — View all skills with detailed level descriptions
 - **Compare levels** — See what changes between levels side by side
-- **Prepare interviews** — Generate role-specific question sets for hiring
+- **Prepare interviews** — Generate role-specific question sets when you hire
 - **Preview agent profiles** — See exactly what agent configuration looks like
-  before deploying
+  before you deploy
 
 ---
 

@@ -1,13 +1,13 @@
 /**
  * Supabase client factory for Summit.
  *
- * Reads Supabase URL and service-role key through libconfig — never
- * directly from process.env. Callers build a Config via
- * `createProductConfig("summit")` in their bin and pass it through
- * handler options.
+ * The factory reads the Supabase URL and the service-role key through
+ * libconfig. It never reads them directly from process.env. Callers build
+ * a Config with `createProductConfig("summit")` in their bin. They pass it
+ * through handler options.
  */
 
-/** Signals that the Supabase connection could not be established due to missing credentials or configuration. */
+/** Signals that the factory could not connect to Supabase because credentials or configuration are missing. */
 export class SupabaseUnavailableError extends Error {
   /** Create a SupabaseUnavailableError with the underlying failure reason. */
   constructor(reason) {
@@ -17,17 +17,18 @@ export class SupabaseUnavailableError extends Error {
 }
 
 /**
- * Create a Supabase client configured for Map's activity schema.
+ * Create a Supabase client for Map's activity schema.
  *
  * @param {object} [opts]
- * @param {object} opts.config - libconfig Config carrying Supabase URL and service-role key.
+ * @param {object} opts.config - libconfig Config that carries the Supabase
+ *   URL and the service-role key.
  * @param {string} [opts.schema] - Database schema (default: "activity").
  * @returns {Promise<import("@supabase/supabase-js").SupabaseClient>}
  */
 export async function createSummitClient({ config, schema = "activity" } = {}) {
   if (!config)
     throw new SupabaseUnavailableError(
-      "config required — pass createProductConfig('summit') from the entrypoint",
+      "config required. Pass createProductConfig('summit') from the entrypoint",
     );
   let url, key;
   try {
@@ -36,8 +37,8 @@ export async function createSummitClient({ config, schema = "activity" } = {}) {
   } catch (err) {
     throw new SupabaseUnavailableError(
       "SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set. " +
-        "Pass --roster <path> for a file-based roster, " +
-        "or set the env vars from your Supabase project Settings → API " +
+        "Pass --roster <path> for a file-based roster. " +
+        "As an alternative, set the env vars from your Supabase project Settings → API " +
         "(monorepo contributors can run `just env-setup`). " +
         `Underlying: ${err.message}`,
     );

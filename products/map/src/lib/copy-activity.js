@@ -1,18 +1,18 @@
 /**
- * Copy helpers for staging a workspace's `data/` tree. Activity and
- * pathway are a matched pair from the same data root: the roster under
- * `data/activity` carries level ids defined by `data/pathway`, so both
+ * Copy helpers that stage a workspace's `data/` tree. Activity and
+ * pathway are a matched pair from the same data root. The roster under
+ * `data/activity` carries level ids that `data/pathway` defines. So both
  * ship from the same source.
  *
- * Pure helpers — they throw raw Errors on failure so the caller's
- * runPhase envelope owns the framing.
+ * These are pure helpers. They throw raw Errors on failure. So the caller's
+ * runPhase envelope frames them.
  */
 
 import path from "node:path";
 
 /**
  * Copy a source directory into `<target>/data/activity/` recursively.
- * `recursive: true` creates the `data/` parent if absent, matching
+ * `recursive: true` creates the `data/` parent if absent. This matches
  * init.js's semantics.
  *
  * @param {object} params
@@ -34,13 +34,13 @@ export async function copyActivity({ source, target, runtime }) {
 /**
  * Replace `<target>/data/pathway/` with the source pathway directory.
  *
- * Unlike `copyActivity`, the staged pathway is replaced wholesale: init
- * has already materialised the starter standard at the destination, and
- * a merge copy (`force: false`) would blend starter files into the
- * source standard. When the source pathway does not exist, the starter
- * copy stays as the fallback; when source and destination resolve to
- * the same directory (staging into the data root itself), the copy is
- * skipped.
+ * Unlike `copyActivity`, this function replaces the staged pathway
+ * wholesale. Init already materialised the starter standard at the
+ * destination. A merge copy (`force: false`) would blend starter files
+ * into the source standard. When the source pathway does not exist, the
+ * starter copy stays as the fallback. When source and destination
+ * resolve to the same directory, this function skips the copy. That
+ * happens when you stage into the data root itself.
  *
  * @param {object} params
  * @param {string} params.source - Absolute path to the source pathway dir

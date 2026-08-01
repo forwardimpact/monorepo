@@ -6,10 +6,11 @@ import { HEADER } from "../src/constants.js";
 import { runRecordCommand } from "../src/commands/record.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
-// In-memory paths — record.js does all I/O through the injected runtime.fsSync,
-// so `--wiki-root` is an arbitrary mock path. `finder` resolves the project
-// root off the real cwd, but its result is unused whenever `--wiki-root` is
-// supplied (which every test does), so the assertions touch only the mock fs.
+// These paths stay in memory. record.js does all I/O through the injected
+// runtime.fsSync. So `--wiki-root` is an arbitrary mock path. `finder`
+// resolves the project root off the real cwd. But nothing uses its result
+// when a test supplies `--wiki-root`. Every test supplies it. So the
+// assertions touch only the mock fs.
 const DIR = "/xmr";
 const WIKI_ROOT = join(DIR, "wiki");
 
@@ -22,7 +23,7 @@ describe("gemba-xmr record", () => {
     return { result, stdout: rt.stdout, stderr: rt.stderr, fs };
   }
 
-  test("new file gets header + 1 row (criterion #4)", () => {
+  test("a new file gets a header + 1 row (criterion #4)", () => {
     const { result, fs } = run({
       skill: "kata-test",
       metric: "test_count",
@@ -41,12 +42,12 @@ describe("gemba-xmr record", () => {
     assert.equal(lines[0], HEADER);
     assert.equal(lines.length, 2);
     assert.ok(lines[1].startsWith("2026-05-02,test_count,5,count,"));
-    // Row carries the trailing host_run column; no GITHUB_RUN_ID in
-    // this run, so the host marker is `local`.
+    // The row carries the trailing host_run column. This run sets no
+    // GITHUB_RUN_ID. So the host marker is `local`.
     assert.ok(lines[1].endsWith(",kata-test,local"));
   });
 
-  test("append-only on existing file", () => {
+  test("append-only on an existing file", () => {
     const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
     const { fs } = run(
       {
@@ -69,7 +70,7 @@ describe("gemba-xmr record", () => {
     assert.ok(lines[2].startsWith("2026-05-02,test_count,7,count,"));
   });
 
-  test("one-line output format (criterion #3)", () => {
+  test("uses the one-line output format (criterion #3)", () => {
     const { stdout } = run({
       skill: "kata-test",
       metric: "test_count",
@@ -85,7 +86,7 @@ describe("gemba-xmr record", () => {
     assert.match(stdout, /latest=5/);
   });
 
-  test("missing required --metric returns error envelope with code 2", () => {
+  test("a missing required --metric returns an error envelope with code 2", () => {
     const { result } = run({
       skill: "kata-test",
       value: "5",
@@ -97,7 +98,7 @@ describe("gemba-xmr record", () => {
     assert.equal(result.code, 2);
   });
 
-  test("custom --wiki-root honoured", () => {
+  test("record honours a custom --wiki-root", () => {
     const customWiki = join(DIR, "custom-wiki");
     const { fs } = run({
       skill: "kata-test",
@@ -113,7 +114,7 @@ describe("gemba-xmr record", () => {
     );
   });
 
-  test("LIBHARNESS_SKILL fallback when --skill omitted", () => {
+  test("LIBHARNESS_SKILL is the fallback when a caller omits --skill", () => {
     const { fs } = run(
       {
         metric: "test_count",
@@ -197,7 +198,7 @@ describe("gemba-xmr record", () => {
     assert.ok(lines[1].endsWith(",kata-local,local"));
   });
 
-  test("returns code 2 when neither --event-type nor $GITHUB_WORKFLOW_REF set", () => {
+  test("returns code 2 when neither --event-type nor $GITHUB_WORKFLOW_REF is set", () => {
     const { result } = run({
       skill: "kata-test",
       metric: "test_count",
@@ -210,7 +211,7 @@ describe("gemba-xmr record", () => {
     assert.match(result.error, /event-type|GITHUB_WORKFLOW_REF/);
   });
 
-  test("returns error envelope when neither --skill nor env var set", () => {
+  test("returns an error envelope when neither --skill nor the env var is set", () => {
     const { result } = run(
       {
         metric: "test_count",
@@ -225,9 +226,9 @@ describe("gemba-xmr record", () => {
     assert.equal(result.code, 2);
   });
 
-  test("the retired eval-era skill env name is ignored (clean break)", () => {
-    // The name is built from parts so the criterion-1 completeness oracle
-    // stays clean while this still guards the clean break.
+  test("record ignores the retired eval-era skill env name (clean break)", () => {
+    // The code builds the name from parts. So the criterion-1 completeness
+    // oracle stays clean. This test still guards the clean break.
     const retired = `${"LIBEVAL"}_SKILL`;
     const { result } = run(
       {
@@ -243,7 +244,7 @@ describe("gemba-xmr record", () => {
     assert.equal(result.code, 2);
   });
 
-  test("CI row carries the host workflow run id", () => {
+  test("a CI row carries the run id of the host workflow", () => {
     const { fs } = run(
       {
         skill: "kata-test",
@@ -262,7 +263,7 @@ describe("gemba-xmr record", () => {
     assert.ok(lines[1].endsWith(",kata-dispatch,27401632821"));
   });
 
-  test("local row carries the explicit no-host marker", () => {
+  test("a local row carries the explicit no-host marker", () => {
     const { fs } = run({
       skill: "kata-test",
       metric: "test_count",
@@ -322,7 +323,7 @@ describe("gemba-xmr record — route-decision context", () => {
     assert.match(result.error, /unknown route/);
   });
 
-  test("non-route-bearing metric is unaffected by route logic", () => {
+  test("route logic does not affect a non-route-bearing metric", () => {
     const fs = createMockFs({});
     const rt = makeRuntime({ cwd: process.cwd(), env: {}, fs, fsSync: fs });
     const ctx = ctxFor({

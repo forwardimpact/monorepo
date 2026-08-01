@@ -1,11 +1,11 @@
 /**
  * GitHub-channel tenant extraction. The channel-agnostic resolver lives in
- * `libbridge`; this module owns the GitHub-specific step of turning an
+ * `libbridge`. This module owns the GitHub-specific step. It turns an
  * inbound webhook payload into the `(owner, name)` pair the resolver needs.
  *
  * A single GitHub App installation can cover many repositories. Every
  * webhook delivery names exactly one repository, so the resolver
- * disambiguates which `(installation_id, repo)` row to use by repo —
+ * disambiguates by repo which `(installation_id, repo)` row to use.
  * `resolveByRepo` returns the active tenant whose configured target is
  * that repository.
  */
@@ -31,7 +31,7 @@ export function extractRepo(payload) {
 }
 
 /**
- * Resolve the active tenant for a GitHub webhook delivery. Returns `null`
+ * Resolve the active tenant for a GitHub webhook delivery. Return `null`
  * when the payload names no repository or when no active tenant owns it
  * (the resolver filters out non-active tenants).
  *

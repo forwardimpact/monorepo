@@ -1,14 +1,15 @@
 ---
 title: "Getting Started: Landmark for Leaders"
-description: "Analyze engineering signals — marker evidence, snapshot trends, practice patterns, team health, and engineer voice."
+description: "Analyze engineering signals: marker evidence, snapshot trends, practice patterns, team health, and engineer voice."
 ---
 
-Landmark surfaces engineering-system signals from Map's activity layer —
-organization roster, GitHub artifact evidence assessed by Guide against your
-standard's markers, GetDX snapshot outcomes, and engineer voice comments — so
-you can see what the data says about how engineering is functioning.
+Landmark surfaces engineering-system signals from Map's activity layer. The
+signals are the organization roster, GitHub artifact evidence that Guide
+assesses against your standard's markers, GetDX snapshot outcomes, and engineer
+voice comments. You can then see what the data says about how engineering
+functions.
 
-Landmark requires Map's activity layer (Supabase). If you haven't set it up, see
+Landmark requires Map's activity layer (Supabase). If you did not set it up, see
 [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/)
 first. To explore with synthetic data, see
 [Trying the activity layer with synthetic data](/docs/getting-started/leaders/map/#trying-the-activity-layer-with-synthetic-data)
@@ -18,8 +19,8 @@ in the Map guide.
 
 - Node.js 22+
 - npm
-- Map's activity layer running and populated
-- A Landmark session created with `fit-landmark login` — see
+- Map's activity layer up and populated
+- A Landmark session created with `fit-landmark login`. See
   [Authentication](#authentication) below
 
 ## Install
@@ -32,11 +33,11 @@ npm install @forwardimpact/landmark
 
 Every Landmark command except `marker` resolves the caller's identity from a
 Supabase Auth session. Row-level security uses the JWT's `email` claim to scope
-every query, so the session both authenticates you and determines what you can
+every query. So the session authenticates you and also determines what you can
 see.
 
 **There is no hosted Forward Impact service and no free tier.** Landmark reads
-from the Supabase project you stand up via Map.
+from the Supabase project you stand up with Map.
 
 Today's minimum stand-up is three steps under Map plus one Landmark login:
 
@@ -55,8 +56,8 @@ Today's minimum stand-up is three steps under Map plus one Landmark login:
    the operator workflow.
 4. **Sign in.** `npx fit-landmark login` walks Supabase's magic-link flow,
    captures the session at a localhost callback, and stores it (0600) in your
-   platform's config directory — `~/.config/landmark/credentials.json` on
-   Linux; see
+   platform's config directory. On Linux that is
+   `~/.config/landmark/credentials.json`. See
    [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
    macOS and Windows paths. Subsequent commands resolve
    identity automatically. Use `--otp` to skip the browser and paste the
@@ -68,31 +69,30 @@ Today's minimum stand-up is three steps under Map plus one Landmark login:
    ```
 
    For unattended agents and service accounts that cannot run an interactive
-   flow, an operator issues a signed JWT with `fit-map auth issue` instead —
-   see
+   flow, an operator issues a signed JWT with `fit-map auth issue` instead. See
    [Issue Service-Account Tokens](/docs/products/issuing-service-account-tokens/)
    and [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
    full flows.
 
-Once you are signed in, every command in the rest of this guide works against
-your scope. `fit-landmark logout` deletes the local credentials file when you
-need to switch identity or revoke the session locally.
+After you sign in, every command in the rest of this guide works against your
+scope. `fit-landmark logout` deletes the local credentials file when you need
+to switch identity or revoke the session locally.
 
-For more on what data the session unlocks visibility into, see
-[List Engineering Data Sources](/docs/products/engineering-data-sources/).
+See [List Engineering Data Sources](/docs/products/engineering-data-sources/)
+for more about the data the session makes visible.
 
 ## View the organization
 
-See who is in the organization and how teams are structured:
+See who is in the organization and what the team structure is:
 
 ```sh
 npx fit-landmark org show
 npx fit-landmark org team --manager alice@example.com
 ```
 
-`org show` prints the full organization directory — names, roles, and reporting
-lines. `org team` walks the hierarchy under a specific manager, which is the
-scope most other commands operate on.
+`org show` prints the full organization directory: names, roles, and reporting
+lines. `org team` walks the hierarchy under a specific manager. Most other
+commands operate on that scope.
 
 ## Browse marker definitions
 
@@ -104,8 +104,8 @@ npx fit-landmark marker task-completion
 npx fit-landmark marker task-completion --level working
 ```
 
-This is a reference view — it reads directly from your standard YAML and does
-not require Supabase. Use it to review what markers exist before checking
+This is a reference view. It reads directly from your standard YAML and does
+not require Supabase. Use it to review what markers exist before you check
 evidence against them.
 
 ## View practice patterns
@@ -118,15 +118,15 @@ npx fit-landmark practice --skill system_design --manager alice@example.com
 ```
 
 Practice patterns show where your team has strong evidence of skill practice and
-where evidence is thin — helping you identify coaching opportunities before they
+where evidence is thin. They help you find coaching opportunities before they
 become gaps.
 
 ## How evidence gets populated
 
-Landmark presents evidence — it doesn't create it. Evidence rows come from two
-producers. Map's transform pipeline derives a first layer directly from
-ingested GitHub artifacts (it runs automatically during
-`npx fit-map activity transform`). Guide's evaluation pipeline goes deeper: it
+Landmark presents evidence. It does not create evidence. Evidence rows come
+from two producers. Map's transform pipeline derives a first layer directly
+from ingested GitHub artifacts (it runs automatically during
+`npx fit-map activity transform`). Guide's evaluation pipeline goes deeper. It
 reads the same artifacts from Map, evaluates each one against the markers in
 your engineering standard, and writes its assessments back as evidence rows.
 In production the Guide pass runs on a schedule (a cron job or GitHub Action)
@@ -136,22 +136,22 @@ so evidence stays current as new artifacts arrive:
 echo "evaluate unscored artifacts for all" | npx fit-guide
 ```
 
-You do not need to run this manually in most setups — your operations team
+You do not need to run this manually in most setups. Your operations team
 configures it once during Guide setup.
 
 ## Browse evidence
 
-Drill into the evidence rows linked to agent-aligned engineering standard
-markers:
+Drill into the evidence rows linked to markers in the agent-aligned engineering
+standard:
 
 ```sh
 npx fit-landmark evidence --email bob@example.com
 npx fit-landmark evidence --skill system_design --email bob@example.com
 ```
 
-Each row shows the artifact, the marker it was matched to, the skill and
+Each row shows the artifact, the marker Guide matched it to, the skill and
 proficiency level, and Guide's rationale for the match. Filter by `--skill` to
-focus on a specific area or omit it to see everything.
+focus on a specific area. Omit it to see everything.
 
 ## Track snapshot trends
 
@@ -165,7 +165,7 @@ npx fit-landmark snapshot show --snapshot MjUyNbaY --manager alice@example.com
 ```
 
 `snapshot list` shows available snapshots. `snapshot show` displays factor and
-driver scores — add `--manager` to scope to a single team.
+driver scores. Add `--manager` to scope to a single team.
 
 Track a specific driver or factor over time:
 
@@ -181,8 +181,8 @@ npx fit-landmark snapshot compare --snapshot MjUyNbaY --manager alice@example.co
 
 ## Check promotion readiness
 
-See which next-level markers an engineer has already evidenced and which are
-still outstanding — a checklist for promotion conversations:
+See which next-level markers an engineer already evidenced and which are still
+outstanding. This is a checklist for promotion conversations:
 
 ```sh
 npx fit-landmark readiness --email bob@example.com
@@ -194,16 +194,15 @@ level. With `--target`, you can check against any specific level.
 
 ## View individual timelines
 
-Track how an engineer's evidence has accumulated over time, aggregated by
-quarter:
+Track how an engineer's evidence accumulates over time, aggregated by quarter:
 
 ```sh
 npx fit-landmark timeline --email bob@example.com
 npx fit-landmark timeline --email bob@example.com --skill system_design
 ```
 
-Timelines help you see whether growth is accelerating, stalling, or concentrated
-in one area. Add `--skill` to focus on a specific capability.
+Timelines help you see whether growth accelerates, stalls, or concentrates in
+one area. Add `--skill` to focus on a specific capability.
 
 ## View evidence coverage
 
@@ -214,8 +213,8 @@ skills:
 npx fit-landmark coverage --email bob@example.com
 ```
 
-Coverage shows evidenced artifacts versus total expected markers — a quick gauge
-of how well the evidence record reflects what the engineer actually does.
+Coverage shows evidenced artifacts versus total expected markers. It gauges how
+well the evidence record reflects what the engineer actually does.
 
 ## Compare evidenced vs derived capability
 
@@ -232,21 +231,22 @@ but low evidence may indicate either a data gap or a coaching opportunity.
 
 ## View team health
 
-The health view is Landmark's centerpiece — it joins driver scores, contributing
-skill evidence, engineer voice comments, and (when Summit is installed) growth
-recommendations into a single picture:
+The health view is Landmark's centerpiece. It joins driver scores, evidence
+from the skills that contribute, engineer voice comments, and growth
+recommendations (when you install Summit) into a single picture:
 
 ```sh
 npx fit-landmark health --manager alice@example.com
 npx fit-landmark health --manager alice@example.com --verbose
 ```
 
-Default output is a compact table — one row per driver with the GetDX
-percentile, the `vs_org` anchor, and a `More` cell hinting how many additional
-percentile anchors are available. A deduped `Recommendations` trailer follows.
-Pass `--verbose` for the full per-driver paragraph layout: every percentile
-anchor (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`, `vs_90th`), contributing
-skills, evidence counts, GetDX comments, and growth recommendations.
+Default output is a compact table. It shows one row per driver with the GetDX
+percentile, the `vs_org` anchor, and a `More` cell. The `More` cell hints how
+many additional percentile anchors exist. A deduped `Recommendations` trailer
+follows. Pass `--verbose` for the full per-driver paragraph layout: every
+percentile anchor (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`, `vs_90th`), the
+skills that contribute, evidence counts, GetDX comments, and growth
+recommendations.
 
 Sample default output:
 
@@ -263,8 +263,7 @@ Sample default output:
 
 ## Surface engineer voice
 
-Landmark surfaces GetDX snapshot comments so you can hear what engineers are
-saying:
+Landmark surfaces GetDX snapshot comments so you can hear what engineers say:
 
 ```sh
 npx fit-landmark voice --manager alice@example.com
@@ -283,15 +282,16 @@ npx fit-landmark voice --manager alice@example.com
       Requirements Quality driver (49.8th pctl)
 ```
 
-In manager mode, comments are bucketed by theme and aligned to low-scoring
-drivers — showing where engineer sentiment matches the data. In individual mode
-(`--email`), comments appear as a timeline alongside evidence context.
+In manager mode, Landmark buckets comments by theme and aligns them to drivers
+with low scores. This shows where engineer sentiment matches the data. In
+individual mode (`--email`), comments appear as a timeline alongside evidence
+context.
 
 ## Output formats
 
 All Landmark commands support `--format text|json|markdown`. The default is
-`text` (formatted for the terminal). Use `json` for programmatic consumption or
-`markdown` for sharing in documents and pull requests.
+`text` (formatted for the terminal). Use `json` for programmatic consumption.
+Use `markdown` to share in documents and pull requests.
 
 ---
 

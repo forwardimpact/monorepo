@@ -22,7 +22,7 @@ async function makeSource() {
     join(source, "skills", "kata-review", "SKILL.md"),
     "---\nname: kata-review\ndescription: Review an artifact\n---\n# Review\n",
   );
-  // A different prefix that must NOT be selected.
+  // A different prefix that the publisher must NOT select.
   await mkdir(join(source, "skills", "fit-map"), { recursive: true });
   await writeFile(
     join(source, "skills", "fit-map", "SKILL.md"),
@@ -33,8 +33,8 @@ async function makeSource() {
     join(source, "agents", "staff-engineer.md"),
     "---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n# Staff\n",
   );
-  // References are flat siblings of the profiles, identified by the absence of
-  // agent frontmatter (and the x- naming convention).
+  // References are flat siblings of the profiles. The absence of agent
+  // frontmatter identifies them, as does the x- naming convention.
   await writeFile(join(source, "agents", "x-memory.md"), "# Memory protocol\n");
   return source;
 }
@@ -62,7 +62,7 @@ describe("SkillPackPublisher", () => {
     expect(() => new SkillPackPublisher({})).toThrow("runtime is required");
   });
 
-  test("stages skills and agents under .apm/ with prefix filtering", async () => {
+  test("stages skills and agents under .apm/ and filters by prefix", async () => {
     const source = await makeSource();
     const target = await makeTempDir();
     const publisher = new SkillPackPublisher({ runtime });
@@ -79,17 +79,17 @@ describe("SkillPackPublisher", () => {
       readmeIntro: "Agents and skills.",
     });
 
-    // Selected skill staged at the canonical path.
+    // The publisher staged the selected skill at the canonical path.
     expect(
       existsSync(join(target, ".apm", "skills", "kata-review", "SKILL.md")),
     ).toBe(true);
-    // Other-prefix skill excluded.
+    // The publisher excluded the other-prefix skill.
     expect(existsSync(join(target, ".apm", "skills", "fit-map"))).toBe(false);
     // Agent uses the .agent.md suffix.
     expect(
       existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
     ).toBe(true);
-    // References ship flat alongside agents, no references/ subdir.
+    // References ship flat alongside agents. No references/ subdir exists.
     expect(existsSync(join(target, ".apm", "agents", "x-memory.md"))).toBe(
       true,
     );
@@ -100,8 +100,8 @@ describe("SkillPackPublisher", () => {
     expect(result.skills).toEqual([
       { name: "kata-review", description: "Review an artifact" },
     ]);
-    // The frontmatter-less reference is excluded from the agents table, even
-    // though the unified pass now reads it.
+    // The agents table excludes the frontmatter-less reference, even though
+    // the unified pass now reads it.
     expect(result.agents).toEqual([
       { name: "staff-engineer", description: "Staff engineer profile" },
     ]);
@@ -120,7 +120,7 @@ describe("SkillPackPublisher", () => {
       withAgents: true,
     });
 
-    // Both prefixes staged — the directory itself is the pack boundary.
+    // The publisher staged both prefixes. The directory is the pack boundary.
     expect(
       existsSync(join(target, ".apm", "skills", "kata-review", "SKILL.md")),
     ).toBe(true);
@@ -168,9 +168,9 @@ describe("SkillPackPublisher", () => {
     );
   });
 
-  test("a single-prefix string keeps selecting exactly its family", async () => {
+  test("a single-prefix string still selects exactly its family", async () => {
     const source = await makeSource();
-    // An exact-name dir for the prefix must also select in string form.
+    // The prefix in string form must also select the exact-name dir.
     await mkdir(join(source, "skills", "kata"), { recursive: true });
     await writeFile(
       join(source, "skills", "kata", "SKILL.md"),

@@ -17,8 +17,8 @@ const PRACTICED_TEAM = [
   },
 ];
 
-// Override planning pattern to matched: 0 so the skill is flagged
-// "on paper only" (derived but unevidenced).
+// Override the planning pattern to matched: 0. The command then flags the
+// skill "on paper only" (derived but unevidenced).
 const PRACTICED_PATTERNS = [
   PATTERNS[0],
   { skill_id: "planning", matched: 0, unmatched: 1, total: 1 },
@@ -35,7 +35,7 @@ function stubQueries({
 }
 
 describe("practiced command", () => {
-  it("returns derived vs evidenced comparison", async () => {
+  it("returns the derived vs evidenced comparison", async () => {
     const result = await runPracticedCommand({
       options: { manager: "alice@example.com" },
       mapData: MAP_DATA,
@@ -57,7 +57,7 @@ describe("practiced command", () => {
     assert.equal(planning.flag, "on paper only");
   });
 
-  it("returns empty state when team is empty", async () => {
+  it("returns empty state when the team is empty", async () => {
     const result = await runPracticedCommand({
       options: { manager: "nobody@example.com" },
       mapData: MAP_DATA,
@@ -69,7 +69,7 @@ describe("practiced command", () => {
     assert.ok(result.meta.emptyState.includes("nobody@example.com"));
   });
 
-  it("returns NO_EVIDENCE when no practice patterns", async () => {
+  it("returns NO_EVIDENCE when there are no practice patterns", async () => {
     const result = await runPracticedCommand({
       options: { manager: "alice@example.com" },
       mapData: MAP_DATA,

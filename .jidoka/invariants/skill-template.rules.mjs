@@ -1,5 +1,5 @@
-// The kata-, jidoka-, and monorepo-pack skills follow the house style
-// documented in .claude/skills/CLAUDE.md § House style: one template across
+// The kata-, jidoka-, and monorepo-pack skills follow the house style that
+// .claude/skills/CLAUDE.md § House style documents: one template across
 // every pack (descriptive Title Case H1, checklists near the top, a
 // `## Process` flow section with `Step N:` headings, `## Documentation`
 // last), American spelling with `behaviour` as the only British domain term,
@@ -7,10 +7,10 @@
 //
 // Division of labor with skill-genericity.rules.mjs: that module owns
 // monorepo leakage and the bare-CLI rule for kata-* skills and the agent
-// references; this module owns the template structure and spelling for all
-// three packs, plus the bare-CLI rule for the jidoka-* and monorepo-*
-// packs genericity does not scan. fit-* skills are out of scope for both —
-// they have not been converged on the template.
+// references. This module owns the template structure and spelling for all
+// three packs. It also owns the bare-CLI rule for the jidoka-* and monorepo-*
+// packs genericity does not scan. fit-* skills are out of scope for both
+// modules. They do not follow the template yet.
 
 const PACK_SKILL =
   /^\.claude\/skills\/(kata|jidoka|monorepo)-[^/]+\/SKILL\.md$/;
@@ -41,7 +41,7 @@ const STYLE_PATTERNS = [
 const NPX_PATTERNS = [
   {
     pattern: "\\bnpx (fit-|kata-)",
-    reason: "CLIs are invoked bare — drop the npx prefix",
+    reason: "invoke CLIs bare — drop the npx prefix",
   },
   {
     pattern: "\\b(npx|bunx) jidoka\\b",
@@ -50,7 +50,7 @@ const NPX_PATTERNS = [
   },
 ];
 
-// Blank out fenced code blocks, preserving line numbers, so shell comments
+// Blank out fenced code blocks and keep the line numbers. Then shell comments
 // and markdown examples inside fences cannot pass for headings.
 const stripFences = (text) => {
   let inFence = false;
@@ -126,7 +126,7 @@ export default {
           : null;
       },
       message: (s, item) => item.detail,
-      hint: "the H1 is a descriptive Title Case title, not the skill id (.claude/skills/CLAUDE.md § House style)",
+      hint: "write a descriptive Title Case H1 (.claude/skills/CLAUDE.md § House style). Do not use the skill id",
     },
     {
       id: "skills.step-heading-style",
@@ -169,7 +169,7 @@ export default {
         return problems.length ? problems : null;
       },
       message: (s, item) => item.detail,
-      hint: "the flow section is ## Process; Done When dissolved into ## Checklists (.claude/skills/CLAUDE.md § House style)",
+      hint: "the flow section is ## Process. Done When dissolved into ## Checklists (.claude/skills/CLAUDE.md § House style)",
     },
     {
       id: "skills.checklists-before-process",
@@ -211,7 +211,7 @@ export default {
     failAll("style-match", {
       id: "skills.house-style",
       message: (s) => `${s.text.trim()} — ${s.reason}`,
-      hint: "published skills share one voice (.claude/skills/CLAUDE.md § House style); narrow the rule in .jidoka/invariants/skill-template.rules.mjs only for a legitimate usage",
+      hint: "published skills share one voice (.claude/skills/CLAUDE.md § House style). Narrow the rule in .jidoka/invariants/skill-template.rules.mjs only for a legitimate usage",
     }),
   ],
 };

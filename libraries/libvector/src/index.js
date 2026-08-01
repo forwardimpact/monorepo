@@ -1,4 +1,6 @@
-// VectorProcessor is NOT exported to avoid unnecessary dependencies - import from ./processor/vector.js
-// VectorIndex is NOT exported to avoid circular dependency - import from ./index/vector.js
+// This module does NOT export VectorProcessor. That avoids unnecessary
+// dependencies. Import VectorProcessor from ./processor/vector.js.
+// This module does NOT export VectorIndex. That avoids a circular
+// dependency. Import VectorIndex from ./index/vector.js.
 
 export { calculateDotProduct } from "./index/vector.js";

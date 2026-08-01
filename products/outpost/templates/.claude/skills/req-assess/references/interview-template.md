@@ -2,7 +2,7 @@
 
 Reference template for `req-assess` Step 6. Save to
 `Knowledge/Candidates/{Name}/interview-{date}.md`. Include only skills the
-interview produced new evidence for — don't repeat the full matrix.
+interview produced new evidence for. Do not repeat the full matrix.
 
 ```markdown
 # Interview Assessment — {Full Name}

@@ -2,12 +2,13 @@
 // Append per-run efficiency metrics for the most-recent prior staff-engineer
 // Kata: Dispatch trace into `wiki/metrics/staff-engineer/2026.csv`.
 //
-// Anchored at boot-time so a single run's metrics land at the next run's boot:
-// the recorded trace is already terminal when we read it, so harness crash,
-// timeout, or panic-on-push during the recording run does not skip the row.
+// This script runs at boot-time, so a single run's metrics land at the next
+// run's boot. The recorded trace is already terminal when the script reads it.
+// So a harness crash, a timeout, or a panic-on-push during the record run does
+// not skip the row.
 //
 // Idempotent on the GitHub Actions run-id in the `run` column. Skips silently
-// when no eligible prior trace exists or any subcommand fails — boot must not
+// when no eligible prior trace exists or any subcommand fails. Boot must not
 // fail because the metrics loop hit an empty week or a transient gh outage.
 //
 // Usage:
@@ -15,12 +16,12 @@
 //     Default: record the most-recent prior staff-engineer trace.
 //   node scripts/staff-engineer-record-prior-trace.mjs --backfill --since=7
 //     Walk past N days of Kata: Dispatch runs and record every SE trace not
-//     yet in the CSV. Use to seed an empty CSV or fill historical gaps;
-//     ongoing runs use the default single-trace mode.
+//     yet in the CSV. Use it to seed an empty CSV or to fill historical gaps.
+//     Later runs use the default single-trace mode.
 //   node scripts/staff-engineer-record-prior-trace.mjs --run-id=<id>
 //     Record a specific run-id (still idempotent on the CSV).
 //   node scripts/staff-engineer-record-prior-trace.mjs --dry-run
-//     Print rows without writing.
+//     Print rows and write nothing.
 
 import { spawnSync } from "node:child_process";
 import { appendFileSync, existsSync, readFileSync } from "node:fs";
@@ -29,8 +30,8 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CSV_PATH = join(ROOT, "wiki/metrics/staff-engineer/2026.csv");
-// Per-agent metrics CSVs carry a 7th `event_type` column (libxmr schema);
-// dispatch-boot rows are tagged `kata-dispatch` so they form their own
+// Per-agent metrics CSVs carry a 7th `event_type` column (libxmr schema).
+// This script tags dispatch-boot rows `kata-dispatch`, so they form their own
 // analysis slice, separate from the default `kata-shift` slice.
 const EVENT_TYPE = "kata-dispatch";
 const KATA_DISPATCH_WORKFLOW_ID = 281527270;
@@ -152,11 +153,11 @@ function collectPageRuns(lines, sinceIso, excludeRunId, seen, out) {
 }
 
 function listDispatchRuns(sinceIso, excludeRunId) {
-  // The Actions API mixes every workflow's runs in one stream and the
+  // The Actions API mixes every workflow's runs in one stream. The
   // workflow_id query param is unreliable across run-attempt rewrites. We
-  // page on the unfiltered response (size=100) and filter client-side so
-  // pagination terminates only when the oldest unfiltered run on the page
-  // is older than sinceIso.
+  // page on the unfiltered response (size=100) and filter client-side. The
+  // loop stops only when the oldest unfiltered run on the page is older
+  // than sinceIso.
   const seen = new Set();
   const out = [];
   for (let page = 1; page <= 60; page++) {
@@ -239,11 +240,11 @@ function parseTraceEvent(line) {
   return event;
 }
 
-// Cost, duration, and output_tokens must be summed over ALL "type":"result"
-// events, never read from `gemba-trace stats` totals: stats keeps only the
-// last result event (handleResult last-wins in libharness's trace-collector),
-// which understates multi-result lanes 11x-55x, and its output-token figure
-// carries a dedup defect on single-result traces too.
+// Sum cost, duration, and output_tokens over ALL "type":"result" events.
+// Never read them from `gemba-trace stats` totals. stats keeps only the last
+// result event (handleResult last-wins in libharness's trace-collector). That
+// understates multi-result lanes 11x-55x. Its output-token figure also
+// carries a dedup defect on single-result traces.
 function sumResultEvents(traceFile) {
   const sums = { count: 0, costUsd: 0, durationMs: 0, outputTokens: 0 };
   for (const line of readFileSync(traceFile, "utf8").split("\n")) {
@@ -271,9 +272,9 @@ function extractMetrics(traceFile) {
   const totalCalls = tools.reduce((s, t) => s + t.count, 0);
   const fileWrites = (toolMap.get("Write") || 0) + (toolMap.get("Edit") || 0);
 
-  // A zero-result lane has no cost/duration/output observation — record those
-  // metrics as missing (null rows are dropped), never as 0, so degenerate
-  // zeros don't contaminate the XmR series.
+  // A zero-result lane has no cost/duration/output observation. Record those
+  // metrics as missing. The caller drops null rows. Never record 0, because
+  // degenerate zeros would contaminate the XmR series.
   const hasResults = results.count > 0;
   return {
     duration_seconds: hasResults ? Math.round(results.durationMs / 1000) : null,
@@ -332,8 +333,8 @@ function recordRun(run, runLabel, dryRun, existingRunIds) {
 }
 
 function lookupCreatedAt(runId) {
-  // Look up the run's actual created_at so the row's date column is the
-  // run date, not today.
+  // Look up the run's actual created_at. The row's date column then holds
+  // the run date. It does not hold today's date.
   try {
     const raw = ghApi(`repos/${REPO}/actions/runs/${runId}`, ".created_at");
     const trimmed = raw.trim();
@@ -395,7 +396,7 @@ function main() {
   console.log(`done: ${traces} trace(s), ${totalRows} row(s)`);
 }
 
-// Hot-path hardening: any synchronous throw from main() (post-existsSync race,
+// Hot-path guard: any synchronous throw from main() (post-existsSync race,
 // permission flip, etc.) must not propagate non-zero from this boot helper.
 try {
   main();

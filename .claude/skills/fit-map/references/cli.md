@@ -12,8 +12,8 @@ npx fit-map export                          # Render base entities to HTML micro
 npx fit-map export --output=PATH            # Export to a custom directory
 ```
 
-Validation output includes a data summary showing entity counts. Use this to
-quickly verify data is loading correctly after changes.
+Validation output includes a data summary with entity counts. Use it to verify
+quickly that the data loads correctly after changes.
 
 ### People commands
 
@@ -22,17 +22,17 @@ npx fit-map people validate <file>          # Validate a people file against the
 npx fit-map people push <file>              # Store raw + upsert into activity.organization_people
 ```
 
-`people validate` is a local pre-flight check — it never opens a Supabase
-connection. `people push` writes the raw file to the `raw` bucket for audit,
-then calls the shared `transformPeople` helper to upsert rows into
+`people validate` is a local pre-flight check. It never opens a Supabase
+connection. `people push` writes the raw file to the `raw` bucket for audit.
+It then calls the shared `transformPeople` helper to upsert rows into
 `activity.organization_people` (manager-less rows first so foreign keys
 resolve). Both accept YAML or CSV with the same column names.
 
 ### Activity commands
 
-Activity commands require the Supabase CLI. Install via Homebrew
-(`brew install supabase/tap/supabase`) or npm (`npm install supabase`) —
-`fit-map` finds either and falls back to `npx supabase` for the npm-local
+Activity commands need the Supabase CLI. Install it with Homebrew
+(`brew install supabase/tap/supabase`) or npm (`npm install supabase`).
+`fit-map` finds either one. It falls back to `npx supabase` for the npm-local
 install. See the
 [engineering leaders getting-started guide](../../website/docs/getting-started/leaders/map/index.md#activity-install-the-supabase-cli)
 for details.
@@ -51,9 +51,9 @@ npx fit-map activity verify                 # Smoke-test the activity database
 
 The activity commands wrap the bundled Supabase project so consumers don't need
 to `cd` into `node_modules/@forwardimpact/map`. `activity transform` reads from
-the `raw` bucket and upserts on natural keys — safe to re-run. `activity verify`
-reads `organization_people` and at least one derived table and exits non-zero if
-either is empty.
+the `raw` bucket and upserts on natural keys. It is safe to re-run.
+`activity verify` reads `organization_people` and at least one derived table.
+It exits non-zero if either is empty.
 
 ### GetDX commands
 
@@ -61,9 +61,9 @@ either is empty.
 GETDX_API_TOKEN=xxx npx fit-map getdx sync  # Extract + transform GetDX snapshots
 ```
 
-Fetches `teams.list`, `snapshots.list`, and `snapshots.info` for every undeleted
-snapshot, stores each response under `raw/getdx/`, and upserts
-`activity.getdx_teams`, `activity.getdx_snapshots`, and
+`getdx sync` fetches `teams.list`, `snapshots.list`, and `snapshots.info` for
+every undeleted snapshot. It stores each response under `raw/getdx/`. It
+upserts `activity.getdx_teams`, `activity.getdx_snapshots`, and
 `activity.getdx_snapshot_team_scores`. The CLI and the hosted `getdx-sync` edge
-function run the same extract-and-transform code — pick whichever fits your
+function run the same extract-and-transform code. Pick whichever fits your
 deployment.

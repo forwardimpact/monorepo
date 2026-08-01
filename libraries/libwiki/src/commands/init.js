@@ -9,7 +9,12 @@ import {
   ACTIVE_CLAIMS_TABLE_SEPARATOR,
 } from "../constants.js";
 
-/** Resolve the wiki clone URL. Honors the FIT_WIKI_URL env var as an explicit override (for sandboxed environments where `origin` is rewritten to a local proxy that does not serve wiki repos); otherwise derives the URL by appending `.wiki.git` to the parent repo's `origin` remote. */
+/**
+ * Resolve the wiki clone URL. The FIT_WIKI_URL env var is an explicit
+ * override. Use it in a sandboxed environment where a local proxy replaces
+ * `origin` and does not serve wiki repos. Without that override, the function
+ * appends `.wiki.git` to the parent repo's `origin` remote.
+ */
 export async function deriveWikiUrl(gitClient, parentDir, env) {
   if (env.FIT_WIKI_URL) return env.FIT_WIKI_URL;
   try {
@@ -31,7 +36,7 @@ function scaffoldActiveClaims(runtime, memoryPath) {
     "",
     ACTIVE_CLAIMS_HEADING,
     "",
-    "In-flight work claimed by an agent. Row present = active; row absent = settled.",
+    "In-flight work claimed by an agent. Row present = active. Row absent = settled.",
     "Writers: `gemba-wiki claim`, `gemba-wiki release`. Reader: `gemba-wiki boot`.",
     "",
     ACTIVE_CLAIMS_TABLE_HEADER,
@@ -65,14 +70,14 @@ async function maybeCloneWiki(wikiSync, gitClient, projectRoot, runtime) {
   if (cloneResult.cloned) {
     await wikiSync.inheritIdentity();
   } else {
-    logger.warn(
-      "init",
-      "could not clone wiki, continuing with local-only steps",
-    );
+    logger.warn("init", "could not clone wiki, so only the local steps run");
   }
 }
 
-/** Clone the wiki if not already present, scaffold Active Claims in MEMORY.md, and create per-skill metric directories. */
+/**
+ * Clone the wiki if it is absent. Scaffold Active Claims in MEMORY.md. Create
+ * a metric directory for each skill.
+ */
 export async function runInitCommand(ctx) {
   const { runtime, wikiSync, gitClient } = ctx.deps;
   const options = ctx.options;

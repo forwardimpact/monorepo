@@ -70,7 +70,7 @@ export class BindingStore extends BufferedIndex {
 }
 
 /**
- * Short-TTL store with periodic sweep, mirroring DiscussionContextStore.
+ * Short-TTL store with a periodic sweep. It mirrors DiscussionContextStore.
  * @augments BufferedIndex
  */
 class TtlStore extends BufferedIndex {
@@ -195,7 +195,8 @@ export class FlowStore extends TtlStore {
 }
 
 /**
- * Issued downstream codes keyed by `downstream_code`, consumed once.
+ * Issued downstream codes keyed by `downstream_code`. The store consumes
+ * each code once.
  * @augments TtlStore
  */
 export class GrantStore extends TtlStore {

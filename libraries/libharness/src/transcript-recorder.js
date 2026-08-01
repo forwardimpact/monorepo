@@ -1,21 +1,23 @@
 /**
- * TranscriptRecorder — per-participant in-memory record of the composed
- * system prompt, delivered prompts, and session messages, rendered into the
- * context text an advisor consult forwards. Constructed only when a session
- * runs with an advisor model; the harness otherwise keeps no per-participant
- * record (session lines go straight to the trace stream).
+ * TranscriptRecorder — a per-participant in-memory record of the composed
+ * system prompt, the delivered prompts, and the session messages. The
+ * recorder renders that record into the context text an advisor consult
+ * forwards. The harness constructs it only when a session runs with an
+ * advisor model. Otherwise the harness keeps no per-participant record.
+ * Session lines then go straight to the trace stream.
  *
- * Redaction split: the message tap arrives post-redaction (fed from
- * `AgentRunner.#recordLine`), but the seeded system prompt and the prompt
- * tap are raw, so the recorder redacts those itself via the injected
+ * The redaction path splits. The message tap arrives already redacted from
+ * `AgentRunner.#recordLine`. The seeded system prompt and the prompt tap
+ * are raw. The recorder redacts those two itself through the injected
  * redactor.
  */
 
 /**
  * Normalize whatever the harness composed as a system prompt into plain
- * text. In practice always a `{type:"preset", preset:"claude_code", append}`
- * object (every recorded participant is an agent; leads are spec-excluded);
- * a plain string is tolerated and `undefined` accepted.
+ * text. In practice it is always a
+ * `{type:"preset", preset:"claude_code", append}` object. Every recorded
+ * participant is an agent. The spec excludes leads. The function also
+ * accepts a plain string. It accepts `undefined` too.
  * @param {string|{type: string, preset?: string, append?: string}|undefined} systemPrompt
  * @returns {string|undefined}
  */
@@ -38,8 +40,8 @@ function wrapSection(tag, content) {
  *
  * @param {object} deps
  * @param {string|object} [deps.systemPrompt] - The system prompt the harness
- *   composed for the participant, as passed to its runner. Raw — redacted at
- *   construction.
+ *   composed for the participant, exactly as it goes to the runner. The
+ *   value arrives raw. The recorder redacts it at construction.
  * @param {import("./redaction.js").Redactor} deps.redactor
  * @returns {{recordPrompt: (text: string) => void, recordMessage: (line: string) => void, render: () => string}}
  */
@@ -56,25 +58,27 @@ export function createTranscriptRecorder({ systemPrompt, redactor }) {
 
   return {
     /**
-     * Record a delivered (amend-applied) prompt. Raw — redacted here.
+     * Record a delivered (amend-applied) prompt. The text arrives raw.
+     * This method redacts it.
      * @param {string} text
      */
     recordPrompt(text) {
       prompts.push(redactor.redactValue(text));
     },
     /**
-     * Record one NDJSON session line as-is (it arrives already redacted
-     * from the runner's line path).
+     * Record one NDJSON session line as-is. It arrives already redacted
+     * from the runner's line path.
      * @param {string} line
      */
     recordMessage(line) {
       messages.push(line);
     },
     /**
-     * Render the record as the advisor's context text: three tagged
-     * sections joined by blank lines, each present only when non-empty.
-     * NDJSON lines are verbatim — the forwarded context is uncurated by
-     * construction (context-size curation is spec-excluded).
+     * Render the record as the advisor's context text. Blank lines join
+     * three tagged sections. Each section appears only when it is
+     * non-empty. The NDJSON lines stay verbatim. The forwarded context is
+     * uncurated by construction, because the spec excludes context-size
+     * curation.
      * @returns {string}
      */
     render() {

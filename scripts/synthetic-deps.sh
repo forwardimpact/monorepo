@@ -2,14 +2,14 @@
 # Install the dependencies needed for synthetic data generation
 # (`just synthetic` / `just synthetic-update`).
 #
-# These three tools — the Synthea JAR (Java), the SDV package (Python), and
-# @faker-js/faker (npm) — are heterogeneous and heavy, and synthetic generation
-# is a rare, deliberate action. They are intentionally kept OUT of package.json
-# and the default `bun install`, so routine workflow runs and agent dispatches
-# stay lean. Provision them on demand with `just synthetic-deps`; report status
+# These three tools are heterogeneous and heavy: the Synthea JAR (Java), the
+# SDV package (Python), and @faker-js/faker (npm). Synthetic generation is a
+# rare, deliberate action. They stay OUT of package.json and the default
+# `bun install` on purpose, so routine workflow runs and agent dispatches stay
+# lean. Provision them on demand with `just synthetic-deps`. Report status
 # with `just synthetic-deps --check`.
 #
-# All version strings live here — bump them in one place.
+# All version strings live here. Bump them in one place.
 set -euo pipefail
 
 SYNTHEA_VERSION="3.3.0"
@@ -18,15 +18,16 @@ FAKER_VERSION="10.4.0"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SYNTHEA_DIR="$ROOT/vendor/synthea"
-# Runtime resolves the JAR from $SYNTHEA_JAR or this default path
+# The runtime resolves the JAR from $SYNTHEA_JAR or this default path
 # (see libraries/libterrain/src/cli-helpers.js).
 SYNTHEA_JAR="$SYNTHEA_DIR/synthea-with-dependencies.jar"
 
 # ── Helpers ──────────────────────────────────────────────────────
 
-# Provision the Synthea fat JAR into vendor/synthea/ (gitignored). Idempotent:
-# an existing JAR is left in place. Java is required to *run* Synthea, not to
-# download it, so a missing JVM is a warning here, surfaced fully by --check.
+# Provision the Synthea fat JAR into vendor/synthea/ (gitignored). This step is
+# idempotent. It leaves an existing JAR in place. Synthea needs Java to *run*.
+# The download does not need Java. So a missing JVM is only a warning here.
+# --check surfaces it fully.
 install_synthea() {
   if [ -f "$SYNTHEA_JAR" ]; then
     echo "synthea already installed at $SYNTHEA_JAR"
@@ -38,11 +39,11 @@ install_synthea() {
     "https://github.com/synthetichealth/synthea/releases/download/v${SYNTHEA_VERSION}/synthea-with-dependencies.jar"
   echo "Installed synthea v$SYNTHEA_VERSION at $SYNTHEA_JAR"
   command -v java >/dev/null 2>&1 ||
-    echo "::warning::synthea: Java not found on PATH — install Java 11+ to run it"
+    echo "::warning::synthea: Java not found on PATH. Install Java 11+ to run it"
 }
 
 # Install SDV so the system `python3` can `import sdv` (the contract SdvTool
-# relies on). Prefer uv when present for speed; fall back to pip --user. Both
+# relies on). Prefer uv when present for speed. Fall back to pip --user. Both
 # land where the python3 on PATH can import them.
 install_sdv() {
   if python3 -c "import sdv" >/dev/null 2>&1; then
@@ -63,10 +64,10 @@ install_sdv() {
   echo "Installed sdv $(python3 -c 'import sdv; print(sdv.__version__)' 2>/dev/null)"
 }
 
-# Install @faker-js/faker into the workspace without touching package.json or
-# the lockfile (--no-save). Pinned to an exact version so seeded faker output
-# stays reproducible despite not being locked. faker is declared as an optional
-# peerDependency of libsyntheticgen, so bun does not auto-install it otherwise.
+# Install @faker-js/faker into the workspace. Do not touch package.json or the
+# lockfile (--no-save). Pin an exact version so seeded faker output stays
+# reproducible without a lockfile entry. libsyntheticgen declares faker as an
+# optional peerDependency, so bun does not auto-install it otherwise.
 install_faker() {
   if [ -d "$ROOT/node_modules/@faker-js/faker" ]; then
     echo "faker already installed"
@@ -79,8 +80,8 @@ install_faker() {
 
 # ── Status ───────────────────────────────────────────────────────
 #
-# `--check` reports availability of each tool without installing, and exits
-# non-zero if anything is missing so callers can gate on it.
+# `--check` reports whether each tool is available. It installs nothing. It
+# exits non-zero if anything is missing, so callers can gate on it.
 synthetic_check() {
   local missing=0
 

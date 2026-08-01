@@ -116,18 +116,19 @@ describe("composeTaskFromGitHubEvent matches the kata-dispatch shell output", ()
     );
   });
 
-  test("merged template names the merger, not just the PR author", () => {
+  test("merged template names both the merger and the PR author", () => {
     const { task } = composeTaskFromGitHubEvent(
       loadFixture("pr-merged.json"),
       "pull_request_target",
     );
-    // AUTHOR falls back to `pull_request.user`, so before MERGED_BY a human
-    // merging an agent-authored PR left no trace of the human in the task text.
+    // AUTHOR falls back to `pull_request.user`. So before MERGED_BY, a human
+    // who merged an agent-authored PR left no trace of themselves in the
+    // task text.
     assert.match(task, /merged to main by @carol/);
     assert.match(task, /opened by @bob/);
   });
 
-  test("a merge payload without merged_by renders 'unknown', not a bare @", () => {
+  test("a merge payload without merged_by renders 'unknown' instead of a bare @", () => {
     const payload = loadFixture("pr-merged.json");
     delete payload.pull_request.merged_by;
     const { task } = composeTaskFromGitHubEvent(payload, "pull_request_target");
@@ -170,21 +171,21 @@ describe("composeTaskFromGitHubEvent matches the kata-dispatch shell output", ()
     );
   });
 
-  test("review state is upper-cased from the lowercase webhook value", () => {
+  test("composeTaskFromGitHubEvent upper-cases the review state from the lowercase webhook value", () => {
     const payload = loadFixture("review-submitted.json");
     payload.review.state = "approved";
     const { task } = composeTaskFromGitHubEvent(payload, "pull_request_review");
     assert.match(task, /— state: APPROVED\./);
   });
 
-  test("a review payload without a state renders 'unknown', not a blank", () => {
+  test("a review payload without a state renders 'unknown' instead of a blank", () => {
     const payload = loadFixture("review-submitted.json");
     delete payload.review.state;
     const { task } = composeTaskFromGitHubEvent(payload, "pull_request_review");
     assert.match(task, /— state: UNKNOWN\./);
   });
 
-  test("empty comment body renders the (no body) placeholder, not a blank fence", () => {
+  test("an empty comment body renders the (no body) placeholder instead of a blank fence", () => {
     const payload = {
       action: "created",
       issue: { number: 99, pull_request: {} },
@@ -198,7 +199,7 @@ describe("composeTaskFromGitHubEvent matches the kata-dispatch shell output", ()
     assert.ok(task.includes("\n---\n(no body)\n---"));
   });
 
-  test("a body containing a literal ${URL} placeholder is not re-expanded", () => {
+  test("composeTaskFromGitHubEvent does not re-expand a literal ${URL} placeholder in the body", () => {
     const payload = {
       action: "created",
       issue: { number: 99, pull_request: {} },

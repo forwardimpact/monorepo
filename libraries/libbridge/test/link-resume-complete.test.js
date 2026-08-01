@@ -9,7 +9,7 @@ import {
 } from "@forwardimpact/libutil/completion-ticket";
 import { TRUSTED, SECRET, NOW, clock } from "./link-resume-helpers.js";
 
-describe("createLinkCompleteHandler — ticket verification gates store touch", () => {
+describe("createLinkCompleteHandler — the ticket check gates the store touch", () => {
   function makeApp(handler) {
     const app = new Hono();
     app.get("/api/link-complete", handler);
@@ -22,9 +22,9 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
     return {
       resolveCount: () => resolveCount,
       consumeCount: () => consumeCount,
-      // Mirrors the bridge contract: when expectedSurfaceUserId is provided
-      // and the pending row's surface_user_id does not match, the bridge
-      // returns `{ unattributable: true }` without consuming the entry.
+      // This mirrors the bridge contract. If the caller passes
+      // expectedSurfaceUserId and the pending row's surface_user_id differs,
+      // the bridge returns `{ unattributable: true }` and keeps the entry.
       resolvePendingDispatch: async (_lt, expectedSurfaceUserId) => {
         resolveCount += 1;
         if (!pending) return null;
@@ -174,7 +174,7 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
     expect(store.resolveCount()).toBe(1);
   });
 
-  test("valid ticket, surface_user_id mismatch → 'Unable to verify' and pending entry is NOT consumed", async () => {
+  test("valid ticket, surface_user_id mismatch → 'Unable to verify' and the store does NOT consume the pending entry", async () => {
     const store = makeStore({
       pending: { discussion_id: "d", surface_user_id: "99" },
       ctx: null,
@@ -192,13 +192,13 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
       `/api/link-complete?state=link-token-xyz&ticket=${encodeURIComponent(ticket)}`,
     );
     expect(await res.text()).toContain("Unable to verify");
-    // The bridge gates consume on expectedSurfaceUserId server-side; the
-    // attacker call exercises the resolve RPC once but does not consume.
+    // The bridge gates the consume on expectedSurfaceUserId server-side. The
+    // attacker call runs the resolve RPC once. It does not consume the entry.
     expect(store.resolveCount()).toBe(1);
     expect(store.consumeCount()).toBe(0);
   });
 
-  test("valid ticket, matching pending entry → dispatches exactly once", async () => {
+  test("valid ticket, matched pending entry → dispatches exactly once", async () => {
     let dispatchCount = 0;
     const handler = createLinkCompleteHandler({
       channel: "github-discussions",
@@ -238,7 +238,7 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
     expect(dispatchCount).toBe(1);
   });
 
-  test("discussion not found returns 404 (after passing verify+resolve)", async () => {
+  test("discussion not found returns 404 (after verify and resolve pass)", async () => {
     const handler = createLinkCompleteHandler({
       channel: "github-discussions",
       store: {
@@ -307,7 +307,7 @@ describe("createLinkCompleteHandler — ticket verification gates store touch", 
     expect(await res.text()).toContain("Unable to dispatch");
   });
 
-  test("multi-party thread: selects the turn authored by the linking user", async () => {
+  test("multi-party thread: selects the turn from the user who linked", async () => {
     let capturedPrompt;
     const handler = createLinkCompleteHandler({
       channel: "github-discussions",

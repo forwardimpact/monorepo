@@ -1,15 +1,16 @@
 import { span as spanType } from "@forwardimpact/libtype";
 
 /**
- * Compute the wall-clock offset (ns) relative to hrtime.bigint() using the
- * given clock, so nanosecond-precision timestamps are anchored to wall time
- * without calling `Date.now()` directly.
+ * Compute the wall-clock offset (ns) relative to hrtime.bigint() with the
+ * given clock. The offset anchors nanosecond-precision timestamps to wall
+ * time. This function does not call `Date.now()` directly.
  *
- * Computed per-Span (rather than once at module load as the pre-1370 code did)
- * so an injected clock is honoured deterministically in tests. Trade-off: each
- * span anchors to its own `clock.now()` (ms resolution), so absolute per-span
- * timestamps are accurate but sub-millisecond *relative* ordering across spans
- * within a trace is not nanosecond-exact.
+ * This function runs once per Span. The pre-1370 code ran it once at module
+ * load. The per-Span call lets tests honour an injected clock
+ * deterministically. There is a trade-off. Each span anchors to its own
+ * `clock.now()` (ms resolution). Absolute per-span timestamps are accurate.
+ * Sub-millisecond *relative* order across spans within a trace is not
+ * nanosecond-exact.
  * @param {object} clock - Clock collaborator with a `now()` method (returns ms)
  * @returns {bigint} Nanosecond offset
  */
@@ -119,7 +120,7 @@ export class Span {
   }
 
   /**
-   * Ends the span and sends it to span service
+   * Ends the span and sends it to the span service
    * @returns {Promise<void>}
    */
   async end() {

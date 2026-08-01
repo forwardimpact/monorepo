@@ -7,8 +7,8 @@ import { tmpdir } from "node:os";
 import { bootstrapProject as _bootstrapProject } from "../src/bootstrap.js";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-// bootstrapProject requires an injected runtime; the tests exercise real fs,
-// so thread the production runtime through a thin wrapper.
+// bootstrapProject requires an injected runtime. The tests exercise the real
+// fs, so thread the production runtime through a thin wrapper.
 const _runtime = createDefaultRuntime();
 const bootstrapProject = (opts = {}) =>
   _bootstrapProject({ ...opts, deps: { runtime: _runtime } });
@@ -40,7 +40,7 @@ describe("bootstrapProject — config writer", () => {
 
   test("two products with disjoint top-level namespaces merge into a single config.json (nested form)", async () => {
     // Production callers ship nested top-level keys (fit-guide ships
-    // `init`/`product`/`service`); the spec's first success criterion
+    // `init`/`product`/`service`). The spec's first success criterion
     // calls for two callers' contributions to co-exist after sequential
     // bootstrapProject calls against the same target.
     await bootstrapProject({
@@ -62,11 +62,11 @@ describe("bootstrapProject — config writer", () => {
     });
   });
 
-  test("two products sharing a top-level key but disjoint nested namespaces merge", async () => {
-    // The encoding fit-guide actually uses — both callers contribute
+  test("two products that share a top-level key but have disjoint nested namespaces merge", async () => {
+    // This is the encoding fit-guide actually uses. Both callers contribute
     // under top-level `product`, but with disjoint nested namespaces
     // (`product.guide` vs `product.map`). The merge classifier must
-    // deep-merge rather than refusing or silently dropping.
+    // deep-merge. It must not refuse. It must not drop silently.
     await bootstrapProject({
       target: testDir,
       fragment: { product: { guide: { systemPrompt: "g" } } },
@@ -86,7 +86,7 @@ describe("bootstrapProject — config writer", () => {
     });
   });
 
-  test("re-invoking with same input is byte-stable", async () => {
+  test("a second call with the same input is byte-stable", async () => {
     const input = {
       target: testDir,
       fragment: { product: { guide: { systemPrompt: "g" } } },
@@ -122,7 +122,7 @@ describe("bootstrapProject — config writer", () => {
     assert.equal(after_ab.equals(after_abab), true);
   });
 
-  test("same-key-different-value refuses; config.json byte-unchanged", async () => {
+  test("same-key-different-value refuses and leaves config.json byte-unchanged", async () => {
     await bootstrapProject({
       target: testDir,
       fragment: { product: { x: { foo: "a" } } },
@@ -153,7 +153,7 @@ describe("bootstrapProject — config writer", () => {
     assert.equal(before.equals(after), true);
   });
 
-  test("same-key-different-value overwritten when top-level key in overwrites.config", async () => {
+  test("bootstrapProject overwrites the same-key-different-value when overwrites.config lists the top-level key", async () => {
     await bootstrapProject({
       target: testDir,
       fragment: { product: { x: { foo: "a" } } },
@@ -182,7 +182,7 @@ describe("bootstrapProject — env writer", () => {
     assert.equal(stats.mode & 0o777, 0o600);
   });
 
-  test(".env mode is re-enforced to 0o600 against a pre-existing 0o644 file", async () => {
+  test("bootstrapProject re-enforces .env mode 0o600 against a pre-existing 0o644 file", async () => {
     const envPath = path.join(testDir, ".env");
     await fs.writeFile(envPath, "PRE_EXISTING=disjoint\n", { mode: 0o644 });
     await fs.chmod(envPath, 0o644);
@@ -192,7 +192,7 @@ describe("bootstrapProject — env writer", () => {
     });
     const stats = await fs.stat(envPath);
     assert.equal(stats.mode & 0o777, 0o600);
-    // Pre-existing disjoint entry preserved.
+    // The pre-existing disjoint entry survives.
     const text = await fs.readFile(envPath, "utf8");
     assert.ok(text.includes("PRE_EXISTING=disjoint"));
     assert.ok(text.includes("SERVICE_SECRET=abc"));
@@ -228,7 +228,7 @@ describe("bootstrapProject — env writer", () => {
     );
   });
 
-  test("same-key-different-value .env overwritten when key in overwrites.env", async () => {
+  test("bootstrapProject overwrites the same-key-different-value in .env when overwrites.env lists the key", async () => {
     await bootstrapProject({
       target: testDir,
       env: { MCP_TOKEN: "old" },
@@ -243,7 +243,7 @@ describe("bootstrapProject — env writer", () => {
     assert.ok(!text.includes("MCP_TOKEN=old"));
   });
 
-  test("config conflict short-circuits before any .env mutation", async () => {
+  test("config conflict short-circuits before anything changes .env", async () => {
     await bootstrapProject({
       target: testDir,
       fragment: { product: { x: "a" } },
@@ -257,8 +257,8 @@ describe("bootstrapProject — env writer", () => {
         env: { SERVICE_SECRET: "abc" },
       }),
     );
-    // The .env was never created because we threw on the config conflict
-    // before any FS mutation.
+    // bootstrapProject never created the .env. It threw on the config
+    // conflict before it changed the filesystem.
     await assert.rejects(() => fs.stat(envPath), { code: "ENOENT" });
   });
 });

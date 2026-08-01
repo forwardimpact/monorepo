@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Render a candidate report HTML file to A4 PDF using Playwright.
+ * Render a candidate-report HTML file to A4 PDF with Playwright.
  *
  * Usage: node scripts/render-pdf.mjs [input.html] [output.pdf]
  *
@@ -14,7 +14,7 @@
 import { resolve, join } from "node:path";
 import { homedir } from "node:os";
 
-const HELP = `render-pdf — render candidate report HTML to A4 PDF via Playwright
+const HELP = `render-pdf — render candidate-report HTML to A4 PDF with Playwright
 
 Usage: node scripts/render-pdf.mjs [input.html] [output.pdf] [-h|--help]
 

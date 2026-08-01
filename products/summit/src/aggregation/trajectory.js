@@ -1,9 +1,9 @@
 /**
- * Team trajectory — compute quarterly coverage evolution from a
+ * Team trajectory. Compute quarterly coverage evolution from a
  * pre-assembled list of historical rosters.
  *
- * All git I/O happens in the command handler; this module is pure
- * and only transforms snapshots into the `TeamTrajectory` shape.
+ * The command handler does all git I/O. This module is pure. It only
+ * transforms snapshots into the `TeamTrajectory` shape.
  */
 
 import { computeCoverage, resolveTeam } from "./coverage.js";
@@ -79,8 +79,8 @@ export function computeTrajectory({ historicalRosters, teamId, data }) {
 }
 
 /**
- * Bucket a list of commits by calendar quarter, keeping the latest
- * commit per quarter.
+ * Bucket a list of commits by calendar quarter. Keep the latest
+ * commit for each quarter.
  *
  * @param {{ sha: string, date: Date }[]} commits
  * @param {number} maxQuarters

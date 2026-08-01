@@ -23,9 +23,9 @@
     {
       "user": "Engineering Leaders",
       "goal": "Measure Engineering Outcomes",
-      "trigger": "Quarterly review is due and the only data is ticket counts — singling out individuals, not illuminating the system.",
+      "trigger": "Quarterly review is due and the only data is ticket counts. The counts single out individuals. They do not illuminate the system.",
       "bigHire": "demonstrate engineering progress without making individuals feel surveilled.",
-      "littleHire": "tell whether culture investments are working before the next budget cycle.",
+      "littleHire": "tell whether culture investments work before the next budget cycle.",
       "competesWith": "sprint velocity; ticket counts; annual reviews; asking managers 'how's the team doing?'; not measuring",
       "forces": {
         "push": "Pressure to show ROI with no way to separate signal from noise.",

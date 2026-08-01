@@ -17,7 +17,7 @@ import {
 import { createDefinition } from "@forwardimpact/libwiki/cli-definition.js";
 
 // Commands that mutate or sync the remote wiki need a constructed WikiSync
-// (and its config-backed token resolver); the rest run against the local tree.
+// (and its config-backed token resolver). The rest run against the local tree.
 const NEEDS_WIKI_SYNC = new Set(["claim", "release", "push", "pull", "init"]);
 
 // The ledger command reads and writes the allocation-anchor surface (the
@@ -47,16 +47,16 @@ async function main() {
     return runtime.proc.exit(2);
   }
 
-  // Every command except `init` operates on an existing wiki tree. When it is
-  // absent (e.g. a fresh worktree where bootstrap.sh never ran), degrade
-  // gracefully: warn and exit 0 so the session Stop hook and other callers do
-  // not fail loudly. `init` is exempt — it creates the tree.
+  // Every command except `init` operates on an existing wiki tree. When the
+  // tree is absent (e.g. a fresh worktree where bootstrap.sh never ran),
+  // degrade gracefully. Warn and exit 0 so the session Stop hook and other
+  // callers do not fail loudly. `init` is exempt, because it creates the tree.
   if (command !== "init") {
     const wikiDir = resolveWikiRoot(runtime, parsed.values);
     if (!wikiExists(runtime, wikiDir)) {
       createLogger("wiki", runtime).warn(
         command,
-        `no wiki at ${wikiDir}; skipping (run \`gemba-wiki init\` to create one)`,
+        `no wiki at ${wikiDir}, so this command does nothing (run \`gemba-wiki init\` to create one)`,
       );
       return runtime.proc.exit(0);
     }

@@ -92,7 +92,7 @@ export function renderDisciplineDetail(params) {
     return;
   }
 
-  // Use DOM formatter - it handles transformation internally
+  // Use the DOM formatter. It transforms the data internally.
   render(
     disciplineToDOM(discipline, {
       skills: data.skills,

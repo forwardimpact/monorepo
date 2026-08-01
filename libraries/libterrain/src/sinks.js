@@ -1,8 +1,8 @@
 /**
  * Sinks — accept a pipeline result and apply side-effects.
  *
- * The pipeline returns unformatted bytes; the sink decides what to do with
- * them. Prettier formatting lives here, not in the pipeline.
+ * The pipeline returns unformatted bytes. The sink decides what to do with
+ * them. This module runs Prettier. The pipeline does not.
  *
  * Every sink's `accept(result)` returns the same stats shape:
  * { filesWritten, rawWritten, rawLoaded, loadErrors, loadErrorMessages }.
@@ -24,11 +24,12 @@ const ZERO_STATS = {
   loadErrorMessages: [],
 };
 
-// Raw documents are emitted by canonical serializers (`JSON.stringify(…, 2)`
-// and `YAML.stringify`), so they are already well-formed. A second Prettier
-// pass over the thousands of activity/GetDX fixtures costs ~11s on a full
-// build and changes nothing — skip those parsers and let Prettier handle only
-// the content that genuinely needs reflowing (e.g. markdown emails, HTML).
+// Canonical serializers (`JSON.stringify(…, 2)` and `YAML.stringify`) emit
+// raw documents, so those documents are already well-formed. A second
+// Prettier pass over the thousands of activity/GetDX fixtures costs ~11s on
+// a full build and changes nothing. Skip those parsers. Let Prettier handle
+// only the content that genuinely needs a reflow (e.g. markdown emails,
+// HTML).
 const PRESERIALIZED_PARSERS = new Set(["json", "yaml"]);
 
 /** No-op sink that discards pipeline output and returns zero stats. */
@@ -43,9 +44,9 @@ export class NullSink {
 export class WriteSink {
   /**
    * @param {{ outputRoot: string, prettierFn: Function, logger: object, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
-   *   `outputRoot` is the directory every generated file is written beneath; in
-   *   the monorepo it is the repo root, but an external consumer points it at a
-   *   disposable build directory via `fit-terrain --output-root`.
+   *   The sink writes every generated file beneath `outputRoot`. In the
+   *   monorepo it is the repo root. An external consumer points it at a
+   *   disposable build directory with `fit-terrain --output-root`.
    */
   constructor({ outputRoot, prettierFn, logger, runtime }) {
     if (!outputRoot) throw new Error("outputRoot is required");
@@ -98,9 +99,9 @@ export class WriteSink {
 }
 
 /**
- * Uploads raw documents to Supabase Storage. Owns no file-system writes;
- * `build --load` composes this with `WriteSink` so the local copy and the
- * uploaded copy stay byte-identical (both formatted by Prettier).
+ * Uploads raw documents to Supabase Storage. This sink owns no file-system
+ * writes. `build --load` composes it with `WriteSink` so the local copy and
+ * the uploaded copy stay byte-identical (Prettier formats both).
  */
 export class LoadSink {
   /**
@@ -137,9 +138,9 @@ export class LoadSink {
 
 /**
  * Composes multiple sinks into one. Each sink runs in declared order over
- * the same pipeline result; their stats are merged. Used by `build --load`
- * to compose `WriteSink + LoadSink` without re-introducing a monolithic
- * sink that owns both responsibilities.
+ * the same pipeline result. CompositeSink merges their stats. `build --load`
+ * uses it to compose `WriteSink + LoadSink`. It does not re-introduce a
+ * monolithic sink that owns both responsibilities.
  */
 export class CompositeSink {
   /** Store the ordered array of child sinks to delegate to. */
@@ -203,11 +204,11 @@ function replacer(_key, value) {
 
 /** No-op prose cache sink that skips persistence. */
 export class NullProseCacheSink {
-  /** Do nothing — cache entries are intentionally discarded. */
+  /** Do nothing. This sink discards cache entries on purpose. */
   flush() {}
 }
 
-/** Prose cache sink that persists generated cache entries to disk when flushed. */
+/** Prose cache sink that persists generated cache entries to disk on flush. */
 export class ProseCacheWriteSink {
   /**
    * @param {{ cache: import('@forwardimpact/libsyntheticprose').ProseCache }} options
@@ -223,15 +224,15 @@ export class ProseCacheWriteSink {
   }
 }
 
-// Cap on concurrent writeFile calls. A full build emits ~14k files; an
+// Cap on concurrent writeFile calls. A full build emits ~14k files. An
 // unbounded Promise.all would risk EMFILE on hosts with a low descriptor
-// ulimit, while a bounded pool keeps throughput near-parallel and safe.
+// ulimit. A bounded pool keeps throughput near-parallel and safe.
 const WRITE_CONCURRENCY = 256;
 
 /**
- * Run `fn` over `items` with at most `limit` in flight at once. Returns once
- * every item has settled. Used to fan out file writes without exhausting file
- * descriptors on large datasets.
+ * Run `fn` over `items` with at most `limit` in flight at once. Returns after
+ * every item settles. Callers use it to fan out file writes. It does not
+ * exhaust file descriptors on large datasets.
  */
 async function mapWithConcurrency(items, limit, fn) {
   let next = 0;
@@ -246,8 +247,8 @@ async function mapWithConcurrency(items, limit, fn) {
 }
 
 /**
- * Ensure every directory in `paths` exists, deduplicating so each unique
- * directory triggers a single recursive `mkdir`. The per-file `mkdir` it
+ * Make sure every directory in `paths` exists. Deduplicate them so each
+ * unique directory triggers one recursive `mkdir`. The per-file `mkdir` it
  * replaces issued one syscall per file (~14k on a full build) for a handful
  * of distinct directories.
  */
@@ -257,11 +258,11 @@ async function ensureDirs(paths, fs) {
 }
 
 /**
- * True when `dir` is a strict descendant of `root` — not `root` itself and not
- * a path that escapes it via `..`. Guards the destructive clean in
- * `writeFiles` so a stray output path can never `rm -rf` the output root or
- * anything outside it (the primary risk when `fit-terrain` runs in a
- * consumer's repo via `--output-root`).
+ * True when `dir` is a strict descendant of `root`. `dir` must not be `root`
+ * itself. `dir` must not escape `root` through `..`. This check guards the
+ * destructive clean in `writeFiles`. A stray output path can then never
+ * `rm -rf` the output root or anything outside it. That is the primary risk
+ * when `fit-terrain` runs in a consumer's repo with `--output-root`.
  */
 function isInside(root, dir) {
   const rel = relative(root, dir);
@@ -270,15 +271,17 @@ function isInside(root, dir) {
 
 /**
  * Write a Map of relative paths → content under the output root. Cleans each
- * top-level subdirectory before writing so removed entities don't linger.
- * Both the directories cleaned and the files written must be strict
- * descendants of `outputRoot`; a path that would escape it is a fatal error
- * raised before any `rm` runs, rather than a silent write outside the root.
+ * top-level subdirectory before the write so removed entities do not linger.
+ * Both the cleaned directories and the written files must be strict
+ * descendants of `outputRoot`. A path that would escape it is a fatal error.
+ * The function raises that error before any `rm` runs. It never writes
+ * silently outside the root.
  */
 async function writeFiles(files, outputRoot, fs, logger) {
-  // Validate every write target before any destructive action. A clean dir can
-  // resolve inside the root while the full path still escapes (`a/b/../../..`),
-  // so both are checked: full paths here, the cleaned dirs below.
+  // Validate every write target before any destructive action. A clean dir
+  // can resolve inside the root while the full path still escapes
+  // (`a/b/../../..`). So the function checks both. It checks full paths
+  // here and the cleaned dirs below.
   const entries = [...files].map(([relPath, content]) => {
     const fullPath = join(outputRoot, relPath);
     if (!isInside(outputRoot, fullPath)) {

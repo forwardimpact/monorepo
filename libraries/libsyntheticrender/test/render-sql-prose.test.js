@@ -2,7 +2,8 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 import { renderSql } from "../src/render/render-sql.js";
 
-// Minimal clinical graph plus the `content` block the prose tables iterate.
+// The fixture is a minimal clinical graph plus the `content` block that the
+// prose tables iterate.
 // perCondition for patient stories = ceil(patient_stories / conditions) =
 // ceil(4 / 2) = 2, so two stories per listed condition.
 function makeClinical() {
@@ -95,7 +96,7 @@ describe("renderSql prose tables", () => {
     assert.ok(therapy.includes("$$Chemo overview.$$"));
   });
 
-  test("patient_stories fans out perCondition rows with matching ids", () => {
+  test("patient_stories fans out perCondition rows with ids that match", () => {
     const out = renderSql(
       makeClinical(),
       { prefix: "bn", entities: ALL_ENTITIES },
@@ -113,7 +114,7 @@ describe("renderSql prose tables", () => {
     for (const id of ["c1_0", "c1_1", "c2_0", "c2_1"]) {
       assert.ok(stories.includes(`$$${id}$$`), `missing story id ${id}`);
     }
-    // Four story rows: count the dollar-quoted ids in the VALUES list.
+    // Expect four story rows. Count the dollar-quoted ids in the VALUES list.
     const idMatches = stories.match(/\$\$c\d_\d\$\$/g) ?? [];
     assert.strictEqual(idMatches.length, 4);
   });
@@ -167,7 +168,7 @@ describe("renderSql prose tables", () => {
     ]);
   });
 
-  test("omitting prose refs keeps the base 5-table output unchanged", () => {
+  test("keeps the base 5-table output unchanged when the config omits prose refs", () => {
     const baseEntities = [
       "clinical.conditions",
       "clinical.sites",
@@ -186,11 +187,11 @@ describe("renderSql prose tables", () => {
     assert.strictEqual(out.size, 8);
   });
 
-  test("missing prose resolves to NULL, not a thrown error", () => {
+  test("missing prose resolves to NULL and throws no error", () => {
     const out = renderSql(makeClinical(), {
       prefix: "bn",
       entities: ["clinical.condition_explainers"],
-    }); // no prose cache passed at all
+    }); // this call passes no prose cache
     const explainers = out.get("bn_001_condition_explainers.sql");
     assert.ok(explainers.includes("NULL"));
   });

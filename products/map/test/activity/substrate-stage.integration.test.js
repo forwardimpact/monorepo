@@ -1,9 +1,9 @@
 /**
- * Real-fs substrate-stage cases: the copy-activity ENOENT path (which depends
- * on a real fs.cp raising against a missing source — the in-memory fs does not)
- * and the bootstrap-shape parity check (which materialises and compares two
- * real project-root trees). Phase-ordering unit tests live in the sibling
- * substrate-stage.test.js.
+ * Real-fs substrate-stage cases: the copy-activity ENOENT path and the
+ * bootstrap-shape parity check. The ENOENT path needs a real fs.cp that
+ * raises against a missing source, and the in-memory fs does not raise.
+ * The parity check materialises and compares two real project-root trees.
+ * Phase-ordering unit tests live in the sibling substrate-stage.test.js.
  */
 
 import { describe, test, beforeEach, afterEach } from "node:test";
@@ -118,9 +118,9 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
   test("runInit(tmpA) and substrate stage init phase against tmpB produce identical project root trees", async () => {
     await runInit(tmpA, runtime);
 
-    // Run only the init phase of substrate stage against tmpB. Stubbing
-    // every other phase isolates the bootstrap surface — what substrate
-    // stage materialises at the target dir.
+    // Run only the init phase of substrate stage against tmpB. Stub every
+    // other phase to isolate the bootstrap surface. That surface is what
+    // substrate stage materialises at the target dir.
     const invocations = [];
     function recorded(name, fn = async () => undefined) {
       return async (...args) => {
@@ -165,10 +165,10 @@ describe("substrate-stage / fit-map init bootstrap-shape parity", () => {
 
 describe("substrate-stage default dependencies", () => {
   test("stages with the default reloadConfig, init, and copy helpers", async () => {
-    // Only process-external collaborators (supabase, clients, the seeded
-    // phases) are stubbed; loadInit, both copy helpers, and reloadConfig
-    // run their real defaults against a real target — the wiring that a
-    // fully-stubbed deps object never exercises.
+    // This test stubs only the process-external collaborators (supabase,
+    // clients, the seeded phases). loadInit, both copy helpers, and
+    // reloadConfig run their real defaults against a real target. A
+    // fully-stubbed deps object never exercises that wiring.
     const sourceRoot = await fs.mkdtemp(
       path.join(tmpdir(), "substrate-default-src-"),
     );

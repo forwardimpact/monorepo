@@ -33,8 +33,8 @@ if (!handled) {
     callback_base_url: "",
     trusted_idp_origins: "",
     link_completion_ticket_secret: "",
-    // "single" (default, self-hosted) binds a static Microsoft tenant id;
-    // "multi" (hosted) accepts any consenting Entra tenant.
+    // "single" (default, self-hosted) binds a static Microsoft tenant id.
+    // "multi" (hosted) accepts any Entra tenant that consents.
     tenancy_mode: "single",
   });
 
@@ -63,7 +63,7 @@ if (!handled) {
   const { GhuserClient, BridgeClient, TenancyClient } = clients;
 
   // Pick the tenant resolver and the control-plane clients from the mode.
-  // Multi-tenant resolves tenants through services/tenancy; single-tenant
+  // Multi-tenant resolves tenants through services/tenancy. Single-tenant
   // reaches neither.
   let tenantResolver;
   let tenancyClient;
@@ -90,12 +90,12 @@ if (!handled) {
 
   const { clock } = runtime;
 
-  // Multi-tenant `/onboard` accepts only a cryptographically proven Entra `tid`.
-  // The verifier wraps the same Bot Framework authenticator the `/api/messages`
-  // path uses (one SDK validation path), so a forged or absent proof is rejected
-  // with 401 and a proven `tid` transitions the tenant `active` and maps its
-  // repo. Single-tenant deployments never mount `/onboard`, so no verifier is
-  // built.
+  // Multi-tenant `/onboard` accepts only a cryptographically proven Entra
+  // `tid`. The verifier wraps the same Bot Framework authenticator the
+  // `/api/messages` path uses (one SDK validation path). The endpoint rejects
+  // a forged or absent proof with 401. A proven `tid` transitions the tenant
+  // to `active` and maps its repo. Single-tenant deployments never mount
+  // `/onboard`, so this code builds no verifier.
   let authenticateTenant;
   if (config.tenancy_mode === "multi") {
     authenticateTenant = createOnboardVerifier(

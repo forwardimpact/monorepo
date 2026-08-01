@@ -1,7 +1,7 @@
 /**
  * @forwardimpact/map
  *
- * Data model definitions, validation, and loading for Engineering Pathway.
+ * Data model definitions, validation, and loaders for Engineering Pathway.
  */
 
 // Classes

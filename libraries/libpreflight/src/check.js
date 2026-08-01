@@ -1,9 +1,10 @@
 /**
- * Enforce a Node.js major-version floor. On failure, write a product-authored
- * error to stderr and exit non-zero before any heavier import evaluates.
+ * Enforce a Node.js major-version floor. If the check fails, write a
+ * product-authored error to stderr. Then exit non-zero before any heavier
+ * import evaluates.
  *
  * @param {number} requiredMajor Minimum acceptable Node major version.
- * @param {NodeJS.Process} [processObj] Process-like object for injection in tests.
+ * @param {NodeJS.Process} [processObj] Process-like object to inject in tests.
  * @returns {void}
  */
 export function check(requiredMajor, processObj = process) {

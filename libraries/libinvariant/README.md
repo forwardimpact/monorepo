@@ -10,9 +10,9 @@ directory.
 
 ## Getting Started
 
-libinvariant is an import-only library: it ships no CLI. To run the checks,
-hire the Jidoka product — `npx @forwardimpact/jidoka` or the installed
-`jidoka` binary — which wires these handlers to a command surface.
+libinvariant is an import-only library. It ships no CLI. To run the checks,
+hire the Jidoka product. Use `npx @forwardimpact/jidoka` or the installed
+`jidoka` binary. The product wires these handlers to a command surface.
 
 ```js
 import {
@@ -30,26 +30,26 @@ const ruleFindings = await checkInvariants({
 });
 ```
 
-The `checkInstructions` and `checkJtbd` handlers implement the contract
-described in
-[JIDOKA.md](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md):
+The `checkInstructions` and `checkJtbd` handlers implement the contract that
+[JIDOKA.md](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md)
+describes:
 
-- `checkInstructions` — every layer (L1 CLAUDE.md, L2 CONTRIBUTING.md /
-  JTBD.md, L3 agent profile, L4 agent reference, L5 SKILL.md, L6 skill
-  reference, L7 checklist block) is gated by a line cap **and** a word cap.
-  Either breach fails.
-- `checkJtbd` — each `package.json .jobs` entry is validated against the JTBD
-  schema; with `fix`, marker-delimited blocks in `<dir>/README.md`,
-  `<dir>/<pkg>/README.md`, and root `JTBD.md` are regenerated.
+- `checkInstructions` — a line cap **and** a word cap gate every layer (L1
+  CLAUDE.md, L2 CONTRIBUTING.md / JTBD.md, L3 agent profile, L4 agent
+  reference, L5 SKILL.md, L6 skill reference, L7 checklist block). Either
+  breach fails.
+- `checkJtbd` — the handler validates each `package.json .jobs` entry against
+  the JTBD schema. With `fix`, it regenerates the marker-delimited blocks in
+  `<dir>/README.md`, `<dir>/<pkg>/README.md`, and root `JTBD.md`.
 
 ## Invariants
 
 `checkInvariants` is a generic host for a repository's own invariant checks.
-It loads every `*.rules.mjs` module under the caller-supplied `rulesDir` and
+It loads every `*.rules.mjs` module under the caller-supplied `rulesDir`. It
 runs each module's declarative rule catalogue through the shared rules
-engine. The library carries no discovery default — the calling product or
-script names the directory (the Jidoka CLI supplies `.jidoka/invariants`).
-The policies stay in the repository; the library ships only the engine.
+engine. The library carries no discovery default. The product or script that
+calls it names the directory (the Jidoka CLI supplies `.jidoka/invariants`).
+The policies stay in the repository. The library ships only the engine.
 
 A rule module's default export is:
 
@@ -79,15 +79,15 @@ export default {
 ### The build kit
 
 The engine binds a kit per run to the repo `root`, the module's own `dir`
-(for co-located config), and the `runtime` bag (fs and ripgrep route through
-it, so the engine carries no ambient dependencies). The module declares only
-policy; the kit owns the mechanism:
+(for co-located config), and the `runtime` bag. fs and ripgrep route through
+the bag, so the engine carries no ambient dependencies. The module declares
+only policy. The kit owns the mechanism:
 
 - `scan({ dirs, match, skip?, under?, read? })` — collect files as
-  `{ path, rel, text? }`; `under` restricts to the per-package `src`/`test`
+  `{ path, rel, text? }`. `under` restricts to the per-package `src`/`test`
   shape.
 - `scanAst({ dirs, match, extract, locations?, … })` — read + parse each file
-  and merge `extract(ast)`; a parse failure becomes `{ path, rel, parseError }`.
+  and merge `extract(ast)`. A parse failure becomes `{ path, rel, parseError }`.
 - `parse(src, path, opts?)`, `walk(ast, visit)` — the lower-level AST seam.
 - `grep({ pattern | patterns, paths?, globs?, caseSensitive?, onlyMatching?,
   dedupe? })` — ripgrep matches as `{ path, lineNo, text, reason? }`, with
@@ -95,10 +95,10 @@ policy; the kit owns the mechanism:
 - `restatementDrift({ entries, equal })` — the shared "single source restated
   across consumers" scan + compare (service URLs, scalar values).
 - `enumDrift.build(registry)` / `enumDrift.seed(registry)` — the
-  enumeration-drift engine: assert (or seed) that every consumer's fenced
-  `<!-- enum:TOPIC:PROPERTY -->` block matches its source-of-truth set (an
-  fs-glob or md-table probe). Pass a parsed topics registry (e.g.
-  `config(topicsFile)`); pair with the rule kit's `enumDriftRules`.
+  enumeration-drift engine. It asserts (or seeds) that every consumer's
+  fenced `<!-- enum:TOPIC:PROPERTY -->` block matches its source-of-truth set
+  (an fs-glob or md-table probe). Pass a parsed topics registry (e.g.
+  `config(topicsFile)`). Pair it with the rule kit's `enumDriftRules`.
 - `readText`, `readJson`, `config(name, fallback?)` (co-located JSON/YAML),
   `listDir(path, { dirsOnly? })`.
 - `lineAt(text, offset)`, `glob(pattern)`.
@@ -107,30 +107,30 @@ policy; the kit owns the mechanism:
 
 When `rules` is a function it receives the rule helpers:
 
-- `parseError(scope, { id?, hint? })` — fails any subject carrying a
-  `parseError` (paired with `scanAst`).
+- `parseError(scope, { id?, hint? })` — fails any subject that carries a
+  `parseError` (pair it with `scanAst`).
 - `failAll(scope, { id, message, hint?, when? })` — fails every subject in
   scope (the build step already decided each is a violation).
-- `enumDriftRules` — the enumeration-drift rule set, paired with the build
-  kit's `enumDrift` (expose via `rules: (kit) => kit.enumDriftRules`).
+- `enumDriftRules` — the enumeration-drift rule set. Pair it with the build
+  kit's `enumDrift` (expose it with `rules: (kit) => kit.enumDriftRules`).
 
 Findings render in the same ESLint-style format across the handlers
-(`emitFindingsJson` for machine output); any finding fails the run.
+(`emitFindingsJson` for machine output). Any finding fails the run.
 
 ## Documentation home
 
 libinvariant shares the **Run a Predictable Platform** job goal with the
-service-lifecycle libraries (librc, libsupervise, libtelemetry, libpreflight),
-but its full guide home is the Jidoka standard at
-<https://www.jidoka.team/> and [JIDOKA.md](../../JIDOKA.md), not the
-service-lifecycle guide tree under `websites/fit/docs/libraries/`.
+service-lifecycle libraries (librc, libsupervise, libtelemetry, libpreflight).
+Its full guide home is the Jidoka standard at <https://www.jidoka.team/> and
+[JIDOKA.md](../../JIDOKA.md). The service-lifecycle guide tree under
+`websites/fit/docs/libraries/` is not its guide home.
 
-**Decision (2026-06-27):** this is deliberate scope separation, not a gap. The
-invariant checks run at **authoring time** against a repository's instruction
-layers and JTBD blocks; the service-lifecycle libraries run at **service
-runtime** against a live process. Mixing the two into one guide would blur the
+**Decision (2026-06-27):** this scope separation is deliberate. It is not a
+gap. The invariant checks run at **authoring time** against a repository's
+instruction layers and JTBD blocks. The service-lifecycle libraries run at
+**service runtime** against a live process. One guide for both would blur the
 audience. The service-lifecycle Big Hire carries a one-line cross-link to the
-Jidoka standard so a reader who lands there can find this check, and that is
-the only link the service-lifecycle tree should carry. Future doc audits should
+Jidoka standard, so a reader who lands there can find this check. The
+service-lifecycle tree should carry no other link. In a future doc audit,
 treat the absence of a service-lifecycle guide page for the invariant checks
 as intended.

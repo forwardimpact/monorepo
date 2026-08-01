@@ -55,7 +55,7 @@
       display: block !important;
     }
 
-    /* Ensure text-muted paragraphs in header are visible */
+    /* Make text-muted paragraphs in the header visible */
     .slide-view .page-header .text-muted,
     .slide-view .page-header p {
       display: block !important;
@@ -185,7 +185,7 @@
       margin-top: 0.125rem;
     }
 
-    /* Ensure 4-column grid fits in landscape */
+    /* Make the 4-column grid fit in landscape */
     .slide-progression-summary {
       grid-template-columns: repeat(4, 1fr);
       gap: 0.5rem;
@@ -546,7 +546,7 @@
       padding-top: 3rem;
     }
 
-    /* Handout view: hide brand header — chapter covers provide branding */
+    /* Handout view: hide the brand header. Chapter covers carry the brand. */
     .handout-view .page-brand-header {
       display: none !important;
     }

@@ -15,18 +15,19 @@ import {
 } from "./wiki-sync-harness.js";
 
 describe("WikiSync ancestry guard", () => {
-  // A dirty, ahead tree so the guard, not the no-op gate, decides the outcome.
-  // `isMidMerge: false` so the mid-merge guard does not short-circuit before the
-  // ancestry guard under test. Folds in the honest push-flow responses
-  // (HEALTHY_PUSH) so the allow-path tests reach a grounded landing under the
-  // the honest commitAndPush contract composed flow.
+  // A dirty, ahead tree. The guard decides the outcome. The no-op gate does
+  // not. `isMidMerge: false` holds off the mid-merge guard, so it does not
+  // short-circuit before the ancestry guard under test. This object folds in
+  // the honest push-flow responses (HEALTHY_PUSH). The allow-path tests then
+  // reach a grounded landing under the composed flow of the honest
+  // commitAndPush contract.
   const DIRTY_AHEAD = {
     ...HEALTHY_PUSH,
     isMidMerge: false,
     status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
     rebase: { exitCode: 0, stderr: "" },
     // Clean introduced diff so the publish-marker guard (Guard 3) lets the
-    // allow-path tests reach the push the ancestry guard is gating.
+    // allow-path tests reach the push that the ancestry guard gates.
     introducedByFile: new Map(),
   };
 
@@ -34,7 +35,11 @@ describe("WikiSync ancestry guard", () => {
     const wrote = git.calls.find((c) =>
       ["commitAll", "commitPaths", "push"].includes(c.method),
     );
-    assert.equal(wrote, undefined, "guard must not commit or push on refusal");
+    assert.equal(
+      wrote,
+      undefined,
+      "the guard must not commit or push on refusal",
+    );
   }
 
   test("detached HEAD ⇒ unverifiable refusal, no commit or push", async () => {
@@ -53,13 +58,14 @@ describe("WikiSync ancestry guard", () => {
       responses: {
         ...DIRTY_AHEAD,
         headBranch: "master",
-        // origin/master resolves (branch present); HEAD does not (unborn).
+        // origin/master resolves (branch present). HEAD does not (unborn).
         refExists: false,
         remoteBranchExists: true,
       },
     });
-    // refExists is false for both origin/master and HEAD here, so the remote
-    // probe runs and confirms the branch is present, then unborn HEAD refuses.
+    // refExists is false for both origin/master and HEAD here. The remote
+    // probe then runs and confirms the branch is present. The unborn HEAD
+    // then refuses.
     await assert.rejects(
       () => wikiSync.commitAndPush("wiki: update"),
       (err) => err instanceof AncestryRefusal && err.kind === "unrelated",
@@ -85,7 +91,7 @@ describe("WikiSync ancestry guard", () => {
   });
 
   test("clean tree with committed unverifiable history ⇒ refusal at the push half", async () => {
-    // Clean tree (nothing to commit) but ahead of the remote: only the
+    // A clean tree (nothing to commit) but ahead of the remote. Only the
     // second #assertPublishable, before the push, can catch this.
     const { git, wikiSync } = make({
       responses: {
@@ -125,7 +131,8 @@ describe("WikiSync ancestry guard", () => {
     const git = createMockGitClient({
       responses: { ...DIRTY_AHEAD, headBranch: "master", refExists: true },
     });
-    // First merge-base check fails (outside window); after the deepen it passes.
+    // The first merge-base check fails (outside window). After the deepen it
+    // passes.
     let mergeBaseCalls = 0;
     git.mergeBaseExists = async () => {
       mergeBaseCalls++;
@@ -149,9 +156,10 @@ describe("WikiSync ancestry guard", () => {
     });
   });
 
-  // Captures the two shallow-clone refusal messages so the test below can
-  // assert their text differs (spec criterion 7: the could-not-verify error
-  // must read differently from the confirmed-unrelated refusal).
+  // This helper captures the two shallow-clone refusal messages. The test
+  // below then asserts that their text differs (spec criterion 7: the
+  // could-not-verify error must read differently from the confirmed-unrelated
+  // refusal).
   async function shallowRefusal(fetchDeepen) {
     const { git, wikiSync } = make({
       responses: {
@@ -205,7 +213,7 @@ describe("WikiSync ancestry guard", () => {
         ...DIRTY_AHEAD,
         headBranch: "master",
         refExists: false, // origin/master does not resolve
-        remoteBranchExists: false, // probe confirms the remote is empty
+        remoteBranchExists: false, // the probe confirms the remote is empty
       },
     });
     const result = await wikiSync.commitAndPush("wiki: update");
@@ -238,11 +246,11 @@ describe("WikiSync ancestry guard", () => {
   });
 
   test("absent tracking ref, observable, shared ancestry ⇒ allowed", async () => {
-    // origin/master does not resolve locally; the probe finds the branch
-    // present; HEAD resolves and shares a merge-base ⇒ allow. The guard must
-    // first fetch the branch into the tracking ref, because merge-base is
-    // judged against the probed branch tip, not an unresolvable ref (the path
-    // real git would otherwise reject).
+    // origin/master does not resolve locally. The probe finds the branch
+    // present. HEAD resolves and shares a merge-base ⇒ allow. The guard must
+    // first fetch the branch into the tracking ref, because Git judges
+    // merge-base against the probed branch tip. Git does not judge against an
+    // unresolvable ref (the path real git would otherwise reject).
     const git = createMockGitClient({
       responses: {
         ...DIRTY_AHEAD,
@@ -250,8 +258,8 @@ describe("WikiSync ancestry guard", () => {
         remoteBranchExists: true,
       },
     });
-    // Model real git: origin/master resolves only after the branch is fetched
-    // into the tracking ref, and merge-base resolves only once it does.
+    // Model real git. origin/master resolves only after git fetches the branch
+    // into the tracking ref. merge-base resolves only once it does.
     let trackingFetched = false;
     git.refExists = async (ref) =>
       ref === "HEAD" || (ref === "origin/master" && trackingFetched);
@@ -283,7 +291,7 @@ describe("WikiSync ancestry guard", () => {
     );
     assert.ok(
       trackingFetch,
-      "must fetch the probed branch into the tracking ref before judging merge-base",
+      "must fetch the probed branch into the tracking ref before it judges merge-base",
     );
   });
 
@@ -323,7 +331,8 @@ describe("WikiSync ancestry guard", () => {
     const names = git.calls.map((c) => c.method);
     // The ancestry guard's emptiness probe (`remoteBranchExists`) and the
     // shallow-clone deepen stay off the hot path. The grounded nothing-to-push
-    // read (`remoteRefTip`) is a separate, expected round-trip (the grounded-outcome contract).
+    // read (`remoteRefTip`) is a separate, expected round-trip (the
+    // grounded-outcome contract).
     assert.ok(
       !names.includes("remoteBranchExists"),
       "hot path adds no ancestry-probe round-trip",

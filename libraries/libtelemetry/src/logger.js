@@ -2,15 +2,16 @@ import { msToIso } from "./time.js";
 
 /**
  * Numeric severity per syslog ordering. `info` is the default when LOG_LEVEL
- * is unset, preserving the historical behavior where info() and error() both
- * print and debug() is gated by the DEBUG env var. `trace` is accepted as an
- * alias for `debug` so consumers used to other ecosystems don't trip.
+ * is unset. That default keeps the historical behavior where info() and
+ * error() both print and the DEBUG env var gates debug(). The level map also
+ * accepts `trace` as an alias for `debug` so consumers used to other
+ * ecosystems don't trip.
  */
 const LEVELS = { error: 0, warn: 1, info: 2, debug: 3, trace: 3 };
 const DEFAULT_LEVEL = "info";
 
 /**
- * Logger class for RFC 5424 compliant logging
+ * Logger class for log lines that comply with RFC 5424
  */
 export class Logger {
   #domain;
@@ -24,9 +25,9 @@ export class Logger {
    * Creates a new Logger instance
    * @param {string} domain - Domain or service area for this logger instance
    * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected
-   *   runtime bag; supplies the `proc` (env access plus the `stderr` sink) and
-   *   `clock` collaborators. All output goes to `runtime.proc.stderr` so logs
-   *   follow the injected runtime and are captured wherever it is.
+   *   runtime bag. It supplies the `proc` (env access plus the `stderr` sink)
+   *   and `clock` collaborators. All output goes to `runtime.proc.stderr`, so
+   *   logs follow the injected runtime and are captured wherever it is.
    */
   constructor(domain, runtime) {
     if (!domain || typeof domain !== "string") {
@@ -49,8 +50,8 @@ export class Logger {
   }
 
   /**
-   * Gets whether logging is enabled for this domain
-   * @returns {boolean} Whether logging is enabled
+   * Gets whether the logger is enabled for this domain
+   * @returns {boolean} Whether the logger is enabled
    */
   get enabled() {
     return this.#enabled;
@@ -97,7 +98,7 @@ export class Logger {
   }
 
   /**
-   * Logs an info message unless LOG_LEVEL is set below info (warn or error).
+   * Logs an info message unless LOG_LEVEL is below info (warn or error).
    * @param {string} [appId] - Application identifier or method name
    * @param {string} [message] - The log message
    * @param {object} [attributes] - Optional key-value pairs to append to the message
@@ -111,7 +112,7 @@ export class Logger {
   }
 
   /**
-   * Logs a warning message unless LOG_LEVEL is set below warn (i.e. error).
+   * Logs a warning message unless LOG_LEVEL is below warn (i.e. error).
    * @param {string} [appId] - Application identifier or method name
    * @param {string} [message] - The log message
    * @param {object} [attributes] - Optional key-value pairs to append to the message
@@ -134,7 +135,7 @@ export class Logger {
     const errorMessage =
       message instanceof Error ? message.message : String(message);
 
-    // Extract trace context from error object (added by Tracer)
+    // Extract the trace context from the error object (Tracer adds it)
     const traceContext = {};
     if (message?.trace_id) traceContext.trace_id = message.trace_id;
     if (message?.span_id) traceContext.span_id = message.span_id;
@@ -149,7 +150,8 @@ export class Logger {
   }
 
   /**
-   * Logs an error with stack trace (always logs message, stack trace only when enabled)
+   * Logs an error with a stack trace. Always logs the message. Logs the stack
+   * trace only when the logger is enabled.
    * @param {string} [appId] - Application identifier or method name
    * @param {Error} [error] - Error object
    * @param {object} [attributes] - Optional key-value pairs to append to the message
@@ -163,7 +165,7 @@ export class Logger {
       message += "\n" + error.stack;
     }
 
-    // Extract trace context from error object (added by Tracer)
+    // Extract the trace context from the error object (Tracer adds it)
     const traceContext = {};
     if (error?.trace_id) traceContext.trace_id = error.trace_id;
     if (error?.span_id) traceContext.span_id = error.span_id;
@@ -177,8 +179,8 @@ export class Logger {
 
   /**
    * Write a formatted line to the injected process's stderr. The Logger emits
-   * to `runtime.proc.stderr` — never the global `console` — so output follows
-   * the injected runtime and is captured wherever that runtime is.
+   * to `runtime.proc.stderr`. It never emits to the global `console`. Output
+   * follows the injected runtime and is captured wherever that runtime is.
    * @param {string} line - The formatted log line (no trailing newline).
    * @private
    */
@@ -187,7 +189,7 @@ export class Logger {
   }
 
   /**
-   * Formats attributes as a string for logging
+   * Formats attributes as a string for the log line
    * @param {object} attributes - Key-value pairs to format
    * @returns {string} Formatted attributes string
    * @private
@@ -222,8 +224,8 @@ export class Logger {
   }
 
   /**
-   * Resolves the numeric LOG_LEVEL threshold from the environment, falling
-   * back to the default when unset or unrecognized.
+   * Resolves the numeric LOG_LEVEL threshold from the environment. Falls back
+   * to the default when the value is unset or unrecognized.
    * @returns {number} Numeric level
    * @private
    */
@@ -233,8 +235,8 @@ export class Logger {
   }
 
   /**
-   * Checks if logging is enabled for this domain based on DEBUG environment variable
-   * @returns {boolean} Whether logging is enabled
+   * Checks whether the DEBUG environment variable enables logs for this domain
+   * @returns {boolean} Whether the logger is enabled
    * @private
    */
   #isEnabled() {

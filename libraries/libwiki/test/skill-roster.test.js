@@ -7,7 +7,8 @@ import { listSkills } from "../src/skill-roster.js";
 const SKILLS_DIR = "/repo/skills";
 
 // Register the directory entries `names` (and optional plain `files`) under
-// SKILLS_DIR in an in-memory fs; listSkills reads them via readdirSync/statSync.
+// SKILLS_DIR in an in-memory fs. listSkills reads them with
+// readdirSync/statSync.
 function skillsFs(names = [], files = {}) {
   const fs = createMockFs(files);
   fs.mkdirSync(SKILLS_DIR);

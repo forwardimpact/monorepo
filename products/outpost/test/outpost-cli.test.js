@@ -7,9 +7,9 @@ import { dirname, join } from "node:path";
 import { Cli } from "@forwardimpact/libcli";
 import { HelpRenderer } from "@forwardimpact/libcli";
 
-// Read version from package.json so the fixture tracks the published version
-// instead of drifting (the previous hardcode was 2.11.0 while the package was
-// already at 2.12.6).
+// Read the version from package.json so the fixture tracks the published
+// version and does not drift. The previous hardcode was 2.11.0 when the
+// package was already at 2.12.6.
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_VERSION = JSON.parse(
   readFileSync(join(__dirname, "..", "package.json"), "utf8"),

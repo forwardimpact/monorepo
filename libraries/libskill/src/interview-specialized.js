@@ -1,9 +1,9 @@
 /**
  * Specialized Interview Question Generation
  *
- * Pure functions for generating specialized interview formats:
+ * Pure functions that generate specialized interview formats:
  * Mission Fit, Decomposition, and Stakeholder Simulation.
- * Extracted from interview.js for max-lines compliance.
+ * The split from interview.js satisfies the max-lines rule.
  */
 
 import { getSkillProficiencyIndex, SKILL_PROFICIENCY_ORDER } from "./levels.js";
@@ -29,7 +29,7 @@ import {
 } from "./interview-helpers.js";
 
 /**
- * Build candidate questions for mission fit interview
+ * Build candidate questions for a mission fit interview
  * @param {Object} job - The job definition
  * @param {Object} questionBank - The question bank
  * @param {string} roleType - Role type
@@ -86,7 +86,7 @@ function buildMissionFitCandidates(job, questionBank, roleType) {
 }
 
 /**
- * Build candidate questions for decomposition interview
+ * Build candidate questions for a decomposition interview
  * @param {Object} job - The job definition
  * @param {Object} questionBank - The question bank
  * @param {string} roleType - Role type

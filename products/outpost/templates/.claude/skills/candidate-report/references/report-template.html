@@ -9,8 +9,8 @@
   This is the structural skeleton for the A4 one-page candidate assessment.
   Replace all {{PLACEHOLDER}} tokens with candidate-specific data.
 
-  The stylesheet is in references/report.css — inline it here with a <style>
-  tag (required for PDF rendering).
+  The stylesheet is in references/report.css. Inline it here with a <style>
+  tag. The PDF output needs it inline.
 
   LAYOUT BUDGET (fits 297mm A4 height):
     Header:      ~60px
@@ -18,9 +18,9 @@
     Body:        ~680px  (6 sections at ~110px avg)
     Footer:      ~28px
 
-  When customising, test with Ctrl+P (print preview) in a browser to verify
-  the report fits on a single page. If content overflows, reduce the number
-  of benchmark skills shown or shorten the strengths list.
+  When you customise the template, test with Ctrl+P (print preview) in a
+  browser. Verify that the report fits on a single page. If content overflows,
+  reduce the number of benchmark skills shown or shorten the strengths list.
 -->
     <style>
       {{INLINE_CSS}}
@@ -59,7 +59,7 @@
           <dl class="snap">
             <!--
           Typical fields: Experience, Education, Source, Stack.
-          Add/remove <dt>/<dd> pairs as needed for the candidate.
+          Add or remove <dt>/<dd> pairs to fit the candidate.
         -->
             {{SNAPSHOT_DL_ITEMS}}
           </dl>
@@ -115,8 +115,8 @@
 
         Group the framework's capability areas into 4 visual blocks.
         If there are 6 capability areas, combine the smallest two.
-        Show only skills where evidence exists or the gap is notable —
-        aim for 4-6 rows per block to stay within A4 height.
+        Show only skills where evidence exists or the gap is notable.
+        Aim for 4-6 rows per block to stay within A4 height.
 
         Pill classes:
           p-g  = Gap (red)
@@ -151,7 +151,7 @@
           <div class="stitle">Coverage Summary</div>
           <div class="counters">
             <!--
-          Four counter boxes. Colours are fixed:
+          Four counter boxes. Use these fixed colours:
             Gap:     background:#FEE2E2  text:#991B1B
             Partial: background:#FEF3C7  text:#92400E
             Unknown: background:var(--s100) text:var(--s500)
@@ -184,7 +184,7 @@
           <ol>
             <!--
           2-4 numbered action items. Each:
-          <li><strong>Action.</strong> Detail explaining the step.</li>
+          <li><strong>Action.</strong> Detail that explains the step.</li>
         -->
             {{RECOMMENDATION_LI_ITEMS}}
           </ol>

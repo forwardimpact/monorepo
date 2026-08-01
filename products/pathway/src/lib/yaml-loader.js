@@ -1,8 +1,8 @@
 /**
- * Browser-compatible YAML loading
+ * Browser-compatible YAML loaders
  *
- * Generic utilities from @forwardimpact/libui/yaml-loader,
- * plus Pathway-specific entity loaders.
+ * This module re-exports the generic utilities from
+ * @forwardimpact/libui/yaml-loader. It adds Pathway-specific entity loaders.
  */
 
 export {
@@ -19,8 +19,9 @@ import {
 
 /**
  * Load skills from capability files
- * Skills are embedded in capability YAML files under the 'skills' array.
- * This function extracts all skills and adds the capability ID back to each.
+ * Capability YAML files embed the skills under the 'skills' array.
+ * This function extracts all the skills. It adds the capability ID back to
+ * each skill.
  * @param {string} capabilitiesDir - Path to capabilities directory
  * @returns {Promise<Array>} Array of skill objects
  */
@@ -52,10 +53,10 @@ async function loadSkillsFromCapabilities(capabilitiesDir) {
           capability: capabilityId, // Add capability from parent
           description: human.description,
           proficiencyDescriptions: human.proficiencyDescriptions,
-          // Include isHumanOnly flag for agent filtering (defaults to false)
+          // Include the isHumanOnly flag for agent filters (defaults to false)
           ...(isHumanOnly && { isHumanOnly }),
           ...(agent && { agent }),
-          // Include agent skill content fields
+          // Include the content fields for the agent skill
           ...(instructions && { instructions }),
           ...(installScript && { installScript }),
           // Reference documents (each entry → references/{name}.md)
@@ -70,7 +71,7 @@ async function loadSkillsFromCapabilities(capabilitiesDir) {
 }
 
 /**
- * Load disciplines from directory using _index.yaml
+ * Load disciplines from a directory with _index.yaml
  * @param {string} disciplinesDir - Path to disciplines directory
  * @returns {Promise<Array>} Array of discipline objects
  */
@@ -117,7 +118,7 @@ async function loadDisciplinesFromDir(disciplinesDir) {
 }
 
 /**
- * Load tracks from directory using _index.yaml
+ * Load tracks from a directory with _index.yaml
  * @param {string} tracksDir - Path to tracks directory
  * @returns {Promise<Array>} Array of track objects
  */
@@ -154,7 +155,7 @@ async function loadTracksFromDir(tracksDir) {
 }
 
 /**
- * Load behaviours from directory using _index.yaml
+ * Load behaviours from a directory with _index.yaml
  * @param {string} behavioursDir - Path to behaviours directory
  * @returns {Promise<Array>} Array of behaviour objects
  */
@@ -177,7 +178,7 @@ async function loadBehavioursFromDir(behavioursDir) {
 }
 
 /**
- * Load capabilities from directory using _index.yaml
+ * Load capabilities from a directory with _index.yaml
  * @param {string} capabilitiesDir - Path to capabilities directory
  * @returns {Promise<Array>} Array of capability objects
  */
@@ -191,7 +192,7 @@ async function loadCapabilitiesFromDir(capabilitiesDir) {
 }
 
 /**
- * Load questions from folder structure using skill/behaviour/capability IDs
+ * Load questions from the folder structure with skill/behaviour/capability IDs
  * @param {string} questionsDir - Path to questions directory
  * @param {Array} skills - Skills array (with id property)
  * @param {Array} behaviours - Behaviours array (with id property)
@@ -280,7 +281,7 @@ export async function loadAllData(dataDir = "./data") {
 }
 
 /**
- * Load agent-specific data for browser-based agent generation
+ * Load the agent-specific data that the browser needs to generate agents
  * @param {string} [dataDir='./data'] - Path to data directory
  * @returns {Promise<Object>}
  */

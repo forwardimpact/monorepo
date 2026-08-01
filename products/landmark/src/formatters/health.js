@@ -15,9 +15,9 @@ import {
 
 function formatScorePart(driver) {
   if (driver.score == null) return "n/a";
-  // Round to integer so the suffix matches the displayed digit — ordinalSuffix
-  // rounds internally, so feeding the raw decimal yields "62.3nd" (suffix from
-  // round(62.3)=62 but display 62.3).
+  // Round to an integer so the suffix matches the displayed digit.
+  // ordinalSuffix rounds internally. The raw decimal gives "62.3nd", because
+  // the suffix comes from round(62.3)=62 but the display shows 62.3.
   const r = Math.round(driver.score);
   return `${r}${ordinalSuffix(r)} percentile`;
 }
@@ -51,8 +51,8 @@ function recordDedupedCandidate(byKey, driver, rec, candidate) {
 
 /**
  * Walk drivers → recommendations → candidates and emit one DedupedRec per
- * (candidate.email, rec.skill). Later occurrences extend driverNames; impact
- * is taken from the first occurrence.
+ * (candidate.email, rec.skill). Later occurrences extend driverNames. The
+ * impact comes from the first occurrence.
  *
  * @param {Array} drivers
  * @returns {Array<{candidate: object, skill: string, impact: string,
@@ -72,7 +72,7 @@ function dedupeRecommendations(drivers) {
 
 /**
  * Count non-null hidden anchors (vs_prev, vs_50th, vs_75th, vs_90th).
- * vs_org is the displayed anchor and is not counted.
+ * vs_org is the displayed anchor. The count excludes it.
  *
  * @param {object} driver
  * @returns {number}
@@ -86,8 +86,9 @@ function countHiddenAnchors(driver) {
 }
 
 /**
- * Default-mode "Percentile" cell — ordinal only (e.g. "42nd"), without the
- * "percentile" word. The column header already labels the dimension.
+ * Build the default-mode "Percentile" cell. It shows the ordinal only
+ * (e.g. "42nd"), without the "percentile" word. The column header already
+ * labels the dimension.
  *
  * @param {object} driver
  * @returns {string}
@@ -99,8 +100,9 @@ function formatPercentileCell(driver) {
 }
 
 /**
- * Score cells for a driver row. Default mode returns the table tuple; verbose
- * mode returns a list of formatted anchor lines for the per-driver paragraph.
+ * Build the score cells for a driver row. Default mode returns the table
+ * tuple. Verbose mode returns a list of formatted anchor lines for the
+ * per-driver paragraph.
  *
  * @param {object} driver
  * @param {boolean} verbose
@@ -224,8 +226,8 @@ const TEXT_COLS = { num: 3, driver: 16, percentile: 12, vsOrg: 9 };
 
 function renderTextDefault(view, deduped, lines) {
   // The Driver column is the only one whose content can exceed its default
-  // width (16) — e.g. "Leveraging User Feedback" is 24. Expand to fit so
-  // multi-word driver names don't collide with the Percentile column.
+  // width (16). For example, "Leveraging User Feedback" is 24. Expand to fit
+  // so multi-word driver names do not collide with the Percentile column.
   const driverWidth = Math.max(
     TEXT_COLS.driver,
     "Driver".length,
@@ -294,8 +296,8 @@ function renderMdDefault(view, deduped, lines) {
 }
 
 // ---------------------------------------------------------------------------
-// Join-state copy — observable distinction between (a) no drivers configured
-// and (b) configured but disjoint from snapshot ids.
+// Join-state copy. The output distinguishes (a) no drivers configured from
+// (b) drivers configured but disjoint from snapshot ids.
 // ---------------------------------------------------------------------------
 
 function noDriversText() {
@@ -310,7 +312,7 @@ function noMatchText(driverJoin) {
   const { scoreIds, yamlIds } = driverJoin;
   return [
     "  Drivers (no matches)",
-    `  Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}; none overlap.`,
+    `  Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}. None overlap.`,
     "  Edit `data/pathway/drivers.yaml` to align with the GetDX taxonomy",
     "  (`npx fit-map init` resets it).",
   ];
@@ -329,7 +331,7 @@ function noMatchMarkdown(driverJoin) {
   return [
     "## Drivers (no matches)",
     "",
-    `Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}; none overlap.`,
+    `Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}. None overlap.`,
     "",
     "Edit `data/pathway/drivers.yaml` to align with the GetDX taxonomy (`npx fit-map init` resets it).",
   ];
@@ -340,7 +342,7 @@ function noMatchMarkdown(driverJoin) {
 // ---------------------------------------------------------------------------
 
 /** Render the health view as indented plain text. Default mode emits a compact
- * table plus a deduped Recommendations trailer; verbose mode emits the
+ * table plus a deduped Recommendations trailer. Verbose mode emits the
  * per-driver paragraph layout with all anchors disclosed. */
 export function toText(view, meta) {
   const lines = [renderHeader(`${view.teamLabel} — health view`), ""];
@@ -369,11 +371,11 @@ export function toText(view, meta) {
 
 /**
  * Render a director-tier rollup as a scope line plus one symmetric block per
- * team, in resolution order. No team is sorted, ranked, or compared against
- * another — each block is the same default driver table the team-manager view
- * produces for that team. The scope line distinguishes a director view from a
- * team view; the symmetric, unranked layout keeps the surface from singling
- * out any one team.
+ * team, in resolution order. The renderer does not sort, rank, or compare any
+ * team against another. Each block is the same default driver table the
+ * team-manager view produces for that team. The scope line distinguishes a
+ * director view from a team view. The symmetric, unranked layout makes sure
+ * the surface singles out no team.
  */
 function renderTextRollup(view, meta, lines) {
   lines.push(
@@ -400,7 +402,7 @@ export function toJson(view, meta) {
 }
 
 /** Render the health view as markdown. Default mode emits a compact driver
- * table plus a deduped Recommendations trailer; verbose mode emits the
+ * table plus a deduped Recommendations trailer. Verbose mode emits the
  * per-driver section layout with all anchors disclosed. */
 export function toMarkdown(view, meta) {
   const lines = [`# ${view.teamLabel} — health view`, ""];
@@ -428,9 +430,9 @@ export function toMarkdown(view, meta) {
 }
 
 /**
- * Markdown form of the director-tier rollup: a scope heading plus one section
- * per team in resolution order, symmetric and unranked so no team is singled
- * out.
+ * Render the markdown form of the director-tier rollup. It emits a scope
+ * heading plus one section per team in resolution order. The layout is
+ * symmetric and unranked, so it singles out no team.
  */
 function renderMdRollup(view, meta, lines) {
   lines.push(

@@ -19,7 +19,7 @@ function stripQuotes(value) {
 }
 
 /**
- * Parse an env value as JSON when possible, falling back to the raw string.
+ * Parse an env value as JSON when possible. Fall back to the raw string.
  * @param {string} raw
  * @returns {*}
  */
@@ -50,14 +50,14 @@ function parseEnvLine(line) {
 }
 
 /**
- * Centralized configuration management class
+ * The class that manages configuration centrally
  */
 export class Config {
-  // Keys containing secrets or tokens. Values from .env are loaded into
-  // a private map (#envOverrides) instead of proc.env, so they never
-  // leak through child-process inheritance or proc.env inspection.
-  // Getter methods read via #env(), which checks proc.env first —
-  // so shell-exported credentials still work; .env is the fallback.
+  // Keys that contain secrets or tokens. The loader puts .env values into
+  // a private map (#envOverrides) instead of proc.env. A child process
+  // never inherits them. They never appear in proc.env.
+  // Getter methods read through #env(). #env() checks proc.env first, so
+  // shell-exported credentials still work. The .env file is the fallback.
   static #CREDENTIAL_KEYS = new Set([
     "ANTHROPIC_API_KEY",
     "GH_TOKEN",
@@ -72,7 +72,7 @@ export class Config {
     "SUPABASE_SERVICE_ROLE_KEY",
   ]);
 
-  // Cached credential values — populated on first access via getter methods
+  // Cached credential values. Getter methods populate them on first access.
   #cache = new Map();
 
   // Private store for credential values loaded from .env
@@ -92,8 +92,9 @@ export class Config {
    * Call shape:
    *   `new Config(namespace, name, defaults, { runtime }, storageFn)`
    *   where `runtime` is a runtime bag from `createDefaultRuntime()` or
-   *   `createTestRuntime()`. The runtime arg is optional — when omitted the
-   *   default production runtime is built (a composition-root convenience).
+   *   `createTestRuntime()`. The runtime arg is optional. When you omit it,
+   *   the constructor builds the default production runtime (a
+   *   composition-root convenience).
    *
    * @param {string} namespace - Namespace for the configuration
    * @param {string} name - Name of the configuration
@@ -109,8 +110,9 @@ export class Config {
     runtimeOption = undefined,
     storageFn = createStorage,
   ) {
-    // Injected `{ runtime }` (or a bare runtime bag); absent → the default
-    // production runtime (a composition-root convenience for config factories).
+    // Injected `{ runtime }` (or a bare runtime bag). When it is absent,
+    // build the default production runtime (a composition-root convenience
+    // for config factories).
     const rt = runtimeOption
       ? (runtimeOption.runtime ?? runtimeOption)
       : createDefaultRuntime();
@@ -127,13 +129,13 @@ export class Config {
   }
 
   /**
-   * Loads the configuration by loading environment and config file
+   * Loads the configuration from the environment and the config file
    * @returns {Promise<void>}
    */
   async load() {
     this.#storage = this.#storageFn("config", null, this.#runtime);
 
-    // 1. Load .env — credentials go to #envOverrides, everything else
+    // 1. Load .env. Credentials go to #envOverrides. Everything else
     //    goes to proc.env (so SERVICE_*_URL etc. are available below)
     await this.#loadEnvFile();
     // 2. Load config/config.json for file-based configuration
@@ -146,18 +148,19 @@ export class Config {
     // Merge: constructor defaults → config.json values
     const data = { ...this.defaults, ...fileData };
 
-    // Apply network defaults for service binding
+    // Apply the network defaults so the service can bind
     if (data.protocol === undefined) data.protocol = "grpc";
     if (data.host === undefined) data.host = "0.0.0.0";
     if (data.port === undefined) data.port = 3000;
     if (data.path === undefined) data.path = "";
     data.url = `${data.protocol}://${data.host}:${data.port}${data.path}`;
 
-    // 3. Environment overrides — SERVICE_{NAME}_{PARAM} env vars win over
+    // 3. Environment overrides. SERVICE_{NAME}_{PARAM} env vars win over
     //    config file values. Shell proc.env wins over .env #envOverrides.
-    //    Credential keys treat empty string as absent so a workflow ternary
-    //    emitting '' cannot clobber a .env-supplied value; non-credential
-    //    service params keep today's empty-string-wins behaviour.
+    //    Credential keys treat empty string as absent, so a workflow
+    //    ternary that emits '' cannot clobber a .env-supplied value.
+    //    Non-credential service params keep today's empty-string-wins
+    //    behaviour.
     for (const param of Object.keys(data)) {
       const varName = `${namespaceUpper}_${nameUpper}_${param.toUpperCase()}`;
       const resolved = this.#resolveOverride(varName);
@@ -260,7 +263,7 @@ export class Config {
   }
 
   /**
-   * Persists an OAuth credential (called by the login flow).
+   * Persists an OAuth credential. The login flow calls it.
    * @param {{ access_token: string, refresh_token: string, expires_at: number }} tokenData
    * @returns {Promise<void>}
    */
@@ -269,7 +272,7 @@ export class Config {
   }
 
   /**
-   * Clears the persisted OAuth credential (called by the logout flow).
+   * Clears the persisted OAuth credential. The logout flow calls it.
    * @returns {Promise<void>}
    */
   async clearOAuthCredential() {
@@ -294,7 +297,7 @@ export class Config {
   }
 
   /**
-   * Resets cached values (useful for testing)
+   * Resets cached values (useful in tests)
    * @returns {void}
    */
   reset() {
@@ -359,8 +362,9 @@ export class Config {
 
   /**
    * Resolves an environment variable. Shell environment (proc.env)
-   * always wins; .env credential values in #envOverrides are the fallback.
-   * Non-credential .env keys are already on proc.env (set by #loadEnvFile).
+   * always wins. The .env credential values in #envOverrides are the
+   * fallback. Non-credential .env keys are already on proc.env.
+   * #loadEnvFile sets them there.
    * @param {string} key - Environment variable name
    * @returns {string|undefined}
    * @private
@@ -370,10 +374,11 @@ export class Config {
   }
 
   /**
-   * Resolves a config-param override against shell env then #envOverrides,
-   * applying credential-key semantics (empty string treated as absent so a
-   * workflow ternary emitting '' cannot clobber a .env value). Returns the
-   * JSON-parsed value or raw string, or undefined if nothing is set.
+   * Resolves a config-param override against shell env, then #envOverrides.
+   * Applies credential-key semantics. For a credential key, treats an empty
+   * string as absent, so a workflow ternary that emits '' cannot clobber a
+   * .env value. Returns the JSON-parsed value or the raw string. Returns
+   * undefined when nothing is set.
    * @param {string} varName - Fully-qualified env var name
    * @returns {*|undefined}
    * @private
@@ -420,10 +425,10 @@ export class Config {
   }
 
   /**
-   * Shells out to `gh auth token` (synchronously, via the injected
+   * Shells out to `gh auth token` (synchronously, through the injected
    * `runtime.subprocess.runSync`) and caches the result under the GH_TOKEN
-   * key. The sync surface is used because `ghToken()` is a synchronous
-   * accessor called across the codebase.
+   * key. This method uses the sync surface because `ghToken()` is a
+   * synchronous accessor. Code across the codebase calls that accessor.
    * @returns {string}
    * @private
    */
@@ -457,9 +462,9 @@ export class Config {
 
   /**
    * Loads environment variables from a .env file in the working directory.
-   * Credential keys (tokens, secrets) are loaded into a private override
-   * map so they never leak onto proc.env. All other keys (SERVICE_*_URL,
-   * LLM_BASE_URL, etc.) are set directly on proc.env when not already
+   * Puts credential keys (tokens, secrets) into a private override map, so
+   * they never leak onto proc.env. Sets all other keys (SERVICE_*_URL,
+   * LLM_BASE_URL, etc.) directly on proc.env when they are not already
    * present.
    * @returns {Promise<void>}
    * @private
@@ -473,7 +478,7 @@ export class Config {
         if (parsed) this.#applyEnvEntry(parsed.key, parsed.value);
       }
     } catch (error) {
-      // Missing .env is normal (not yet initialized); any other
+      // An absent .env is normal (not yet initialized). Any other
       // filesystem error is a real problem.
       if (error?.code !== "ENOENT") throw error;
     }
@@ -481,24 +486,25 @@ export class Config {
 
   #applyEnvEntry(key, value) {
     if (Config.#CREDENTIAL_KEYS.has(key)) {
-      // Credentials → private map. #env() reads them without
-      // exposing them on proc.env. Shell env still wins at
+      // Credentials → private map. #env() reads them and never
+      // exposes them on proc.env. Shell env still wins at
       // read time because #env() checks proc.env first.
       this.#envOverrides[key] = value;
     } else {
       // Non-credentials → proc.env unconditionally. The .env file
       // is the persistent source of truth for SERVICE_* URLs and other
       // runtime config. Supervised processes (svscan children) inherit
-      // their parent's proc.env, so a stale inherited value is
-      // indistinguishable from an explicit shell export — always
-      // applying the .env value ensures that editing .env and
-      // restarting the service picks up the change.
+      // their parent's proc.env, so a stale inherited value looks the
+      // same as an explicit shell export. This code always applies the
+      // .env value. That makes sure the service picks up the change
+      // after you edit .env and restart the service.
       this.#proc.env[key] = value;
     }
   }
 
   /**
-   * Loads configuration data from config.json file using storage abstraction
+   * Loads configuration data from the config.json file through the storage
+   * abstraction
    * @returns {Promise<void>}
    * @private
    */

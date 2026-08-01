@@ -3,10 +3,11 @@
  *
  * Generates a static site from the Engineering Pathway data.
  * Copies all necessary files (HTML, JS, CSS) and data to an output directory.
- * Optionally delegates to build-bundle and build-packs to produce the
- * distribution surfaces (bundle.tar.gz + install.sh for the curl|bash flow,
- * and agent/skill packs for ecosystem tools like `npx skills` and APM) when
- * `standard.distribution.siteUrl` is configured.
+ * Delegates to build-bundle and build-packs when
+ * `standard.distribution.siteUrl` has a value. Those two produce the
+ * distribution surfaces. The surfaces are bundle.tar.gz and install.sh for
+ * the curl|bash flow. They also include agent/skill packs for ecosystem
+ * tools like `npx skills` and APM.
  */
 
 import { join, dirname, relative, resolve } from "path";
@@ -23,15 +24,15 @@ const __dirname = dirname(__filename);
 const appDir = join(__dirname, "..");
 
 /**
- * Resolve package directory using Node's module resolution.
+ * Resolve the package directory with Node's module resolution.
  * Works in both monorepo (development) and installed (production) contexts.
  * @param {string} packageName - Package specifier (e.g., '@forwardimpact/map')
  * @returns {string} Absolute path to package lib directory
  */
 function resolvePackageLib(packageName) {
-  // Top-level `import.meta.resolve(...)` runs at module load and fails inside
-  // a `bun build --compile` bunfs root (no node_modules tree) — even on
-  // `--help`, because `bin/fit-pathway.js` statically imports this module.
+  // Top-level `import.meta.resolve(...)` runs at module load. It fails inside
+  // a `bun build --compile` bunfs root (no node_modules tree). It fails even
+  // on `--help`, because `bin/fit-pathway.js` statically imports this module.
   // Call this lazily from the command handler that needs it.
   const mainUrl = import.meta.resolve(packageName);
   return dirname(fileURLToPath(mainUrl));
@@ -110,7 +111,7 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
       logger.info(`🗑️  Cleaning ${outputDir}...`);
       await runtime.fs.rm(outputDir, { recursive: true });
     } catch {
-      // Directory doesn't exist, nothing to clean
+      // The directory does not exist. There is nothing to clean.
     }
   }
 
@@ -130,7 +131,7 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
   await copyAssets(join(appDir, ".."), ROOT_ASSETS, outputDir, runtime);
 
   // Copy @forwardimpact/map and @forwardimpact/libskill packages
-  // These are needed by the browser's import map
+  // The browser's import map needs these
   logger.info("📚 Copying package dependencies...");
   const mapLibDir = resolvePackageLib("@forwardimpact/map");
   const modelLibDir = resolvePackageLib("@forwardimpact/libskill");
@@ -145,14 +146,15 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
   logger.info(`   ✓ model/lib`);
   // Copy libui JS (src/) and CSS (src/css/)
   await runtime.fs.cp(uiLibDir, join(outputDir, "ui/lib"), { recursive: true });
-  // CSS is within uiLibDir/css/ so it's already copied as ui/lib/css/
+  // uiLibDir/css/ sits inside uiLibDir. The copy above already made
+  // ui/lib/css/.
   // Create ui/css/ symlink-like copy for the CSS @import paths
   await runtime.fs.cp(join(uiLibDir, "css"), join(outputDir, "ui/css"), {
     recursive: true,
   });
   logger.info(`   ✓ ui/lib + ui/css`);
 
-  // Copy vendor dependencies for offline usage
+  // Copy vendor dependencies for offline use
   logger.info("📦 Copying vendor dependencies...");
   const vendorDir = join(outputDir, "vendor");
   await runtime.fs.mkdir(vendorDir, { recursive: true });
@@ -163,8 +165,9 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
   await runtime.fs.cp(mustacheMjs, join(vendorDir, "mustache.mjs"));
   logger.info("   ✓ vendor/mustache.mjs");
 
-  // yaml (browser ESM build — not in package exports, resolve via filesystem)
-  // import.meta.resolve("yaml") → .../yaml/dist/index.js, go up two levels
+  // yaml (browser ESM build). The package exports omit it. Resolve it
+  // through the filesystem.
+  // import.meta.resolve("yaml") → .../yaml/dist/index.js. Go up two levels.
   const yamlPkg = dirname(dirname(fileURLToPath(import.meta.resolve("yaml"))));
   const yamlBrowserDist = join(yamlPkg, "browser", "dist");
   await runtime.fs.cp(yamlBrowserDist, join(vendorDir, "yaml"), {
@@ -200,7 +203,7 @@ ${standard.emojiIcon} Generating ${standard.title} static site...
   );
   logger.info(`   ✓ version.json (${version})`);
 
-  // Generate distribution surfaces if siteUrl is configured
+  // Generate the distribution surfaces if siteUrl has a value
   const siteUrl = options.url || standard.distribution?.siteUrl;
   if (siteUrl) {
     const templatesDir = join(appDir, "..", "templates");

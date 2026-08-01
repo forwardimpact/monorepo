@@ -19,7 +19,7 @@ column names (verified on macOS Sonoma+).
 | `organizer_id`   | INTEGER | FK → Identity.ROWID                                        |
 | `calendar_id`    | INTEGER | FK → Calendar.ROWID                                        |
 | `has_attendees`  | INTEGER | 1 = event has attendees                                    |
-| `conference_url` | TEXT    | Video call URL (often null — check description too)        |
+| `conference_url` | TEXT    | Video call URL (often null). Check description too         |
 | `entity_type`    | INTEGER | 2 = calendar event                                         |
 
 ## Identity (organizer info)
@@ -28,12 +28,12 @@ column names (verified on macOS Sonoma+).
 | -------------- | ---- | ------------------------------------------------------------- |
 | `display_name` | TEXT | Full name (e.g., `"Chen, Sarah"`)                             |
 | `address`      | TEXT | Email with `mailto:` prefix (e.g., `"mailto:sarah@acme.com"`) |
-| `first_name`   | TEXT | Usually null — `display_name` is the reliable field           |
-| `last_name`    | TEXT | Usually null — `display_name` is the reliable field           |
+| `first_name`   | TEXT | Usually null. `display_name` is the reliable field            |
+| `last_name`    | TEXT | Usually null. `display_name` is the reliable field            |
 
 **IMPORTANT:** Identity does NOT have an `email` column. Use `address` and strip
-the `mailto:` prefix. Use `display_name` for the name (not
-`first_name`/`last_name`, which are typically null).
+the `mailto:` prefix. Use `display_name` for the name. Do not use `first_name`
+or `last_name`. They are typically null.
 
 ## Participant (attendees and organizer)
 
@@ -49,8 +49,8 @@ the `mailto:` prefix. Use `display_name` for the name (not
 | `is_self`     | INTEGER | 1 = this is the calendar owner                     |
 
 **IMPORTANT:** Participant does NOT have `display_name`, `first_name`, or
-`last_name` columns. To get the attendee's name, JOIN with Identity via
-`identity_id`. There is NO `Attendee` table — only use `Participant`.
+`last_name` columns. To get the attendee's name, JOIN with Identity through
+`identity_id`. There is NO `Attendee` table. Use `Participant` only.
 
 ### EKParticipantStatus mapping
 

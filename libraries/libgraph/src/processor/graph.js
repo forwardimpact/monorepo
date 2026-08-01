@@ -5,7 +5,8 @@ import { OntologyProcessor } from "./ontology.js";
 import { ShaclSerializer } from "../serializer.js";
 
 /**
- * GraphProcessor class for processing resources with N-Quads into graph index
+ * The GraphProcessor class processes resources with N-Quads into the graph
+ * index
  * @augments {ProcessorBase}
  */
 export class GraphProcessor extends ProcessorBase {
@@ -43,7 +44,7 @@ export class GraphProcessor extends ProcessorBase {
       return;
     }
 
-    // Try to parse RDF content, skip if it fails
+    // Try to parse the RDF content. Skip the item if the parse fails
     let quads;
     try {
       quads = this.#rdfToQuads(item.resource.content);
@@ -60,11 +61,12 @@ export class GraphProcessor extends ProcessorBase {
       return;
     }
 
-    // CRITICAL: Sort quads to ensure rdf:type assertions are processed before
-    // property triples. OntologyProcessor's inverse relationship detection
-    // requires type information to be available when processing object properties.
-    // This is defensive - ResourceProcessor should already provide canonical
-    // ordering, but we enforce it here for robustness against other quad sources.
+    // CRITICAL: Sort the quads to make sure rdf:type assertions come before
+    // property triples. OntologyProcessor detects inverse relationships. It
+    // needs the type information when it processes object properties. This
+    // step is defensive. ResourceProcessor should already provide a
+    // canonical order. We enforce the order here to stay robust against
+    // other quad sources.
     // See: SCRATCHPAD.md "RDF Quad Ordering for Reliable Processing"
     quads.sort((a, b) => {
       const aIsType = this.#isTypePredicate(a.predicate.value);
@@ -75,7 +77,7 @@ export class GraphProcessor extends ProcessorBase {
     });
 
     // Add quads to the graph index
-    // Token count is already on identifier from withIdentifier()
+    // The token count is already on the identifier from withIdentifier()
     if (!item.identifier.tokens) {
       throw new Error(`Resource missing tokens: ${String(item.identifier)}`);
     }
@@ -86,7 +88,7 @@ export class GraphProcessor extends ProcessorBase {
   /**
    * Check if a predicate is rdf:type
    * @param {string} predicate - Predicate IRI
-   * @returns {boolean} True if predicate is rdf:type
+   * @returns {boolean} True if the predicate is rdf:type
    * @private
    */
   #isTypePredicate(predicate) {
@@ -94,7 +96,7 @@ export class GraphProcessor extends ProcessorBase {
   }
 
   /**
-   * Parse RDF string into RDF quads
+   * Parse an RDF string into RDF quads
    * @param {string} rdf - RDF string
    * @returns {Array} Array of RDF quads
    * @private
@@ -105,7 +107,7 @@ export class GraphProcessor extends ProcessorBase {
   }
 
   /**
-   * Saves the ontology to storage for agent consumption
+   * Saves the ontology to storage so agents can consume it
    * @returns {Promise<void>}
    */
   async saveOntology() {
@@ -135,10 +137,11 @@ export class GraphProcessor extends ProcessorBase {
       );
     });
 
-    // 3. Load the full resources using the identifiers
+    // 3. Load the full resources with the identifiers
     const resources = await this.#resourceIndex.get(filteredIdentifiers, actor);
 
-    // 4. Pre-filter resource contents that already exist in the target graph index
+    // 4. Pre-filter the resource contents that already exist in the target
+    //    graph index
     const existing = new Set();
     const checks = await Promise.all(
       resources.map(async (resource) => ({
@@ -150,7 +153,7 @@ export class GraphProcessor extends ProcessorBase {
       .filter((check) => check.exists)
       .forEach((check) => existing.add(check.id));
 
-    // Filter resources to only those that need processing
+    // Keep only the resources that the processor must handle
     const resourcesToProcess = [];
     for (const resource of resources) {
       // Only process resources with content
@@ -160,7 +163,7 @@ export class GraphProcessor extends ProcessorBase {
 
       // Skip if already exists
       if (existing.has(String(resource.id))) {
-        continue; // Skip existing resources
+        continue; // Skip resources that already exist
       }
 
       resourcesToProcess.push({
@@ -169,13 +172,14 @@ export class GraphProcessor extends ProcessorBase {
       });
     }
 
-    // 5. Use ProcessorBase to handle the batch processing
+    // 5. Use ProcessorBase to process the batch
     await super.process(resourcesToProcess);
 
-    // 6. Rebuild ontology from ALL quads in graph index, not just newly
-    //    processed ones. Without this, re-runs skip existing resources via the
-    //    dedup filter, leaving the ontology processor empty and overwriting
-    //    ontology.ttl with an empty file.
+    // 6. Rebuild the ontology from ALL quads in the graph index. Do not use
+    //    only the quads this run processed. Without this step, the dedup
+    //    filter makes re-runs skip resources that already exist. The
+    //    ontology processor then stays empty and overwrites ontology.ttl
+    //    with an empty file.
     this.#ontologyProcessor = new OntologyProcessor();
     const allQuads = await this.#targetIndex.getAllQuads();
     allQuads.sort((a, b) => {
@@ -189,7 +193,7 @@ export class GraphProcessor extends ProcessorBase {
       this.#ontologyProcessor.process(quad);
     }
 
-    // 7. Save the ontology after processing all items
+    // 7. Save the ontology after the processor handles all items
     await this.saveOntology();
   }
 }

@@ -1,19 +1,19 @@
 /**
- * Cross-file fixture caching helpers. The test runner currently executes one
- * test file per process, but fixtures loaded inside a file (e.g. starter
- * standard YAML via `createDataLoader(runtime).loadAllData(dir)`) are re-parsed for
- * every `test(...)` case unless hoisted.
+ * Helpers that cache fixtures across files. The test runner currently executes
+ * one test file per process. But each `test(...)` case re-parses the fixtures
+ * that a file loads inline, unless you hoist them. One example is the starter
+ * standard YAML from `createDataLoader(runtime).loadAllData(dir)`.
  */
 
 const caches = new WeakMap();
 const stringCaches = new Map();
 
 /**
- * Wraps an async factory so it is invoked at most once per unique key.
+ * Wraps an async factory. Calls the factory at most once per unique key.
  *
  * @template T
- * @param {string} key - Cache key. Using the same key returns the cached value.
- * @param {() => Promise<T>} factory - Factory invoked on miss.
+ * @param {string} key - Cache key. The same key returns the cached value.
+ * @param {() => Promise<T>} factory - Factory to call on a cache miss.
  * @returns {Promise<T>}
  */
 export async function memoizeAsync(key, factory) {
@@ -29,8 +29,8 @@ export async function memoizeAsync(key, factory) {
 }
 
 /**
- * Caches the result of `fn(subject)` keyed by identity of `subject`. Useful
- * for expensive derivations over a frozen input object.
+ * Caches the result of `fn(subject)`. The identity of `subject` is the key.
+ * Use it for expensive derivations over a frozen input object.
  *
  * @template S, T
  * @param {S} subject
@@ -43,7 +43,7 @@ export function memoizeOnSubject(subject, fn) {
 }
 
 /**
- * Clears all memoization caches. Only useful in self-tests of this helper.
+ * Clears all memoization caches. Use it only in self-tests of this helper.
  */
 export function __resetMemoCaches() {
   stringCaches.clear();

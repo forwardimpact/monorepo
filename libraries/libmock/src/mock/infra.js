@@ -1,13 +1,14 @@
 /**
- * Additional infrastructure mocks for services/products tests. Centralizes
- * variants that consumers previously inlined.
+ * Additional infrastructure mocks for services/products tests. This module
+ * centralizes variants that consumers previously inlined.
  */
 import { Writable } from "node:stream";
 
 /**
- * A capturing `Writable` used as the mock `proc.stdout`/`stderr`. It retains
- * the `chunks` accessor existing assertions read AND is a real `Writable`, so
- * it accepts piped input (e.g. a `pipeline()` from a read stream).
+ * A `Writable` that captures output. The mock uses it as
+ * `proc.stdout`/`stderr`. It retains the `chunks` accessor that current
+ * assertions read. It is also a real `Writable`, so it accepts piped input
+ * (e.g. a `pipeline()` from a read stream).
  */
 class CaptureWritable extends Writable {
   constructor() {
@@ -28,15 +29,15 @@ class CaptureWritable extends Writable {
 
 /**
  * Creates a mock Supabase-style client with configurable table and storage
- * behaviour. Covers the patterns found across products/map/test/activity/*.
+ * behaviour. It covers the patterns across products/map/test/activity/*.
  *
  * @param {object} [options]
  * @param {Record<string, object>} [options.tables] - Map of table name to
  *   override. Each override may expose `select`, `insert`, `upsert`, `delete`
  *   as async functions. Unspecified methods return `{ data: [], error: null }`.
- * @param {Record<string, string>} [options.files] - Files exposed via
+ * @param {Record<string, string>} [options.files] - Files exposed through
  *   `storage.from(...).list(prefix)` / `.download(path)`.
- * @returns {object} Mock client and call-tracking arrays.
+ * @returns {object} Mock client and arrays that track calls.
  */
 export function createMockSupabaseClient({ tables = {}, files = {} } = {}) {
   const calls = {
@@ -115,8 +116,8 @@ export function createMockSupabaseClient({ tables = {}, files = {} } = {}) {
 }
 
 /**
- * Creates Turtle parsing helpers bound to an injected n3 Parser. Keeps
- * libmock free of an n3 dependency while allowing services to share the
+ * Creates helpers that parse Turtle with an injected n3 Parser. This keeps
+ * libmock free of an n3 dependency. Services can still share the
  * parseQuads / findAll / findOne idiom.
  *
  * @param {import("n3").Parser | Function} ParserOrInstance - n3 Parser class
@@ -156,8 +157,8 @@ export function createTurtleHelpers(
 }
 
 /**
- * Build an `AsyncIterable<string>` over a fixed list of input chunks, used as
- * the mock `proc.stdin`.
+ * Build an `AsyncIterable<string>` over a fixed list of input chunks. The
+ * mock uses it as `proc.stdin`.
  * @param {string[]} chunks - Lines/chunks the iterator yields in order.
  * @returns {AsyncIterable<string>}
  */
@@ -170,13 +171,14 @@ export function createMockStdin(chunks = []) {
 }
 
 /**
- * Creates a mock `process`-like object matching the `Runtime.proc` surface:
- * `cwd()`, `env`, `argv`, `stdin`, `stdout`/`stderr` (capturing `Writable`s),
- * `exit(code)`, `kill(pid, signal)`, `pid`, `platform`, `on(event, handler)`,
- * and a settable `exitCode`. Writes are captured on `stdout.chunks` /
- * `stderr.chunks` (and the streams accept piped input); kill calls on `kills`;
- * event handlers on `handlers` (fire them via `emit(event, ...args)` to
- * simulate a signal).
+ * Creates a mock `process`-like object that matches the `Runtime.proc`
+ * surface: `cwd()`, `env`, `argv`, `stdin`, `stdout`/`stderr` (`Writable`s
+ * that capture output), `exit(code)`, `kill(pid, signal)`, `pid`,
+ * `platform`, `on(event, handler)`, and a settable `exitCode`. The mock
+ * captures writes on `stdout.chunks` / `stderr.chunks`, and the streams
+ * accept piped input. It records kill calls on `kills`. It records event
+ * handlers on `handlers`. Fire them with `emit(event, ...args)` to simulate
+ * a signal.
  *
  * @param {object} [options]
  * @param {Record<string, string>} [options.env] - Initial env map.
@@ -184,11 +186,12 @@ export function createMockStdin(chunks = []) {
  * @param {string[]} [options.argv] - The frozen `argv` array.
  * @param {string[]} [options.stdin] - Chunks the `stdin` iterator yields.
  * @param {(pid: number, signal: string|number) => any} [options.kill] - Optional
- *   `kill` implementation (e.g. to model a liveness probe); calls are always
- *   recorded on the returned `kills` array regardless.
+ *   `kill` implementation (e.g. to model a liveness probe). The mock always
+ *   records calls on the returned `kills` array regardless.
  * @param {number} [options.pid] - The fake's `pid` (default 1234).
  * @param {string} [options.platform] - The fake's `platform` string
- *   (default `"linux"`; set `"darwin"`/`"win32"` to exercise per-platform code).
+ *   (default `"linux"`). Set `"darwin"`/`"win32"` to exercise per-platform
+ *   code.
  * @returns {object}
  */
 export function createMockProcess({
@@ -203,8 +206,8 @@ export function createMockProcess({
   const stdout = new CaptureWritable();
   const stderr = new CaptureWritable();
   const kills = [];
-  // Registered event handlers (e.g. "SIGTERM"/"SIGINT"); a test can fire them
-  // via `emit(event, ...args)` to simulate a signal without a real process.
+  // Registered event handlers (e.g. "SIGTERM"/"SIGINT"). A test can fire them
+  // with `emit(event, ...args)` to simulate a signal without a real process.
   const handlers = {};
   return {
     env: { ...env },
@@ -235,8 +238,8 @@ export function createMockProcess({
 }
 
 /**
- * Runs `fn` with `console.log`, `console.info`, and `console.warn` suppressed,
- * returning whatever `fn` returns. Errors still propagate.
+ * Runs `fn` and suppresses `console.log`, `console.info`, and `console.warn`.
+ * It returns whatever `fn` returns. Errors still propagate.
  *
  * @template T
  * @param {() => T | Promise<T>} fn
@@ -262,8 +265,9 @@ export async function withSilentConsole(fn) {
 
 /**
  * Creates a bag of async query stubs from a plain values object. A function
- * value is passed through untouched; anything else becomes an async function
- * returning that value. Collapses landmark-style `stubQueries` boilerplate.
+ * value passes through untouched. Anything else becomes an async function
+ * that returns that value. This collapses landmark-style `stubQueries`
+ * boilerplate.
  *
  * @param {Record<string, unknown>} values
  * @returns {Record<string, Function>}

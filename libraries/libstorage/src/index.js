@@ -12,15 +12,15 @@ import { SupabaseStorage } from "./supabase.js";
 
 /**
  * @typedef {object} StorageInterface
- * @property {function(string, string|Buffer|object): Promise<void>} put - Store data with the given key. On the local backend this is a same-target atomic file-replace (write-tmp + rename) — a process termination at any point during the call leaves the target at either its prior content or the new content, never an intermediate prefix. The `S3Storage` and `SupabaseStorage` backends inherit the same shape from their service `PutObject` semantics.
+ * @property {function(string, string|Buffer|object): Promise<void>} put - Store data with the given key. On the local backend this is a same-target atomic file-replace (write-tmp + rename). If the process stops at any point during the call, the target keeps either its prior content or the new content. The target never keeps an intermediate prefix. The `S3Storage` and `SupabaseStorage` backends inherit the same shape from their service `PutObject` semantics.
  * @property {function(string): Promise<any>} get - Retrieve data by key
  * @property {function(string): Promise<void>} delete - Remove data by key
- * @property {function(string): Promise<boolean>} exists - Check if key exists
+ * @property {function(string): Promise<boolean>} exists - Check if the key exists
  * @property {function(string, string|Buffer): Promise<void>} append - Append data to an existing key
  * @property {function(string[]): Promise<object>} getMany - Retrieve multiple items by their keys
  * @property {function(): Promise<string[]>} list - Lists all keys in storage
- * @property {function(string, string=): Promise<string[]>} findByPrefix - Find keys with specified prefix, optionally grouped by delimiter
- * @property {function(string): Promise<string[]>} findByExtension - Find keys with specified extension
+ * @property {function(string, string=): Promise<string[]>} findByPrefix - Find keys with the specified prefix. An optional delimiter groups them
+ * @property {function(string): Promise<string[]>} findByExtension - Find keys with the specified extension
  * @property {function(string=): string} path - Gets the full path for a storage key
  */
 
@@ -52,7 +52,7 @@ export function fromJson(content) {
 }
 
 /**
- * Convert array of objects to JSON Lines (JSONL) format
+ * Convert an array of objects to JSON Lines (JSONL) format
  * @param {object[]} data - Array of objects to convert to JSONL
  * @returns {string} JSONL formatted string
  */
@@ -73,20 +73,20 @@ export function toJson(data) {
 }
 
 /**
- * Check if key represents a JSON Lines file and data is an array
+ * Check if the key represents a JSON Lines file and the data is an array
  * @param {string} key - Storage key identifier
  * @param {*} data - Data to check
- * @returns {boolean} True if this should be serialized as JSONL
+ * @returns {boolean} True if the caller should serialize this as JSONL
  */
 export function isJsonLines(key, data) {
   return key.endsWith(".jsonl") && Array.isArray(data);
 }
 
 /**
- * Check if key represents a JSON file and data is an object
+ * Check if the key represents a JSON file and the data is an object
  * @param {string} key - Storage key identifier
  * @param {*} data - Data to check
- * @returns {boolean} True if this should be serialized as JSON
+ * @returns {boolean} True if the caller should serialize this as JSON
  */
 export function isJson(key, data) {
   return (
@@ -103,7 +103,7 @@ export function isJson(key, data) {
  * @param {object} runtime - Runtime collaborator bag
  * @param {string|null} rootDir - Explicit root directory (highest priority)
  * @returns {LocalStorage} Local storage instance
- * @throws {Error} When bucket directory cannot be found
+ * @throws {Error} When the factory cannot find the bucket directory
  */
 function _createLocalStorage(prefix, runtime, rootDir = null) {
   const { fs, proc } = runtime;
@@ -130,12 +130,12 @@ function _createLocalStorage(prefix, runtime, rootDir = null) {
     return new LocalStorage(join(proc.env.STORAGE_ROOT, relative), fs);
   }
 
-  // 3. Filesystem discovery (fallback) via the injected finder collaborator,
+  // 3. Filesystem discovery (fallback) with the injected finder collaborator,
   //    so the runtime's fs flows through path discovery.
   const root = proc.cwd();
   const basePath = runtime.finder.findUpward(root, relative);
 
-  // Use discovered path, or fall back to CWD-relative path.
+  // Use the discovered path, or fall back to the CWD-relative path.
   // Callers use ensureBucket() to create the directory if it doesn't exist yet.
   return new LocalStorage(basePath || join(root, relative), fs);
 }
@@ -168,14 +168,15 @@ function _createS3Storage(prefix, runtime) {
       secretAccessKey: proc.env.AWS_SECRET_ACCESS_KEY,
     };
   }
-  // If no explicit credentials are provided, use default credential chain
+  // Without explicit credentials, use the default credential chain
 
   // Optional custom endpoint for S3-compatible services (AWS SDK standard variable)
   if (proc.env.AWS_ENDPOINT_URL) config.endpoint = proc.env.AWS_ENDPOINT_URL;
 
   const client = new S3Client(config);
 
-  // Get bucket name from environment, use the factory parameter as prefix
+  // Get the bucket name from the environment.
+  // Use the factory parameter as the prefix.
   const bucketName = proc.env.S3_BUCKET_NAME || "guide";
   return new S3Storage(prefix, bucketName, client);
 }
@@ -191,8 +192,8 @@ function _createSupabaseStorage(prefix, runtime) {
   const { proc } = runtime;
   const endpoint = proc.env.AWS_ENDPOINT_URL;
   const storageUrl = endpoint?.replace(/\/s3$/, "");
-  // libconfig depends on libstorage; threading Config here would create a
-  // runtime cycle. Allow-listed in
+  // libconfig depends on libstorage. If you thread Config here, you create a
+  // runtime cycle. This access is on the allow-list in
   // libraries/libconfig/test/no-supabase-env-in-src.test.js.
   const serviceRoleKey = proc.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -228,26 +229,26 @@ function _createSupabaseStorage(prefix, runtime) {
  * Creates a storage instance based on configuration.
  *
  * Resolution order for local storage paths:
- * 1. Explicit rootDir parameter (for dependency injection and testing)
+ * 1. Explicit rootDir parameter (for dependency injection and tests)
  * 2. STORAGE_ROOT environment variable (for deployment configuration)
- * 3. Filesystem discovery via Finder.findUpward (fallback)
+ * 3. Filesystem discovery with Finder.findUpward (fallback)
  *
  * @param {string} prefix - Prefix for the storage operations (for S3) or bucket/directory name (for local)
  * @param {string} [type] - Storage type ("local", "s3", or "supabase")
  * @param {import("@forwardimpact/libutil/runtime").Runtime|null} [runtime] - Runtime
- *   bag `{ fs, proc, … }`. When omitted — a composition-root convenience — the
- *   default production runtime is constructed automatically.
+ *   bag `{ fs, proc, … }`. When you omit it, this factory builds the default
+ *   production runtime automatically. This is a composition-root convenience.
  * @param {string|null} [rootDir] - Explicit root directory for local storage
  * @returns {object} Storage instance
- * @throws {Error} When unsupported storage type is provided
+ * @throws {Error} When the caller provides an unsupported storage type
  */
 export function createStorage(prefix, type, runtime = null, rootDir = null) {
-  // Consumers inject a runtime bag; when absent the default production runtime
-  // is built here (createStorage is a composition-root factory).
+  // Consumers inject a runtime bag. Without it, this function builds the
+  // default production runtime (createStorage is a composition-root factory).
   const rt = runtime ?? createDefaultRuntime();
 
   // Always use local storage for config and generated directories
-  // These are part of the codebase and should never be stored in S3
+  // These are part of the codebase. Never store them in S3.
   if (prefix === "config" || prefix === "generated") {
     return _createLocalStorage(prefix, rt, rootDir);
   }

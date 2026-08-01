@@ -74,14 +74,14 @@ describe("libmock", () => {
     logger.info("app", "message");
   });
 
-  test("createMockStorage JSON parsing", async () => {
+  test("createMockStorage parses JSON", async () => {
     const storage = createMockStorage();
     await storage.put("test.json", JSON.stringify({ foo: "bar" }));
     const result = await storage.get("test.json");
     assert.deepStrictEqual(result, { foo: "bar" });
   });
 
-  test("createMockStorage JSONL parsing", async () => {
+  test("createMockStorage parses JSONL", async () => {
     const storage = createMockStorage();
     const lines = ['{"a":1}', '{"b":2}'].join("\n");
     await storage.put("test.jsonl", lines);
@@ -105,7 +105,7 @@ describe("libmock", () => {
       assert.strictEqual(content, "hello");
     });
 
-    test("readFile throws ENOENT for missing file", async () => {
+    test("readFile throws ENOENT for a file that does not exist", async () => {
       const fs = createMockFs({});
       await assert.rejects(() => fs.readFile("/missing.txt"), {
         code: "ENOENT",
@@ -145,7 +145,7 @@ describe("libmock", () => {
       assert.strictEqual(content, "data");
     });
 
-    test("existsSync returns true for existing files", () => {
+    test("existsSync returns true for files that exist", () => {
       const fs = createMockFs({ "/file.txt": "content" });
       assert.strictEqual(fs.existsSync("/file.txt"), true);
       assert.strictEqual(fs.existsSync("/missing.txt"), false);
@@ -157,7 +157,7 @@ describe("libmock", () => {
       assert.strictEqual(content, "hello");
     });
 
-    test("readFileSync throws ENOENT for missing file", () => {
+    test("readFileSync throws ENOENT for a file that does not exist", () => {
       const fs = createMockFs({});
       assert.throws(() => fs.readFileSync("/missing.txt"), { code: "ENOENT" });
     });

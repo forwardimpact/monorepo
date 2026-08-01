@@ -154,7 +154,7 @@ describe("ghuser Complete — origin check + ticket mint", () => {
     }
   });
 
-  test("HMAC secret rotation: minting with secret A, verifying with secret B fails as bad_signature", async () => {
+  test("HMAC secret rotation: secret B rejects a ticket minted with secret A as bad_signature", async () => {
     const storage = createMockStorage();
     const { service, clock } = build(storage, { ticketSecret: "secret-A" });
 

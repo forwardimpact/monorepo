@@ -1,13 +1,13 @@
 /**
- * Agent builder install section
+ * Install section for the agent builder
  *
- * Surfaces the ecosystem-tool install commands (direct download, Microsoft APM,
- * and `npx skills`) for the currently selected discipline/track
- * pack. The packs themselves are emitted by `fit-pathway build` when
- * `standard.distribution.siteUrl` is configured — see specs 0520 and 0700, and
- * `products/pathway/src/commands/build-packs.js`. The pack name derivation
- * here must stay in sync with that generator so the command points at an
- * artifact that actually exists on the deployed site.
+ * This module surfaces the ecosystem-tool install commands (direct download,
+ * Microsoft APM, and `npx skills`) for the currently selected
+ * discipline/track pack. `fit-pathway build` emits the packs when you
+ * configure `standard.distribution.siteUrl`. See specs 0520 and 0700, and
+ * `products/pathway/src/commands/build-packs.js`. This module derives the
+ * pack name. It must derive the name the same way as that generator, so the
+ * command points at an artifact that exists on the deployed site.
  */
 
 import { code, div, h2, p, section } from "../lib/render.js";
@@ -29,9 +29,9 @@ export function getPackName(discipline, track) {
 }
 
 /**
- * Normalize a site URL by stripping a trailing slash. Matches the
- * normalization applied by `generatePacks` so the displayed URL lines up
- * with the manifest entries.
+ * Normalize a site URL. Remove the trailing slash. This matches what
+ * `generatePacks` does. The displayed URL then lines up with the manifest
+ * entries.
  * @param {string} siteUrl
  * @returns {string}
  */
@@ -40,7 +40,7 @@ function normalizeSiteUrl(siteUrl) {
 }
 
 /**
- * Build the `curl | tar` command for direct raw pack extraction.
+ * Build the `curl | tar` command that extracts a raw pack directly.
  * @param {string} siteUrl
  * @param {string} packName
  * @returns {string}
@@ -83,9 +83,10 @@ export function getSkillsCommand(siteUrl, packName) {
 }
 
 /**
- * Render the install section for the selected agent combination. Returns
- * `null` when no site URL is configured (no packs have been published, so
- * there is nothing meaningful to install) so the caller can skip rendering.
+ * Render the install section for the selected agent combination. This
+ * returns `null` when you do not configure a site URL. No packs exist in
+ * that case, so there is nothing meaningful to install. The caller can then
+ * skip this section.
  * @param {Object} params
  * @param {{id: string}} params.discipline - Selected human discipline
  * @param {{id: string}} params.track - Selected human track
@@ -110,7 +111,7 @@ export function createInstallSection({ discipline, track, siteUrl }) {
         "Install the pre-built pack for this discipline × track combination " +
           "directly through an ecosystem package manager. The pack contains " +
           "the same agent profile, skills, team instructions, and Claude Code " +
-          "settings shown below — installed into your project's ",
+          "settings shown below. The pack installs into your project's ",
         code({}, ".claude/"),
         " directory.",
       ),
@@ -132,7 +133,7 @@ export function createInstallSection({ discipline, track, siteUrl }) {
         createCommandPrompt(getApmInstallCommand(siteUrl, packName)),
         p(
           { className: "text-muted agent-install-note" },
-          "Recommended for APM users. Installs skills, agents, and team instructions via native git resolution.",
+          "Recommended for APM users. Installs skills, agents, and team instructions through native git resolution.",
         ),
       ),
       div(

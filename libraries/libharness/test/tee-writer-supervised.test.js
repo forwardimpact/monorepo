@@ -56,7 +56,7 @@ describe("TeeWriter — supervised mode", () => {
     const plain = stripAnsi(textData);
     assert.ok(plain.includes("agent: Working on it"));
     assert.ok(plain.includes("supervisor: Looks good"));
-    // Color bytes present — the raw textData has ESC sequences.
+    // Color bytes are present. The raw textData has ESC sequences.
     assert.ok(textData.includes("\u001b["), "expected ANSI escapes");
   });
 
@@ -70,8 +70,8 @@ describe("TeeWriter — supervised mode", () => {
     });
 
     const events = [
-      // SDK reports its per-runner subtype="success" (the runner exited
-      // cleanly), but the supervisor's verdict is "failure".
+      // The SDK reports its per-runner subtype="success". The runner exited
+      // cleanly. But the supervisor's verdict is "failure".
       JSON.stringify({
         source: "supervisor",
         seq: 1,
@@ -126,11 +126,11 @@ describe("TeeWriter — supervised mode", () => {
     const fileData = collect(fileStream);
     const textData = collect(textStream);
 
-    // Every suppressed event stays in the fileStream — the NDJSON
+    // Every suppressed event stays in the fileStream. The NDJSON
     // artifact is unchanged.
     assert.strictEqual(fileData.trim().split("\n").length, suppressed.length);
 
-    // None of them render to textStream, and the old footer is gone.
+    // None of them render to textStream. The old footer is gone.
     assert.strictEqual(stripAnsi(textData).trim(), "");
     assert.ok(!textData.includes("--- Evaluation"));
   });
@@ -161,13 +161,13 @@ describe("TeeWriter — supervised mode", () => {
     await writeLines(writer, events);
 
     const textData = collect(textStream);
-    // Prefix sits OUTSIDE the color escape so grep/color-stripped views
+    // The prefix sits OUTSIDE the color escape so grep/color-stripped views
     // still see it.
     // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI SGR detection is the assertion.
     assert.match(textData, /^staff-engineer: \u001b\[/);
   });
 
-  test("suppresses success Result lines, renders Error lines in red", async () => {
+  test("suppresses success Result lines and renders Error lines in red", async () => {
     const fileStream = new PassThrough();
     const textStream = new PassThrough();
     const writer = new TeeWriter({
@@ -261,9 +261,9 @@ describe("TeeWriter — supervised mode", () => {
     assert.ok(plain.includes("Read: /nope"));
     assert.ok(plain.includes("Error: ENOENT: no such file"));
 
-    // No per-tool-call success preview line: nothing should start with
-    // `Result:` (the trailing `--- Result: <verdict> ---` footer has a
-    // distinct shape and is filtered out below).
+    // No per-tool-call success preview line exists. Nothing starts with
+    // `Result:`. The trailing `--- Result: <verdict> ---` footer has a
+    // distinct shape, and the filter below removes it.
     const previewLines = plain
       .split("\n")
       .filter(

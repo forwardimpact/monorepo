@@ -90,7 +90,7 @@ describe("Acknowledgement", () => {
     expect(ticker.size).toBe(0);
   });
 
-  test("when a typing adapter is supplied, send() runs on each interval with a verb", async () => {
+  test("when the host supplies a typing adapter, send() runs on each interval with a verb", async () => {
     const reactions = makeReactionAdapter();
     const typing = makeTypingAdapter();
     const ack = new Acknowledgement({
@@ -127,7 +127,7 @@ describe("Acknowledgement", () => {
     }
   });
 
-  test("add() errors are swallowed and the lifecycle still proceeds", async () => {
+  test("start() swallows add() errors and the lifecycle still proceeds", async () => {
     const reactions = {
       add: async () => {
         throw new Error("network");
@@ -141,7 +141,7 @@ describe("Acknowledgement", () => {
     expect(ack.pending("tok-4")).toBe(false);
   });
 
-  test("remove() errors are swallowed so the host's reply path is not blocked", async () => {
+  test("finish() swallows remove() errors so it does not block the host's reply path", async () => {
     const reactions = makeReactionAdapter({
       removeImpl: () => {
         throw new Error("offline");
@@ -152,7 +152,7 @@ describe("Acknowledgement", () => {
     await expect(ack.finish("tok-5")).resolves.toBeUndefined();
   });
 
-  test("typing send() errors auto-stop the ticker without blocking finish()", async () => {
+  test("typing send() errors auto-stop the ticker and do not block finish()", async () => {
     const reactions = makeReactionAdapter();
     const typing = makeTypingAdapter({
       sendImpl: () => {

@@ -1,11 +1,12 @@
 /**
  * File Card Component
  *
- * Unified card component for displaying one or more files with collapsible
- * code panes. Replaces separate agent-card and skill-card patterns with a
- * single bordered surface containing a header and accordion file panes.
+ * Unified card component that displays one or more files with collapsible
+ * code panes. It replaces the separate agent-card and skill-card patterns.
+ * It uses a single bordered surface that holds a header and accordion file
+ * panes.
  *
- * One component, one DOM pattern, one set of styles.
+ * It is one component with one DOM pattern and one set of styles.
  */
 
 /* global Prism */
@@ -16,11 +17,11 @@ import { createCopyButton } from "./code-display.js";
  * @typedef {Object} FileDescriptor
  * @property {string} filename - Display filename for the pane summary
  * @property {string} content - File content to display
- * @property {string} [language="markdown"] - Syntax highlighting language
+ * @property {string} [language="markdown"] - Language for syntax highlighting
  */
 
 /**
- * Create a file card with header and collapsible file panes.
+ * Create a file card with a header and collapsible file panes.
  *
  * Agent card = createFileCard with 1 file (1 pane, open).
  * Skill card = createFileCard with 1–3 files (accordion).
@@ -91,7 +92,7 @@ export function createFileCard({
     card.appendChild(details);
   }
 
-  // Accordion: opening one pane closes others
+  // Accordion: when one pane opens, the others close
   for (const pane of panes) {
     pane.addEventListener("toggle", () => {
       if (pane.open) {

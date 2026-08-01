@@ -4,7 +4,7 @@ Three libraries form the config-to-runtime pipeline.
 
 ## `libconfig`
 
-`Config` class with namespace-specific factories:
+The `Config` class carries namespace-specific factories:
 
 | Factory | Namespace | Config path | Env prefix |
 |---|---|---|---|
@@ -16,19 +16,21 @@ Three libraries form the config-to-runtime pipeline.
 
 Merge order: constructor defaults → `config.json` block → `.env`.
 Non-credential keys overwrite `process.env` unconditionally from `.env`.
-Credential keys go to a private map; shell env wins at read time for
+Credential keys go to a private map. Shell env wins at read time for
 credentials only.
 
 ## `librc`
 
-`ServiceManager` reads `init.services` via `createInitConfig()` and delegates
-to `libsupervise` (svscan) for process supervision. The CLI is `fit-rc`.
+`ServiceManager` reads `init.services` through `createInitConfig()` and
+delegates to `libsupervise` (svscan) for process supervision. The CLI is
+`fit-rc`.
 
-Scoping rule: named `start`/`stop`/`restart` operate on the target and
-everything after it; services before are untouched. A named `start` reuses
-the running svscan daemon; a full `start` (no name) restarts it.
+Scope rule: named `start`/`stop`/`restart` operate on the target and
+everything after it. Services before the target stay untouched. A named
+`start` reuses the svscan daemon that already runs. A full `start` (no name)
+restarts it.
 
 ## `libsupervise`
 
-Daemontools-style process supervisor. `fit-rc` is the only consumer — services
-and products do not import `libsupervise` directly.
+`libsupervise` is a daemontools-style process supervisor. `fit-rc` is the only
+consumer. Services and products do not import `libsupervise` directly.

@@ -1,12 +1,12 @@
-// Loopback / private-range classification for the ghserver bind address.
+// Loopback and private-range classification for the ghserver bind address.
 //
 // The gRPC mint surface is unauthenticated at the peer level in the
-// initial delivery (the substrate — mTLS / signed JWT / mesh credential
-// — is the deferred follow-on per design § "What this design does not
-// cover"). Until that lands, caller restriction relies on the service
-// binding to the control-plane's internal network only. This guard
-// refuses to start the service on a non-loopback / non-private address
-// unless the operator explicitly opts in with `allow_public_bind`.
+// initial delivery. The substrate (mTLS, signed JWT, or mesh credential)
+// is the deferred follow-on per design § "What this design does not
+// cover". Until that lands, only the bind to the control-plane internal
+// network restricts callers. This guard refuses to start the service on
+// a non-loopback, non-private address unless the operator explicitly
+// opts in with `allow_public_bind`.
 
 const LOOPBACK_V4 = /^127\./;
 const PRIVATE_10 = /^10\./;
@@ -33,8 +33,8 @@ export function isPrivateBindAddress(address) {
 /**
  * Throw if `address` is public and `allow_public_bind` is not set.
  *
- * `0.0.0.0` (all interfaces) is treated as public — it exposes the mint
- * surface on every interface including the public one.
+ * This guard treats `0.0.0.0` (all interfaces) as public. That bind
+ * exposes the mint surface on every interface, including the public one.
  *
  * @param {string} address
  * @param {boolean} allow_public_bind
@@ -45,8 +45,8 @@ export function assertBindAllowed(address, allow_public_bind) {
   if (isPrivateBindAddress(address)) return;
   throw new Error(
     `ghserver refuses to bind to non-private address "${address}" ` +
-      "without allow_public_bind=true — the gRPC mint surface is " +
-      "unauthenticated at the peer level and must stay on the " +
+      "without allow_public_bind=true. The gRPC mint surface is " +
+      "unauthenticated at the peer level. It must stay on the " +
       "control-plane internal network (design § gRPC peer authentication).",
   );
 }

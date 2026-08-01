@@ -197,7 +197,7 @@ describe("S3Storage", () => {
     assert.strictEqual(mockCommands.PutObjectCommand.mock.callCount(), 1);
     const putCall = mockCommands.PutObjectCommand.mock.calls[0].arguments[0];
     assert.strictEqual(putCall.Key, "test-prefix/file.txt");
-    // The body should be the concatenation of existing + new data with added newline
+    // The body should be the existing data plus the new data with an added newline
     assert.strictEqual(putCall.Body.toString(), "existing dataappended data\n");
   });
 

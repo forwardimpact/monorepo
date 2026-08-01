@@ -1,12 +1,12 @@
 /**
  * Generates field metadata for all service methods from proto files.
- * Output is a static ESM module consumed by libmcp for schema generation.
+ * The output is a static ESM module that libmcp reads to generate schemas.
  */
 export class CodegenMetadata {
   #base;
 
   /**
-   * @param {object} base - CodegenBase instance providing shared utilities
+   * @param {object} base - CodegenBase instance that provides shared utilities
    */
   constructor(base) {
     if (!base) throw new Error("CodegenBase instance is required");
@@ -14,7 +14,7 @@ export class CodegenMetadata {
   }
 
   /**
-   * Generate metadata.js containing field descriptors for all service methods.
+   * Generate metadata.js with the field descriptors for all service methods.
    * @param {string} generatedPath - Path to generated code directory
    * @returns {Promise<void>}
    */

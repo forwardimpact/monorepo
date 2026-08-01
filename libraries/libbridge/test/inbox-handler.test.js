@@ -82,7 +82,7 @@ describe("createInboxHandler", () => {
     );
   });
 
-  test("known correlation + matching tenant calls DrainInbox with path tenant_id", async () => {
+  test("known correlation and matched tenant call DrainInbox with the path tenant_id", async () => {
     callbacks.register("corr-1", { tenant_id: "tenant-a" });
     const client = makeClient({ messages: [{ seq: 1, body: "hi" }] });
     const handler = createInboxHandler({
@@ -149,7 +149,7 @@ describe("createInboxHandler", () => {
     expect(client.calls).toHaveLength(0);
   });
 
-  test("unknown-correlation 404 body has the same top-level key set as callback wrong-token (criterion 6)", async () => {
+  test("unknown-correlation 404 body has the same top-level keys as the callback wrong-token body (criterion 6)", async () => {
     const client = makeClient();
     const handler = createInboxHandler({
       client,

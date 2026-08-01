@@ -156,12 +156,12 @@ describe("predicates", () => {
     });
   });
 
-  // The three level-ordered predicates each cross-multiplied a threshold against
-  // the ordered proficiency set, all flowing through a single
-  // `getSkillProficiencyIndex(...)` comparison (>=, ===, <). Per Decision 6 this
-  // is a single implementation path, so each collapses to boundary cases
-  // (at-threshold, one-below, one-above, and the floor/ceiling) plus one
-  // monotonicity property loop over the full ordered axis.
+  // The three level-ordered predicates each cross-multiplied a threshold
+  // against the ordered proficiency set. They all go through one
+  // `getSkillProficiencyIndex(...)` comparison (>=, ===, <). Per Decision 6
+  // this is a single implementation path. So each predicate collapses to
+  // boundary cases (at-threshold, one-below, one-above, and the floor/ceiling)
+  // plus one monotonicity property loop over the full ordered axis.
   const PROFICIENCY_ORDER = [
     "awareness",
     "foundational",
@@ -183,7 +183,8 @@ describe("predicates", () => {
         true,
       ); // one-above
 
-      // awareness floor accepts everything; expert ceiling accepts only expert.
+      // The awareness floor accepts everything. The expert ceiling accepts
+      // only expert.
       const atAwareness = hasMinLevel("awareness");
       assert.strictEqual(
         atAwareness(skill({ proficiency: "awareness" })),
@@ -291,7 +292,7 @@ describe("predicates", () => {
   });
 
   describe("isInAnyCapability", () => {
-    test("returns true if entry matches any listed capability", () => {
+    test("returns true if the entry matches any listed capability", () => {
       const inDeliveryOrScale = isInAnyCapability(["delivery", "scale"]);
       assert.strictEqual(
         inDeliveryOrScale(skill({ capability: "delivery" })),
@@ -303,12 +304,12 @@ describe("predicates", () => {
       );
     });
 
-    test("returns false if entry matches none", () => {
+    test("returns false if the entry matches none", () => {
       const inDeliveryOrScale = isInAnyCapability(["delivery", "scale"]);
       assert.strictEqual(inDeliveryOrScale(skill({ capability: "ai" })), false);
     });
 
-    test("handles empty capabilities list", () => {
+    test("handles an empty capabilities list", () => {
       const inNone = isInAnyCapability([]);
       assert.strictEqual(inNone(skill({ capability: "delivery" })), false);
     });
@@ -366,7 +367,7 @@ describe("predicates", () => {
       assert.strictEqual(notCore(skill({ type: "supporting" })), true);
     });
 
-    test("double negation restores original", () => {
+    test("double negation restores the original", () => {
       const notNotCore = not(not(isCore));
       assert.strictEqual(notNotCore(skill({ type: "core" })), true);
       assert.strictEqual(notNotCore(skill({ type: "supporting" })), false);

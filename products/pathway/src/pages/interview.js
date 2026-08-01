@@ -50,7 +50,7 @@ export function renderInterviewDetail(params) {
     return;
   }
 
-  // If trackId was provided but not found, error
+  // Show an error if trackId exists but no track matches it
   if (trackId && !track) {
     renderError({
       title: "Interview Not Found",

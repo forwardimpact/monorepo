@@ -7,8 +7,8 @@ compatibility: Requires macOS with Apple Mail configured and Full Disk Access gr
 # Sync Apple Mail
 
 Sync email threads from the macOS Mail app's local SQLite database into
-`~/.cache/fit/outpost/apple_mail/` as markdown files. This is an automated data
-pipeline skill — it ingests raw email data that other skills (like
+`~/.cache/fit/outpost/apple_mail/` as markdown files. This is an automated skill
+in the data pipeline. It ingests raw email data that other skills (like
 `extract-entities`) consume downstream.
 
 ## Trigger
@@ -46,7 +46,7 @@ their email.
 ## Implementation
 
 Run the sync as a single Node.js script with embedded SQLite. This avoids N+1
-process invocations and handles all data transformation in one pass:
+process invocations. It also transforms all the data in one pass:
 
 ```text
 node scripts/sync.mjs [--days N]
@@ -60,27 +60,29 @@ The script:
 2. Loads last sync timestamp (or defaults to `--days` days ago for first sync)
 3. Discovers the thread grouping column (`conversation_id` or `thread_id`)
 4. Loads last-seen ROWID (or defaults to 0 for first sync)
-5. Finds threads with new messages since last sync (up to 500), using both
-   timestamp and ROWID to catch late-arriving emails (emails downloaded after a
-   delay may have `date_received` before the last sync timestamp, but their
-   ROWID will be higher than the last-seen ROWID)
+5. Finds threads with new messages since last sync (up to 500). It uses both the
+   timestamp and the ROWID to catch emails that arrive late. An email downloaded
+   after a delay may have a `date_received` before the last sync timestamp. But
+   its ROWID is higher than the last-seen ROWID
 6. For each thread: fetches messages, batch-fetches recipients and attachment
-   metadata, parses `.emlx` files for full email bodies (falling back to
+   metadata, parses `.emlx` files for full email bodies (with a fallback to
    database summaries), copies attachment files to the output directory
 7. Writes one markdown file per thread to `~/.cache/fit/outpost/apple_mail/`
 8. Updates sync state (timestamp and max ROWID)
 9. Reports summary (threads processed, files written)
 
 The script imports `scripts/parse-emlx.mjs` to extract plain text bodies from
-`.emlx` / `.partial.emlx` files (handles HTML-only emails by stripping tags).
+`.emlx` / `.partial.emlx` files. The parser strips the tags from HTML-only
+emails.
 
 ## Database Schema
 
 See [references/SCHEMA.md](references/SCHEMA.md) for the complete Apple Mail
-SQLite schema including table structures, column names, and important caveats
-(e.g., `date_received` is Unix timestamps not Core Data, `addresses.comment`
-holds display names, `recipients` columns are `message`/`address` not
-`message_id`/`address_id`).
+SQLite schema. It gives the table structures, the column names, and the
+important caveats. For example, `date_received` holds Unix timestamps. It does
+not hold Core Data timestamps. `addresses.comment` holds display names. The
+`recipients` columns are `message` and `address`. They are not `message_id` and
+`address_id`.
 
 ## Output Format
 
@@ -139,7 +141,8 @@ Rules:
 - `.emlx` parse error → fall back to database summary field
 - HTML-only email → strip tags and use as plain text body (handled by
   parse-emlx.mjs)
-- `find` timeout → skip that message's body, use summary; attachment index empty
+- `find` timeout → skip that message's body and use the summary. The attachment
+  index stays empty
 - Attachment file not found on disk → listed as `*(not available)*` in markdown
 - Attachment copy fails (permissions, disk full) → listed as `*(not available)*`
 - Filename collision across messages → prefixed with `{message_id}_`

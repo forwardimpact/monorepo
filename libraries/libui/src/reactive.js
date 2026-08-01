@@ -5,9 +5,9 @@
 /**
  * @template T
  * @typedef {Object} Reactive
- * @property {() => T} get - Get current value
- * @property {(value: T) => void} set - Set new value
- * @property {(fn: (prev: T) => T) => void} update - Update value with function
+ * @property {() => T} get - Get the current value
+ * @property {(value: T) => void} set - Set a new value
+ * @property {(fn: (prev: T) => T) => void} update - Update the value with a function
  * @property {(fn: (value: T) => void) => () => void} subscribe - Subscribe to changes
  */
 

@@ -23,7 +23,7 @@ describe("practice command", () => {
     assert.equal(result.view.patterns[0].matched, 5);
   });
 
-  it("passes skill filter", async () => {
+  it("passes the skill filter", async () => {
     let captured;
     const result = await runPracticeCommand({
       options: { skill: "planning", manager: "alice@example.com" },

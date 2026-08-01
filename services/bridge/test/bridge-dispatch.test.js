@@ -166,7 +166,7 @@ describe("bridge service", () => {
       (err) => err.code === grpc.status.FAILED_PRECONDITION,
     );
 
-    // The pending row is still consumable by the legitimate user.
+    // The legitimate user can still consume the pending row.
     const resolved = await service.ResolvePendingDispatch({
       link_token: "lt-suI",
       tenant_id: T,

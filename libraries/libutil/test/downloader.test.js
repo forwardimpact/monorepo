@@ -104,7 +104,7 @@ describe("BundleDownloader", () => {
     );
   });
 
-  test("downloads and extracts bundle when it exists", async () => {
+  test("downloads and extracts the bundle when it exists", async () => {
     const operations = [];
     mockLocalStorage.put = async (key, data) => {
       operations.push({ op: "put", key, hasData: !!data });
@@ -141,7 +141,7 @@ describe("BundleDownloader", () => {
     });
   });
 
-  test("throws error when bundle does not exist", async () => {
+  test("throws an error when the bundle does not exist", async () => {
     mockRemoteStorage.exists = async () => false;
 
     const download = new BundleDownloader(
@@ -176,7 +176,7 @@ describe("BundleDownloader", () => {
     assert.strictEqual(ensureBucketCalls.length, 1);
     assert.strictEqual(ensureBucketCalls[0], "generated");
 
-    // Should have called createPackageSymlinks
+    // The downloader called createPackageSymlinks
     assert.strictEqual(mockFinder.createPackageSymlinks.mock.calls.length, 1);
     assert.strictEqual(
       mockFinder.createPackageSymlinks.mock.calls[0].arguments[0],
@@ -184,7 +184,7 @@ describe("BundleDownloader", () => {
     );
   });
 
-  test("skips download when STORAGE_TYPE is local", async () => {
+  test("skips the download when STORAGE_TYPE is local", async () => {
     mockProcess.env.STORAGE_TYPE = "local";
     mockRemoteStorage.exists = spy(async () => true);
 
@@ -198,7 +198,7 @@ describe("BundleDownloader", () => {
     await download.initialize();
     await download.download();
 
-    // Should not have called remote storage
+    // The downloader did not call remote storage
     assert.strictEqual(mockRemoteStorage.exists.mock.calls.length, 0);
   });
 
@@ -216,7 +216,7 @@ describe("BundleDownloader", () => {
     await download.initialize();
     await download.download();
 
-    // Should have called remote storage
+    // The downloader called remote storage
     assert.strictEqual(mockRemoteStorage.exists.mock.calls.length, 1);
   });
 });

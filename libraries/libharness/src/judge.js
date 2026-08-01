@@ -1,13 +1,13 @@
 /**
  * Judge — one agent session that inspects a completed agent's work and emits
- * a verdict via the orchestration `Conclude` tool. Parallel concept to
- * `Supervisor` and `Facilitator`, but post-hoc and solo: no peer agents,
- * no message bus, no orchestration loop. The judge reads the task, optionally
- * inspects the working directory and trace via read-only tools, and calls
- * Conclude exactly once.
+ * a verdict through the orchestration `Conclude` tool. It is a parallel
+ * concept to `Supervisor` and `Facilitator`. It runs post-hoc and solo: no
+ * peer agents, no message bus, no orchestration loop. The judge reads the
+ * task. It can inspect the working directory and the trace with read-only
+ * tools. It calls Conclude exactly once.
  *
- * Trace lines are tagged `source: "judge"` so consumers can distinguish
- * judge sessions from supervisor or facilitator sessions in a unified
+ * The judge tags trace lines with `source: "judge"`. Consumers can then tell
+ * judge sessions apart from supervisor or facilitator sessions in a unified
  * NDJSON envelope.
  *
  * Follows OO+DI: constructor injection, factory function, tests bypass factory.
@@ -25,17 +25,19 @@ import {
 } from "./orchestration-toolkit.js";
 
 /**
- * System-prompt trailer appended to the judge's main thread. Always applied,
- * even when a `judgeProfile` is supplied — the profile layers on top of the
- * trailer, the same way `SUPERVISOR_SYSTEM_PROMPT` and
- * `FACILITATOR_SYSTEM_PROMPT` work for their respective roles.
+ * System-prompt trailer for the judge's main thread. The factory always
+ * applies it, even when the caller supplies a `judgeProfile`. The profile
+ * layers on top of the trailer. `SUPERVISOR_SYSTEM_PROMPT` and
+ * `FACILITATOR_SYSTEM_PROMPT` work the same way for their roles.
  */
 export const JUDGE_SYSTEM_PROMPT =
   "You are a post-hoc judge for an agent task benchmark. " +
-  "The agent has already completed its work and an objective invariants step has already run; your role is to confirm or override the verdict by inspecting the agent's working directory and trace. " +
-  "You have read-only inspection tools — Read, Glob, Grep, Bash — to investigate; do not modify the working directory. " +
-  "Conclude ends the session with a verdict ('success' or 'failure') and a one-paragraph summary; verdict='success' iff the agent's work meets the criteria stated in the task. " +
-  "Call Conclude as your final action — do not deliberate across multiple turns.";
+  "The agent already completed its work. An objective invariants step already ran. " +
+  "Confirm or override the verdict. To do so, inspect the agent's working directory and trace. " +
+  "You have read-only inspection tools to investigate: Read, Glob, Grep, and Bash. Do not modify the working directory. " +
+  "Conclude ends the session with a verdict ('success' or 'failure') and a one-paragraph summary. " +
+  "Set verdict='success' exactly when the agent's work meets the criteria the task states. " +
+  "Call Conclude as your final action. Do not deliberate across multiple turns.";
 
 const DEFAULT_JUDGE_ALLOWED_TOOLS = ["Read", "Glob", "Grep", "Bash"];
 
@@ -45,7 +47,7 @@ const devNull = new Writable({
   },
 });
 
-/** Run a single post-hoc judge session and emit a verdict via Conclude. */
+/** Run a single post-hoc judge session and emit a verdict with Conclude. */
 export class Judge {
   /**
    * @param {object} deps
@@ -53,7 +55,7 @@ export class Judge {
    * @param {import("stream").Writable} deps.output - Stream to emit tagged NDJSON to.
    * @param {object} deps.ctx - Orchestration context (the Conclude handler writes to it).
    * @param {import("./redaction.js").Redactor} deps.redactor
-   * @param {string} [deps.taskAmend] - Opaque addendum appended to the task before delivery.
+   * @param {string} [deps.taskAmend] - Opaque addendum. The judge appends it to the task before delivery.
    */
   constructor({ runner, output, ctx, redactor, taskAmend }) {
     if (!runner) throw new Error("runner is required");
@@ -70,7 +72,7 @@ export class Judge {
 
   /**
    * Run the judge session.
-   * @param {string} task - The judge prompt (with placeholders already substituted).
+   * @param {string} task - The judge prompt (the caller already substituted the placeholders).
    * @returns {Promise<{success: boolean, verdict: string|null, summary: string|null, turns: number}>}
    */
   async run(task) {
@@ -89,7 +91,7 @@ export class Judge {
       return outcome;
     }
 
-    // The judge ended without calling Conclude. Surface that explicitly so
+    // The judge ended and never called Conclude. Surface that explicitly so
     // callers can distinguish "judge said fail" from "judge never voted."
     const outcome = {
       success: false,
@@ -103,9 +105,9 @@ export class Judge {
 
   /**
    * Tag a single NDJSON line with `source: "judge"` and emit it to the
-   * judge's output stream. Wired into the underlying AgentRunner via the
-   * `onLine` callback so the judge's stream is the single source of truth
-   * for the session's trace.
+   * judge's output stream. The factory wires this into the underlying
+   * AgentRunner through the `onLine` callback. The judge's stream is then the
+   * single source of truth for the session's trace.
    * @param {string} line
    */
   emitLine(line) {
@@ -115,7 +117,7 @@ export class Judge {
   }
 
   /**
-   * Emit a final orchestrator summary line, wrapped in the universal envelope.
+   * Emit a final orchestrator summary line in the universal envelope.
    * @param {{success: boolean, verdict?: string|null, summary?: string|null, turns: number}} result
    */
   emitSummary(result) {
@@ -138,20 +140,20 @@ export class Judge {
 }
 
 /**
- * Factory function — wires the AgentRunner with the judge orchestration server
+ * Factory function. Wires the AgentRunner with the judge orchestration server
  * and the JUDGE_SYSTEM_PROMPT trailer. A `judgeProfile` (when supplied) layers
- * on top of the trailer via `composeSystemPrompt`, matching the
- * supervisor/facilitator pattern.
+ * on top of the trailer through `composeSystemPrompt`. This matches the
+ * supervisor and facilitator pattern.
  *
  * @param {object} deps
  * @param {string} deps.cwd - Judge working directory. Defaults to the directory whose `.claude/agents` holds `judgeProfile`.
- * @param {function} deps.query - SDK query function (injected for testing).
+ * @param {function} deps.query - SDK query function (injected so tests can replace it).
  * @param {import("stream").Writable} deps.output - Trace output stream.
  * @param {import("./redaction.js").Redactor} deps.redactor
  * @param {string} [deps.model]
- * @param {number} [deps.maxTurns] - Default 5 (the judge is expected to act in turn 1; 5 leaves headroom for tool inspection).
- * @param {string[]} [deps.allowedTools] - Default `["Read","Glob","Grep","Bash"]` — read-only inspection.
- * @param {string} [deps.judgeProfile] - Profile name; resolved into the system prompt via `composeSystemPrompt`.
+ * @param {number} [deps.maxTurns] - Default 5. The judge should act in turn 1. The other turns leave headroom for tool inspection.
+ * @param {string[]} [deps.allowedTools] - Default `["Read","Glob","Grep","Bash"]` for read-only inspection.
+ * @param {string} [deps.judgeProfile] - Profile name. `composeSystemPrompt` resolves it into the system prompt.
  * @param {string} [deps.profilesDir] - Defaults to `<cwd>/.claude/agents`.
  * @param {string} [deps.taskAmend]
  * @returns {Judge}

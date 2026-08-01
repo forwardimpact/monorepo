@@ -1,9 +1,10 @@
 /**
  * AgentRunner privilege-gate tests
  *
- * The wake path resolves a mandatory privilege level, logs it, threads the
- * disclaim flag into the spawn call, and fail-closes a missing/invalid level
- * (logs `outpost.privilege.rejected` and spawns nothing).
+ * The wake path resolves a mandatory privilege level and logs it. It threads
+ * the disclaim flag into the spawn call. It fail-closes a missing or invalid
+ * level. In that case it logs `outpost.privilege.rejected` and spawns
+ * nothing.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -16,7 +17,7 @@ import {
   makeRuntime,
 } from "./helpers.js";
 
-/** Parse logged lines, keeping only the JSON objects matching `event`. */
+/** Parse the logged lines. Keep only the JSON objects that match `event`. */
 function eventsOf(logged, event) {
   return logged
     .map((l) => {
@@ -30,7 +31,7 @@ function eventsOf(logged, event) {
 }
 
 /**
- * Build a runner whose log lines are collected into `logged`.
+ * Build a runner that collects its log lines into `logged`.
  * @param {string[]} logged
  * @param {{ module: Object }} spawn
  */
@@ -45,7 +46,7 @@ function makeRunner(logged, spawn) {
   );
 }
 
-describe("AgentRunner privilege gate (via wake)", () => {
+describe("AgentRunner privilege gate (through wake)", () => {
   test("a full agent passes disclaim 0 and logs level full", async () => {
     const spawn = createMockSpawn();
     const logged = [];
@@ -83,7 +84,7 @@ describe("AgentRunner privilege gate (via wake)", () => {
     assert.strictEqual(resolved[0].level, "restricted");
   });
 
-  test("a missing level is rejected and nothing is spawned", async () => {
+  test("rejects a missing level and spawns nothing", async () => {
     const spawn = createMockSpawn();
     const logged = [];
     const runner = makeRunner(logged, spawn);
@@ -102,7 +103,7 @@ describe("AgentRunner privilege gate (via wake)", () => {
     );
   });
 
-  test("an invalid level is rejected and nothing is spawned", async () => {
+  test("rejects an invalid level and spawns nothing", async () => {
     const spawn = createMockSpawn();
     const logged = [];
     const runner = makeRunner(logged, spawn);

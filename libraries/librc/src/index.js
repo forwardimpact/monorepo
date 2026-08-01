@@ -1,12 +1,12 @@
 /**
- * Unix socket client utilities for communicating with svscan daemon.
+ * Unix socket client utilities that communicate with the svscan daemon.
  */
 import net from "node:net";
 
 export { ServiceManager } from "./manager.js";
 
 /**
- * Sends a command to svscan via Unix socket
+ * Sends a command to svscan through a Unix socket
  * @param {string} socketPath - Path to Unix socket
  * @param {object} cmd - Command object to send
  * @returns {Promise<object>} Response from svscan
@@ -37,7 +37,7 @@ export function sendCommand(socketPath, cmd) {
 }
 
 /**
- * Waits for socket to become available
+ * Waits for the socket to become available
  * @param {string} socketPath - Path to Unix socket
  * @param {number} timeout - Timeout in ms
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected

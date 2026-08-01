@@ -1,5 +1,6 @@
 /**
- * spawn-env unit tests — env allow-set filtering and tilde expansion.
+ * spawn-env unit tests. They cover the env allow-set filter and tilde
+ * expansion.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -46,8 +47,8 @@ describe("buildSpawnEnv", () => {
 
   // Spec Success Criterion 2: the three wake paths (scheduler tick, socket,
   // direct-CLI) all forward config.env into this one function with the same
-  // base env, so identical config yields an identical filtered spawn env.
-  // The single-function convergence is the property under test.
+  // base env. So identical config yields an identical filtered spawn env.
+  // This test checks that the paths converge on one function.
   test("same configEnv and base env yield an identical filtered env", () => {
     const configEnv = {
       ANTHROPIC_API_KEY: "sk-x",

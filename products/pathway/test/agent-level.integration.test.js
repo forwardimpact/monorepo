@@ -1,11 +1,12 @@
 /**
  * Integration tests for `fit-pathway agent --level=<id>`.
  *
- * Stages a copy of products/map/starter into a temp data dir, removes the
- * organizational-context slot so byte-comparisons are scoped to the
- * teamInstructions / level-expectations layer, then invokes runAgentCommand
- * with various combinations of `--level`. Covers level-driven output changes,
- * the unknown-level error shape, and the `--list` short-circuit.
+ * The suite stages a copy of products/map/starter into a temp data dir. It
+ * removes the organizational-context slot. Byte-comparisons then cover only
+ * the teamInstructions / level-expectations layer. It then invokes
+ * runAgentCommand with different combinations of `--level`. The suite covers
+ * level-driven output changes, the unknown-level error shape, and the
+ * `--list` short-circuit.
  */
 
 import { test, describe } from "node:test";
@@ -46,9 +47,10 @@ function stageDataDir({ stripOrgContext = true } = {}) {
   return { work, dataDir };
 }
 
-// Build a runtime whose `proc.stdout` captures into an array, so the command's
-// output can be read without patching the global `process.stdout` — patching
-// the global collides with `node --test`'s own stdout reporter stream.
+// Build a runtime whose `proc.stdout` captures into an array. The test then
+// reads the command's output without a patch to the global `process.stdout`.
+// A patch of the global collides with `node --test`'s own stdout reporter
+// stream.
 function captureRuntime() {
   const base = createDefaultRuntime();
   const chunks = [];
@@ -164,8 +166,8 @@ describe("agent --level integration", () => {
         "J040 output should carry its impact-scope expectation",
       );
 
-      // Composition-order guard: track teamInstructions anchor must precede
-      // the new ## Level Expectations heading in the rendered file.
+      // Composition-order guard. The track teamInstructions anchor must
+      // precede the new ## Level Expectations heading in the rendered file.
       const anchor = "Treat the platform as a";
       const headingIdx = renderedJ060.indexOf("## Level Expectations");
       const anchorIdx = renderedJ060.indexOf(anchor);
@@ -186,7 +188,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("populated level expectations appear on stdout with Team Instructions umbrella label", async () => {
+  test("populated level expectations appear on stdout under the umbrella label for Team Instructions", async () => {
     const { work, dataDir } = stageDataDir();
     const stdout = captureWrite(process.stdout);
     try {
@@ -204,11 +206,11 @@ describe("agent --level integration", () => {
       );
       assert.ok(
         text.includes("# Team Instructions (CLAUDE.md)"),
-        "stdout should carry the Team Instructions umbrella label",
+        "stdout should carry the umbrella label for Team Instructions",
       );
       assert.ok(
         !text.includes("# Team Instructions + Organizational Context"),
-        "org-context was removed; combined header must not appear",
+        "org-context is absent, so the combined header must not appear",
       );
     } finally {
       stdout.restore();
@@ -216,7 +218,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("SC3a — unknown --level rejected with shared error shape", async () => {
+  test("SC3a — the CLI rejects an unknown --level with the shared error shape", async () => {
     const { work, dataDir } = stageDataDir({ stripOrgContext: false });
     const stderr = captureWrite(process.stderr);
     const restoreExit = stubProcessExit();
@@ -244,7 +246,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("SC3b — unknown --track error shape regressions: shared requireEntity helper still works", async () => {
+  test("SC3b — the shared requireEntity helper still shapes the unknown --track error", async () => {
     const { work, dataDir } = stageDataDir({ stripOrgContext: false });
     const stderr = captureWrite(process.stderr);
     const restoreExit = stubProcessExit();
@@ -270,7 +272,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("LIST — --list short-circuits before --level resolution (C-5)", async () => {
+  test("LIST — --list short-circuits before it resolves --level (C-5)", async () => {
     const { work, dataDir } = stageDataDir({ stripOrgContext: false });
     try {
       const baselineCapture = captureRuntime();

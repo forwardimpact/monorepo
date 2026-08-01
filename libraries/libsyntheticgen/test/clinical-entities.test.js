@@ -207,7 +207,7 @@ describe("clinical entity generation", () => {
     );
   });
 
-  test("researcher entities generated from PI refs", () => {
+  test("researcher entities come from PI refs", () => {
     const result = buildClinicalEntities(
       makeClinicalAst(),
       makePeople(),
@@ -259,7 +259,7 @@ describe("clinical entity generation", () => {
     );
   });
 
-  test("null clinical block is not called", async () => {
+  test("the generator does not call a null clinical block", async () => {
     const { createEntityGenerator } = await import("../src/engine/tier0.js");
     const { tokenize } = await import("../src/dsl/tokenizer.js");
     const { parse } = await import("../src/dsl/parser.js");

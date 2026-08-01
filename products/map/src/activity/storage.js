@@ -2,7 +2,7 @@
  * Raw Document Storage for the ELT Pipeline
  *
  * Wraps Supabase Storage operations for the `raw` bucket.
- * All extracted documents are stored here before transformation.
+ * The `raw` bucket holds every extracted document before the transform step.
  */
 
 const BUCKET = "raw";

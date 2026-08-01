@@ -1,10 +1,10 @@
 /**
- * Renderer — turns base-entity view models into complete HTML microdata
- * documents using the Mustache templates under `products/map/templates/`.
+ * The Renderer turns base-entity view models into complete HTML microdata
+ * documents. It uses the Mustache templates under `products/map/templates/`.
  *
- * Mirrors the shape of `libraries/libsyntheticrender/render/renderer.js`,
- * but without the LLM/enricher dependencies — Map's render path is fully
- * synchronous.
+ * It mirrors the shape of `libraries/libsyntheticrender/render/renderer.js`.
+ * It does not have the LLM/enricher dependencies. Map's render path is
+ * fully synchronous.
  */
 
 import { dirname, join } from "node:path";
@@ -16,7 +16,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SKILL_PARTIALS = ["skill-inline.html"];
 
-/** Renders base-entity view models into complete HTML microdata documents using Mustache templates. */
+/** Renders base-entity view models into complete HTML microdata documents with Mustache templates. */
 export class Renderer {
   #templates;
 

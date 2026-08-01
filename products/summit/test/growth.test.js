@@ -56,7 +56,7 @@ test("computeGrowthAlignment ranks candidates by proximity", () => {
   const recs = computeGrowthAlignment({ team, mapData });
   const planning = recs.find((r) => r.skill === "planning");
   assert.ok(planning);
-  // Senior has planning=foundational (closer), Junior has planning=awareness
+  // Senior has planning=foundational (closer). Junior has planning=awareness,
   // so senior should rank first.
   assert.equal(planning.candidates[0].email, "senior@example.com");
 });
@@ -89,10 +89,10 @@ test("computeGrowthAlignment attaches null driverContext for every rec in Part 0
   }
 });
 
-test("computeGrowthAlignment signature — accepts a single destructured param", () => {
-  // Function accepts team / mapData / evidence / driverScores as
-  // destructured options; with a default of `{}`, Function.length is 0.
-  // Just exercise the full signature to ensure it doesn't throw.
+test("computeGrowthAlignment signature accepts a single destructured param", () => {
+  // The function accepts team / mapData / evidence / driverScores as
+  // destructured options. With a default of `{}`, Function.length is 0.
+  // Just exercise the full signature to make sure it does not throw.
   const recs = computeGrowthAlignment({
     team: [],
     mapData,
@@ -127,7 +127,7 @@ test("computeGrowthAlignment recommendations expose `skill` per spec.md:583", ()
   }
 });
 
-test("computeGrowthAlignment attaches driverContext when driverScores passed", () => {
+test("computeGrowthAlignment attaches driverContext when the caller passes driverScores", () => {
   const team = [
     {
       email: "a@example.com",
@@ -156,7 +156,7 @@ test("computeGrowthAlignment attaches driverContext when driverScores passed", (
   );
 });
 
-test("computeGrowthAlignment outcome weighting reorders within a tier", () => {
+test("computeGrowthAlignment reorders within a tier by outcome weight", () => {
   const team = [
     {
       email: "a@example.com",
@@ -166,21 +166,21 @@ test("computeGrowthAlignment outcome weighting reorders within a tier", () => {
   ];
   // Without outcomes: planning and task-completion sort alphabetically.
   const baseline = computeGrowthAlignment({ team, mapData });
-  // With outcomes: same skills exist in the `quality` driver. When one
-  // is associated with a bad percentile and the other isn't, the weighted
-  // one should rise within its tier.
+  // With outcomes: the same skills exist in the `quality` driver. When one
+  // has a bad percentile and the other does not, the weighted one should
+  // rise within its tier.
   const driverScores = new Map();
   driverScores.set("quality", { percentile: 5, vsOrg: -20 });
   const weighted = computeGrowthAlignment({ team, mapData, driverScores });
 
-  // Critical tier ordering is preserved — critical stays above spof/
-  // coverage regardless of weighting.
+  // The critical tier keeps its order. Critical stays above spof/
+  // coverage whatever the weight.
   const criticalBaseline = baseline.filter((r) => r.impact === "critical");
   const criticalWeighted = weighted.filter((r) => r.impact === "critical");
   assert.equal(criticalBaseline.length, criticalWeighted.length);
-  // Both task-completion and planning have the same driver weight; the
-  // tiebreaker falls back to name. The assertion here is that the
-  // weighted path still returns both and all skills carry the driver
+  // Both task-completion and planning have the same driver weight. The
+  // tiebreaker falls back to name. This test asserts that the weighted
+  // path still returns both, and that all skills carry the driver
   // context.
   for (const rec of criticalWeighted) {
     if (rec.skill === "task-completion" || rec.skill === "planning") {

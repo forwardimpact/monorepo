@@ -1,7 +1,7 @@
 /**
- * Handout View Main Entry Point
+ * Main entry point for the handout view
  *
- * Displays all slides of a category on a single page for printing handouts.
+ * Display all slides of a category on a single page so you can print handouts.
  * Routes:
  *   / - Index with links to all categories
  *   /driver - All driver slides
@@ -79,7 +79,7 @@ function createChapterCover({ emojiIcon, title, description }) {
 }
 
 /**
- * Get handout content container
+ * Get the handout content container
  * @returns {HTMLElement}
  */
 function getHandoutContent() {
@@ -87,7 +87,7 @@ function getHandoutContent() {
 }
 
 /**
- * Hide loading indicator
+ * Hide the loading indicator
  */
 function hideLoading() {
   const loading = document.getElementById("slide-loading");
@@ -97,7 +97,7 @@ function hideLoading() {
 }
 
 /**
- * Show loading indicator
+ * Show the loading indicator
  */
 function showLoading() {
   const loading = document.getElementById("slide-loading");
@@ -107,7 +107,7 @@ function showLoading() {
 }
 
 /**
- * Render content to handout container
+ * Render the content to the handout container
  * @param {HTMLElement} content
  */
 function renderHandout(content) {
@@ -226,10 +226,10 @@ function renderDriverHandout(data) {
 function renderSkillHandout(data) {
   const { standard } = data;
 
-  // Get capability order from data
+  // Get the capability order from the data
   const capabilityOrder = getCapabilityOrder(data.capabilities);
 
-  // Sort skills by capability order, then by name within capability
+  // Sort skills by capability order. Within a capability, sort by name.
   const sortedSkills = [...data.skills].sort((a, b) => {
     const aIndex = capabilityOrder.indexOf(a.capability);
     const bIndex = capabilityOrder.indexOf(b.capability);
@@ -369,7 +369,7 @@ function renderJobHandout(data) {
 }
 
 /**
- * Handle routing based on hash
+ * Handle the route based on the hash
  */
 function handleRoute() {
   const data = getState().data;
@@ -399,14 +399,14 @@ function handleRoute() {
 }
 
 /**
- * Populate the page brand header with standard title and hashtag
+ * Populate the page brand header with the standard title and the hashtag
  * @param {Object} standard - Standard data from YAML
  */
 function populateBrandHeader(standard) {
   const header = document.getElementById("page-brand-header");
   if (!header) return;
 
-  // Update document title
+  // Update the document title
   document.title = `${standard.title} - Handout View`;
 
   header.innerHTML = "";
@@ -434,10 +434,10 @@ async function init() {
     });
     setData(data);
 
-    // Populate brand header
+    // Populate the brand header
     populateBrandHeader(data.standard);
 
-    // Set up hash change listener
+    // Set up the hash change listener
     window.addEventListener("hashchange", handleRoute);
 
     // Initial render

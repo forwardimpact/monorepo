@@ -1,49 +1,53 @@
 // Public-CLI launcher alignment. A CLI is "public" when an external doc, a
 // published skill pack, or a published composite action invokes it as
-// `npx`/`bunx fit-<name>` or `npx`/`bunx gemba-<name>` AND that name is a
-// real `bin` in a non-private workspace package. Every public CLI must have
-// a matching launcher package under `launchers/` (npm name = invoked name),
-// and nothing else may live there — the launcher set is computed from the
-// rule, never hand-maintained. Nearly all public CLIs are `fit-*` or
-// `gemba-*`; a rare public CLI outside both families would be named in
-// PUBLISHED_NON_FIT_CLIS, since the family-scoped invocation scan cannot
-// see it. A source package satisfies the launcher import either by
-// declaring the `./bin/<cli>.js` subpath in `exports`, or by declaring no
-// `exports` field at all (Node's legacy resolution then serves every
-// subpath — the shape the bin-only gemba product package uses).
+// `npx`/`bunx fit-<name>` or `npx`/`bunx gemba-<name>`. The name must also
+// be a real `bin` in a non-private workspace package. Every public CLI must
+// have a launcher package under `launchers/` that matches it (npm name =
+// invoked name). Nothing else may live there. The rule computes the
+// launcher set. Nobody maintains it by hand. Nearly all public CLIs are
+// `fit-*` or `gemba-*`. Name a rare public CLI outside both families in
+// PUBLISHED_NON_FIT_CLIS, because the family-scoped invocation scan cannot
+// see it. A source package satisfies the launcher import in one of two
+// ways. It declares the `./bin/<cli>.js` subpath in `exports`. Or it
+// declares no `exports` field at all. With no `exports` field, Node's
+// legacy resolution serves every subpath. The gemba product package ships
+// bins only and uses that shape.
 // See launchers/README.md for the published contract.
 //
-// Checks, each failing CI with a message naming the offending dir/file:
+// Each of these checks fails CI with a message that names the dir/file at
+// fault:
 //   (a) `launchers/` subdirectories ≠ rule output (either direction)
 //   (b) launcher bin key/file strays from the canonical two-line shape, or
-//       the source package stops exporting the bin subpath the launcher
-//       imports — byte-exact content equality, not import parsing, because
-//       `files: ["bin/"]` ships the whole dir and pinning package.json alone
-//       stops neither appended code nor a second file
-//   (c) launcher `version` or dependency pin ≠ the `0.0.0` placeholder —
-//       publish-npm.yml stamps real versions; nothing else writes them
-//   (d) launcher package.json strays from the allowed-keys schema — launchers
-//       publish verbatim from the working tree, so this pins the full
-//       published surface (no smuggled deps, scripts, or extra files)
+//       the source package no longer exports the bin subpath the launcher
+//       imports. The check compares content byte-exactly. It does not parse
+//       imports. The reason is that `files: ["bin/"]` ships the whole dir.
+//       A pin on package.json alone stops neither appended code nor a
+//       second file.
+//   (c) launcher `version` or dependency pin ≠ the `0.0.0` placeholder.
+//       publish-npm.yml stamps real versions. Nothing else writes them.
+//   (d) launcher package.json strays from the allowed-keys schema.
+//       Launchers publish verbatim from the working tree, so this pins the
+//       full published surface (no smuggled deps, scripts, or extra files)
 
 import { join } from "node:path";
 
 const SCOPE_DIRS = ["libraries", "products", "services"];
 const SKIP_DIRS = new Set(["node_modules", "dist", "generated", "tmp"]);
 
-// Known forward-drift gap: forms like `npx --package=…/fit-x` or `bunx --bun
-// fit-x` are not matched and would silently under-count if docs ever adopt
-// them; today's tree uses none.
+// Known forward-drift gap: this regex does not match forms like
+// `npx --package=…/fit-x` or `bunx --bun fit-x`. They would silently
+// under-count if docs ever adopt them. Today's tree uses none.
 const INVOKE_RE =
   /\b(?:npx|bunx)\s+(?:-y\s+|--yes\s+)?((?:fit|gemba)-[a-z][a-z-]*)/g;
 
 // CLIs the published sibling composite actions invoke. Their sources live
-// outside this checkout — see .github/CLAUDE.md § the sibling-repo table.
-// Subsumed by docs/skills today; kept so an action-only CLI stays public.
-// The published jidoka action invokes the jidoka CLI, yet the name is
-// deliberately absent here and below: listing it would compute a launcher,
-// and the bare npm name belongs to an unrelated third-party package —
-// jidoka ships scoped as @forwardimpact/jidoka instead.
+// outside this checkout. See .github/CLAUDE.md § the sibling-repo table.
+// Docs and skills subsume this list today. It stays so an action-only CLI
+// stays public. The published jidoka action invokes the jidoka CLI. The
+// name is still deliberately absent here and below. A listed name would
+// compute a launcher, and the bare npm name belongs to an unrelated
+// third-party package. jidoka ships scoped as @forwardimpact/jidoka
+// instead.
 export const SIBLING_ACTION_CLIS = [
   "gemba-benchmark",
   "gemba-harness",
@@ -53,11 +57,11 @@ export const SIBLING_ACTION_CLIS = [
 
 // Escape hatch for a public CLI the family-scoped invocation scan cannot
 // capture: a name outside the fit-*/gemba-* families that external users
-// install and invoke bare (INVOKE_RE matches only fit-*/gemba-* names and
-// the skill scan only walks fit-*/gemba-*/kata-* dirs). Empty today — name
-// a CLI here only when it is published under its bare npm name and invoked
-// bare in published surfaces, the same escape hatch SIBLING_ACTION_CLIS
-// gives action-only CLIs.
+// install and invoke bare. INVOKE_RE matches only fit-*/gemba-* names, and
+// the skill scan only walks fit-*/gemba-*/kata-* dirs. This list is empty
+// today. Name a CLI here only when npm publishes it under its bare name
+// and published surfaces invoke it bare. This is the same escape hatch
+// SIBLING_ACTION_CLIS gives action-only CLIs.
 export const PUBLISHED_NON_FIT_CLIS = [];
 
 const REQUIRED_KEYS = [
@@ -104,7 +108,8 @@ export function computePublicCliSet({ invokedNames, packages }) {
     for (const cli of Object.keys(pkg.bin ?? {})) {
       if (!invokedNames.has(cli)) continue;
       // No `exports` field → Node's legacy rules resolve every subpath, so
-      // the launcher import works; with `exports`, the subpath must be listed.
+      // the launcher import works. With `exports`, the field must list the
+      // subpath.
       set.set(cli, {
         srcName: pkg.name,
         srcDir: pkg.dir,
@@ -284,7 +289,7 @@ function collectWorkspacePackages({ listDir, readJson }) {
 function collectLaunchers({ listDir, readJson, readText }) {
   const launchers = [];
   for (const dir of listDir("launchers", { dirsOnly: true })) {
-    // No bin/ dir — binFiles stays empty and the shape check reports it.
+    // With no bin/ dir, binFiles stays empty and the shape check reports it.
     const binFiles = listDir(`launchers/${dir}/bin`).sort();
     const binContent =
       binFiles.length === 1
@@ -302,13 +307,13 @@ function collectLaunchers({ listDir, readJson, readText }) {
 
 const HINTS = {
   drift:
-    "add or delete the launcher dir — the set is computed, not hand-maintained; see launchers/README.md",
+    "add or delete the launcher dir. The rule computes the set. Nobody maintains it by hand. See launchers/README.md",
   shape:
-    "restore the canonical two-line bin and the source's bin-subpath export; see launchers/README.md",
+    "restore the canonical two-line bin and the source's bin-subpath export. See launchers/README.md",
   placeholder:
-    "keep the 0.0.0 placeholders — publish-npm.yml stamps the source's real version at publish time",
+    "keep the 0.0.0 placeholders. publish-npm.yml stamps the source's real version at publish time",
   schema:
-    "launchers publish verbatim from the working tree; only the canonical metadata set may ride along",
+    "launchers publish verbatim from the working tree. Only the canonical metadata set may ride along",
 };
 
 export default {

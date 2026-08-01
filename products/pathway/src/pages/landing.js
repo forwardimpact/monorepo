@@ -21,7 +21,7 @@ export function renderLanding() {
   const { data } = getState();
   const { standard } = data;
 
-  // Calculate stats using centralized capability ordering
+  // Calculate the stats with the centralized capability order
   const skillsByCapability = groupSkillsByCapability(
     data.skills,
     data.capabilities,
@@ -51,7 +51,7 @@ export function renderLanding() {
         span({ className: "brand-tag brand-tag-hero" }, standard.tag),
       ),
       p({}, standard.description.trim()),
-      // Install command prompt (only if distribution URL is configured)
+      // Install command prompt. Show it only when a distribution URL exists.
       standard.distribution?.siteUrl
         ? createCommandPrompt(
             `curl -fsSL ${standard.distribution.siteUrl}/install.sh | bash`,
@@ -202,8 +202,8 @@ export function renderLanding() {
           h2({}, "🎤 Prep for an Interview"),
           p(
             {},
-            "Generate tailored interview questions based on role requirements " +
-              "to ensure comprehensive candidate assessment.",
+            "Generate tailored interview questions from the role requirements " +
+              "to assess each candidate completely.",
           ),
           div(
             { className: "page-actions", style: "justify-content: center" },
@@ -220,8 +220,8 @@ export function renderLanding() {
           h2({}, "📈 Plan Your Career"),
           p(
             {},
-            "Visualize your progression to the next level and compare expectations " +
-              "across different tracks to plan your career development.",
+            "Visualize your progression to the next level. Compare expectations " +
+              "across different tracks to plan how your career develops.",
           ),
           div(
             { className: "page-actions", style: "justify-content: center" },
@@ -241,8 +241,8 @@ export function renderLanding() {
           h2({}, `${getConceptEmoji(standard, "driver")} Assess Your Skills`),
           p(
             {},
-            "Assess your current skills and behaviours to discover matching roles " +
-              "and identify development opportunities.",
+            "Assess your current skills and behaviours to find the roles that " +
+              "match. Identify where you can develop.",
           ),
           div(
             { className: "page-actions", style: "justify-content: center" },
@@ -262,8 +262,8 @@ export function renderLanding() {
           h2({}, "🤖 Build an Agent Team"),
           p(
             {},
-            "Generate coding agent team configurations from discipline × track combinations " +
-              "for Claude Code agents.",
+            "Generate team configurations for Claude Code coding agents " +
+              "from discipline × track combinations.",
           ),
           div(
             { className: "page-actions", style: "justify-content: center" },

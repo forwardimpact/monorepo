@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 import { runList, sample } from "./feature-helpers.js";
 
-test("list --filter prints only matching lines", () => {
+test("list --filter prints only the lines that match", () => {
   const out = runList(["--filter", "buy"], sample);
   assert.match(out, /Buy milk/);
   assert.match(out, /Buy stamps/);

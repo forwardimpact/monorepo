@@ -132,7 +132,7 @@ describe("createHttpService", () => {
       await service.stop();
       await service.stop();
       service = null; // prevent afterEach double-stop
-      expect(stopped).toBe(1); // stop() is idempotent — onStop fires once
+      expect(stopped).toBe(1); // stop() is idempotent, so onStop fires once
     });
 
     test("forwards logger and tracer to configure", async () => {

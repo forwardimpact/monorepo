@@ -1,7 +1,7 @@
 # `fit-wiki` task family
 
-Task family for `fit-benchmark` targeting the `fit-wiki` CLI. Validates
-that an agent can resolve wiki audit findings by editing markdown files.
+Task family for `fit-benchmark`. It targets the `fit-wiki` CLI. It checks that
+an agent can edit markdown files to resolve wiki audit findings.
 
 ## Tasks
 
@@ -12,4 +12,4 @@ that an agent can resolve wiki audit findings by editing markdown files.
 ## Dependencies
 
 No skill pack dependencies. The agent uses `fit-wiki audit` to discover
-findings and edits wiki files directly.
+findings. It then edits the wiki files directly.

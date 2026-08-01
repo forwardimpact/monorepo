@@ -99,7 +99,7 @@ describe("hosted transform handler", () => {
     assert.deepStrictEqual(pick(hostedFake), pick(cliFake));
   });
 
-  test("criterion 4: missing standard data is reported as skipped, with why", async () => {
+  test("criterion 4: the handler reports missing standard data as skipped, with why", async () => {
     const fake = createFakeSupabase({ joinedArtifacts: JOINED });
     const body = await handleTransform(
       fake,

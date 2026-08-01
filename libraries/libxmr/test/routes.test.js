@@ -26,7 +26,7 @@ describe("parseRouteContext", () => {
     assert.deepEqual(routesEligible, []);
   });
 
-  test("legacy `route_taken=none (...)` form without eligible clause", () => {
+  test("parses the legacy `route_taken=none (...)` form with no eligible clause", () => {
     const { routeTaken, routesEligible } = parseRouteContext(
       "route_taken=none (facilitated meeting leg, no shift dispatch)",
     );
@@ -34,7 +34,7 @@ describe("parseRouteContext", () => {
     assert.deepEqual(routesEligible, []);
   });
 
-  test("empty eligible list", () => {
+  test("parses an empty eligible list", () => {
     const { routeTaken, routesEligible } = parseRouteContext(
       "route_taken=4; routes_eligible=[]; route-4 output",
     );
@@ -42,7 +42,7 @@ describe("parseRouteContext", () => {
     assert.deepEqual(routesEligible, []);
   });
 
-  test("null note is safe", () => {
+  test("a null note is safe", () => {
     assert.deepEqual(parseRouteContext(undefined), {
       routeTaken: "",
       routesEligible: [],

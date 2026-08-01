@@ -30,7 +30,7 @@ describe("Finder", () => {
       logger: mockLogger,
     });
 
-    // Create a temporary directory for testing
+    // Create a temporary directory for the test
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     tempDir = path.join(__dirname, ".tmp-linker-test");
@@ -43,14 +43,14 @@ describe("Finder", () => {
   });
 
   afterEach(() => {
-    // Clean up temp directory
+    // Clean up the temp directory
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
 
   describe("constructor", () => {
-    test("creates Finder with injected collaborators", () => {
+    test("creates a Finder with injected collaborators", () => {
       const finder = new Finder({
         fs: fsPromises,
         fsSync: fs,
@@ -61,7 +61,7 @@ describe("Finder", () => {
       assert.ok(finder instanceof Finder);
     });
 
-    test("validates fs parameter", () => {
+    test("validates the fs parameter", () => {
       assert.throws(() => new Finder(), {
         message: /fs is required/,
       });
@@ -70,13 +70,13 @@ describe("Finder", () => {
       });
     });
 
-    test("validates proc parameter", () => {
+    test("validates the proc parameter", () => {
       assert.throws(() => new Finder({ fs: fsPromises }), {
         message: /proc is required/,
       });
     });
 
-    test("defaults logger to a no-op when omitted", () => {
+    test("defaults the logger to a no-op when the caller omits it", () => {
       const finder = new Finder({
         fs: fsPromises,
         fsSync: fs,
@@ -95,7 +95,7 @@ describe("Finder", () => {
       assert.notStrictEqual(scoped, finder);
 
       // createSymlink (the one Finder method that logs) now routes through the
-      // swapped logger; the original is left untouched.
+      // swapped logger. The original logger stays untouched.
       const sourceDir = path.join(tempDir, "wl-source");
       const targetPath = path.join(tempDir, "wl-target");
       await scoped.createSymlink(sourceDir, targetPath);
@@ -120,7 +120,7 @@ describe("Finder", () => {
 
       base.withLogger(createMockLogger()).findUpward("/a/b/c", "target");
 
-      // Existence still resolves through the SAME injected sync surface — the
+      // Existence still resolves through the SAME injected sync surface. The
       // rebuild must not silently fall back to the async `fs`.
       assert.ok(syncFs.existsSync.mock.calls.length > 0);
       assert.strictEqual(asyncFs.existsSync.mock.calls.length, 0);
@@ -128,8 +128,8 @@ describe("Finder", () => {
   });
 
   describe("findUpward", () => {
-    test("finds file in current directory", () => {
-      // Create test structure
+    test("finds a file in the current directory", () => {
+      // Create the test structure
       const testFile = path.join(tempDir, "target.txt");
       fs.writeFileSync(testFile, "test");
 
@@ -138,8 +138,8 @@ describe("Finder", () => {
       assert.strictEqual(result, testFile);
     });
 
-    test("finds file in parent directory", () => {
-      // Create test structure
+    test("finds a file in the parent directory", () => {
+      // Create the test structure
       const subDir = path.join(tempDir, "subdir");
       fs.mkdirSync(subDir);
       const testFile = path.join(tempDir, "target.txt");
@@ -150,20 +150,20 @@ describe("Finder", () => {
       assert.strictEqual(result, testFile);
     });
 
-    test("returns null when file not found", () => {
+    test("returns null when it does not find the file", () => {
       const result = finder.findUpward(tempDir, "nonexistent.txt");
 
       assert.strictEqual(result, null);
     });
 
-    test("respects maxDepth parameter", () => {
-      // Create nested structure
+    test("respects the maxDepth parameter", () => {
+      // Create the nested structure
       const deepDir = path.join(tempDir, "a", "b", "c");
       fs.mkdirSync(deepDir, { recursive: true });
       const testFile = path.join(tempDir, "target.txt");
       fs.writeFileSync(testFile, "test");
 
-      // Should not find with maxDepth of 2
+      // The search should not find it with a maxDepth of 2
       const result = finder.findUpward(deepDir, "target.txt", 2);
 
       assert.strictEqual(result, null);
@@ -171,20 +171,20 @@ describe("Finder", () => {
   });
 
   describe("findProjectRoot", () => {
-    test("finds project root with package.json", () => {
-      // Create test project structure
+    test("finds the project root with package.json", () => {
+      // Create the test project structure
       const projectRoot = path.join(tempDir, "project");
       const packagesDir = path.join(projectRoot, "packages", "somepackage");
       fs.mkdirSync(packagesDir, { recursive: true });
       fs.writeFileSync(path.join(projectRoot, "package.json"), "{}");
 
-      // Test from the package directory (3 levels deep from project root)
+      // Test from the package directory (3 levels deep from the project root)
       const result = finder.findProjectRoot(packagesDir);
 
       assert.strictEqual(result, projectRoot);
     });
 
-    test("throws error when project root not found", () => {
+    test("throws an error when it does not find the project root", () => {
       // Create a directory structure without package.json at any level
       const deepDir = path.join(tempDir, "no-project", "deep", "dir");
       fs.mkdirSync(deepDir, { recursive: true });
@@ -194,7 +194,7 @@ describe("Finder", () => {
       });
     });
 
-    test("defaults the search origin to cwd when no startPath is given", () => {
+    test("defaults the search origin to cwd when the caller gives no startPath", () => {
       const cwd = path.join(tempDir, "cwd-project");
       fs.mkdirSync(cwd, { recursive: true });
       fs.writeFileSync(path.join(cwd, "package.json"), "{}");
@@ -209,9 +209,9 @@ describe("Finder", () => {
       assert.strictEqual(cwdFinder.findProjectRoot(), cwd);
     });
 
-    test("returns cwd in a compiled binary without touching the filesystem", () => {
-      // A compiled binary's module dir is the /$bunfs root, so the upward
-      // package.json search is skipped entirely — cwd is the project root.
+    test("returns cwd in a compiled binary and does not touch the filesystem", () => {
+      // A compiled binary's module dir is the /$bunfs root. So the code skips
+      // the upward package.json search entirely. cwd is the project root.
       const compiledFinder = new Finder({
         fs: fsPromises,
         fsSync: {
@@ -232,7 +232,7 @@ describe("Finder", () => {
   });
 
   describe("findData", () => {
-    test("finds data/ in CWD via findUpward", () => {
+    test("finds data/ in CWD through findUpward", () => {
       const dataDir = path.join(tempDir, "data");
       fs.mkdirSync(dataDir);
 
@@ -247,7 +247,7 @@ describe("Finder", () => {
       assert.strictEqual(result, dataDir);
     });
 
-    test("finds data/ in a parent directory via findUpward", () => {
+    test("finds data/ in a parent directory through findUpward", () => {
       const dataDir = path.join(tempDir, "data");
       fs.mkdirSync(dataDir);
       const subDir = path.join(tempDir, "products", "pathway");
@@ -283,7 +283,7 @@ describe("Finder", () => {
       assert.strictEqual(result, homeFitData);
     });
 
-    test("throws when neither CWD traversal nor HOME fallback finds directory", () => {
+    test("throws when neither CWD traversal nor HOME fallback finds the directory", () => {
       const isolatedDir = path.join(tempDir, "isolated");
       fs.mkdirSync(isolatedDir);
 
@@ -320,8 +320,8 @@ describe("Finder", () => {
   });
 
   describe("findPackagePath", () => {
-    test("finds package in local monorepo structure", () => {
-      // Create mock monorepo structure
+    test("finds the package in the local monorepo structure", () => {
+      // Create the mock monorepo structure
       const projectRoot = path.join(tempDir, "project");
       const packagePath = path.join(projectRoot, "packages", "libtype");
       fs.mkdirSync(packagePath, { recursive: true });
@@ -333,8 +333,8 @@ describe("Finder", () => {
   });
 
   describe("findGeneratedPath", () => {
-    test("returns generated directory path for package", () => {
-      // Create mock structure
+    test("returns the generated directory path for the package", () => {
+      // Create the mock structure
       const projectRoot = path.join(tempDir, "project");
       const packagePath = path.join(projectRoot, "packages", "libtype");
       fs.mkdirSync(packagePath, { recursive: true });
@@ -346,10 +346,10 @@ describe("Finder", () => {
   });
 });
 
-// The collaborator-config constructor form injects fs/proc so the
-// dead-`fs` bug (existence checks ignoring the injected fs) is fixed.
+// The collaborator-config constructor form injects fs/proc. That fixes the
+// dead-`fs` bug, where existence checks ignored the injected fs.
 describe("Finder (collaborator config)", () => {
-  test("findUpward uses the injected fs, not the real filesystem", () => {
+  test("findUpward uses the injected fs instead of the real filesystem", () => {
     const mockFs = createMockFs({
       "/repo/sub/dir/package.json": "{}",
     });
@@ -361,7 +361,8 @@ describe("Finder (collaborator config)", () => {
     const result = finder.findUpward("/repo/sub/dir", "package.json");
 
     assert.strictEqual(result, "/repo/sub/dir/package.json");
-    // The injected fs.existsSync drove the lookup — proves fs flows through.
+    // The injected fs.existsSync drove the lookup. That proves fs flows
+    // through.
     assert.ok(mockFs.existsSync.mock.calls.length > 0);
   });
 
@@ -375,7 +376,7 @@ describe("Finder (collaborator config)", () => {
     assert.strictEqual(finder.findUpward("/repo", "package.json"), null);
   });
 
-  test("fsSync drives existence checks when both surfaces are supplied", () => {
+  test("fsSync drives existence checks when the caller supplies both surfaces", () => {
     const asyncFs = createMockFs({});
     const syncFs = createMockFs({ "/work/data": "" });
     const finder = new Finder({

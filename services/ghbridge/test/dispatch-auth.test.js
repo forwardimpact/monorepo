@@ -123,7 +123,8 @@ describe("ghbridge dispatch-auth", () => {
     expect(client.calls[0].surface).toBe("github-discussions");
     expect(client.calls[0].surface_user_id).toBe("100");
 
-    // Complete the first run so inject guard does not intercept alice's comment.
+    // Complete the first run so the inject guard does not intercept alice's
+    // comment.
     const token = Object.keys(
       (await service.store.loadByChannel("github-discussions", "D_1"))
         .pending_callbacks,

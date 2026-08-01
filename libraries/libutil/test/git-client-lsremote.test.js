@@ -49,7 +49,7 @@ describe("GitClient.lsRemote", () => {
     assert.match(result.stderr, /terminal prompts disabled/);
   });
 
-  test("threads a token into the git env header when present", async () => {
+  test("threads a token into the git env header when the client carries one", async () => {
     const { client, subprocess } = clientWith({}, "tok-123");
     await client.lsRemote("https://github.com/forwardimpact/internal");
     const call = subprocess.calls.at(-1);

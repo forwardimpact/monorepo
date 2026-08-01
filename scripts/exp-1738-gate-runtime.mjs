@@ -1,39 +1,39 @@
 #!/usr/bin/env node
-// Publish-gate runtime falsifier (F-c critical-path-regression) — capture the
-// publish gate's "Run tests" STEP wall-clock per publish run and evaluate the
-// two pre-registered trip conditions. Experiment context and the issue
-// cross-reference live in wiki/metrics/exp-1738-publish-gate/README.md.
+// Publish-gate runtime falsifier (F-c critical-path-regression). It captures
+// the publish gate's "Run tests" STEP wall-clock per publish run. It then
+// evaluates the two pre-registered trip conditions. Experiment context and the
+// issue cross-reference live in wiki/metrics/exp-1738-publish-gate/README.md.
 //
-// Method A (staff-engineer ruling, facilitator [ask#4]): read-only against the
-// GitHub Actions API at cut time. The gate workflow (publish-npm.yml) is never
-// modified — no SECONDS wrapper on the hot path.
+// Method A (staff-engineer ruling, facilitator [ask#4]) is read-only against
+// the GitHub Actions API at cut time. It never modifies the gate workflow
+// (publish-npm.yml). There is no SECONDS wrapper on the hot path.
 //
-// BOUNDARY: both conditions key on the "Run tests" STEP duration, not the whole
-// publish job. Keeps the thresholds apples-to-apples with the 70.3s node step
-// baseline and immune to registry-hiccup false trips.
+// BOUNDARY: both conditions key on the "Run tests" STEP duration. They do not
+// key on the whole publish job. This keeps the thresholds apples-to-apples
+// with the 70.3s node step baseline and immune to registry-hiccup false trips.
 //
-// TWO CONDITIONS, DIFFERENT KEYING:
+// TWO CONDITIONS, DIFFERENT KEYS:
 //   - Sustained (105s): event-keyed. Each release event (one bump commit, i.e.
 //     one head_sha) contributes ONE datum = the MEDIAN Run-tests-step duration
-//     across that event's correlated publish runs (the cluster is collapsed).
-//     Trip when the median across 3 consecutive release events > 105s.
+//     across that event's correlated publish runs. The script collapses the
+//     cluster. Trip when the median across 3 consecutive release events > 105s.
 //   - Tail (120s): literal, per run. Trip if ANY single run's step > 120s.
-//   So every run is captured (the tail guard needs all of them), but the
-//   sustained median-of-3 is computed over the per-event collapse.
+//   So the script captures every run, because the tail guard needs all of them.
+//   It computes the sustained median-of-3 over the per-event collapse.
 //
-// DORMANT UNTIL t0: refuses to record unless the window-start marker
+// DORMANT UNTIL t0: the script refuses to record unless the window-start marker
 // wiki/metrics/exp-1738-publish-gate/T0 exists. Its first non-comment line is
 // the t0 ISO timestamp from staff-engineer's window-start Announce (the merge
-// commit of the node --test swap). Only publish runs created at/after t0 are
-// captured — nothing before the swap lands can trip the falsifier.
+// commit of the node --test swap). The script captures only publish runs
+// created at or after t0. Nothing before the swap lands can trip the falsifier.
 //
 // Usage:
 //   node scripts/exp-1738-gate-runtime.mjs --commit <bump-sha> [--record]
 //   node scripts/exp-1738-gate-runtime.mjs --runs 123,456 [--record]
 //
-// Default is dry-run: prints per-run step durations, the event median, the
-// proposed `gemba-xmr record` rows, and the trip verdict. Pass --record to also
-// append the rows via `gemba-xmr record`.
+// The default is a dry run. It prints per-run step durations, the event median,
+// the proposed `gemba-xmr record` rows, and the trip verdict. Pass --record to
+// also append the rows with `gemba-xmr record`.
 
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -87,8 +87,9 @@ function median(values) {
 function readT0() {
   if (!existsSync(t0Path)) return null;
   for (const line of readFileSync(t0Path, "utf8").split("\n")) {
-    // Strip inline comments (the README's arming example uses a trailing
-    // `# window start <sha>` annotation) and surrounding whitespace.
+    // Strip inline comments and the whitespace around the value. The README
+    // example that arms the script uses a trailing `# window start <sha>`
+    // annotation.
     const value = line.split("#")[0].trim();
     if (value) return value;
   }
@@ -156,8 +157,8 @@ function priorEventMedians() {
     for (const line of readFileSync(join(seriesDir, file), "utf8").split(
       "\n",
     )) {
-      // Columns: date,metric,value,... — metric (col 2) and value (col 3)
-      // both precede the quoted note, so positional split is safe.
+      // Columns: date,metric,value,... Metric (col 2) and value (col 3) both
+      // precede the quoted note, so a positional split is safe.
       const f = line.split(",");
       if (f[1] === "gate_runtime_event_median_s" && f[2]) {
         out.push(Number(f[2]));
@@ -214,10 +215,10 @@ if (!t0) {
     "          The falsifier cannot trip until the node --test swap merges.",
   );
   console.log(
-    "          Arm by writing the window-start ISO timestamp to that file when",
+    "          To arm it, write the window-start ISO timestamp to that file",
   );
   console.log(
-    "          staff-engineer fires the window-start Announce (= t0).",
+    "          when staff-engineer fires the window-start Announce (= t0).",
   );
   process.exit(0);
 }
@@ -232,7 +233,7 @@ const skipped = allRuns.length - eligible.length;
 
 console.log(`exp-1738: window t0 = ${t0}`);
 if (skipped) {
-  console.log(`exp-1738: skipping ${skipped} run(s) created before t0.`);
+  console.log(`exp-1738: skipped ${skipped} run(s) created before t0.`);
 }
 if (!eligible.length) {
   console.log("exp-1738: no eligible publish runs at/after t0 for this event.");
@@ -247,7 +248,7 @@ for (const run of eligible) {
   const s = stepDurationS(opts.repo, run.id);
   if (s == null) {
     console.log(
-      `  run-${run.id}: step absent (skipped — failed before tests?)`,
+      `  run-${run.id}: step absent (skipped, maybe failed before tests)`,
     );
     continue;
   }
@@ -258,7 +259,7 @@ for (const run of eligible) {
 
 if (!durations.length) {
   console.log(
-    "exp-1738: no Run-tests step durations resolved — nothing to record.",
+    "exp-1738: no Run-tests step durations resolved. Nothing to record.",
   );
   process.exit(0);
 }
@@ -291,8 +292,8 @@ record(
 // --- evaluate trips -----------------------------------------------------------
 const tailTrip = durations.some((s) => s > TAIL_THRESHOLD_S);
 
-// Sustained: median across the last 3 consecutive event medians. When --record
-// the new median is already on disk; in dry-run, append it in memory.
+// Sustained: median across the last 3 consecutive event medians. With --record
+// the new median is already on disk. In a dry run, append it in memory.
 const eventSeries = priorEventMedians();
 if (!opts.record) eventSeries.push(eventMedian);
 const lastThree = eventSeries.slice(-SUSTAINED_WINDOW);
@@ -320,10 +321,10 @@ if (tailTrip || sustainedTrip) {
     "\n‼ F-c FALSIFIER TRIPPED. Pre-registered decision: abandon the wholesale",
   );
   console.log(
-    "  runner swap, pursue test-set partitioning. Decision owner: staff-engineer.",
+    "  runner swap. Partition the test set instead. Decision owner: staff-engineer.",
   );
   console.log(
-    "  Escalate via Announce/Issue; do not continue the swap rollout.",
+    "  Escalate through Announce or Issue. Do not continue the swap rollout.",
   );
   process.exit(2);
 }

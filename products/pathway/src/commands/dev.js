@@ -2,7 +2,7 @@
  * Dev Command
  *
  * Runs a live development server for the Engineering Pathway web application.
- * Uses Node.js built-in http module (no external dependencies).
+ * Uses the built-in http module from Node.js (no external dependencies).
  */
 
 import { createServer } from "http";
@@ -19,15 +19,15 @@ const publicDir = join(__dirname, "..");
 const rootDir = join(__dirname, "../..");
 
 /**
- * Resolve package directory using Node's module resolution.
+ * Resolve the package directory with Node's module resolution.
  * Works in both monorepo (development) and installed (production) contexts.
  * @param {string} packageName - Package specifier (e.g., '@forwardimpact/map')
  * @returns {string} Absolute path to package lib directory
  */
 function resolvePackageLib(packageName) {
-  // Top-level `import.meta.resolve(...)` runs at module load and fails inside
-  // a `bun build --compile` bunfs root (no node_modules tree) — even on
-  // `--help`, because `bin/fit-pathway.js` statically imports this module.
+  // Top-level `import.meta.resolve(...)` runs at module load. It fails inside
+  // a `bun build --compile` bunfs root (no node_modules tree). It fails even
+  // on `--help`, because `bin/fit-pathway.js` statically imports this module.
   // Call this lazily from the command handler that needs it.
   const mainUrl = import.meta.resolve(packageName);
   return dirname(fileURLToPath(mainUrl));
@@ -107,7 +107,7 @@ async function isDirectory(path, runtime) {
 }
 
 /**
- * Build the static file route table for the dev server.
+ * Build the route table for the static files of the dev server.
  * @param {{ dataDir: string }} params
  * @returns {Array<{ match: (p: string) => boolean, resolve: (p: string) => string }>}
  */
@@ -174,7 +174,7 @@ export async function runDevCommand({ dataDir, options, runtime }) {
     standard = { emojiIcon: "🚀", title: "Engineering Pathway" };
   }
 
-  // Generate _index.yaml files before serving
+  // Generate _index.yaml files before the server starts
   logger.info("Generating index files...");
   const indexGenerator = createIndexGenerator(runtime);
   await indexGenerator.generateAllIndexes(dataDir);
@@ -198,7 +198,7 @@ export async function runDevCommand({ dataDir, options, runtime }) {
 
     let filePath = resolveRoute(pathname, routes);
 
-    // Check if path is a directory, serve index.html if so
+    // Check if the path is a directory. Serve index.html if it is.
     if (await isDirectory(filePath, runtime)) {
       filePath = join(filePath, "index.html");
     }
@@ -215,6 +215,6 @@ Press Ctrl+C to stop the server.
 `);
   });
 
-  // Keep the process running
+  // Keep the process alive
   return new Promise(() => {});
 }

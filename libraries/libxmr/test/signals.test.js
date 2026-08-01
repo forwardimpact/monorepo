@@ -9,7 +9,7 @@ import {
 } from "../src/signals.js";
 
 describe("detectSignals — Wheeler §10 worked example", () => {
-  test("X Rule 1 fires at slot 10, mR Rule 1 fires at slot 11, no other rules", () => {
+  test("X Rule 1 fires at slot 10. mR Rule 1 fires at slot 11. No other rules fire", () => {
     const values = [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5];
     const stats = computeXmR(values);
     const sig = detectSignals(values, stats.mrs, stats);
@@ -24,8 +24,8 @@ describe("detectSignals — Wheeler §10 worked example", () => {
 });
 
 describe("detectSignals — X Rule 2 (run of 8+ same side of μ)", () => {
-  test("fires for 8 consecutive above μ", () => {
-    // 5 low values, then 8 high values — run of 8 above μ.
+  test("fires for 8 consecutive values above μ", () => {
+    // 5 low values come first, then 8 high values. That is a run of 8 above μ.
     const values = [1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9];
     const stats = computeXmR(values);
     const sig = detectSignals(values, stats.mrs, stats);
@@ -34,15 +34,16 @@ describe("detectSignals — X Rule 2 (run of 8+ same side of μ)", () => {
     assert.deepStrictEqual(sig.xRule2[0].slots, [6, 7, 8, 9, 10, 11, 12, 13]);
   });
 
-  test("does NOT fire for 7 consecutive same side", () => {
+  test("does NOT fire for 7 consecutive values on the same side", () => {
     const values = [1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9];
     const stats = computeXmR(values);
     const sig = detectSignals(values, stats.mrs, stats);
     assert.strictEqual(sig.xRule2.length, 0);
   });
 
-  test("strict-inequality comparison: 8-long run + neutral neighbors still fires", () => {
-    // Strict above-side run of exactly 8, then a flip — Rule 2 fires.
+  test("under strict-inequality comparison, an 8-long run + neutral neighbors still fires", () => {
+    // The values give a strict above-side run of exactly 8, then a flip.
+    // Rule 2 fires.
     const values = [9, 9, 9, 9, 9, 9, 9, 9, 1, 1, 1, 1, 1];
     const stats = computeXmR(values);
     const sig = detectSignals(values, stats.mrs, stats);
@@ -52,9 +53,9 @@ describe("detectSignals — X Rule 2 (run of 8+ same side of μ)", () => {
 });
 
 describe("detectSignals — X Rule 3 (3 of 4 in outer zone)", () => {
-  test("fires when 3 of 4 consecutive are strictly beyond +1.5σ̂", () => {
-    // Construct a series whose μ ≈ 0 and whose σ̂ allows three points to
-    // sit beyond +1.5σ̂ in a 4-slot window.
+  test("fires when 3 of 4 consecutive values are strictly beyond +1.5σ̂", () => {
+    // Construct a series whose μ ≈ 0 and whose σ̂ lets three points sit
+    // beyond +1.5σ̂ in a 4-slot window.
     const values = [
       0,
       0,
@@ -83,10 +84,10 @@ describe("detectSignals — X Rule 3 (3 of 4 in outer zone)", () => {
     assert.ok(all.includes(12) && all.includes(13) && all.includes(15));
   });
 
-  test("collapses overlapping firing windows into one signal per stretch", () => {
-    // A 4-slot stretch in the outer-upper zone fires three overlapping
-    // 4-windows. They must merge into a single signal rather than
-    // emitting once per starting position.
+  test("collapses windows that overlap and fire into one signal per stretch", () => {
+    // A 4-slot stretch in the outer-upper zone fires three 4-windows that
+    // overlap. They must merge into a single signal. They must not emit
+    // once per start position.
     const values = [
       1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 3, 3, 3, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2,
     ];
@@ -97,7 +98,7 @@ describe("detectSignals — X Rule 3 (3 of 4 in outer zone)", () => {
     assert.deepStrictEqual(sig.xRule3[0].slots, [11, 12, 13, 14]);
   });
 
-  test("does NOT fire when only 2 of 4 are beyond zone", () => {
+  test("does NOT fire when only 2 of 4 values are beyond the zone", () => {
     const values = Array(15).fill(5);
     values[10] = 50;
     values[11] = 50;
@@ -108,8 +109,8 @@ describe("detectSignals — X Rule 3 (3 of 4 in outer zone)", () => {
 });
 
 describe("detectSignals — mR Rule 1", () => {
-  test("fires when mR exceeds URL", () => {
-    // Single large jump produces an mR breach.
+  test("fires when mR exceeds the URL", () => {
+    // A single large jump produces an mR breach.
     const values = [5, 5, 5, 5, 5, 5, 5, 5, 100, 5];
     const stats = computeXmR(values);
     const sig = detectSignals(values, stats.mrs, stats);
@@ -128,7 +129,7 @@ describe("detectSignals — mR Rule 1", () => {
 });
 
 describe("signal masks", () => {
-  test("X mask covers every slot in xRule1/2/3", () => {
+  test("the X mask covers every slot in xRule1/2/3", () => {
     const sig = {
       xRule1: [{ slots: [3] }],
       xRule2: [{ slots: [5, 6, 7] }],
@@ -141,11 +142,11 @@ describe("signal masks", () => {
     assert.strictEqual(mask[6], true);
     assert.strictEqual(mask[7], true);
     assert.strictEqual(mask[10], true);
-    // mR rule never marks the X mask.
+    // The mR rule never marks the X mask.
     assert.strictEqual(mask[4], false);
   });
 
-  test("mR mask covers only mrRule1 slots", () => {
+  test("the mR mask covers only mrRule1 slots", () => {
     const sig = {
       xRule1: [{ slots: [3] }],
       xRule2: [],

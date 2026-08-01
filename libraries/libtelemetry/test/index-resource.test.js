@@ -7,7 +7,7 @@ import { createMockStorage } from "@forwardimpact/libmock";
 import { createMockClock } from "@forwardimpact/libmock";
 const _clock = createMockClock();
 
-describe("TraceIndex - Resource ID Filtering", () => {
+describe("TraceIndex - Resource ID Filters", () => {
   let traceIndex;
   let mockStorage;
 
@@ -18,7 +18,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
     });
   });
 
-  describe("queryItems() - Resource ID Filtering with Complete Traces", () => {
+  describe("queryItems() - Resource ID Filters with Complete Traces", () => {
     beforeEach(async () => {
       await traceIndex.add(
         spanType.SpanItem.fromObject({
@@ -101,7 +101,7 @@ describe("TraceIndex - Resource ID Filtering", () => {
       );
     });
 
-    test("returns all spans from trace containing resource_id", async () => {
+    test("returns all spans from a trace that contains resource_id", async () => {
       const spans = await traceIndex.queryItems(null, {
         resource_id: "common.Conversation.conv1",
       });

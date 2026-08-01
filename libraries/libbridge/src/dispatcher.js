@@ -44,9 +44,9 @@ export class Dispatcher {
       throw new Error("callbackBaseUrl is required");
     }
     if (!workflowFile) throw new Error("workflowFile is required");
-    // A non-empty static repo is required in single-tenant mode; multi-tenant
-    // mode derives the repo per request from the resolved tenant, so an empty
-    // string is accepted (the dispatch falls back to `tenant.repo`).
+    // Single-tenant mode needs a non-empty static repo. Multi-tenant mode
+    // derives the repo per request from the resolved tenant, so this check
+    // accepts an empty string (the dispatch falls back to `tenant.repo`).
     if (typeof githubRepo !== "string") {
       throw new Error("githubRepo is required");
     }
@@ -68,9 +68,9 @@ export class Dispatcher {
    * @param {object} args
    * @param {object} args.ctx - Discussion context record (mutated)
    * @param {string} args.prompt
-   * @param {string} args.requester - Surface user id of the triggering human
+   * @param {string} args.requester - Surface user id of the human requester
    * @param {object} args.callbackMeta - Stored on the callback token
-   * @param {unknown} [args.ackTarget] - If omitted, no acknowledgement is started
+   * @param {unknown} [args.ackTarget] - Omit to skip the acknowledgement
    * @param {object} [args.workflowInputs] - Extra fields for `dispatchWorkflow`
    * @returns {Promise<{kind: "dispatched", token: string, correlationId: string} | {kind: "link_required", authorizeUrl: string} | {kind: "reauth_required"} | {kind: "transient", error: Error}>}
    */
@@ -87,11 +87,11 @@ export class Dispatcher {
     if (typeof requester !== "string") throw new Error("requester is required");
 
     // Resolve the tenant before the dispatch credential. The resolved tenant
-    // scopes the callback/inbox URLs and the dispatch repo, and is the value
-    // the declined link/reauth result carries back so the bridge keys the
-    // pending-dispatch write to the same tenant the verify side reads. The
-    // tenant is passed to the resolver so a repo-scoped resolver could use it;
-    // the per-user `TokenResolver` ignores it.
+    // scopes the callback/inbox URLs and the dispatch repo. The declined
+    // link/reauth result carries the same tenant back, so the bridge keys the
+    // pending-dispatch write to the tenant the verify side reads. The
+    // dispatch passes the tenant to the resolver, so a repo-scoped resolver
+    // could use it. The per-user `TokenResolver` ignores it.
     const tenant = await this.#tenantResolver.resolve({
       channel: ctx.channel,
       key: ctx.channel_tenant_key,
@@ -117,8 +117,9 @@ export class Dispatcher {
     const inboxUrl = `${this.#callbackBaseUrl}/api/inbox/${tenant_id}/${correlationId}`;
 
     // The workflow_dispatch targets the resolved tenant's repository when the
-    // resolver supplies one (multi-tenant); otherwise the static configured
-    // repo (single-tenant). Both modes fire against the customer's runner.
+    // resolver supplies one (multi-tenant). Otherwise it targets the static
+    // configured repo (single-tenant). Both modes fire against the customer's
+    // runner.
     const dispatchRepo = tenant.repo
       ? `${tenant.repo.owner}/${tenant.repo.name}`
       : this.#githubRepo;

@@ -1,15 +1,15 @@
 ---
 title: Give Agents Typed, Retrievable Knowledge
-description: Agents that can answer relationship questions, look up context, and find related content — backed by typed knowledge infrastructure with no external engines.
+description: Agents answer relationship questions, look up context, and find related content. Typed knowledge infrastructure backs them, and it needs no external engines.
 ---
 
-You need agents that can answer questions about relationships between entities,
-look up context by identifier, and find semantically related content. Right now,
-the knowledge is either trapped in untyped files or requires an external search
-engine to retrieve. Four libraries -- `@forwardimpact/libresource`,
-`@forwardimpact/libgraph`, `@forwardimpact/libindex`, and
-`@forwardimpact/libvector` -- give you a self-contained knowledge infrastructure
-that runs locally without external databases.
+You need agents that answer questions about relationships between entities. You
+also need them to look up context by identifier and to find related content by
+meaning. Right now, untyped files trap the knowledge, or you need an external
+search engine to retrieve it. Four libraries give you a self-contained knowledge
+infrastructure that runs locally without external databases:
+`@forwardimpact/libresource`, `@forwardimpact/libgraph`,
+`@forwardimpact/libindex`, and `@forwardimpact/libvector`.
 
 The pipeline flows in three stages: ingest HTML into typed resources, extract
 RDF triples into a graph, and generate vector embeddings for semantic retrieval.
@@ -18,8 +18,8 @@ Each stage produces a JSONL-backed index that agents can query directly.
 ## Prerequisites
 
 - Node.js 22+
-- An embedding endpoint (any OpenAI-compatible `/v1/embeddings` API) for
-  vector indexing
+- An embedding endpoint (any OpenAI-compatible `/v1/embeddings` API) to index
+  vectors
 - HTML files with [schema.org](https://schema.org/) microdata markup in a
   `data/knowledge/` directory
 
@@ -51,15 +51,15 @@ data/knowledge/*.html
 ```
 
 `libindex` provides the `IndexBase` class that both `GraphIndex` and
-`VectorIndex` extend. It handles JSONL persistence, lazy loading, prefix
-filtering, and token budgeting so the specialized indexes inherit that
-behavior without reimplementing it.
+`VectorIndex` extend. It persists JSONL, loads on demand, filters by prefix,
+and holds results within a token budget. The specialized indexes inherit that
+behavior and do not implement it again.
 
 ## Where the indexes live: the storage substrate
 
 Every index in this pipeline reads and writes through one backend interface from
 `@forwardimpact/libstorage`. The `createStorage(prefix)` factory returns a
-storage handle scoped to a named prefix, and each index is constructed with one:
+storage handle scoped to a named prefix. You construct each index with one:
 
 ```js
 import { createStorage } from "@forwardimpact/libstorage";
@@ -67,8 +67,8 @@ import { createStorage } from "@forwardimpact/libstorage";
 const storage = createStorage("vectors"); // reads/writes data/vectors/
 ```
 
-The same call resolves to a different backend depending on the `STORAGE_TYPE`
-environment variable, with no change to consumer code:
+The `STORAGE_TYPE` environment variable selects the backend for the same call.
+Consumer code does not change:
 
 | `STORAGE_TYPE` | Backend                    | Where data lives           |
 | -------------- | -------------------------- | -------------------------- |
@@ -76,12 +76,12 @@ environment variable, with no change to consumer code:
 | `s3`           | Amazon S3 or S3-compatible | `<bucket>/<prefix>/`       |
 | `supabase`     | Supabase Storage           | `<bucket>/<prefix>/`       |
 
-Because every index shares this interface, you develop against the local
-filesystem and deploy against S3 or Supabase by setting `STORAGE_TYPE` — the
-graph, vector, and resource indexes never know which backend they are talking
-to. On the local backend, `put(key, data)` is a same-target atomic replace
-(write a sibling temp file, then `rename`), so a process killed mid-write leaves
-the target at either its prior content or the new content, never a truncated
+Every index shares this interface. You develop against the local filesystem.
+You deploy against S3 or Supabase when you set `STORAGE_TYPE`. The graph,
+vector, and resource indexes never know which backend they use. On the local
+backend, `put(key, data)` is a same-target atomic replace (write a sibling temp
+file, then `rename`). If a process is killed mid-write, the target keeps its
+prior content or holds the new content. The target never holds a truncated
 prefix.
 
 Install it alongside the index libraries:
@@ -92,7 +92,7 @@ npm install @forwardimpact/libstorage
 
 ## 1. Prepare the knowledge directory
 
-Create `data/knowledge/` and add HTML files with schema.org microdata. The
+Create `data/knowledge/`. Add HTML files with schema.org microdata. The
 resource processor extracts typed entities from `itemscope` / `itemtype` /
 `itemprop` attributes:
 
@@ -132,7 +132,7 @@ The processor:
 
 1. Finds all `.html` files in `data/knowledge/`
 2. Sanitizes the DOM (normalizes whitespace, encodes stray characters)
-3. Extracts RDF quads from microdata using the streaming parser
+3. Extracts RDF quads from microdata with the streaming parser
 4. Skolemizes blank nodes into content-hashed URIs for cross-document
    deduplication
 5. Serializes each entity's triples as Turtle RDF
@@ -140,10 +140,10 @@ The processor:
    content-hashed identifier
 
 When the same entity appears in multiple HTML files, the processor merges
-triples using RDF union semantics -- new properties are added, existing
-identical triples are deduplicated.
+triples with RDF union semantics. It adds new properties. It keeps one copy of
+each identical triple.
 
-After processing, verify the resources exist:
+After the processor finishes, verify the resources exist:
 
 ```sh
 ls data/resources/
@@ -176,11 +176,11 @@ The graph processor:
 6. Builds a SHACL ontology from all observed types and predicates
 7. Writes the ontology to `data/graphs/ontology.ttl`
 
-The ontology file describes the shape of the data -- which types exist, what
+The ontology file describes the shape of the data: which types exist, what
 properties each type has, and how types relate to each other. Agents read this
-file to understand what questions the graph can answer before writing queries.
+file to learn what questions the graph can answer before they write queries.
 
-Verify the graph was built:
+Verify that the processor built the graph:
 
 ```sh
 npx fit-rag subjects
@@ -202,24 +202,24 @@ npx fit-rag query "?" schema:worksFor "?"
 common.Message.a1b2c3d4
 ```
 
-The output is the resource identifier containing the matching triple. The
-query uses the `subject predicate object` pattern where `?` is a wildcard.
-Prefixed names like `schema:worksFor` expand using the standard prefix map
+The output is the resource identifier that contains the matching triple. The
+query uses the `subject predicate object` pattern, where `?` is a wildcard.
+Prefixed names like `schema:worksFor` expand with the standard prefix map
 (`schema:` -> `https://schema.org/`).
 
 ## 4. Generate vector embeddings
 
-The vector processor takes each resource's text content, sends it to an
-embedding endpoint, and stores the resulting vectors:
+The vector processor takes each resource's text content. It sends the content
+to an embedding endpoint. It stores the vectors that come back:
 
 ```sh
 npx fit-process vectors
 ```
 
-This requires the embedding gRPC service (`@forwardimpact/svcembedding`),
-which proxies to an OpenAI-compatible Text Embeddings Inference (TEI) backend.
-Configure it through the `service.embedding` block in `config/config.json` or
-the `SERVICE_EMBEDDING_*` environment variables:
+This step needs the embedding gRPC service (`@forwardimpact/svcembedding`).
+That service proxies to an OpenAI-compatible Text Embeddings Inference (TEI)
+backend. Configure it through the `service.embedding` block in
+`config/config.json` or with the `SERVICE_EMBEDDING_*` environment variables:
 
 ```json
 {
@@ -240,7 +240,7 @@ The processor:
 4. Stores each vector alongside its resource identifier in
    `data/vectors/index.jsonl`
 
-After processing, test a semantic search:
+After the processor finishes, test a semantic search:
 
 ```sh
 npx fit-rag search "senior engineering role"
@@ -251,8 +251,8 @@ common.Message.a1b2c3d4	0.8712
 common.Message.e5f6g7h8	0.6543
 ```
 
-Results are ranked by dot-product score (cosine similarity for normalized
-vectors). Higher scores indicate closer semantic matches.
+The command ranks results by dot-product score (cosine similarity for
+normalized vectors). Higher scores show closer semantic matches.
 
 ## 5. Query from code
 
@@ -278,7 +278,7 @@ for (const item of items) {
 }
 ```
 
-The `createGraphIndex("graphs")` call reads from `data/graphs/`; the
+The `createGraphIndex("graphs")` call reads from `data/graphs/`. The
 `createResourceIndex("resources")` call reads from `data/resources/`. Both use
 the `data/<prefix>/` convention. Pass a different prefix to point at a
 different directory.
@@ -305,13 +305,13 @@ for (const id of results) {
 ```
 
 Both `queryItems` methods accept a filter object with `prefix`, `limit`, and
-`max_tokens` to scope results by identifier prefix, cap the count, or stay
-within a token budget.
+`max_tokens`. These fields scope results by identifier prefix, cap the count,
+or hold the results within a token budget.
 
 ## Verify
 
-After running all three stages, confirm the full pipeline produced the expected
-artifacts:
+After you run all three stages, confirm that the full pipeline produced the
+expected artifacts:
 
 ```sh
 ls data/resources/       # Typed resource JSON files
@@ -324,8 +324,8 @@ npx fit-rag search "team member"               # Semantic search
 ```
 
 Each command should return results drawn from the HTML files you ingested. If a
-command returns nothing, check that the previous stage completed: resources must
-exist before graphs, and resources must exist before vectors.
+command returns nothing, check that the previous stage completed. Resources must
+exist before graphs. Resources must exist before vectors.
 
 ## What's next
 

@@ -67,7 +67,7 @@ describe("Supervisor - output and events", () => {
     assert.strictEqual(supervisorLine.source, "orchestrator");
     assert.ok("event" in supervisorLine);
 
-    // Seq monotonically increasing
+    // Seq increases monotonically.
     const seqs = lines
       .map((l) => JSON.parse(l))
       .filter((l) => typeof l.seq === "number")
@@ -85,7 +85,7 @@ describe("Supervisor - output and events", () => {
     assert.strictEqual(summaryLine.event.success, true);
   });
 
-  test("events are nested under `event` key (no field collisions)", async () => {
+  test("nests events under the `event` key (no field collisions)", async () => {
     const { ctx, messageBus } = seedCtx();
     const concludeHandler = createConcludeHandler(ctx);
 
@@ -149,7 +149,7 @@ describe("Supervisor - output and events", () => {
     });
   });
 
-  test("summary includes Conclude payload (summary text and verdict)", async () => {
+  test("summary includes the Conclude payload (summary text and verdict)", async () => {
     const { ctx, messageBus } = seedCtx();
     const concludeHandler = createConcludeHandler(ctx);
     const askHandler = createAskHandler(ctx, {

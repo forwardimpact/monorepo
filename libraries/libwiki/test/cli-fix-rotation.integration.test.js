@@ -20,9 +20,9 @@ import {
   scriptedQuery,
 } from "./helpers.js";
 
-// The deterministic layer of `gemba-wiki fix`: main-log rotation and sealed-part
-// re-bisection. Both are content-preserving and never invoke the agent. The
-// agent/summary orchestration tests live in cli-fix.integration.test.js.
+// The deterministic layer of `gemba-wiki fix`: main-log rotation and
+// sealed-part re-bisection. Both preserve content and never invoke the agent.
+// The agent/summary orchestration tests live in cli-fix.integration.test.js.
 describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
   let dir;
   let wikiRoot;
@@ -39,8 +39,8 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
     // Valid H1 + 4 day-sections @ 150 lines: each section is under both
-    // budgets, jointly they overflow the line budget. The bisecting seal splits
-    // them into conforming parts and the re-audit is clean.
+    // budgets. Together they overflow the line budget. The seal bisects them
+    // into conforming parts. The re-audit is then clean.
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
     let text = "# Staff Engineer — 2026-W21\n";
     for (let s = 0; s < 4; s++) {
@@ -49,7 +49,7 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
     }
     writeFileSync(logPath, text);
 
-    // The agent must never be constructed for a deterministic rotation.
+    // A deterministic rotation must never construct the agent.
     const calls = [];
     const query = scriptedQuery(join(wikiRoot, "unused.md"), [""], calls);
     const harness = makeRuntime({ cwd: dir });
@@ -71,7 +71,7 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
       "the over-cap log is sealed into ≥2 conforming parts",
     );
     assert.ok(existsSync(logPath), "a fresh main log is started");
-    // The over-cap multi-day log now resolves clean — no human flag.
+    // The over-cap multi-day log now resolves clean with no human flag.
     assert.deepEqual(result, { ok: true, code: 0 });
     assert.doesNotMatch(harness.stderr, /weekly-log-part\.line-budget/);
   });
@@ -79,7 +79,7 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
   test("flags only the irreducible single-day section that cannot be split", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
-    // One day-section alone exceeds the line budget — it cannot be split at a
+    // One day-section alone exceeds the line budget. It cannot be split at a
     // day seam, so it seals as an over-cap part the audit still flags. The part
     // re-bisect pass also cannot reduce it, so it survives for a human.
     const logPath = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
@@ -111,8 +111,8 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
   test("re-bisects an over-budget sealed part deterministically; audit clean, no agent", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
-    // A sealed part that drifted over budget (e.g. hand-edited) but still has
-    // multiple day-section seams — re-bisectable without an agent.
+    // A sealed part drifted over budget (e.g. hand-edited) but still has
+    // multiple day-section seams. It is re-bisectable without an agent.
     const partPath = join(wikiRoot, "staff-engineer-2026-W21-part1.md");
     let text = "# Staff Engineer — 2026-W21 (part 1 of 1)\n";
     for (let s = 0; s < 4; s++) {
@@ -147,9 +147,9 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
   test("seals an over-budget main log AND re-bisects an over-budget part in one run; clean, no agent", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
-    // A current-week main log over budget, plus a pre-existing sealed part also
-    // over budget. The two deterministic passes must compose: new slots from
-    // each never collide (nextFreeSlots re-checks occupancy), and both clear.
+    // A current-week main log is over budget. A pre-existing sealed part is
+    // also over budget. The two deterministic passes must compose. New slots
+    // from each never collide (nextFreeSlots re-checks occupancy). Both clear.
     const mkMultiDay = (h1) => {
       let text = `${h1}\n`;
       for (let s = 0; s < 4; s++) {
@@ -187,7 +187,7 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
   test("leaves a healthy current-week log alone when a prior week is over budget", async () => {
     seedCleanWiki(wikiRoot);
     seedAgentProfile(dir);
-    // Prior week (W20) over budget — the finding.
+    // The prior week (W20) is over budget. That is the finding.
     const priorLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-17");
     writeFileSync(
       priorLog,
@@ -195,7 +195,7 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
         .concat(Array(600).fill("- filler"))
         .join("\n") + "\n",
     );
-    // Current week (W21) healthy — must NOT be force-rotated.
+    // The current week (W21) is healthy. The command must NOT force-rotate it.
     const currentLog = weeklyLogPath(wikiRoot, "staff-engineer", "2026-05-24");
     writeFileSync(
       currentLog,
@@ -220,7 +220,8 @@ describe("gemba-wiki fix CLI — deterministic rotation layer", () => {
       "the healthy current-week log is not rotated",
     );
     assert.ok(existsSync(priorLog), "the prior-week log is left for a human");
-    // The unrotatable prior-week budget finding is flagged, not handed to the agent.
+    // The command flags the unrotatable prior-week budget finding. It does not
+    // hand the finding to the agent.
     assert.equal(result.code, 2);
     assert.match(harness.stderr, /need human judgment/);
     assert.match(harness.stderr, /weekly-log\.line-budget/);

@@ -17,8 +17,8 @@ package needs to read:
 - `proto/common.proto` — shared message types (`Empty`, `Usage`, `Message`,
   `Choice`, `Embedding`, `Embeddings`, `Conversation`). Imports `tool.proto`
   and `resource.proto`.
-- `proto/resource.proto` — the `resource.Identifier` referenced by tool calls
-  and conversation messages.
+- `proto/resource.proto` — the `resource.Identifier` that tool calls and
+  conversation messages reference.
 
 A consumer declares `@forwardimpact/libproto` as a direct runtime dependency
 if and only if the consumer itself ships a `.proto` that imports a shared
@@ -28,10 +28,10 @@ file. Today that means the four service packages `@forwardimpact/svcgraph`,
 
 ## How consumers read the schemas
 
-There is no JavaScript export surface — `import "@forwardimpact/libproto"`
-yields an empty namespace object on purpose. Consumers reach the schemas via
-codegen: `npx fit-codegen generate --all` scans
-`node_modules/@forwardimpact/*/proto/` for `.proto` files at install time and
+There is no JavaScript export surface. `import "@forwardimpact/libproto"`
+yields an empty namespace object on purpose. Consumers reach the schemas
+through codegen. `npx fit-codegen generate --all` scans
+`node_modules/@forwardimpact/*/proto/` for `.proto` files at install time. It
 treats every directory it finds as an include path.
 
 ## Files

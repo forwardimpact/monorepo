@@ -3,13 +3,14 @@ import { countTokens } from "@forwardimpact/libutil";
 
 import * as types from "./generated/types/types.js";
 
-// Export everything from generated types (includes both core and tool namespaces)
+// Export everything from the generated types, both core and tool namespaces
 export * from "./generated/types/types.js";
 
 // Export codegen metadata for config-driven tool registration
 export { metadata } from "./generated/types/metadata.js";
 
-// Core namespaces only (tools and any experimental namespaces are excluded intentionally)
+// Core namespaces only. The list deliberately excludes tools and any
+// experimental namespaces
 const {
   common = {},
   resource = {},
@@ -20,32 +21,33 @@ const {
 } = types;
 
 /**
- * Generate a name for the resource. Always uses UUID for uniqueness.
+ * Generate a name for the resource. It always uses a UUID for uniqueness.
  * For content-based idempotency (e.g., ResourceProcessor), inject
- * the name explicitly via id.name before calling withIdentifier().
+ * the name explicitly with id.name before you call withIdentifier().
  * @param {object} instance - The resource instance
  * @returns {string} The generated name
  */
 function generateName(instance) {
-  // Preserve explicitly provided name
+  // Preserve the explicitly provided name
   if (instance.id.name) {
     return instance.id.name.split(".").pop();
   }
-  // Preserve name field if present
+  // Preserve the name field if it is present
   if (instance.name && typeof instance.name === "string") {
     return instance.name;
   }
-  // Always use UUID for uniqueness
+  // Always use a UUID for uniqueness
   return generateUUID();
 }
 
 /**
- * Ensure that the identifier has values assigned. Call before persisting.
+ * Make sure the identifier has assigned values. Call this before you
+ * persist the resource.
  * @param {string} [parent] - Parent ID
  * @param {string[]} [subjects] - Subject URIs
  */
 function withIdentifier(parent, subjects) {
-  // Initialize id if missing
+  // Initialize the id if it is missing
   this.id = this.id || new resource.Identifier();
   this.id.subjects = subjects?.length
     ? subjects.map(String)
@@ -56,13 +58,14 @@ function withIdentifier(parent, subjects) {
   if (!type)
     throw new Error("resource.withIdentifier: Resource type must not be null");
 
-  // Get name with fallback chain
+  // Get the name with the fallback chain
   const name = generateName(this);
 
   this.id.type = type;
   this.id.name = name;
 
-  // Set tokens field only if not already set (preserve explicit values)
+  // Set the tokens field only if it is not already set. This preserves the
+  // explicit values
   if (this.id.tokens === undefined || this.id.tokens === null) {
     if (this.content && typeof this.content === "string") {
       this.id.tokens = countTokens(this.content);
@@ -89,11 +92,11 @@ resource.Identifier.prototype.toString = function () {
       "resource.Identifier.toString: Resource name must not be null",
     );
 
-  // Check for string, as conversions can have happened earlier
+  // Check for a string, because a conversion can happen earlier
   // TODO: Do we still need this?
   if (this.parent == "undefined") this.parent = undefined;
 
-  // Extract the tree from parent
+  // Extract the tree from the parent
   let tree = [];
   if (this.parent && this.parent !== "undefined" && this.parent !== "") {
     const path = String(this.parent).split(":").pop() || "";
@@ -112,7 +115,7 @@ resource.Identifier.prototype.toString = function () {
 const MessageCtor = common.Message;
 const MessagefromObject = MessageCtor.fromObject;
 
-// Monkey-patch Message.fromObject to apply identifier
+// Monkey-patch Message.fromObject to apply the identifier
 common.Message.fromObject = function (object) {
   const typed = MessagefromObject(object);
   typed.withIdentifier();
@@ -125,7 +128,7 @@ common.Message.fromObject = function (object) {
 const ConversationCtor = common.Conversation;
 const ConversationfromObject = ConversationCtor.fromObject;
 
-// Monkey-patch Conversation.fromObject to apply identifier
+// Monkey-patch Conversation.fromObject to apply the identifier
 common.Conversation.fromObject = function (object) {
   const typed = ConversationfromObject(object);
   typed.withIdentifier();
@@ -162,7 +165,7 @@ tool.ToolFunction.fromObject = function (object) {
 const ToolCallMessageCtor = tool.ToolCallMessage;
 const ToolCallMessagefromObject = ToolCallMessageCtor.fromObject;
 
-// Monkey-patch ToolCallMessage.fromObject to apply identifier
+// Monkey-patch ToolCallMessage.fromObject to apply the identifier
 tool.ToolCallMessage.fromObject = function (object) {
   const typed = ToolCallMessagefromObject(object);
   typed.withIdentifier();
@@ -170,7 +173,7 @@ tool.ToolCallMessage.fromObject = function (object) {
 };
 
 export {
-  // Export all namespaces with any applied patches
+  // Export all the namespaces with any applied patches
   common,
   resource,
   vector,

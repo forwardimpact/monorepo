@@ -1,16 +1,16 @@
 /**
  * fit-landmark sources verb tests.
  *
- * Live-Postgres only — skipped when SUPABASE_URL / JWT_SECRET
- * are unset.
+ * These tests need live Postgres. They skip when SUPABASE_URL or
+ * JWT_SECRET is unset.
  *
  * Covers:
  *   - populated classes appear with all five fields (count, oldest, newest,
  *     window, falloff)
- *   - classes with zero rows are omitted
- *   - retention mutation reflected (write a new COMMENT, clearRetentionCache,
- *     re-run, assert the displayed window changes)
- *   - out-of-scope email returns NO_SOURCES_FOR_PERSON empty-state
+ *   - the command omits classes with zero rows
+ *   - the command reflects a retention mutation (write a new COMMENT, call
+ *     clearRetentionCache, run again, assert the displayed window changes)
+ *   - an out-of-scope email returns the NO_SOURCES_FOR_PERSON empty-state
  */
 
 import { describe, test } from "node:test";
@@ -45,11 +45,11 @@ describe("fit-landmark sources", () => {
 
   // Each live test pays the cost of `withLiveActivity` → `ensureMigrationApplied`
   // → `supabase db reset` on the first invocation in the process. That takes
-  // roughly 25 seconds on a warm runner, which exceeds bun:test's 5s default
-  // timeout. Pin the timeout explicitly so a full-suite local run with the
-  // SUPABASE_* env vars set surfaces real assertion failures, not the
-  // structural cost of the migrate step.
-  test("populated classes appear with five fields; empty classes are omitted", {
+  // about 25 seconds on a warm runner. It exceeds bun:test's 5s default
+  // timeout. Pin the timeout explicitly. A full-suite local run with the
+  // SUPABASE_* env vars set then surfaces real assertion failures. It does
+  // not fail on the structural cost of the migrate step.
+  test("populated classes appear with five fields and the command omits empty classes", {
     timeout: 120000,
   }, async () => {
     await withLiveActivity(async (admin) => {
@@ -85,7 +85,7 @@ describe("fit-landmark sources", () => {
       const ids = result.view.items.map((i) => i.id);
       assert.ok(ids.includes("organization_people"));
       assert.ok(ids.includes("github_artifacts"));
-      // evidence has no rows → omitted.
+      // evidence has no rows, so the command omits it.
       assert.ok(!ids.includes("evidence"));
 
       const ga = result.view.items.find((i) => i.id === "github_artifacts");
@@ -97,7 +97,7 @@ describe("fit-landmark sources", () => {
     });
   });
 
-  test("manager running sources --email <report> sees the report's classes", {
+  test("a manager who runs sources --email <report> sees the report's classes", {
     timeout: 120000,
   }, async () => {
     await withLiveActivity(async (admin) => {
@@ -143,7 +143,7 @@ describe("fit-landmark sources", () => {
     });
   });
 
-  test("out-of-scope email returns NO_SOURCES_FOR_PERSON", {
+  test("an out-of-scope email returns NO_SOURCES_FOR_PERSON", {
     timeout: 120000,
   }, async () => {
     await withLiveActivity(async (admin) => {

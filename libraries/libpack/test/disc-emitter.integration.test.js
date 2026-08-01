@@ -30,7 +30,7 @@ async function createSkillsDir() {
 }
 
 describe("DiscEmitter", () => {
-  test("emit creates well-known skills directory with index", async () => {
+  test("emit creates the well-known skills directory with an index", async () => {
     const skillsDir = await createSkillsDir();
     const outputDir = await makeTempDir();
 
@@ -60,7 +60,7 @@ describe("DiscEmitter", () => {
     const packsDir = await makeTempDir();
     const emitter = new DiscEmitter({ runtime });
 
-    // Create two per-pack skill repos with overlapping skills
+    // Create two per-pack skill repos whose skills overlap
     const skills1 = await createSkillsDir();
     const pack1Dir = join(packsDir, "pack-a");
     await mkdir(pack1Dir, { recursive: true });

@@ -1,7 +1,7 @@
 /**
  * CLI Commands Index
  *
- * Re-exports all command handlers for convenient importing.
+ * Re-exports all command handlers for convenient imports.
  */
 
 export { runDisciplineCommand } from "./discipline.js";

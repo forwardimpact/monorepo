@@ -7,9 +7,9 @@ User App.
 
 <!-- END:description -->
 
-For configuring this GitHub **user App** (self-hosted vs hosted), see
-[github-app.md](github-app.md). The separate server/installation app
-is documented in `services/ghserver`.
+To configure this GitHub **user App** (self-hosted or hosted), see
+[github-app.md](github-app.md). `services/ghserver` documents the separate
+server/installation app.
 
 ## Prerequisites
 
@@ -18,7 +18,7 @@ is documented in `services/ghserver`.
   dispatch workflow requires (e.g. `actions:write`).
 - The App's **Client ID** and a generated **Client Secret**.
 
-Configuration (loaded via `createServiceConfig("ghuser")`):
+`createServiceConfig("ghuser")` loads the configuration:
 
 | Env var | Purpose |
 | --- | --- |
@@ -29,11 +29,11 @@ Configuration (loaded via `createServiceConfig("ghuser")`):
 
 ## Running
 
-Add `ghuser` and `oauth` to `config/config.json` under `init.services` —
-see [`config/CLAUDE.md`](../../config/CLAUDE.md) for the entry format.
-List `oauthtunnel` with the other tunnels (before services) so that
-restarting `ghuser` does not cycle the tunnel (declaration order determines
-restart scope). List `ghuser` before `oauth` (dependency first).
+Add `ghuser` and `oauth` to `config/config.json` under `init.services`.
+See [`config/CLAUDE.md`](../../config/CLAUDE.md) for the entry format.
+List `oauthtunnel` with the other tunnels (before services), so a `ghuser`
+restart does not cycle the tunnel (declaration order determines restart
+scope). List `ghuser` before `oauth` (dependency first).
 
 Start both services:
 
@@ -42,7 +42,8 @@ bunx fit-rc start
 ```
 
 The tunnel uses a quick `trycloudflare.com` hostname that changes on
-every restart. After starting, check the tunnel log for the assigned URL:
+every restart. After you start the services, check the tunnel log for the
+assigned URL:
 
 ```sh
 cat data/logs/oauthtunnel/current | grep trycloudflare.com
@@ -56,7 +57,7 @@ In the App settings (`github.com/settings/apps/<app>`):
 2. Save changes.
 
 Set `SERVICE_GHUSER_LINK_BASE_URL` in `.env` to the tunnel domain
-(without any path), then restart only the auth services:
+(without any path). Then restart only the auth services:
 
 ```sh
 bunx fit-rc restart ghuser
@@ -64,15 +65,14 @@ bunx fit-rc restart ghuser
 
 The tunnel keeps its hostname across service restarts.
 
-Token bindings are persisted as JSONL under `data/ghuser/` via
-`libstorage` (the standard `createStorage` path — no extra env var
-needed).
+`libstorage` persists token bindings as JSONL under `data/ghuser/`. It uses
+the standard `createStorage` path, so you need no extra env var.
 
 ### Corporate network considerations
 
-The service must be able to reach `github.com` to exchange authorization
-codes and refresh tokens. If you are on a corporate VPN with tenant
-restrictions, disconnect before starting.
+The service must reach `github.com` to exchange authorization codes and
+refresh tokens. If you are on a corporate VPN with tenant restrictions,
+disconnect before you start.
 
 ## Smoke test
 
@@ -87,10 +87,10 @@ The flow:
 1. Redirects to GitHub to authorize the Kata Agent User App.
 2. GitHub calls back to `/callback` on the `oauth` service.
 3. `ghuser` exchanges the authorization code for a user-to-server token.
-4. The binding is stored in `data/ghuser/bindings.jsonl`.
+4. `ghuser` stores the binding in `data/ghuser/bindings.jsonl`.
 5. The browser shows "Linked — Your account has been linked."
 
-Verify the binding via gRPC:
+Verify the binding through gRPC:
 
 ```js
 const result = await client.GetToken({ surface: "test", surface_user_id: "you" });
@@ -98,5 +98,5 @@ const result = await client.GetToken({ surface: "test", surface_user_id: "you" }
 ```
 
 For an unlinked user, `GetToken` returns `link_required` with the
-authorize URL. For a revoked or expired token that cannot be refreshed,
-it returns `re_auth_required`.
+authorize URL. For a revoked or expired token that the service cannot
+refresh, it returns `re_auth_required`.

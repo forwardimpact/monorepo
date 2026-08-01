@@ -1,10 +1,11 @@
 /**
  * Load a Summit roster from Map's unified person model.
  *
- * Groups rows from Map's `organization_people` table by `manager_email` —
- * each manager with at least one direct report becomes a reporting team.
- * Team IDs are the lowercased manager email to avoid collisions across
- * domains. Project teams only exist in YAML; this loader produces none.
+ * The loader groups rows from Map's `organization_people` table by
+ * `manager_email`. Each manager with at least one direct report becomes a
+ * reporting team. Team IDs are the lowercased manager email to avoid
+ * collisions across domains. Project teams only exist in YAML. This loader
+ * produces none.
  */
 
 import { getOrganization } from "@forwardimpact/map/activity/queries/org";

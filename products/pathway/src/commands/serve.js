@@ -1,12 +1,14 @@
 /**
  * Serve Command
  *
- * Serves a Pathway build directory over HTTP with git smart HTTP routing
- * for APM pack installation (`apm install` uses `git clone --depth=1`).
+ * Serves a Pathway build directory over HTTP. It also routes git smart HTTP
+ * requests so APM can install a pack (`apm install` uses
+ * `git clone --depth=1`).
  *
- * Static files are served directly. Three routes intercept git smart HTTP
- * requests and serve pre-computed responses from the `smart-http/`
- * subdirectory that `fit-pathway build` generates inside each pack repo.
+ * The server serves static files directly. Three routes intercept git smart
+ * HTTP requests. Those routes serve pre-computed responses from the
+ * `smart-http/` subdirectory that `fit-pathway build` generates inside each
+ * pack repo.
  */
 
 import { join } from "path";
@@ -28,7 +30,7 @@ export async function runServeCommand({ dir, options, runtime }) {
 
   const app = new Hono();
 
-  // APM appends .git to repo URLs — strip it so both
+  // APM appends .git to repo URLs. Strip it so both
   // /packs/apm/foo/ and /packs/apm/foo.git/ resolve to the same repo.
   app.use("/packs/apm/*", async (c, next) => {
     const url = new URL(c.req.url);
@@ -39,10 +41,10 @@ export async function runServeCommand({ dir, options, runtime }) {
     return next();
   });
 
-  // Smart HTTP ref advertisement — git checks this to detect smart HTTP
+  // Smart HTTP ref advertisement. Git checks this to detect smart HTTP.
   app.get("/packs/apm/:name/info/refs", async (c) => {
     if (c.req.query("service") !== "git-upload-pack") {
-      // Dumb HTTP — fall through to static file serving
+      // Dumb HTTP. Fall through and serve static files.
       const filePath = join(
         dir,
         "packs",
@@ -71,7 +73,7 @@ export async function runServeCommand({ dir, options, runtime }) {
     }
   });
 
-  // Smart HTTP upload-pack — two-phase v1 stateless-rpc protocol.
+  // Smart HTTP upload-pack. This is the two-phase v1 stateless-rpc protocol.
   // Phase 1 (no "done" in body) gets the shallow list.
   // Phase 2 (has "done") gets NAK + pack data.
   app.post("/packs/apm/:name/git-upload-pack", async (c) => {
@@ -91,12 +93,12 @@ export async function runServeCommand({ dir, options, runtime }) {
     }
   });
 
-  // Everything else — static files
+  // Serve static files for everything else
   app.use("/*", serveStatic({ root: dir }));
 
   serve({ fetch: app.fetch, port, hostname: host }, () => {
     logger.info(`
-📡 Pathway site serving at http://${host === "0.0.0.0" ? "localhost" : host}:${port}
+📡 Pathway site runs at http://${host === "0.0.0.0" ? "localhost" : host}:${port}
 📁 Directory: ${dir}
 🔧 Git smart HTTP enabled for /packs/apm/*/
 

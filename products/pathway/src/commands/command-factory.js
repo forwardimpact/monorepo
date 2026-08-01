@@ -2,7 +2,7 @@
  * Command Factory
  *
  * Provides factory functions to create CLI commands with standard behavior.
- * Reduces boilerplate and ensures consistency across commands.
+ * Reduces boilerplate. Keeps commands consistent.
  *
  * All entity commands support three modes:
  * - Base (no args): Concise summary with stats

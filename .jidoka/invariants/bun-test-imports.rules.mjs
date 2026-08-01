@@ -1,21 +1,23 @@
 // Invariant: enforce the bun:test universal-subset allowlist.
 //
-// In *.test.js files, only the named symbols on the allowlist may be imported
-// from "bun:test"; default/namespace/side-effect imports and every re-export
-// shape are rejected. In every other file under the scope set (non-test
-// source), all bun:test imports and re-exports are rejected — this keeps
-// libmock/libpack source decoupled from the runner. The full allowlist policy
-// is the canonical bun:test allowlist specification under specs/.
+// In *.test.js files, you may import only the named symbols on the
+// allowlist from "bun:test". This check rejects default, namespace, and
+// side-effect imports, and every re-export shape. In every other file under
+// the scope set (non-test source), this check rejects all bun:test imports
+// and re-exports. That keeps libmock/libpack source decoupled from the
+// runner. The full allowlist policy is the canonical bun:test allowlist
+// specification under specs/.
 //
-// Detection is AST-based via acorn so the verdict can distinguish the imported
-// name from a local alias and tell apart the six import/export shapes the
-// allowlist policy enumerates. The pure verdict function `bunTestFindings` is
-// exported so a regression test can exercise it directly.
+// acorn parses each file into an AST. The verdict can then distinguish the
+// imported name from a local alias. It can also tell apart the six
+// import/export shapes the allowlist policy enumerates. This module exports
+// the pure verdict function `bunTestFindings` so a regression test can
+// exercise it directly.
 
 import { parse as acornParse } from "acorn";
 
-// The bun test invocation roots (verified against package.json scripts.test)
-// plus websites/ as preemptive coverage.
+// The roots that `bun test` runs from (verified against package.json
+// scripts.test), plus websites/ as preemptive coverage.
 const SCAN_DIRS = [
   "libraries",
   "services",
@@ -27,9 +29,9 @@ const SCAN_DIRS = [
 ];
 const SKIP_DIRS = ["node_modules", "dist", "generated", "tmp"];
 
-// Minimal acorn parse. `bunTestFindings` is an exported pure function a
-// regression test drives directly (outside the invariant engine), so this
-// module carries its own parser rather than the injected kit's.
+// Minimal acorn parse. A regression test drives the exported pure function
+// `bunTestFindings` directly, outside the invariant engine. So this module
+// carries its own parser rather than the injected kit's.
 function parseModule(source, filePath, { locations = false } = {}) {
   try {
     return acornParse(source, {
@@ -42,17 +44,18 @@ function parseModule(source, filePath, { locations = false } = {}) {
     throw new Error(`failed to parse ${filePath}: ${err.message}`);
   }
 }
-// JS source/module extensions acorn parses as ES modules. The source-file ban
-// covers every non-test file under scope; .ts/.mts/.cts are TypeScript that
-// acorn cannot parse and are out of this guard's surface (a TypeScript test
-// extension is a named follow-up in the allowlist specification). Only
-// .test.js counts as a test file; every other extension here is non-test source.
+// JS source/module extensions acorn parses as ES modules. The source-file
+// ban covers every non-test file under scope. acorn cannot parse
+// .ts/.mts/.cts TypeScript files, so they sit outside this guard's surface
+// (a TypeScript test extension is a named follow-up in the allowlist
+// specification). Only .test.js counts as a test file. Every other
+// extension here is non-test source.
 const SOURCE_EXTS = [".js", ".mjs", ".cjs"];
 
 // The universal-subset allowlist: the cross-runner test symbols (describe,
 // test, expect, lifecycle hooks) plus two forward-compat aliases (`it`,
-// `beforeAll`). Permitted as named imports from "bun:test" in *.test.js files
-// only.
+// `beforeAll`). Import them as named imports from "bun:test" in *.test.js
+// files only.
 export const ALLOWLIST = new Set([
   "describe",
   "test",
@@ -73,8 +76,8 @@ const ALLOWLIST_REF =
 export const SYMBOL_POINTER = new Map([
   ["mock", "use libmock spy() instead of bun:test mock"],
   ["spyOn", "use libmock spy() instead of bun:test spyOn"],
-  ["setSystemTime", "bun timer manipulation is banned — use real time"],
-  ["useFakeTimers", "bun timer manipulation is banned — use real time"],
+  ["setSystemTime", "do not manipulate bun timers. Use real time"],
+  ["useFakeTimers", "do not manipulate bun timers. Use real time"],
 ]);
 
 const shape = (line, name) => ({
@@ -94,7 +97,8 @@ function importFindings(node, line, isTestFile) {
     } else if (spec.type === "ImportNamespaceSpecifier") {
       out.push(shape(line, "namespace"));
     } else {
-      // ImportSpecifier — verdict on the imported name, not the local alias.
+      // ImportSpecifier — the verdict uses the imported name. It ignores
+      // the local alias.
       const imported = spec.imported.name;
       if (isTestFile && ALLOWLIST.has(imported)) continue;
       out.push({
@@ -108,8 +112,8 @@ function importFindings(node, line, isTestFile) {
   return out;
 }
 
-// Verdict for one `export ... from "bun:test"` declaration (banned in every
-// file regardless of isTestFile).
+// Verdict for one `export ... from "bun:test"` declaration. This check
+// bans it in every file, whatever isTestFile holds.
 function reExportFindings(node, line) {
   if (node.type === "ExportAllDeclaration") {
     return [shape(line, "re-export-namespace")];
@@ -124,9 +128,9 @@ function reExportFindings(node, line) {
  * Detect bun:test import/export violations in a single file's source text.
  * @param {string} text - The file contents.
  * @param {boolean} isTestFile - True when the path matches `**\/*.test.js`.
- * @param {string} [filePath] - Path used in parse-error messages.
+ * @param {string} [filePath] - The path that parse-error messages name.
  * @returns {Array<{line: number, kind: "symbol"|"shape", name: string, pointer: string}>}
- *   One record per rejection; empty when clean.
+ *   One record per rejection. Empty when clean.
  */
 export function bunTestFindings(text, isTestFile, filePath = "<source>") {
   let ast;
@@ -186,7 +190,7 @@ export default {
       },
       message: (_s, f) =>
         `bun:test ${f.kind} "${f.name}" is not permitted here — ${f.pointer}`,
-      hint: "import only the allowlisted named symbols from bun:test in *.test.js files; non-test source must not import bun:test at all",
+      hint: "import only the allowlisted named symbols from bun:test in *.test.js files. Non-test source must not import bun:test at all",
     },
   ],
 };

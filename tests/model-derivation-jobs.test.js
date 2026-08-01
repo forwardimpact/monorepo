@@ -74,7 +74,7 @@ describe("Derivation", () => {
   });
 
   describe("isValidJobCombination", () => {
-    it("returns true when no rules defined", () => {
+    it("returns true when no rules exist", () => {
       assert.strictEqual(
         isValidJobCombination({
           discipline: testDiscipline,
@@ -145,7 +145,7 @@ describe("Derivation", () => {
         validTracks: [],
       };
 
-      // Legacy behavior: empty array allows all tracks
+      // Legacy behavior. An empty array allows all tracks
       assert.strictEqual(
         isValidJobCombination({
           discipline: disciplineWithEmptyValidTracks,
@@ -258,7 +258,7 @@ describe("Derivation", () => {
       );
     });
 
-    it("allows all levels when minLevel is not set", () => {
+    it("allows all levels when the discipline has no minLevel", () => {
       const juniorLevel = { id: "junior", ordinalRank: 1 };
       const levels = [juniorLevel];
 
@@ -298,7 +298,8 @@ describe("Derivation", () => {
         level: testLevel,
         track: testTrack,
       });
-      // Level is "Level III", so format is: "Test Engineer Level III - Test Track"
+      // The level is "Level III". The format is
+      // "Test Engineer Level III - Test Track"
       assert.strictEqual(title, "Test Engineer Level III - Test Track");
     });
 
@@ -313,7 +314,7 @@ describe("Derivation", () => {
         level: staffLevel,
         track: testTrack,
       });
-      // Level is "Staff", so format is: "Staff Test Engineer - Test Track"
+      // The level is "Staff". The format is "Staff Test Engineer - Test Track"
       assert.strictEqual(title, "Staff Test Engineer - Test Track");
     });
 

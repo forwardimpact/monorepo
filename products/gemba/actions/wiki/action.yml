@@ -1,30 +1,30 @@
 name: FIT Wiki
 description: >
-  Run a gemba-wiki agent-memory command (push, pull, audit, …) in CI. When app
-  credentials are supplied, a fresh GitHub App installation token is minted for
-  the command — long agent jobs outlive the one-hour token minted at job start,
-  so push/pull need a freshly minted one. Run after
-  forwardimpact/bootstrap@v1 with `clis: gemba-wiki`, which provides Bun, the
-  workspace, the checked-out ./wiki working copy, and the gemba-wiki gear binary
-  on PATH. The binary is required — there is no bunx/npx fallback.
+  Run a gemba-wiki agent-memory command (push, pull, audit, …) in CI. When you
+  supply app credentials, the action mints a fresh GitHub App installation
+  token for the command. Long agent jobs outlive the one-hour token minted at
+  job start, so push/pull need a freshly minted one. Run this action after
+  forwardimpact/bootstrap@v1 with `clis: gemba-wiki`. That action provides
+  Bun, the workspace, the checked-out ./wiki working copy, and the gemba-wiki
+  gear binary on PATH. The binary is required. There is no bunx/npx fallback.
 
 inputs:
   command:
     description: >
       gemba-wiki subcommand and any arguments, e.g. "push", "pull", "audit".
-      Appended to the gemba-wiki gear binary, which must be on PATH (installed by
-      fit-bootstrap with `clis: gemba-wiki`).
+      The action appends them to the gemba-wiki gear binary. The binary must be
+      on PATH. fit-bootstrap installs it with `clis: gemba-wiki`.
     required: true
   app-id:
     description: >
-      GitHub App ID. When provided with app-private-key, a fresh installation
-      token is minted and exported as GH_TOKEN for the command. Omit for
-      commands that need no network auth (e.g. audit).
+      GitHub App ID. When you also give app-private-key, the action mints a
+      fresh installation token. It exports the token as GH_TOKEN for the
+      command. Omit it for commands that need no network auth (e.g. audit).
     required: false
     default: ""
   app-private-key:
     description: >
-      GitHub App private key, paired with app-id, for fresh-token minting.
+      GitHub App private key. Pair it with app-id to mint a fresh token.
     required: false
     default: ""
   wiki-path:
@@ -52,19 +52,22 @@ runs:
         # `gemba-wiki fix` spawns a Claude Agent SDK run in bypass-permissions
         # mode, which Claude Code refuses under uid 0 unless the process is
         # marked sandboxed. CI containers may run as root, so mark the run
-        # sandboxed; the SDK forwards this env to the spawned process.
-        # Harmless on non-root runners and for non-agent commands (push/pull/audit).
+        # sandboxed. The SDK forwards this env to the spawned process. It is
+        # harmless on non-root runners and for non-agent commands
+        # (push/pull/audit).
         IS_SANDBOX: "1"
       run: |
         # actions/checkout (in fit-bootstrap) persists the start-of-job token
         # as an http extraheader on the wiki working copy. On long jobs that
         # token is expired, and it would shadow the fresh GH_TOKEN minted
-        # above; drop it so gemba-wiki's own credential helper authenticates the
-        # command. Targeted unset — no `git submodule foreach`, so it never
-        # touches the parent repo. Harmless for local/no-network commands.
+        # above. Drop it so gemba-wiki's own credential helper authenticates
+        # the command. This unset is targeted. It runs no
+        # `git submodule foreach`, so it never touches the parent repo. It is
+        # harmless for local/no-network commands.
         if [ -d "$WIKI_PATH/.git" ]; then
           git -C "$WIKI_PATH" config --unset-all 'http.https://github.com/.extraheader' 2>/dev/null || true
         fi
-        # gemba-wiki is a pinned gear binary on PATH, installed by
-        # forwardimpact/bootstrap (clis: gemba-wiki) — assumed present.
+        # gemba-wiki is a pinned gear binary on PATH.
+        # forwardimpact/bootstrap installs it (clis: gemba-wiki).
+        # Assume it is present.
         gemba-wiki $COMMAND

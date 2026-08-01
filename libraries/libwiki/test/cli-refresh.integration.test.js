@@ -43,8 +43,8 @@ async function refresh(cwd, storyboardPath) {
   return harness;
 }
 
-// Refresh with a stubbed `gh` returning no issues, so a freshly created
-// skeleton's issue-list blocks render hermetically. Returns the resolved
+// Refresh with a stubbed `gh` that returns no issues, so the issue-list blocks
+// of a fresh skeleton render hermetically. This returns the resolved
 // storyboard path (explicit arg, or the current-month default under wiki/).
 async function refreshCreates(cwd, storyboardPath) {
   const subprocess = createMockSubprocess({
@@ -102,7 +102,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     assert.ok(!after.includes("old content here"));
   });
 
-  test("idempotent — second refresh produces same output", async () => {
+  test("idempotent — second refresh produces the same output", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
@@ -141,9 +141,9 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     assert.ok(readFileSync(storyboard, "utf-8").includes("preserved content"));
   });
 
-  test("missing storyboard file — creates skeleton, exit 0", async () => {
+  test("missing storyboard file — creates a skeleton, exit 0", async () => {
     const dir = createProject();
-    // No storyboard written at all; refresh creates it from the skeleton.
+    // The test writes no storyboard. Refresh creates it from the skeleton.
     const created = readFileSync(
       await refreshCreates(dir, "storyboard.md"),
       "utf-8",
@@ -170,7 +170,8 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     const dir = createProject();
     const wikiDir = join(dir, "wiki");
     mkdirSync(wikiDir, { recursive: true });
-    // FIXED_NOW is 2026-05-15: the first row is past its expiry, the second is not.
+    // FIXED_NOW is 2026-05-15. The first row is past its expiry. The second
+    // row is not.
     writeFileSync(
       join(wikiDir, "MEMORY.md"),
       [
@@ -214,7 +215,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     assert.ok(!after.includes("old"));
   });
 
-  test("defaults to current month storyboard when no path given", async () => {
+  test("defaults to the current-month storyboard when no path is given", async () => {
     const dir = createProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
@@ -243,7 +244,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   // Refresh against the agent-experiments block with a stubbed `gh`. `nowMs`
-  // pins the last-successful-sync stamp; `gh` is { stdout, exitCode }.
+  // pins the last-successful-sync stamp. `gh` is { stdout, exitCode }.
   async function refreshGh(dir, storyboardPath, nowMs, gh) {
     const subprocess = createMockSubprocess({ responses: { gh } });
     const harness = makeRuntime({ cwd: dir, now: nowMs, subprocess });
@@ -281,7 +282,8 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
       ].join("\n"),
     );
 
-    // Day 1 (2026-05-10): two labeled issues materialized, stamp set.
+    // Day 1 (2026-05-10): two labeled issues materialize. The run sets the
+    // stamp.
     await refreshGh(dir, "storyboard.md", Date.UTC(2026, 4, 10), {
       stdout: JSON.stringify([
         issueJson(11, "staff-engineer", "Exp A", "alice"),
@@ -295,7 +297,8 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     assert.ok(body.includes("- #22 [release-engineer] Exp B (by bob)"));
     assert.ok(body.includes("trailing prose"));
 
-    // A later refresh where Exp B lost its agent label → dropped; stamp advances.
+    // In a later refresh Exp B lost its agent label, so it drops. The stamp
+    // then advances.
     await refreshGh(dir, "storyboard.md", Date.UTC(2026, 4, 11), {
       stdout: JSON.stringify([
         issueJson(11, "staff-engineer", "Exp A", "alice"),
@@ -313,7 +316,8 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     assert.ok(body.includes("- #11 [staff-engineer] Exp A (by alice)"));
     assert.ok(!body.includes("#22"), "de-labeled issue must drop out");
 
-    // Day 3 (2026-05-12): tracker fails → body byte-identical, stamp stays 05-11.
+    // Day 3 (2026-05-12): the tracker fails. The body stays byte-identical.
+    // The stamp stays 05-11.
     const harness = await refreshGh(
       dir,
       "storyboard.md",
@@ -336,7 +340,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     );
     assert.match(harness.stderr, /keeping previous materialized items/);
 
-    // Day 4 (2026-05-13): success again → stamp advances.
+    // Day 4 (2026-05-13): the sync succeeds again → the stamp advances.
     await refreshGh(dir, "storyboard.md", Date.UTC(2026, 4, 13), {
       stdout: JSON.stringify([
         issueJson(11, "staff-engineer", "Exp A", "alice"),

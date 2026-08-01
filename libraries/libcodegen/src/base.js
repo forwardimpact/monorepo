@@ -8,8 +8,9 @@ function camelToSnake(str) {
   return str.replace(/[A-Z]/g, (ch) => `_${ch.toLowerCase()}`);
 }
 
-// Protobufjs scalar type names are already human-readable (string, int32, bool, etc.)
-// so most pass through as-is. This map handles any aliases needed.
+// Protobufjs scalar type names are already human-readable (string, int32,
+// bool, etc.). Most of them pass through as-is. This map handles any aliases
+// needed.
 const PBJS_TYPE_MAP = {
   string: "string",
   int32: "int32",
@@ -52,8 +53,8 @@ function extractFields(pbjsType) {
 }
 
 /**
- * Base class for code generation utilities providing shared functionality
- * Implements dependency injection pattern with explicit validation
+ * Base class that gives the code generation utilities shared functionality
+ * Implements the dependency injection pattern with explicit validation
  */
 export class CodegenBase {
   #protoDirs;
@@ -69,8 +70,8 @@ export class CodegenBase {
    * @param {string[]} protoDirs - Array of proto directory paths to scan
    * @param {string} projectRoot - Project root directory path (for tools/ discovery)
    * @param {object} path - Path module for file operations
-   * @param {object} mustache - Mustache template rendering module
-   * @param {object} protoLoader - Protocol buffer loader module
+   * @param {object} mustache - Mustache module that renders the templates
+   * @param {object} protoLoader - Loader module for protocol buffers
    * @param {object} fs - File system module (sync operations only)
    * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
    */
@@ -103,9 +104,10 @@ export class CodegenBase {
   }
 
   /**
-   * Collect all proto files from discovered proto directories and tools directory.
-   * Deduplicates by filename (last occurrence wins), maintains common.proto-first
-   * ordering, and includes all discovered directories as proto include paths.
+   * Collect all proto files from the discovered proto directories and the
+   * tools directory. Deduplicates by filename, where the last occurrence
+   * wins. Puts common.proto first. Includes all discovered directories as
+   * proto include paths.
    * @param {object} opts - Collection options
    * @param {boolean} opts.includeTools - Whether to include tool proto files
    * @returns {string[]} Array of absolute proto file paths
@@ -124,7 +126,7 @@ export class CodegenBase {
       }
     }
 
-    // Sort and ensure common.proto comes first
+    // Sort the files and make sure common.proto comes first
     const sorted = Array.from(byName.keys()).sort();
     const ordered = sorted.includes("common.proto")
       ? [
@@ -145,7 +147,7 @@ export class CodegenBase {
             .map((f) => this.#path.join(toolsDir, f)),
         );
       } catch {
-        // tools directory may not exist; ignore
+        // The tools directory may not exist. Ignore the error.
       }
     }
 
@@ -153,7 +155,7 @@ export class CodegenBase {
   }
 
   /**
-   * Get all proto include directories for cross-file import resolution
+   * Get all proto include directories so cross-file imports resolve
    * @returns {string[]} Array of absolute paths to proto directories
    */
   get includeDirs() {
@@ -161,19 +163,19 @@ export class CodegenBase {
   }
 
   /**
-   * Load mustache template for given kind
+   * Load the mustache template for the given kind
    * @param {"service"|"client"|"definition"|"definitions-exports"|"services-exports"} kind - Template kind
    * @returns {string} Template content
    */
   loadTemplate(kind) {
-    // A `bun build --compile` binary inlines the templates and registers them
+    // A `bun build --compile` binary inlines the templates. It registers them
     // under the "libcodegen/templates" mount (see the CLI's assets block in
-    // build/cli-manifest.json), which flips embeddedAssetsActive() true. In
+    // build/cli-manifest.json). That flips embeddedAssetsActive() true. In
     // that case resolve through the virtual mount the embedded-fs overlay
-    // serves. The on-disk path would not work there: import.meta.url points
-    // into the /$bunfs root, which carries no templates directory. In
-    // source/npx/test execution nothing registers, so resolve the on-disk path
-    // relative to this module.
+    // serves. The on-disk path would not work there. In a compiled binary,
+    // import.meta.url points into the /$bunfs root, and that root carries no
+    // templates directory. In source/npx/test execution nothing registers, so
+    // resolve the on-disk path relative to this module.
     const templatesDir = embeddedAssetsActive()
       ? embeddedDir("libcodegen/templates")
       : this.#path.join(
@@ -190,7 +192,7 @@ export class CodegenBase {
   }
 
   /**
-   * Render mustache template with given data
+   * Render the mustache template with the given data
    * @param {string} template - Template content
    * @param {object} data - Template data
    * @returns {string} Rendered content
@@ -207,13 +209,13 @@ export class CodegenBase {
    * @returns {Promise<void>} Resolves when the command completes successfully
    */
   async run(cmd, args, opts = {}) {
-    // `stdio: "inherit"` forwards to the underlying execFile/spawn so the
-    // child's stdout/stderr go straight to the parent's fds — preserving the
-    // exact pre-1370 behavior (origin/main also ran execFile with
-    // stdio:"inherit"), so `just codegen` shows protoc/pbjs progress live.
-    // With inherited stdio the buffered result is empty, so the error path
-    // below falls back to the exit code. Capture-mode callers override via
-    // `opts.stdio`.
+    // `stdio: "inherit"` forwards to the underlying execFile/spawn. The
+    // child's stdout/stderr then go straight to the parent's fds. This
+    // preserves the exact pre-1370 behavior (origin/main also ran execFile
+    // with stdio:"inherit"), so `just codegen` shows protoc/pbjs progress
+    // live. With inherited stdio the buffered result is empty, so the error
+    // path below falls back to the exit code. Capture-mode callers override
+    // with `opts.stdio`.
     const result = await this.#subprocess.run(cmd, args, {
       stdio: "inherit",
       ...opts,
@@ -228,7 +230,7 @@ export class CodegenBase {
   }
 
   /**
-   * Convert string to PascalCase
+   * Convert a string to PascalCase
    * @param {string} str - String to convert
    * @returns {string} PascalCase string
    */
@@ -319,8 +321,9 @@ export class CodegenBase {
   }
 
   /**
-   * Parse metadata for a proto file: service methods with request type fields.
-   * Uses protobufjs for field types, optionality, and comments.
+   * Parse the metadata for a proto file. The metadata holds the service
+   * methods with their request type fields. Uses protobufjs for the field
+   * types, the optionality, and the comments.
    * @param {string} protoPath - Absolute path to .proto file
    * @returns {{packageName:string, serviceName:string, methods:object}|null}
    */
@@ -345,7 +348,7 @@ export class CodegenBase {
   }
 
   /**
-   * Load a protobufjs Root with include-path resolution
+   * Load a protobufjs Root and resolve the include paths
    * @param {string} protoPath - Absolute path to .proto file
    * @returns {protobuf.Root}
    */
@@ -383,14 +386,14 @@ export class CodegenBase {
   }
 
   /**
-   * Find the namespace for a given type by comparing structure
-   * @param {object} typeToFind - The type definition to find namespace for
+   * Find the namespace for a given type. The search compares the structures.
+   * @param {object} typeToFind - The type definition to find the namespace for
    * @param {object} allTypes - All available type definitions
    * @param {string} fallbackPackage - Fallback package name
    * @returns {string} The namespace string for the type
    */
   findTypeNamespace(typeToFind, allTypes, fallbackPackage) {
-    // Find matching type definition by structure comparison
+    // Compare the structures to find the type definition that matches
     for (const [key, typeDef] of Object.entries(allTypes)) {
       if (typeDef.type && typeDef.type.name === typeToFind.name) {
         const typeFields = typeDef.type.field || [];

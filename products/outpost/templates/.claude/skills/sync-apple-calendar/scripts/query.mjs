@@ -3,8 +3,8 @@
  * Query synced Apple Calendar events by date/time window.
  *
  * Reads JSON event files from ~/.cache/fit/outpost/apple_calendar/ and filters
- * them by date range, time window, or upcoming interval. Designed to eliminate
- * the need for agents to write bespoke calendar-parsing scripts.
+ * them by date range, time window, or upcoming interval. Agents then do not
+ * need to write their own calendar-parsing scripts.
  *
  * Usage:
  *   node scripts/query.mjs --today                  Today's events
@@ -31,9 +31,9 @@ Usage:
   node scripts/query.mjs [options]
 
 Time filters (combinable):
-  --today                 Events starting today
-  --tomorrow              Events starting tomorrow
-  --upcoming <interval>   Events starting within interval (e.g., 2h, 30m, 1d)
+  --today                 Events that start today
+  --tomorrow              Events that start tomorrow
+  --upcoming <interval>   Events that start within interval (e.g., 2h, 30m, 1d)
   --date <YYYY-MM-DD>     Events on a specific date
   --range <start> <end>   Events between two dates (inclusive)
 
@@ -42,7 +42,7 @@ Output options:
   --include-all-day       Include all-day events (excluded by default)
   --no-attendees          Omit attendee names from output
 
-Defaults to --today if no time filter is specified.`);
+Defaults to --today when you give no time filter.`);
   process.exit(0);
 }
 

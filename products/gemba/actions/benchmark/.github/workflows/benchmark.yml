@@ -4,7 +4,8 @@ name: FIT Benchmark (sharded)
 # partial ledgers into one pass@k. A consumer gets cross-machine parallelism
 # from a single `shard-total` input. Each shard runs Layer-1 in-process
 # concurrency internally, so effective parallelism is shard-total × per-machine
-# concurrency. The merge job carries no agent scaffold — only the report CLI.
+# concurrency. The merge job carries no agent scaffold. It carries only the
+# report CLI.
 
 on:
   workflow_call:
@@ -34,22 +35,22 @@ on:
         type: string
         default: ""
       agent-model:
-        description: Claude model for the agent-under-test; empty uses the CLI default
+        description: Claude model for the agent-under-test. Empty uses the CLI default
         required: false
         type: string
         default: ""
       lead-model:
-        description: Claude model for the lead role; empty uses the CLI default
+        description: Claude model for the lead role. Empty uses the CLI default
         required: false
         type: string
         default: ""
       judge-model:
-        description: Claude model for the judge; empty uses the CLI default
+        description: Claude model for the judge. Empty uses the CLI default
         required: false
         type: string
         default: ""
       concurrency:
-        description: Max cells run concurrently per shard; empty uses the CLI default (on by default)
+        description: Max cells run concurrently per shard. Empty uses the CLI default (on by default)
         required: false
         type: string
         default: ""
@@ -93,7 +94,7 @@ jobs:
           fi
           json="[$(seq 1 "$n" | paste -sd, -)]"
           echo "shards=$json" >> "$GITHUB_OUTPUT"
-          echo "Fanning across $n shard(s): $json"
+          echo "Fan-out across $n shard(s): $json"
 
   # One job per shard: full benchmark environment, run this shard's cells,
   # upload its partial ledger as benchmark-shard-<i>.
@@ -106,18 +107,18 @@ jobs:
         shard: ${{ fromJSON(needs.prepare.outputs.shards) }}
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      # The benchmark agent coordinates work-tracking through the filesystem
-      # tracker in headless CI (no GitHub work-tracker token is minted). The
-      # agent SDK inherits this from the job env; gemba-benchmark resolves it
-      # (flag > env > github default). Carried as the reusable workflow's env
-      # contract rather than a workflow input.
+      # The benchmark agent tracks work through the filesystem tracker in
+      # headless CI (the workflow mints no GitHub work-tracker token). The
+      # agent SDK inherits this from the job env. gemba-benchmark resolves it
+      # (flag > env > github default). It travels as the reusable workflow's
+      # env contract and not as a workflow input.
       LIBHARNESS_WORK_TRACKER: filesystem
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
       - uses: forwardimpact/bootstrap@71bd75533e5bc5f3046004839ab1b1c36261b033 # v1.0.17
         with:
-          # gemba-benchmark runs the benchmark binary straight off PATH — the
-          # action has no bunx/npx fallback. Requires a bootstrap pin whose
+          # gemba-benchmark runs the benchmark binary straight off PATH. The
+          # action has no bunx/npx fallback. It needs a bootstrap pin whose
           # gear release publishes the gemba-* binaries.
           clis: gemba-benchmark
       - uses: forwardimpact/benchmark@v1.0.8
@@ -136,11 +137,11 @@ jobs:
           shard-total: ${{ inputs.shard-total }}
           k: ${{ inputs.k }}
           format: ${{ inputs.format }}
-          # Each shard emits a short status + pass@k summary; the merge job
+          # Each shard emits a short status + pass@k summary. The merge job
           # renders the full report over the combined ledger.
           summary-detail: compact
 
-  # Merge job: no agent scaffold — only the report CLI. Download every shard's
+  # Merge job: no agent scaffold, only the report CLI. Download every shard's
   # partial ledger and aggregate one combined pass@k report.
   merge:
     needs: shard
@@ -148,7 +149,7 @@ jobs:
     steps:
       # The action runs gemba-benchmark straight off PATH. The shard job gets
       # it from forwardimpact/bootstrap, but bootstrap needs a repo checkout
-      # and this job carries none — so install the pinned, SHA-verified gear
+      # and this job carries none. So install the pinned, SHA-verified gear
       # binary through the released installer. --only skips the default dev/CI
       # tool set the installer would otherwise add.
       - name: Install report CLI

@@ -6,7 +6,7 @@ Options:
   --wiki-root=<string>  Override wiki root directory (default: wiki)
   --today=<string>      Override today's ISO date (testing)
   --repo=<string>       owner/repo slug (default: origin remote)
-  --dry-run             Print the issue body and intended action without calling gh
+  --dry-run             Print the issue body and intended action. Do not call gh
 
 Global options:
   --help, -h  Show this help

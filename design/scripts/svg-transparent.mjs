@@ -2,25 +2,28 @@
 
 // Make a near-white background path in an SVG transparent.
 //
-// SVG fills are flat, deliberate values from the artist's palette — a
-// near-white like #fafafa often means both "page background" (covering
-// the full canvas) and "character body fill" (inside a figure).  Only
-// the first usage should become transparent; clearing every near-white
-// fill exposes the dark silhouettes layered beneath the figures.
+// SVG fills are flat, deliberate values from the artist's palette.  A
+// near-white like #fafafa often means both "page background" (the full
+// canvas) and "character body fill" (inside a figure).  Only the first
+// usage should become transparent.  If the script clears every
+// near-white fill, it exposes the dark silhouettes layered beneath the
+// figures.
 //
-// This script targets the canvas background specifically: a <path> whose
-// d attribute starts with "M0 0" and uses only rectangle-edge commands
-// (M, H, V, L, Z), and whose fill is within --threshold of pure white.
-// Curved paths (C, S, Q, T, A) are artwork even if they happen to begin
-// at the origin.  Dark backgrounds (e.g. #000000, #303030) are left
-// untouched — they are intentional design.
+// This script targets the canvas background specifically.  It changes a
+// <path> whose d attribute starts with "M0 0".  That path must use only
+// rectangle-edge commands (M, H, V, L, Z).  Its fill must be within
+// --threshold of pure white.  Curved paths (C, S, Q, T, A) are artwork
+// even if they happen to begin at the origin.  The script leaves dark
+// backgrounds (e.g. #000000, #303030) untouched.  They are intentional
+// design.
 //
 // Usage:
 //   node design/scripts/svg-transparent.mjs [--threshold 0-255] <file ...>
 //
-// --threshold near-white tolerance treated as transparent (default 16,
-//             clears #fafafa, #f7f7f7, #f3f3f3 backgrounds; keeps the
-//             #dedede / #dbdbdb palette highlights).
+// --threshold near-white tolerance the script treats as transparent
+//             (default 16).  It clears #fafafa, #f7f7f7 and #f3f3f3
+//             backgrounds.  It keeps the #dedede / #dbdbdb palette
+//             highlights.
 
 import { readFileSync, writeFileSync } from "fs";
 import { basename } from "path";
@@ -52,10 +55,10 @@ const NAMED_COLORS = {
 };
 
 // Match <path ... d="M0 0..." ... fill="..." ... /> where the d uses
-// only rectangle-edge commands (M H V L Z, plus numbers/separators) and
-// the fill is near-white.  Intermediate H/V stops along the edges are
-// fine (e.g. M0 0H1024V35.6V1024H0V0Z is still a rectangle); curve
-// commands (C S Q T A) disqualify the path as artwork.
+// only rectangle-edge commands (M H V L Z, plus numbers/separators).
+// The fill must also be near-white.  Intermediate H/V stops along the
+// edges are fine (e.g. M0 0H1024V35.6V1024H0V0Z is still a rectangle).
+// Curve commands (C S Q T A) disqualify the path as artwork.
 const RECT_ONLY_D = /^M0[\s,]*0[MHVLZmhvlz0-9.\s,-]*$/;
 
 const { values, positionals } = parseArgs({
@@ -103,8 +106,8 @@ function parseColor(value) {
     return null;
   }
 
-  // rgba() syntax pattern. The optional alpha clause is anchored between
-  // literal commas and a closing paren — no nested quantifiers.
+  // rgba() syntax pattern. Literal commas and a closing paren anchor the
+  // optional alpha clause. The pattern has no nested quantifiers.
   const rgb = v.match(
     /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)$/,
   );

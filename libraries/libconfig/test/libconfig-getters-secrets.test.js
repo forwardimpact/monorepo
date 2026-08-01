@@ -14,7 +14,7 @@ describe("libconfig - Config getters (supabase + microsoft secrets)", () => {
       get: spy(() => Promise.resolve("")),
     });
 
-  test("supabaseUrl() returns env value with trailing slashes stripped", async () => {
+  test("supabaseUrl() strips trailing slashes from the env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { SUPABASE_URL: "http://127.0.0.1:54321/" },
@@ -48,7 +48,7 @@ describe("libconfig - Config getters (supabase + microsoft secrets)", () => {
     });
   });
 
-  test("supabaseAnonKey() returns env value", async () => {
+  test("supabaseAnonKey() returns the env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { SUPABASE_ANON_KEY: "anon-key-value" },
@@ -82,7 +82,7 @@ describe("libconfig - Config getters (supabase + microsoft secrets)", () => {
     });
   });
 
-  test("supabaseServiceRoleKey() returns env value", async () => {
+  test("supabaseServiceRoleKey() returns the env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { SUPABASE_SERVICE_ROLE_KEY: "service-role-key-value" },
@@ -119,7 +119,7 @@ describe("libconfig - Config getters (supabase + microsoft secrets)", () => {
     });
   });
 
-  test("supabaseJwtSecret() returns env value", async () => {
+  test("supabaseJwtSecret() returns the env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { JWT_SECRET: "jwt-secret-value" },
@@ -153,7 +153,7 @@ describe("libconfig - Config getters (supabase + microsoft secrets)", () => {
     });
   });
 
-  test("msAppPassword() returns env value", async () => {
+  test("msAppPassword() returns the env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { MICROSOFT_APP_PASSWORD: "test-client-secret" },
@@ -187,7 +187,7 @@ describe("libconfig - Config getters (supabase + microsoft secrets)", () => {
     });
   });
 
-  test("msAppId() returns env value", async () => {
+  test("msAppId() returns the env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { MICROSOFT_APP_ID: "test-app-id" },
@@ -221,7 +221,7 @@ describe("libconfig - Config getters (supabase + microsoft secrets)", () => {
     });
   });
 
-  test("msAppTenantId() returns env value", async () => {
+  test("msAppTenantId() returns the env value", async () => {
     const mockProcess = {
       cwd: spy(() => "/test/dir"),
       env: { MICROSOFT_APP_TENANT_ID: "test-tenant-id" },

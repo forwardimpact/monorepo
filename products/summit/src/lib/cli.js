@@ -1,9 +1,9 @@
 /**
  * Shared CLI helpers for Summit command handlers.
  *
- * Resolves the Map data directory from CLI options (or the contributor
- * data finder), loads standard data, and normalizes option lookups used
- * across commands.
+ * These helpers resolve the Map data directory from CLI options or from
+ * the contributor data finder. They load standard data. They also
+ * normalize the option lookups that commands share.
  */
 
 import { homedir } from "node:os";
@@ -19,7 +19,7 @@ export const Format = Object.freeze({
 });
 
 /**
- * Resolve the Map data directory from options, falling back to the
+ * Resolve the Map data directory from options. Fall back to the
  * contributor data finder. Pathway uses the same pattern.
  *
  * @param {object} options - Parsed CLI options.
@@ -33,7 +33,7 @@ export function resolveDataDir(options, runtime) {
     return join(runtime.finder.findData("data", homedir()), "pathway");
   } catch {
     throw new Error(
-      "summit: no data directory found. Pass --data <path> pointing at a Map data directory.",
+      "summit: no data directory found. Pass --data <path> that points at a Map data directory.",
     );
   }
 }

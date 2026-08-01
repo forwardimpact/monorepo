@@ -32,8 +32,8 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed (MEMORY.md + the current-month storyboard for `today`),
-// overlaid with `extra`. buildContext reads these via runtime.fsSync.
+// The clean-wiki seed holds MEMORY.md and the storyboard for `today`'s
+// month. `extra` overlays it. buildContext reads these through runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();
@@ -70,7 +70,7 @@ describe("runRules", () => {
     assert.ok(idsOf(audit(seed)).includes("summary.line-budget"));
   });
 
-  test("summary first H2 mismatch fires summary.first-h2-inbox", () => {
+  test("a first-H2 mismatch in a summary fires summary.first-h2-inbox", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/staff-engineer.md`]: `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Wrong Section\n\n## Message Inbox\n\n<!-- memo:inbox -->\n`,
     });
@@ -79,7 +79,7 @@ describe("runRules", () => {
     assert.match(finding.message, /First H2 is 'Wrong Section'/);
   });
 
-  test("summary missing memo:inbox marker fires when Message Inbox H2 present", () => {
+  test("a summary without the memo:inbox marker fires when the Message Inbox H2 is present", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/staff-engineer.md`]: `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n(no marker)\n`,
     });
@@ -110,7 +110,7 @@ describe("runRules", () => {
     assert.equal(offenders.length, 2);
   });
 
-  test("summary H1 agent slug mismatch", () => {
+  test("a mismatched agent slug in the summary H1", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/staff-engineer.md`]: `# Wrong Title — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n`,
     });
@@ -121,7 +121,7 @@ describe("runRules", () => {
     assert.match(finding.message, /slug 'wrong-title'/);
   });
 
-  test("weekly-log H1 shape failure", () => {
+  test("a weekly log with a bad H1 shape", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/staff-engineer-2026-W25.md`]: "# Wrong H1\n\nbody\n",
     });
@@ -158,7 +158,7 @@ describe("runRules", () => {
     }
   });
 
-  test("decision-block: suffixed heading is reported as a near miss", () => {
+  test("decision-block: the audit reports a suffixed heading as a near miss", () => {
     const seed = cleanSeed("2026-06-22", {
       [`${WIKI}/staff-engineer-2026-W25.md`]: [
         "# Staff Engineer — 2026-W25",
@@ -206,11 +206,11 @@ describe("runRules", () => {
       [`${WIKI}/staff-engineer-2026-W25.md`]: [
         "# Staff Engineer — 2026-W25",
         "",
-        "## Run 220 — 2026-06-22 something", // drifted: not the dated grammar
+        "## Run 220 — 2026-06-22 something", // drifted from the dated grammar
         "",
         "### Decision",
         "",
-        "## 2026-06-23", // conforming — must NOT fire
+        "## 2026-06-23", // conforms, so it must NOT fire
         "",
         "### Decision",
         "",
@@ -261,7 +261,7 @@ describe("runRules", () => {
     assert.deepEqual(carry, []);
   });
 
-  test("carry entry missing clearance trigger: one finding per block", () => {
+  test("a carry entry without a clearance trigger: one finding per block", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/release-engineer-carries.md`]: [
         "# release-engineer — Carries",
@@ -282,7 +282,7 @@ describe("runRules", () => {
     assert.equal(offenders.length, 1);
   });
 
-  test("carry surface H1 slug mismatch fires", () => {
+  test("a mismatched slug in the carry surface H1 fires", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/release-engineer-carries.md`]: [
         "# wrong-agent — Carries",
@@ -316,7 +316,7 @@ describe("runRules", () => {
     assert.ok(idsOf(audit(seed)).includes("storyboard.current-month-exists"));
   });
 
-  test("storyboard missing agent H3: one finding per missing agent", () => {
+  test("a storyboard without an agent H3: one finding per missing agent", () => {
     const seed = {
       [`${WIKI}/MEMORY.md`]: MEMORY_NONE,
       [`${WIKI}/storyboard-2026-M05.md`]: [
@@ -333,7 +333,7 @@ describe("runRules", () => {
     assert.equal(missing.length, 4); // 5 agents required, 1 present
   });
 
-  test("storyboard markers: dangling-open detected", () => {
+  test("storyboard markers: the audit detects dangling-open", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
@@ -354,7 +354,7 @@ describe("runRules", () => {
   // The agent-experiments marker-balance behaviour family lives in the sibling
   // audit-engine-agent-experiments.test.js (test-file-shape split).
 
-  test("priority-row column count mismatch", () => {
+  test("a column-count mismatch in a priority row", () => {
     const seed = {
       [`${WIKI}/MEMORY.md`]: [
         "## Cross-Cutting Priorities",
@@ -419,8 +419,9 @@ describe("runRules", () => {
   });
 
   test("over-budget MEMORY.md fires line and word budget rules", () => {
-    // 200 lines × 13 words = 2600 words: over both the 128-line and 2048-word
-    // MEMORY budgets. The canonical sections stay valid so only the budgets fire.
+    // 200 lines × 13 words = 2600 words breach both the 128-line and the
+    // 2048-word MEMORY budget. Canonical sections stay valid, so only the
+    // budgets fire.
     const filler = Array.from(
       { length: 200 },
       (_, i) =>
@@ -441,7 +442,7 @@ describe("runRules", () => {
     assert.ok(!ids.includes("memory.word-budget"));
   });
 
-  test("priority separator row missing", () => {
+  test("the priority separator row is missing", () => {
     const seed = {
       [`${WIKI}/MEMORY.md`]: [
         "## Cross-Cutting Priorities",
@@ -455,16 +456,16 @@ describe("runRules", () => {
     assert.ok(idsOf(audit(seed)).includes("memory.priority-separator-row"));
   });
 
-  test("stray file is not audited", () => {
+  test("the audit ignores a stray file", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/weird.md`]: "# Whatever\n",
     });
     assert.ok(!idsOf(audit(seed)).includes("wiki.stray-file"));
   });
 
-  test("when predicate skips rule when subject does not qualify", () => {
-    // Empty wiki — memory does not exist, so memory.priority-heading should
-    // NOT fire (its `when: memoryExists` returns false).
+  test("a `when` predicate skips the rule when the subject does not qualify", () => {
+    // The wiki is empty. Memory does not exist, so memory.priority-heading
+    // should NOT fire (its `when: memoryExists` returns false).
     const ids = idsOf(audit({}));
     assert.ok(ids.includes("memory.file-exists"));
     assert.ok(!ids.includes("memory.priority-heading"));
@@ -473,6 +474,6 @@ describe("runRules", () => {
   // The conflict.markers behaviour family lives in the sibling
   // audit-engine-conflict-markers.test.js (split to keep each file under the
   // line cap). The metrics-csv.duplicate-row family lives in the sibling
-  // audit-engine-metrics.test.js, and the admission-scope family in
+  // audit-engine-metrics.test.js. The admission-scope family lives in
   // audit-engine-admission.test.js (same split rationale).
 });

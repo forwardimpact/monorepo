@@ -15,13 +15,13 @@ describe("ServiceManager - stop, status, filtering", () => {
   let mockFs;
   let logCalls;
 
-  // A live PID resolves to a running daemon; any other signal target throws.
+  // A live PID resolves to a running daemon. Any other signal target throws.
   const KILL = (pid, signal) => {
     if (signal === 0 && pid === 12345) return true;
     throw new Error("ESRCH");
   };
-  // The sync-fs and process surfaces flow through the injected runtime, so a
-  // test that needs a custom readFileSync builds a runtime rather than passing
+  // The sync-fs and process surfaces flow through the injected runtime. So a
+  // test that needs a custom readFileSync builds a runtime. It does not pass
   // a `deps.fs` override.
   const makeRuntime = (fsSync, kill = KILL) =>
     createTestRuntime({ fsSync, proc: createMockProcess({ kill }) });

@@ -1,5 +1,5 @@
 /**
- * Base class for batch processor implementations with common batch management logic
+ * Base class for batch processors, with the common logic to manage batches
  */
 export class ProcessorBase {
   #logger;
@@ -8,7 +8,7 @@ export class ProcessorBase {
   /**
    * Creates a new processor instance
    * @param {object} logger - Logger instance for debug output
-   * @param {number} batchSize - Size of batches for processing (default: 4)
+   * @param {number} batchSize - Number of items in a batch (default: 4)
    */
   constructor(logger, batchSize = 4) {
     if (!logger) throw new Error("logger is required");
@@ -32,7 +32,7 @@ export class ProcessorBase {
   /**
    * Processes items in batches
    * @param {any[]} items - Items to process
-   * @param {string} context - Processing context label
+   * @param {string} context - Context label
    * @returns {Promise<any[]>} Processed results
    */
   async process(items, context = "items") {
@@ -115,7 +115,7 @@ export class ProcessorBase {
   }
 
   /**
-   * Processes a single item (must be implemented by subclass)
+   * Processes a single item. A subclass must implement this method.
    * @param {any} _item - Item to process
    * @returns {Promise<any>} Processed result
    */

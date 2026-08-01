@@ -2,10 +2,11 @@ export const MAX_FIELD_LENGTH = 2000;
 export const MAX_REPLY_COUNT = 50;
 
 /**
- * Validate and sanitize the kata-dispatch callback payload. Lenient by
- * design: missing `verdict`/`summary` default to safe sentinels rather
- * than rejecting, so a host that wants to surface a degraded callback
- * can still post something useful. Returns a clean object or `null` if
+ * Validate and sanitize the kata-dispatch callback payload. This
+ * validator is lenient by design. A missing `verdict` or `summary`
+ * defaults to a safe sentinel. The validator does not reject the
+ * payload for that reason. A host can then surface a degraded callback
+ * and still post something useful. Returns a clean object, or `null` if
  * `correlation_id` is missing.
  *
  * @param {unknown} body
@@ -101,8 +102,8 @@ function validateTrigger(raw) {
 }
 
 /**
- * Strip trailing slashes from a base URL so callback URL composition is
- * deterministic regardless of operator input.
+ * Strip trailing slashes from a base URL so the callback URL stays
+ * deterministic for any operator input.
  * @param {string} url
  * @returns {string}
  */
@@ -112,9 +113,9 @@ export function normalizeBaseUrl(url) {
 
 /**
  * Build a fresh `DiscussionContext` record for any channel. The host
- * service supplies a `participant` (channel-shaped) and the canonical
- * record fields (`history`, `open_rfcs`, `dispatches`, etc.) are filled
- * in here so both bridges agree on the shape.
+ * service supplies a `participant` (channel-shaped). This function fills
+ * in the canonical record fields (`history`, `open_rfcs`, `dispatches`,
+ * etc.) so both bridges agree on the shape.
  *
  * @param {object} args
  * @param {string} args.channel

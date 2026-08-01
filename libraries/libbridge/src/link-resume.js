@@ -7,22 +7,24 @@ import { buildPrompt } from "./prompt.js";
 /**
  * Prepare a link-resume URL for the IdP authorize step.
  *
- * Discriminated return so a missing `catch` cannot become a 5xx oracle in
- * the caller. The keyword-arg shape makes "forgot to pass trustedOrigins"
- * a loud boot-time `TypeError` for any future xbridge.
+ * This function returns a discriminated result, so a missing `catch` in
+ * the caller cannot become a 5xx oracle. The keyword-arg shape makes
+ * "forgot to pass trustedOrigins" a loud boot-time `TypeError` for any
+ * future xbridge.
  *
  * @param {object} args
  * @param {string} args.authorizeUrl Upstream IdP authorize URL the bridge
  *   intends to post into the channel.
- * @param {string} args.callbackBaseUrl Bridge's own callback base URL; the
- *   per-bridge `/api/link-complete` is composed from this.
- * @param {Set<string>} args.trustedOrigins Trusted-origin set produced by
- *   `loadTrustedIdpOrigins`. Required — a missing or non-Set value throws.
- * @param {string} [args.tenantId] Resolved tenant the dispatch is scoped to.
- *   When present, set as the `tenant_id` query param so the authorize round
- *   trip carries it to `ghuser` `Begin` → `VerifyPendingDispatch`, matching
- *   the `PutPendingDispatch` write key by construction. Absent leaves the URL
- *   unchanged.
+ * @param {string} args.callbackBaseUrl Bridge's own callback base URL. The
+ *   function composes the per-bridge `/api/link-complete` from it.
+ * @param {Set<string>} args.trustedOrigins Trusted-origin set that
+ *   `loadTrustedIdpOrigins` produces. Required. A missing or non-Set value
+ *   throws.
+ * @param {string} [args.tenantId] Resolved tenant that scopes the dispatch.
+ *   When present, the function sets it as the `tenant_id` query param. The
+ *   authorize round trip then carries it to `ghuser` `Begin` →
+ *   `VerifyPendingDispatch`. This matches the `PutPendingDispatch` write key
+ *   by construction. An absent tenant leaves the URL unchanged.
  * @returns {{linkToken: string, augmentedUrl: string} | {skipped: true, reason: string}}
  *   On a trusted, parseable URL: `{ linkToken, augmentedUrl }`. On any
  *   refusal: `{ skipped: true, reason: "untrusted_origin" }`.
@@ -56,24 +58,25 @@ export function prepareLinkResume({
 
 const UNABLE_TO_VERIFY_HTML =
   "<!DOCTYPE html><html><body><h1>Unable to verify completion</h1>" +
-  "<p>The completion request could not be verified. Please try " +
-  "linking again from the conversation.</p></body></html>";
+  "<p>The bridge could not verify the completion request. Please " +
+  "link again from the conversation.</p></body></html>";
 
 /**
  * Factory for the `/api/link-complete` GET handler.
  *
- * Handler ordering: the ticket is verified **before** any store touch —
- * an attacker without a valid ticket exits at the verify step and never
- * sees a present-vs-absent timing oracle on `linkToken`.
+ * The handler verifies the ticket **before** it touches the store. An
+ * attacker without a valid ticket exits at the verify step. That attacker
+ * never sees a present-vs-absent timing oracle on `linkToken`.
  *
- * The `surface_user_id` cross-check is performed **server-side** by passing
- * `verify.claims.surfaceUserId` as `expectedSurfaceUserId` to
- * `store.resolvePendingDispatch`. The bridge refuses to consume the entry
- * on mismatch — so an attacker who minted a valid ticket against the
- * victim's `link_token` (e.g. by driving the IdP round-trip under their
- * own account with `client_state=victim_link_token`) cannot drain the
- * auto-resume affordance: the bridge returns `{ unattributable: true }`
- * and the entry stays available for the legitimate user.
+ * The bridge runs the `surface_user_id` cross-check **server-side**. It
+ * passes `verify.claims.surfaceUserId` as `expectedSurfaceUserId` to
+ * `store.resolvePendingDispatch`. On a mismatch the bridge refuses to
+ * consume the entry. An attacker can mint a valid ticket against the
+ * victim's `link_token`. For example, the attacker drives the IdP
+ * round-trip under their own account with `client_state=victim_link_token`.
+ * That attacker still cannot drain the auto-resume affordance. The bridge
+ * returns `{ unattributable: true }`. The entry stays available for the
+ * legitimate user.
  *
  * @param {object} options
  * @param {string} options.channel Channel id (e.g. `"github-discussions"`).
@@ -134,14 +137,14 @@ export function createLinkCompleteHandler({
     if (!target) {
       return c.html(
         "<!DOCTYPE html><html><body><h1>Already processed</h1>" +
-          "<p>This link has already been used or has expired." +
+          "<p>This link was already used, or it expired." +
           "</p></body></html>",
       );
     }
     if (target.unattributable) {
-      // Bridge refused to consume because the ticket's surfaceUserId does
-      // not match the pending row. The pending entry is left intact for
-      // the legitimate user.
+      // The bridge refused to consume the entry because the ticket's
+      // surfaceUserId does not match the pending row. The bridge leaves
+      // the pending entry intact for the legitimate user.
       return c.html(UNABLE_TO_VERIFY_HTML);
     }
 
@@ -160,7 +163,8 @@ export function createLinkCompleteHandler({
     if (!userTurn) {
       return c.html(
         "<!DOCTYPE html><html><body><h1>Error</h1>" +
-          "<p>No message found to re-dispatch.</p></body></html>",
+          "<p>The bridge found no message to re-dispatch.</p>" +
+          "</body></html>",
         404,
       );
     }
@@ -176,15 +180,15 @@ export function createLinkCompleteHandler({
     if (result.kind === "dispatched") {
       return c.html(
         "<!DOCTYPE html><html><body><h1>Processing</h1>" +
-          "<p>Your message is being processed. " +
+          "<p>The bridge processes your message now. " +
           "You can close this window.</p></body></html>",
       );
     }
 
     return c.html(
       "<!DOCTYPE html><html><body><h1>Unable to dispatch</h1>" +
-        "<p>Your account could not be verified. Please try " +
-        "linking again from the conversation.</p></body></html>",
+        "<p>The bridge could not verify your account. Please " +
+        "link again from the conversation.</p></body></html>",
     );
   };
 }

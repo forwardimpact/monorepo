@@ -24,7 +24,7 @@ function run(subcommand, options, env = {}) {
   return { result, harness, fsSync };
 }
 
-describe("gemba-wiki inbox CLI fail-closed contract", () => {
+describe("gemba-wiki inbox CLI (fail-closed contract)", () => {
   test("list with --agent succeeds", () => {
     const { result, harness } = run("list", { agent: "staff-engineer" });
     assert.equal(result.ok, true);
@@ -48,7 +48,7 @@ describe("gemba-wiki inbox CLI fail-closed contract", () => {
       );
       assert.equal(result.ok, false);
       assert.equal(result.code, 2);
-      // No file mutated: the source summary is byte-identical.
+      // The run mutates no file. The source summary is byte-identical.
       assert.match(fsSync.readFileSync(SUMMARY, "utf-8"), /- a memo\n$/);
     });
   }

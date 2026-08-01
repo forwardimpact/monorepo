@@ -146,7 +146,7 @@ describe("computeCoverageRatio", () => {
 });
 
 describe("filterEvidenceByTeam", () => {
-  it("filters to team emails via github_artifacts join", () => {
+  it("filters to team emails through the github_artifacts join", () => {
     const rows = [
       { github_artifacts: { email: "alice@example.com" } },
       { github_artifacts: { email: "bob@example.com" } },

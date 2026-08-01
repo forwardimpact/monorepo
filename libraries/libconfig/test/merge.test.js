@@ -22,7 +22,7 @@ describe("mergeConfigFragment — namespace ownership table", () => {
     assert.deepEqual(conflicts, []);
   });
 
-  test("present, leaf disagrees → refuse with leaf-path diagnostic", () => {
+  test("present, leaf disagrees → refuse with a leaf-path diagnostic", () => {
     const { result, conflicts } = mergeConfigFragment({
       existing: { product: { x: { foo: "a" } } },
       fragment: { product: { x: { foo: "b" } } },
@@ -68,7 +68,7 @@ describe("mergeConfigFragment — namespace ownership table", () => {
     assert.deepEqual(conflicts, []);
   });
 
-  test("disjoint sub-keys plus matching leaves under shared top-level merge", () => {
+  test("disjoint sub-keys plus identical leaves under shared top-level merge", () => {
     const { result, conflicts } = mergeConfigFragment({
       existing: { product: { shared: { v: 1 }, guide: { sys: "g" } } },
       fragment: { product: { shared: { v: 1 }, map: { sys: "m" } } },
@@ -83,7 +83,7 @@ describe("mergeConfigFragment — namespace ownership table", () => {
     assert.deepEqual(conflicts, []);
   });
 
-  test("disjoint sibling plus one leaf disagreement → refuse at the disagreeing leaf", () => {
+  test("disjoint sibling plus one leaf that disagrees → refuse at that leaf", () => {
     const { conflicts } = mergeConfigFragment({
       existing: { product: { guide: { sys: "g" }, shared: { v: 1 } } },
       fragment: { product: { map: { sys: "m" }, shared: { v: 2 } } },
@@ -92,11 +92,11 @@ describe("mergeConfigFragment — namespace ownership table", () => {
   });
 });
 
-describe("mergeConfigFragment — convergence (production nested encoding)", () => {
-  // Use the nested form fit-guide actually emits — top-level keys
-  // `init`/`product`/`service` with product/service slices nested
+describe("mergeConfigFragment — convergence (production nested form)", () => {
+  // Use the nested form fit-guide actually emits. That form has top-level
+  // keys `init`/`product`/`service` with product/service slices nested
   // beneath. Tests that use literal-dotted top-level keys
-  // (`"product.guide"`) wouldn't catch a regression in the
+  // (`"product.guide"`) would not catch a regression in the
   // disjoint-sub-key merge path the real callers walk.
   test("disjoint nested namespaces under shared top-level: A→B and B→A produce identical canonical bytes", () => {
     const fragA = { product: { guide: { systemPrompt: "g" } } };
@@ -144,7 +144,7 @@ describe("mergeEnvEntries — namespace ownership table", () => {
     assert.deepEqual(conflicts, []);
   });
 
-  test("present, different value → refuse with bare-key path", () => {
+  test("present, different value → refuse with a bare-key path", () => {
     const { result, conflicts } = mergeEnvEntries({
       existing: { MCP_TOKEN: "old" },
       fragment: { MCP_TOKEN: "new" },

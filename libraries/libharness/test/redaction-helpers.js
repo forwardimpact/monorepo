@@ -18,8 +18,8 @@ export function assertJsonStableSentinel(s) {
 }
 
 /**
- * Capture stderr writes from a callback. Restores the original write
- * regardless of throw outcome.
+ * Capture stderr writes from a callback. The helper restores the original
+ * write even when the callback throws.
  * @param {() => void} fn
  */
 export function captureStderr(fn) {

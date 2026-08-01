@@ -1,11 +1,11 @@
 # Worked entry
 
-A product Big Hire entry with all elements, then the same job as a discoverable
-tag. The persona, product, and circumstances here are illustrative — replace
-them with your own. Pick the personas your repository actually serves; common
-starting points are roles like platform engineers, application developers, or
-release managers, but name the set that fits your users rather than adopting
-this one. Copy the shape, not the content.
+This is a product Big Hire entry with all elements. The same job then appears as
+a discoverable tag. The persona, product, and circumstances here are
+illustrative. Replace them with your own. Pick the personas your repository
+actually serves. Common examples are roles like platform engineers, application
+developers, or release managers. Name the set that fits your users. Do not
+adopt this one. Copy the shape. Do not copy the content.
 
 ## Full entry (root JTBD.md)
 
@@ -41,7 +41,7 @@ vendor's built-in drift tool.
 
 ## As a discoverable tag
 
-A Big or Little Hire anywhere in the repo is wrapped so `rg '<job '` finds it:
+Wrap a Big or Little Hire anywhere in the repo so `rg '<job '` finds it:
 
 ```markdown
 <job user="Platform Engineers" goal="Catch Configuration Drift Before It Pages">
@@ -60,10 +60,10 @@ overnight. → **<product>**
 
 ## Why this passes the properties
 
-- The Big Hire survives removing the product name — it is progress, not a
-  feature.
-- The trigger is a moment ("a 2am page traces back to…"), not "engineers who
-  manage config".
+- The Big Hire survives when you remove the product name. It is progress. It is
+  not a feature.
+- The trigger is a moment ("a 2am page traces back to…"). It is not "engineers
+  who manage config".
 - Competes With names nonconsumption ("hire nothing and find out at 2am").
-- The forces are asymmetric — Push dominates — and Fired When names the world
-  (immutable infrastructure, a freeze), not only product failure.
+- The forces are asymmetric, and Push dominates. Fired When names the world
+  (immutable infrastructure, a freeze). It does not name product failure alone.

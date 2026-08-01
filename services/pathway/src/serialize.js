@@ -1,14 +1,14 @@
 /**
  * Pure Turtle RDF serializers for pathway derivation results.
  *
- * Each function takes a libskill output object (or array thereof) and returns
- * a Turtle string using the `fit:` vocabulary. IRIs are constructed via the
- * shared @forwardimpact/map/iri helpers so they cannot drift from the IRIs
- * Map's HTML export pipeline emits.
+ * Each function takes a libskill output object, or an array of them. Each
+ * function returns a Turtle string in the `fit:` vocabulary. The shared
+ * helpers in @forwardimpact/map/iri construct the IRIs. So the IRIs cannot
+ * drift from the ones Map's HTML export pipeline emits.
  *
- * The serializers do not import any libskill code — the libskill outputs are
- * mechanically projected into RDF, predicate by predicate, with no derivation
- * logic of their own.
+ * The serializers do not import any libskill code. They project the libskill
+ * outputs into RDF mechanically, predicate by predicate. They hold no
+ * derivation logic of their own.
  */
 
 import pkg from "n3";
@@ -148,7 +148,7 @@ function jobQuads(job) {
 }
 
 /**
- * Serialize a list of jobs (summary form — no skill matrix detail).
+ * Serialize a list of jobs (summary form, no skill matrix detail).
  * @param {Array} jobs
  * @returns {Promise<string>}
  */
@@ -266,7 +266,7 @@ function pushChangeMagnitude(quads, node, change) {
 
 function pushSkillChangeEntry(quads, progNode, entry) {
   // libskill's calculateSkillChanges emits { id, currentLevel, targetLevel,
-  // change, isGained, isLost } — see libraries/libskill/progression.js.
+  // change, isGained, isLost }. See libraries/libskill/progression.js.
   const sc = blankNode();
   quads.push(quad(progNode, fit("skillChange"), sc));
   quads.push(typeQuad(sc, TYPE_SKILL_CHANGE));
@@ -287,7 +287,7 @@ function pushSkillChangeEntry(quads, progNode, entry) {
 
 function pushBehaviourChangeEntry(quads, progNode, entry) {
   // libskill's calculateBehaviourChanges emits { id, currentLevel, targetLevel,
-  // change } — see libraries/libskill/progression.js.
+  // change }. See libraries/libskill/progression.js.
   const bc = blankNode();
   quads.push(quad(progNode, fit("behaviourChange"), bc));
   quads.push(typeQuad(bc, TYPE_BEHAVIOUR_CHANGE));
@@ -324,9 +324,9 @@ export async function progressionToTurtle(progression) {
   const toLevel = target.level;
   const toTrack = target.track;
 
-  // Use the source discipline/track for the progression IRI when sides match,
-  // otherwise fall back to the source side. This matches the canonical "what
-  // does my progression look like for this role" intent.
+  // Use the source discipline/track for the progression IRI when the sides
+  // match. If they do not match, fall back to the source side. This matches
+  // the canonical "what does my progression look like for this role" intent.
   const progNode = namedNode(
     progressionIri(
       fromDisc.id,

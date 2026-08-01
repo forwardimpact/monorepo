@@ -2,12 +2,12 @@ name: "Kata: Storyboard"
 
 on:
   schedule:
-    # Daily at 06:00 UTC = 08:00 Paris (CEST), after night shift finishes.
+    # Daily at 06:00 UTC = 08:00 Paris (CEST), after the night shift finishes.
     - cron: "0 6 * * *"
   workflow_dispatch:
     inputs:
       task-amend:
-        description: "Additional text appended to the task prompt for steering"
+        description: "Extra text appended to the task prompt to steer the run"
         required: false
         type: string
 

@@ -2,9 +2,10 @@
 /**
  * Scan for unprocessed Anarlog sessions.
  *
- * Compares session _memo.md and _summary.md files against the graph_processed
- * state file to identify sessions that need processing. Reports unprocessed
- * sessions with title, date, and content preview.
+ * This script compares session _memo.md and _summary.md files against the
+ * graph_processed state file. It finds the sessions you must still process. It
+ * reports each unprocessed session with a title, a date, and a content
+ * preview.
  *
  * Usage:
  *   node scripts/scan.mjs              List unprocessed sessions
@@ -29,9 +30,9 @@ Usage:
   node scripts/scan.mjs [options]
 
 Options:
-  --changed    Also detect sessions whose memo/summary hash has changed
-  --json       Output as JSON array
-  --count      Just print the unprocessed count (for scripting)
+  --changed    Also detect sessions whose memo/summary hash changed
+  --json       Output as a JSON array
+  --count      Just print the unprocessed count (for scripts)
   --limit N    Max sessions to display (default: 20)
   -h, --help   Show this help message
 
@@ -61,14 +62,14 @@ if (existsSync(STATE_FILE)) {
 }
 
 /**
- * Compute SHA-256 hash of file contents.
+ * Compute the SHA-256 hash of the file contents.
  */
 function fileHash(filePath) {
   return createHash("sha256").update(readFileSync(filePath)).digest("hex");
 }
 
 /**
- * Check if a file needs processing (new or changed).
+ * Check whether the script must process a file (new or changed).
  */
 function needsProcessing(filePath) {
   const storedHash = state.get(filePath);
@@ -81,7 +82,7 @@ function needsProcessing(filePath) {
 }
 
 /**
- * Extract title and date from a memo file.
+ * Extract the title and the date from a memo file.
  */
 function parseMemo(memoPath) {
   try {

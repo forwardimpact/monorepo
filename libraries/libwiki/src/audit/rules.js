@@ -56,9 +56,9 @@ import {
 import { STATUS_ROW_RULES } from "./status-row.js";
 
 // The budget predicates the post-landing pre-push gate re-runs over the
-// outgoing tree. Naming the ids here keeps the gate selecting rules by
-// membership of this set, so a future predicate change to any of these
-// rules flows through the gate with no gate-code change.
+// outgoing tree. This set names the ids, so the gate selects rules by
+// membership of the set. A future predicate change to any of these
+// rules then flows through the gate with no gate-code change.
 export const BUDGET_RULE_IDS = new Set([
   "summary.line-budget",
   "summary.word-budget",
@@ -110,7 +110,7 @@ export const RULES = [
     severity: "fail",
     check: lineBudget(SUMMARY_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${SUMMARY_LINE_BUDGET})`,
-    hint: "trim history into the weekly log; the summary holds settled state, not history",
+    hint: "trim history into the weekly log. the summary holds settled state. it does not hold history",
   },
   {
     id: "summary.word-budget",
@@ -118,7 +118,7 @@ export const RULES = [
     severity: "fail",
     check: wordBudget(SUMMARY_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${SUMMARY_WORD_BUDGET})`,
-    hint: "trim history into the weekly log; the summary holds settled state, not history",
+    hint: "trim history into the weekly log. the summary holds settled state. it does not hold history",
   },
   {
     id: "summary.h1-agent-matches-filename",
@@ -176,7 +176,7 @@ export const RULES = [
     check: headingGrammarDrift,
     message: (_s, r) =>
       `Entry heading '${r.observed}' does not match the dated grammar`,
-    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `gemba-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
+    hint: "weekly-log entry headings must be '## YYYY-MM-DD'. open entries with `gemba-wiki log decision/note`, which emit a heading that conforms and that the rotation seam-finder can split",
   },
   {
     id: "decision-block.heading-within-5",
@@ -189,9 +189,9 @@ export const RULES = [
     }),
     message: (_s, r) =>
       r.nearMiss
-        ? `Entry opens with '${r.nearMiss}'; the heading must be exactly '${DECISION_HEADING}' — move the suffix into the body`
+        ? `Entry opens with '${r.nearMiss}'. The heading must be exactly '${DECISION_HEADING}'. Move the suffix into the body`
         : `Entry lacks a line that is exactly '${DECISION_HEADING}'`,
-    hint: `open each '## YYYY-MM-DD' entry with \`gemba-wiki log decision\`, which emits a line containing exactly '${DECISION_HEADING}' (no suffix — the check is an exact match); put the one-line summary in the body below it, drawn from the entry's own narrative — do not invent rationale the entry does not support`,
+    hint: `open each '## YYYY-MM-DD' entry with \`gemba-wiki log decision\`. it emits a line that contains exactly '${DECISION_HEADING}' (no suffix, because the check is an exact match). put the one-line summary in the body below it, drawn from the entry's own narrative. do not invent rationale the entry does not support`,
   },
 
   // -- Weekly logs (sealed parts) --
@@ -211,7 +211,7 @@ export const RULES = [
     check: headingGrammarDrift,
     message: (_s, r) =>
       `Entry heading '${r.observed}' does not match the dated grammar`,
-    hint: "weekly-log entry headings must be '## YYYY-MM-DD'; open entries with `gemba-wiki log decision/note`, which emit a conforming heading the rotation seam-finder can split",
+    hint: "weekly-log entry headings must be '## YYYY-MM-DD'. open entries with `gemba-wiki log decision/note`, which emit a heading that conforms and that the rotation seam-finder can split",
   },
   {
     id: "weekly-log-part.line-budget",
@@ -220,7 +220,7 @@ export const RULES = [
     remediation: "rotate",
     check: lineBudget(WEEKLY_LOG_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${WEEKLY_LOG_LINE_BUDGET})`,
-    hint: "`bunx gemba-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
+    hint: "`bunx gemba-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams. only a single '### ' block that alone exceeds the budget remains for a human to shorten",
   },
   {
     id: "weekly-log-part.word-budget",
@@ -229,7 +229,7 @@ export const RULES = [
     remediation: "rotate",
     check: wordBudget(WEEKLY_LOG_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${WEEKLY_LOG_WORD_BUDGET})`,
-    hint: "`bunx gemba-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams; only a single '### ' block that alone exceeds the budget remains for a human to shorten",
+    hint: "`bunx gemba-wiki fix` re-bisects an over-budget part at its day-section seams and, for a lone over-cap day, at its '### ' block seams. only a single '### ' block that alone exceeds the budget remains for a human to shorten",
   },
   {
     id: "weekly-log-part.h1-agent-matches-filename",
@@ -242,10 +242,11 @@ export const RULES = [
   },
 
   // -- Carry surfaces --
-  // No `h1-shape` rule: unlike the weekly logs (classified on filename alone),
-  // the carry classifier (scopes.js) requires the Carry H1 before assigning the
-  // scope, so a malformed-H1 file is left unclassified rather than reaching an
-  // h1-shape rule. The two rules below are the reachable, failable set (SC #2).
+  // There is no `h1-shape` rule. The classifier classifies a weekly log on
+  // filename alone. The carry classifier (scopes.js) instead requires the
+  // Carry H1 before it assigns the scope. So it leaves a malformed-H1 file
+  // unclassified, and that file never reaches an h1-shape rule. The two rules
+  // below are the reachable, failable set (SC #2).
 
   {
     id: "carry-surface.h1-agent-matches-filename",
@@ -282,7 +283,7 @@ export const RULES = [
     when: memoryExists,
     check: lineBudget(MEMORY_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${MEMORY_LINE_BUDGET})`,
-    hint: "MEMORY.md holds settled cross-cutting state, not history; release settled claims, prune stale priority rows, and move event-by-event detail to the relevant ledger page or weekly log",
+    hint: "MEMORY.md holds settled cross-cutting state. it does not hold history. release settled claims, prune stale priority rows, and move event-by-event detail to the relevant ledger page or weekly log",
   },
   {
     id: "memory.word-budget",
@@ -291,7 +292,7 @@ export const RULES = [
     when: memoryExists,
     check: wordBudget(MEMORY_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${MEMORY_WORD_BUDGET})`,
-    hint: "MEMORY.md holds settled cross-cutting state, not history; release settled claims, prune stale priority rows, and move event-by-event detail to the relevant ledger page or weekly log",
+    hint: "MEMORY.md holds settled cross-cutting state. it does not hold history. release settled claims, prune stale priority rows, and move event-by-event detail to the relevant ledger page or weekly log",
   },
   {
     id: "memory.priority-heading",
@@ -400,7 +401,7 @@ export const RULES = [
     when: storyboardExists,
     check: lineBudget(STORYBOARD_LINE_BUDGET),
     message: (_s, r) => `${r.value} lines (limit ${STORYBOARD_LINE_BUDGET})`,
-    hint: "see per-section word budgets in storyboard-template.md; retire prior-session Headlines/Notes/Next-review entries to weekly logs",
+    hint: "see per-section word budgets in storyboard-template.md. retire prior-session Headlines/Notes/Next-review entries to weekly logs",
   },
   {
     id: "storyboard.word-budget",
@@ -409,7 +410,7 @@ export const RULES = [
     when: storyboardExists,
     check: wordBudget(STORYBOARD_WORD_BUDGET),
     message: (_s, r) => `${r.value} words (limit ${STORYBOARD_WORD_BUDGET})`,
-    hint: "see per-section word budgets in storyboard-template.md; retire prior-session Headlines/Notes/Next-review entries to weekly logs",
+    hint: "see per-section word budgets in storyboard-template.md. retire prior-session Headlines/Notes/Next-review entries to weekly logs",
   },
   {
     id: "storyboard.markers-balanced.xmr",
@@ -454,8 +455,9 @@ export const RULES = [
     hint: "every '<!-- agent-experiments -->' needs a matching '<!-- /agent-experiments -->'",
   },
 
-  // -- Metrics CSVs (union merge keeps both sides on concurrent appends;
-  // exact-duplicate rows are surfaced here, never silently removed) --
+  // -- Metrics CSVs (union merge keeps both sides on concurrent appends. The
+  // audit surfaces exact-duplicate rows here. It never silently removes
+  // them) --
 
   {
     id: "metrics-csv.duplicate-row",
@@ -464,7 +466,7 @@ export const RULES = [
     check: duplicateCsvRows,
     message: (_s, r) =>
       `Duplicate metrics row at line ${r.lineNo} (exact match of an earlier row)`,
-    hint: "remove the surplus row, or differentiate a genuinely-distinct measurement by editing its run id or note so the rows are no longer identical",
+    hint: "remove the surplus row, or differentiate a genuinely-distinct measurement. edit its run id or note so the rows are no longer identical",
   },
 
   // -- STATUS.md rows (per-migration-unit sub-row schema) --
@@ -478,17 +480,18 @@ export const RULES = [
   // -- Filename admission --
 
   // The `admission` resolver yields one subject per git-tracked path the
-  // filename grammar rejects, so the check always fires. Flag-for-human: a
-  // wrong automated move or delete destroys memory, so `fix` routes this to the
-  // human report (any non-`agent` remediation class does) and never touches the
-  // file.
+  // filename grammar rejects, so the check always fires. This finding is a
+  // flag for a human. A wrong automated move or delete destroys memory, so
+  // `fix` routes it to the human report and never touches the file. Any
+  // non-`agent` remediation class does the same.
   {
     id: "admission.not-in-grammar",
     scope: "admission",
     severity: "fail",
     remediation: "flag",
     check: () => ({}),
-    message: (s) => `${s.relPath} matches no wiki filename grammar class`,
+    message: (s) =>
+      `${s.relPath} matches no class in the wiki filename grammar`,
     hint: "rename to an admitted class, or extend the Wiki Filename Grammar section in memory-protocol.md and audit/grammar.js together (the single admission path)",
   },
 ];

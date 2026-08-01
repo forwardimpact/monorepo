@@ -1,11 +1,12 @@
 /**
  * Level presentation helpers
  *
- * Shared utilities for formatting level data across DOM and markdown outputs.
+ * These shared utilities format level data across DOM and markdown outputs.
  */
 
 /**
- * Get level display name (shows both professional and management titles)
+ * Get the level display name. It shows both the professional title and the
+ * management title.
  * @param {Object} level
  * @returns {string}
  */

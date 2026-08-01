@@ -7,8 +7,9 @@ const { BridgeBase } = services;
 
 /**
  * Reject a request that omits `tenant_id`. Every bridge RPC carries a
- * `tenant_id` in both deployment modes (single-tenant binds the literal
- * `"default"`); an empty value is a caller error, not an empty result.
+ * `tenant_id` in both deployment modes. Single-tenant mode binds the
+ * literal `"default"`. An empty value is a caller error. It is not an
+ * empty result.
  *
  * @param {{tenant_id?: string}} req
  * @returns {string} the validated tenant id
@@ -130,8 +131,8 @@ export class BridgeService extends BridgeBase {
     const tenant_id = requireTenant(req);
     await this.#discussions.loadData();
     for (const rec of this.#discussions.index.values()) {
-      // Records are scanned by correlation_id; the tenant filter is applied
-      // after the scan so a correlation owned by tenant A is invisible to B.
+      // This loop scans records by correlation_id. The tenant filter runs
+      // after the scan, so a correlation owned by tenant A is invisible to B.
       if (rec.tenant_id !== tenant_id) continue;
       if (
         Object.values(rec.pending_callbacks ?? {}).includes(
@@ -170,9 +171,10 @@ export class BridgeService extends BridgeBase {
    */
   async SaveDiscussion(req) {
     const tenant_id = requireTenant(req);
-    // Tenant-scope the index key in every mode. Single-tenant emits
-    // `${channel}:default:${discussion_id}`; the record's own `id` field is
-    // overridden so the Map key isolates per (channel, tenant, discussion).
+    // Tenant-scope the index key in every mode. Single-tenant mode emits
+    // `${channel}:default:${discussion_id}`. The add call overrides the
+    // record's own `id` field, so the Map key isolates per (channel,
+    // tenant, discussion).
     await this.#discussions.add({
       ...req,
       id: `${req.channel}:${tenant_id}:${req.discussion_id}`,
@@ -193,8 +195,8 @@ export class BridgeService extends BridgeBase {
    */
   async RecordOrigin(req) {
     const tenant_id = requireTenant(req);
-    // Tenant-scope the origin key so a comment id recorded by tenant A is
-    // not seen as self-originated by tenant B.
+    // Tenant-scope the origin key. When tenant A records a comment id,
+    // tenant B does not see it as self-originated.
     await this.#origins.add({ ...req, id: `${tenant_id}:${req.id}` });
     return {};
   }
@@ -227,7 +229,10 @@ export class BridgeService extends BridgeBase {
     return {};
   }
 
-  /** Return inbox messages with seq > since_seq. Non-destructive — entries persist until sweep. */
+  /**
+   * Return inbox messages with seq > since_seq. The read is
+   * non-destructive. Entries persist until sweep.
+   */
   async DrainInbox(req) {
     const tenant_id = requireTenant(req);
     await this.#inbox.loadData();
@@ -275,10 +280,11 @@ export class BridgeService extends BridgeBase {
       throw Object.assign(new Error("not found"), {
         code: grpc.status.NOT_FOUND,
       });
-    // Server-side surface-user-id gate: when the caller asserts which user
-    // should own the entry, refuse to consume on mismatch. Closes the
-    // pre-consume window the libbridge handler would otherwise open if it
-    // did the cross-check client-side after the destructive resolve.
+    // Gate the surface user id on the server. When the caller asserts
+    // which user should own the entry, refuse to consume on mismatch.
+    // This closes the pre-consume window. The libbridge handler would
+    // otherwise open that window if it did the cross-check on the client
+    // side after the destructive resolve.
     if (
       req.expected_surface_user_id != null &&
       req.expected_surface_user_id !== "" &&
@@ -289,13 +295,13 @@ export class BridgeService extends BridgeBase {
       });
     }
     this.#pendingDispatches.index.delete(scopedKey);
-    // compact() writes the new index via storage.put, which is a write-tmp
-    // + atomic rename inside libstorage. A process kill mid-compact leaves
-    // the index at either its prior or new state. Concurrent-writer
-    // correctness for a multi-instance future remains out of scope —
-    // bridge runs single-instance per tenant; gRPC handlers serialise on
-    // the event loop, so compact() and add() never interleave inside one
-    // process.
+    // compact() writes the new index through storage.put. Inside
+    // libstorage that is a write-tmp + atomic rename. A process kill
+    // mid-compact leaves the index at either its prior or new state.
+    // Concurrent-writer correctness for a multi-instance future remains
+    // out of scope. Bridge runs single-instance per tenant. gRPC handlers
+    // serialise on the event loop, so compact() and add() never interleave
+    // inside one process.
     await this.#pendingDispatches.compact();
     return bridge.PendingDispatch.fromObject({
       link_token: rec.link_token ?? req.link_token,
@@ -308,17 +314,17 @@ export class BridgeService extends BridgeBase {
 
   /**
    * Verify a pending dispatch and record a single-use claim of its
-   * `link_token`. Cross-validates `(expected_surface,
+   * `link_token`. This RPC cross-validates `(expected_surface,
    * expected_surface_user_id)` against the pending entry keyed by
    * `(tenant_id, link_token)`. The first OK response appends to
-   * `claimed_dispatches.jsonl`; subsequent verifies for the same
-   * `link_token` fail closed with `FAILED_PRECONDITION`.
+   * `claimed_dispatches.jsonl`. Later verifies for the same `link_token`
+   * fail closed with `FAILED_PRECONDITION`.
    *
-   * Concurrency: services/bridge runs single-instance per tenant; gRPC
+   * Concurrency: services/bridge runs single-instance per tenant. gRPC
    * handlers serialise on the event loop. Once both handler calls return
    * from `await loadData()`, the synchronous `has` check and `add` body
-   * (which `index.set`s before yielding) run within one microtask each, so
-   * a second resumer always observes the first resumer's set.
+   * run within one microtask each. The `add` body calls `index.set` before
+   * it yields. So a second resumer always observes the first resumer's set.
    */
   async VerifyPendingDispatch(req) {
     const tenant_id = requireTenant(req);
@@ -357,9 +363,9 @@ export class BridgeService extends BridgeBase {
   async Sweep(req) {
     const tenant_id = requireTenant(req);
     const now = req.now ?? this.#clock.now();
-    // The RPC-invoked sweep is restricted to the requesting tenant's records;
-    // the periodic background sweep (driven by the timer) passes no tenant and
-    // evicts stale records across every tenant.
+    // The RPC-invoked sweep touches only the records of the tenant that
+    // called it. The timer drives the periodic background sweep. That
+    // sweep passes no tenant and evicts stale records across every tenant.
     const { evicted_discussions, evicted_origins, evicted_pending } =
       await this.#sweep(now, tenant_id);
     return { evicted_discussions, evicted_origins, evicted_pending };
@@ -417,8 +423,8 @@ export class BridgeService extends BridgeBase {
 
     if (evicted_discussions > 0) await this.#discussions.flush();
     if (evicted_origins > 0) await this.#origins.flush();
-    // Same write-tmp + atomic rename guarantee inside libstorage as the
-    // ResolvePendingDispatch compact() call site above.
+    // libstorage gives the same write-tmp + atomic rename guarantee here
+    // as at the compact() call site in ResolvePendingDispatch above.
     if (evicted_pending > 0) await this.#pendingDispatches.compact();
     if (evictedInbox > 0) await this.#inbox.flush();
 

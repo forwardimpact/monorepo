@@ -1,34 +1,35 @@
 # Using the Design Language
 
-> How to apply the [shared design language](index.md): the contract for
-> deriving a brand that stays recognizable as a sibling, and the four-layer
-> CSS architecture that realizes the language in code.
+> How to apply the [shared design language](index.md): the contract to derive
+> a brand that stays recognizable as a sibling, and the four-layer CSS
+> architecture that realizes the language in code.
 
-This document is about _use_. The language itself — philosophy, color,
-typography, spacing, components, motion, and accessibility — lives in
-[index.md](index.md). Read that first.
+This document is about _use_. The language itself lives in
+[index.md](index.md). It covers philosophy, color, typography, spacing,
+components, motion, and accessibility. Read that first.
 
-Brand-specific illustration systems — characters, scene grammar, base scenes —
-live with the brand that owns them. Forward Impact Engineering is the only
-brand that ships an illustration system; its layered illustration checklist is
-in [`fit/index.md § 3 Scene Grammar`](fit/index.md#3-scene-grammar).
+Brand-specific illustration systems live with the brand that owns them. These
+systems include characters, scene grammar, and base scenes. Forward Impact
+Engineering is the only brand that ships an illustration system. Its layered
+illustration checklist is in
+[`fit/index.md § 3 Scene Grammar`](fit/index.md#3-scene-grammar).
 
 ---
 
 ## 1. Deriving a Brand
 
 A brand inherits the shared language and adds its own interpretation. The split
-below preserves family resemblance: someone who has seen one brand should
+below preserves family resemblance. Someone who sees one brand should
 immediately recognize a sibling, even when the metaphor and palette differ.
 
 ### Inherited (do not override)
 
 These elements are the family's shared DNA. A brand that diverges on any of them
-stops being part of the family.
+is no longer part of the family.
 
 - **Monochrome with one warm signal**
-  ([index.md § 2](index.md#2-color-philosophy)). The hue varies; the pattern
-  doesn't.
+  ([index.md § 2](index.md#2-color-philosophy)). The hue varies. The pattern
+  does not.
 - **Typography pairing** — display serif + sans body + monospace code
   ([index.md § 3](index.md#3-typography-pattern)).
 - **8px spacing rhythm** and the spacing token names
@@ -41,21 +42,22 @@ stops being part of the family.
 
 ### Specified per brand
 
-These are the dimensions a brand uses to find its distinct voice while staying
+These are the dimensions a brand uses to find its distinct voice while it stays
 inside the family.
 
 - **Premise / metaphor** — what world the brand inhabits (e.g. expedition,
-  practice, fieldwork). Surfaces in motifs and naming, never in structural UI.
+  practice, fieldwork). It surfaces in motifs and names. It never surfaces in
+  structural UI.
 - **Product taxonomy** — which products belong to the brand and what each one
   answers.
 - **Illustration system** — whether the brand uses characters, object-only
-  motifs, or no illustrations at all. If characters are used, the brand owns
+  motifs, or no illustrations at all. If the brand uses characters, it owns
   their full specification, the scene grammar that frames them, and any reusable
   base scenes. Forward Impact Engineering's three characters and scene grammar
   live in
   [`fit/index.md § 2–4`](fit/index.md#2-the-three-characters-in-the-field).
 - **Color values** — the warm-tinted gray ramp and the warm-signal hue and ramp.
-  The pattern is fixed; the values are not.
+  The pattern is fixed. The values are not fixed.
 - **Typeface choices** — specific serif, sans, and mono families, plus
   type-scale numbers (sizes, weights, line heights).
 - **Product motifs** — visual symbols (e.g. compass, cairn, dojo mat) used in
@@ -68,20 +70,21 @@ inside the family.
   styles, dashboard overlays).
 - **Radii values** — concrete `--radius-sm/md/lg` numbers may differ per brand
   to match the brand's material vocabulary (e.g. journal cards vs stamped
-  paper). Brands diverging on radii must restate the affected component specs in
-  their own `index.md`, since the family's component vocabulary in
-  [index.md § 5](index.md#5-components) names sizes only by token.
+  paper). A brand that diverges on radii must restate the affected component
+  specs in its own `index.md`. The reason is that the family's component
+  vocabulary in [index.md § 5](index.md#5-components) names sizes only by
+  token.
 - **CSS design tokens** — the concrete `:root` realization of the above.
 
 ### Cross-brand component contract
 
 Components inherited from [index.md § 5](index.md#5-components) must reference
 the family **semantic tokens** (`--bg-page`, `--bg-warm`, `--text-primary`,
-`--border-strong`, `--accent-warm-200`, `--accent-warm-400`, etc.), never the
-brand-specific palette tokens (`--sand-200`, `--ink-400`, …). Each brand exposes
-its warm-signal ramp both under a brand-specific name (for use inside that
-brand's docs and worked examples) **and** under the family alias
-`--accent-warm-{50,100,200,400,600}`. Shared component code that targets
+`--border-strong`, `--accent-warm-200`, `--accent-warm-400`, etc.). They must
+never reference the brand-specific palette tokens (`--sand-200`, `--ink-400`,
+…). Each brand exposes its warm-signal ramp both under a brand-specific name
+(for use inside that brand's docs and worked examples) **and** under the family
+alias `--accent-warm-{50,100,200,400,600}`. Shared component code that targets
 `--accent-warm-*` then renders correctly under any brand's `:root`.
 
 ### File structure
@@ -100,7 +103,7 @@ A brand lives in `design/<brand>/`:
 
 - `index.md` — premise, products, palette, typography, layout patterns, product
   visual language, CSS tokens, and (optionally) any brand-owned illustration
-  system. Links back to the shared language with `../index.md`.
+  system. It links back to the shared language with `../index.md`.
 - `scenes.md` — product scenes and the scene usage matrix _(optional; only
   brands that ship illustrations)_.
 - `icons.md` — product icons, icon system rules, and any combined suite mark
@@ -121,7 +124,7 @@ without one.
 ## 2. CSS Architecture
 
 The design language ships as four layered stylesheets. Three brand-agnostic
-layers live in `design/assets/`; the brand layer lives in each site's
+layers live in `design/assets/`. The brand layer lives in each site's
 `<site>/assets/main.css`. Every site's `justfile` copies the shared layers
 into its own `assets/` folder at build time, so a site only authors and
 versions its brand layer.
@@ -135,7 +138,7 @@ versions its brand layer.
 | `design/assets/components.css` | In-page widgets — `.btn-{primary,secondary,ghost}`, `.grid` + `.product-card` (with `iconWiggle`), `code` / `pre`, mermaid stripping, `.reveal`. Implements the Buttons, Cards, and Terminal/Code Blocks from [§ 5 Components](index.md#5-components) and the motion defaults from [§ 6 Motion](index.md#6-motion--interaction). |
 | `<site>/assets/main.css`     | Font `@import`, the `:root` token block, brand-only motifs (e.g. fit's `.section-contour` contour texture, kata's `.section-rail` kanban-rail equivalent), brand-only sections (e.g. fit's `.section-philosophy`), responsive token overrides. Realizes [§ 2 Color](index.md#2-color-philosophy) and the brand-specific pieces of [§ 3 Typography](index.md#3-typography-pattern). |
 
-The shared layers reference only family tokens — semantic
+The shared layers reference only family tokens: semantic
 surface/text/border tokens (`--bg-page`, `--text-primary`,
 `--border-strong`, …), the warm-signal alias
 `--accent-warm-{50,100,200,400,600}`, the gray ramp (`--gray-50`
@@ -146,7 +149,7 @@ contract](#cross-brand-component-contract)).
 
 ### Cascade order
 
-Stylesheets are linked in the site template in this order so brand rules
+The site template links the stylesheets in this order, so brand rules
 override shared defaults without `!important`:
 
 ```html
@@ -171,8 +174,8 @@ build:
     cp {{shared_assets}}/*.css assets/
 ```
 
-The site repo tracks only its brand `main.css`; the copied shared layers
-and SVGs are gitignored.
+The site repo tracks only its brand `main.css`. Git ignores the copied
+shared layers and SVGs.
 
 ### Brand `:root` contract
 
@@ -195,7 +198,7 @@ The contract:
 - **Radii** — `--radius-{sm,md,lg,pill}`
 - **Typography** — `--font-{display,sans,mono}`,
   `--text-{hero,display,h1,h2,h3,body,small,badge}-size`, and
-  `--text-hero-weight` (brands set this per voice — fit's serif display
+  `--text-hero-weight` (brands set this per voice: fit's serif display
   reads at 400, kata's slab display reads at 700)
 - **Transitions** — `--ease-default`,
   `--duration-{fast,normal,slow}`
@@ -203,5 +206,5 @@ The contract:
 ---
 
 _How-to companion to the [shared design language](index.md). For concrete
-palettes, fonts, products, and CSS tokens — plus any brand-owned illustration
-system — see the brand implementation files listed at the top of that page._
+palettes, fonts, products, CSS tokens, and any brand-owned illustration system,
+see the brand implementation files listed at the top of that page._

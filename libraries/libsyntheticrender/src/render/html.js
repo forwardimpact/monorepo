@@ -1,9 +1,10 @@
 /**
  * HTML Renderer — generates HTML microdata files for Guide.
  *
- * Uses TemplateLoader from libtemplate for all output.
- * Pass 1: Deterministic templates produce complete HTML with structural microdata.
- * Pass 2: LLM enricher rewrites prose blocks in-place (handled by enricher.js).
+ * This module uses TemplateLoader from libtemplate for all output.
+ * Pass 1: Deterministic templates produce complete HTML with structural
+ *   microdata.
+ * Pass 2: The LLM enricher in enricher.js rewrites prose blocks in-place.
  */
 
 import { generateDrugs, generatePlatforms } from "./industry-data.js";
@@ -383,9 +384,10 @@ function buildLinkedEntities(entities, domain, runtime) {
  * @param {Map<string,string>} prose
  * @param {import('@forwardimpact/libtemplate/loader').TemplateLoader} templates - Template loader
  * @param {object} [options]
- * @param {object} [options.fhirCrossRef] - Optional FHIR cross-ref index;
- *   when non-null, clinical pages emit reverse links to matched patients.
- *   Absent or `null` → byte-identical output with no reverse links.
+ * @param {object} [options.fhirCrossRef] - Optional FHIR cross-ref index.
+ *   When it is non-null, clinical pages emit reverse links to matched
+ *   patients. Absent or `null` → byte-identical output with no reverse
+ *   links.
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {{ files: Map<string,string>, linked: import('./link-assigner.js').LinkedEntities }}
  */

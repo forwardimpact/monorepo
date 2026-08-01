@@ -1,14 +1,14 @@
 /**
- * Supervisor — supervise-mode wrapper around `OrchestrationLoop`. One
- * named participant (`"agent"`) coordinated by a lead participant
- * (`"supervisor"`). Structurally the same as `Facilitator` with a
- * single agent; differs only in role names, prompts, and pass-through
- * accessors.
+ * Supervisor — supervise-mode wrapper around `OrchestrationLoop`. A lead
+ * participant (`"supervisor"`) coordinates one named participant
+ * (`"agent"`). The structure is the same as `Facilitator` with a single
+ * agent. Only the role names, the prompts, and the pass-through accessors
+ * differ.
  *
- * Ask is async (same contract as facilitate / discuss): returns
- * `{askIds:[N]}` immediately; the agent's reply arrives on the
+ * Ask is async, with the same contract as facilitate and discuss. It
+ * returns `{askIds:[N]}` immediately. The agent's reply arrives on the
  * supervisor's next turn as `[answer#N] agent: <text>`. The supervisor
- * sees the agent at each Ask boundary, plans the next step, and
+ * sees the agent at each Ask boundary. It plans the next step. It
  * eventually calls Conclude.
  *
  * For tighter feedback loops, size the agent's per-turn budget down
@@ -42,7 +42,7 @@ export const SUPERVISOR_SYSTEM_PROMPT =
   "The reply arrives on your next turn as `[answer#N] agent: <text>` in your inbox.\n" +
   "End your turn while Asks are pending. The system resumes you when an answer arrives.\n" +
   "If the agent goes off-track, send a corrective `Ask`.\n" +
-  "End every session by calling `Conclude` with a verdict and summary.";
+  "Call `Conclude` with a verdict and summary to end every session.";
 
 /** System prompt for the supervised agent. L0 mechanics only per JIDOKA. */
 export const AGENT_SYSTEM_PROMPT =
@@ -54,7 +54,8 @@ export const AGENT_SYSTEM_PROMPT =
 
 /**
  * Supervise-mode wrapper around `OrchestrationLoop`. The lead is
- * `"supervisor"`, one participant is `"agent"`, mode tag is `"supervised"`.
+ * `"supervisor"`. One participant is `"agent"`. The mode tag is
+ * `"supervised"`.
  */
 export class Supervisor extends OrchestrationLoop {
   /**
@@ -135,7 +136,7 @@ const devNull = new Writable({
  * @param {string} [deps.profilesDir]
  * @param {string} [deps.taskAmend]
  * @param {Record<string, object>} [deps.agentMcpServers]
- * @param {string} [deps.advisorModel] - Claude model for advisor consults; absent means no Advisor tool is offered.
+ * @param {string} [deps.advisorModel] - Claude model for advisor consults. When absent, the factory offers no Advisor tool.
  * @param {number} [deps.advisorMaxUses] - Session-wide consult budget (default 3).
  * @returns {Supervisor}
  */
@@ -181,9 +182,9 @@ export function createSupervisor({
   const perRunBudget = maxTurns ?? 200;
   const abortController = new AbortController();
 
-  // Advisor wiring — everything below is gated on advisorModel being set;
-  // with it unset the composed prompt and tool surface are byte-identical
-  // to today's.
+  // Everything below wires the advisor. It runs only when advisorModel is
+  // set. When advisorModel is unset, the composed prompt and the tool
+  // surface stay byte-identical to today's.
   const budget = advisorModel ? createAdvisorBudget(advisorMaxUses ?? 3) : null;
   const agentSystemPrompt = composeSystemPrompt({
     role: "agent",
@@ -201,8 +202,8 @@ export function createSupervisor({
       systemPrompt: agentSystemPrompt,
       redactor,
     });
-    // Late-bound through the `let supervisor` closure — the instance does
-    // not exist yet when the advisor and tool are built.
+    // The `let supervisor` closure binds this late. The instance does not
+    // exist yet when the factory builds the advisor and the tool.
     const advisor = createAdvisor({
       model: advisorModel,
       cwd: agentCwd,

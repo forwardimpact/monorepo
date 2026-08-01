@@ -3,7 +3,7 @@
 PocketLedger is a personal-finance command-line tool. It imports transactions
 from CSV exports and reports where the money went.
 
-A struggle story to reconstruct the job from:
+Reconstruct the job from this struggle story:
 
 > Maya is a freelance designer. Last quarter she missed a tax payment. Her
 > income and expenses were spread across three banking apps and a spreadsheet,
@@ -13,4 +13,4 @@ A struggle story to reconstruct the job from:
 > trustworthy total she could file against.
 
 Reconstruct the **Big Hire** Maya would make PocketLedger for, from that moment.
-Capture the progress she is trying to make — not a list of features.
+Capture the progress she tries to make. Do not list features.

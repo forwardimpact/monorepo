@@ -1,12 +1,12 @@
 /**
  * Per-table retention metadata reader.
  *
- * Reads the COMMENT blob added by the landmark RLS migration via the
- * activity.retention_blob(table) SQL helper and parses the
+ * Reads the COMMENT blob that the landmark RLS migration adds. It uses the
+ * activity.retention_blob(table) SQL helper. It then parses the
  * `retention.window=<ISO>` and `retention.clock=<column>` tokens.
  *
- * Cached for one CLI invocation; tests call clearRetentionCache() between
- * cases.
+ * The cache lives for one CLI invocation. Tests call clearRetentionCache()
+ * between cases.
  */
 
 const TOKEN = /retention\.(window|clock)=([A-Za-z0-9_]+)/g;

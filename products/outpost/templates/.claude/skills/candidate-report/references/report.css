@@ -1,11 +1,11 @@
 /*
  * candidate-report — A4 single-page candidate assessment report
  *
- * This stylesheet is designed for a 210mm × 297mm page.
- * It is loaded into the HTML template by the candidate-report skill.
+ * This stylesheet targets a 210mm × 297mm page.
+ * The candidate-report skill loads it into the HTML template.
  *
  * IMPORTANT: All colours must use print-color-adjust: exact so they survive
- * PDF rendering via Playwright. Avoid box-shadow and fixed positioning.
+ * when Playwright renders the PDF. Avoid box-shadow and fixed positioning.
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
@@ -107,7 +107,7 @@ body {
   color: var(--s600);
 }
 
-/* Verdict colour variants — set on the element via class */
+/* Verdict colour variants — add one as a class on the element */
 .verdict-caution {
   background: #fef3c7;
 }

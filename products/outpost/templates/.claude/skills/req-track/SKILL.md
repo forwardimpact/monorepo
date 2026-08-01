@@ -7,14 +7,14 @@ description: Scan synced email threads for recruitment candidates, extract struc
 
 Scan synced email threads from `~/.cache/fit/outpost/apple_mail/` for
 recruitment candidates. Extract structured candidate profiles and create or
-update notes in `Knowledge/Candidates/`. Builds a local, searchable recruitment
-pipeline from scattered email threads.
+update notes in `Knowledge/Candidates/`. This skill builds a local, searchable
+recruitment pipeline from scattered email threads.
 
 ## Trigger
 
 - The user asks to track, process, or update candidates.
 - The user asks about recruitment pipeline status.
-- After `sync-apple-mail` has pulled new threads.
+- After `sync-apple-mail` pulls new threads.
 
 ## Prerequisites
 
@@ -34,15 +34,15 @@ pipeline from scattered email threads.
 - `~/.cache/fit/outpost/state/graph_processed` — processed-file index (shared
   with `extract-entities`).
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
-  (written by the `person-identify` skill).
+  (the `person-identify` skill writes it).
 
 ## Outputs
 
 - `Knowledge/Candidates/{Full Name}/brief.md` — candidate profile note.
 - `Knowledge/Candidates/{Full Name}/CV.pdf` (or `CV.docx`) — local CV copy.
 - `Knowledge/Candidates/{Full Name}/headshot.jpeg` — candidate photo.
-- `Knowledge/Roles/*.md` — role files created/updated; the `**Status:**` field
-  determines visibility (open/closed).
+- `Knowledge/Roles/*.md` — role files created or updated. The `**Status:**`
+  field determines visibility (open/closed).
 - `~/.cache/fit/outpost/state/graph_processed` — updated with processed threads.
 
 <do_confirm_checklist goal="Verify candidate processing batch is complete and
@@ -50,17 +50,17 @@ correct">
 
 - [ ] Required Info fields present on every brief (Title, Source, Status, First
       seen, Last activity, Channel).
-- [ ] Pipeline status reflects latest thread activity; timeline in chronological
-      order.
+- [ ] Pipeline status reflects the latest thread activity. Timeline in
+      chronological order.
 - [ ] Bidirectional links present (Candidate ↔ Org / Recruiter / Role /
       Project).
-- [ ] Role files synced — Candidates tables rebuilt, stubs created for any
+- [ ] Role files synced. Candidates tables rebuilt. Stubs created for any
       unknown reqs.
 - [ ] CV and headshot copied into the candidate directory when available.
 - [ ] Skills tagged with agent-aligned engineering standard IDs from
       `bunx fit-pathway skill --list`.
 - [ ] Gender field populated only from explicit pronouns or titles.
-- [ ] No duplicate candidate notes; all processed threads marked in the state
+- [ ] No duplicate candidate notes. All processed threads marked in the state
       file.
 
 </do_confirm_checklist>
@@ -72,14 +72,14 @@ Process **10 files per run**.
 ### 1. Load context and pick the batch
 
 Read the user's name, email, and domain from
-`~/.cache/fit/outpost/state/identity.md` (run the `person-identify` skill first
-if it is missing or stale). List new or changed source files:
+`~/.cache/fit/outpost/state/identity.md`. Run the `person-identify` skill first
+if that file is missing or stale. List new or changed source files:
 
 ```bash
 node .claude/skills/extract-entities/scripts/state.mjs check
 ```
 
-Filter the output to `apple_mail/*.md` only — calendar files are not relevant
+Filter the output to `apple_mail/*.md` only. Calendar files are not relevant
 here.
 
 ### 2. Build candidate, people, and org indexes
@@ -95,49 +95,49 @@ links.
 
 ### 3. Sync `Knowledge/Roles/`
 
-Role files are flat here; the `**Status:**` field is `open` or `closed`.
+Role files are flat here. The `**Status:**` field is `open` or `closed`.
 
 1. Read each Role file's Info block to map Req → Role file path, Hiring manager,
    Domain lead, recruiter, Channel. Look up by filename substring so a req-less
    role stays findable: `ls Knowledge/Roles/ | grep "{partial_name_or_req}"`.
-2. Find Reqs in candidate briefs missing a Role file:
+2. Find Reqs in candidate briefs that have no Role file:
    `rg "^\*\*Req:\*\*" Knowledge/Candidates/*/brief.md`. Check all Role files
-   first; for a genuinely missing open role, create a stub with `**Status:**
-   open` using the **Role file stub** in
-   [references/templates.md](references/templates.md), then enrich:
+   first. For a genuinely missing open role, create a stub with
+   `**Status:** open` from the **Role file stub** in
+   [references/templates.md](references/templates.md). Then enrich:
    `rg "{req_number}" Knowledge/`.
-3. Rebuild each **open** Role file's `## Candidates` table by scanning briefs:
+3. Scan briefs to rebuild each **open** Role file's `## Candidates` table:
    `rg -l "Req:.*{req_number}" Knowledge/Candidates/*/brief.md`. Use the **Role
    Candidates table** format from `references/templates.md`, newest first.
 4. If a Role file has a hiring manager but no domain lead, walk the
    `**Reports to:**` chain in `Knowledge/People/` to a VP or senior leader.
 5. When a role closes (filled, cancelled, or frozen 6+ months), set its
-   `**Status:**` field to `closed` — only on a clear signal.
+   `**Status:**` field to `closed`. Do this only on a clear signal.
 
 ### 4. Identify recruitment threads
 
 For each thread in the batch, decide whether it contains recruitment content
-using the signals in [references/signals.md](references/signals.md). Skip
+with the signals in [references/signals.md](references/signals.md). Skip
 threads that match no signal.
 
 ### 5. Extract candidate data
 
-For each candidate found, populate the field map from
-[references/fields.md](references/fields.md). That reference covers field
-sources, the `Channel` rule, the hiring-manager / domain-lead resolution chain,
-gender rules, source/recruiter resolution, CV copying, and headshot discovery.
+For each candidate you find, populate the field map from
+[references/fields.md](references/fields.md). It covers field sources, the
+`Channel` rule, the hiring-manager / domain-lead resolution chain, gender rules,
+source/recruiter resolution, how to copy a CV, and headshot discovery.
 
 ### 6. Determine pipeline status
 
-Assign a status using the table and advancement signals in
+Assign a status with the table and advancement signals in
 [references/statuses.md](references/statuses.md). Default to `new`. Read the
-full thread chronologically; the most recent signal wins.
+full thread chronologically. The most recent signal wins.
 
 ### 7. Build the pipeline timeline
 
-Extract a chronological timeline — one `**{date}**: {event}` line per meaningful
-event, capturing who did what. Skip noise (signature blocks, disclaimers,
-forwarded headers).
+Extract a chronological timeline. Write one `**{date}**: {event}` line per
+meaningful event. Each line captures who did what. Skip noise (signature
+blocks, disclaimers, forwarded headers).
 
 ### 8. Write or update the candidate note
 
@@ -147,22 +147,22 @@ the **Candidate brief** template in
 fields** after `Last activity` in the order shown there. Add the **Optional
 sections** when data warrants. Omit `## CV` if no attachment.
 
-For **existing** candidates, apply targeted edits — do not rewrite the file:
-update `Status` and `Last activity`, append Pipeline entries, fill in newly
+For **existing** candidates, apply targeted edits. Do not rewrite the file.
+Update `Status` and `Last activity`, append Pipeline entries, fill in newly
 known Info fields, and add new Skills.
 
 ### 9. Capture cross-candidate insights
 
 Update `Knowledge/Candidates/Insights.md` only when an observation is
-high-signal: candidate may suit a **different role**, is a **strong match** for
-a specific team or leader, a meaningful **comparison between candidates**, or a
-hiring trade-off needs to be **remembered across sessions**.
+high-signal: the candidate may suit a **different role**, is a **strong match**
+for a specific team or leader, a meaningful **comparison between candidates**,
+or you must **remember a hiring trade-off across sessions**.
 
-Skip per-candidate status and generic strengths/weaknesses — those belong on
+Skip per-candidate status and generic strengths/weaknesses. Those belong on
 `brief.md`. Format: one bullet under `## Placement Notes` with
 `[[Candidates/Name/brief|Name]]` and relevant people/org backlinks.
 
-### 10. Ensure bidirectional links
+### 10. Make sure links are bidirectional
 
 | If you add...            | Then also add...                                           |
 | ------------------------ | ---------------------------------------------------------- |
@@ -173,7 +173,7 @@ Skip per-candidate status and generic strengths/weaknesses — those belong on
 
 Use absolute paths: `[[Candidates/Name/brief|Name]]`,
 `[[Organizations/Agency]]`, `[[People/Recruiter]]`. Only add a backlink when the
-target note doesn't already reference the candidate.
+target note does not already reference the candidate.
 
 ### 11. Mark each thread processed
 
@@ -181,8 +181,8 @@ target note doesn't already reference the candidate.
 node .claude/skills/extract-entities/scripts/state.mjs update "{file_path}"
 ```
 
-Shares state with `extract-entities`, so the thread won't be re-scanned by
-either skill until it changes.
+`req-track` and `extract-entities` share this state. Neither skill re-scans the
+thread until it changes.
 
 ### 12. Tag skills against the standard
 

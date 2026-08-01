@@ -1,8 +1,8 @@
 /**
  * Application state management
  *
- * Uses generic store from @forwardimpact/libui/state
- * with Pathway-specific state shape and accessors.
+ * This module uses the generic store from @forwardimpact/libui/state.
+ * It adds the Pathway-specific state shape and accessors.
  */
 
 import { createStore } from "@forwardimpact/libui/state";

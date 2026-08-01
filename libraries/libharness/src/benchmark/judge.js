@@ -1,8 +1,9 @@
 /**
- * Benchmark adapter for the libharness `Judge`. Templates the family's
- * `judge.task.md` with structured context variables, runs the judge against
- * the post-run agent CWD, and returns the verdict in the benchmark's
- * `pass`/`fail` vocabulary (mapped from libharness's `success`/`failure`).
+ * Benchmark adapter for the libharness `Judge`. The adapter fills the
+ * family's `judge.task.md` template with structured context variables. It
+ * runs the judge against the post-run agent CWD. It returns the verdict in
+ * the benchmark's `pass`/`fail` vocabulary (mapped from libharness's
+ * `success`/`failure`).
  *
  * Template variables available in `judge.task.md`:
  *
@@ -12,13 +13,13 @@
  *   {{GRADE_RESULT}}        — JSON grade object plus the merged check rows
  *   {{SKILL_SET_HASH}}      — SHA-256 from apm.lock.yaml
  *   {{TASK_ID}}             — task name (directory under tasks/)
- *   {{TASK_DIR}}            — agent working directory path
+ *   {{TASK_DIR}}            — path to the agent working directory
  *
- * The judge verdict is captured from the orchestration context's
- * `concluded` flag directly — no trace parsing on the happy path.
- * `parseConcludeFromTrace` is preserved for offline analysis and as a
- * fallback when the runtime ctx isn't available (e.g. re-grading a
- * historical run from its judge.ndjson file).
+ * The adapter reads the judge verdict directly from the orchestration
+ * context's `concluded` flag. It does not parse the trace on the happy path.
+ * `parseConcludeFromTrace` stays for offline analysis. It is also a fallback
+ * when the runtime ctx is not available, for example when you re-grade a
+ * historical run from its judge.ndjson file.
  */
 
 import { createJudge } from "../judge.js";
@@ -41,8 +42,8 @@ import { sumTraceCost } from "../cost.js";
 
 /**
  * Run the judge over a completed task run. The judge is a binary gate over
- * the grade's validity, never a grade itself: `gradeResult` reaches the
- * template as evidence, and the verdict stays pass/fail.
+ * the grade's validity. The judge is never a grade itself. `gradeResult`
+ * reaches the template as evidence. The verdict stays pass/fail.
  * @param {import("./task-family.js").Task} task
  * @param {import("./workdir.js").Workdir} workdir
  * @param {{verdict: string, gatesPass: boolean, score?: number, malformed?: number, rows: unknown[]}} gradeResult -
@@ -86,9 +87,9 @@ export async function runJudge(task, workdir, gradeResult, deps, context) {
     await new Promise((r) => output.end(r));
   }
 
-  // The judge is its own SDK session; its spend lands in the judge trace we
-  // just wrote, not in the supervisor's combined trace. Read it back so the
-  // benchmark record's cost includes the judge.
+  // The judge is its own SDK session. Its spend lands in the judge trace we
+  // just wrote. It does not land in the supervisor's combined trace. Read the
+  // trace back, so the benchmark record's cost includes the judge.
   const judgeTrace = await fs
     .readFile(workdir.judgeTracePath, "utf8")
     .catch(() => "");
@@ -109,10 +110,11 @@ export async function runJudge(task, workdir, gradeResult, deps, context) {
 }
 
 /**
- * Parse the last judge-source (or supervisor-source, for backward compat
- * with pre-Judge-class traces) `Conclude` tool call from an NDJSON trace
- * and map the verdict (`success → pass`, `failure → fail`). Preserved for
- * offline analysis; not used on the runtime happy path.
+ * Parse the last `Conclude` tool call from an NDJSON trace and map the
+ * verdict (`success → pass`, `failure → fail`). The call may carry a
+ * judge source or a supervisor source. The supervisor source keeps backward
+ * compatibility with pre-Judge-class traces. This function stays for offline
+ * analysis. The runtime happy path does not use it.
  * @param {string} tracePath
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {Promise<JudgeVerdict | null>}
@@ -133,9 +135,9 @@ export async function parseConcludeFromTrace(tracePath, runtime) {
 }
 
 /**
- * Return the `Conclude` tool input if the line carries a judge-source or
- * supervisor-source assistant message ending in a `Conclude` tool_use
- * block; null otherwise.
+ * Return the `Conclude` tool input when the line carries a judge-source or
+ * supervisor-source assistant message that ends in a `Conclude` tool_use
+ * block. Return null otherwise.
  * @param {string} line
  * @returns {{verdict: string, summary?: string} | null}
  */
@@ -176,12 +178,11 @@ function extractConcludeInput(line) {
 }
 
 /**
- * The Claude Agent SDK reports MCP tool names as
- * `mcp__<server>__<tool>` when the model invokes them — the orchestration
- * `Conclude` arrives as `mcp__orchestration__Conclude`. Pre-baked
- * supervisor traces (and the libharness-internal envelopes) sometimes carry
- * the bare `Conclude` name. Accept both forms so the parser is robust to
- * trace source.
+ * The Claude Agent SDK reports MCP tool names as `mcp__<server>__<tool>` when
+ * the model invokes them. The orchestration `Conclude` arrives as
+ * `mcp__orchestration__Conclude`. Pre-baked supervisor traces (and the
+ * libharness-internal envelopes) sometimes carry the bare `Conclude` name.
+ * Accept both forms, so the parser is robust to the trace source.
  */
 function isConcludeToolName(name) {
   if (typeof name !== "string") return false;

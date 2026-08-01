@@ -1,20 +1,21 @@
 /**
- * ProseActivity contract — uniform binding for prose-bearing activity
- * outputs across deterministic generation, prose-context construction,
- * and output rendering.
+ * ProseActivity — the uniform contract for prose-bearing activity
+ * outputs across three pipeline stages. The stages generate
+ * deterministic data, build the prose context, and render the output.
  *
  * Each in-scope prose-bearing output (snapshot comments, the GitHub
  * webhook stream) implements three methods on a single per-output
  * module: `generate`, `proseKeys`, `render`. The three pipeline call
- * sites (activity composition in `engine/activity.js`, prose-context
- * collection in `engine/prose-keys.js`, raw rendering in
- * `libsyntheticrender/render/raw.js`) iterate the `PROSE_ACTIVITIES`
- * registration rather than naming the outputs themselves.
+ * sites iterate the `PROSE_ACTIVITIES` registration. They do not name
+ * the outputs themselves. `engine/activity.js` composes the activities.
+ * `engine/prose-keys.js` collects the prose contexts.
+ * `libsyntheticrender/render/raw.js` renders the raw output.
  *
  * `ProseContext` is the single LLM-bound shape every prose-bearing
  * output's `proseKeys` emits. Its `drivers: DriverImpact[]` field
- * carries the full team-affect driver array end-to-end, removing the
- * comment-vs-webhook driver-context asymmetry.
+ * carries the full team-affect driver array end-to-end. The field
+ * removes the asymmetry between the comment driver context and the
+ * webhook driver context.
  *
  * @module libsyntheticgen/activity
  *

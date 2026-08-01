@@ -5,10 +5,10 @@ description: How disciplines, levels, tracks, skills, and behaviours combine to 
 
 ## Overview
 
-The core model defines how your engineering terrain is traversed. Every
+The core model defines how you traverse your engineering terrain. Every
 combination of discipline, track, and level produces a unique, consistent role
-profile -- with skill proficiencies, behaviour expectations, and
-responsibilities all derived from the same source data.
+profile. The skill proficiencies, behaviour expectations, and responsibilities
+all come from the same source data.
 
 ---
 
@@ -24,9 +24,9 @@ responsibilities all derived from the same source data.
 | **Track**      | Where and how do you work? |
 | **Level**      | What career level?         |
 
-Both jobs and agents use the same skill and behaviour derivation. The
-difference: jobs include all skills capped by level, while agents filter out
-human-only skills.
+Both jobs and agents use the same skill and behaviour derivation. They differ in
+one way. Jobs include all skills capped by level. Agents filter out human-only
+skills.
 
 ---
 
@@ -47,15 +47,15 @@ erDiagram
     DRIVER ||--o{ BEHAVIOUR : "links to"
 ```
 
-| Entity         | Purpose                                           | Key Question              |
-| -------------- | ------------------------------------------------- | ------------------------- |
-| **Discipline** | Engineering specialty and T-shaped profile        | What kind of engineer?    |
-| **Track**      | Work context and capability-based modifiers       | Where/how do you work?    |
-| **Level**      | Career level with base skill/behaviour levels     | What career level?        |
-| **Skill**      | Technical or professional capability              | What can you do?          |
-| **Capability** | Skill grouping for modifiers and responsibilities | What capability area?     |
-| **Behaviour**  | Approach to work and mindset                      | How do you approach work? |
-| **Driver**     | Organizational outcome                            | What outcomes matter?     |
+| Entity         | Purpose                                        | Key Question              |
+| -------------- | ---------------------------------------------- | ------------------------- |
+| **Discipline** | Engineering specialty and T-shaped profile     | What kind of engineer?    |
+| **Track**      | Work context and capability-based modifiers    | Where/how do you work?    |
+| **Level**      | Career level with base skill/behaviour levels  | What career level?        |
+| **Skill**      | Technical or professional capability           | What can you do?          |
+| **Capability** | Skill group for modifiers and responsibilities | What capability area?     |
+| **Behaviour**  | Approach to work and mindset                   | How do you approach work? |
+| **Driver**     | Organizational outcome                         | What outcomes matter?     |
 
 ---
 
@@ -81,9 +81,9 @@ flowchart LR
 
 ### Human-Only Skills
 
-Some skills require physical presence, emotional intelligence, or relationship
-building that AI cannot replicate. These are marked `isHumanOnly: true` in the
-YAML definition and are excluded from agent profile derivation.
+Some skills require physical presence, emotional intelligence, or the ability to
+build relationships. AI cannot replicate these. The YAML definition marks them
+with `isHumanOnly: true`. Agent profile derivation excludes them.
 
 ---
 
@@ -99,7 +99,8 @@ Capabilities also define:
   proficiency
 
 Per-skill checklists (`readChecklist` and `confirmChecklist`) live on each
-skill's `agent` section, not on the capability — see [Lifecycle](../lifecycle/).
+skill's `agent` section. They do not live on the capability. See
+[Lifecycle](../lifecycle/).
 
 ---
 
@@ -116,10 +117,10 @@ flowchart LR
 
 | Maturity        | Description                                          |
 | --------------- | ---------------------------------------------------- |
-| `emerging`      | Shows interest, needs prompting                      |
+| `emerging`      | Shows interest, needs a prompt                       |
 | `developing`    | Regularly applies with some guidance                 |
 | `practicing`    | Consistently demonstrates in daily work              |
-| `role-modeling` | Influences the team's approach, others seek them out |
+| `role-modeling` | Influences the team's approach. Others seek them out |
 | `exemplifying`  | Shapes organizational culture in this area           |
 
 ---
@@ -149,7 +150,7 @@ discipline classifies every referenced skill into one of three tiers:
 ## Tracks
 
 Tracks define work context and modify the base profile through capability-based
-skill adjustments. Tracks are pure modifiers -- they do not define role types.
+skill adjustments. Tracks are pure modifiers. They do not define role types.
 
 Tracks define two kinds of modifiers:
 
@@ -188,15 +189,15 @@ agent-aligned engineering standard may define more.
    `foundational`, and broad to `awareness`.
 
 3. **Apply track modifier** -- Add the track's modifier for the skill's
-   capability. Track modifiers apply at the capability level, affecting all
+   capability. Track modifiers apply at the capability level. They affect all
    skills in a capability equally.
 
 4. **Cap positive modifiers** -- Positive modifiers cannot push the result above
    the level's maximum base proficiency. If a level peaks at `practitioner`, a
    +1 modifier cannot produce `expert`.
 
-5. **Clamp to valid range** -- Ensure the result falls between `awareness` (0)
-   and `expert` (4).
+5. **Clamp to valid range** -- Make sure the result falls between `awareness`
+   (0) and `expert` (4).
 
 ### Complete Derivation Example
 
@@ -228,7 +229,8 @@ Final Maturity = Level Base + Discipline Modifier + Track Modifier
 | Track modifier      | `behaviourModifiers.{id}` | 0              |
 | **Result**          | Clamped to valid range    | practicing (2) |
 
-Maturities are clamped between `emerging` (0) and `exemplifying` (4).
+Behaviour derivation clamps maturities between `emerging` (0) and
+`exemplifying` (4).
 
 ---
 
@@ -241,15 +243,15 @@ Responsibilities come from capabilities and vary by role type:
 | Professional (IC) | `capability.professionalResponsibilities` |
 | Management        | `capability.managementResponsibilities`   |
 
-Responsibilities are selected by the derived skill proficiency for each
-capability. Higher skill proficiencies unlock additional responsibilities.
+The derived skill proficiency for each capability selects the responsibilities.
+Higher skill proficiencies unlock additional responsibilities.
 
 ---
 
 ## Driver Coverage
 
-Drivers represent organizational outcomes. Coverage is calculated by checking
-which skills and behaviours meet specific thresholds:
+Drivers represent organizational outcomes. The coverage calculation checks which
+skills and behaviours meet specific thresholds:
 
 | Threshold          | Value               |
 | ------------------ | ------------------- |
@@ -257,11 +259,11 @@ which skills and behaviours meet specific thresholds:
 | Behaviour maturity | practicing or above |
 
 Each driver lists `contributingSkills` and `contributingBehaviours`. For every
-derived job, each contributing skill and behaviour is partitioned into
-`covered` or `missing` against the thresholds above, and the driver reports
-coverage ratios for both. Coverage is computed for every level — there is no
-level gate. A driver is reported as fully covered when every contributing
-skill and behaviour clears its threshold.
+derived job, the thresholds above sort each contributing skill and behaviour
+into `covered` or `missing`. The driver reports coverage ratios for both. The
+coverage calculation runs at every level. There is no level gate. The driver
+reports full coverage when every contributing skill and behaviour clears its
+threshold.
 
 ---
 
@@ -269,20 +271,19 @@ skill and behaviour clears its threshold.
 
 ### Positive Modifier Capping
 
-When a track modifier is positive, the resulting level cannot exceed the level's
-maximum base skill proficiency. This prevents lower levels from gaining
-unrealistically high expertise just because a track emphasizes a particular
-area.
+When a track modifier is positive, the result cannot exceed the level's maximum
+base skill proficiency. Lower levels then cannot gain unrealistically high
+expertise just because a track emphasizes a particular area.
 
 ### Negative Modifiers
 
-Negative modifiers are not capped -- they can freely reduce a level down to
+Negative modifiers are not capped. They can freely reduce a level down to
 `awareness`. This models the reduced expectations in de-emphasized areas.
 
 ### Capability-Level Modifiers
 
-Track modifiers apply at the capability level, affecting all skills in that
-capability equally. This avoids per-skill configuration while still allowing
+Track modifiers apply at the capability level. They affect all skills in that
+capability equally. This avoids per-skill configuration. It still allows
 meaningful differentiation between tracks.
 
 ---

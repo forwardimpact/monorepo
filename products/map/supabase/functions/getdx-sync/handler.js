@@ -2,10 +2,10 @@ import { extractGetDX } from "../_shared/activity/extract/getdx.js";
 import { transformAllGetDX } from "../_shared/activity/transform/getdx.js";
 
 /**
- * Fetch from GetDX, store the raw responses, then transform them.
+ * Fetch from GetDX. Store the raw responses. Then transform them.
  *
- * Both phases read the injected clock: `extractGetDX` timestamps the stored
- * documents, and `transformAllGetDX` timestamps snapshot-comment evidence.
+ * Both phases read the injected clock. `extractGetDX` timestamps the stored
+ * documents. `transformAllGetDX` timestamps snapshot-comment evidence.
  *
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {{ clock: { now: () => number } }} runtime

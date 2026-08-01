@@ -1,15 +1,16 @@
 /**
  * Agent Generation Model
  *
- * Pure functions for generating AI coding agent configurations
+ * Pure functions that generate configurations for AI coding agents
  * from Engineering Pathway data. Outputs follow the Claude Code agent
  * specification:
  * - Agent Profiles (.md files in .claude/agents/)
  * - Agent Skills (SKILL.md files in .claude/skills/)
  *
- * Agent profiles are derived using the SAME modifier logic as human job profiles.
- * Emphasized behaviours and skills (those with positive modifiers) drive agent
- * identity, creating distinct profiles for each discipline x track combination.
+ * These functions derive agent profiles with the SAME modifier logic as human
+ * job profiles. Emphasized behaviours and skills (those with positive
+ * modifiers) drive agent identity. This creates a distinct profile for each
+ * discipline x track combination.
  */
 
 import { deriveSkillMatrix, deriveBehaviourProfile } from "./derivation.js";
@@ -27,12 +28,13 @@ import { SkillProficiency } from "./levels.js";
  * Derive the reference level for agent generation.
  *
  * The reference level determines the skill and behaviour expectations for agents.
- * We select the first level where core skills reach "practitioner" level,
- * as this represents substantive senior-level expertise suitable for AI agents.
+ * We select the first level where core skills reach "practitioner" level.
+ * That level represents substantive senior-level expertise suitable for
+ * AI agents.
  *
  * @param {Array<Object>} levels - Array of level definitions
  * @returns {Object} The reference level
- * @throws {Error} If no levels are provided
+ * @throws {Error} If the caller provides no levels
  */
 export function deriveReferenceLevel(levels) {
   if (!levels || levels.length === 0) {
@@ -56,7 +58,7 @@ export function deriveReferenceLevel(levels) {
 }
 
 /**
- * Discipline ID to abbreviation mapping for file naming
+ * Map from discipline ID to abbreviation. File names use this map.
  * @type {Object.<string, string>}
  */
 const DISCIPLINE_ABBREVIATIONS = {
@@ -75,7 +77,7 @@ export function getDisciplineAbbreviation(disciplineId) {
 }
 
 /**
- * Convert snake_case id to kebab-case for agent naming
+ * Convert snake_case id to kebab-case for agent names
  * @param {string} id - Snake case identifier
  * @returns {string} Kebab case identifier
  */
@@ -84,7 +86,7 @@ export function toKebabCase(id) {
 }
 
 /**
- * Derive agent skills using the unified profile system
+ * Derive agent skills with the unified profile system
  * @param {Object} params - Parameters
  * @param {Object} params.discipline - Human discipline definition
  * @param {Object} params.track - Human track definition
@@ -111,7 +113,7 @@ export function deriveAgentSkills({
 }
 
 /**
- * Derive agent behaviours using the unified profile system
+ * Derive agent behaviours with the unified profile system
  * @param {Object} params - Parameters
  * @param {Object} params.discipline - Human discipline definition
  * @param {Object} params.track - Human track definition
@@ -135,7 +137,8 @@ export function deriveAgentBehaviours({
 }
 
 /**
- * Build a structured data object for a SKILL.md from skill data (frontmatter, title, focus, checklists); does not render markdown.
+ * Build a structured data object for a SKILL.md from skill data (frontmatter,
+ * title, focus, checklists). This function does not render markdown.
  * @param {Object} params - Parameters
  * @param {Object} params.skillData - Skill with agent section
  * @returns {Object} Structured skill data with frontmatter, title, focus, checklists, etc.
@@ -148,11 +151,11 @@ export function generateSkillMarkdown({ skillData }) {
   }
   // The skill id IS the agent skill name and the SKILL.md directory name
   // (since skill.agent.name was removed). A skill without an id cannot produce
-  // a valid SKILL.md frontmatter `name` or a directory — fail loudly here
-  // rather than emitting an empty `name:` and crashing downstream in the packer.
+  // a valid `name` in the SKILL.md frontmatter or a directory. Fail loudly
+  // here. Do not emit an empty `name:` and crash downstream in the packer.
   if (!id) {
     throw new Error(
-      `Skill "${name ?? "(unnamed)"}" has no id; cannot derive its agent skill name`,
+      `Skill "${name ?? "(unnamed)"}" has no id. Cannot derive its agent skill name`,
     );
   }
 
@@ -426,10 +429,10 @@ export function buildAgentIndex({
   return agents;
 }
 
-// Keys mirror products/map/starter/levels.yaml expectations schema. Adding a
-// new key to that schema requires a matching entry here AND a matching case
-// in libraries/libskill/test/agent-team-instructions.test.js case G, which
-// fails loudly on any unknown key that leaks through.
+// Keys mirror the expectations schema in products/map/starter/levels.yaml. If
+// you add a new key to that schema, add a matching entry here AND a matching
+// case in libraries/libskill/test/agent-team-instructions.test.js case G. That
+// case fails loudly on any unknown key that leaks through.
 function renderLevelExpectations(level) {
   const e = level?.expectations;
   if (!e || typeof e !== "object") return null;
@@ -446,16 +449,17 @@ function renderLevelExpectations(level) {
 }
 
 /**
- * Interpolate teamInstructions from a track's agent section, optionally
- * composing a `## Level Expectations` section drawn from the level's
+ * Interpolate teamInstructions from a track's agent section. This function can
+ * also compose a `## Level Expectations` section drawn from the level's
  * `expectations` block.
  *
  * @param {Object} params
  * @param {Object} params.agentTrack - Agent track definition
  * @param {Object} params.humanDiscipline - Human discipline (with roleTitle, specialization)
- * @param {Object} [params.level] - Optional level entity whose `expectations`
- *   block is composed after the interpolated team-instructions body. When
- *   omitted, the return value is byte-identical to the pre-`level` behaviour.
+ * @param {Object} [params.level] - Optional level entity. This function
+ *   composes its `expectations` block after the interpolated team-instructions
+ *   body. If you omit the level, the return value is byte-identical to the
+ *   pre-`level` behaviour.
  * @returns {string|null} Composed team-instructions content, or null when
  *   neither input contributes content.
  */
@@ -482,11 +486,11 @@ function nonEmptyArray(value) {
 }
 
 /**
- * Render an installation-scoped organizational context slot to a markdown
+ * Render an installation-scoped slot for organizational context to a markdown
  * section appended to the rendered .claude/CLAUDE.md. The section opens with
- * `## Organizational Context`; downstream tooling matches the LAST occurrence
- * of that heading (it is always appended last). Returns null when no concern
- * is populated — callers treat that as "no section."
+ * `## Organizational Context`. Downstream tools match the LAST occurrence of
+ * that heading. The section always goes last. Returns null when no concern
+ * is populated. Callers treat that as "no section."
  *
  * @param {Object|null|undefined} orgContext - Loaded organizational-context.yaml
  * @returns {string|null}

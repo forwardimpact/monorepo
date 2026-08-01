@@ -1,25 +1,25 @@
 ---
 title: Derive a Skill Matrix or Agent Profile
-description: Go from discipline, level, and track to a complete skill matrix or agent profile — without parsing YAML by hand.
+description: Go from discipline, level, and track to a complete skill matrix or agent profile. You do not parse YAML by hand.
 ---
 
-You have a discipline, level, and track (or just discipline and level), and you
-need the derived skill matrix or agent profile as structured data. This page
-walks through the bounded task of going from those three coordinates to a
-profile object you can render, store, or pass downstream.
+You have a discipline, a level, and a track. You can also have only a
+discipline and a level. You need the derived skill matrix or agent profile as
+structured data. This page covers one bounded task. It takes you from those
+three coordinates to a profile object. You can render, store, or pass that
+object downstream.
 
 ## Prerequisites
 
 Complete the
 [Integrate with the Engineering Standard](/docs/libraries/integrate-standard/)
-guide first -- this page assumes you have `@forwardimpact/libskill` and
-`@forwardimpact/map` installed and know how to load standard data with
+guide first. This page assumes you installed `@forwardimpact/libskill` and
+`@forwardimpact/map`. It also assumes you know how to load standard data with
 `createDataLoader(createDefaultRuntime()).loadAllData()`.
 
 ## Load data and resolve coordinates
 
-Start by loading the standard data and finding the entities for your role
-coordinates:
+Load the standard data. Then find the entities for your role coordinates:
 
 ```js
 import { createDataLoader } from "@forwardimpact/map/loader";
@@ -70,7 +70,7 @@ track        Change Management              working
 track        Incident Management            working
 ```
 
-The `track` entries appear only when a track is passed. Omit `track` (or pass
+The `track` entries appear only when you pass a track. Omit `track` (or pass
 `null`) to get the generalist matrix.
 
 ## Derive a behaviour profile for a role
@@ -104,10 +104,10 @@ Think in Systems               role-modeling
 
 ## Derive an agent profile instead
 
-Agent profiles use the same derivation logic but apply agent-specific policies:
-human-only skills are removed, only the highest-proficiency skills are kept, and
-both skills and behaviours are sorted by level descending. Use
-`prepareAgentProfile` for this:
+Agent profiles use the same derivation logic. They also apply agent-specific
+policies. The derivation removes human-only skills. It keeps only the
+highest-proficiency skills. It sorts both skills and behaviours by level
+descending. Use `prepareAgentProfile` for this:
 
 ```js
 import { prepareAgentProfile } from "@forwardimpact/libskill/profile";
@@ -136,10 +136,10 @@ Top skill: Architecture Design
 Top behaviour: Think in Systems
 ```
 
-The agent matrix is smaller because human-only skills (like People Management)
-are excluded. The sort order places the strongest skills and behaviours first,
-which is useful when generating agent instructions where the most important
-capabilities should lead.
+The agent matrix is smaller because it excludes human-only skills such as
+People Management. The sort order places the strongest skills and behaviours
+first. That order helps when you generate agent instructions, where the most
+important capabilities should lead.
 
 ## Get both at once with prepareBaseProfile
 
@@ -172,12 +172,12 @@ Responsibilities: 4
 ```
 
 `prepareBaseProfile` returns the raw derivation without agent-specific
-filtering. Use it when building features for the general role audience.
+filtering. Use it when you build features for the general role audience.
 Use `prepareAgentProfile` when the consumer is an agent configuration pipeline.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - You can resolve discipline, level, and track from their string IDs to the
   loaded data objects.

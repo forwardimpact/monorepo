@@ -1,9 +1,9 @@
 /**
- * Tests for `fit-map substrate stage` — uses injected dependency
+ * Tests for `fit-map substrate stage`. They use injected dependency
  * overrides to stub out the init phase, Supabase CLI, mapClient, seed,
- * provision, and the self-smoke so the phase ordering is verifiable
- * without a live stack. The real-fs cases (copy-activity ENOENT, bootstrap
- * parity) live in substrate-stage.integration.test.js.
+ * provision, and the self-smoke. The phase ordering is then verifiable
+ * without a live stack. The real-fs cases (copy-activity ENOENT,
+ * bootstrap parity) live in substrate-stage.integration.test.js.
  */
 
 import { describe, test, beforeEach } from "node:test";
@@ -53,9 +53,9 @@ describe("substrate-stage phase ordering", () => {
   beforeEach(() => {
     invocations = [];
     // The url-discovery phase writes SUPABASE_URL/ANON_KEY to the injected
-    // proc.env (a Proxy over a per-test backing object), so it never touches
-    // the global process — no snapshot/restore needed. cwd defaults to a
-    // fixed mock value; tests that need an explicit target pass it.
+    // proc.env (a Proxy over a per-test object), so it never touches the
+    // global process. No snapshot or restore is needed. cwd defaults to a
+    // fixed mock value. Tests that need an explicit target pass it.
     runtime = createTestRuntime({
       proc: createMockProcess({ cwd: "/work" }),
     });
@@ -96,7 +96,7 @@ describe("substrate-stage phase ordering", () => {
     ]);
   });
 
-  test("each phase failure is wrapped in [substrate stage: <phase>] prefix", async () => {
+  test("wraps each phase failure in the [substrate stage: <phase>] prefix", async () => {
     const deps = buildDeps({ invocations, failPhase: "seed" });
     const config = { supabaseJwtSecret: () => "secret" };
     await assert.rejects(
@@ -105,7 +105,7 @@ describe("substrate-stage phase ordering", () => {
     );
   });
 
-  test("explicit target is plumbed to the init phase", async () => {
+  test("plumbs an explicit target to the init phase", async () => {
     let initTarget;
     const deps = buildDeps({ invocations });
     deps.loadInit = async () => async (t) => {
@@ -113,8 +113,9 @@ describe("substrate-stage phase ordering", () => {
       initTarget = t;
     };
     const config = { supabaseJwtSecret: () => "secret" };
-    // The target is only threaded through to the init phase and asserted —
-    // never read or written — so a fixed in-memory path suffices.
+    // The test only threads the target to the init phase and asserts it.
+    // It never reads or writes the target, so a fixed in-memory path
+    // suffices.
     const target = "/substrate-target";
     await runStageCommand({ config, target, runtime }, deps);
     assert.equal(initTarget, target);

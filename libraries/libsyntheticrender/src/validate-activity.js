@@ -2,7 +2,7 @@
  * Activity validation checks — webhook, GetDX, snapshot, initiative,
  * comment, scorecard, roster, and project team checks.
  *
- * Extracted from validate.js to reduce file length.
+ * These checks moved out of validate.js to reduce file length.
  *
  * @module libterrain/validate-activity
  */

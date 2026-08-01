@@ -4,7 +4,7 @@ For general product conventions see [products/CLAUDE.md](../CLAUDE.md).
 
 ## Starter Config
 
-`starter/config.json` is copied to `config/config.json` by `npx fit-guide init`.
+`npx fit-guide init` copies `starter/config.json` to `config/config.json`.
 It is the single source of truth for what the Guide agent sees.
 
 ```text
@@ -22,7 +22,7 @@ starter/config.json
 
 ### How config reaches the agent
 
-The MCP prompt is the universal surface — it reaches every client that connects
+The MCP prompt is the universal surface. It reaches every client that connects
 to the MCP server (Guide CLI, eval agents, Claude Desktop, other agents).
 The identity prompt is Guide-specific.
 
@@ -34,14 +34,14 @@ The identity prompt is Guide-specific.
 {routing[0]} -> {ToolName}          ← one line per (tool, routing statement)
 ```
 
-Tools without `routing` are registered and callable but get no routing line.
-This composed text is delivered two ways:
+The server still registers tools without `routing`. They stay callable but get
+no routing line. The MCP server delivers this composed text two ways:
 
-1. **MCP server `instructions`** — auto-injected by any MCP client that
-   respects the protocol (Claude Code, Claude Desktop, etc.). This is how
-   eval agents and external clients receive domain and tool guidance without
-   needing a product-specific identity prompt.
-2. **`guide-default` MCP prompt resource** — available via `prompts/get`.
+1. **MCP server `instructions`** — any MCP client that respects the protocol
+   (Claude Code, Claude Desktop, etc.) injects these automatically. Eval
+   agents and external clients get domain and tool guidance this way, without
+   a product-specific identity prompt.
+2. **`guide-default` MCP prompt resource** — available through `prompts/get`.
    The `fit-guide` CLI explicitly fetches this and prepends it to the
    identity prompt (`product.guide.systemPrompt`) at startup.
 
@@ -50,13 +50,13 @@ This composed text is delivered two ways:
 | Config field | fit-guide CLI | MCP clients (eval, Claude Desktop, etc.) |
 |---|---|---|
 | `product.guide.systemPrompt` | System prompt (top) | Not seen |
-| `service.mcp.systemPrompt` + routing | Fetched via `guide-default` prompt | Auto-injected via MCP `instructions` |
+| `service.mcp.systemPrompt` + routing | Fetched through `guide-default` prompt | Auto-injected through MCP `instructions` |
 | `tools.*.description` | MCP `tools/list` | MCP `tools/list` |
 | `tools.*.method` | Never (internal wiring) | Never (internal wiring) |
 
 ### Adding a tool
 
-1. Add the gRPC method to the service proto, run `just codegen`.
+1. Add the gRPC method to the service proto. Run `just codegen`.
 2. Add to `service.mcp.tools` in `starter/config.json`:
 
    ```json
@@ -68,40 +68,42 @@ This composed text is delivered two ways:
 
 3. Optionally add `"routing": ["Intent phrase"]` for a prompt hint.
 
-`registerToolsFromConfig` (libmcp) auto-wires the tool — builds a Zod schema
-from codegen metadata and dispatches to the gRPC client. To remove a tool,
-delete its entry; it vanishes from both tool listing and prompt.
+`registerToolsFromConfig` (libmcp) auto-wires the tool. It builds a Zod schema
+from codegen metadata. It then dispatches to the gRPC client. To remove a tool,
+delete its entry. The tool then vanishes from both the tool list and the
+prompt.
 
 ### Improving prompt behavior
 
-The most common issue is the agent not knowing _when_ to use a tool. Because
-the MCP prompt reaches every surface, behavior fixes almost always belong in
-`service.mcp` — not in the identity prompt.
+The most common issue is that the agent does not know _when_ to use a tool. The
+MCP prompt reaches every surface. So behavior fixes almost always belong in
+`service.mcp`. They do not belong in the identity prompt.
 
 - **Preamble** (`service.mcp.systemPrompt`) — domain scope, grounding rules,
   and disambiguation (e.g. "skills are domain entities, not runtime features").
-  Edit when the agent misidentifies the domain or answers from general
-  knowledge instead of calling tools.
+  Edit it when the agent misidentifies the domain, or when the agent answers
+  from general knowledge and does not call tools.
 - **Routing** (`tools.*.routing`) — intent-to-tool mappings. Add an entry when
   the agent fails to pick the right tool for a query type.
 - **Descriptions** (`tools.*.description`) — if the agent ignores a tool, the
   description may lack the right trigger words. Per-field descriptions come from
-  proto comments via codegen and cannot be overridden in config.
+  proto comments through codegen. You cannot override them in config.
 
 The identity prompt (`product.guide.systemPrompt`) is Guide-specific and rarely
-needs changes — it only sets who the agent is, not how it uses tools.
+needs changes. It only sets who the agent is. It does not set how the agent
+uses tools.
 
 ## Eval Workflow
 
 `eval-guide.yml` exercises the config end-to-end. Each matrix case runs a
-supervisor–agent session: the supervisor asks a question, the agent answers
-using only MCP tools (it runs in a temp dir with no local files), and the
-supervisor grades against `data/synthetic/story.dsl`.
+supervisor–agent session. The supervisor asks a question. The agent answers
+with MCP tools only. It runs in a temp dir with no local files. The
+supervisor then grades the answer against `data/synthetic/story.dsl`.
 
 When an eval fails, download the trace with `gemba-trace` and check whether the
 agent called the right tools. Common failure modes:
 
-- Agent answered from general knowledge instead of calling tools.
+- Agent answered from general knowledge and did not call tools.
 - Agent called a tool but with wrong arguments.
-- Missing routing line — agent didn't know which tool to use.
+- No routing line, so the agent didn't know which tool to use.
 - Tool description lacked terms the agent associated with the question.

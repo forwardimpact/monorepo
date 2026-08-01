@@ -22,7 +22,7 @@ export function createProc() {
   };
 }
 
-/** The baseline CLI definition shared across the sibling suites. */
+/** The baseline CLI definition that the sibling suites share. */
 export const definition = {
   name: "fit-test",
   version: "1.0.0",
@@ -35,7 +35,7 @@ export const definition = {
   },
 };
 
-/** Construct a Cli wired to the given fake process using `definition`. */
+/** Construct a Cli from `definition` and the given fake process. */
 export function createCli(proc) {
   const helpRenderer = new HelpRenderer({ process: proc });
   return new Cli(definition, { process: proc, helpRenderer });

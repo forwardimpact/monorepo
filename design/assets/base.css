@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    Shared Design Language — Base
    Reset, base typography, focus, reduced motion.
-   Token values are defined per-brand in <site>/assets/main.css.
+   Each brand defines its token values in <site>/assets/main.css.
    ══════════════════════════════════════════════════════════════════ */
 
 /* ── Reset ─────────────────────────────────────────────────────── */

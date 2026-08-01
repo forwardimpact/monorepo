@@ -46,7 +46,7 @@ describe("ProcessState", () => {
       assert.strictEqual(state.getPid(), 5678);
     });
 
-    test("transitions to down state clears pid", () => {
+    test("transitions to down state and clears pid", () => {
       const state = newState();
       state.transitionTo("up", { pid: 1234 });
       state.transitionTo("down", { exitCode: 0 });
@@ -55,7 +55,7 @@ describe("ProcessState", () => {
       assert.strictEqual(state.getPid(), null);
     });
 
-    test("transitions to backoff increments restart count", () => {
+    test("transitions to backoff and increments restart count", () => {
       const state = newState();
       state.transitionTo("backoff", { exitCode: 1 });
 

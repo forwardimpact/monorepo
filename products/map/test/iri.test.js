@@ -46,14 +46,14 @@ describe("base entity IRI helpers", () => {
 });
 
 describe("jobIri", () => {
-  test("includes the track segment when provided", () => {
+  test("includes the track segment when the caller provides one", () => {
     assert.strictEqual(
       jobIri("swe", "l3", "forward-deployed"),
       `${VOCAB_BASE}job/swe/l3/forward-deployed`,
     );
   });
 
-  test("omits the track segment when not provided", () => {
+  test("omits the track segment when the caller provides none", () => {
     assert.strictEqual(jobIri("swe", "l3"), `${VOCAB_BASE}job/swe/l3`);
   });
 
@@ -63,7 +63,7 @@ describe("jobIri", () => {
 });
 
 describe("agentProfileIri", () => {
-  test("produces discipline/track path", () => {
+  test("produces the discipline/track path", () => {
     assert.strictEqual(
       agentProfileIri("swe", "forward-deployed"),
       `${VOCAB_BASE}agent-profile/swe/forward-deployed`,
@@ -72,14 +72,14 @@ describe("agentProfileIri", () => {
 });
 
 describe("progressionIri", () => {
-  test("includes the track segment when provided", () => {
+  test("includes the track segment when the caller provides one", () => {
     assert.strictEqual(
       progressionIri("swe", "l2", "l3", "forward-deployed"),
       `${VOCAB_BASE}progression/swe/l2-l3/forward-deployed`,
     );
   });
 
-  test("omits the track segment when not provided", () => {
+  test("omits the track segment when the caller provides none", () => {
     assert.strictEqual(
       progressionIri("swe", "l2", "l3"),
       `${VOCAB_BASE}progression/swe/l2-l3`,
@@ -99,7 +99,7 @@ describe("DERIVED_ENTITY_TYPES", () => {
     ]);
   });
 
-  test("does not include SkillModifier (it is part of the base Track definition)", () => {
+  test("does not include SkillModifier because it is part of the base Track definition", () => {
     assert.ok(!DERIVED_ENTITY_TYPES.includes(`${VOCAB_BASE}SkillModifier`));
   });
 

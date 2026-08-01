@@ -18,8 +18,8 @@ import {
 
 const runtime = createDefaultRuntime();
 
-// The product-owned discovery convention: the generalized library takes the
-// rules directory from its caller, and the jidoka CLI supplies this one.
+// This is the product-owned discovery convention. The generalized library
+// takes the rules directory from its caller. The jidoka CLI supplies this one.
 const INVARIANTS_DIR = ".jidoka/invariants";
 
 const definition = {
@@ -42,7 +42,7 @@ const definition = {
         seed: {
           type: "string",
           description:
-            "Print the named module's seed output (e.g. a refreshed deny-list) instead of checking",
+            "Print the named module's seed output (e.g. a refreshed deny-list) instead of the check",
         },
       },
       handler: invariantsHandler,
@@ -111,7 +111,7 @@ async function runJtbd(root, fix, jsonOutput, rt) {
   for (const f of fixed) rt.proc.stdout.write(`Regenerated ${f}.\n`);
   if (stale.length > 0 && !jsonOutput) {
     rt.proc.stderr.write(
-      `\n${stale.length} file${stale.length === 1 ? "" : "s"} out of date — run \`jidoka jtbd --fix\` to regenerate:\n`,
+      `\n${stale.length} file${stale.length === 1 ? "" : "s"} out of date. Run \`jidoka jtbd --fix\` to regenerate:\n`,
     );
     for (const s of stale) rt.proc.stderr.write(`  - ${s}\n`);
   }
@@ -124,8 +124,8 @@ async function instructionsHandler(ctx) {
 }
 
 // Unlike instructions/jtbd, invariants resolves the project root through the
-// finder so the rule modules are picked up from `<root>/.jidoka/invariants`
-// no matter which subdirectory the command runs from.
+// finder. It then finds the rule modules in `<root>/.jidoka/invariants`, no
+// matter which subdirectory the command runs from.
 async function invariantsHandler(ctx) {
   const rt = ctx.deps.runtime;
   const root = findInvariantsRoot(rt, INVARIANTS_DIR);
@@ -179,8 +179,8 @@ async function main() {
   const root = runtime.proc.cwd();
   const jsonOutput = !!parsed.values.json;
 
-  // No subcommand → run every check; --fix stays jtbd-only and must be opted
-  // into explicitly via `jidoka jtbd --fix`.
+  // No subcommand → run every check. --fix stays jtbd-only. You must opt into
+  // it explicitly with `jidoka jtbd --fix`.
   if (parsed.positionals.length === 0) {
     const a = await runInstructions(root, jsonOutput, runtime);
     const b = await runJtbd(root, false, jsonOutput, runtime);

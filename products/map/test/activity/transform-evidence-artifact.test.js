@@ -6,10 +6,10 @@ import {
 } from "@forwardimpact/map/activity/transform/evidence-artifact";
 
 /**
- * Hand-rolled fake client — the producer's join select
- * (`organization_people(...)` nested syntax) and `.delete().eq()` /
- * `.upsert(rows, options)` chains are not covered by
- * `createMockSupabaseClient`.
+ * Hand-rolled fake client. `createMockSupabaseClient` does not cover the
+ * producer's join select (`organization_people(...)` nested syntax). It
+ * does not cover the `.delete().eq()` and `.upsert(rows, options)` chains
+ * either.
  */
 function createFakeClient({ joinedArtifacts = [] } = {}) {
   const deleteCalls = [];
@@ -99,7 +99,7 @@ function makeJoined({
 }
 
 describe("activity/transform/evidence-artifact", () => {
-  test("rule 1: ≥2 keyword overlap selects matching artifacts only", async () => {
+  test("rule 1: ≥2 keyword overlap selects only the artifacts that match", async () => {
     const mapData = makeMapData({
       markers: { human: ["Delivered schema cutover for line monitors"] },
     });
@@ -132,7 +132,7 @@ describe("activity/transform/evidence-artifact", () => {
     }
   });
 
-  test("rule 2: one row per (artifact, skill); best score wins with lexicographic tie-break", async () => {
+  test("rule 2: one row per (artifact, skill), and the best score wins with a lexicographic tie-break", async () => {
     const mapData = makeMapData({
       markers: {
         human: [
@@ -159,8 +159,8 @@ describe("activity/transform/evidence-artifact", () => {
     const rows = fake.upsertCalls[0].rows;
     assert.strictEqual(rows.length, 1);
     // Both "quality gates" and "rework cycle" markers score 3
-    // (delivered, feature, quality|rework); lexicographic tie-break picks
-    // "Delivered feature quality gates".
+    // (delivered, feature, quality|rework). The lexicographic tie-break
+    // picks "Delivered feature quality gates".
     assert.strictEqual(rows[0].marker_text, "Delivered feature quality gates");
   });
 
@@ -219,7 +219,7 @@ describe("activity/transform/evidence-artifact", () => {
     }
   });
 
-  test("tokenisation drops stop-words and tokens shorter than 4", () => {
+  test("tokeniseMarker drops stop-words and tokens shorter than 4", () => {
     const tokens = tokeniseMarker(
       "Delivered a small feature end-to-end with minimal rework",
     );
@@ -275,7 +275,7 @@ describe("activity/transform/evidence-artifact", () => {
     assert.strictEqual(fake.upsertCalls[0].options?.ignoreDuplicates, true);
   });
 
-  test("artifacts without an organization_people row are skipped", async () => {
+  test("the transform skips artifacts without an organization_people row", async () => {
     const mapData = makeMapData({
       markers: { human: ["Delivered schema cutover"] },
     });

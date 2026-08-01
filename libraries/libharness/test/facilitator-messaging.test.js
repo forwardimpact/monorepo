@@ -24,7 +24,7 @@ import {
 } from "./facilitator-helpers.js";
 
 describe("Facilitator - messaging", () => {
-  test("Ask delivers questions to specific agents; each receives the right task", async () => {
+  test("Ask delivers questions to specific agents. Each agent receives the right task", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1", "agent-2"]);
     const concludeHandler = createConcludeHandler(ctx);
     const askHandler = createAskHandler(ctx, {
@@ -32,8 +32,8 @@ describe("Facilitator - messaging", () => {
       defaultTo: undefined,
     });
 
-    // Lead turn 0: parallel Asks. Turn 1: replies arrive (one or both
-    // batches depending on microtask interleaving) → Conclude.
+    // Lead turn 0: parallel Asks. Turn 1: replies arrive, then Conclude.
+    // The microtask order decides whether one batch or both arrive.
     const facilitatorRunner = createMockRunner(
       [{ text: "Assigning" }, { text: "Done" }],
       [
@@ -159,7 +159,7 @@ describe("Facilitator - messaging", () => {
 });
 
 describe("Facilitator - bidirectional Ask", () => {
-  test("agent-initiated Ask routes to the facilitator; facilitator answers via Answer", async () => {
+  test("agent-initiated Ask routes to the facilitator. The facilitator answers with Answer", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1"]);
     const concludeHandler = createConcludeHandler(ctx);
     const facilitatorAskHandler = createAskHandler(ctx, {
@@ -174,9 +174,9 @@ describe("Facilitator - bidirectional Ask", () => {
       from: "facilitator",
     });
 
-    // Sequence (each side handles one message per turn — no in-turn
-    // Answer-and-Ask collapses, so the inboxes drain deterministically
-    // under the auto-resume model):
+    // Sequence. Each side handles one message per turn. There is no
+    // in-turn Answer-and-Ask collapse, so the inboxes drain
+    // deterministically under the auto-resume model:
     //
     //   fac.0: Ask agent ("What runtime?")            askId=1
     //   agt.0: Ask fac  ("What version is required?")  askId=2

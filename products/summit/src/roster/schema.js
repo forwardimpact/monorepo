@@ -3,9 +3,9 @@
  *
  * Checks each person's `job.discipline`, `job.level`, and optional
  * `job.track` against the loaded standard definitions. Returns a
- * structured result without throwing — callers decide whether to fail
- * or warn based on command context (the `validate` command exits
- * non-zero; analytical commands warn and proceed).
+ * structured result and throws no error. The caller decides whether to
+ * fail or to warn from the command context. The `validate` command
+ * exits non-zero. Analytical commands warn and proceed.
  */
 
 /**

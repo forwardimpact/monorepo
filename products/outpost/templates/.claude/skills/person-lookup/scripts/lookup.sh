@@ -3,17 +3,19 @@
 # input (an email address, or a first / last / full name) and print their
 # directory record(s).
 #
-# Sibling to `person-identify`, but for *other* people, not the current user:
+# Sibling to `person-identify`. Use it for *other* people. Do not use it for
+# the current user:
 #   - Searches the Global Catalog (port 3268, base "") so it reaches EVERY
-#     domain in the forest from a single ticket — colleagues in other regions
-#     are found, not just your own domain.
+#     domain in the forest from a single ticket. It finds colleagues in other
+#     regions. It does not stop at your own domain.
 #   - Uses Active Directory ANR (Ambiguous Name Resolution), so one filter
 #     matches an email, a login, or any part of a name.
-#   - Handles 0, 1, or many matches, and flags external Contacts / vendor
-#     accounts so an internal employee is never confused with an outside one.
-#   - NEVER writes the identity cache — this is a throwaway lookup.
+#   - Handles 0, 1, or many matches. Flags external Contacts / vendor
+#     accounts so you never confuse an internal employee with an outside one.
+#   - NEVER writes the identity cache. This is a throwaway lookup.
 #
-# Auth uses SASL/GSSAPI against the existing Kerberos ticket — no password.
+# Auth uses SASL/GSSAPI against the existing Kerberos ticket. It needs no
+# password.
 #
 # Robustness note: under load the directory intermittently returns an entry's
 # DN with NO attributes (exit 0, no error). Every attribute fetch below retries
@@ -22,9 +24,10 @@
 set -u
 
 # Org-specific: substring of the DN's OU that marks external/vendor *user*
-# accounts (external Contact objects are detected generically via objectClass).
-# Empty by default — set it to your directory's convention, e.g. "OU=Contractors"
-# or "OU=External", to label those accounts as "User (external / vendor)".
+# accounts. The script detects external Contact objects generically through
+# objectClass. Empty by default. Set it to your directory's convention, e.g.
+# "OU=Contractors" or "OU=External", to label those accounts as
+# "User (external / vendor)".
 VENDOR_OU_PATTERN=""
 
 QUERY="$*"
@@ -44,7 +47,7 @@ dom=$(printf '%s' "$realm" | tr '[:upper:]' '[:lower:]')
 dc=$(dig +short SRV "_ldap._tcp.dc._msdcs.$dom" | awk 'NR==1{print $4}' | sed 's/\.$//')
 [ -z "$dc" ] && dc=$(dig +short SRV "_ldap._tcp.$dom" | awk 'NR==1{print $4}' | sed 's/\.$//')
 if [ -z "$dc" ]; then
-  echo "Could not find a domain controller for $dom via DNS SRV." >&2
+  echo "Could not find a domain controller for $dom with DNS SRV." >&2
   exit 1
 fi
 
@@ -53,7 +56,7 @@ GC="ldap://$dc:3268"
 ATTRS="displayName givenName sn company title department employeeID mail telephoneNumber physicalDeliveryOfficeName objectClass manager"
 MAX_SHOW=12   # cap detailed output for very broad name matches
 
-# Pull one attribute out of an LDIF record (passed as $2), decoding base64 (::).
+# Pull one attribute out of an LDIF record (passed as $2). Decode base64 (::).
 field() { # $1=attr  $2=record
   local attr="$1" line
   line=$(printf '%s\n' "$2" | grep -m1 -E "^$attr:: ?|^$attr: ") || return 0
@@ -63,13 +66,13 @@ field() { # $1=attr  $2=record
   esac
 }
 
-# List matching DNs for a filter (no attributes requested → reliable under load).
+# List the DNs that match a filter. Request no attributes → reliable under load.
 dns_for() { # $1=filter
   ldapsearch -Y GSSAPI -LLL -o ldif-wrap=no -H "$GC" -b "" "$1" 1.1 2>/dev/null \
     | sed -n 's/^dn: //p'
 }
 
-# Fetch one entry's attributes by DN, retrying past the silent DN-only response.
+# Fetch one entry's attributes by DN. Retry past the silent DN-only response.
 fetch() { # $1=dn
   local dn="$1" out tries=0
   while [ "$tries" -lt 4 ]; do
@@ -100,7 +103,7 @@ kind_of() { # $1=record  $2=dn
 }
 
 # 2. Primary search (ANR), then a substring fallback if it finds nothing.
-#    (Portable array fill — macOS ships bash 3.2, which has no `mapfile`.)
+#    (Portable array fill. macOS ships bash 3.2, which has no `mapfile`.)
 read_dns() { # $1=filter  -> populates global DNS array
   DNS=()
   local line
@@ -138,7 +141,7 @@ if [ "${#DNS[@]}" -eq 1 ]; then
 fi
 
 # 3b. Several matches → a compact disambiguation list (no per-row manager call).
-echo "${#DNS[@]} matches for \"$QUERY\" — narrow with an email for an exact hit:"
+echo "${#DNS[@]} matches for \"$QUERY\". Narrow with an email for an exact hit:"
 echo
 shown=0
 for dn in "${DNS[@]}"; do

@@ -1,7 +1,7 @@
 /**
  * @forwardimpact/libui
  *
- * Web UI framework: rendering, routing, components, and design system.
+ * Web UI framework: render helpers, routers, components, and a design system.
  */
 
 // Core rendering

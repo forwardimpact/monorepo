@@ -97,7 +97,7 @@ function validateSkillAgentFields(skillsWithAgent) {
       errors.push(
         createError(
           "INVALID_FIELD",
-          `Skill '${skill.id}' agent uses deprecated stages nesting — flatten to agent.focus/readChecklist/confirmChecklist`,
+          `Skill '${skill.id}' agent uses deprecated stages nesting. Flatten to agent.focus/readChecklist/confirmChecklist`,
           `${basePath}.stages`,
         ),
       );

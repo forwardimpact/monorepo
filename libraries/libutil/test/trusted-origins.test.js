@@ -3,10 +3,10 @@ import assert from "node:assert";
 import { isTrusted, loadTrustedIdpOrigins } from "../src/trusted-origins.js";
 
 function recordingLogger() {
-  // Mirrors the @forwardimpact/libtelemetry Logger surface: there is no
-  // `warn` method; level-elevated diagnostics flow through `error(appId,
-  // message, attributes)`. Recording `error` lets the loader's diagnostics
-  // be observable in tests AND in production wiring.
+  // Mirrors the @forwardimpact/libtelemetry Logger surface. That surface has
+  // no `warn` method. Level-elevated diagnostics flow through `error(appId,
+  // message, attributes)`. This helper records `error`, so the loader's
+  // diagnostics stay observable in tests AND in production wiring.
   const entries = [];
   return {
     error: (appId, message, attributes) =>
@@ -23,14 +23,14 @@ describe("loadTrustedIdpOrigins", () => {
     assert.deepStrictEqual([...set], ["https://github.com"]);
   });
 
-  test("trailing-dot host yields a distinct origin (no implicit normalisation)", () => {
+  test("a trailing-dot host yields a distinct origin (no implicit normalisation)", () => {
     const set = loadTrustedIdpOrigins("https://github.com,https://github.com.");
     assert.strictEqual(set.size, 2);
     assert.strictEqual(set.has("https://github.com"), true);
     assert.strictEqual(set.has("https://github.com."), true);
   });
 
-  test("refuses http://… via logger.error(appId, message, attributes); does not add", () => {
+  test("refuses http://… through logger.error(appId, message, attributes) and does not add", () => {
     const logger = recordingLogger();
     const set = loadTrustedIdpOrigins("http://github.com", { logger });
     assert.strictEqual(set.size, 0);
@@ -40,7 +40,7 @@ describe("loadTrustedIdpOrigins", () => {
     assert.strictEqual(logger.entries[0].attributes.entry, "http://github.com");
   });
 
-  test("skips a malformed entry via logger.error; other valid entries still populate", () => {
+  test("skips a malformed entry through logger.error and still populates other valid entries", () => {
     const logger = recordingLogger();
     const set = loadTrustedIdpOrigins("not-a-url, https://github.com", {
       logger,
@@ -58,7 +58,7 @@ describe("loadTrustedIdpOrigins", () => {
     assert.strictEqual(loadTrustedIdpOrigins(null).size, 0);
   });
 
-  test("trims surrounding whitespace on each comma entry", () => {
+  test("trims the whitespace around each comma entry", () => {
     const set = loadTrustedIdpOrigins(
       "  https://a.example , https://b.example  ",
     );
@@ -90,12 +90,12 @@ describe("isTrusted", () => {
     assert.strictEqual(isTrusted("https://github.com", new Set()), false);
   });
 
-  test("rejects on URL parse failure rather than throwing", () => {
+  test("rejects on URL parse failure and does not throw", () => {
     const set = loadTrustedIdpOrigins("https://github.com");
     assert.strictEqual(isTrusted("not-a-url", set), false);
   });
 
-  test("treats trailing-dot host as a distinct origin (matches design O6 (a))", () => {
+  test("treats a trailing-dot host as a distinct origin (matches design O6 (a))", () => {
     const setBare = loadTrustedIdpOrigins("https://github.com");
     const setDotted = loadTrustedIdpOrigins("https://github.com.");
     assert.strictEqual(isTrusted("https://github.com.", setBare), false);

@@ -2,11 +2,12 @@
 name: kata-design
 description: >
   Create design documents (WHICH/WHERE) for approved specs. A design is a
-  max-200-line architectural sketch — components, interfaces, data flow, and
-  key decisions with trade-offs — that gives reviewers a high-leverage point
-  to redirect architecture before the full plan is written. Design is approved
-  when `wiki/STATUS.md` shows the spec row at `design approved` — written
-  there by a human signal that `kata-dispatch` or the active agent propagates.
+  max-200-line architectural sketch of components, interfaces, data flow, and
+  key decisions with trade-offs. It gives reviewers a high-leverage point to
+  redirect architecture before anyone writes the full plan. A design is
+  approved when `wiki/STATUS.md` shows the spec row at `design approved`. A
+  human signal writes that row, and `kata-dispatch` or the active agent
+  propagates it.
 ---
 
 # Write and Review Designs
@@ -14,21 +15,21 @@ description: >
 A design defines WHICH components exist, WHERE they interact, and what
 interfaces connect them. Design sits in the
 [spec](../kata-spec/SKILL.md) → design → [plan](../kata-plan/SKILL.md) →
-[implement](../kata-implement/SKILL.md) pipeline: the spec captures WHAT/WHY,
-the design captures WHICH/WHERE, the plan captures HOW/WHEN, and implementation
+[implement](../kata-implement/SKILL.md) pipeline. The spec captures WHAT/WHY.
+The design captures WHICH/WHERE. The plan captures HOW/WHEN. The implementation
 executes the plan.
 
 **A design requires an existing approved spec.** Without an approved spec there
-is no commitment to implement, and a design has nothing to shape.
+is no commitment to implement. A design then has nothing to shape.
 
 ## When to Use
 
-- Turning a merged spec (`specs/NNN/spec.md` on `origin/main`) into an
+- You turn a merged spec (`specs/NNN/spec.md` on `origin/main`) into an
   architectural design
-- Reviewing a design before approval ("review design NNN", "is design NNN
+- You review a design before approval ("review design NNN", "is design NNN
   ready?")
-- Revisiting a design whose direction needs rethinking before planning
-- Co-running with `kata-spec` when one prompt asks for both — see
+- You revisit a design whose direction needs a rethink before the plan
+- You co-run with `kata-spec` when one prompt asks for both. See
   [lockstep co-execution](references/lockstep-co-execution.md)
 
 ## Checklists
@@ -36,27 +37,27 @@ is no commitment to implement, and a design has nothing to shape.
 <read_do_checklist goal="Internalize design-writing boundaries before starting">
 
 - [ ] Confirm `specs/NNN/spec.md` exists on `origin/main`
-      (`git fetch origin main`) before designing — except under
-      [lockstep co-execution](references/lockstep-co-execution.md), which drafts
-      against the same-branch spec.
-- [ ] Do not write or revise the spec — return it to `draft` if it needs
+      (`git fetch origin main`) before you design.
+      [Lockstep co-execution](references/lockstep-co-execution.md) is the one
+      exception, and it drafts against the same-branch spec.
+- [ ] Do not write or revise the spec. Return it to `draft` if it needs
       changes.
-- [ ] Do not write the plan — this skill writes the design; `kata-plan`
+- [ ] Do not write the plan. This skill writes the design. `kata-plan`
       translates it into implementation steps.
-- [ ] One design per spec — do not bundle multiple specs into one design.
-- [ ] Read the spec end-to-end before writing. Restate problem, scope, and
-      success criteria without referring back.
+- [ ] Write one design per spec. Do not bundle multiple specs into one design.
+- [ ] Read the spec end-to-end before you write. Restate problem, scope, and
+      success criteria from memory.
 
 </read_do_checklist>
 
 <do_confirm_checklist goal="Verify design quality before recommending approval">
 
-- [ ] Under 200 lines.
-- [ ] Design meets the criteria in § Writing a Design.
-- [ ] Repository formatter run and changes committed.
-- [ ] Clean sub-agent review panel of `design-a.md` via
-      [`kata-review`](../kata-review/SKILL.md) completed (fresh context, panel
-      size per caller protocol) and every blocker/high/medium finding addressed.
+- [ ] Keep the design under 200 lines.
+- [ ] Confirm the design meets the criteria in § Writing a Design.
+- [ ] Run the repository formatter and commit the changes.
+- [ ] Complete a clean sub-agent review panel of `design-a.md` through
+      [`kata-review`](../kata-review/SKILL.md) (fresh context, panel size per
+      caller protocol). Address every blocker/high/medium finding.
 
 </do_confirm_checklist>
 
@@ -67,46 +68,46 @@ Designs live alongside their spec in `specs/{NNN}-{name}/`.
 ### Default design
 
 The first (and usually only) design is always **`design-a.md`**. Do not use
-`design.md` or other shorthands — the letter suffix keeps naming consistent
+`design.md` or other shorthands. The letter suffix keeps the names consistent
 whether one design or several exist.
 
 ### Alternative designs
 
-When exploring competing architectural approaches for the same spec, create
-additional variants using sequential letters:
+When you explore more than one architectural approach for the same spec, create
+additional variants with sequential letters:
 
     design-a.md    ← default (always created first)
     design-b.md    ← alternative approach
     design-c.md    ← another alternative
 
-Each variant should open with a brief rationale explaining how it differs from
-design-a. When the design is approved, **design-a is the design that will be
-planned** unless the approver explicitly selects a different variant.
+Open each variant with a brief rationale that explains how it differs from
+design-a. When a human approves the design, **design-a is the design to plan**
+unless the approver explicitly selects a different variant.
 
-No decomposition — if a design cannot fit in 200 lines, narrow the spec instead.
+No decomposition. If a design cannot fit in 200 lines, narrow the spec instead.
 
 ## Writing a Design (WHICH + WHERE)
 
-The design answers: which components exist, where they interact, and what
-interfaces connect them — and why this architecture over alternatives.
+The design answers which components exist, where they interact, and what
+interfaces connect them. It also answers why this architecture beats the
+alternatives.
 
-- **Architecture, not execution.** Name components, interfaces, data flow. Do
-  not specify file-level changes or execution ordering — those belong in the
-  plan.
+- **Architecture only.** Name components, interfaces, data flow. Do
+  not specify file-level changes or execution order. Those belong in the plan.
 - **Decisions with trade-offs.** Each architectural choice names at least one
   rejected alternative and why.
 - **One home per decision.** If a decision has a `## Key Decisions` table row,
-  do not also write a `Rejected:` paragraph under its section. Table or prose,
-  not both.
+  do not also write a `Rejected:` paragraph under its section. Use the table or
+  the prose. Do not use both.
 - **Visual when possible.** Mermaid diagrams for component relationships, data
   flow, state machines, sequence diagrams.
 - **Scope-faithful.** Stay within the spec's scope. If scope should change,
-  return the spec to draft rather than expanding silently.
-- **Clean break.** The design replaces the old path — no shims, aliases, or
-  fallbacks — and names the components and interfaces it removes; a
-  replacement that deletes nothing is incomplete. Compat appears only when
-  the spec names it as a requirement; if a clean break can't meet the spec,
-  return the spec to `draft` rather than designing around it.
+  return the spec to draft. Do not expand it silently.
+- **Clean break.** The design replaces the old path with no shims, aliases, or
+  fallbacks. It names the components and interfaces it removes. A replacement
+  that deletes nothing is incomplete. Compat appears only when the spec names
+  it as a requirement. If a clean break cannot meet the spec, return the spec
+  to `draft`. Do not design around it.
 
 **Form follows content.** Prefer tables for lists with shared structure
 (components, decisions). Prefer bullets for flat facts. Use prose only for the
@@ -116,21 +117,21 @@ not restate what the artifact already shows.
 ## Approval
 
 A design is approved when `wiki/STATUS.md` shows its row at `design
-approved`. **Human-only**: agents never originate `design approved` — they
-only propagate signals already expressed by a trusted human (label, APPROVED
-review, approval comment, or in-session message), which `kata-dispatch` or
-the active agent writes to STATUS. See
+approved`. **Human-only**: agents never originate `design approved`. They only
+propagate a signal a trusted human already expressed (label, APPROVED review,
+approval comment, or in-session message). `kata-dispatch` or the active agent
+writes that signal to STATUS. See
 [`approval-signals.md`](../../agents/x-approval-signals.md).
 
 ## Reviewing a Design
 
 Evaluate `design-a.md` against the qualities listed in "Writing a Design"
-above, then run the DO-CONFIRM checklist. Report findings via PR comment.
+above, then run the DO-CONFIRM checklist. Report findings in a PR comment.
 
 **Do not recommend approval, and do not apply the `design:approved` label.**
-Deciding on approval is a human-only action. Your job is to evaluate quality
-and surface findings; the release engineer reads `wiki/STATUS.md` to gate
-merge. If criteria fall short, request changes via PR comment.
+Only a human decides on approval. Your job is to evaluate quality and surface
+findings. The release engineer reads `wiki/STATUS.md` to gate merge. If
+criteria fall short, request changes in a PR comment.
 
 ## Process
 
@@ -145,9 +146,9 @@ Extract specs previously designed and any deferred work from prior entries.
 ### Step 1: Find the spec
 
 Run `git fetch origin main`, then confirm `specs/NNN/spec.md` exists on
-`origin/main` — wait for the spec PR to merge before starting a design. Under
-[lockstep co-execution](references/lockstep-co-execution.md) the spec is drafted
-in this session instead; skip the wait.
+`origin/main`. Wait for the spec PR to merge before you start a design. Under
+[lockstep co-execution](references/lockstep-co-execution.md) you draft the spec
+in this session instead. Skip the wait.
 
 ### Step 2: Study the spec
 
@@ -159,27 +160,27 @@ Read the code areas the spec targets.
 
 ### Step 4: Write the design
 
-Create `design-a.md` locally; do not push yet. Stay under 200 lines. Each
+Create `design-a.md` locally. Do not push yet. Stay under 200 lines. Each
 architectural choice names a rejected alternative.
 
 ### Step 5: Clean sub-agent review panel
 
 Follow the [`kata-review` caller
-protocol](../kata-review/references/caller-protocol.md), invoked on the local
+protocol](../kata-review/references/caller-protocol.md). Invoke it on the local
 `design-a.md` before push. Tell each reviewer not to invoke `kata-design`.
-Address every confirmed blocker/high/medium finding before opening the PR —
-the PR should not become visible to `kata-dispatch` until the panel is clean.
+Address every confirmed blocker/high/medium finding before you open the PR. The
+PR should not become visible to `kata-dispatch` until the panel is clean.
 
 ### Step 6: Open a design PR
 
-Before pushing, verify identifiers the design names still exist on
-`origin/main` — update any renamed since the spec merged.
+Before you push, verify the identifiers the design names still exist on
+`origin/main`. Update any identifier renamed since the spec merged.
 
 The PR title carries the spec id: `design(NNN): …`. Do not apply the
-`design:approved` label and do not recommend approval — those are human-only
-actions; see § Approval. Under
+`design:approved` label and do not recommend approval. Those are human-only
+actions. See § Approval. Under
 [lockstep co-execution](references/lockstep-co-execution.md) this single
-`design(NNN)` PR also carries `spec.md`; no separate spec PR is opened.
+`design(NNN)` PR also carries `spec.md`. Do not open a separate spec PR.
 
 Hold every published body to
 [citation integrity](../../agents/x-citation-integrity.md).

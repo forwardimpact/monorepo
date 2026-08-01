@@ -106,7 +106,7 @@ describe("fhir-cross-ref node", () => {
     assert.strictEqual(crossRef, null);
   });
 
-  test("returns null when entities.clinical is missing even with wired output", async () => {
+  test("returns null when entities.clinical is missing even with a wired output", async () => {
     const parse = {
       datasets: [],
       outputs: [
@@ -168,7 +168,7 @@ describe("fhir-microdata-html node", () => {
     assert.ok(microdata.files.has("data/patients/index.html"));
   });
 
-  test("emits empty files Map when cross-ref is null", async () => {
+  test("emits an empty files Map when cross-ref is null", async () => {
     const parse = {
       datasets: [],
       outputs: [{ dataset: "ds", format: "json", config: { path: "x" } }],

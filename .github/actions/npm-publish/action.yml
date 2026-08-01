@@ -1,11 +1,12 @@
 name: Publish to npm
 description: >
-  Publish the source package and its matching launchers to npm, idempotently.
-  Per package: skip only when the version is already on the registry AND the
-  registry's maintainer ACL contains our publisher ("name exists but we never
-  published it" fails loud, not silently). Source publishes first so no launcher
-  version ever exists without its implementation. Re-running a tag recovers a
-  partial failure: published artifacts skip, the rest complete.
+  Publish the source package and its matched launchers to npm, idempotently.
+  For each package, skip only when the version is already on the registry AND
+  the registry's maintainer ACL contains our publisher. A name that exists but
+  that we never published fails loud. It does not fail silently. The source
+  publishes first, so no launcher version ever exists without its
+  implementation. Re-run a tag to recover a partial failure. Published
+  artifacts skip. The rest complete.
 
 inputs:
   npm-name:
@@ -39,15 +40,15 @@ runs:
         decide() { # decide <pkg> <ver> <publish-spec...>
           PKG="$1"; VER="$2"; shift 2
           set +e; OUT=$(npm view "$PKG@$VER" version 2>&1); CODE=$?; set -e
-          # Skip requires the exact version echoed back — a warning line on
-          # an exit-0 "version absent" response must not read as published.
+          # Skip requires the exact version echoed back. A warning line on an
+          # exit-0 "version absent" response must not read as published.
           if [ "$CODE" -eq 0 ] && echo "$OUT" | grep -qFx "$VER"; then
             npm owner ls "$PKG" | grep -q "^$NPM_PUBLISHER " \
               || { echo "::error::$PKG exists on the registry but is not ours"; exit 1; }
-            echo "::notice::$PKG@$VER already published — skipping"
+            echo "::notice::$PKG@$VER is already published. This run skips it"
           elif [ "$CODE" -eq 0 ] || echo "$OUT" | grep -q "E404"; then
-            # exit 0 with empty output: the package exists but this version
-            # does not (older npm view behavior) — publish.
+            # exit 0 with empty output means the package exists but this
+            # version does not (older npm view behavior). Publish it.
             npm publish "$@" --access=public --provenance
           else
             echo "$OUT"

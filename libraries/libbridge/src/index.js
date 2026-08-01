@@ -1,13 +1,14 @@
 /**
  * Canonical configuration contract every bridge consumes. Channel-specific
  * fields (e.g. `app_webhook_secret` on ghbridge, `msAppId()` on msbridge)
- * extend this — see each bridge's README for the channel-specific surface.
+ * extend this contract. See each bridge's README for the channel-specific
+ * surface.
  *
  * @typedef {object} BridgeConfig
  * @property {string} host - Bind host (typically "127.0.0.1" or "0.0.0.0")
- * @property {number} port - Bind port; 0 selects a free port
+ * @property {number} port - Bind port. 0 selects a free port
  * @property {string} callback_base_url - Public URL the dispatched workflow posts back to
- * @property {string} github_repo - "owner/repo" hosting the kata-dispatch workflow
+ * @property {string} github_repo - "owner/repo" that hosts the kata-dispatch workflow
  */
 
 /**

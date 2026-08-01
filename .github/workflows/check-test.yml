@@ -10,9 +10,10 @@ permissions:
   contents: read
 
 jobs:
-  # Blocking gate: node --test is the reference-correct runner on the critical
-  # path. This is the single required PR + main test check (mark it required in
-  # branch protection). The bun `test` job below stays informational.
+  # This is the blocking gate. node --test is the reference-correct runner on
+  # the critical path. This is the single required PR + main test check (mark
+  # it required in branch protection). The bun `test` job below stays
+  # informational.
   gate:
     runs-on: ubuntu-latest
     steps:
@@ -20,7 +21,7 @@ jobs:
       - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
         with:
           clis: fit-terrain
-      # libwiki's push path secret-scans with gitleaks (fail-closed); the
+      # libwiki's push path secret-scans with gitleaks (fail-closed). The
       # wiki-sync integration tests in the gate set need the binary on PATH,
       # exactly as the informational bun `test` job below does.
       - uses: ./.github/actions/install-gitleaks
@@ -30,10 +31,10 @@ jobs:
       - name: Run gate (node --test)
         run: bun run test:gate
 
-  # Informational only: keeps the fast bun inner-loop visible. It surfaces the
-  # bun#5090 describe-in-test cascade, so it must NOT be a required check —
-  # making it blocking would move the flaky blocker from the release tag to the
-  # PR queue.
+  # This job is informational only. It keeps the fast bun inner-loop visible.
+  # It surfaces the bun#5090 describe-in-test cascade, so it must NOT be a
+  # required check. A blocking version would move the flaky blocker from the
+  # release tag to the PR queue.
   test:
     runs-on: ubuntu-latest
     steps:
@@ -41,7 +42,7 @@ jobs:
       - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
         with:
           clis: fit-terrain
-      # libwiki's push path secret-scans with gitleaks (fail-closed); the
+      # libwiki's push path secret-scans with gitleaks (fail-closed). The
       # wiki-sync push tests need the binary present on PATH.
       - uses: ./.github/actions/install-gitleaks
       - run: fit-terrain build

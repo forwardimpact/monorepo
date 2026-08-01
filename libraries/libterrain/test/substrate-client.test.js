@@ -1,9 +1,9 @@
 /**
  * The client factory is the only construction site for substrate Supabase
- * clients, and it must bind `db.schema = "substrate"` — the guard for the
- * `evidence` relation name shared with map's vendor `activity.evidence`
- * table: an unbound client would silently read the wrong relation through
- * the default search path.
+ * clients. It must bind `db.schema = "substrate"`. That bind guards the
+ * `evidence` relation name, which map's vendor `activity.evidence` table
+ * also uses. An unbound client would silently read the wrong relation
+ * through the default search path.
  */
 
 import { test, describe } from "node:test";

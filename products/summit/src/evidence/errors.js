@@ -1,9 +1,9 @@
 import { SupabaseUnavailableError } from "../lib/supabase.js";
 
 /**
- * Thrown when Summit cannot reach the evidence layer. Extends
- * SupabaseUnavailableError so command handlers can branch on one
- * catch across roster + evidence paths.
+ * Summit throws this error when it cannot reach the evidence layer. It
+ * extends SupabaseUnavailableError. Command handlers can then branch on
+ * one catch across the roster and evidence paths.
  */
 export class EvidenceUnavailableError extends SupabaseUnavailableError {
   /** Create an EvidenceUnavailableError with the underlying failure reason. */

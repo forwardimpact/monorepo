@@ -186,7 +186,7 @@ describe("runStatus", () => {
     assert.deepStrictEqual([...SERVICE_NAMES].sort(), [...declared].sort());
   });
 
-  test("result serializes to expected JSON shape", async () => {
+  test("the result serializes to the expected JSON shape", async () => {
     const deps = createMockDeps();
     const result = await runStatus(deps);
 

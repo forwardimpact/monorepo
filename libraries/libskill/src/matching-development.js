@@ -1,8 +1,8 @@
 /**
  * Development Path and Candidate Analysis
  *
- * Pure functions for deriving development paths and analyzing candidates.
- * Extracted from matching.js to satisfy max-lines and complexity rules.
+ * Pure functions that derive development paths and analyze candidates.
+ * The split from matching.js satisfies the max-lines and complexity rules.
  */
 
 import {
@@ -61,12 +61,12 @@ function calculateSkillDevPriority(gapSize, skillType, capability) {
  */
 function getSkillRationale(skillType) {
   if (skillType === "core") {
-    return "Core skill for this discipline - essential for the role";
+    return "Core skill for this discipline, essential for the role";
   }
   if (skillType === "supporting") {
-    return "Supporting skill - important for full effectiveness";
+    return "Supporting skill, important for full effectiveness";
   }
-  return "Broad skill - needed for collaboration and context";
+  return "Broad skill, needed for collaboration and context";
 }
 
 /**
@@ -119,7 +119,7 @@ export function deriveDevelopmentPath({ selfAssessment, targetJob }) {
         targetLevel: jobBehaviour.maturity,
         priority: targetIndex - selfIndex,
         rationale:
-          "Required behaviour - important for professional effectiveness",
+          "Required behaviour, important for professional effectiveness",
       });
     }
   }
@@ -136,7 +136,7 @@ export function deriveDevelopmentPath({ selfAssessment, targetJob }) {
 }
 
 /**
- * Find the best next step job (one level rank up) based on current assessment
+ * Find the best next-step job (one level rank up) from the current assessment
  * @param {Object} params
  * @param {Object} params.selfAssessment - The self-assessment
  * @param {Object} params.currentJob - Current job (or best match)
@@ -209,7 +209,7 @@ export function findNextStepJob({
 }
 
 /**
- * Comprehensive analysis of a candidate's self-assessment
+ * Analyze a candidate's self-assessment in full
  * @param {Object} params
  * @param {Object} params.selfAssessment - The self-assessment
  * @param {Array} params.disciplines - All disciplines
@@ -285,7 +285,7 @@ export function analyzeCandidate({
 }
 
 /**
- * Find realistic job matches with tier filtering
+ * Find realistic job matches with a tier filter
  * @param {Object} params
  * @param {Object} params.selfAssessment - The self-assessment
  * @param {Array} params.disciplines - All disciplines

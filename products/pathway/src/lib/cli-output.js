@@ -1,15 +1,15 @@
 /**
  * Domain-specific CLI Output Formatters
  *
- * Pathway-specific formatting for skill proficiencies, behaviour maturities,
- * modifiers, percentages, and change indicators. Generic formatters (colors,
- * tables, headers, etc.) live in @forwardimpact/libcli.
+ * These formatters are specific to Pathway. They format skill proficiencies,
+ * behaviour maturities, modifiers, percentages, and change indicators. Generic
+ * formatters (colors, tables, headers, etc.) live in @forwardimpact/libcli.
  */
 
 import { colorize, colors } from "@forwardimpact/libcli";
 
 /**
- * Format skill proficiency with color
+ * Format a skill proficiency with color
  * @param {string} level
  * @returns {string}
  */
@@ -26,7 +26,7 @@ export function formatSkillProficiency(level) {
 }
 
 /**
- * Format behaviour maturity with color
+ * Format a behaviour maturity with color
  * @param {string} maturity
  * @returns {string}
  */

@@ -1,4 +1,4 @@
-Write {{length}} of {{tone}} content explaining: {{topic}}.
+Write {{length}} of {{tone}} content that explains: {{topic}}.
 
 {{#clinical_condition}}
 Condition: {{name}} ({{severity}}).

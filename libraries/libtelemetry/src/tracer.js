@@ -4,7 +4,7 @@ import { Span } from "./span.js";
 import { extractAttributes } from "./attributes.js";
 
 /**
- * Tracer for creating and managing spans
+ * Tracer that creates and manages spans
  */
 export class Tracer {
   #serviceName;
@@ -18,9 +18,9 @@ export class Tracer {
    * @param {object} options - Tracer configuration
    * @param {string} options.serviceName - Name of the service
    * @param {object} options.spanClient - Span service client
-   * @param {Function} options.grpcMetadata - gRPC Metadata constructor for creating metadata instances
+   * @param {Function} options.grpcMetadata - gRPC Metadata constructor that creates metadata instances
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} options.clock -
-   *   Injected clock collaborator, threaded into every Span.
+   *   Injected clock collaborator. The tracer threads it into every Span.
    */
   constructor({ serviceName, spanClient, grpcMetadata, clock }) {
     if (!serviceName) throw new Error("serviceName is required");
@@ -37,7 +37,7 @@ export class Tracer {
 
   /**
    * Returns the AsyncLocalStorage for this tracer instance
-   * Used by Server to establish span context
+   * Server uses it to establish span context
    * @returns {AsyncLocalStorage} AsyncLocalStorage instance
    */
   getSpanContext() {
@@ -74,7 +74,7 @@ export class Tracer {
    * @param {string} service - Service name (e.g., 'Agent', 'Vector')
    * @param {string} method - Method name (e.g., 'ProcessStream', 'QueryItems')
    * @param {object} [request] - Request object that may contain resource_id
-   * @param {import("@grpc/grpc-js").Metadata} [metadata] - gRPC Metadata object containing trace context
+   * @param {import("@grpc/grpc-js").Metadata} [metadata] - gRPC Metadata object that contains trace context
    * @returns {Span} Started SERVER span with parent context
    */
   startServerSpan(service, method, request = null, metadata = null) {
@@ -140,7 +140,7 @@ export class Tracer {
   }
 
   /**
-   * Observes a client RPC call (outgoing) with automatic span management
+   * Observes a client RPC call (outgoing) and manages its span automatically
    * @param {string} methodName - RPC method name
    * @param {object} request - Request object
    * @param {Function} callFn - Function that executes the gRPC call with metadata
@@ -167,17 +167,18 @@ export class Tracer {
       return response;
     } catch (error) {
       span.setError(error);
-      // End span before propagating error
+      // End span before the error propagates
       await span.end();
 
-      // Enrich error with trace context for debugging
+      // Enrich error with trace context so you can debug it
       this.#enrichErrorWithTraceContext(error, span);
       throw error;
     }
   }
 
   /**
-   * Observes a client streaming RPC call (outgoing) with automatic span management
+   * Observes a client streaming RPC call (outgoing) and manages its span
+   * automatically
    * @param {string} methodName - RPC method name
    * @param {object} request - Request object
    * @param {Function} callFn - Function that executes the gRPC call with metadata and returns a stream
@@ -220,14 +221,14 @@ export class Tracer {
   }
 
   /**
-   * Observes a server RPC handler (incoming) with automatic span management
+   * Observes a server RPC handler (incoming) and manages its span automatically
    * @param {string} methodName - RPC method name
    * @param {object} call - gRPC call object with metadata and request
-   * @param {Function} handlerFn - Business logic handler function
+   * @param {Function} handlerFn - Handler function for the business logic
    * @returns {Promise<object>} Response object
    */
   async observeServerUnaryCall(methodName, call, handlerFn) {
-    // Start SERVER span with metadata extraction
+    // Start SERVER span and extract the metadata
     const span = this.startServerSpan(
       this.#serviceName,
       methodName,
@@ -249,11 +250,11 @@ export class Tracer {
       } catch (error) {
         span.setError(error);
 
-        // Enrich error with trace context for debugging
+        // Enrich error with trace context so you can debug it
         this.#enrichErrorWithTraceContext(error, span);
         throw error;
       } finally {
-        // End span before returning
+        // End span before the handler returns
         await span.end();
       }
     };
@@ -263,14 +264,15 @@ export class Tracer {
   }
 
   /**
-   * Observes a server streaming RPC handler (incoming) with automatic span management
+   * Observes a server streaming RPC handler (incoming) and manages its span
+   * automatically
    * @param {string} methodName - RPC method name
    * @param {object} call - gRPC call object with metadata and request
-   * @param {Function} handlerFn - Business logic handler function
+   * @param {Function} handlerFn - Handler function for the business logic
    * @returns {Promise<void>}
    */
   async observeServerStreamingCall(methodName, call, handlerFn) {
-    // Start SERVER span with metadata extraction
+    // Start SERVER span and extract the metadata
     const span = this.startServerSpan(
       this.#serviceName,
       methodName,
@@ -290,10 +292,10 @@ export class Tracer {
         await span.end();
       } catch (error) {
         span.setError(error);
-        // End span before propagating error
+        // End span before the error propagates
         await span.end();
 
-        // Enrich error with trace context for debugging
+        // Enrich error with trace context so you can debug it
         this.#enrichErrorWithTraceContext(error, span);
         throw error;
       }
@@ -305,7 +307,7 @@ export class Tracer {
 
   /**
    * Extracts trace context from gRPC metadata
-   * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object containing trace context
+   * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object that contains trace context
    * @param {Span} [span] - Optional span to apply trace context to
    * @private
    */
@@ -324,7 +326,7 @@ export class Tracer {
   /**
    * Sets trace context in gRPC metadata for outgoing calls
    * @param {import("@grpc/grpc-js").Metadata} metadata - gRPC Metadata object to populate
-   * @param {Span} span - Current span providing trace context
+   * @param {Span} span - Current span that provides the trace context
    * @private
    */
   #setMetadata(metadata, span) {
@@ -338,18 +340,18 @@ export class Tracer {
   }
 
   /**
-   * Enriches error with trace context for debugging and correlation
+   * Enriches error with trace context so you can debug and correlate it
    * Adds trace_id, span_id, and service_name as non-enumerable properties
-   * Logger will extract these for RFC 5424 structured data formatting
+   * Logger extracts these to format RFC 5424 structured data
    * @param {Error} error - Error object to enrich
-   * @param {Span} span - Current span providing trace context
+   * @param {Span} span - Current span that provides the trace context
    * @private
    */
   #enrichErrorWithTraceContext(error, span) {
     if (!error || typeof error !== "object") return;
 
     // Add trace context as non-enumerable properties
-    // Logger will extract these for RFC 5424 structured data
+    // Logger extracts these for RFC 5424 structured data
     // Check if properties already exist to avoid "Cannot redefine property" errors during retries
     if (!Object.hasOwn(error, "trace_id")) {
       Object.defineProperty(error, "trace_id", {

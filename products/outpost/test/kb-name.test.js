@@ -1,6 +1,6 @@
 /**
- * KBManager.kbPathForName — resolve a KB name to a data-home path, validating
- * (not sanitising) the name as a safe single segment.
+ * KBManager.kbPathForName — resolve a KB name to a data-home path. It
+ * validates the name as a safe single segment. It does not sanitise the name.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -19,7 +19,7 @@ describe("KBManager.kbPathForName", () => {
   });
 
   test("the default name Team resolves under the data home", () => {
-    // The dispatch layer defaults an absent name to `Team`; the resolved
+    // The dispatch layer defaults an absent name to `Team`. The resolved
     // path must sit under the non-TCC data home.
     assert.ok(KBManager.kbPathForName("Team").startsWith(DATA_HOME + "/"));
   });

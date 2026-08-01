@@ -21,10 +21,10 @@
     {
       "user": "Platform Builders",
       "goal": "Integrate with the Engineering Standard",
-      "trigger": "Building a product feature that needs career paths or agent profiles and realizing the derivation logic would have to live in the product.",
-      "bigHire": "query the engineering standard from any product without embedding derivation logic.",
-      "littleHire": "fetch a derived role or agent profile without reimplementing the derivation.",
-      "competesWith": "embedding libskill in each product; duplicating derivation logic; hardcoding role definitions"
+      "trigger": "A developer builds a product feature that needs career paths or agent profiles. The derivation logic must then live in the product.",
+      "bigHire": "query the engineering standard from any product without embedded derivation logic.",
+      "littleHire": "fetch a derived role or agent profile without a second implementation of the derivation.",
+      "competesWith": "libskill embedded in each product; duplicate derivation logic; hardcoded role definitions"
     }
   ],
   "type": "module",

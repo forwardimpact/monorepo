@@ -28,7 +28,7 @@ describe("subprocess.spawn kill propagation (real child)", () => {
     child.kill("SIGTERM");
 
     const [code, signal] = await Promise.all([child.exitCode, child.signal]);
-    // The child was terminated by the signal, never running to completion.
+    // The signal terminated the child. The child never ran to completion.
     assert.ok(
       signal === "SIGTERM" || code === 128 || code !== 0,
       `expected a signal-terminated child, got code=${code} signal=${signal}`,

@@ -1,18 +1,20 @@
-// Invariant: an action reference written `owner/repo@{{PLACEHOLDER}}` may appear
-// only under `.claude/skills/kata-setup/` — the generator skill that substitutes
-// the placeholder when it writes workflow files. Anywhere else there is no
-// substitution step, so the `{{PLACEHOLDER}}` reaches a consuming repo verbatim
-// and can never resolve to a real ref.
+// Invariant: an action reference in the form `owner/repo@{{PLACEHOLDER}}` may
+// appear only under `.claude/skills/kata-setup/`. That generator skill
+// substitutes the placeholder when it writes workflow files. Anywhere else
+// there is no substitution step. So the `{{PLACEHOLDER}}` reaches a consuming
+// repo verbatim. It can never resolve to a real ref.
 //
 // This is the offline-checkable slice of the former skill-ref network lint
 // (scripts/check-skill-refs.mjs, removed). That lint also probed every action
-// ref against GitHub with `git ls-remote` (does the repo/SHA/tag resolve?); the
-// invariant host is offline by contract (no subprocess, no network), so the
-// reachability assertions have no equivalent here and were dropped with it.
+// ref against GitHub with `git ls-remote` to see whether the repo, SHA, or tag
+// resolves. The invariant host is offline by contract (no subprocess, no
+// network). So the reachability assertions have no equivalent here. They
+// disappeared with the lint.
 //
 // Scope mirrors what the lint scanned: `.claude/skills/**` markdown only. The
-// kata-setup directory is excluded because that is exactly where the placeholder
-// form is legitimate. Every remaining match is a finding.
+// rule excludes the kata-setup directory, because that directory is exactly
+// where the placeholder form is legitimate. Every remaining match is a
+// finding.
 
 const PLACEHOLDER_REF =
   "[A-Za-z0-9._-]+/[A-Za-z0-9._-]+@\\{\\{[A-Z0-9_]+\\}\\}";
@@ -39,7 +41,7 @@ export default {
       id: "skill-ref.placeholder-outside-generator",
       message: (s) =>
         `${s.text.trim()} — action-ref placeholder outside .claude/skills/kata-setup/`,
-      hint: "a {{PLACEHOLDER}} in an action ref only resolves inside the kata-setup generator; elsewhere write the literal owner/repo@<ref> the consuming repo should use",
+      hint: "a {{PLACEHOLDER}} in an action ref only resolves inside the kata-setup generator. Elsewhere write the literal owner/repo@<ref> the consuming repo should use",
     }),
   ],
 };

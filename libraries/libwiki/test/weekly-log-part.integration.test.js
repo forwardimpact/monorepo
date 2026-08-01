@@ -14,10 +14,10 @@ import { tmpdir } from "node:os";
 import { rebisectOverBudgetPart } from "../src/weekly-log.js";
 import { WEEKLY_LOG_LINE_BUDGET } from "../src/constants.js";
 
-// rebisectOverBudgetPart's split branch seals via fs.renameSync, which the
-// in-memory libmock fs does not model. The non-writing branches (noop,
-// irreducible, malformed name) are unit-tested in weekly-log.test.js; the
-// renameSync-bearing split and rollback paths live here against the real fs.
+// The split branch of rebisectOverBudgetPart seals with fs.renameSync. The
+// in-memory libmock fs does not model that call. weekly-log.test.js unit-tests
+// the non-writing branches (noop, irreducible, malformed name). The split and
+// rollback paths that call renameSync live here against the real fs.
 describe("rebisectOverBudgetPart (part re-bisect)", () => {
   let wikiRoot;
   beforeEach(() => {
@@ -28,8 +28,8 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
   const SOURCE = "staff-engineer-2026-W21-part1.md";
   const PART_H1 = "# Staff Engineer — 2026-W21 (part 1 of 1)";
 
-  // A multi-day part over the line budget: each section is under the cap but
-  // jointly they overflow, so a re-bisect yields ≥2 conforming sub-parts.
+  // A multi-day part over the line budget. Each section is under the cap.
+  // Jointly they overflow, so a re-bisect yields ≥2 conforming sub-parts.
   function multiDayPart(sections = 4, linesPerSection = 150, h1 = PART_H1) {
     let text = `${h1}\n`;
     for (let s = 0; s < sections; s++) {
@@ -59,7 +59,7 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
       (f) => (f.includes("-part") && f !== SOURCE) || f.endsWith(".tmp"),
     );
 
-  test("splits a multi-day over-cap part into ≥2 conforming sub-parts, reusing the source slot", () => {
+  test("splits a multi-day over-cap part into ≥2 conforming sub-parts and reuses the source slot", () => {
     const partPath = join(wikiRoot, SOURCE);
     const original = multiDayPart();
     writeFileSync(partPath, original);
@@ -85,8 +85,9 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
 
   test("a lone over-cap day with ### blocks re-splits at block seams (fix path)", () => {
     // A single day-section (~600 lines, over the line cap) made of 4 `### `
-    // blocks, none of which alone exceeds the cap. `gemba-wiki fix` calls this and
-    // must now sub-split the day rather than report it irreducible.
+    // blocks. No single block alone exceeds the cap. `gemba-wiki fix` calls
+    // this. It must now sub-split the day. It must not report the day
+    // irreducible.
     const partPath = join(wikiRoot, SOURCE);
     let day = `${PART_H1}\n## 2026-05-19\n`;
     for (let b = 1; b <= 4; b++) {
@@ -100,7 +101,7 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.equal(
       r.status,
       "resealed",
-      "the day is split, not left irreducible",
+      "the day splits and does not stay irreducible",
     );
     assert.ok(r.parts.length >= 2);
     for (const p of r.parts) {
@@ -115,9 +116,10 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.equal(rejoined, bodyOf(day), "content preserved byte-for-byte");
   });
 
-  test("appends overflow to the next free main-log slots, skipping occupied siblings", () => {
-    // Source is part2; part1 and part4 already exist. Overflow must claim the
-    // next free slot (part3), never clobbering the occupied part4.
+  test("appends overflow to the next free main-log slots and skips occupied siblings", () => {
+    // The source is part2. The files part1 and part4 already exist. Overflow
+    // must claim the next free slot (part3). It must never clobber the
+    // occupied part4.
     writeFileSync(join(wikiRoot, "staff-engineer-2026-W21-part1.md"), "# p1\n");
     const part4 = join(wikiRoot, "staff-engineer-2026-W21-part4.md");
     writeFileSync(part4, "# preexisting part 4\n");
@@ -127,13 +129,20 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     const r = rebisectOverBudgetPart(partPath, nodeFs);
 
     assert.equal(r.status, "resealed");
-    assert.equal(r.parts[0], partPath, "source slot part2 is reused");
+    assert.equal(
+      r.parts[0],
+      partPath,
+      "the re-bisect reuses the source slot part2",
+    );
     assert.match(
       r.parts[1],
       /-part3\.md$/,
       "overflow claims the next free slot",
     );
-    assert.ok(!r.parts.includes(part4), "occupied part4 is not claimed");
+    assert.ok(
+      !r.parts.includes(part4),
+      "the re-bisect does not claim the occupied part4",
+    );
     assert.equal(
       readFileSync(part4, "utf-8"),
       "# preexisting part 4\n",
@@ -144,7 +153,7 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
   test("re-bisects a word-only-over part into conforming sub-parts", () => {
     const partPath = join(wikiRoot, SOURCE);
     // 2 day-sections @ 200 lines × 20 words ≈ 8000 words > 6400, ~400 lines
-    // < 496 — only the word budget is breached.
+    // < 496. The fixture breaches only the word budget.
     let text = `${PART_H1}\n`;
     for (let s = 0; s < 2; s++) {
       text += `## 2026-05-${String(19 + s).padStart(2, "0")}\n`;
@@ -158,7 +167,7 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.ok(r.parts.length >= 2, "word overflow splits into ≥2 sub-parts");
   });
 
-  test("incomplete: a reducible part holding one irreducible section still splits and flags", () => {
+  test("incomplete: a reducible part with one irreducible section still splits and flags", () => {
     const partPath = join(wikiRoot, SOURCE);
     let text = `${PART_H1}\n## 2026-05-18\nx\n## 2026-05-19\n`;
     for (let i = 0; i < 600; i++) text += "filler\n";
@@ -170,18 +179,19 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     assert.equal(r.residue.section, "2026-05-19");
     assert.ok(
       r.parts.includes(r.residue.path),
-      "residue path is among the parts",
+      "the residue path is among the parts",
     );
     assert.ok(r.parts.length >= 2, "the reducible sections still split out");
-    // Even when a residue survives, no content is dropped: the sub-part bodies
-    // (source slot included) concatenate back to the original body.
+    // Even when a residue survives, the re-bisect drops no content. The
+    // sub-part bodies (source slot included) concatenate back to the original
+    // body.
     const rejoined = r.parts
       .map((p) => bodyOf(readFileSync(p, "utf-8")))
       .join("");
     assert.equal(rejoined, bodyOf(text), "content preserved byte-for-byte");
   });
 
-  test("derives agent and week from the filename, naming new slots and H1s for that week", () => {
+  test("derives agent and week from the filename, then names new slots and H1s for that week", () => {
     const partPath = join(wikiRoot, "staff-engineer-2026-W10-part1.md");
     let text = "# Staff Engineer — 2026-W10 (part 1 of 1)\n";
     for (let s = 0; s < 4; s++) {
@@ -192,7 +202,11 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
 
     const r = rebisectOverBudgetPart(partPath, nodeFs);
     assert.equal(r.status, "resealed");
-    assert.equal(r.parts[0], partPath, "the past-week source slot is reused");
+    assert.equal(
+      r.parts[0],
+      partPath,
+      "the re-bisect reuses the past-week source slot",
+    );
     assert.match(r.parts[1], /staff-engineer-2026-W10-part2\.md$/);
     assert.match(
       readFileSync(r.parts[1], "utf-8"),
@@ -201,13 +215,13 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     );
   });
 
-  test("atomic: a failure committing a later new slot unwinds committed slots, source intact", () => {
+  test("atomic: a failure on a later new-slot commit unwinds committed slots, source intact", () => {
     const partPath = join(wikiRoot, SOURCE);
     const original = multiDayPart(7); // 3 sub-parts → 2 new slots
     writeFileSync(partPath, original);
     const inodeBefore = statSync(partPath).ino;
 
-    // Throw on the 2nd renameSync: ≥1 new slot already committed.
+    // Throw on the 2nd renameSync. ≥1 new slot is already committed.
     assert.throws(
       () => rebisectOverBudgetPart(partPath, flakyRename(2)),
       /disk full/,
@@ -231,7 +245,7 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     writeFileSync(partPath, original);
     const inodeBefore = statSync(partPath).ino;
 
-    // 1st rename commits the new slot; the 2nd (final) source rename fails.
+    // The 1st rename commits the new slot. The 2nd (final) source rename fails.
     assert.throws(
       () => rebisectOverBudgetPart(partPath, flakyRename(2)),
       /disk full/,

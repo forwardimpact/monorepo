@@ -1,17 +1,17 @@
 name: Jidoka
 description: |
-  Run the jidoka checks against the repository — built-in quality for the
-  layered instruction architecture defined in JIDOKA.md: stop the line at
-  the first drifted layer, stale jobs block, or broken invariant.
+  Run the jidoka checks against the repository. The checks build in quality
+  for the layered instruction architecture that JIDOKA.md defines. They stop
+  the line at the first drifted layer, stale jobs block, or broken invariant.
 
-  When `command` is omitted, every check runs (instructions and jtbd). When
-  `command` is set to "instructions", "jtbd", or "invariants", only that
+  When you omit `command`, every check runs (instructions and jtbd). When you
+  set `command` to "instructions", "jtbd", or "invariants", only that
   subcommand runs.
 
-  Assumes the workspace has already been bootstrapped by
-  forwardimpact/bootstrap, which installs `jidoka` as a pinned gear
-  binary on PATH (it is one of the default tools). The binary is required —
-  there is no bunx/npx fallback.
+  This action assumes forwardimpact/bootstrap already bootstrapped the
+  workspace. That action installs `jidoka` as a pinned gear binary on PATH
+  (it is one of the default tools). The binary is required. There is no
+  bunx/npx fallback.
 
 inputs:
   command:
@@ -37,8 +37,8 @@ runs:
         COMMAND: ${{ inputs.command }}
         FIX: ${{ inputs.fix }}
       run: |
-        # jidoka is a pinned gear binary on PATH (a default bootstrap tool) —
-        # assumed present. It validates its own command/flag set.
+        # jidoka is a pinned gear binary on PATH (a default bootstrap tool).
+        # Assume it is present. It validates its own command/flag set.
         args=()
         [ -n "$COMMAND" ] && args+=("$COMMAND")
         [ "$FIX" = "true" ] && args+=("--fix")

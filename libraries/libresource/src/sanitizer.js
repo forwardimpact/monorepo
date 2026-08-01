@@ -45,7 +45,7 @@ export const SANITIZE_PATTERNS = [
 ];
 
 /**
- * Apply all matching patterns to a text value, returning the transformed value.
+ * Apply all patterns that match the text value. Return the transformed value.
  * @param {string} value - The text value to sanitize
  * @param {Array} patterns - Pattern definitions
  * @returns {string} The sanitized text value
@@ -79,7 +79,7 @@ export function sanitizeDom(document, patterns = SANITIZE_PATTERNS) {
       if (value !== original) node.nodeValue = value;
     }
   } catch {
-    // Ignore sanitizer errors to avoid disrupting processing
+    // Ignore sanitizer errors so the caller continues
   }
   return document;
 }

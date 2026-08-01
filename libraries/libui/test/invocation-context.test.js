@@ -3,8 +3,9 @@ import assert from "node:assert";
 
 import { freezeInvocationContext } from "../src/invocation-context.js";
 
-// Fixture is intentionally identical to libraries/libcli/test/invocation-context.test.js
-// to serve as a drift gate (design D1). Change both together.
+// The fixture is intentionally identical to
+// libraries/libcli/test/invocation-context.test.js. It serves as a drift gate
+// (design D1). Change both together.
 const fixture = {
   data: { skills: ["a", "b"] },
   args: { id: "testing" },

@@ -1,15 +1,15 @@
 /**
- * Advisor — the judge's mid-loop sibling: a solo, tool-restricted, one-shot
- * `AgentRunner` session on a stronger model whose final text is the advice.
- * Each consult forwards the caller's whole recorded context (system prompt,
- * delivered prompts, transcript so far) plus a focused question; the advisor
- * can inspect files read-only but holds no write, execute, subagent, or
- * orchestration tools and never appears on the message bus.
+ * Advisor — the judge's mid-loop sibling. It is a solo, tool-restricted,
+ * one-shot `AgentRunner` session on a stronger model. Its final text is the
+ * advice. Each consult forwards the caller's whole recorded context (system
+ * prompt, delivered prompts, transcript so far) plus a focused question. The
+ * advisor can inspect files read-only. It holds no write, execute, subagent,
+ * or orchestration tools. It never appears on the message bus.
  *
- * Consults are stateless — one fresh session per call, re-reading the
- * caller's context as it stands — and fail-open: timeout, error, and abort
- * all resolve to an in-band `{unavailable}` result so the caller's session
- * never stalls or crashes on a consult.
+ * Consults are stateless. Each call runs one fresh session that reads the
+ * caller's context as it stands. Consults also fail open. A timeout, an
+ * error, and an abort all resolve to an in-band `{unavailable}` result, so
+ * the caller's session never stalls or crashes on a consult.
  *
  * Follows OO+DI: factory function, tests inject a fake `query`.
  */
@@ -20,39 +20,42 @@ import { createAgentRunner } from "./agent-runner.js";
 import { composeSystemPrompt } from "./profile-prompt.js";
 
 /**
- * System-prompt trailer for the advisor session. Fixes the response
- * contract (spec criterion "Advice is bounded"): assessment,
- * recommendation, unsolicited findings, with a stated length ceiling.
+ * System-prompt trailer for the advisor session. It fixes the response
+ * contract (spec criterion "Advice is bounded"). The contract is an
+ * assessment, a recommendation, and unsolicited findings, with a stated
+ * length ceiling.
  */
 export const ADVISOR_SYSTEM_PROMPT =
-  "You are a consulted specialist, not a worker. " +
-  "Another agent paused its work to ask you one question; its full session context and the question are in the task. " +
-  "You may Read, Glob, and Grep the files the transcript names to ground your advice; never modify anything. " +
-  "Respond in one turn of prose — your final text is delivered to the caller verbatim. " +
+  "You are a consulted specialist. You are not a worker. " +
+  "Another agent paused its work to ask you one question. Its full session context and the question are in the task. " +
+  "You may Read, Glob, and Grep the files the transcript names to ground your advice. You must never modify anything. " +
+  "Respond in one turn of prose. The caller receives your final text verbatim. " +
   "Structure the response as: assessment (what you see), recommendation (what to do and why), and unsolicited findings (anything important the caller did not ask about). " +
   "Keep the whole response to at most three short paragraphs. " +
-  "Do not ask follow-up questions — the caller cannot reply.";
+  "Do not ask follow-up questions. The caller cannot reply.";
 
 /**
  * Consult-guidance fragment for caller system prompts, present only when
- * the session runs with an advisor model. Steers the caller's judgment; it
- * mandates nothing.
+ * the session runs with an advisor model. It steers the caller's judgment.
+ * It mandates nothing.
  * @param {number} maxUses - The session-wide consult budget.
  * @returns {string}
  */
 export function advisorGuidance(maxUses) {
   return (
-    "An `Advisor` tool is available: one focused question per call, answered by a stronger model that sees your full session context. " +
-    "A consult pays off at hard decision points — architectural forks, unclear root causes, trade-offs you cannot rank — and early, before work builds on an unvalidated assumption. " +
+    "An `Advisor` tool is available. It takes one focused question per call. A stronger model that sees your full session context answers it. " +
+    "A consult pays off at hard decision points, such as architectural forks, unclear root causes, and trade-offs you cannot rank. " +
+    "A consult also pays off early, before work builds on an unvalidated assumption. " +
     "It does not pay off for routine reads, writes, or searches. " +
-    `The session-wide budget is ${maxUses} consult${maxUses === 1 ? "" : "s"}, shared across all participants. ` +
-    "Consulting is your judgment, never mandatory."
+    `The session-wide budget is ${maxUses} consult${maxUses === 1 ? "" : "s"}, which all participants share. ` +
+    "A consult is your judgment. It is never mandatory."
   );
 }
 
 /**
- * Create the session-wide consult budget, shared by every caller's tool
- * handler. Enforced in code by the tool handler, not in the prompt.
+ * Create the session-wide consult budget. Every caller's tool handler
+ * shares it. The tool handler enforces the budget in code. The prompt does
+ * not enforce it.
  * @param {number} maxUses
  * @returns {{maxUses: number, used: number}}
  */
@@ -62,7 +65,7 @@ export function createAdvisorBudget(maxUses) {
 
 /**
  * Fold the consult guidance into an existing run-specific amendment when
- * the advisor is enabled (budget present); return the amendment unchanged
+ * the advisor is enabled (budget present). Return the amendment unchanged
  * otherwise, so advisor-off prompts stay byte-identical.
  * @param {string|undefined} amend - The existing amendment, if any.
  * @param {{maxUses: number}|null} budget
@@ -73,16 +76,19 @@ export function withAdvisorGuidance(amend, budget) {
   return [amend, advisorGuidance(budget.maxUses)].filter(Boolean).join("\n\n");
 }
 
-/** Consult timeout — generous for a read-a-few-files-and-answer session, and the universal guard in modes with no stop path. */
+/**
+ * Consult timeout. It is generous for a read-a-few-files-and-answer
+ * session. It is also the universal guard in modes with no stop path.
+ */
 export const DEFAULT_CONSULT_TIMEOUT_MS = 300_000;
 
 const ADVISOR_ALLOWED_TOOLS = ["Read", "Glob", "Grep"];
 
 // Under the harness's always-on bypassPermissions, `allowedTools` alone is
-// not structural — `disallowedTools` is what removes tools from the model's
-// context, the same treatment the lead runners get. The advisor's contract
-// is stricter than the leads' (read-only inspection, nothing else), so the
-// list also removes the write-capable and non-inspection built-ins the
+// not structural. `disallowedTools` removes tools from the model's context.
+// The lead runners get the same treatment. The advisor's contract is
+// stricter than the leads' (read-only inspection, nothing else). So the
+// list also removes the write-capable and non-inspection built-ins that the
 // lead convention leaves in.
 const ADVISOR_DISALLOWED_TOOLS = [
   "Bash",
@@ -105,18 +111,18 @@ const devNull = new Writable({
 });
 
 /**
- * Create a per-caller advisor closed over that caller's transcript
+ * Create a per-caller advisor that closes over that caller's transcript
  * recorder.
  *
  * @param {object} deps
  * @param {string} deps.model - Advisor model id.
- * @param {string} deps.cwd - The caller's working directory, so read-only inspection sees the caller's files.
- * @param {function} deps.query - SDK query function (injected for testing).
+ * @param {string} deps.cwd - The caller's working directory, so the read-only tools see the caller's files.
+ * @param {function} deps.query - SDK query function (tests inject it).
  * @param {{render: () => string}} deps.recorder - The caller's transcript recorder.
  * @param {import("./redaction.js").Redactor} deps.redactor
  * @param {import("@forwardimpact/libutil/runtime").Runtime} deps.runtime - Clock surface for timeout and duration.
- * @param {function} deps.onLine - Re-emitter for the advisor session's NDJSON lines (tagged `source: "advisor"` by the caller).
- * @param {number} [deps.maxTurns] - Default 5 — single-digit per the spec criterion.
+ * @param {function} deps.onLine - Re-emitter for the advisor session's NDJSON lines (the caller tags them `source: "advisor"`).
+ * @param {number} [deps.maxTurns] - Default 5, which is single-digit per the spec criterion.
  * @param {number} [deps.timeoutMs] - Default `DEFAULT_CONSULT_TIMEOUT_MS`.
  * @returns {{consult: (question: string) => Promise<{advice?: string, unavailable?: boolean, reason?: string, durationMs: number}>, abort: () => void}}
  */
@@ -147,7 +153,7 @@ export function createAdvisor({
   return {
     /**
      * Run one fresh advisor session over the caller's context as it
-     * stands plus the question. Never rejects — every failure shape
+     * stands plus the question. It never rejects. Every failure shape
      * resolves to `{unavailable, reason}` (fail-open).
      * @param {string} question
      */
@@ -207,9 +213,9 @@ export function createAdvisor({
     },
 
     /**
-     * Abort the in-flight consult, if any. A consult is a blocking tool
-     * call, so one caller cannot overlap its own consults; advisors are
-     * per-caller, so at most one runner is ever tracked.
+     * Abort the in-flight consult, if any. A consult is a tool call that
+     * blocks, so one caller cannot overlap its own consults. Each advisor
+     * belongs to one caller, so the code tracks at most one runner.
      */
     abort() {
       currentRunner?.currentAbortController?.abort();

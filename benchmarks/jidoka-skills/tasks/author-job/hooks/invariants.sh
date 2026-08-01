@@ -3,12 +3,12 @@ set -u
 JTBD="$AGENT_CWD/JTBD.md"
 check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }
 
-# The file must exist; the seed had no job, so every content check below only
+# The file must exist. The seed had no job, so every content check below only
 # passes on what the agent added.
 check jtbd-present --gate --exists "$JTBD"
 
-# A job wrapped in a <job> tag carrying both self-describing attributes. Match
-# the opening tag with a following attribute (case-insensitive, multiline), so a
+# A job wrapped in a <job> tag with both self-describing attributes. Match the
+# opening tag plus an attribute after it (case-insensitive, multiline), so a
 # bare mention or a closing </job> does not satisfy it.
 check has-job-tag  --grep '<job ' "$JTBD" \
   --message "no opening <job> tag"

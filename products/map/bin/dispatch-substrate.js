@@ -1,17 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * Substrate subcommand dispatch — extracted from `bin/fit-map.js` so the
- * CLI entry point stays under biome's `nursery/noExcessiveLinesPerFile`
- * cap (`biome.json`: `maxLines: 530, skipBlankLines: true`).
+ * Substrate subcommand dispatch. This module sits outside `bin/fit-map.js`
+ * so the CLI entry point stays under biome's
+ * `nursery/noExcessiveLinesPerFile` cap
+ * (`biome.json`: `maxLines: 530, skipBlankLines: true`).
  *
- * Only `stage` lives here: the identity verbs (provision, pick, roster,
+ * Only `stage` lives here. The identity verbs (provision, pick, roster,
  * issue) moved to `fit-terrain substrate` behind the Substrate Contract.
  *
  * Callers pass `{ config, cli, runtime }` so this module stays dep-free at
  * import time (no Supabase init, no CLI singleton). `runtime` is the
- * injected collaborator bag threaded from `bin/fit-map.js` (the sole
- * construction site).
+ * injected collaborator bag. `bin/fit-map.js` threads it through. That file
+ * is the sole construction site.
  */
 
 import { fileURLToPath } from "node:url";
@@ -46,14 +47,16 @@ export async function dispatchSubstrate(subcommand, _rest, values, deps) {
 
 const USAGE = `dispatch-substrate <stage> [options]
 
-Single-flow entry for the Landmark-substrate staging pipeline (normally
-invoked as \`fit-map substrate stage\`). Constructs the default runtime and
-dispatches. Persona identity verbs live in \`fit-terrain substrate\`.`;
+Single-flow entry for the pipeline that stages the Landmark substrate. You
+normally run it as \`fit-map substrate stage\`. It constructs the default
+runtime. Then it dispatches. Persona identity verbs live in
+\`fit-terrain substrate\`.`;
 
 /**
  * Single-flow entry point. The bin is the sole construction site for the
- * injected runtime bag and the only caller of runtime.proc.exit (design
- * Decision 4). Version/help/usage paths never touch Supabase.
+ * injected runtime bag. It is also the only caller of runtime.proc.exit
+ * (design Decision 4). The version, help, and usage paths never touch
+ * Supabase.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime
  */
 async function main(runtime) {
@@ -112,8 +115,9 @@ function parseValues(rest) {
   return values;
 }
 
-// Run as a standalone bin only when invoked directly (not when imported by
-// bin/fit-map.js, which threads its own runtime through dispatchSubstrate).
+// Run as a standalone bin only when Node runs this file directly. An import
+// from bin/fit-map.js does not run it. That file threads its own runtime
+// through dispatchSubstrate.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const { createDefaultRuntime } = await import(
     "@forwardimpact/libutil/runtime"

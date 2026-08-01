@@ -1,25 +1,25 @@
 ---
 title: "Getting Started: Landmark for Engineers"
-description: "Check your evidence record, promotion readiness, growth timeline, and skill coverage against your agent-aligned engineering standard markers."
+description: "Check your evidence record, promotion readiness, growth timeline, and skill coverage against the markers in your agent-aligned engineering standard."
 ---
 
-Landmark gives you visibility into your own practice evidence and growth data —
-showing what your engineering record looks like against your agent-aligned
-engineering standard's markers.
+Landmark gives you visibility into your own practice evidence and growth data.
+It shows what your engineering record looks like against the markers in your
+agent-aligned engineering standard.
 
-Landmark requires Map's activity layer (Supabase). If your organization has
-already set this up, Landmark works immediately. If not, ask your engineering
-leader to follow the [Map setup guide](/docs/getting-started/leaders/map/). One
-command works without Supabase: `marker` reads directly from your
-agent-aligned engineering standard YAML.
+Landmark requires Map's activity layer (Supabase). If your organization already
+set this up, Landmark works immediately. If not, ask your engineering leader to
+follow the [Map setup guide](/docs/getting-started/leaders/map/). One command
+works without Supabase. `marker` reads directly from the YAML for your
+agent-aligned engineering standard.
 
 ## Prerequisites
 
 - Node.js 22+
 - npm
-- Map's activity layer running and populated (for most commands)
+- Map's activity layer up and populated (for most commands)
 - A Landmark session created with `fit-landmark login` for every command except
-  `marker` — see [Sign In to Landmark](/docs/products/signing-in-to-landmark/)
+  `marker`. See [Sign In to Landmark](/docs/products/signing-in-to-landmark/)
   for the full flow
 
 ## Install
@@ -35,17 +35,18 @@ npx fit-landmark login --email you@example.com
 ```
 
 `login` walks Supabase's magic-link flow and stores the session (0600) in your
-platform's config directory — `~/.config/landmark/credentials.json` on Linux;
-see [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the macOS
-and Windows paths. Subsequent commands resolve your identity automatically. Use
+platform's config directory. On Linux that is
+`~/.config/landmark/credentials.json`. See
+[Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the macOS and
+Windows paths. Subsequent commands resolve your identity automatically. Use
 `--otp` to skip the browser and paste the six-digit code instead. If your email
-is not in the activity roster, login fails — your operator runs
+is not in the activity roster, login fails. Your operator runs
 `fit-terrain substrate provision` to keep `auth.users` synchronized.
 
 ## Browse marker definitions
 
-Look up the observable indicators defined for any skill — useful for
-understanding what evidence is expected at each proficiency level:
+Look up the observable indicators defined for any skill. This helps you
+understand what evidence each proficiency level expects:
 
 ```sh
 npx fit-landmark marker data-integration
@@ -98,11 +99,11 @@ npx fit-landmark evidence --email you@example.com
 ```
 
 Each row shows the marker, whether it matched, the rationale for the
-assessment, and where the evidence came from — rows are labelled by
-provenance, distinguishing Map's direct artifact matches from Guide's deeper
-assessments. Guide evaluates your GitHub artifacts (PRs, reviews, commits)
-against each marker in the background — you see the results here. Filter by
-`--skill` to focus on a specific area.
+assessment, and where the evidence came from. Each row also carries a
+provenance label. The label separates Map's direct artifact matches from
+Guide's deeper assessments. Guide evaluates your GitHub artifacts (PRs,
+reviews, commits) against each marker in the background. You see the results
+here. Filter by `--skill` to focus on a specific area.
 
 ## View your skill coverage
 
@@ -112,12 +113,12 @@ See how complete your evidence record is across all expected skills:
 npx fit-landmark coverage --email you@example.com
 ```
 
-Coverage shows evidenced artifacts versus total expected markers — a quick gauge
-of where your record is strong and where it has gaps.
+Coverage shows evidenced artifacts versus total expected markers. It gauges
+where your record is strong and where it has gaps.
 
 ## Check promotion readiness
 
-See which next-level markers you have already evidenced and which are still
+See which next-level markers you already evidenced and which are still
 outstanding:
 
 ```sh
@@ -137,21 +138,21 @@ Readiness: you@example.com (J060 → J070)
       [ ] Defined component, API, and data access patterns adopted by the team.
 ```
 
-Each unchecked marker is one you have not yet evidenced at the target level.
-Without `--target`, readiness checks against the next level above your current
-level. With `--target`, you can check against any specific level.
+Each unchecked marker has no evidence from you at the target level. Without
+`--target`, readiness checks against the next level above your current level.
+With `--target`, you can check against any specific level.
 
 ## Track your growth timeline
 
-See how your evidence has accumulated over time, aggregated by quarter:
+See how your evidence accumulates over time, aggregated by quarter:
 
 ```sh
 npx fit-landmark timeline --email you@example.com
 npx fit-landmark timeline --email you@example.com --skill system_design
 ```
 
-Timelines help you see whether growth is accelerating, stalling, or concentrated
-in one area. Add `--skill` to focus on a specific capability.
+Timelines help you see whether growth accelerates, stalls, or concentrates in
+one area. Add `--skill` to focus on a specific capability.
 
 ## Read your voice comments
 

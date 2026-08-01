@@ -3,15 +3,16 @@ title: Analyze Traces
 description: See exactly what an agent did and why — download traces, query turns, filter by tool or error, and measure token cost.
 ---
 
-You need to see exactly what the agent did so you can debug failures and verify
-improvements. `gemba-trace` reads the NDJSON traces produced by `gemba-harness`
-and gives you structured queries over every turn, tool call, and result.
+You need to see exactly what the agent did so you can debug failures and
+verify improvements. `gemba-trace` reads the NDJSON traces that
+`gemba-harness` produces. It gives you structured queries over every turn,
+tool call, and result.
 
 ## Prerequisites
 
 - Node.js 22+
-- A trace file -- either `--output` from a `gemba-harness` run, or downloaded
-  from CI with `gemba-trace download`
+- A trace file, either the `--output` from a `gemba-harness` run or a file you
+  download from CI with `gemba-trace download`
 
 ## Get the trace
 
@@ -25,15 +26,16 @@ npx gemba-trace download 24497273755        # downloads to /tmp/trace-2449727375
 
 The download extracts the artifact zip
 (`trace--<case>--<participant>.<role>.ndjson` files plus the combined
-`trace--<case>.raw.ndjson`) and produces a `structured.json` derived from the
+`trace--<case>.raw.ndjson`). It then derives a `structured.json` from the
 first NDJSON file. Both NDJSON files and `structured.json` work as input to
 every query command below.
 
 ## Orient with the overview
 
-Start with the bird's-eye view before drilling into individual turns. Analysis
-verbs take their trace files through `--file`, and print human-readable text by
-default; add `--format json` for the machine-parseable envelope:
+Start with the bird's-eye view before you drill into individual turns.
+Analysis verbs take their trace files through `--file`. They print
+human-readable text by default. Add `--format json` for the machine-parseable
+envelope:
 
 ```sh
 npx gemba-trace overview --file /tmp/trace-24497273755/structured.json --format json
@@ -48,8 +50,8 @@ npx gemba-trace overview --file /tmp/trace-24497273755/structured.json --format 
 }
 ```
 
-The `timeline` command shows the shape of the session at a glance -- one line
-per assistant turn with tools used and token counts:
+The `timeline` command shows the shape of the session at a glance. It prints
+one line per assistant turn, with the tools used and the token counts:
 
 ```sh
 npx gemba-trace timeline --file /tmp/trace-24497273755/structured.json
@@ -75,15 +77,15 @@ assistant turn that made the call, and the error content.
 
 ## Filter by tool or role
 
-See every turn where the agent used a specific tool, including both the
-`tool_use` request and its `tool_result` response:
+See every turn where the agent used a specific tool. The output holds both
+the `tool_use` request and its `tool_result` response:
 
 ```sh
 npx gemba-trace tool /tmp/trace-24497273755/structured.json Bash
 ```
 
 `tool` takes the trace file as a positional (it pins a single trace plus a
-tool name). Or use `filter` for structural queries -- by role, tool name, or
+tool name). Or use `filter` for structural queries by role, tool name, or
 error status:
 
 ```sh
@@ -101,14 +103,14 @@ file is a positional):
 npx gemba-trace search /tmp/trace-24497273755/structured.json 'permission denied' --context 1
 ```
 
-`--context 1` includes one surrounding turn on each side of every match.
+`--context 1` includes one turn on each side of every match.
 `--limit 10` caps the number of results. `--full` emits the complete content
 block instead of a short excerpt.
 
 ## Read the agent's reasoning
 
-Extract just the text blocks from assistant turns to see what the agent said it
-would do (as distinct from what its tool calls actually did):
+The text blocks in assistant turns show what the agent said it would do. The
+tool calls show what it actually did. Extract just the text blocks:
 
 ```sh
 npx gemba-trace reasoning --file /tmp/trace-24497273755/structured.json --from 5 --to 15
@@ -121,7 +123,7 @@ npx gemba-trace reasoning --file /tmp/trace-24497273755/structured.json --from 5
 ]
 ```
 
-Comparing `reasoning` output to actual `tool` calls reveals mismatches between
+Compare `reasoning` output to actual `tool` calls to find mismatches between
 intent and execution.
 
 ## Measure token usage and cost
@@ -142,33 +144,33 @@ npx gemba-trace stats --file /tmp/trace-24497273755/structured.json --format jso
 }
 ```
 
-The totals are the sum over **all** result events in the trace — a supervised or
-facilitated session carries one per invocation, and reading only the last one
-undercounts session cost. The `perTurn` breakdown is one row per API message
-(its `outputTokens` is a streaming-snapshot lower bound, not the final count),
-and every figure names its population. A trace with no result event still
-reports per-message totals, with cost and duration marked unavailable rather
-than a misleading `0`.
+The totals are the sum over **all** result events in the trace. A supervised
+or facilitated session carries one result event per invocation. If you read
+only the last one, you undercount the session cost. The `perTurn` breakdown is
+one row per API message. Its `outputTokens` comes from a snapshot of the
+stream, so it is a lower bound. It is not the final count. Every figure names
+its population. A trace with no result event still reports per-message totals.
+It marks cost and duration unavailable instead of a misleading `0`.
 
-`stats --by-tool` attributes token usage and a cost-share fraction (summing to
-1.0) to each tool, with turns that made no tool call landing in the `(no-tool)`
-bucket; `stats --summary` prints the totals block only. Both views report the
-same result-event totals, so their per-bucket token sums match the un-flagged
-`stats` totals.
+`stats --by-tool` attributes token usage and a cost-share fraction to each
+tool. The fractions sum to 1.0. Turns that made no tool call land in the
+`(no-tool)` bucket. `stats --summary` prints the totals block only. Both views
+report the same result-event totals, so their per-bucket token sums match the
+un-flagged `stats` totals.
 
-Track these numbers across runs over time. A single trace is a snapshot; a
-series shows whether changes are landing.
+Track these numbers across runs over time. A single trace is a snapshot. A
+series shows whether the changes land.
 
 ## Split multi-agent traces
 
 For supervised or facilitated runs, split the combined trace into per-source
-files so you can see what each agent saw independently:
+files. Then you can see what each agent saw independently:
 
 ```sh
 npx gemba-trace split /tmp/trace-24497273755/structured.json --mode=facilitate --case=demo
 ```
 
-This produces files in the same directory following the
+This produces files in the same directory. The names follow the
 `trace--<case>--<participant>.<role>.ndjson` convention:
 `trace--demo--facilitator.facilitator.ndjson` and one
 `trace--demo--<participant>.agent.ndjson` per participant. Each file works as
@@ -176,8 +178,8 @@ input to every query command above.
 
 For supervised runs, use `--mode=supervise` to get
 `trace--<case>--agent.agent.ndjson` and
-`trace--<case>--supervisor.supervisor.ndjson`. `--case` defaults to `default`;
-matrix workflows pass the case id so per-shard artifacts stay isolated.
+`trace--<case>--supervisor.supervisor.ndjson`. `--case` defaults to `default`.
+Matrix workflows pass the case id, so per-shard artifacts stay isolated.
 
 ## Navigate individual turns
 
@@ -191,20 +193,21 @@ npx gemba-trace tail --file /tmp/trace-24497273755/structured.json --lines 5
 ```
 
 `turn` and `batch` are single-file (positional). `batch` returns turns in the
-half-open range `[from, to)`. `head` and `tail` are cross-trace (`--file`) and
-take their count via `--lines`, defaulting to 10.
+half-open range `[from, to)`. `head` and `tail` are cross-trace (`--file`).
+They take their count through `--lines`, which defaults to 10.
 
 ## Aggregate without writing wrappers
 
 Three verbs answer the questions that used to need a script. `tool-calls`
-emits one record per `tool_use` block, each paired with its `tool_result` by
-`toolUseId` (orphaned calls show `(no result)` and are never dropped):
+emits one record per `tool_use` block. It pairs each block with its
+`tool_result` by `toolUseId`. Orphaned calls show `(no result)`, and
+`tool-calls` never drops them:
 
 ```sh
 npx gemba-trace tool-calls --file /tmp/trace-24497273755/structured.json
 ```
 
-`commands` lists every Bash command (filter with `--match <regex>`); `paths`
+`commands` lists every Bash command (filter with `--match <regex>`). `paths`
 gives a frequency-sorted list of the distinct `Read`/`Edit`/`Write` file paths
 (filter with `--prefix`):
 
@@ -214,22 +217,22 @@ npx gemba-trace paths --file /tmp/trace-24497273755/structured.json --prefix /ap
 ```
 
 These sit next to `tool` (every turn for one tool) and `tools` (frequency
-across all tools) -- reach for `tool-calls` when you want the use/result
-pairing in one record.
+across all tools). Reach for `tool-calls` when you want one record that holds
+both the use and the result.
 
 ## Compare two traces
 
-`compare` puts two traces side by side -- turn count, distinct tools, paths
-touched, cost, and a per-tool delta -- with each side's case name and
-participant in the header:
+`compare` puts two traces side by side. It reports turn count, distinct tools,
+paths touched, cost, and a per-tool delta. The header shows the case name and
+the participant for each side:
 
 ```sh
 npx gemba-trace compare trace--demo--agent.agent.ndjson trace--demo--supervisor.supervisor.ndjson
 ```
 
-Identical traces emit zero deltas; an empty trace emits zeroed counters with an
-`(empty)` marker rather than erroring. `compare` takes its two files as
-positionals, not `--file`.
+Identical traces emit zero deltas. An empty trace emits zeroed counters with
+an `(empty)` marker, and it does not error. `compare` takes its two files as
+positionals. It does not take `--file`.
 
 ## Analyse several traces at once
 
@@ -241,26 +244,29 @@ npx gemba-trace paths --file 'traces/*.ndjson' --prefix /app
 npx gemba-trace tool-calls --file run-a.ndjson --file run-b.ndjson
 ```
 
-With more than one resolved file, every record carries its source so you can
-tell traces apart: per-record verbs prefix each line with `<basename>:`
-(`grep -H` convention), and the aggregators (`paths`, `tools`) carry a
-`sources` array in `--format json`. A single resolved file -- including a glob
-matching exactly one -- carries no source prefix. Source attribution is the
-file's **basename**, so two traces with the same basename in different
-directories collide; rename them or run from inside one directory to keep them
-distinct.
+With more than one resolved file, every record carries its source. Then you
+can tell the traces apart. Per-record verbs prefix each line with
+`<basename>:` (`grep -H` convention). The aggregators (`paths`, `tools`) carry
+a `sources` array in `--format json`. A single resolved file carries no source
+prefix. A glob that matches exactly one file counts as a single file. Source
+attribution is the file's **basename**, so two traces with the same basename
+in different directories collide. Rename them, or run from inside one
+directory to keep them distinct.
 
 ## What to look for
 
-When debugging a failure, a useful sequence is:
+When you debug a failure, use this sequence:
 
-1. `overview` -- did the run succeed or fail? How many turns?
-2. `errors` -- which tool calls failed?
-3. `tool <name>` on the failing tool -- what input did the agent send?
-4. `reasoning` around those turns -- did the agent understand the error?
-5. `search` for the error message -- did it appear earlier than expected?
+1. `overview` — see whether the run succeeded or failed, and how many turns it
+   took.
+2. `errors` — see which tool calls failed.
+3. `tool <name>` on the tool that failed — see what input the agent sent.
+4. `reasoning` around those turns — see whether the agent understood the
+   error.
+5. `search` for the error message — see whether it appeared earlier than you
+   expected.
 
-When verifying an improvement, compare `stats` across before-and-after runs.
+When you verify an improvement, compare `stats` across before-and-after runs.
 Fewer retries, lower token usage, and shorter duration are the signals that a
 profile or prompt change improved outcomes.
 

@@ -5,7 +5,7 @@
  */
 
 /**
- * List all snapshots ordered by scheduled_for (most recent first).
+ * List all snapshots in scheduled_for order (most recent first).
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase - Supabase client
  * @returns {Promise<Array<Object>>} Snapshots
  */
@@ -20,7 +20,8 @@ export async function listSnapshots(supabase) {
 }
 
 /**
- * Get team scores for a snapshot, optionally filtered by a manager's team.
+ * Get team scores for a snapshot, with an optional filter for a manager's
+ * team.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase - Supabase client
  * @param {string} snapshotId - Snapshot ID
  * @param {Object} [options]
@@ -60,7 +61,7 @@ export async function getSnapshotScores(supabase, snapshotId, options = {}) {
  * @param {string} itemId - Driver/item ID
  * @param {Object} [options]
  * @param {string} [options.managerEmail] - Filter to this manager's GetDX team
- * @returns {Promise<Array<Object>>} Scores across snapshots, ordered by scheduled_for
+ * @returns {Promise<Array<Object>>} Scores across snapshots in scheduled_for order
  */
 export async function getItemTrend(supabase, itemId, options = {}) {
   let query = supabase
@@ -104,6 +105,6 @@ export async function getSnapshotComparison(
   snapshotId,
   options = {},
 ) {
-  // Reuse getSnapshotScores — the table already includes comparative fields
+  // Reuse getSnapshotScores. The table already includes comparative fields
   return getSnapshotScores(supabase, snapshotId, options);
 }

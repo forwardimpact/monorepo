@@ -1,10 +1,11 @@
 /**
- * Unit tests for the Supabase CLI wrapper factory.
+ * Unit tests for the factory that wraps the Supabase CLI.
  *
- * Injects a mock `runtime.subprocess` (libmock `createMockSubprocess` via
- * `createTestRuntime`) so the probe/run/capture logic is exercised without a
- * real `supabase` or `npx` binary. `runtime.subprocess.run` resolves (never
- * rejects); probe failure surfaces as a non-zero `exitCode`.
+ * The tests inject a mock `runtime.subprocess` (libmock
+ * `createMockSubprocess` through `createTestRuntime`). The probe, run, and
+ * capture logic then runs without a real `supabase` or `npx` binary.
+ * `runtime.subprocess.run` resolves and never rejects. A probe failure
+ * surfaces as a non-zero `exitCode`.
  */
 
 import { test, describe } from "node:test";
@@ -20,9 +21,9 @@ import { getPackageRoot } from "../src/lib/package-root.js";
 
 /**
  * Build a runtime whose subprocess `run` returns scripted exit codes in
- * order (probe + execution calls share the `run` sequence; `spawn` shares
- * the same response map keyed by cmd). Recorded invocations land on
- * `subprocess.calls` and the per-key `spawn` exitCode is read from the same
+ * order. The probe and execution calls share the `run` sequence. `spawn`
+ * shares the same response map keyed by cmd. Recorded calls land on
+ * `subprocess.calls`. The per-key `spawn` exitCode comes from the same
  * `responses` table.
  */
 function runtimeWithSequence(runResponses, spawnResponses = {}) {
@@ -124,8 +125,8 @@ describe("supabase-cli", () => {
     assert.strictEqual(runtime.subprocess.calls.length, 2);
   });
 
-  test("run invokes the resolved bare-supabase descriptor via spawn (inherit)", async () => {
-    // Probe resolves bare supabase; the interactive run path uses spawn.
+  test("run invokes the resolved bare-supabase descriptor through spawn (inherit)", async () => {
+    // Probe resolves bare supabase. The interactive run path uses spawn.
     const runtime = runtimeWithSequence([{ exitCode: 0 }]);
     const cli = createSupabaseCli({ runtime });
     await cli.run(["db", "reset"]);
@@ -144,7 +145,7 @@ describe("supabase-cli", () => {
     assert.strictEqual(execCall.opts.stdio, "inherit");
   });
 
-  test("run invokes the resolved npx descriptor via spawn", async () => {
+  test("run invokes the resolved npx descriptor through spawn", async () => {
     const runtime = runtimeWithSequence([{ exitCode: 127 }, { exitCode: 0 }]);
     const cli = createSupabaseCli({ runtime });
     await cli.run(["db", "reset"]);

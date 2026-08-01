@@ -50,7 +50,7 @@ describe("copyActivity", () => {
     assert.deepEqual(destPaths, sourcePaths);
   });
 
-  test("idempotent re-run resolves without throwing and leaves tree unchanged", async () => {
+  test("idempotent re-run resolves with no error and leaves the tree unchanged", async () => {
     await fs.writeFile(path.join(source, "a.txt"), "alpha");
     await fs.mkdir(path.join(source, "sub"));
     await fs.writeFile(path.join(source, "sub", "b.txt"), "beta");
@@ -78,7 +78,7 @@ describe("copyActivity", () => {
           err.message.includes(absent),
           `expected error message to include ${absent}, got: ${err.message}`,
         );
-        // raw error — no envelope prefix from runPhase
+        // raw error, no envelope prefix from runPhase
         assert.ok(
           !err.message.startsWith("[substrate stage:"),
           `expected raw error without envelope prefix, got: ${err.message}`,

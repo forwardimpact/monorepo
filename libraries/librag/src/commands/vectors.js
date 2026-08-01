@@ -37,7 +37,7 @@ export async function run({ runtime }) {
       } catch (err) {
         err.message =
           `embedding service unreachable at ` +
-          `${embeddingConfig.host}:${embeddingConfig.port} — start it with ` +
+          `${embeddingConfig.host}:${embeddingConfig.port}. Start it with ` +
           `fit-rc (${err.message})`;
         throw err;
       }

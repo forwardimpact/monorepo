@@ -2,27 +2,28 @@
  * `gemba-harness scan-logs` — scan a run's log archive for secret literals and
  * fail closed.
  *
- * A run-lifecycle concern (not an NDJSON trace, so it lives here rather than
- * in `gemba-trace`): after a CI run that handled secrets, download or accept the
- * run's own log archive and assert none of a supplied set of literals leaked
- * into it. Any hit exits non-zero; any download/extract failure also exits
- * non-zero — the gate must never silently disarm.
+ * This is a run-lifecycle concern. It is not an NDJSON trace, so it lives
+ * here rather than in `gemba-trace`. After a CI run that handled secrets,
+ * download or accept the run's own log archive. Then assert that none of a
+ * supplied set of literals leaked into it. Any hit exits non-zero. Any
+ * download or extract failure also exits non-zero. The gate must never
+ * silently disarm.
  *
  * Log resolution:
  *   - `--archive <zip>` — an already-resolved archive (extracted locally).
- *   - `--run-id <id> --repo <owner/repo>` — download this run's archive via
+ *   - `--run-id <id> --repo <owner/repo>` — download this run's archive with
  *     `gh` first, then extract.
  *
  * Secrets are `--secret <label>=<literal>`, repeatable. The literal is
- * everything after the FIRST `=` (JWTs and base64 keys contain `=`); the label
- * is only cosmetic, named in the `FAIL:` line.
+ * everything after the FIRST `=` (JWTs and base64 keys contain `=`). The
+ * label is only cosmetic. The `FAIL:` line names it.
  */
 
 import { join } from "node:path";
 
 /**
  * Parse repeatable `--secret label=literal` flags. libcli's `multiple: true`
- * yields an array from node's parseArgs in every case; tolerate a bare string
+ * yields an array from node's parseArgs in every case. Tolerate a bare string
  * or undefined defensively. Split on the FIRST `=` only.
  *
  * @param {string[]|string|undefined} secretOpt
@@ -42,8 +43,9 @@ export function parseSecrets(secretOpt) {
 }
 
 /**
- * Walk a directory tree and return every file path. Uses per-level readdir so
- * it works against both node:fs and the libmock fs (no `recursive` reliance).
+ * Walk a directory tree and return every file path. It uses per-level readdir
+ * so it works against both node:fs and the libmock fs (no `recursive`
+ * reliance).
  */
 async function collectFiles(dir, runtime) {
   const out = [];
@@ -60,9 +62,9 @@ async function collectFiles(dir, runtime) {
 }
 
 /**
- * Scan every file under `dir` for each secret literal. Returns the labels of
- * secrets whose non-empty literal appears in any file (empty literals are
- * skipped — a secret the run never set cannot leak).
+ * Scan every file under `dir` for each secret literal. Return the labels of
+ * secrets whose non-empty literal appears in any file. The scan skips empty
+ * literals, because a secret the run never set cannot leak.
  *
  * @param {object} params
  * @param {string} params.dir
@@ -84,9 +86,9 @@ export async function scanDirectory({ dir, secrets, runtime }) {
 }
 
 /**
- * Resolve a directory of extracted log files, downloading the archive first
- * when given a run id. Throws (→ fail closed) on any download or extract
- * failure or on missing/invalid inputs.
+ * Resolve a directory of extracted log files. Download the archive first when
+ * the caller gives a run id. Throw (→ fail closed) on any download or extract
+ * failure, and on a missing or invalid input.
  */
 async function resolveLogsDir({ options, runtime }) {
   const tmpRoot = runtime.proc.env.RUNNER_TEMP || "/tmp";
@@ -142,8 +144,8 @@ export async function runScanLogsCommand(ctx) {
   try {
     dir = await resolveLogsDir({ options, runtime });
   } catch (err) {
-    // Fail closed: an unresolvable archive must not pass as "no leak". The
-    // dispatcher prints the returned `error`, so don't also write it here.
+    // Fail closed. An unresolvable archive must not pass as "no leak". The
+    // dispatcher prints the returned `error`, so do not also write it here.
     return { ok: false, code: 1, error: `scan-logs: ${err.message}` };
   }
 

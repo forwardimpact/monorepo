@@ -300,7 +300,7 @@ describe("createCallbackHandler", () => {
     expect(finishedFirst).toBe(true);
   });
 
-  test("ackFinishTarget is forwarded when supplied", async () => {
+  test("the handler forwards ackFinishTarget when the caller supplies it", async () => {
     const { token, correlationId } = await seed(store, callbacks);
     handler = createCallbackHandler({
       clock,
@@ -380,7 +380,7 @@ describe("createCallbackHandler", () => {
     expect(handleReplyCalls[0].payload.replies).toEqual([
       { body: "partial answer", agent: "staff-engineer" },
     ]);
-    // Token NOT consumed — peek was used
+    // The handler did NOT consume the token. It used peek.
     expect(callbacks.peek(token, { tenant_id: "default" })).not.toBeNull();
     const reloaded = await store.loadByChannel(channel, "D_1");
     expect(reloaded.last_posted_seq).toBe(3);

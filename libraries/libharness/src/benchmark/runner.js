@@ -4,19 +4,19 @@
  * Phases per (task, runIndex):
  *   1. WorkdirManager.start → seed CWD + run pre-flight probe
  *   2. Supervisor session (agent + supervisor) → produce traces + submission
- *   3. Invariants collector + hidden-test engine → merged check rows,
- *      graded by `gradeChecks` (rows are authoritative; script exit is
- *      grader health only)
+ *   3. Invariants collector + hidden-test engine → merged check rows.
+ *      `gradeChecks` grades them. The rows are authoritative. The script
+ *      exit reports grader health only.
  *   4. Judge.runJudge → Conclude-driven binary gate mapped to pass/fail
  *   5. WorkdirManager.teardown → process-group cleanup
  *
- * Cells run with bounded in-process concurrency (`CellScheduler`); `run()`
- * yields records in **completion order**, not grid order. A single drain loop
- * is the sole writer of `<output>/results.jsonl`, appending each record the
- * moment its cell settles — that incremental append is the durability and
- * crash-safety mechanism, so a killed run keeps every completed cell and there
- * is no sidecar ledger. The iterator drives CLI stdout mirroring off the same
- * stream.
+ * Cells run with bounded in-process concurrency (`CellScheduler`). `run()`
+ * yields records in **completion order**. It does not yield them in grid
+ * order. A single drain loop is the sole writer of
+ * `<output>/results.jsonl`. It appends each record the moment its cell
+ * settles. That incremental append is the durability and crash-safety
+ * mechanism, so a killed run keeps every completed cell. There is no sidecar
+ * ledger. The iterator mirrors the same stream to CLI stdout.
  */
 
 import { join, resolve as resolvePath } from "node:path";
@@ -47,11 +47,11 @@ const BASE_TOOLS = [
   "TodoWrite",
 ];
 
-// Upper bound on a single supervised agent run. A run that produces no terminal
-// message within this window is treated as a stall and recorded as an
-// agentError, so the benchmark never hangs the event loop into a silent exit.
-// Overridable per-runner via `watchdogMs` so a test can force a stall to fire
-// without waiting the full 20 minutes.
+// Upper bound on a single supervised agent run. The runner treats a run that
+// produces no terminal message within this window as a stall. It records the
+// stall as an agentError, so the benchmark never hangs the event loop into a
+// silent exit. Set `watchdogMs` per runner to override this default. A test
+// can then force a stall and skip the full 20-minute wait.
 const AGENT_WATCHDOG_MS = 20 * 60 * 1000;
 
 /** Sole orchestrator for a task-family benchmark run. */
@@ -65,25 +65,26 @@ export class BenchmarkRunner {
    * @param {string} opts.supervisorModel
    * @param {string} opts.judgeModel
    * @param {{agent?: string, judge?: string}} [opts.profiles]
-   * @param {Function} opts.query - SDK query (injected for testability).
+   * @param {Function} opts.query - SDK query. A test injects its own.
    * @param {string[]} [opts.allowedTools] - Agent tool allowlist (default: BASE_TOOLS).
    * @param {number} [opts.maxTurns] - Agent-under-test turn budget.
    * @param {number} [opts.concurrency] - Max cells in flight (integer ≥ 1).
-   *   Defaults to 1 as a defensive floor; the CLI always passes a resolved value.
+   *   Defaults to 1 as a defensive floor. The CLI always passes a resolved value.
    * @param {{index: number, total: number}} [opts.shard] - Run only the cells
    *   assigned to shard `index` of `total` (1-based). Absent ≡ the whole grid
    *   (identity `1/1`).
    * @param {number} [opts.watchdogMs] - Per-agent stall watchdog (ms). Defaults
-   *   to `AGENT_WATCHDOG_MS`; injectable so tests can force a stall in-test.
+   *   to `AGENT_WATCHDOG_MS`. A test injects its own to force a stall in-test.
    * @param {number} [opts.termGraceMs] - SIGTERM→SIGKILL grace (ms) for the per-task process group.
    * @param {Function} [opts.runAgent] - Test seam: replaces the agent-under-test
    *   session. Must return `{costUsd, turns, submission, agentError?}` and
    *   write a valid NDJSON trace to `workdir.agentTracePath`. Default uses
    *   `createAgentRunner` with the harness `BASE_TOOLS` allowlist. Internal
-   *   testing only — not part of the public API.
+   *   testing only. It is not part of the public API.
    * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime -
-   *   Injected ambient collaborators (`fs`, `subprocess`, `clock`, `proc`),
-   *   threaded into the installers, workdir manager, invariants, and judge.
+   *   The host injects these ambient collaborators (`fs`, `subprocess`,
+   *   `clock`, `proc`). The runner threads them into the installers, the
+   *   workdir manager, the invariants, and the judge.
    * @param {Function} [opts.runInvariants] - Test seam: replaces `runInvariants`.
    *   Same contract as `runInvariants(task, ctx, runtime)`. Internal testing only.
    * @param {Function} [opts.runHiddenTests] - Test seam: replaces
@@ -203,9 +204,9 @@ export class BenchmarkRunner {
     });
 
     const allCells = enumerateCells(tasks, this.runs);
-    // Sharding selects a deterministic subset of the grid; an unsharded run is
-    // the identity 1/1. A high-index shard may select zero cells — a valid run
-    // whose results.jsonl ends up empty.
+    // A shard selects a deterministic subset of the grid. An unsharded run is
+    // the identity 1/1. A high-index shard may select zero cells. That is a
+    // valid run whose results.jsonl ends up empty.
     const cells = this.shard
       ? selectShard(allCells, this.shard.index, this.shard.total)
       : allCells;
@@ -228,8 +229,8 @@ export class BenchmarkRunner {
     });
     // Single-writer drain: the scheduler runs up to `concurrency` cells at
     // once and pushes each settled record here in completion order. This loop
-    // is the sole writer of `results.jsonl` — workers never touch the stream —
-    // and the per-completion append is the crash-safety mechanism.
+    // is the sole writer of `results.jsonl`. Workers never touch the stream.
+    // The per-completion append is the crash-safety mechanism.
     try {
       for await (const record of scheduler.run(cells)) {
         await writeRecord(resultsStream, record);
@@ -255,11 +256,12 @@ export class BenchmarkRunner {
         t0,
       });
     } catch (e) {
-      // `wm.start()` (port acquire + workdir/env seeding) is the one throw site
-      // not caught inside `#executeCell`. Turn it into the runner's own fallback
-      // record so `#runOne` never rejects — the scheduler's one-record-per-cell
-      // contract depends on that. The fallback is schema-skipped by `report`,
-      // the same as any other runner-side schema failure.
+      // `wm.start()` (port acquire + workdir/env seed) is the one throw site
+      // that `#executeCell` does not catch. Turn it into the runner's own
+      // fallback record so `#runOne` never rejects. The scheduler's
+      // one-record-per-cell contract depends on that. `report` skips the
+      // fallback because it fails the schema, the same as any other
+      // runner-side schema failure.
       return {
         taskId: task.id,
         runIndex,
@@ -273,9 +275,9 @@ export class BenchmarkRunner {
 
   /**
    * Run one cell's lifecycle against an already-started workdir: preflight
-   * gate → supervised agent → invariants → judge → assembled record. Extracted
-   * from `#runOne` so the start/teardown/error wrapper stays under the
-   * complexity ceiling.
+   * gate → supervised agent → invariants → judge → assembled record. It is
+   * separate from `#runOne` so the start/teardown/error wrapper stays under
+   * the complexity ceiling.
    */
   async #executeCell({
     family,
@@ -313,9 +315,9 @@ export class BenchmarkRunner {
       const judgePass =
         judgeVerdict === null || judgeVerdict.verdict === "pass";
       const verdict = grade.verdict === "pass" && judgePass ? "pass" : "fail";
-      // Gates protect the score: an unhealthy grader, a failing gate row, or
-      // a failing judge zeroes the effective score. Full marks does not — a
-      // fractional score with verdict fail is the point.
+      // Gates protect the score: an unhealthy grader, a gate row that fails,
+      // or a judge that fails zeroes the effective score. Full marks does not
+      // zero it. A fractional score with verdict fail is the point.
       const scoreValid = graded.healthy && grade.gatesPass && judgePass;
       const record = {
         taskId: task.id,
@@ -365,8 +367,8 @@ export class BenchmarkRunner {
 
   /**
    * Run the judge (when the task ships a template) over the grade result.
-   * The record's judgeVerdict carries only the verdict + summary; the
-   * judge's cost is folded into costUsd / costBreakdown instead.
+   * The record's judgeVerdict carries only the verdict + summary. The runner
+   * folds the judge's cost into costUsd / costBreakdown instead.
    */
   async #judgeCell({
     task,
@@ -404,10 +406,9 @@ export class BenchmarkRunner {
   }
 
   /**
-   * Run both check-row producers against the post-run CWD and grade the
-   * merged rows via the shared derivation. Restoration happens inside the
-   * engine, so the judge (which runs after) sees the workdir exactly as the
-   * agent left it.
+   * Run both check-row producers against the post-run CWD. Grade the merged
+   * rows through the shared derivation. The engine restores the workdir, so
+   * the judge (which runs after) sees it exactly as the agent left it.
    */
   #gradeCell(family, task, workdir) {
     const ctx = {
@@ -424,9 +425,9 @@ export class BenchmarkRunner {
 
   /**
    * Dispatch to either the injected hook or the default `#runAgent`. Either
-   * path can throw; catch here so a thrown error becomes an `agentError` on
-   * the record (spec criterion 1: records on agent failure) rather than
-   * aborting the whole iterator.
+   * path can throw. Catch the error here so it becomes an `agentError` on the
+   * record (spec criterion 1: records on agent failure). The iterator then
+   * does not abort.
    */
   async #runAgentSafe(task, workdir) {
     try {
@@ -448,8 +449,9 @@ export class BenchmarkRunner {
 
   /**
    * Run the agent-under-test under a Supervisor. The supervisor writes
-   * a combined tagged NDJSON trace; after the session we split it into
-   * agent.ndjson and supervisor.ndjson and extract cost/turns/submission.
+   * a combined tagged NDJSON trace. After the session, this method splits
+   * the trace into agent.ndjson and supervisor.ndjson. It also extracts
+   * cost/turns/submission.
    */
   async #runAgent(task, workdir) {
     const fs = this.runtime.fs;
@@ -477,11 +479,12 @@ export class BenchmarkRunner {
     });
     const instructions = await fs.readFile(task.paths.instructions, "utf8");
     let agentError = null;
-    // Watchdog: a supervised session can hang without settling (e.g. the agent
-    // SDK subprocess exits without a terminal message), which would empty the
-    // event loop and exit the process mid-run with zero records. Race the run
-    // against a bounded timer so a stall becomes an `agentError` record instead
-    // of a silent exit; the timer also keeps the loop alive until it fires.
+    // Watchdog: a supervised session can hang and never settle (e.g. the agent
+    // SDK subprocess exits without a terminal message). The hang would empty
+    // the event loop and exit the process mid-run with zero records. Race the
+    // run against a bounded timer so a stall becomes an `agentError` record
+    // instead of a silent exit. The timer also keeps the loop alive until it
+    // fires.
     let watchdog;
     try {
       const result = await Promise.race([
@@ -513,8 +516,9 @@ export class BenchmarkRunner {
       workdir.agentTracePath,
       workdir.supervisorTracePath,
     );
-    // Cost is summed across every participant's result events from the one
-    // combined trace, attributed per source. Read before unlinking.
+    // `sumTraceCost` sums the cost across every participant's result events
+    // from the one combined trace, and attributes it per source. Read the
+    // trace before you unlink it.
     const combined = await fs.readFile(combinedPath, "utf8");
     const { totalCostUsd, bySource } = sumTraceCost(combined.split("\n"));
     await fs.unlink(combinedPath).catch(() => {});
@@ -586,9 +590,9 @@ export class BenchmarkRunner {
       validateResultRecord(record);
       return record;
     } catch (e) {
-      // The runner constructed the record — a schema failure is a real bug,
-      // not bad family input. Emit a noisy fallback so the iterator stays
-      // consumable and the agent budget isn't silently dropped.
+      // The runner constructed the record. A schema failure is a real bug.
+      // Bad family input is not the cause. Emit a noisy fallback so the
+      // iterator stays consumable and nothing silently drops the agent budget.
       return {
         taskId: record.taskId ?? key.taskId,
         runIndex: record.runIndex ?? key.runIndex,
@@ -601,9 +605,10 @@ export class BenchmarkRunner {
 
 /**
  * Flatten the grid into a stable ordered cell list, task-major /
- * runIndex-minor. Load-bearing ordering: Part 02's round-robin shard balance
- * depends on a task's runIndexes being adjacent in this list. Single source of
- * the cell list for both the scheduler and the shard selector.
+ * runIndex-minor. The order is load-bearing. A task's runIndexes are adjacent
+ * in this list, and Part 02's round-robin shard balance depends on that. This
+ * function is the single source of the cell list for both the scheduler and
+ * the shard selector.
  * @param {import("./task-family.js").Task[]} tasks
  * @param {number} runs
  * @returns {{task: import("./task-family.js").Task, runIndex: number}[]}
@@ -619,11 +624,11 @@ export function enumerateCells(tasks, runs) {
 /**
  * Round-robin partition of the enumerated cells: the cell at position `p` runs
  * iff `p % total === i - 1`. `i` is 1-based (Playwright-style). The union over
- * `i ∈ 1..total` is the exact grid, each cell once; when `total > cells.length`
- * the high-index shards select **zero** cells — a valid run. Because
- * `enumerateCells` is task-major, a task's run indexes are adjacent, so
- * round-robin spreads them across shards rather than handing one shard a slow
- * task's whole run block.
+ * `i ∈ 1..total` is the exact grid, each cell once. When
+ * `total > cells.length`, the high-index shards select **zero** cells. That is
+ * a valid run. `enumerateCells` is task-major, so a task's run indexes are
+ * adjacent. Round-robin then spreads them across shards. It does not hand one
+ * shard a slow task's whole run block.
  * @param {{task: object, runIndex: number}[]} cells
  * @param {number} i - 1-based shard index.
  * @param {number} total - Shard count.
@@ -634,8 +639,9 @@ export function selectShard(cells, i, total) {
 }
 
 /**
- * Validate the required BenchmarkRunner constructor arguments. Extracted from
- * the constructor to keep its cognitive complexity under the lint ceiling.
+ * Validate the required BenchmarkRunner constructor arguments. It is separate
+ * from the constructor to keep that function's cognitive complexity under the
+ * lint ceiling.
  */
 function validateRunnerArgs({
   family,
@@ -674,5 +680,5 @@ export function createBenchmarkRunner(opts) {
   return new BenchmarkRunner(opts);
 }
 
-// Internal exports used by tests.
+// Tests use these internal exports.
 export const __BASE_TOOLS = BASE_TOOLS;

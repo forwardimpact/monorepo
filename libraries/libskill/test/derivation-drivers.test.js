@@ -167,7 +167,7 @@ describe("calculateDriverCoverage", () => {
     assert.strictEqual(results[0].behaviourCoverage, 1);
   });
 
-  test("results are sorted by overall score descending", () => {
+  test("sorts results by overall score descending", () => {
     const job = makeJobForDrivers(
       {
         coding: "working",
@@ -188,7 +188,7 @@ describe("calculateDriverCoverage", () => {
     assert.ok(results[0].overallScore >= results[1].overallScore);
   });
 
-  test("skills not in job are counted as missing", () => {
+  test("counts skills not in job as missing", () => {
     const job = makeJobForDrivers(
       { coding: "working" }, // testing and ci_cd not in job
       { ownership: "practicing" },

@@ -32,7 +32,7 @@ describe("gemba-wiki boot CLI (in-process)", () => {
     return { harness, result };
   }
 
-  test("without --agent fails closed before reading the wiki (both env states)", () => {
+  test("without --agent fails closed before it reads the wiki (both env states)", () => {
     for (const env of [{}, { LIBHARNESS_AGENT_PROFILE: "product-manager" }]) {
       const harness = makeRuntime({ fsSync: seededFs(), env });
       const result = runBootCommand(
@@ -49,7 +49,7 @@ describe("gemba-wiki boot CLI (in-process)", () => {
     }
   });
 
-  test("prints JSON digest", () => {
+  test("prints a JSON digest", () => {
     const { harness } = run({ today: "2026-05-19" });
     const digest = JSON.parse(harness.stdout);
     assert.equal(typeof digest.summary, "string");

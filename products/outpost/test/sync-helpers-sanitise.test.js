@@ -1,9 +1,9 @@
 /**
  * sanitiseAttachmentName unit tests.
  *
- * Pure-function tests — no filesystem touched. Covers worked-example traversal
- * payloads, the totality invariant for non-string inputs, and the round-trip
- * identity requirement for benign UTF-8 names.
+ * These are pure-function tests. They touch no filesystem. They cover
+ * worked-example traversal payloads, the totality invariant for non-string
+ * inputs, and the round-trip identity requirement for benign UTF-8 names.
  */
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -52,22 +52,22 @@ describe("sanitiseAttachmentName — traversal and degenerate inputs", () => {
 });
 
 describe("sanitiseAttachmentName — benign UTF-8 round-trip", () => {
-  test("simple ASCII filename byte-identical", () => {
+  test("simple ASCII filename stays byte-identical", () => {
     assert.strictEqual(sanitiseAttachmentName("contract.pdf"), "contract.pdf");
   });
 
-  test("ASCII filename with whitespace byte-identical", () => {
+  test("ASCII filename with whitespace stays byte-identical", () => {
     assert.strictEqual(sanitiseAttachmentName("Q3 plan.xlsx"), "Q3 plan.xlsx");
   });
 
-  test("ASCII filename with parens byte-identical", () => {
+  test("ASCII filename with parens stays byte-identical", () => {
     assert.strictEqual(
       sanitiseAttachmentName("image (2).png"),
       "image (2).png",
     );
   });
 
-  test("non-ASCII UTF-8 filename byte-identical", () => {
+  test("non-ASCII UTF-8 filename stays byte-identical", () => {
     assert.strictEqual(
       sanitiseAttachmentName("café résumé.pdf"),
       "café résumé.pdf",

@@ -1,6 +1,7 @@
 /**
- * Bound Router — registry + dispatcher that produces InvocationContext
- * on each route match and exposes activeRoute as a reactive.
+ * Bound Router — a registry and a dispatcher. It produces an
+ * InvocationContext on each route match. It exposes activeRoute as a
+ * reactive.
  */
 
 import { parsePattern } from "./router-core.js";

@@ -1,7 +1,7 @@
 /**
  * `substrate check` probes each contract relation with a column-explicit
- * select; severity follows the relation's required flag, not the failure
- * kind.
+ * select. Severity follows the relation's required flag. It does not
+ * follow the failure kind.
  */
 
 import { test, describe } from "node:test";
@@ -47,7 +47,7 @@ describe("substrate check", () => {
     const code = await runSubstrateCheck({ supabase, runtime });
     assert.equal(code, 0);
     assert.match(stdoutText(runtime), /Substrate Contract satisfied/);
-    // Column-explicit — never select("*").
+    // Column-explicit. The probe never calls select("*").
     const peopleProbe = supabase.selects.find((s) => s.table === "people");
     assert.match(peopleProbe.columns, /email,name,kind/);
     assert.notEqual(peopleProbe.columns, "*");
@@ -58,7 +58,7 @@ describe("substrate check", () => {
     ]);
   });
 
-  test("required relation missing fails with a diagnostic", async () => {
+  test("a missing required relation fails with a diagnostic", async () => {
     const supabase = makeProbeStub({
       people: { code: "PGRST205", message: "table people not found" },
     });
@@ -71,7 +71,7 @@ describe("substrate check", () => {
     );
   });
 
-  test("required relation malformed (missing column) fails", async () => {
+  test("a malformed required relation (missing column) fails", async () => {
     const supabase = makeProbeStub({
       people: { code: "42703", message: "column people.track does not exist" },
     });
@@ -81,7 +81,7 @@ describe("substrate check", () => {
     assert.match(stderrText(runtime), /column people\.track does not exist/);
   });
 
-  test("optional relation missing reports info and exits 0", async () => {
+  test("a missing optional relation reports info and exits 0", async () => {
     const supabase = makeProbeStub({
       evidence: { code: "PGRST205", message: "table evidence not found" },
       discovery: { code: "PGRST205", message: "table discovery not found" },
@@ -95,7 +95,7 @@ describe("substrate check", () => {
     assert.match(out, /degrades declaredly/);
   });
 
-  test("optional malformed also stays info (severity follows required flag)", async () => {
+  test("a malformed optional relation also stays info (severity follows the required flag)", async () => {
     const supabase = makeProbeStub({
       evidence: { code: "42703", message: "column evidence.email missing" },
     });

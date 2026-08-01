@@ -1,8 +1,9 @@
 /**
  * `fit-summit validate` — validate the roster against Map standard data.
  *
- * Loads the roster, runs schema validation, prints each error, and exits
- * with status 1 when any errors are found. Warnings do not fail.
+ * The command loads the roster. It validates the schema. It prints each
+ * error. It exits with status 1 when the roster has any errors.
+ * Warnings do not fail the command.
  */
 
 import { loadRoster, validateRosterAgainstStandard } from "../roster/index.js";

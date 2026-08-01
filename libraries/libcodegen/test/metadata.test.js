@@ -78,7 +78,7 @@ describe("CodegenBase.parseMetadata", () => {
     assert.strictEqual(fields.filter.type, "message");
   });
 
-  test("optional is true for fields with explicit optional keyword", () => {
+  test("optional is true for fields with an explicit optional keyword", () => {
     const base = createBase();
     const graphProto = base
       .collectProtoFiles()
@@ -107,7 +107,7 @@ describe("CodegenBase.parseMetadata", () => {
     );
   });
 
-  test("description is populated from proto field comments", () => {
+  test("description comes from proto field comments", () => {
     const base = createBase();
     const graphProto = base
       .collectProtoFiles()
@@ -120,7 +120,7 @@ describe("CodegenBase.parseMetadata", () => {
     );
   });
 
-  test("description is null when proto field has no comment", () => {
+  test("description is null when the proto field has no comment", () => {
     const base = createBase();
     const graphProto = base
       .collectProtoFiles()
@@ -132,20 +132,20 @@ describe("CodegenBase.parseMetadata", () => {
     );
   });
 
-  test("field names use snake_case (matching fromObject)", () => {
+  test("field names use snake_case (same as fromObject)", () => {
     const base = createBase();
     const pathwayProto = base
       .collectProtoFiles()
       .find((f) => f.endsWith("pathway.proto"));
     const result = base.parseMetadata(pathwayProto);
     const fields = result.methods.DescribeProgression.fields;
-    assert.ok(fields.from_level, "expected from_level field");
-    assert.ok(fields.to_level, "expected to_level field");
+    assert.ok(fields.from_level, "expected the from_level field");
+    assert.ok(fields.to_level, "expected the to_level field");
   });
 });
 
 describe("CodegenMetadata", () => {
-  test("run writes metadata.js with valid ESM export", () => {
+  test("run writes metadata.js with a valid ESM export", () => {
     const base = createBase();
     const gen = new CodegenMetadata(base);
     const tmpDir = path.join(projectRoot, "generated");

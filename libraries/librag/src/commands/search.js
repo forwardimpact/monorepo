@@ -5,9 +5,9 @@ import { createStorage } from "@forwardimpact/libstorage";
 import { VectorIndex } from "@forwardimpact/libvector/index/vector.js";
 
 /**
- * Format one `fit-rag search` result line — `identifier<TAB>score` with the
- * score fixed to four decimals (empty when absent), byte-identical to the old
- * `fit-rag search` output.
+ * Format one `fit-rag search` result line as `identifier<TAB>score`. The score
+ * has four decimals. It is empty when the identifier has no score. The line is
+ * byte-identical to the old `fit-rag search` output.
  * @param {{ score?: number }} identifier
  * @returns {string}
  */
@@ -16,9 +16,9 @@ export function formatSearchLine(identifier) {
 }
 
 /**
- * `fit-rag search` — search the vector index by embedding a query string.
- * Ports `fit-rag search`. Builds the embedding client here so the offline read
- * commands never require the embedding service.
+ * `fit-rag search` — search the vector index with an embedding of the query
+ * string. Ports `fit-rag search`. Builds the embedding client here so the
+ * offline read commands never require the embedding service.
  * @param {object} ctx
  * @param {string[]} ctx.positionals - Subcommand arguments: `<query>`
  * @param {import("@forwardimpact/libutil/runtime").Runtime} ctx.runtime

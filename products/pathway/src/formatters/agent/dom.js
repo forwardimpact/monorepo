@@ -2,7 +2,7 @@
  * Agent DOM Formatter
  *
  * Formats agent deployment data into DOM elements for browser display.
- * Includes copy and download functionality.
+ * Includes copy and download actions.
  */
 
 import { div, h2, p, button, section } from "../../lib/render.js";
@@ -16,7 +16,7 @@ import { formatAgentSkill } from "./skill.js";
  * @param {Object} deployment.profile - Agent profile
  * @param {Array} deployment.skills - Agent skills
  * @param {Array} [deployment.roleAgents] - Role variant agents (plan, review)
- * @param {Object} [deployment.claudeSettings] - Claude Code settings to include in download
+ * @param {Object} [deployment.claudeSettings] - Claude Code settings to include in the download
  * @param {string|null} [deployment.teamInstructions] - Team instructions content for CLAUDE.md
  * @returns {HTMLElement}
  */
@@ -61,7 +61,7 @@ export function agentDeploymentToDOM({
           h2({}, `Role Variants (${roleAgents.length})`),
           p(
             { className: "text-muted" },
-            "Specialized agents for specific workflow phases. These can be used as subagents or standalone.",
+            "Specialized agents for specific workflow phases. You can use them as subagents or standalone.",
           ),
           div(
             { className: "role-agents-list" },
@@ -81,7 +81,7 @@ export function agentDeploymentToDOM({
           )
         : p(
             { className: "text-muted" },
-            "No skills with agent sections found for this discipline.",
+            "This discipline has no skills with agent sections.",
           ),
     ),
   );
@@ -133,7 +133,7 @@ function createDownloadButton(
 }
 
 /**
- * Create a skill card with content and copy button
+ * Create a skill card with content and a copy button
  * @param {Object} skill - Skill with frontmatter and body
  * @returns {HTMLElement}
  */
@@ -188,22 +188,22 @@ async function downloadAllAsZip(
   const JSZip = await importJSZip();
   const zip = new JSZip();
 
-  // Add main profile to .claude/agents/ folder
+  // Add the main profile to the .claude/agents/ folder
   const profileContent = formatAgentProfile(profile);
   zip.file(`.claude/agents/${profile.filename}`, profileContent);
 
-  // Add team instructions to .claude/CLAUDE.md
+  // Add the team instructions to .claude/CLAUDE.md
   if (teamInstructions) {
     zip.file(".claude/CLAUDE.md", teamInstructions.trim() + "\n");
   }
 
-  // Add role agent profiles to .claude/agents/ folder
+  // Add the role agent profiles to the .claude/agents/ folder
   for (const roleAgent of roleAgents) {
     const roleContent = formatAgentProfile(roleAgent);
     zip.file(`.claude/agents/${roleAgent.filename}`, roleContent);
   }
 
-  // Add skills to .claude/skills/ folder
+  // Add the skills to the .claude/skills/ folder
   for (const skill of skills) {
     const skillContent = formatAgentSkill(skill);
     zip.file(`.claude/skills/${skill.dirname}/SKILL.md`, skillContent);
@@ -232,11 +232,11 @@ async function downloadAllAsZip(
 }
 
 /**
- * Dynamically import JSZip from CDN
+ * Dynamically import JSZip from the CDN
  * @returns {Promise<typeof JSZip>}
  */
 async function importJSZip() {
-  // Use dynamic import from CDN
+  // Use a dynamic import from the CDN
   const module = await import("https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm");
   return module.default;
 }

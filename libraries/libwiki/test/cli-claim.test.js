@@ -12,8 +12,8 @@ const EMPTY_CLAIMS =
   "## Active Claims\n\n| agent | target | branch | pr | claimed_at | expires_at |\n| --- | --- | --- | --- | --- | --- |\n| *None* | — | — | — | — | — |\n";
 
 describe("gemba-wiki claim/release CLI (in-process)", () => {
-  // One in-memory wiki shared across a test's commands so claim → release see
-  // the same MEMORY.md; the command reads and rewrites it via runtime.fsSync.
+  // Every command in a test shares one in-memory wiki, so claim → release see
+  // the same MEMORY.md. The command reads and rewrites it with runtime.fsSync.
   function makeWiki(memory = EMPTY_CLAIMS) {
     const fsSync = createMockFs({ [MEMORY_PATH]: memory });
     const make = (options) => {
@@ -114,7 +114,7 @@ describe("gemba-wiki claim/release CLI (in-process)", () => {
     assert.match(text, /\| new \|/);
   });
 
-  test("claim missing --agent fails closed, naming the flag and an example", async () => {
+  test("claim without --agent fails closed and names the flag and an example", async () => {
     const { make } = makeWiki();
     const result = await runClaimCommand(
       make({ target: "x", branch: "b" }).ctx,
@@ -196,8 +196,8 @@ describe("gemba-wiki claim/release CLI (in-process)", () => {
     assert.match(claim.harness.stderr, /MEMORY\.md:7:github-pat/);
     assert.doesNotMatch(claim.harness.stdout, /pushed|saved locally/);
 
-    // The local MEMORY.md edit still landed (claim row written) — the block is
-    // on the push, not the local write.
+    // The local MEMORY.md edit still landed (claim row written). The block
+    // stops the push. It does not stop the local write.
     const releaseHarness = makeRuntime({ fsSync });
     const releaseResult = await runReleaseCommand(
       ctxFor({

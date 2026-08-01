@@ -1,43 +1,44 @@
 ---
 name: fit-landmark
 description: >
-  Demonstrate engineering progress without making individuals feel
-  surveilled, and show evidence of growth. Use when the
-  quarterly review has only ticket counts and you need system-level
-  trends, when checking promotion readiness, when assessing whether
-  culture investments are working, or when exploring GetDX snapshot
-  trends, marker evidence, engineer voice, and growth timelines.
+  Demonstrate engineering progress and do not make individuals feel
+  surveilled. Show evidence of growth. Use when the quarterly review has
+  only ticket counts and you need system-level trends. Use when you check
+  promotion readiness. Use when you assess whether culture investments
+  work. Use when you explore GetDX snapshot trends, marker evidence,
+  engineer voice, and growth timelines.
 ---
 
 # Landmark
 
-Analysis and recommendation layer on top of Map data. Landmark reads from Map's
-activity schema and standard YAML to surface evidence, health, readiness, growth
-timelines, and engineer voice. Evidence rows are written by Guide's evaluation
-pipeline; all Landmark computation is deterministic — no LLM calls.
+Landmark is an analysis and recommendation layer on top of Map data. Landmark
+reads from Map's activity schema and standard YAML. It surfaces evidence,
+health, readiness, growth timelines, and engineer voice. Guide's evaluation
+pipeline writes the evidence rows. All Landmark computation is deterministic.
+Landmark makes no LLM calls.
 
 ## When to Use
 
 **Demonstrate engineering progress:**
 
-- Showing system-level trends — `npx fit-landmark health --manager <email>`
-- Assessing whether culture investments are working —
+- Show system-level trends — `npx fit-landmark health --manager <email>`
+- Assess whether culture investments work —
   `npx fit-landmark snapshot trend --item <id>`
-- Exploring GetDX snapshot trends and comparisons —
+- Explore GetDX snapshot trends and comparisons —
   `npx fit-landmark snapshot compare --snapshot <id>`
 
 **Find growth areas backed by evidence:**
 
-- Checking promotion readiness — `npx fit-landmark readiness --email <email>`
-- Viewing growth timelines — `npx fit-landmark timeline --email <email>`
-- Comparing evidenced vs derived capability —
+- Check promotion readiness — `npx fit-landmark readiness --email <email>`
+- View growth timelines — `npx fit-landmark timeline --email <email>`
+- Compare evidenced capability with derived capability —
   `npx fit-landmark practiced --manager <email>`
 
 **Surface engineer voice:**
 
-- Surfacing feedback from GetDX comments —
+- Surface feedback from GetDX comments —
   `npx fit-landmark voice --manager <email>`
-- Viewing an individual's voice — `npx fit-landmark voice --email <email>`
+- View an individual's voice — `npx fit-landmark voice --email <email>`
 
 ---
 
@@ -45,30 +46,30 @@ pipeline; all Landmark computation is deterministic — no LLM calls.
 
 ### Evidence Model
 
-Landmark combines two data sources: **standard data** (YAML definitions from Map
-with skill markers and proficiency levels) and **activity data** (GetDX
-snapshots, GitHub artifacts, and Guide-interpreted evidence stored in the Map
-activity schema). Evidence is linked to skills via marker definitions authored
-in capability YAML files.
+Landmark combines two data sources. **Standard data** holds YAML definitions
+from Map with skill markers and proficiency levels. **Activity data** holds
+GetDX snapshots, GitHub artifacts, and Guide-interpreted evidence in the Map
+activity schema. Marker definitions authored in capability YAML files link the
+evidence to skills.
 
 ### Readiness Assessment
 
 Promotion readiness compares an engineer's evidenced skill levels against the
-marker checklist for their target level. Each marker is checked against
-available evidence — the result is a per-skill pass/gap report showing what has
-been demonstrated and what still needs demonstration.
+marker checklist for their target level. Landmark checks each marker against
+the available evidence. The result is a per-skill pass/gap report. The report
+shows what the engineer demonstrated and what still needs demonstration.
 
 ### Health Analysis
 
 Team health aggregates GetDX driver scores, skill evidence coverage, and growth
 trajectory across a manager's reports. The health view combines quantitative
-snapshot data with qualitative evidence to surface where teams are strong and
+snapshot data with qualitative evidence. It surfaces where teams are strong and
 where they need support.
 
 ### Privacy Model
 
-Each view applies privacy rules based on the audience — engineers see only their
-own data, managers see their direct reports, directors see aggregated team
+Each view applies privacy rules based on the audience. Engineers see only their
+own data. Managers see their direct reports. Directors see aggregated team
 data.
 
 ---
@@ -90,12 +91,12 @@ Each view applies privacy rules based on the audience:
 - **Director** (planning): `snapshot`, `coverage`, `practiced`,
   `voice --manager`
 
-When signed in, subject-scoped commands (`readiness`, `timeline`,
+When you sign in, subject-scoped commands (`readiness`, `timeline`,
 `coverage`, `sources`, and `voice` with no flags) default `--email` to
-your own identity. `evidence` stays explicit — omitting `--email` there
-deliberately shows the broadest view your access allows.
-`health --manager` takes a team lead's **own** email, not the email of
-the lead's manager.
+your own identity. `evidence` stays explicit. If you omit `--email`
+there, `evidence` deliberately shows the broadest view your access
+allows. `health --manager` takes a team lead's **own** email. Do not
+pass the email of the lead's manager.
 
 ---
 
@@ -111,7 +112,7 @@ See [`references/workflows.md`](references/workflows.md) for worked examples.
 - Map activity database prepared — one of: `npx fit-map substrate stage`
   (one-shot CI/interview pipeline), `npx fit-map activity start` +
   `npx fit-map activity seed` (dev flow), or `npx fit-map activity migrate`
-  plus your own ingest (migrations only); the `fit-map` skill documents all
+  plus your own ingest (migrations only). The `fit-map` skill documents all
   three paths
 - Standard data with drivers and markers authored in capability YAML
 - Summit (optional) for inline growth recommendations in health view

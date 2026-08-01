@@ -3,14 +3,14 @@
  * `OrchestrationLoop`. The lead role uses `DiscussTools` (Adjourn / Recess)
  * instead of the facilitator's Conclude.
  *
- * Discuss mode is a sibling of facilitate mode, not a subset of it. The
- * within-run turn loop is shared via `OrchestrationLoop`, but the lead
- * role, tool set, system prompts, and participant naming all stay
- * mode-local.
+ * Discuss mode is a sibling of facilitate mode. It is not a subset of it.
+ * The two modes share the within-run turn loop through `OrchestrationLoop`.
+ * The lead role, the tool set, the system prompts, and the participant names
+ * all stay mode-local.
  *
- * Each agent Answer routed to the lead is captured as a thread reply
- * delivered via the bridge callback — no explicit reply tool is needed
- * on the lead surface.
+ * Each agent Answer routed to the lead becomes a thread reply. The bridge
+ * callback delivers that reply. The lead surface needs no explicit reply
+ * tool.
  */
 
 import { Writable } from "node:stream";
@@ -46,14 +46,14 @@ export const DISCUSS_SYSTEM_PROMPT =
   "You have no tools to perform work yourself.\n" +
   "Use `RollCall` to list participants.\n" +
   "Use `Ask` to delegate work to the best-suited participant.\n" +
-  "Participants are domain experts; state the task, not how to do it.\n" +
-  "Each participant's `Answer` is posted to the discussion thread as a separate reply.\n" +
+  "Participants are domain experts. State the task. Do not state how to do it.\n" +
+  "The system posts each participant's `Answer` to the discussion thread as a separate reply.\n" +
   "`Ask` is async and returns {askIds:[N,…]} immediately.\n" +
   "Answers arrive on your next turn as `[answer#N] <participant>: <text>` in your inbox.\n" +
   "End your turn while Asks are pending. The system resumes you when answers arrive.\n" +
   "Multiple `Ask` calls in one turn run participants in parallel.\n" +
-  "Use `Acknowledge` to post a brief message directly to the discussion thread — use it to respond to human follow-ups or give status updates while participants are working.\n" +
-  "End the discussion by calling `Adjourn` with a verdict and summary, or `Recess` only to wait on an external reply or duration.";
+  "Use `Acknowledge` to post a brief message directly to the discussion thread. Use it to respond to human follow-ups. Use it to give status updates while participants work.\n" +
+  "To end the discussion, call `Adjourn` with a verdict and summary. Call `Recess` instead only to wait on an external reply or duration.";
 
 /**
  * Augment a base orchestration context with discuss-mode fields.
@@ -78,8 +78,8 @@ const devNull = new Writable({
 });
 
 /**
- * Async orchestrator for the `discuss` mode. Composes an
- * `OrchestrationLoop` for the within-run turns but owns the discussion id,
+ * Async orchestrator for the `discuss` mode. It composes an
+ * `OrchestrationLoop` for the within-run turns. It owns the discussion id,
  * the resumption trigger, and the discuss-augmented terminal summary.
  */
 export class Discusser {
@@ -115,10 +115,11 @@ export class Discusser {
   }
 
   /**
-   * Run the discussion. Emits the meta header first (when a discussion_id
-   * is set), delegates the within-run loop to `OrchestrationLoop`, then
-   * emits the discuss-augmented summary (overrides the loop's earlier
-   * summary; trace consumers keep the last summary they see).
+   * Run the discussion. This method emits the meta header first, when a
+   * discussion_id is set. It then delegates the within-run loop to
+   * `OrchestrationLoop`. It then emits the discuss-augmented summary, which
+   * overrides the loop's earlier summary. Trace consumers keep the last
+   * summary they see.
    *
    * @param {string} task
    * @returns {Promise<{success: boolean, verdict: string, turns: number, replies: object[], trigger: object|null}>}
@@ -127,7 +128,7 @@ export class Discusser {
     this.#emitMeta();
 
     // The loop owns within-run turns. Its emitSummary fires once before
-    // run() returns; ours replaces it as the last summary line.
+    // run() returns. Ours replaces it as the last summary line.
     await this.loop.run(task);
 
     const verdict = this.ctx.verdict ?? "failed";
@@ -187,15 +188,15 @@ export class Discusser {
 }
 
 /**
- * Factory — wires the lead and agent runners with `DiscussTools`, builds
- * the `OrchestrationLoop` (with `leadName: "lead"` and discuss-mode
- * protocol tagging) and the wrapping `Discusser`.
+ * Factory — wires the lead and agent runners with `DiscussTools`. It builds
+ * the `OrchestrationLoop` with `leadName: "lead"` and a discuss-mode protocol
+ * tag. It then builds the `Discusser` that wraps the loop.
  *
- * Resume semantics: Recess ends the run, cancels any open Asks via
- * `cancelPendingAsks`, and emits a synthetic null answer per cancelled
- * ask so nothing dangles in the trace. The bridge later re-dispatches
- * the workflow against a fresh context; the human reads the trail of
- * events to decide what to re-ask.
+ * Resume semantics: Recess ends the run. It cancels any open Asks through
+ * `cancelPendingAsks`. It emits a synthetic null answer for each cancelled
+ * ask so nothing dangles in the trace. The bridge later re-dispatches the
+ * workflow against a fresh context. The human reads the trail of events to
+ * decide what to re-ask.
  *
  * @param {object} deps
  * @param {string} [deps.leadProfile]
@@ -215,8 +216,8 @@ export class Discusser {
  * @param {string|null} [deps.callbackUrl]
  * @param {string|null} [deps.inboxUrl]
  * @param {string|null} [deps.correlationId]
- * @param {string} [deps.advisorModel] - Claude model for advisor consults; absent means no Advisor tool is offered.
- * @param {number} [deps.advisorMaxUses] - Session-wide consult budget shared by all agent participants (default 3).
+ * @param {string} [deps.advisorModel] - Claude model for advisor consults. When absent, the factory offers no Advisor tool.
+ * @param {number} [deps.advisorMaxUses] - Session-wide consult budget that all agent participants share (default 3).
  * @returns {Discusser}
  */
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: factory wires N runners + resume hydration paths
@@ -254,9 +255,9 @@ export function createDiscusser({
     discussionId ?? null,
   );
 
-  // Hydrate resume context — participants, replies, counters. `pendingAsks`
-  // is intentionally not restored: Recess cancelled every in-flight Ask
-  // with a synthetic null answer, so there's nothing meaningful to carry
+  // Hydrate resume context: participants, replies, counters. The code does
+  // not restore `pendingAsks` on purpose. Recess cancelled every in-flight
+  // Ask with a synthetic null answer, so nothing meaningful remains to carry
   // forward.
   if (resumeContext) {
     if (Array.isArray(resumeContext.participants))
@@ -292,7 +293,7 @@ export function createDiscusser({
       })
     : null;
 
-  // Intercept answers routed to the lead — each becomes a discussion reply.
+  // Intercept answers routed to the lead. Each one becomes a discussion reply.
   const originalAnswer = messageBus.answer.bind(messageBus);
   messageBus.answer = (from, to, text, askId) => {
     if (to === "lead" && from !== "@orchestrator") {
@@ -319,12 +320,12 @@ export function createDiscusser({
   let discusser;
   const leadServer = createDiscussLeadToolServer(ctx);
 
-  // One budget per session, shared by every agent's Advisor handler.
+  // One budget per session. Every agent's Advisor handler shares it.
   const budget = advisorModel ? createAdvisorBudget(advisorMaxUses ?? 3) : null;
 
   const agents = resolvedConfigs.map((config) => {
-    // Everything advisor-shaped is gated on advisorModel; with it unset the
-    // composed prompt and tool surface are byte-identical to today's.
+    // `advisorModel` gates everything advisor-shaped. When it is unset, the
+    // composed prompt and tool surface stay byte-identical to today's.
     const systemPrompt = composeSystemPrompt({
       role: "agent",
       profile: config.agentProfile,
@@ -338,8 +339,8 @@ export function createDiscusser({
     let extraTools;
     if (advisorModel) {
       recorder = createTranscriptRecorder({ systemPrompt, redactor });
-      // Late-bound through the `let discusser` closure — the instance does
-      // not exist yet when the advisor and tool are built.
+      // Late-bound through the `let discusser` closure. The instance does
+      // not exist yet when the factory builds the advisor and the tool.
       const advisor = createAdvisor({
         model: advisorModel,
         cwd: config.cwd ?? resolvedLeadCwd,

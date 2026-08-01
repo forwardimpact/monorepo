@@ -1,9 +1,9 @@
 name: Resolve package from tag
 description: >
   Resolve the npm package name and workspace directory for the current
-  `<name>@v<version>` tag. The tag name reaches the script via the environment,
-  never by interpolation into the source text — ref names may legally contain
-  quotes and shell metacharacters.
+  `<name>@v<version>` tag. The tag name reaches the script through the
+  environment, never by interpolation into the source text. Ref names may
+  legally contain quotes and shell metacharacters.
 
 outputs:
   tag_name:
@@ -13,7 +13,7 @@ outputs:
     description: The resolved npm package name (e.g. @forwardimpact/libxmr)
     value: ${{ steps.r.outputs.npm_name }}
   dir_name:
-    description: The workspace directory holding that package
+    description: The workspace directory that holds that package
     value: ${{ steps.r.outputs.dir_name }}
 
 runs:
@@ -24,7 +24,7 @@ runs:
       run: |
         TAG_NAME="${GITHUB_REF_NAME%%@v*}"
         echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
-        # Workspaces use glob patterns — resolve them with globSync.
+        # Workspaces use glob patterns. Resolve them with globSync.
         PKG_JSON=$(TAG_NAME="$TAG_NAME" bun -e "
           const { globSync } = require('node:fs');
           const { workspaces } = require('./package.json');

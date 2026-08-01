@@ -17,7 +17,7 @@ function hasAllowedTypePrefix(iri) {
   return ALLOWED_TYPE_PREFIXES.some((prefix) => iri.startsWith(prefix));
 }
 
-/** Parser for converting HTML with microdata to structured RDF items */
+/** Parser that converts HTML with microdata to structured RDF items */
 export class Parser {
   #skolemizer;
   #logger;
@@ -36,7 +36,7 @@ export class Parser {
   /**
    * Parses an HTML document and extracts structured items
    * @param {object} document - Parsed document (linkedom)
-   * @param {string} baseIri - Base IRI for parsing
+   * @param {string} baseIri - Base IRI that the parser uses
    * @returns {Promise<Array>} Array of extracted items with RDF quads
    */
   async parseHTML(document, baseIri) {
@@ -52,7 +52,8 @@ export class Parser {
     const items = [];
 
     for (const [itemIri, itemQuads] of itemGroups) {
-      // Deduplicate quads for this item (same entity may appear multiple times in HTML)
+      // Deduplicate the quads for this item. The same entity can appear
+      // multiple times in the HTML
       const deduplicatedQuads = this.#deduplicateQuads(itemQuads);
 
       if (this.isMainItem(itemIri, deduplicatedQuads)) {
@@ -107,7 +108,7 @@ export class Parser {
   }
 
   /**
-   * Parses RDF string back into quad objects
+   * Parses an RDF string back into quad objects
    * @param {string} rdf - RDF serialization string
    * @returns {Promise<Array>} Array of RDF quads
    */
@@ -129,7 +130,7 @@ export class Parser {
   }
 
   /**
-   * Unions two arrays of quads using RDF semantics (deduplicates identical triples)
+   * Unions two arrays of quads with RDF semantics (deduplicates identical triples)
    * @param {Array} existingQuads - Array of existing RDF quads
    * @param {Array} newQuads - Array of new RDF quads to merge
    * @returns {Array} Merged array of unique quads
@@ -154,9 +155,9 @@ export class Parser {
   }
 
   /**
-   * Extracts RDF quads from HTML using microdata parser
+   * Extracts RDF quads from HTML with the microdata parser
    * @param {string} html - HTML content
-   * @param {string} baseIri - Base IRI for parsing
+   * @param {string} baseIri - Base IRI that the parser uses
    * @returns {Promise<Array>} Array of RDF quads
    */
   async #extractQuads(html, baseIri) {
@@ -226,7 +227,7 @@ export class Parser {
   }
 
   /**
-   * Deduplicates an array of quads using the same logic as unionQuads
+   * Deduplicates an array of quads with the same logic as unionQuads
    * @param {Array} quads - Array of quads that may contain duplicates
    * @returns {Array} Array of unique quads
    */

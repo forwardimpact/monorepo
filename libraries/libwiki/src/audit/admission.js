@@ -1,13 +1,15 @@
 import path from "node:path";
 
-// Tracked-file enumerator for the admission scope. Yields the
-// admission universe: the wiki-relative paths the filename grammar governs.
+// Tracked-file enumerator for the admission scope. It yields the
+// admission universe. That universe holds the wiki-relative paths the
+// filename grammar governs.
 //
-// The universe is the on-disk file tree under `wikiRoot`, intersected with the
-// git index when git state is present. Where there is no git state — a fresh
-// bootstrap or a test fixture — the universe is the whole walk. This keeps the
-// rule's true positive (a *git-tracked* residue) in scope while excluding VCS
-// internals and uncommitted scratch where a real repo exists.
+// The enumerator walks the on-disk file tree under `wikiRoot`. It then
+// intersects the walk with the git index when git state is present. Without
+// git state (a fresh bootstrap or a test fixture), the universe is the whole
+// walk. This keeps the rule's true positive (a *git-tracked* residue) in
+// scope. It also excludes VCS internals and uncommitted scratch where a real
+// repo exists.
 
 /** Recursively collect file paths (wiki-relative, POSIX) under `dir`. */
 function walk(absDir, wikiRoot, fs, out) {
@@ -25,9 +27,10 @@ function walk(absDir, wikiRoot, fs, out) {
 
 /**
  * Read the git index at `wikiRoot` as a set of wiki-relative paths, or `null`
- * when there is no git state (no `.git`, or the path is not a work tree — both
- * surface as a non-zero `git ls-files` exit). `-z` is used so paths with
- * unusual characters round-trip; output is NUL-delimited and relative to the
+ * when there is no git state. There is no git state when `.git` is absent, or
+ * when the path is not a work tree. Both cases surface as a non-zero
+ * `git ls-files` exit. The `-z` flag makes paths with unusual characters
+ * round-trip. Git delimits the output with NUL. The paths are relative to the
  * repository root, which is `wikiRoot`.
  */
 function trackedSet(wikiRoot, subprocess) {
@@ -39,7 +42,7 @@ function trackedSet(wikiRoot, subprocess) {
 /**
  * Enumerate the admission universe under `wikiRoot`.
  * @param {{wikiRoot: string, fs: object, subprocess: object}} options
- *   `fs` is the sync filesystem surface (`runtime.fsSync`); `subprocess` is
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`). `subprocess` is
  *   `runtime.subprocess` (its `runSync` shells out to git).
  * @returns {string[]} Wiki-relative POSIX paths, tracked-filtered when git state exists.
  */

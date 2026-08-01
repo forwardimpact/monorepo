@@ -19,7 +19,7 @@ import { storeRaw } from "../storage.js";
  * @param {object} ctx - { supabase, config, files, errors }
  * @param {string} endpoint - GetDX API endpoint
  * @param {string} storagePath - Supabase Storage path
- * @param {string} errorLabel - Label used in error messages
+ * @param {string} errorLabel - Label for error messages
  * @returns {Promise<object|undefined>} Parsed response on success
  */
 async function fetchAndStore(ctx, endpoint, storagePath, errorLabel) {

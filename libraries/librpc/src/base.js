@@ -6,7 +6,7 @@ import { Interceptor, HmacAuth } from "./auth.js";
 import { definitions } from "./generated/definitions/exports.js";
 
 /**
- * Capitalize first letter of a string
+ * Capitalize the first letter of a string
  * @param {string} str - String to capitalize
  * @returns {string} Capitalized string
  */
@@ -16,18 +16,18 @@ export function capitalizeFirstLetter(str) {
 
 /**
  * Default grpc factory that creates gRPC dependencies
- * @returns {object} Object containing grpc
+ * @returns {object} Object with grpc
  */
 export function createGrpc() {
   return { grpc };
 }
 
 /**
- * Default auth factory that creates an authentication interceptor. Reads
- * `SERVICE_SECRET` from the injected `runtime.proc.env` rather than
- * constructing its own process collaborator — the runtime is threaded from the
- * entry point through `Server`/`Client` (no leaf-collaborator construction in
- * src, Success Criterion 9).
+ * Default auth factory that creates an authentication interceptor. It reads
+ * `SERVICE_SECRET` from the injected `runtime.proc.env`. It does not construct
+ * its own process collaborator. The entry point threads the runtime through
+ * `Server`/`Client` (no leaf-collaborator construction in src, Success
+ * Criterion 9).
  * @param {string} serviceName - Name of the service for the interceptor
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {Interceptor} Configured interceptor instance
@@ -91,8 +91,8 @@ export class Rpc {
     const { grpc } = grpcFn();
     this.#grpc = grpc;
 
-    // Setup authentication (the default factory reads SERVICE_SECRET off the
-    // injected runtime; a mock authFn ignores it)
+    // Set up authentication. The default factory reads SERVICE_SECRET off the
+    // injected runtime. A mock authFn ignores it.
     this.#auth = authFn(this.config.name, runtime);
 
     // Create observer with logger and tracer
@@ -124,7 +124,7 @@ export class Rpc {
   tracer = () => this.#observer.tracer();
 
   /**
-   * Get pre-compiled service definition
+   * Get the pre-compiled service definition
    * @param {string} serviceName - Service name (e.g., "Agent", "Vector")
    * @returns {object} Pre-compiled service definition
    */

@@ -38,12 +38,12 @@ afterEach(async () => {
 });
 
 describe("fit-guide init", () => {
-  test("first run materialises config/, .env, and package.json with starter top-level keys", async () => {
+  test("the first run materialises config/, .env, and package.json with starter top-level keys", async () => {
     await runInitCommand(runtime);
     const config = JSON.parse(
       await fs.readFile(path.join(testDir, "config", "config.json"), "utf8"),
     );
-    // Starter ships init + product + service top-level namespaces.
+    // The starter ships init + product + service top-level namespaces.
     assert.deepEqual(Object.keys(config).sort(), [
       "init",
       "product",
@@ -72,7 +72,7 @@ describe("fit-guide init", () => {
     assert.equal(skillStats.isDirectory(), true);
   });
 
-  test("re-run is byte-identical across config/, .env, package.json, .claude/skills/", async () => {
+  test("a re-run is byte-identical across config/, .env, package.json, .claude/skills/", async () => {
     await runInitCommand(runtime);
     const configBefore = await fs.readFile(
       path.join(testDir, "config", "config.json"),

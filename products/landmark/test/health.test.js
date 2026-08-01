@@ -195,7 +195,7 @@ describe("health command", () => {
     assert.equal(result.view.driverJoin.scoreIds, 2);
   });
 
-  it("driverJoin.state is null when drivers configured but no team-scoped scores", async () => {
+  it("driverJoin.state is null when drivers are configured but no team-scoped scores exist", async () => {
     const result = await runHealthCommand({
       options: { manager: "alice@example.com" },
       mapData: MAP_DATA,
@@ -210,12 +210,12 @@ describe("health command", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Director-tier rollup: when the resolved members span >=2 GetDX teams, the
-// view carries a per-team rollup + scope instead of a flat table.
+// Director-tier rollup. When the resolved members span >=2 GetDX teams,
+// the view carries a per-team rollup + scope instead of a flat table.
 // ---------------------------------------------------------------------------
 
 // A two-team director scope. `getTeam(director)` returns members of both teams
-// (each tagged with its getdx_team_id); scores carry getdx_team_id per team.
+// (each tagged with its getdx_team_id). Scores carry getdx_team_id per team.
 const ROLLUP_TEAM = [
   { email: "alice@example.com", name: "Alice", getdx_team_id: "gdx_team_a" },
   { email: "bob@example.com", name: "Bob", getdx_team_id: "gdx_team_a" },
@@ -306,7 +306,7 @@ describe("health command — director-tier rollup", () => {
       summitFn: summitAbsent,
     });
 
-    // Director run spanning both teams.
+    // Director run that spans both teams.
     const rollup = await runHealthCommand({
       options: { manager: "zeus@bionova.example" },
       mapData: MAP_DATA,
@@ -338,7 +338,7 @@ describe("health command — director-tier rollup", () => {
     );
   });
 
-  it("rollup text output names teams and carries no ranking language", async () => {
+  it("rollup text output names teams and carries no rank vocabulary", async () => {
     const result = await runHealthCommand({
       options: { manager: "zeus@bionova.example" },
       mapData: MAP_DATA,
@@ -351,7 +351,8 @@ describe("health command — director-tier rollup", () => {
     assert.match(out, /Across 2 teams/);
     assert.match(out, /Team: Team Alpha/);
     assert.match(out, /Team: Team Beta/);
-    // No ranking or singling-out vocabulary — the surface must not rank teams.
+    // No rank words and no words that single out a team. The surface must
+    // not rank teams.
     assert.doesNotMatch(out, /lowest|highest|leaderboard|top \d|rank/i);
   });
 });

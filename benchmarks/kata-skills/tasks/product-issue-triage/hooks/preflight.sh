@@ -1,5 +1,5 @@
 #!/bin/sh
-# Smoke-check the triage scaffold: the product brief and the seeded open issue
+# Smoke-check the triage scaffold. The product brief and the seeded open issue
 # are present before the agent starts.
 set -eu
 test -f "$AGENT_CWD/product-brief.md"

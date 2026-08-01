@@ -138,7 +138,7 @@ function pluralize(type, count) {
 }
 
 /**
- * Create a progression group with header and table
+ * Create a progression group with a header and a table
  * @param {Object} params
  * @param {Array} params.items
  * @param {string} params.icon
@@ -229,7 +229,7 @@ function createCollapsibleGroup({
 }
 
 /**
- * Create a progression table showing changes
+ * Create a progression table that shows changes
  * @param {SkillChangeItem[]|BehaviourChangeItem[]} changes - Array of change objects
  * @param {'skill'|'behaviour'} type - Type of changes
  * @returns {HTMLElement}

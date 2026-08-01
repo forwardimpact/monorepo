@@ -12,7 +12,8 @@ import {
 const HEADER_LINE = "date,metric,value,unit,run,note,event_type";
 
 describe("conflict-marker guard", () => {
-  // Corruption shape observed in the field: both conflict branches interleaved among valid rows.
+  // This corruption shape comes from the field. Both conflict branches
+  // interleave among valid rows.
   const MERGE_CONFLICT = [
     HEADER_LINE,
     "2026-06-01,m,1,count,r1,,kata-shift",
@@ -24,7 +25,8 @@ describe("conflict-marker guard", () => {
     "2026-06-03,m,3,count,r3,,kata-shift",
   ].join("\n");
 
-  // Autostash specimen shape (wiki sync rebase round on 2026-06-12).
+  // The autostash specimen shape comes from the wiki-sync rebase round on
+  // 2026-06-12.
   const AUTOSTASH = [
     HEADER_LINE,
     "<<<<<<< Updated upstream",
@@ -38,7 +40,7 @@ describe("conflict-marker guard", () => {
     assert.throws(() => parseCSV(MERGE_CONFLICT), CSVIntegrityError);
   });
 
-  test("error carries the first marker's line number and content", () => {
+  test("the error carries the first marker's line number and content", () => {
     try {
       parseCSV(MERGE_CONFLICT);
       assert.fail("expected CSVIntegrityError");
@@ -67,7 +69,7 @@ describe("conflict-marker guard", () => {
     assert.throws(() => listMetrics(MERGE_CONFLICT, "*"), CSVIntegrityError);
   });
 
-  test("a bare separator line alone is rejected", () => {
+  test("parseCSV rejects a bare separator line alone", () => {
     const csv = [
       HEADER_LINE,
       "2026-06-01,m,1,count,,,kata-shift",
@@ -114,14 +116,14 @@ describe("parseCSV", () => {
     assert.strictEqual(rows[1].note, "has, comma");
   });
 
-  test("returns empty array for header-only CSV", () => {
+  test("returns an empty array for a header-only CSV", () => {
     assert.deepStrictEqual(
       parseCSV("date,metric,value,unit,run,note,event_type"),
       [],
     );
   });
 
-  test("returns empty array for empty text", () => {
+  test("returns an empty array for empty text", () => {
     assert.deepStrictEqual(parseCSV(""), []);
   });
 });
@@ -138,12 +140,12 @@ describe("parseLine", () => {
     assert.strictEqual(row.eventType, "kata-shift");
   });
 
-  test("defaults eventType to empty string on a six-field line", () => {
+  test("defaults eventType to an empty string on a six-field line", () => {
     const row = parseLine("2026-01-01,bugs,3,count,https://example.com,");
     assert.strictEqual(row.eventType, "");
   });
 
-  test("respects quoted fields containing commas", () => {
+  test("respects quoted fields that contain commas", () => {
     const row = parseLine(
       '2026-01-01,bugs,3,count,https://example.com,"has, comma"',
     );
@@ -158,7 +160,7 @@ describe("parseLine", () => {
 });
 
 describe("validateCSV", () => {
-  test("accepts valid CSV", () => {
+  test("accepts a valid CSV", () => {
     const csv = [
       "date,metric,value,unit,run,note,event_type",
       "2026-01-01,bugs,3,count,https://example.com,,kata-shift",
@@ -169,7 +171,7 @@ describe("validateCSV", () => {
     assert.strictEqual(result.errors.length, 0);
   });
 
-  test("rejects wrong header with a column diff", () => {
+  test("rejects a wrong header with a column diff", () => {
     const csv = "date,metric,value,unit,run,note\n2026-01-01,bugs,3,count,,";
     const result = validateCSV(csv);
     assert.strictEqual(result.valid, false);
@@ -201,7 +203,7 @@ describe("validateCSV", () => {
     assert.strictEqual(result.errors.length, 0);
   });
 
-  test("rejects non-numeric value", () => {
+  test("rejects a non-numeric value", () => {
     const csv = [
       "date,metric,value,unit,run,note,event_type",
       "2026-01-01,bugs,abc,count,https://example.com,,kata-shift",
@@ -211,7 +213,7 @@ describe("validateCSV", () => {
     assert.ok(result.errors.find((e) => e.field === "value"));
   });
 
-  test("rejects invalid date", () => {
+  test("rejects an invalid date", () => {
     const csv = [
       "date,metric,value,unit,run,note,event_type",
       "not-a-date,bugs,3,count,https://example.com,,kata-shift",
@@ -221,19 +223,19 @@ describe("validateCSV", () => {
     assert.ok(result.errors.find((e) => e.field === "date"));
   });
 
-  test("rejects empty file with a clear message", () => {
+  test("rejects an empty file with a clear message", () => {
     const result = validateCSV("");
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors[0].message.includes("empty"));
   });
 
-  test("rejects missing header on a non-empty file", () => {
+  test("rejects a missing header on a non-empty file", () => {
     const result = validateCSV("not a header line");
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors[0].message.includes("header mismatch"));
   });
 
-  test("rejects a row with empty event_type, naming line and field", () => {
+  test("rejects a row with an empty event_type and names the line and field", () => {
     const csv = [
       "date,metric,value,unit,run,note,event_type",
       "2026-01-01,bugs,3,count,https://example.com,,kata-shift",
@@ -247,7 +249,7 @@ describe("validateCSV", () => {
     assert.strictEqual(err.message, "missing event_type");
   });
 
-  test("rejects a six-field row missing the event_type column", () => {
+  test("rejects a six-field row without the event_type column", () => {
     const csv = [
       "date,metric,value,unit,run,note,event_type",
       "2026-01-01,bugs,3,count,https://example.com,",
@@ -266,7 +268,7 @@ describe("listMetrics", () => {
     "2026-01-01,b,5,days,r,,kata-dispatch",
   ].join("\n");
 
-  test("returns metric inventory for the default kata-shift slice", () => {
+  test("returns the metric inventory for the default kata-shift slice", () => {
     const metrics = listMetrics(inventoryCsv);
 
     assert.strictEqual(metrics.length, 1);
@@ -276,7 +278,7 @@ describe("listMetrics", () => {
     assert.strictEqual(metrics[0].to, "2026-01-02");
   });
 
-  test("filters to one event_type when given", () => {
+  test("filters to one event_type when the caller supplies one", () => {
     const metrics = listMetrics(inventoryCsv, "kata-dispatch");
     assert.strictEqual(metrics.length, 1);
     assert.strictEqual(metrics[0].metric, "b");
@@ -306,7 +308,7 @@ describe("route-decision context", () => {
     assert.deepStrictEqual(row.routesEligible, []);
   });
 
-  test("validate rejects a post-convention route-bearing row missing route", () => {
+  test("validate rejects a post-convention route-bearing row with no route", () => {
     const csv = [
       HEADER_LINE,
       "2026-06-20,implementations_shipped,0,count,run-1,no grammar here,kata-shift",

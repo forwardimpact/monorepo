@@ -1,11 +1,12 @@
 /**
  * Job Description Formatter
  *
- * Formats job data into markdown job description content.
- * Parallels formatters/agent/profile.js in structure.
+ * This formatter turns job data into markdown job-description content.
+ * Its structure parallels formatters/agent/profile.js.
  *
- * Uses Mustache templates for flexible output formatting.
- * Templates are loaded from data/ directory with fallback to templates/ directory.
+ * Mustache templates keep the output format flexible.
+ * Templates come from the data/ directory. The fallback is the templates/
+ * directory.
  */
 
 import Mustache from "mustache";
@@ -14,7 +15,7 @@ import { BEHAVIOUR_MATURITY_ORDER } from "@forwardimpact/libskill/levels";
 import { trimValue, trimFields } from "../shared.js";
 
 /**
- * Ensure a string ends with a period
+ * Make sure a string ends with a period
  * @param {string} str
  * @returns {string}
  */
@@ -42,7 +43,7 @@ function buildAutonomySentence(exp) {
 }
 
 /**
- * Build expectations paragraph from job expectations
+ * Build the expectations paragraph from the job expectations
  * @param {Object|undefined} expectations
  * @returns {string}
  */
@@ -67,11 +68,12 @@ function buildExpectationsParagraph(expectations) {
 /**
  * Build capability skill sections at the job's top proficiency level(s).
  *
- * Each derived responsibility sits at its capability's own highest proficiency,
- * and the list is sorted by proficiency descending. Individual-contributor jobs
- * show only the single highest proficiency. Management jobs concentrate fewer
- * skills at the very top, so showing one level leaves their descriptions sparse;
- * they include the top two proficiency levels instead.
+ * Each derived responsibility sits at its capability's own highest
+ * proficiency. This function sorts the list by descending proficiency.
+ * Individual-contributor jobs show only the single highest proficiency.
+ * Management jobs concentrate fewer skills at the very top. So one level
+ * leaves their descriptions sparse. They include the top two proficiency
+ * levels instead.
  * @param {Object} job
  * @param {Object} [options]
  * @param {boolean} [options.isManagement] - Whether the role is a management role
@@ -95,8 +97,8 @@ function buildCapabilitySkills(job, { isManagement = false } = {}) {
     allowedProficiencies.has(r.proficiency),
   );
 
-  // Each capability lists the skills at its own responsibility proficiency, so
-  // a capability shown at the second level keeps its second-level skills.
+  // Each capability lists the skills at its own responsibility proficiency.
+  // So a capability shown at the second level keeps its second-level skills.
   const proficiencyByCapability = new Map(
     topResponsibilities.map((r) => [r.capability, r.proficiency]),
   );
@@ -129,7 +131,7 @@ function buildCapabilitySkills(job, { isManagement = false } = {}) {
 }
 
 /**
- * Prepare job data for template rendering
+ * Prepare job data so the template can render it
  * @param {Object} params
  * @param {Object} params.job - The job definition
  * @param {Object} params.discipline - The discipline
@@ -138,7 +140,7 @@ function buildCapabilitySkills(job, { isManagement = false } = {}) {
  * @returns {Object} Data object ready for Mustache template
  */
 function prepareJobDescriptionData({ job, discipline, level, track }) {
-  // Build role summary from discipline
+  // Build the role summary from the discipline
   const { roleTitle, specialization } = discipline;
   let roleSummary = discipline.roleSummary || discipline.description;
   roleSummary = roleSummary.replace(/\{roleTitle\}/g, roleTitle);
@@ -160,7 +162,7 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
     isManagement: !!discipline?.isManagement,
   });
 
-  // Build qualification summary with placeholder replacement
+  // Build the qualification summary. Replace the placeholders.
   const qualificationSummary =
     (level.qualificationSummary || "").replace(
       /\{typicalExperienceRange\}/g,
@@ -199,14 +201,14 @@ function prepareJobDescriptionData({ job, discipline, level, track }) {
 }
 
 /**
- * Format job as a markdown job description using Mustache template
+ * Format a job as a markdown job description with a Mustache template
  * @param {Object} params
  * @param {Object} params.job - The job definition
  * @param {Object} params.discipline - The discipline
  * @param {Object} params.level - The level
  * @param {Object} [params.track] - The track (optional)
  * @param {string} template - Mustache template string
- * @returns {string} Markdown formatted job description
+ * @returns {string} Markdown-formatted job description
  */
 export function formatJobDescription(
   { job, discipline, level, track },

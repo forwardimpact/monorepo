@@ -6,7 +6,7 @@ import { toType, toIdentifier, ResourceIndex } from "../src/index.js";
 import { sanitizeDom } from "../src/sanitizer.js";
 import { common, resource } from "@forwardimpact/libtype";
 
-/** Try to parse a string value as JSON; return the original on failure. */
+/** Try to parse a string value as JSON. Return the original on failure. */
 function tryParseJson(value) {
   try {
     return JSON.parse(value);
@@ -15,7 +15,7 @@ function tryParseJson(value) {
   }
 }
 
-/** Resolve a stored value, auto-parsing JSON for .json keys. */
+/** Resolve a stored value. Parse JSON automatically for .json keys. */
 function resolveValue(key, value) {
   if (key.endsWith(".json") && typeof value === "string") {
     return tryParseJson(value);
@@ -24,7 +24,7 @@ function resolveValue(key, value) {
 }
 
 /**
- * Creates a mock storage implementation for testing
+ * Creates a mock storage implementation for the tests
  * @returns {object} Mock storage instance
  */
 function createMockStorage() {
@@ -67,13 +67,13 @@ function createMockStorage() {
 }
 
 /**
- * Creates a mock policy implementation for testing
+ * Creates a mock policy implementation for the tests
  * @returns {object} Mock policy instance
  */
 function createMockPolicy() {
   return {
     async evaluate(_input) {
-      // Allow all access for testing
+      // Allow all access in the tests
       return true;
     },
   };
@@ -124,7 +124,7 @@ describe("ResourceIndex", () => {
     assert.strictEqual(exists, false);
   });
 
-  test("puts resource content with identifier generation", async () => {
+  test("puts resource content and generates an identifier", async () => {
     const message = new common.Message({
       role: "system",
       content: { text: "Test message content" },
@@ -132,7 +132,7 @@ describe("ResourceIndex", () => {
 
     await resourceIndex.put(message);
 
-    // Verify descriptor was generated
+    // Verify that put() generated the descriptor
     assert.ok(message.id instanceof resource.Identifier);
     assert.strictEqual(message.id.type, "common.Message");
     // Should generate a UUID
@@ -164,13 +164,13 @@ describe("ResourceIndex", () => {
     assert.ok(retrieved[0].id.name);
   });
 
-  test("returns empty array when passed null identifiers", async () => {
+  test("returns empty array when the caller passes null identifiers", async () => {
     const retrieved = await resourceIndex.get(null, "test-actor");
     assert.strictEqual(retrieved.length, 0);
     assert.ok(Array.isArray(retrieved));
   });
 
-  test("returns empty array when passed undefined identifiers", async () => {
+  test("returns empty array when the caller passes undefined identifiers", async () => {
     const retrieved = await resourceIndex.get(undefined, "test-actor");
     assert.strictEqual(retrieved.length, 0);
     assert.ok(Array.isArray(retrieved));
@@ -212,7 +212,7 @@ describe("ResourceIndex", () => {
 });
 
 describe("toIdentifier helper function", () => {
-  test("toIdentifier correctly creates Identifier from resource URI", () => {
+  test("toIdentifier correctly creates an Identifier from a resource URI", () => {
     const uri = "common.Message.abc123";
     const identifier = toIdentifier(uri);
 
@@ -222,7 +222,7 @@ describe("toIdentifier helper function", () => {
     assert.strictEqual(identifier.parent, "");
   });
 
-  test("toIdentifier correctly handles URI with parent path", () => {
+  test("toIdentifier correctly handles a URI with a parent path", () => {
     const uri = "parent/child/common.Message.abc123";
     const identifier = toIdentifier(uri);
 
@@ -232,7 +232,7 @@ describe("toIdentifier helper function", () => {
     assert.strictEqual(identifier.parent, "parent/child");
   });
 
-  test("toIdentifier is reverse of Identifier.toString() - simple case", () => {
+  test("toIdentifier is the reverse of Identifier.toString() - simple case", () => {
     const original = new resource.Identifier({
       type: "common.Message",
       name: "abc123",
@@ -247,7 +247,7 @@ describe("toIdentifier helper function", () => {
     assert.strictEqual(reconstructed.parent, original.parent);
   });
 
-  test("toIdentifier is reverse of Identifier.toString() - with parent", () => {
+  test("toIdentifier is the reverse of Identifier.toString() - with parent", () => {
     const original = new resource.Identifier({
       type: "common.Message",
       name: "abc123",
@@ -264,7 +264,7 @@ describe("toIdentifier helper function", () => {
 });
 
 describe("toType helper function", () => {
-  test("toType correctly creates type based on identifier", () => {
+  test("toType correctly creates a type from the identifier", () => {
     const object = {
       id: {
         type: "common.Message",
@@ -299,7 +299,7 @@ describe("toType helper function", () => {
 });
 
 describe("sanitizeDom patterns", () => {
-  test("encodes angle-number and stray ampersand; preserves existing &amp; entity and unknown entity", () => {
+  test("encodes angle-number and stray ampersand. Preserves existing &amp; entity and unknown entity", () => {
     const html = `<!DOCTYPE html><html><body><div>Value <5 and >10 plus R&D &amp; already encoded &unknown; end</div></body></html>`;
     const { document } = parseHTML(html);
     sanitizeDom(document);
@@ -315,7 +315,7 @@ describe("sanitizeDom patterns", () => {
     sanitizeDom(document);
     const text = document.querySelector("p").textContent;
     assert.strictEqual(text, '"Quoted" \u0027text\u0027 and space');
-    // Ensure no smart quotes remain
+    // Make sure no smart quotes remain
     assert.doesNotMatch(text, /[“”‘’]/);
   });
 });

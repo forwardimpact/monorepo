@@ -30,7 +30,7 @@ describe("Finder", () => {
       logger: mockLogger,
     });
 
-    // Create a temporary directory for testing
+    // Create a temporary directory for the test
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     tempDir = path.join(__dirname, ".tmp-linker-test");
@@ -43,14 +43,14 @@ describe("Finder", () => {
   });
 
   afterEach(() => {
-    // Clean up temp directory
+    // Clean up the temp directory
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
   });
 
   describe("createSymlink", () => {
-    test("creates symlink between directories", async () => {
+    test("creates a symlink between directories", async () => {
       const sourceDir = path.join(tempDir, "source");
       const targetPath = path.join(tempDir, "target");
 
@@ -64,11 +64,11 @@ describe("Finder", () => {
       );
     });
 
-    test("removes existing target before creating symlink", async () => {
+    test("removes an existing target before it creates the symlink", async () => {
       const sourceDir = path.join(tempDir, "source");
       const targetPath = path.join(tempDir, "target");
 
-      // Create existing target directory
+      // Create the existing target directory
       fs.mkdirSync(targetPath);
       fs.writeFileSync(path.join(targetPath, "existing.txt"), "test");
 
@@ -80,12 +80,12 @@ describe("Finder", () => {
       assert.ok(!fs.existsSync(path.join(targetPath, "existing.txt")));
     });
 
-    test("removes existing symlink before creating new one", async () => {
+    test("removes an existing symlink before it creates a new one", async () => {
       const sourceDir = path.join(tempDir, "source");
       const oldSourceDir = path.join(tempDir, "old-source");
       const targetPath = path.join(tempDir, "target");
 
-      // Create old symlink
+      // Create the old symlink
       fs.mkdirSync(oldSourceDir);
       fs.symlinkSync(oldSourceDir, targetPath, "dir");
 
@@ -93,8 +93,8 @@ describe("Finder", () => {
 
       assert.ok(fs.existsSync(targetPath));
       assert.ok(fs.lstatSync(targetPath).isSymbolicLink());
-      // Should point to new source, via a relative target so the link
-      // survives being restored at a different absolute path.
+      // The link should point to the new source through a relative target.
+      // The link then survives a restore at a different absolute path.
       assert.strictEqual(
         fs.readlinkSync(targetPath),
         path.relative(path.dirname(targetPath), sourceDir),
@@ -103,7 +103,7 @@ describe("Finder", () => {
   });
 
   describe("createPackageSymlinks", () => {
-    test("creates symlinks when project root is found", async () => {
+    test("creates symlinks when it finds the project root", async () => {
       // Mock findProjectRoot to return a valid path
       const originalFindProjectRoot = finder.findProjectRoot;
       finder.findProjectRoot = spy(() => {
@@ -118,15 +118,15 @@ describe("Finder", () => {
 
       await finder.createPackageSymlinks(generatedPath);
 
-      // Should have called findProjectRoot
+      // The method called findProjectRoot
       assert.strictEqual(finder.findProjectRoot.mock.calls.length, 1);
 
-      // Restore original method
+      // Restore the original method
       finder.findProjectRoot = originalFindProjectRoot;
     });
 
     test("creates symlinks for standard packages", async () => {
-      // Create mock project structure
+      // Create the mock project structure
       const projectRoot = path.join(tempDir, "project");
       const packagesDir = path.join(projectRoot, "packages");
       fs.mkdirSync(path.join(packagesDir, "libtype"), { recursive: true });
@@ -141,7 +141,7 @@ describe("Finder", () => {
 
       await finder.createPackageSymlinks(generatedPath);
 
-      // Check that symlinks were created
+      // Check that the symlinks exist
       const libtypeTarget = path.join(
         packagesDir,
         "libtype",
@@ -161,7 +161,7 @@ describe("Finder", () => {
         ),
       );
 
-      // Restore original method
+      // Restore the original method
       finder.findProjectRoot = originalFindProjectRoot;
     });
   });

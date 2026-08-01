@@ -13,11 +13,12 @@ const logger = createSilentLogger();
 const JAR = "/synthea.jar";
 
 /**
- * A libmock in-memory fs to back SyntheaTool's `fsFns`, plus an `execFileFn`
- * that materialises the supplied FHIR `bundles` under the temp dir Synthea was
- * told to export to (the `--exporter.baseDirectory` arg). This mirrors the real
- * flow — the tool creates a temp dir, the java run writes `fhir/*.json` into
- * it, then the tool reads them back — without touching the real filesystem.
+ * Build a libmock in-memory fs to back SyntheaTool's `fsFns`. Build an
+ * `execFileFn` too. The `execFileFn` materialises the supplied FHIR
+ * `bundles` under the temp dir that the tool tells Synthea to export to
+ * (the `--exporter.baseDirectory` arg). This mirrors the real flow. The
+ * tool creates a temp dir. The java run writes `fhir/*.json` into it. Then
+ * the tool reads them back. Nothing touches the real filesystem.
  *
  * @param {object[]} [bundles] - FHIR bundles the run "produces".
  * @param {string} [jar] - The jar path to seed so the availability check passes.
@@ -126,7 +127,7 @@ describe("SyntheaTool", () => {
     assert.ok(capturedArgs.args.includes("-m"));
     assert.ok(capturedArgs.args.includes("diabetes"));
 
-    // Verify dataset flattening by resource type
+    // Verify that the tool flattens datasets by resource type
     assert.strictEqual(datasets.length, 2);
     const names = datasets.map((d) => d.name).sort();
     assert.deepStrictEqual(names, ["test-condition", "test-patient"]);
@@ -137,8 +138,8 @@ describe("SyntheaTool", () => {
     assert.strictEqual(patientDs.metadata.resourceType, "Patient");
   });
 
-  test("filterByConditions keeps only patients with matching FHIR Condition codes", async () => {
-    // 5 patients, 3 with diabetes — output should contain those 3 only.
+  test("filterByConditions keeps only patients whose FHIR Condition codes match", async () => {
+    // 5 patients, 3 with diabetes. The output should contain those 3 only.
     const bundles = makeFhirBundles([
       { patient: "p1", conditions: [{ display: "Diabetes" }] },
       { patient: "p2", conditions: [{ display: "Hypertension" }] },
@@ -178,7 +179,7 @@ describe("SyntheaTool", () => {
     assert.strictEqual(patientDs.records[0].id, "p1");
   });
 
-  test("no conditions field — no filtering applied", async () => {
+  test("applies no filter when the conditions field is absent", async () => {
     const bundles = makeFhirBundles([
       { patient: "p1", conditions: [{ display: "Diabetes" }] },
       { patient: "p2", conditions: [{ display: "Hypertension" }] },
@@ -193,7 +194,7 @@ describe("SyntheaTool", () => {
     assert.strictEqual(patientDs.records.length, 2);
   });
 
-  test("filterByConditions handles empty Condition list — no patient drop", async () => {
+  test("filterByConditions drops no patient when the Condition list is empty", async () => {
     const bundles = [
       {
         entry: [
@@ -209,8 +210,8 @@ describe("SyntheaTool", () => {
       conditions: ["diabetes"],
       seed: 1,
     });
-    // No Condition resources → no patient gets a match, but the no-match
-    // branch leaves data untouched rather than wiping it.
+    // No Condition resources → no patient gets a match. The no-match
+    // branch leaves the data untouched. It does not wipe the data.
     const patientDs = datasets.find((d) => d.name === "patients-patient");
     assert.strictEqual(patientDs.records.length, 2);
   });
@@ -218,7 +219,8 @@ describe("SyntheaTool", () => {
   test("filterByConditions retains linked Encounters/Observations of matched patients", async () => {
     // Real Synthea bundles include Encounter, Observation, etc., each with
     // their own resource id and a `subject.reference` back to the patient.
-    // The filter must walk subject.reference, not r.id, for non-Patient rows.
+    // For non-Patient rows the filter must walk subject.reference. It must
+    // not walk r.id.
     const bundles = [
       {
         entry: [
@@ -324,7 +326,7 @@ describe("SyntheaTool", () => {
     assert.strictEqual(byType.Encounter.length, 1);
   });
 
-  test("empty FHIR output — generate returns no datasets without error", async () => {
+  test("generate returns no datasets and throws no error for empty FHIR output", async () => {
     const tool = makeToolWithBundles([], "/synthea.jar");
     const datasets = await tool.generate({
       name: "patients",
@@ -337,9 +339,10 @@ describe("SyntheaTool", () => {
 
 /**
  * Build FHIR bundles where each patient has a set of Condition resources
- * referencing them. Every resource gets its own `id` UUID — matching real
- * Synthea output, where Patient, Condition, Encounter, Observation, etc.
- * all carry independent resource IDs and link back via `subject.reference`.
+ * that reference them. Every resource gets its own `id` UUID. This matches
+ * real Synthea output, where Patient, Condition, Encounter, Observation,
+ * etc. all carry independent resource IDs and link back through
+ * `subject.reference`.
  */
 function makeFhirBundles(patientSpecs) {
   const bundles = [];

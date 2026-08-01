@@ -1,10 +1,10 @@
 # Screening Output Template
 
 Reference template for `req-screen` Step 6. Save to
-`Knowledge/Candidates/{Name}/screening.md`. Filename **must** be `screening.md`
-— not `assessment.md`, `cv-screening.md`, or any variant. If a misnamed
-screening file exists in the folder (look for `# CV Screening` in the header),
-delete it after writing.
+`Knowledge/Candidates/{Name}/screening.md`. The filename **must** be
+`screening.md`. Do not use `assessment.md`, `cv-screening.md`, or any variant.
+Look in the folder for a misnamed screening file with `# CV Screening` in the
+header. If one exists, delete it after you write the new one.
 
 ```markdown
 # CV Screening — {Full Name}

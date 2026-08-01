@@ -3,7 +3,7 @@
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
 Agent-friendly web surfaces — share handler logic across web and terminal so
-capabilities ship once, not twice.
+capabilities ship only once.
 
 <!-- END:description -->
 

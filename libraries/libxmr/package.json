@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/libxmr",
   "version": "3.0.0",
-  "description": "Wheeler/Vacanti XmR control charts — distinguish signal from noise so agent teams act on real changes, not fluctuations.",
+  "description": "Wheeler/Vacanti XmR control charts — distinguish signal from noise so agent teams act on real changes instead of fluctuations.",
   "keywords": [
     "xmr",
     "control-chart",
@@ -23,7 +23,7 @@
       "user": "Empowered Engineers",
       "goal": "Operate a Predictable Agent Team",
       "trigger": "A metric changes and the team debates whether it is a real shift or just noise.",
-      "bigHire": "distinguish signal from noise so the team acts on real changes, not fluctuations.",
+      "bigHire": "distinguish signal from noise so the team acts on real changes instead of fluctuations.",
       "littleHire": "chart a metric and see whether the latest point is within expected variation.",
       "competesWith": "eyeballing trend lines; arbitrary thresholds; ignoring metrics because no one trusts them"
     }

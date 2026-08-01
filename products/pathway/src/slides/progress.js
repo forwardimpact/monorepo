@@ -36,7 +36,7 @@ export function renderProgressSlide({ render, data, params }) {
     return;
   }
 
-  // Get compare level from URL query or default to next level
+  // Get the compare level from the URL query. Default to the next level
   const urlParams = new URLSearchParams(window.location.search);
   const compareLevelId = urlParams.get("compare");
 

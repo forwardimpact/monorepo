@@ -1,7 +1,7 @@
 # Schedule Templates
 
-One `agent-shift.yml` runs the whole roster each shift, in declaration order,
-serialized by `max-parallel: 1`. Order the matrix as a producer → reviewer →
+One `agent-shift.yml` runs the whole roster each shift, in declaration order.
+`max-parallel: 1` serializes them. Order the matrix as a producer → reviewer →
 shipper chain so each agent acts on the previous one's output:
 
 1. **product-manager** — triages a fresh backlog
@@ -13,8 +13,8 @@ shipper chain so each agent acts on the previous one's output:
 6. **improvement-coach** — assesses team improvement
 
 Because the matrix serializes the roster, the schedule is **three shift-start
-crons** (night, day, swing) — not a per-agent stagger. The storyboard runs once
-daily, after the night shift finishes.
+crons** (night, day, swing). The schedule does not stagger each agent. The
+storyboard runs once daily, after the night shift finishes.
 
 ## `{{SHIFT_CRONS}}` by Timezone
 

@@ -4,16 +4,17 @@ import { TraceIndex } from "@forwardimpact/libtelemetry/index/trace.js";
 const { SpanBase } = services;
 
 /**
- * Span service for receiving and storing trace spans
+ * The Span service receives and stores trace spans
  */
 export class SpanService extends SpanBase {
   #index;
 
   /**
    * Creates a new Span service instance
-   * Note: Span service does NOT accept a tracer parameter to avoid infinite recursion
+   * Note: the Span service does NOT accept a tracer parameter to avoid
+   * infinite recursion
    * @param {import("@forwardimpact/libconfig").ServiceConfig} config - Service configuration
-   * @param {TraceIndex} traceIndex - Initialized TraceIndex for storing traces
+   * @param {TraceIndex} traceIndex - Initialized TraceIndex that stores traces
    */
   constructor(config, traceIndex) {
     super(config);
@@ -52,7 +53,7 @@ export class SpanService extends SpanBase {
   }
 
   /**
-   * Graceful shutdown with final flush
+   * Shuts down gracefully with a final flush
    * @returns {Promise<void>}
    */
   async shutdown() {

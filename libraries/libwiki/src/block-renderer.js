@@ -1,7 +1,7 @@
 import path from "node:path";
 import { analyze, renderChart, MIN_POINTS } from "@forwardimpact/libxmr";
 
-/** Error thrown when an XmR block cannot be rendered due to missing CSV or metric. */
+/** Error the renderer throws when an XmR block has no CSV or no metric. */
 export class BlockRenderError extends Error {
   /** Create a BlockRenderError with the given reason string. */
   constructor(reason) {
@@ -11,11 +11,12 @@ export class BlockRenderError extends Error {
 }
 
 /**
- * Render an XmR chart block for a metric by reading its CSV and producing
+ * Render an XmR chart block for a metric. Read its CSV and produce the
  * markdown lines.
  * @param {{metric: string, csvPath: string, projectRoot: string, fs: object, priorReadAnchor?: string|null}} options
- *   `fs` is the sync filesystem surface (`runtime.fsSync`). `priorReadAnchor`,
- *   when supplied, stamps per-signal provenance surfaced in the Signals line.
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`). `priorReadAnchor`
+ *   stamps per-signal provenance when the caller supplies it. The Signals line
+ *   surfaces that provenance.
  */
 export function renderBlock({
   metric,

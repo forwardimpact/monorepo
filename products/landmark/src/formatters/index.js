@@ -19,7 +19,7 @@ import * as healthFormatter from "./health.js";
 import * as voiceFormatter from "./voice.js";
 import * as sourcesFormatter from "./sources.js";
 
-// Login and logout write their UX directly to stdout; the dispatcher's
+// Login and logout write their UX directly to stdout. The dispatcher's
 // formatResult() pass would otherwise dump the {meta,summary} result on
 // top of the human-readable lines. A silent formatter sidesteps that.
 const silent = {
@@ -55,7 +55,7 @@ const formatters = {
 export function formatResult(command, result) {
   const { view, meta } = result;
 
-  // Empty-state handling: all formats render only the message.
+  // For an empty state, all formats render only the message.
   if (meta.emptyState) {
     if (meta.format === "json") {
       return (

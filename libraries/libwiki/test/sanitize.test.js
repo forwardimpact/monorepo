@@ -39,7 +39,7 @@ describe("sanitizeTitle", () => {
   test("defuses an embedded ' (by ' token", () => {
     const out = sanitizeTitle("fix bug (by hand) then ship");
     assert.ok(!out.includes(" (by "), "raw ' (by ' token must not survive");
-    // A zero-width space (U+200B) is inserted after '(by'.
+    // sanitizeTitle inserts a zero-width space (U+200B) after '(by'.
     assert.ok(out.includes(`(by\u200b `));
   });
 

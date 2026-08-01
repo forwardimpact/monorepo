@@ -12,9 +12,9 @@ import {
   ROUTE_BEARING_METRICS,
 } from "./routes.js";
 
-/** Error thrown when CSV text is structurally corrupted (git conflict markers) and must not be charted. */
+/** The parser throws this error when git conflict markers corrupt the CSV text. Callers must not chart that text. */
 export class CSVIntegrityError extends Error {
-  /** Create a CSVIntegrityError carrying the 1-based line number and offending line content. */
+  /** Create a CSVIntegrityError with the 1-based line number and the content of the bad line. */
   constructor(line, content) {
     super(`git conflict marker at line ${line}: "${content}"`);
     this.name = "CSVIntegrityError";
@@ -29,9 +29,10 @@ export class CSVIntegrityError extends Error {
 // legitimate row can start with any of these.
 const CONFLICT_MARKER_RE = /^(<{7} |={7}$|>{7} )/;
 
-// A conflict-marker line means the file is a failed merge, not data —
-// downstream stats would silently chart duplicated or junk rows. Line
-// numbers are computed on the raw text so they match the file on disk.
+// A conflict-marker line means the file is a failed merge. The file is not
+// data. Downstream stats would silently chart duplicated or junk rows. The
+// code computes line numbers on the raw text, so they match the file on
+// disk.
 function assertNoConflictMarkers(text) {
   const lines = text.split("\n");
   for (let i = 0; i < lines.length; i++) {
@@ -41,9 +42,10 @@ function assertNoConflictMarkers(text) {
   }
 }
 
-// Parse one CSV line into a row object. Quote-aware but does NOT support
-// the `""` escape inside quoted fields — Kata-metrics CSVs use the `note`
-// field for free text and the schema does not require embedded quotes.
+// Parse one CSV line into a row object. The parser is quote-aware. It does
+// NOT support the `""` escape inside quoted fields. Kata-metrics CSVs use
+// the `note` field for free text, and the schema does not require embedded
+// quotes.
 /** Parse a single CSV line into a row object with date, metric, value, unit, run, note, event_type, and host_run fields. */
 export function parseLine(line) {
   const fields = [];
@@ -63,8 +65,8 @@ export function parseLine(line) {
   }
   fields.push(current);
   const note = fields[5] || "";
-  // Quote stripping above has already run, so parseRouteContext reads the
-  // unquoted note; route fields are empty for rows without the grammar.
+  // The code above already strips the quotes, so parseRouteContext reads
+  // the unquoted note. Route fields are empty for rows without the grammar.
   const { routeTaken, routesEligible } = parseRouteContext(note);
   return {
     date: fields[0],
@@ -81,7 +83,7 @@ export function parseLine(line) {
   };
 }
 
-/** Parse a full CSV text (with header) into an array of row objects, skipping the header line. Throws CSVIntegrityError on git conflict markers. */
+/** Parse a full CSV text (with header) into an array of row objects. Skip the header line. Throw CSVIntegrityError on git conflict markers. */
 export function parseCSV(text) {
   assertNoConflictMarkers(text);
   const lines = text.trim().split("\n");
@@ -93,7 +95,7 @@ export function parseCSV(text) {
   });
 }
 
-/** Validate CSV text against the expected header and field constraints, returning errors by line. */
+/** Validate CSV text against the expected header and the field constraints. Return errors by line. */
 export function validateCSV(text) {
   const errors = [];
 
@@ -105,8 +107,8 @@ export function validateCSV(text) {
   const lines = text.trim().split("\n");
 
   const header = lines[0].trim();
-  // Accept the current 8-column header or the legacy 7-column header (spec
-  // 1910 added the trailing optional `host_run` column). Current-year files
+  // Accept the current 8-column header or the legacy 7-column header. Spec
+  // 1910 added the trailing optional `host_run` column. Current-year files
   // written before the change stay valid for `gemba-xmr` and the storyboard.
   if (header !== HEADER && header !== LEGACY_HEADER) {
     errors.push({ line: 1, message: headerMismatchMessage(header) });
@@ -159,9 +161,9 @@ function validateRow(row, lineNumber, errors) {
 }
 
 // Forward-only route-decision check: a route-bearing metric row dated on or
-// after the convention start must carry a known route. Pre-convention rows
-// and non-route-bearing metrics are left untouched, so existing CSVs stay
-// valid.
+// after the convention start must carry a known route. The check leaves
+// pre-convention rows and non-route-bearing metrics untouched, so existing
+// CSVs stay valid.
 function validateRouteContext(row, lineNumber, errors) {
   if (
     !ROUTE_BEARING_METRICS.includes(row.metric) ||
@@ -186,8 +188,8 @@ function validateRouteContext(row, lineNumber, errors) {
   }
 }
 
-// Column-diff message so a reader sees which columns drifted, not just
-// that two long strings differ.
+// Build a column-diff message so a reader sees which columns drifted. The
+// reader does not only see that two long strings differ.
 function headerMismatchMessage(got) {
   const gotCols = got.split(",").map((c) => c.trim());
   const extra = gotCols.filter((c) => !COLUMNS.includes(c));
@@ -199,7 +201,7 @@ function headerMismatchMessage(got) {
   );
 }
 
-/** List distinct metrics in a CSV with their unit, point count, and date range, restricted to one event_type (default kata-shift; "*" disables the filter). */
+/** List distinct metrics in a CSV with their unit, point count, and date range. Restrict the list to one event_type (default kata-shift). Pass "*" to disable the filter. */
 export function listMetrics(csvText, eventType = DEFAULT_SHIFT_TYPE) {
   let rows = parseCSV(csvText);
   if (eventType !== "*") {

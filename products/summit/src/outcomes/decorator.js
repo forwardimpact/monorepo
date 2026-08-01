@@ -1,9 +1,10 @@
 /**
  * Outcome decorators for growth recommendations.
  *
- * Loads GetDX driver scores from Map's snapshots layer and re-weights
- * growth recommendations within their impact tier. Recommendations
- * whose skill contributes to a poorly-scoring driver surface first.
+ * This module loads GetDX driver scores from Map's snapshots layer. It
+ * then re-weights growth recommendations within their impact tier. A
+ * recommendation surfaces first when its skill contributes to a driver
+ * that scores poorly.
  */
 
 import {
@@ -61,11 +62,12 @@ export function mapSkillsToDrivers(data) {
 }
 
 /**
- * Attach `driverContext` to each recommendation and re-sort so that
- * within a tier, gaps tied to a poorly-scoring driver surface first.
+ * Attach `driverContext` to each recommendation. Then re-sort them.
+ * Within a tier, a gap surfaces first when it ties to a driver that
+ * scores poorly.
  *
- * The impact-tier hierarchy (critical > spof > coverage) is preserved
- * — outcome weighting only breaks ties within a tier.
+ * The function keeps the impact-tier hierarchy (critical > spof >
+ * coverage). It weights by outcome only to break ties within a tier.
  *
  * @param {object[]} recommendations
  * @param {Map<string, object>} driverScores

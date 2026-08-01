@@ -1,13 +1,14 @@
 /**
- * Shared time formatting for libtelemetry. Kept in one place so `logger.js`
- * and `visualizer.js` share a single, tested implementation.
+ * This module formats time for libtelemetry. It stays in one place so
+ * `logger.js` and `visualizer.js` share a single, tested implementation.
  */
 
 /**
- * Converts milliseconds since Unix epoch to an ISO 8601 string (UTC)
- * without constructing a `new Date` object (ambient-dep smell avoidance).
- * Matches `new Date(ms).toISOString()` for ms ≥ 0 (every value
- * `clock.now()` returns); negative (pre-epoch) inputs clamp to the epoch.
+ * Converts milliseconds since Unix epoch to an ISO 8601 string (UTC).
+ * It does not construct a `new Date` object. That avoids an ambient-dep
+ * smell. The result matches `new Date(ms).toISOString()` for ms ≥ 0, which
+ * covers every value `clock.now()` returns. Negative (pre-epoch) inputs
+ * clamp to the epoch.
  * @param {number} ms - Milliseconds since epoch (non-negative)
  * @returns {string} ISO 8601 timestamp, e.g. "2024-04-29T18:52:58.114Z"
  */

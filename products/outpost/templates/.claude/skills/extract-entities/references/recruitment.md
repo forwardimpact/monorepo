@@ -15,30 +15,31 @@ distinguishes:
 Scan email subjects and bodies for requisition numbers (e.g. 7-digit Workday
 IDs).
 
-1. `ls Knowledge/Roles/ | grep "{req_number}"` — does a Role file exist?
-2. **No file:** create a stub using the Role-stub template in `req-track` Step
-   0b, with `**Status:** open`. Search `rg "{req_number}" Knowledge/` for
+1. `ls Knowledge/Roles/ | grep "{req_number}"` — find out whether a Role file
+   exists.
+2. **No file:** create a stub with the Role-stub template in `req-track` Step
+   0b, and set `**Status:** open`. Search `rg "{req_number}" Knowledge/` for
    context to enrich it.
 3. **File exists:** check the `**Status:**` field. If `open`, check whether the
-   email provides new metadata (hiring manager, recruiter, locations) and update
-   the Role file. If `closed`, link for historical reference only; do not add
-   new candidates or rebuild tables.
+   email provides new metadata (hiring manager, recruiter, locations). Then
+   update the Role file. If `closed`, link for historical reference only. Do not
+   add new candidates. Do not rebuild tables.
 
 ## Hiring manager — calendar inference
 
-When a calendar event title matches an interview pattern — "Interview",
-"Screening", "Screen", "Decomposition", "Panel", "Technical Assessment",
-"Candidate" — combined with a person name:
+A calendar event title can match an interview pattern ("Interview", "Screening",
+"Screen", "Decomposition", "Panel", "Technical Assessment", "Candidate") and
+also carry a person name. When it does:
 
 1. Cross-reference the candidate against `Knowledge/Candidates/`.
 2. Extract the **organizer**. If the organizer isn't the user (per
    `~/.cache/fit/outpost/state/identity.md`),
    they are likely the hiring manager.
-3. Confirm: look up the organizer in `Knowledge/People/` for a manager/HM role
-   indication.
-4. Check the candidate's `brief.md` for a `Req` field; if known, set the
-   matching Role file's `Hiring manager` (only if currently `—`).
-5. Set the candidate's `brief.md` `Hiring manager` field if currently `—`.
+3. Confirm the hiring manager. Look up the organizer in `Knowledge/People/` for
+   an indication of a manager or HM role.
+4. Check the candidate's `brief.md` for a `Req` field. If you know the req, set
+   the matching Role file's `Hiring manager` (only if it is currently `—`).
+5. Set the candidate's `brief.md` `Hiring manager` field if it is currently `—`.
 
 ## Recruiter — email-thread inference
 
@@ -49,7 +50,7 @@ When a thread references candidates (name match against
 2. If a CC'd person's note mentions "recruiter", "talent acquisition", or a
    similar role, they are likely the internal recruiter.
 3. Update the candidate's `brief.md` recruiter field and the matching Role file
-   (only if currently `—`).
+   (only if it is currently `—`).
 
 ## Domain lead — reporting-chain resolution
 
@@ -63,6 +64,6 @@ When a hiring manager is newly identified:
 
 ## Conservatism
 
-Set hiring manager / domain lead / recruiter only when evidence is strong. A
-single calendar invite organized by someone is suggestive but not conclusive —
-confirm against People notes or multiple data points before setting the field.
+Set hiring manager / domain lead / recruiter only when the evidence is strong. A
+single calendar invite from one organizer is suggestive but not conclusive.
+Confirm against People notes or multiple data points before you set the field.

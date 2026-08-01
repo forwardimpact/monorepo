@@ -26,7 +26,7 @@ export function renderSlideIndex({ render, data }) {
       ),
       p(
         { className: "page-description" },
-        "Slide view for printing and presentations. Select a category below.",
+        "Slide view for print and presentations. Select a category below.",
       ),
     ),
 

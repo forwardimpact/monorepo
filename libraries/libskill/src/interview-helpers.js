@@ -1,8 +1,8 @@
 /**
- * Interview Question Generation Helpers
+ * Helpers for Interview Question Generation
  *
- * Pure functions for question selection, priority calculation, and time
- * budget management. Extracted from interview.js for max-lines compliance.
+ * Pure functions that select questions, calculate priority, and manage the
+ * time budget. The split from interview.js satisfies the max-lines rule.
  */
 
 import {
@@ -306,9 +306,9 @@ export function generateBehaviourCandidates({
 }
 
 /**
- * Select questions within a time budget, prioritizing coverage diversity
+ * Select questions within a time budget and prioritize coverage diversity
  * First pass: one question per target (highest priority first)
- * Second pass: fill remaining time with additional questions
+ * Second pass: fill the time that is left with more questions
  * @param {Array} candidates - Sorted candidate questions (highest priority first)
  * @param {number} timeBudget - Time budget in minutes
  * @param {number} defaultMinutes - Default question duration

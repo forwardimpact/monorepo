@@ -61,7 +61,7 @@ describe("Facilitator - core orchestration", () => {
       defaultTo: undefined,
     });
 
-    // Turn 0: Ask. Turn 1 (after agent-1's answer arrives): Conclude.
+    // Turn 0: Ask. Turn 1: Conclude, after agent-1's answer arrives.
     const facilitatorRunner = createMockRunner(
       [{ text: "Assigning work" }, { text: "All done" }],
       [[askMsg("agent-1", "Explore the docs")], [concludeMsg("All done")]],

@@ -8,8 +8,8 @@ const DESCRIPTION = "Test service";
 // The fake fsSync below ignores the path, so any valid URL works here.
 const PACKAGE_JSON_URL = new URL("./package.json", import.meta.url);
 
-// A fake fsSync that returns a package.json with a known version, so the
-// version path is deterministic without depending on a real file.
+// This fake fsSync returns a package.json with a known version. The version
+// path is then deterministic and does not need a real file.
 const fakeFsSync = {
   readFileSync: () => JSON.stringify({ version: "1.2.3-fake" }),
 };
@@ -38,7 +38,7 @@ function call(argv, extra = {}) {
 
 describe("serverFlagsShortCircuit help tokens", () => {
   for (const token of ["--help", "-h"]) {
-    test(`${token} returns true and writes a non-empty help block naming the binary`, () => {
+    test(`${token} returns true and writes a non-empty help block that names the binary`, () => {
       const { handled, output } = call([token]);
       assert.equal(handled, true);
       assert.ok(output.length > 0);

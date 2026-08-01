@@ -1,15 +1,16 @@
 /**
- * Shared advisor-flag parsing for the four session-mode commands. The two
- * flags are identical everywhere: `--advisor-model` (no default — absent
- * means the Advisor tool is not offered) and `--advisor-max-uses`
- * (default 3), which is a usage error without the model flag.
+ * Shared advisor-flag parser for the four session-mode commands. The two
+ * flags are identical everywhere: `--advisor-model` and `--advisor-max-uses`.
+ * `--advisor-model` has no default. When it is absent, the commands do not
+ * offer the Advisor tool. `--advisor-max-uses` defaults to 3. It is a usage
+ * error without the model flag.
  */
 
 /**
  * Parse `--advisor-model` / `--advisor-max-uses` from parsed option values.
- * A malformed max-uses is a usage error, not a silent fallback: NaN would
- * make the budget check (`used >= maxUses`) permanently false and disable
- * the code-enforced cap the flag exists to guarantee.
+ * A malformed max-uses raises a usage error. It never falls back silently.
+ * NaN would make the budget check (`used >= maxUses`) permanently false. It
+ * would disable the code-enforced cap the flag exists to guarantee.
  * @param {object} values - Parsed option values from cli.parse()
  * @returns {{advisorModel: string|undefined, advisorMaxUses: number}}
  */

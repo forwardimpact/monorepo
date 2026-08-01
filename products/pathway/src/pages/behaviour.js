@@ -62,7 +62,7 @@ export function renderBehaviourDetail(params) {
     return;
   }
 
-  // Use DOM formatter - it handles transformation internally
+  // Use the DOM formatter. It transforms the data internally.
   render(
     behaviourToDOM(behaviour, {
       drivers: data.drivers,

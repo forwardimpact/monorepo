@@ -12,7 +12,7 @@ import {
 } from "./fhir-microdata-helpers.js";
 
 describe("buildFhirCrossRef", () => {
-  test("links patient to trial via condition match", () => {
+  test("links patient to trial through condition match", () => {
     const patients = [makePatient(PATIENT_A, "Jones", "Alice")];
     const conditions = [
       makeCondition(PATIENT_A, "diabetes-t2", "Type 2 Diabetes"),
@@ -44,7 +44,7 @@ describe("buildFhirCrossRef", () => {
     );
   });
 
-  test("matches by display text normalization", () => {
+  test("matches on the normalized display text", () => {
     const patients = [makePatient(PATIENT_A, "Jones", "Alice")];
     const conditions = [makeCondition(PATIENT_A, "E11.9", "Type 2 Diabetes")];
     const clinical = {
@@ -92,7 +92,7 @@ describe("buildFhirCrossRef", () => {
     try {
       crossRef.patientToTrialIris = new Map();
     } catch {
-      /* strict mode throws; non-strict silently ignores — both produce no-op */
+      /* strict mode throws. Non-strict mode ignores it. Both are no-ops */
     }
     assert.strictEqual(crossRef.patientToTrialIris, before);
   });

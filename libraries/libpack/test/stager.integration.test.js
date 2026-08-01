@@ -40,7 +40,7 @@ const CONTENT = {
 };
 
 describe("PackStager", () => {
-  test("stageFull creates expected file tree", async () => {
+  test("stageFull creates the expected file tree", async () => {
     const dir = await makeTempDir();
     const stager = new PackStager({ runtime });
     await stager.stageFull(dir, CONTENT);
@@ -78,7 +78,7 @@ describe("PackStager", () => {
     expect(settings.permissions.allow).toEqual(["Read"]);
   });
 
-  test("stageApm produces APM layout with lock file", async () => {
+  test("stageApm produces the APM layout with a lock file", async () => {
     const fullDir = await makeTempDir();
     const apmDir = await makeTempDir();
     const stager = new PackStager({ runtime });
@@ -104,7 +104,7 @@ describe("PackStager", () => {
     expect(lock).toContain(".claude/CLAUDE.md");
   });
 
-  test("skillsDir returns .claude/skills path", () => {
+  test("skillsDir returns the .claude/skills path", () => {
     const stager = new PackStager({ runtime });
     expect(stager.skillsDir("/tmp/pack")).toBe("/tmp/pack/.claude/skills");
   });

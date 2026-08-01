@@ -1,32 +1,33 @@
 /**
- * Fail-closed secret gate for the wiki push path. Runs gitleaks over the
- * commit range a push introduces and reports a clean / finding /
- * scanner-absent verdict. The wiki has no destination-side secret control (a
- * GitHub Wiki repo runs no Actions and is excluded from GitHub
- * secret-scanning), so this is the only place a content backstop can live.
+ * Fail-closed secret gate for the wiki push path. The gate runs gitleaks over
+ * the commit range a push introduces. It reports a clean, finding, or
+ * scanner-absent verdict. The wiki has no destination-side secret control. A
+ * GitHub Wiki repo runs no Actions, and GitHub secret-scanning excludes it. So
+ * this is the only place a content backstop can live.
  *
- * The module never throws on a scanner result: a missing or erroring scanner
- * resolves to `scanner-absent` so the caller fails closed rather than treating
- * an error as clean. Findings carry only a location (`file:line:rule`) — never
- * the matched secret value, so an audit record built from them cannot itself
- * leak.
+ * The module never throws on a scanner result. A missing scanner resolves to
+ * `scanner-absent`. A scanner that errors resolves the same way. The caller
+ * then fails closed and never reports an error as clean. Findings carry only a
+ * location (`file:line:rule`). They never carry the matched secret value, so an
+ * audit record built from them cannot itself leak.
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
-/** The gitleaks binary name resolved on PATH; provisioning is an operator concern (see wiki-operations guide). */
+/** The gitleaks binary name resolved on PATH. An operator provisions it (see the wiki-operations guide). */
 const GITLEAKS = "gitleaks";
 
 /**
- * Scan the commit range a push introduces for secrets, fail closed.
+ * Scan the commit range a push introduces for secrets. Fail closed.
  *
- * Probes `gitleaks version` first; an unresolvable binary short-circuits to
- * `scanner-absent`. Then runs `gitleaks detect` over `range` expressed as
- * `git log` options, reading the JSON report from stdout. Exit codes follow
- * gitleaks' documented contract: `0` clean, `1` leaks found, any other
- * non-zero an invocation error (treated as `scanner-absent` — fail closed, an
- * error is never reported as clean).
+ * The scan probes `gitleaks version` first. An unresolvable binary
+ * short-circuits to `scanner-absent`. The scan then runs `gitleaks detect` over
+ * `range` expressed as `git log` options, and reads the JSON report from
+ * stdout. Exit codes follow gitleaks' documented contract: `0` clean, `1` leaks
+ * found, any other non-zero an invocation error. The scan treats an invocation
+ * error as `scanner-absent` and fails closed. It never reports an error as
+ * clean.
  *
  * @param {object} args
  * @param {import('@forwardimpact/libutil/runtime').Runtime} args.runtime - Provides `subprocess.run`.
@@ -60,16 +61,16 @@ export async function scanPushWindow({ runtime, wikiDir, range }) {
   if (scan.exitCode === 1) {
     return { status: "finding", findings: parseFindings(scan.stdout) };
   }
-  // Any other non-zero is an invocation/usage error, not a leak verdict:
-  // fail closed rather than risk reporting a broken scan as clean.
+  // Any other non-zero is an invocation or usage error. It is not a leak
+  // verdict. Fail closed. Do not report a broken scan as clean.
   return { status: "scanner-absent" };
 }
 
 /**
- * Parse a gitleaks JSON report into location-only findings. Reads only the
- * file, line, and rule of each entry — never the matched secret value — so a
- * record built from the result is secret-free by construction. A malformed or
- * empty report yields an empty list.
+ * Parse a gitleaks JSON report into location-only findings. The parser reads
+ * only the file, line, and rule of each entry. It never reads the matched
+ * secret value, so a record built from the result is secret-free by
+ * construction. A malformed or empty report yields an empty list.
  *
  * @param {string} stdout - The gitleaks JSON report.
  * @returns {Array<{file: string, line: number, rule: string}>}
@@ -93,10 +94,10 @@ function parseFindings(stdout) {
  * Append one secret-free line to the wiki tree's `secret-overrides.log` and
  * stage it (path-scoped) so it lands in the same push as the overridden
  * content. The line records the override as a durable, inspectable audit
- * trail: an ISO timestamp, the asserted operator identity (`git config
- * user.email` — attribution of intent, NOT an authenticated identity), the
- * override class, the reason, and for a finding its location. It never carries
- * a matched secret value.
+ * trail. It holds an ISO timestamp, the asserted operator identity (`git
+ * config user.email`), the override class, the reason, and for a finding its
+ * location. That identity asserts intent. It is NOT an authenticated identity.
+ * The line never carries a matched secret value.
  *
  * @param {object} args
  * @param {import('@forwardimpact/libutil/runtime').Runtime} args.runtime - Provides `fs` and `clock`.
@@ -123,8 +124,8 @@ export async function appendOverrideRecord({
         "unspecified"
       : "scanner-absent";
   const ts = isoTimestamp(runtime.clock.now());
-  // Tab-separated, single line; the reason is collapsed so the record stays
-  // one inspectable row per override.
+  // Tab-separated, single line. The replace call collapses the reason so the
+  // record stays one inspectable row per override.
   const line = `${ts}\t${email}\t${klass}\t${reason.replace(/\s+/g, " ").trim()}\t${where}\n`;
   const logPath = `${wikiDir}/${OVERRIDE_LOG}`;
   await runtime.fs.appendFile(logPath, line);
@@ -140,12 +141,12 @@ export async function appendOverrideRecord({
 export const OVERRIDE_LOG = "secret-overrides.log";
 
 /**
- * Translate a `commitAndPush` security refusal into a command envelope,
- * logging the cause and its break-glass procedure at error level (always
- * surfaced, regardless of LOG_LEVEL). Returns `null` for any non-refusal
- * result (clean / pushed / network "saved locally"), so a caller can fall
- * through to its normal success handling. Shared by every command surface so
- * the refusal message and exit code live in one place.
+ * Translate a `commitAndPush` security refusal into a command envelope. Log the
+ * cause and its break-glass procedure at error level. The logger always
+ * surfaces them, regardless of LOG_LEVEL. Returns `null` for any
+ * non-refusal result (clean, pushed, or network "saved locally"), so a caller
+ * can fall through to its normal success path. Every command surface shares
+ * this function, so the refusal message and exit code live in one place.
  *
  * @param {object} runtime - The runtime bag (the logger writes to `proc.stderr`).
  * @param {{reason?: string, findings?: Array<{file: string, line: number, rule: string}>}} result - A `commitAndPush` result.
@@ -158,8 +159,8 @@ export function refusalEnvelope(runtime, result) {
       .join(", ");
     createLogger("wiki", runtime).error(
       "push",
-      `push blocked: secret detected in wiki content${where ? ` (${where})` : ""}; ` +
-        "the push was not attempted. After confirming a false positive, set " +
+      `push blocked: secret detected in wiki content${where ? ` (${where})` : ""}. ` +
+        "The push did not run. Confirm a false positive first. Then set " +
         "FIT_WIKI_SECRET_OVERRIDE to a reason to override (audited).",
     );
     return { ok: false, code: 1 };
@@ -167,8 +168,8 @@ export function refusalEnvelope(runtime, result) {
   if (result.reason === "scanner-unavailable") {
     createLogger("wiki", runtime).error(
       "push",
-      "push blocked: the secret scanner (gitleaks) is unavailable; the push " +
-        "was not attempted. Install gitleaks, or set FIT_WIKI_SCANNER_ABSENT_OK " +
+      "push blocked: the secret scanner (gitleaks) is unavailable. The push " +
+        "did not run. Install gitleaks, or set FIT_WIKI_SCANNER_ABSENT_OK " +
         "to a reason to override (audited).",
     );
     return { ok: false, code: 1 };

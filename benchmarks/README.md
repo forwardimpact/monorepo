@@ -38,30 +38,30 @@ benchmarks/<family>/
 `fit-benchmark run` calls `apm install --target claude` in the family root
 automatically. Task IDs are directory names under `tasks/`.
 
-A family-level `workdir/` or `specs/` (if present) is copied into every task's
-agent CWD as a shared base; the per-task `workdir/`/`specs/` overlay on top.
-Use it to maintain one fixture (e.g. an app under test) across many tasks
-rather than duplicating it per task. Hooks receive `$AGENT_CWD`, `$PORT`,
-`$TASK_ID`, `$TASK_DIR`, `$HOOKS_DIR`, `$FAMILY_DIR` (and `invariants.sh` also
-`$RESULTS_FD`).
+`fit-benchmark` copies a family-level `workdir/` or `specs/` (if present) into
+every task's agent CWD as a shared base. The per-task `workdir/` and `specs/`
+overlay on top. Use the shared base to maintain one fixture (e.g. an app
+under test) across many tasks. Do not duplicate the fixture in each task. Hooks
+receive `$AGENT_CWD`, `$PORT`, `$TASK_ID`, `$TASK_DIR`, `$HOOKS_DIR`,
+`$FAMILY_DIR` (and `invariants.sh` also `$RESULTS_FD`).
 
-Grading is row-based. `tests/` is an overlay mirror of the agent CWD that the
-agent never sees: the harness stages each file at its mirrored path, runs
-every `*.test.js` check with `node --test`, emits one row per check, and
-restores the tree — `*.gate.test.js` names a gate, any other `*.test.js` is
-scored at weight 1, other files are staged support. `invariants.sh` emits
-structural rows (`gate: true` for presence/anti-tamper, plain rows scored)
-and always ends `exit 0` — a nonzero exit means the grader itself broke.
-A failing gate, judge, or grader zeroes the score; the scored rows are what
-give a task a capability gradient between 0 and 1.
+The grader works row by row. `tests/` is an overlay mirror of the agent CWD
+that the agent never sees. The harness stages each file at its mirrored path,
+runs every `*.test.js` check with `node --test`, emits one row per check, and
+restores the tree. A `*.gate.test.js` file names a gate. The harness scores any
+other `*.test.js` file at weight 1, and stages every other file as support.
+`invariants.sh` emits structural rows (`gate: true` for presence and
+anti-tamper, plain rows scored) and always ends `exit 0`. A nonzero exit means
+the grader itself broke. A failed gate, judge, or grader zeroes the score. The
+scored rows give a task a capability gradient between 0 and 1.
 
-## Adding a task
+## Add a task
 
 Add a directory under `benchmarks/<family>/tasks/<task-name>/` with the
 required files shown above. The workflow runs all tasks in the family
 automatically.
 
-## Adding a family
+## Add a family
 
 1. Create `benchmarks/<family>/` with `apm.yml`, `judge.md`, and `.gitignore`.
 2. Add tasks under `tasks/`.
@@ -71,9 +71,9 @@ automatically.
 
 Every file under `benchmarks/` is machine-skippable as a fixture:
 
-1. **Path predicate** — `benchmarks/**` is excluded via
-   [`.rgignore`](../.rgignore) from all `rg` invocations.
+1. **Path predicate** — [`.rgignore`](../.rgignore) excludes `benchmarks/**`
+   from every `rg` invocation.
 2. **Directory sentinel** — `benchmarks/.benchmark-fixture` marks the tree
-   for ancestor-walking tools.
+   for tools that walk the ancestor directories.
 
 Agent outputs (produced at run time in ephemeral CWDs) never land in the repo.

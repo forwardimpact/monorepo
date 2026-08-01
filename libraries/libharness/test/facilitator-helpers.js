@@ -23,11 +23,11 @@ export const askMsg = (to, question) =>
     },
   );
 
-/** Build an Answer placeholder; askId is resolved lazily by the dispatcher. */
+/** Build an Answer placeholder. The dispatcher resolves askId lazily. */
 export const answerMsgPlaceholder = () =>
   createToolUseMsg(
     "Answer",
-    // askId is resolved lazily by the dispatcher closure.
+    // The dispatcher closure resolves askId lazily.
     { askId: 0, message: "" },
     { id: `answer-${Math.random().toString(36).slice(2, 6)}` },
   );
@@ -48,7 +48,7 @@ export function seedCtx(participants) {
 /**
  * Dispatcher that snapshots the only pending Ask addressed to `from` at
  * dispatch time and quotes its askId back to the Answer handler. Lets
- * mock scripts answer without knowing askIds ahead of time.
+ * mock scripts answer when they do not know the askIds in advance.
  */
 export function answerDispatcher(ctx, from, message) {
   const handler = createAnswerHandler(ctx, { from });

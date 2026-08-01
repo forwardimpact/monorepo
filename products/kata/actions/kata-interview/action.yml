@@ -1,18 +1,19 @@
 name: Kata Interview
 description: >
-  Run a JTBD switching interview against a product at a public website. Owns the
-  generic interview infrastructure — killswitch, token, checkout, bootstrap,
-  synthetic-data build, the supervised interview run, cost reporting, wiki push,
-  and run-log secret scanning. The app-specific choices (entry point, substrate
-  bring-up, persona selection) are pluggable inputs so any consumer can wrap it.
+  Run a JTBD switching interview against a product at a public website. This
+  action owns the generic interview infrastructure: killswitch, token,
+  checkout, bootstrap, synthetic-data build, the supervised interview run,
+  cost report, wiki push, and run-log secret scan. The app-specific choices
+  (entry point, substrate bring-up, persona selection) are pluggable inputs,
+  so any consumer can wrap this action.
 
 inputs:
   # --- Authentication ---
   app-id:
-    description: GitHub App ID for token generation and git identity
+    description: GitHub App ID for the installation token and the git identity
     required: true
   app-private-key:
-    description: GitHub App private key for token generation
+    description: GitHub App private key for the installation token
     required: true
   anthropic-api-key:
     description: Anthropic API key for the Claude Agent SDK
@@ -23,7 +24,7 @@ inputs:
     default: "kata-agent-team"
   # --- Interview target ---
   website-url:
-    description: Public entry point handed to the persona agent in Ask 2
+    description: Public entry point for the persona agent in Ask 2
     required: true
   product:
     description: Product to interview about (empty = supervisor chooses)
@@ -32,31 +33,32 @@ inputs:
     description: Specific JTBD goal to test (empty = supervisor chooses)
     required: false
   task-amend:
-    description: Additional text appended to the task prompt for steering
+    description: Additional text the action appends to the task prompt to steer the run
     required: false
   # --- Pluggable domain steps ---
   substrate-setup-command:
     description: >
       Shell command that brings up the substrate and emits
-      SUPABASE_URL / SUPABASE_ANON_KEY to $GITHUB_ENV. Non-empty selects the
-      substrate path (bring-up + post-run log scan); empty runs a file-only
-      interview. Runs with AGENT_CWD set to the staged workspace.
+      SUPABASE_URL / SUPABASE_ANON_KEY to $GITHUB_ENV. A non-empty value
+      selects the substrate path (bring-up + post-run log scan). An empty
+      value runs a file-only interview. The command runs with AGENT_CWD set to
+      the staged workspace.
     required: false
     default: ""
   persona-select-command:
     description: >
       Command the supervisor runs to seal a persona into $AGENT_CWD and stash a
-      bare JWT for the post-run scan. Empty = persona built from the synthetic
-      story / anonymous access.
+      bare JWT for the post-run scan. Empty = the persona comes from the
+      synthetic story / anonymous access.
     required: false
     default: ""
   # --- Substrate secrets (forwarded only on the substrate path) ---
   jwt-secret:
-    description: Supabase JWT secret, forwarded to the setup/persona commands
+    description: Supabase JWT secret that the action forwards to the setup/persona commands
     required: false
     default: ""
   service-role-key:
-    description: Supabase service-role key, forwarded to the setup/persona commands
+    description: Supabase service-role key that the action forwards to the setup/persona commands
     required: false
     default: ""
   # --- Shared knobs ---
@@ -74,29 +76,30 @@ inputs:
     default: "Bash,Read,Glob,Grep,Write,Edit,Skill,TodoWrite"
   killswitch:
     description: >
-      Operator killswitch. When set to a truthy value (anything other than
-      empty/0/false/no/off) the run fails fast before any token minting,
-      checkout, or agent work.
+      Operator killswitch. When you set it to a truthy value (anything other
+      than empty/0/false/no/off) the run fails fast. It stops before it mints
+      a token, checks out the repository, or does any agent work.
     required: false
     default: ""
 
 outputs:
   trace-file:
     description: >
-      Absolute path of the raw NDJSON trace file from the interview run.
-      Passed through from the internal gemba-harness action.
+      Absolute path of the raw NDJSON trace file from the interview run. The
+      internal gemba-harness action passes it through.
     value: ${{ steps.interview.outputs.trace-file }}
   trace-dir:
     description: >
-      Absolute path of the temp directory holding all trace files for this run.
-      Passed through from the internal gemba-harness action.
+      Absolute path of the temp directory that holds all trace files for this
+      run. The internal gemba-harness action passes it through.
     value: ${{ steps.interview.outputs.trace-dir }}
 
 runs:
   using: composite
   steps:
-    # Killswitch first: fail before any token minting, checkout, or agent work
-    # so one repository variable halts every kata-* workflow at once.
+    # Run the killswitch first. It fails the run before the action mints a
+    # token, checks out the repository, or does any agent work. So one
+    # repository variable halts every kata-* workflow at once.
     - name: Kata killswitch
       shell: bash
       env:
@@ -120,9 +123,9 @@ runs:
         token: ${{ steps.ci-app.outputs.token }}
 
     # fit-bootstrap installs the pre-compiled CLIs the run uses onto PATH.
-    # fit-terrain now also provides the generic substrate bring-up, so fit-map
-    # is NOT installed here — a consumer's FI substrate command runs it via bunx
-    # as its own documented exception.
+    # fit-terrain now also provides the generic substrate bring-up, so this
+    # step does NOT install fit-map. A consumer's FI substrate command runs it
+    # with bunx as its own documented exception.
     - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
       with:
         token: ${{ steps.ci-app.outputs.token }}
@@ -138,18 +141,18 @@ runs:
 
         # Build synthetic data so the supervisor can stage the right subset into
         # the agent CWD per the chosen product. The skill's staging table
-        # decides what gets copied.
+        # decides what the supervisor copies.
         fit-terrain build
 
-        # Install the Supabase CLI globally — npm's global install is blocked by
-        # supabase's postinstall script, so we use bun.
+        # Install the Supabase CLI globally. supabase's postinstall script
+        # blocks npm's global install, so use bun.
         bun install -g supabase
 
         echo "dir=$agent_dir" >> "$GITHUB_OUTPUT"
 
-    # Substrate bring-up is a consumer-supplied command, gated on it being
-    # non-empty — not a hardcoded product name. It must emit
-    # SUPABASE_URL / SUPABASE_ANON_KEY to $GITHUB_ENV for the run below.
+    # Substrate bring-up is a consumer-supplied command. A non-empty value
+    # gates the step. No hardcoded product name gates it. The command must
+    # emit SUPABASE_URL / SUPABASE_ANON_KEY to $GITHUB_ENV for the run below.
     - name: Substrate setup
       id: substrate-setup
       if: inputs.substrate-setup-command != ''
@@ -190,7 +193,7 @@ runs:
         AGENT_CWD: ${{ steps.workspace.outputs.dir }}
         PERSONA_SELECT_COMMAND: ${{ inputs.substrate-setup-command != '' && inputs.persona-select-command || '' }}
         # Substrate secrets reach the persona-select command only on the
-        # substrate path; empty otherwise.
+        # substrate path. They are empty otherwise.
         JWT_SECRET: ${{ inputs.substrate-setup-command != '' && inputs.jwt-secret || '' }}
         SUPABASE_SERVICE_ROLE_KEY: ${{ inputs.substrate-setup-command != '' && inputs.service-role-key || '' }}
       with:
@@ -198,9 +201,9 @@ runs:
         task-text: |
           Run the `kata-interview` skill.
 
-          If a `Product:` or `Job:` line is appended below, honour it;
-          otherwise the skill picks. Any other appended text is steering
-          — pass it through.
+          If a `Product:` or `Job:` line appears below, honour it. Otherwise
+          the skill picks. Any other appended text steers the run. Pass it
+          through.
         supervisor-cwd: "."
         agent-cwd: ${{ steps.workspace.outputs.dir }}
         lead-profile: "product-manager"
@@ -209,7 +212,8 @@ runs:
         supervisor-allowed-tools: ${{ inputs.supervisor-allowed-tools }}
         task-amend: ${{ steps.amend.outputs.amend }}
 
-    # gemba-trace cost tolerates a missing trace, so no file guard is needed.
+    # gemba-trace cost tolerates a missing trace, so this step needs no file
+    # guard.
     - name: Report run cost
       if: always()
       shell: bash
@@ -226,8 +230,8 @@ runs:
         app-private-key: ${{ inputs.app-private-key }}
 
     # Scan the run's own logs for secret literals on the substrate path. The
-    # persona-JWT stash is written by the persona-select command inside the
-    # harness step; the missing-file guard covers an unset command. gemba-harness
+    # persona-select command inside the harness step writes the persona-JWT
+    # stash. The missing-file guard covers an unset command. gemba-harness
     # scan-logs owns the archive download and fails closed.
     - name: Scan logs for sensitive values
       if: always() && inputs.substrate-setup-command != ''
@@ -244,7 +248,7 @@ runs:
           echo "::add-mask::$persona_jwt"
           secrets+=(--secret "persona-jwt=$persona_jwt")
         else
-          echo "No persona-JWT stash at $stash — persona-select command did not run."
+          echo "No persona-JWT stash at $stash. The persona-select command did not run."
         fi
         [ -n "$JWT_SECRET" ] && secrets+=(--secret "jwt-secret=$JWT_SECRET")
         [ -n "$SERVICE_ROLE_KEY" ] && secrets+=(--secret "service-role-key=$SERVICE_ROLE_KEY")

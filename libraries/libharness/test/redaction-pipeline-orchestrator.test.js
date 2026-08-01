@@ -17,7 +17,7 @@ import {
 } from "./redaction-pipeline-helpers.js";
 
 describe("Producer pipeline — Supervisor.emitSummary covers Conclude-handler text", () => {
-  test("sentinel-bearing Conclude summary is redacted in the orchestrator summary line", async () => {
+  test("the pipeline redacts the sentinel from the Conclude summary in the orchestrator summary line", async () => {
     const ctx = createOrchestrationContext();
     const messageBus = new MessageBus({
       participants: ["supervisor", "agent"],
@@ -87,7 +87,7 @@ describe("Producer pipeline — Supervisor.emitSummary covers Conclude-handler t
 });
 
 describe("Producer pipeline — Facilitator.emitSummary covers Conclude-handler text", () => {
-  test("sentinel-bearing Conclude summary is redacted in the facilitator summary line", async () => {
+  test("the pipeline redacts the sentinel from the Conclude summary in the facilitator summary line", async () => {
     const ctx = createOrchestrationContext();
     const messageBus = new MessageBus({
       participants: ["facilitator", "agent-1"],

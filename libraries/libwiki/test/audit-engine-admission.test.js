@@ -32,8 +32,8 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed (MEMORY.md + the current-month storyboard for `today`),
-// overlaid with `extra`. buildContext reads these via runtime.fsSync.
+// The clean-wiki seed holds MEMORY.md and the storyboard for `today`'s
+// month. `extra` overlays it. buildContext reads these through runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();
@@ -62,7 +62,7 @@ function admissionAudit(seed, today = "2026-05-24") {
   return runRules(RULES, ctx, { resolveScope });
 }
 
-// A wiki seed exercising every admitted class plus directories. The on-disk
+// This wiki seed exercises every admitted class plus directories. The on-disk
 // walk needs the sidecar/metrics files present alongside the clean-seed md.
 function admissionSeed(extra = {}) {
   return cleanSeed("2026-05-24", {
@@ -84,7 +84,7 @@ describe("admission scope", () => {
     assert.ok(!ids.includes("admission.not-in-grammar"));
   });
 
-  test("the #1570 rogue is flagged exactly once, naming its path", () => {
+  test("the audit flags the #1570 rogue exactly once and names its path", () => {
     const seed = admissionSeed({
       [`${WIKI}/product-manager-2026-W24-history.md`]: "# rogue\n",
     });
@@ -96,7 +96,7 @@ describe("admission scope", () => {
     assert.equal(flagged[0].level, "fail");
   });
 
-  test("the historical .claude/worktrees true positive is flagged", () => {
+  test("the audit flags the historical .claude/worktrees true positive", () => {
     const seed = admissionSeed({
       [`${WIKI}/.claude/worktrees/agent-a41a176e/scratch.md`]: "x\n",
     });
@@ -107,9 +107,9 @@ describe("admission scope", () => {
     assert.match(flagged[0], /\.claude\/worktrees\/agent-a41a176e/);
   });
 
-  test("admission scope is empty when no subprocess is supplied", () => {
-    // The rotation pre-pass builds a context without a subprocess; it must not
-    // run git or the tree walk, and must produce no admission findings.
+  test("the admission scope is empty when the caller supplies no subprocess", () => {
+    // The rotation pre-pass builds a context without a subprocess. It must not
+    // run git or the tree walk. It must produce no admission findings.
     const ctx = buildContext({
       wikiRoot: WIKI,
       today: "2026-05-24",

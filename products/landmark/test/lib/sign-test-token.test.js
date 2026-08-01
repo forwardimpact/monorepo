@@ -30,14 +30,14 @@ describe("signTestToken", () => {
     assert.equal(parts.length, 3);
   });
 
-  it("header announces HS256 + JWT", () => {
+  it("the header announces HS256 + JWT", () => {
     const token = signTestToken({ email: "alice@example.com", secret: SECRET });
     const header = decode(token.split(".")[0]);
     assert.equal(header.alg, "HS256");
     assert.equal(header.typ, "JWT");
   });
 
-  it("payload carries Supabase-shaped claims", () => {
+  it("the payload carries Supabase-shaped claims", () => {
     const before = Math.floor(Date.now() / 1000);
     const token = signTestToken({
       email: "alice@example.com",
@@ -55,7 +55,7 @@ describe("signTestToken", () => {
     assert.ok(/^[0-9a-f-]{36}$/i.test(claims.sub), "sub should be a UUID");
   });
 
-  it("signature is HMAC-SHA256 over header.payload with the secret", () => {
+  it("the signature is HMAC-SHA256 over header.payload with the secret", () => {
     const token = signTestToken({ email: "alice@example.com", secret: SECRET });
     const [h, p, s] = token.split(".");
     const expected = createHmac("sha256", SECRET)

@@ -1,21 +1,21 @@
 # 1-on-1 Coaching Overlay
 
-Applies to coaching-workflow runs: the improvement coach facilitates a 1-on-1
-session with one domain agent.
+This overlay applies to coaching-workflow runs. The improvement coach
+facilitates a 1-on-1 session with one domain agent.
 
 ## Session Shape
 
 The participant reflects on its most recent workflow trace. Under Q2 the
-participant runs `gemba-trace` on that trace; the five questions scope to the
-trace's run-level findings. One facilitator, one participant, turn-taking via
-`Ask` / `Answer`.
+participant runs `gemba-trace` on that trace. The five questions scope to the
+trace's run-level findings. One facilitator and one participant take turns
+through `Ask` / `Answer`.
 
 ## Question Wording (1-on-1)
 
 1. **What were you trying to achieve in this run?** (Q1)
 2. **What actually happened?** (Q2 — the participant runs `gemba-trace` on its
    own most recent workflow trace and reports the numeric findings.)
-3. **What obstacles prevented better outcomes?** (Q3 — drawn from the trace
+3. **What obstacles prevented better outcomes?** (Q3 — draw these from the trace
    findings. Record the obstacle as a labeled issue per
    [`issue-lifecycle.md`](issue-lifecycle.md) and report its `#NNN`.)
 4. **What will you do differently next run?** (Q4 — propose the next experiment
@@ -28,7 +28,7 @@ trace's run-level findings. One facilitator, one participant, turn-taking via
 ## Trace Access
 
 The participant runs `gemba-trace` against its own agent's trace artifact. The
-coach does not pre-load the trace content into the participant's context; the
+coach does not pre-load the trace content into the participant's context. The
 participant fetches it under Q2.
 
 ## Participant Briefing Template
@@ -46,6 +46,6 @@ to you, announce your PR on the coordinating issue at open.
 
 ## Memory
 
-After the session, the participant writes its findings to its own weekly log —
-in addition to the obstacle and experiment issues it recorded under Q3/Q4. The
-coach facilitates only; it records no metrics or files of its own.
+After the session, the participant writes its findings to its own weekly log.
+It already recorded the obstacle and experiment issues under Q3/Q4. The coach
+facilitates only. It records no metrics or files of its own.

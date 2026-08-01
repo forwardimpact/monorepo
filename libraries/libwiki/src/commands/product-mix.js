@@ -5,10 +5,10 @@ import { parseRepoSlug } from "../issue-list-renderer.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot } from "../util/wiki-dir.js";
 
-// Resolve the monorepo's `owner/repo` slug the way `refresh.js` does: an
-// explicit `FIT_GH_REPO` env override (sandbox proxy URLs), else the origin
-// remote parsed via the injected git client. Returns null when nothing
-// parseable is found, in which case `gh` falls back to its own cwd resolution.
+// Resolve the monorepo's `owner/repo` slug the way `refresh.js` does. An
+// explicit `FIT_GH_REPO` env override wins (sandbox proxy URLs). Otherwise the
+// injected git client parses the origin remote. Returns null when nothing
+// parses. `gh` then falls back to its own cwd resolution.
 async function deriveRepo(gitClient, cwd, env) {
   if (env.FIT_GH_REPO) return env.FIT_GH_REPO;
   if (!gitClient) return null;
@@ -20,8 +20,8 @@ async function deriveRepo(gitClient, cwd, env) {
   }
 }
 
-// A missing token is non-fatal: `gh` may still resolve ambient auth, and a
-// hard fetch failure downstream collapses to a logged warning and no row.
+// A missing token is non-fatal. `gh` can still resolve ambient auth. A hard
+// fetch failure downstream collapses to a logged warning and no row.
 async function resolveToken() {
   try {
     return (await createScriptConfig("wiki")).ghToken();
@@ -30,8 +30,8 @@ async function resolveToken() {
   }
 }
 
-// `gh pr list` returns at most this many PRs; a window that hits the cap is
-// truncated, so the caller warns rather than silently undercounting.
+// `gh pr list` returns at most this many PRs. A window that hits the cap is
+// truncated, so the caller warns and does not undercount in silence.
 const FETCH_LIMIT = 200;
 
 // Fetch merged PRs in `[since, until]` and return their parsed JSON, or null on
@@ -60,7 +60,7 @@ async function fetchMergedPrs({ runtime, cwd, repo, since, until, token }) {
 }
 
 // Tally merged PRs by their classification label. A PR with neither label is
-// unlabeled; `product` wins if both are somehow present.
+// unlabeled. `product` wins if both labels are somehow present.
 function countByLabel(prs) {
   const counts = { product: 0, internal: 0, unlabeled: 0 };
   for (const pr of prs) {
@@ -75,10 +75,11 @@ function countByLabel(prs) {
 /**
  * Emit the product-vs-internal mix of merged PRs as a `product_share` metric
  * row. Counts PRs merged in `[since, until]` by their `product` / `internal`
- * label and appends `product_share = round(product / (product + internal) *
- * 100)` to `wiki/metrics/product-mix/<YYYY>.csv` via the `gemba-xmr record` write
- * path. Deterministic — re-running over the same merged PRs yields the same
- * value. A window with no labeled merged PRs emits no row (avoids a 0/0 ratio).
+ * label. Appends `product_share = round(product / (product + internal) * 100)`
+ * to `wiki/metrics/product-mix/<YYYY>.csv` through the `gemba-xmr record`
+ * write path. The result is deterministic. A second run over the same merged
+ * PRs yields the same value. A window with no labeled merged PRs emits no row
+ * (it avoids a 0/0 ratio).
  */
 export async function runProductMixCommand(ctx) {
   const { runtime, gitClient } = ctx.deps;
@@ -101,7 +102,7 @@ export async function runProductMixCommand(ctx) {
   if (prs.length >= FETCH_LIMIT) {
     logger.warn(
       "product-mix",
-      `window ${since}..${until} hit the ${FETCH_LIMIT}-PR fetch cap; product_share may undercount`,
+      `window ${since}..${until} hit the ${FETCH_LIMIT}-PR fetch cap, so product_share may undercount`,
     );
   }
 
@@ -110,7 +111,7 @@ export async function runProductMixCommand(ctx) {
   if (total === 0) {
     logger.info(
       "product-mix",
-      `no labeled merged PRs in ${since}..${until}; emitting no row`,
+      `no labeled merged PRs in ${since}..${until}, so this run emits no row`,
     );
     return { ok: true };
   }

@@ -1,13 +1,14 @@
 ---
 title: Add a Service to the MCP Surface
-description: A new gRPC service becomes agent-accessible with one registration — no integration code.
+description: A new gRPC service becomes agent-accessible with one registration and no integration code.
 ---
 
-You have a new gRPC service and you need agents to reach its RPCs as tools. The
-MCP service reads tool definitions from `config/config.json` and uses codegen
+You have a new gRPC service. You need agents to reach its RPCs as tools. The
+MCP service reads tool definitions from `config/config.json`. It uses codegen
 metadata to build typed parameter schemas automatically. To add your service,
-you define proto files, generate the client code, and add entries to the config
-file. No handler code, no schema translation, no per-service integration logic.
+define proto files, generate the client code, and add entries to the config
+file. You write no handler code, no schema translation, and no per-service
+integration logic.
 
 For the full MCP service setup and architecture, see
 [Expose Backend Services as Agent Tools](/docs/services/typed-contracts/).
@@ -16,9 +17,9 @@ For the full MCP service setup and architecture, see
 
 - Completed the
   [Expose Backend Services as Agent Tools](/docs/services/typed-contracts/)
-  guide -- you understand the MCP service architecture and can connect a client.
+  guide. You understand the MCP service architecture. You can connect a client.
 - A gRPC service with a proto file under `proto/` (or `services/<name>/proto/`).
-- `npx fit-codegen generate --all` available for regenerating client code.
+- `npx fit-codegen generate --all` available to regenerate client code.
 
 ## Step 1: Define the proto file
 
@@ -42,9 +43,9 @@ message GetItemsRequest {
 }
 ```
 
-Returning `tool.ToolCallResult` lets the MCP service handle the response
-uniformly -- it checks for `identifiers` (resolved via the resource index) or
-`content` (returned as text).
+Return `tool.ToolCallResult` so the MCP service handles the response
+uniformly. The service checks for `identifiers` or `content`. It resolves
+`identifiers` through the resource index. It returns `content` as text.
 
 ## Step 2: Generate client code
 
@@ -58,7 +59,7 @@ npx fit-codegen generate --all
 This generates:
 
 - `generated/services/myservice/client.js` -- typed `MyServiceClient` class
-  with `GetItems` method.
+  with a `GetItems` method.
 - `generated/definitions/myservice.js` -- gRPC service definition.
 - Type entries in `generated/types/` -- `myservice.GetItemsRequest` with
   `fromObject` and `toObject`.
@@ -84,8 +85,8 @@ Open `config/config.json` and add entries under `service.mcp.tools`:
 }
 ```
 
-The `method` field uses the `<package>.<Service>.<RPC>` format matching the
-proto definition. The `description` becomes the tool's summary visible to
+The `method` field uses the `<package>.<Service>.<RPC>` format that matches
+the proto definition. The `description` becomes the tool's summary visible to
 agents.
 
 ## Step 4: Register the gRPC client in the MCP server
@@ -112,7 +113,7 @@ const service = createMcpService({
 });
 ```
 
-The `registerToolsFromConfig` function looks up clients by package name -- the
+The `registerToolsFromConfig` function looks up clients by package name. The
 key in the clients object must match the package name in the `method` string.
 
 ## Step 5: Restart and verify
@@ -152,9 +153,9 @@ const result = await client.callTool({
 console.log(result.content[0].text.substring(0, 200));
 ```
 
-The MCP service validates the parameters against the codegen-derived schema,
-creates a typed `GetItemsRequest`, calls `myserviceClient.GetItems(req)`, and
-returns the content or resolved identifiers.
+The MCP service validates the parameters against the codegen-derived schema.
+It creates a typed `GetItemsRequest`. It calls `myserviceClient.GetItems(req)`.
+It returns the content or the resolved identifiers.
 
 ## How parameter schemas are derived
 
@@ -177,17 +178,17 @@ descriptors for each request message:
 ```
 
 `registerToolsFromConfig` calls `buildZodSchema(fields)` to produce the
-validation schema. Required fields become `z.string()`, optional fields become
-`z.string().optional()`, and repeated fields become `z.array(z.string())`.
+validation schema. Required fields become `z.string()`. Optional fields become
+`z.string().optional()`. Repeated fields become `z.array(z.string())`.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `npx fit-codegen generate --all` generates client code for your new service.
 - The tool entry in `config/config.json` uses the correct
   `<package>.<Service>.<RPC>` method path.
-- The MCP service starts without errors after adding the client.
+- The MCP service starts without errors after you add the client.
 - `listTools` includes your new tool with the configured description.
 - `callTool` with valid parameters returns a response from your backend service.
 

@@ -2,8 +2,8 @@
 /**
  * Parse a Workday requisition export (.xlsx) and output structured JSON.
  *
- * Reads Sheet1 for requisition metadata and the "Candidates" sheet for
- * candidate data. Outputs a JSON object to stdout with:
+ * The script reads Sheet1 for requisition metadata. It reads the "Candidates"
+ * sheet for candidate data. It outputs a JSON object to stdout with:
  *   - requisition: { id, title, startDate, targetHireDate, location,
  *                     hiringManager, recruiter }
  *   - candidates:  [ { name, cleanName, stage, step, resumeFile, dateApplied,
@@ -54,7 +54,7 @@ try {
 const filePath = process.argv[2];
 const summaryMode = process.argv.includes("--summary");
 
-/** Read a sheet by number (1-indexed) or name, returning rows as arrays of strings. */
+/** Read a sheet by number (1-indexed) or name. Rows are arrays of strings. */
 async function readSheet(file, sheet) {
   const rows = await readXlsxFile(file, { sheet });
   // Normalise null cells to empty strings to match previous behaviour
@@ -122,7 +122,7 @@ const candSheetName =
   sheetNames[Math.min(2, sheetNames.length - 1)];
 const candRows = await readSheet(filePath, candSheetName);
 
-// Find the header row dynamically — look for a row containing "Stage"
+// Find the header row dynamically. Look for a row that contains "Stage".
 // Old format: row 3 (index 2). New format: row 8 (index 7).
 let HEADER_ROW = 2;
 for (let i = 0; i < Math.min(15, candRows.length); i++) {
@@ -134,8 +134,9 @@ for (let i = 0; i < Math.min(15, candRows.length); i++) {
 const DATA_START = HEADER_ROW + 1;
 
 // --- Build header-driven column index map ---
-// Column layout varies between Workday exports (extra columns like "Jobs Applied to"
-// or "Referred by" shift indices). Map by header name to be resilient.
+// Column layout varies between Workday exports. Extra columns like "Jobs
+// Applied to" or "Referred by" shift the indices. Map by header name to be
+// resilient.
 
 const headerRow = candRows[HEADER_ROW] || [];
 const colMap = {};
@@ -174,16 +175,17 @@ for (let i = 0; i < headerRow.length; i++) {
   const hdr = String(headerRow[i]).trim().toLowerCase();
   const field = HEADER_ALIASES[hdr];
   if (field) {
-    // "Job Application" appears twice (cols A and B) — always take the latest
-    // occurrence so we end up with the second one (index 1) which has the name
+    // "Job Application" appears twice (cols A and B). Always take the latest
+    // occurrence. We then end up with the second one (index 1), which has the
+    // name.
     colMap[field] = i;
   }
 }
 
-// Fallback: if "name" wasn't mapped, use index 0 (new format) or 1 (old format)
+// Fallback: with no "name" column, use index 0 (new format) or 1 (old format)
 if (colMap.name === undefined) colMap.name = 1;
-// In new format there's only one "Job Application" column (index 0) — the
-// "always take latest" logic already handles this correctly.
+// In the new format there is only one "Job Application" column (index 0).
+// The "always take latest" logic already handles this correctly.
 
 /** Get a cell value by field name, with fallback to empty string. */
 function col(row, field) {
@@ -193,8 +195,8 @@ function col(row, field) {
 }
 
 /**
- * Clean a candidate name by stripping annotations like (Prior Worker),
- * (Internal), etc. Returns { cleanName, internalExternal }.
+ * Clean a candidate name. Strip annotations like (Prior Worker), (Internal),
+ * etc. Returns { cleanName, internalExternal }.
  */
 function parseName(raw) {
   const name = String(raw).trim();
@@ -212,18 +214,18 @@ function parseName(raw) {
   return { cleanName: name, internalExternal: "" };
 }
 
-/** Detect source-based internal/external when name annotation is absent. */
+/** Detect source-based internal/external when the name annotation is absent. */
 function inferInternalExternal(source, nameAnnotation) {
   if (nameAnnotation) return nameAnnotation;
   if (/internal/i.test(source)) return "Internal";
   return "External";
 }
 
-/** Format a date value (may be Date object or string). */
+/** Format a date value (it may be a Date object or a string). */
 function fmtDate(val) {
   if (!val) return "";
   if (val instanceof Date) {
-    // Use local date parts to avoid UTC offset shifting the day
+    // Use local date parts so a UTC offset does not shift the day
     const y = val.getFullYear();
     const m = String(val.getMonth() + 1).padStart(2, "0");
     const d = String(val.getDate()).padStart(2, "0");
@@ -253,7 +255,7 @@ for (let i = DATA_START; i < candRows.length; i++) {
   const rawName = String(col(row, "name") || "").trim();
   const stage = String(col(row, "stage") || "").trim();
 
-  // Skip empty rows; stop at stage-summary rows (name present but no stage)
+  // Skip empty rows. Stop at stage-summary rows (name present but no stage)
   if (!rawName) continue;
   if (!stage) break;
 

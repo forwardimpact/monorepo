@@ -1,7 +1,7 @@
 /**
- * Unit tests for `fit-landmark login` — covers both flows by injecting
+ * Unit tests for `fit-landmark login`. They cover both flows. They inject
  * a fake Supabase client and (for the browser flow) a fake localhost
- * listener so the test never touches a real network.
+ * listener, so the test never touches a real network.
  */
 
 import { describe, test, beforeEach, afterEach } from "node:test";
@@ -35,8 +35,8 @@ function makeIo({ otp } = {}) {
 
 function makeStdinFor(line) {
   // node:readline/promises reads until EOL. A Readable that emits the line
-  // and then closes is enough — readline's question() resolves on first
-  // line break or end-of-stream.
+  // and then closes is enough. readline's question() resolves on the first
+  // line break or on end-of-stream.
   return Readable.from([`${line}\n`]);
 }
 

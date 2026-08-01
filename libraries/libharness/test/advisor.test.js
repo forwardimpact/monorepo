@@ -102,7 +102,7 @@ describe("createAdvisor", () => {
       "WebFetch",
       "WebSearch",
     ]);
-    // No bus presence: the advisor session carries no MCP servers at all.
+    // No bus presence. The advisor session carries no MCP servers at all.
     assert.ok(!("mcpServers" in opts));
     assert.ok(opts.systemPrompt.append.includes(ADVISOR_SYSTEM_PROMPT));
     assert.strictEqual(result.advice, "Take the smaller refactor.");
@@ -147,7 +147,7 @@ describe("createAdvisor", () => {
     assert.ok(captured[1].prompt.includes('"seq":2'));
   });
 
-  test("a hanging query times out to {unavailable}", async () => {
+  test("a query that hangs times out to {unavailable}", async () => {
     const hangingQuery = (params) =>
       (async function* () {
         await new Promise((_, reject) => {
@@ -165,7 +165,7 @@ describe("createAdvisor", () => {
     assert.match(result.reason, /timed out or aborted/);
   });
 
-  test("a throwing query yields {unavailable} with the error reason", async () => {
+  test("a query that throws yields {unavailable} with the error reason", async () => {
     const query = () =>
       (async function* () {
         yield { type: "system", subtype: "init", session_id: "sess-boom" };
@@ -196,7 +196,7 @@ describe("createAdvisor", () => {
     assert.match(result.reason, /timed out or aborted/);
   });
 
-  test("a non-success session resolves {unavailable}, never rejects", async () => {
+  test("a non-success session resolves {unavailable} and never rejects", async () => {
     const query = createMockAgentQuery([
       { type: "result", subtype: "error", result: "" },
     ]);

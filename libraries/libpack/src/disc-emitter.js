@@ -4,7 +4,7 @@ import { buildSkillEntry, stringifySorted } from "./util.js";
 
 const SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json";
 
-/** Skill discovery index emitter (.well-known/skills/). */
+/** Emitter for the skill discovery index (.well-known/skills/). */
 export class DiscEmitter {
   #fs;
 

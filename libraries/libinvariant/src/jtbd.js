@@ -66,7 +66,7 @@ export const JTBD_RULES = [
     severity: "fail",
     check: (s) => (Array.isArray(s.jobs) ? null : {}),
     message: () => ".jobs must be an array",
-    hint: "wrap the value in [] — even a single job is an array of one",
+    hint: "wrap the value in [], because even a single job is an array of one",
   },
   {
     id: "jtbd.invalid-user",
@@ -121,7 +121,7 @@ export const JTBD_RULES = [
     hint: "append a period to the hire sentence",
   },
   {
-    // Cross-entry uniqueness — mutates ctx.allHires across iterations.
+    // Cross-entry uniqueness. This rule mutates ctx.allHires across iterations.
     id: "jtbd.duplicate-hire",
     scope: "jtbd-entry",
     severity: "fail",
@@ -334,8 +334,8 @@ function makeFormatter(prettierConfig) {
       ...prettierConfig,
       parser: "markdown",
     });
-    // Prettier inserts a blank line between bold labels and bullet lists;
-    // remove it to match the hand-written JTBD.md style.
+    // Prettier inserts a blank line between bold labels and bullet lists.
+    // Remove it to match the hand-written JTBD.md style.
     return formatted.replace(/\*\*\n\n(- )/g, "**\n$1").trimEnd();
   };
 }
@@ -491,15 +491,15 @@ async function processJtbdMd(root, fix, formatMarkdown, result, fsSync) {
 
 /**
  * Validate every `package.json .jobs` entry under products/, services/, and
- * libraries/, and (when `fix` is true) regenerate the marker-delimited catalog,
+ * libraries/. When `fix` is true, regenerate the marker-delimited catalog,
  * jobs, and description blocks in the corresponding README.md and JTBD.md.
  *
  * @param {{ root: string, fix?: boolean, runtime?: import('@forwardimpact/libutil/runtime').Runtime }} options
  * @returns {Promise<{ findings: Finding[], stale: string[], fixed: string[] }>}
- *   `findings` are validation failures (structured for `emitFindingsText` /
- *   `emitFindingsJson` from libutil); `stale` is files whose generated blocks
- *   are out of date (only populated when `fix` is false); `fixed` is files
- *   that were rewritten in place.
+ *   `findings` are validation failures, structured for `emitFindingsText` /
+ *   `emitFindingsJson` from libutil. `stale` is files whose generated blocks
+ *   are out of date, and it holds entries only when `fix` is false. `fixed`
+ *   is files that `checkJtbd` rewrote in place.
  */
 export async function checkJtbd({ root, fix = false, runtime }) {
   if (!runtime) throw new Error("runtime is required");

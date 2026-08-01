@@ -12,8 +12,8 @@ import { createRouter } from "./router-core.js";
  * @property {(path: string) => void} navigate - Navigate to path
  * @property {() => string} currentPath - Get current hash path
  * @property {() => void} handleRoute - Process current route
- * @property {() => void} start - Begin listening for hash changes
- * @property {() => void} stop - Stop listening for hash changes
+ * @property {() => void} start - Start to listen for hash changes
+ * @property {() => void} stop - Stop the listener for hash changes
  * @property {() => string[]} patterns - Get registered patterns
  * @property {(paths: string[]) => void} setSlideOrder - Define navigation order
  * @property {() => void} next - Navigate to next slide
@@ -37,7 +37,7 @@ export function createSlideRouter(options = {}) {
   let keyHandler = null;
 
   /**
-   * Find current position in slide order
+   * Find the current position in the slide order
    * @returns {number}
    */
   function findCurrentIndex() {
@@ -46,7 +46,7 @@ export function createSlideRouter(options = {}) {
   }
 
   /**
-   * Navigate to slide at given index
+   * Navigate to the slide at the given index
    * @param {number} index
    */
   function navigateToIndex(index) {
@@ -76,7 +76,7 @@ export function createSlideRouter(options = {}) {
     },
 
     /**
-     * Navigate to next slide
+     * Navigate to the next slide
      */
     next() {
       const idx = findCurrentIndex();
@@ -84,7 +84,7 @@ export function createSlideRouter(options = {}) {
     },
 
     /**
-     * Navigate to previous slide
+     * Navigate to the previous slide
      */
     prev() {
       const idx = findCurrentIndex();
@@ -92,11 +92,11 @@ export function createSlideRouter(options = {}) {
     },
 
     /**
-     * Navigate to previous chapter
+     * Navigate to the previous chapter
      */
     prevChapter() {
       const idx = findCurrentIndex();
-      // Find the previous chapter boundary before current position
+      // Find the previous chapter boundary before the current position
       const prevBoundary = chapterBoundaries.filter((b) => b < idx).pop();
       if (prevBoundary !== undefined) {
         navigateToIndex(prevBoundary);
@@ -106,11 +106,11 @@ export function createSlideRouter(options = {}) {
     },
 
     /**
-     * Navigate to next chapter
+     * Navigate to the next chapter
      */
     nextChapter() {
       const idx = findCurrentIndex();
-      // Find the next chapter boundary after current position
+      // Find the next chapter boundary after the current position
       const nextBoundary = chapterBoundaries.find((b) => b > idx);
       if (nextBoundary !== undefined) {
         navigateToIndex(nextBoundary);
@@ -118,14 +118,14 @@ export function createSlideRouter(options = {}) {
     },
 
     /**
-     * Navigate to first slide (index)
+     * Navigate to the first slide (index)
      */
     home() {
       navigateToIndex(0);
     },
 
     /**
-     * Get current slide index
+     * Get the current slide index
      * @returns {number}
      */
     currentIndex() {
@@ -133,7 +133,7 @@ export function createSlideRouter(options = {}) {
     },
 
     /**
-     * Get total number of slides
+     * Get the total number of slides
      * @returns {number}
      */
     totalSlides() {
@@ -145,7 +145,7 @@ export function createSlideRouter(options = {}) {
      */
     startKeyboardNav() {
       keyHandler = (e) => {
-        // Ignore if typing in an input
+        // Ignore the event when the user types in an input
         if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
           return;
         }

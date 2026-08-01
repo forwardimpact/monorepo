@@ -2,16 +2,16 @@ import { parseAnchor } from "./anchor.js";
 
 /**
  * The obstacle issue whose comment thread is the allocation-anchor surface.
- * GitHub serializes comment creation and assigns a monotonic `id`, so that `id`
+ * GitHub serializes comment creation and assigns a monotonic `id`. So the `id`
  * order is the allocation serialization no merge can erase.
  */
 export const DEFAULT_ANCHOR_ISSUE = 1564;
 
 /**
  * Read every allocation anchor from the obstacle issue's comment thread, in
- * server `id` order ascending. The lowest comment `id` claiming a given label
- * is its winner (first published wins). Comments carrying no anchor block are
- * skipped.
+ * server `id` order ascending. The lowest comment `id` that claims a given
+ * label is its winner (first published wins). This function skips comments
+ * that carry no anchor block.
  *
  * @param {object} ghClient - A GhClient (or mock) exposing `apiGetPaginated`.
  * @param {object} opts

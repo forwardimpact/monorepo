@@ -1,16 +1,17 @@
 /**
- * Verifies the hidden `_commands` argv branch on fit-landmark.js. The
- * branch must run BEFORE the top-level `await createProductConfig` so
- * substrate-smoke's introspection does not pay the libconfig load cost.
+ * These tests verify the hidden `_commands` argv branch on
+ * fit-landmark.js. The branch must run BEFORE the top-level
+ * `await createProductConfig`. Then substrate-smoke's introspection does
+ * not pay the libconfig load cost.
  *
- * Two spawn paths exercised:
- *   1. Direct `node bin/fit-landmark.js _commands` from a fresh tmpdir —
- *      proves the verb is above the libconfig load (no .env / config/
- *      walk required).
- *   2. `bunx fit-landmark _commands` from the parent (workspace) cwd —
- *      proves substrate-smoke's production spawn shape resolves the
- *      package via workspace `node_modules/.bin` rather than fetching
- *      from npm (which would 404 the published "fit-landmark" name).
+ * The tests exercise two spawn paths:
+ *   1. Direct `node bin/fit-landmark.js _commands` from a fresh tmpdir.
+ *      This proves the verb sits above the libconfig load. It needs no
+ *      .env file and no walk up to config/.
+ *   2. `bunx fit-landmark _commands` from the parent (workspace) cwd.
+ *      This proves substrate-smoke's production spawn shape resolves the
+ *      package through the workspace `node_modules/.bin`. It does not
+ *      fetch from npm, which would 404 the published "fit-landmark" name.
  */
 
 import { describe, test } from "node:test";
@@ -57,10 +58,10 @@ describe("fit-landmark _commands hidden verb", () => {
     }
   });
 
-  test("bunx fit-landmark _commands resolves via the workspace (smoke spawn path)", () => {
+  test("bunx fit-landmark _commands resolves through the workspace (smoke spawn path)", () => {
     // Run from the test file's directory so bunx walks up to the
-    // workspace node_modules/.bin and finds fit-landmark — exactly the
-    // path substrate-smoke takes when it spawns from the CI checkout.
+    // workspace node_modules/.bin and finds fit-landmark. This is exactly
+    // the path substrate-smoke takes when it spawns from the CI checkout.
     const res = spawnSync("bunx", ["fit-landmark", "_commands"], {
       encoding: "utf8",
       cwd: __dirname,

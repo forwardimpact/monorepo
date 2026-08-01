@@ -1,7 +1,7 @@
 /**
  * Tool presentation helpers
  *
- * Shared utilities for formatting tool data across DOM and CLI outputs.
+ * Shared utilities that format tool data across DOM and CLI outputs.
  */
 
 /**
@@ -22,7 +22,7 @@
  */
 
 /**
- * Aggregate tools from all skills, deduplicating by name
+ * Aggregate tools from all skills. Deduplicate them by name.
  * @param {Array} skills - All skills with toolReferences
  * @returns {AggregatedTool[]}
  */
@@ -43,7 +43,7 @@ export function aggregateTools(skills) {
       const existing = toolMap.get(tool.name);
       if (existing) {
         existing.usages.push(usage);
-        // Prefer simpleIcon from first occurrence that has one
+        // Prefer simpleIcon from the first occurrence that has one
         if (!existing.simpleIcon && tool.simpleIcon) {
           existing.simpleIcon = tool.simpleIcon;
         }
@@ -65,7 +65,7 @@ export function aggregateTools(skills) {
 }
 
 /**
- * Prepare tools list view data
+ * Prepare the data for the tools list view
  * @param {Array} skills - All skills
  * @returns {{ tools: AggregatedTool[], totalCount: number }}
  */

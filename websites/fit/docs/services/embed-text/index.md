@@ -1,17 +1,17 @@
 ---
 title: Embed Text Using a Shared Service
-description: Products that fetch embeddings without managing inference infrastructure — shared embedding gRPC service backed by Text Embeddings Inference.
+description: Products that fetch embeddings and do not manage inference infrastructure — shared embedding gRPC service backed by Text Embeddings Inference.
 ---
 
-You are building a product feature that needs semantic vectors -- search,
-deduplication, clustering, retrieval-augmented generation -- and you do not
-want each product running its own inference backend. The embedding gRPC
-service exposes one method: pass an array of strings, receive an array of
-dense vectors, in order. The inference model runs in a sidecar process the
-service starts on boot; products see only the typed gRPC surface.
+You build a product feature that needs semantic vectors. Examples are search,
+deduplication, clustering, and retrieval-augmented generation. You do not want
+each product to run its own inference backend. The embedding gRPC service
+exposes one method. Pass an array of strings. The method returns an array of
+dense vectors, in order. The inference model runs in a sidecar process. The
+service starts that process on boot. Products see only the typed gRPC surface.
 
-This guide walks through connecting to the embedding service, calling its one
-RPC with a batch of inputs, and verifying the response shape matches what your
+In this guide you connect to the embedding service. You call its one RPC with
+a batch of inputs. You then check that the response shape matches what your
 feature expects.
 
 ## Prerequisites
@@ -32,9 +32,9 @@ The embedding service is a thin gRPC adapter over a
 [Text Embeddings Inference](https://github.com/huggingface/text-embeddings-inference)
 (TEI) backend that runs as a sidecar process. On boot, the service spawns
 `text-embeddings-router` with a configured model (default
-`BAAI/bge-small-en-v1.5`) listening on a local port; the service translates
+`BAAI/bge-small-en-v1.5`) that listens on a local port. The service translates
 each gRPC request into a single HTTP call to TEI's OpenAI-compatible
-`/v1/embeddings` endpoint and translates the response back into the proto
+`/v1/embeddings` endpoint. It then translates the response back into the proto
 shape.
 
 ```text
@@ -54,7 +54,7 @@ input string, in the same order.
 
 ## Connect to the embedding service
 
-Create an embedding client using the generated `EmbeddingClient` class:
+Create an embedding client with the generated `EmbeddingClient` class:
 
 ```js
 import { createClient, createTracer } from "@forwardimpact/librpc";
@@ -90,17 +90,16 @@ console.log(result.data[0].values.length); // depends on model
 ```
 
 `result.data` is an array of `EmbeddingVector` objects in the same order as
-the input. Each `EmbeddingVector` has a `values` field containing the dense
+the input. Each `EmbeddingVector` has a `values` field that holds the dense
 embedding as a `Float32`-compatible array of numbers.
 
-The vector dimensionality depends on the model the service was configured
-with. The default model (`BAAI/bge-small-en-v1.5`) emits 384-dimensional
-vectors; check the model card for the configured model if you need a fixed
-shape.
+The vector dimensionality depends on the configured model. The default model
+(`BAAI/bge-small-en-v1.5`) emits 384-dimensional vectors. Check the model card
+for the configured model if you need a fixed shape.
 
 ## Compare two strings
 
-Embedding vectors are usually consumed by computing cosine similarity against
+Most products use embedding vectors to compute cosine similarity against
 other embeddings:
 
 ```js
@@ -121,8 +120,8 @@ console.log(cosineSimilarity(a, b)); // ~0.7 for paraphrases, ~0.1 for unrelated
 ```
 
 For storage and similarity search at scale, hand the vectors to the
-[vector service](/docs/services/ground-agents/) rather than computing
-cosine similarity in-process.
+[vector service](/docs/services/ground-agents/). At that scale, do not
+compute cosine similarity in-process.
 
 ## Handle backend failures
 
@@ -144,19 +143,19 @@ Restart with `npx fit-rc restart embedding` to relaunch both.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `createClient("embedding")` connects without error.
 - `CreateEmbeddings` returns one `EmbeddingVector` per input string, in
   order.
 - Each `values` array has the expected dimensionality for the configured
   model.
-- Errors from the TEI sidecar surface as exceptions on the client, not
-  silent empty responses.
+- Errors from the TEI sidecar surface as exceptions on the client. They do
+  not become silent empty responses.
 
-If the connection fails, confirm the service is running with
-`npx fit-rc status` and check that `config/config.json` lists the correct
-host and port for the embedding service.
+If the connection fails, confirm the service runs with `npx fit-rc status`.
+Then check that `config/config.json` lists the correct host and port for the
+embedding service.
 
 ## What's next
 

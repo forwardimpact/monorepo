@@ -1,5 +1,5 @@
 /**
- * Error boundary wrapper for page rendering
+ * Error boundary wrapper for page render functions
  *
  * Re-exports from @forwardimpact/libui/error-boundary.
  */

@@ -2,11 +2,12 @@ name: "Package: Linux"
 
 # Reusable: pack the tagged bundle's already-built Linux binaries into one
 # tarball per architecture, the Linux analog of package-macos.yml's signed
-# .app. No signing — integrity rests on the published .sha256. Called per
-# release tag by publish-binaries.yml; emits one `linux-packages-<arch>`
-# artifact per cell (upload-artifact v4 rejects a shared name across matrix
-# cells, so the arch disambiguates, exactly as build-binaries.yml does).
-# Downstream jobs collect them with the `linux-packages-*` pattern.
+# .app. This workflow does not sign. Integrity rests on the published .sha256.
+# publish-binaries.yml calls it per release tag. It emits one
+# `linux-packages-<arch>` artifact per cell (upload-artifact v4 rejects a
+# shared name across matrix cells, so the arch disambiguates, exactly as
+# build-binaries.yml does). Downstream jobs collect them with the
+# `linux-packages-*` pattern.
 on:
   workflow_call:
     inputs:
@@ -38,7 +39,7 @@ jobs:
           pattern: "*-bun-linux-${{ matrix.arch }}"
           path: dist/binaries
           # Merge every matched artifact into dist/binaries as bare {cli} +
-          # {cli}.sha256; build-tarball.sh reads the executables from there.
+          # {cli}.sha256. build-tarball.sh reads the executables from there.
           merge-multiple: true
 
       - name: Pack tarball

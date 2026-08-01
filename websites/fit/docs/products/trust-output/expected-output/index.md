@@ -1,22 +1,21 @@
 ---
 title: "See What the Standard Expects Before Reviewing"
-description: "Know what to check before you start reviewing — the skill proficiencies, behaviour maturities, and expectations your standard defines for the role."
+description: "Know what to check before you start a review: the skill proficiencies, behaviour maturities, and expectations your standard defines for the role."
 ---
 
 You need to see what the engineering standard expects for a specific role before
-reviewing agent-produced work against it.
+you review agent-produced work against it.
 
 ## Prerequisites
 
 Complete the
 [Get Output Review Grounded in the Standard](/docs/products/trust-output/)
-guide first -- this page assumes you have an agent-aligned engineering standard
-installed and have already run `npx fit-pathway job` at least once.
+guide first. This page assumes you installed an agent-aligned engineering
+standard. It also assumes you ran `npx fit-pathway job` at least once.
 
 ## Look up the role's skill expectations
 
-Generate the role definition for the discipline and level you are reviewing
-against:
+Generate the role definition for the discipline and level you review against:
 
 ```sh
 npx fit-pathway job software-engineering J060
@@ -35,9 +34,9 @@ standard expects:
 | Task Completion | Working |
 ```
 
-Each row tells you: for this role, this skill should be demonstrated at this
-proficiency. When reviewing agent output, check whether the work reflects the
-expected proficiency -- not a higher or lower one.
+Each row tells you the proficiency this role expects for this skill. When you
+review agent output, check the work against the expected proficiency. Do not
+check it against a higher or lower one.
 
 If the role includes a track specialization, add the `--track` flag:
 
@@ -45,9 +44,9 @@ If the role includes a track specialization, add the `--track` flag:
 npx fit-pathway job software-engineering J060 --track=platform
 ```
 
-Track specializations shift expectations. The Platform track for J060, for
-example, raises Incident Response from Awareness to Foundational and adds
-track-specific responsibilities in the generated description.
+Track specializations shift expectations. For example, the Platform track for
+J060 raises Incident Response from Awareness to Foundational. It also adds
+track-specific responsibilities to the generated description.
 
 ## Understand what a proficiency level means
 
@@ -79,8 +78,8 @@ implementation to verification.
 
 Find the row that matches the expected proficiency from the Skill Matrix. That
 description is what the standard considers adequate for this role. Use it as
-your review benchmark -- the work should demonstrate the described actions, not
-merely the skill name.
+your review benchmark. The work should demonstrate the described actions. The
+skill name alone is not enough.
 
 ## Check behaviour expectations
 
@@ -122,9 +121,9 @@ system behaves...
 | Exemplifying | Defines organizational systems architecture principles... |
 ```
 
-The maturity description tells you what the standard expects in terms of
-approach and reasoning -- not just output. When reviewing, ask whether the work
-reflects the expected maturity level's described pattern.
+The maturity description tells you what the standard expects for approach and
+reasoning. It covers more than the output. When you review, ask whether the
+work matches the pattern the maturity level describes.
 
 ## Read the expectations section
 
@@ -140,12 +139,12 @@ autonomy, and complexity the standard defines for this level:
 - **Complexity Handled**: Moderate complexity with some ambiguity
 ```
 
-These four dimensions set the boundary for what the role should handle. If the
-agent output addresses problems well beyond the role's complexity level, or
-falls short of the expected autonomy, the expectations section tells you
-where to calibrate.
+These four dimensions set the boundary for what the role should handle. The
+agent output may address problems well beyond the role's complexity level. It
+may also fall short of the expected autonomy. In either case, the expectations
+section tells you where to calibrate.
 
-## Extract skill IDs for scripting
+## Extract skill IDs for scripts
 
 When you need to check multiple skills programmatically, use the `--skills`
 flag to get a plain list of skill IDs:
@@ -169,18 +168,18 @@ npx fit-pathway job software-engineering J060 --skills | while read id; do
 done
 ```
 
-This produces the full description for every skill in the role, which you can
-use as a review checklist.
+This produces the full description for every skill in the role. You can use it
+as a review checklist.
 
 ## Verify
 
-You have reached the outcome of this page when you can answer these questions
-from your Pathway output:
+You reach the outcome of this page when you can answer these questions from
+your Pathway output:
 
 - **What skills does the role expect, and at what proficiency?** You can list
   the skills and their expected levels from the Skill Matrix.
-- **What does each proficiency level look like in practice?** You have inspected
-  at least one skill and can describe the actions the expected proficiency
+- **What does each proficiency level look like in practice?** You inspected at
+  least one skill. You can describe the actions the expected proficiency
   requires.
 - **What behaviours does the role expect?** You can name the expected maturity
   for each behaviour and describe what that maturity looks like.

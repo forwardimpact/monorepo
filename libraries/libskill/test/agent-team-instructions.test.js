@@ -29,7 +29,7 @@ const FULL_SECTION = [
   "",
 ].join("\n");
 
-describe("interpolateTeamInstructions (level threading)", () => {
+describe("interpolateTeamInstructions (threads the level through)", () => {
   test("case A — populated teamInstructions, level omitted", () => {
     const result = interpolateTeamInstructions({
       agentTrack: { teamInstructions: TI },
@@ -64,13 +64,13 @@ describe("interpolateTeamInstructions (level threading)", () => {
     assert.strictEqual(result, null);
   });
 
-  test("case E — populated teamInstructions; level present but expectations: {}", () => {
+  test("case E — populated teamInstructions, level present with expectations: {}", () => {
     const result = interpolateTeamInstructions({
       agentTrack: { teamInstructions: TI },
       humanDiscipline,
       level: { id: "J060", expectations: {} },
     });
-    // Byte-equal to case A — empty expectations suppress the section entirely.
+    // Byte-equal to case A. Empty expectations suppress the section entirely.
     assert.strictEqual(result, TI_RENDERED);
   });
 
@@ -91,7 +91,7 @@ describe("interpolateTeamInstructions (level threading)", () => {
     assert.strictEqual(result, expected);
   });
 
-  test("case G — unknown expectations key is silently dropped (guards future schema additions)", () => {
+  test("case G — silently drops an unknown expectations key (guards future schema additions)", () => {
     const result = interpolateTeamInstructions({
       agentTrack: { teamInstructions: TI },
       humanDiscipline,

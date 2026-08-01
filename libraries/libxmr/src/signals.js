@@ -2,13 +2,13 @@
 // companion moving range (mR) chart.
 //
 //   X-Rule 1 — point outside natural process limits
-//   X-Rule 2 — 8 consecutive points on same side of μ
+//   X-Rule 2 — 8 consecutive points on the same side of μ
 //   X-Rule 3 — 3 of any 4 consecutive points strictly beyond ±1.5σ̂ on
 //              the same side
 //   mR-Rule 1 — point above URL
 //
-// No additional rules. Western Electric's full set, the Nelson rules, and
-// trend tests are deliberately omitted.
+// No additional rules. This module deliberately omits Western Electric's
+// full set, the Nelson rules, and trend tests.
 
 import { fmt1 } from "./format.js";
 
@@ -27,9 +27,9 @@ const X_RULE_3_HITS = 3;
 //   }
 //
 // Slots are 1-indexed (slot 1 = first observation). When a Rule 2 or Rule 3
-// pattern fires, ALL participating slots are listed in the `slots` array —
-// the visual gestalt of the run carries the diagnostic information, so
-// flagging only the trigger would hide the pattern.
+// pattern fires, the `slots` array lists ALL the slots that take part. The
+// visual gestalt of the run carries the diagnostic information. A flag on
+// the trigger alone would hide the pattern.
 /** Detect all Wheeler signal rules on the X chart and Rule 1 on the mR chart. */
 export function detectSignals(values, mrs, stats) {
   return {
@@ -60,7 +60,7 @@ function detectXRule1(values, { UPL, LPL }) {
   return out;
 }
 
-// Build one-indexed slots array for a completed run and describe it.
+// Build a one-indexed slots array for a completed run and describe it.
 function emitRule2Run(runStart, runEnd, runSide, mu) {
   const len = runEnd - runStart;
   if (runSide === 0 || runStart < 0 || len < X_RULE_2_RUN) return null;
@@ -92,9 +92,9 @@ function detectXRule2(values, { mu }) {
 }
 
 // X-Rule 3: in any window of 4 consecutive points, 3 or more strictly beyond
-// the same outer-zone boundary (±1.5σ̂). Overlapping firing windows on the
-// same side are coalesced into one signal — a single special-cause stretch
-// should produce one diagnostic, not three.
+// the same outer-zone boundary (±1.5σ̂). The detector coalesces windows that
+// fire and overlap on the same side into one signal. A single special-cause
+// stretch should produce one diagnostic. It should not produce three.
 function detectXRule3(values, { zoneUpper, zoneLower, mu }) {
   if (values.length < X_RULE_3_WINDOW) return [];
 
@@ -121,10 +121,10 @@ function detectXRule3(values, { zoneUpper, zoneLower, mu }) {
   ];
 }
 
-// Walk every 4-window; when one fires, take the union of its hit slots with
-// any prior firing window that overlaps it on the same side. Returns an
-// array of consolidated, sorted slot lists — one per maximal contiguous
-// firing region.
+// Walk every 4-window. When one fires, take the union of its hit slots with
+// any earlier window that fired and overlaps it on the same side. Returns an
+// array of consolidated, sorted slot lists. Each list covers one maximal
+// contiguous region that fires.
 function collectRule3Runs(values, windowSize, threshold, isHit) {
   const runs = [];
   for (let i = 0; i + windowSize <= values.length; i++) {
@@ -170,10 +170,10 @@ function detectMRRule1(mrs, { URL }) {
   return out;
 }
 
-// Build a per-slot signal mask (1-indexed) covering every participating slot
-// across all four rules. Used by the chart renderer to choose between `·`
-// and `●` glyphs.
-/** Build a boolean array (1-indexed) marking slots that participate in any X-chart signal. */
+// Build a per-slot signal mask (1-indexed) that covers every slot that takes
+// part across all four rules. The chart renderer uses it to choose between
+// `·` and `●` glyphs.
+/** Build a boolean array (1-indexed) that marks slots that participate in any X-chart signal. */
 export function buildSignalMask(signals, n) {
   const mask = new Array(n + 1).fill(false);
   for (const rule of [signals.xRule1, signals.xRule2, signals.xRule3]) {
@@ -184,8 +184,8 @@ export function buildSignalMask(signals, n) {
   return mask;
 }
 
-// Same idea, but for the mR chart (only mR-Rule 1 participates).
-/** Build a boolean array (1-indexed) marking slots that participate in mR Rule 1 signals. */
+// This mask does the same for the mR chart (only mR-Rule 1 participates).
+/** Build a boolean array (1-indexed) that marks slots that participate in mR Rule 1 signals. */
 export function buildMRSignalMask(signals, n) {
   const mask = new Array(n + 1).fill(false);
   for (const sig of signals.mrRule1) {
@@ -195,12 +195,13 @@ export function buildMRSignalMask(signals, n) {
 }
 
 // Stamp each fired signal record with anchor-relative provenance. A record is
-// `recomputation-revealed` when every participating slot was present at the
-// prior read (max slot <= anchorSlot), and `new-point` when at least one
-// participating slot postdates the anchor. mR-Rule 1 records carry the later
-// of the two points (slot i+2), so the same comparison holds across all four
-// rules. The value records data membership, not signal novelty: a signal that
-// also fired at the prior read carries `recomputation-revealed`.
+// `recomputation-revealed` when every slot that takes part was present at the
+// prior read (max slot <= anchorSlot). A record is `new-point` when at least
+// one such slot postdates the anchor. mR-Rule 1 records carry the later of
+// the two points (slot i+2), so the same comparison holds across all four
+// rules. The value records data membership. It does not record signal
+// novelty. A signal that also fired at the prior read carries
+// `recomputation-revealed`.
 /** Add a `provenance` value to every fired signal record relative to a 1-indexed anchor slot. */
 export function stampProvenance(signals, anchorSlot) {
   for (const rule of ["xRule1", "xRule2", "xRule3", "mrRule1"]) {
@@ -214,8 +215,8 @@ export function stampProvenance(signals, anchorSlot) {
   return signals;
 }
 
-// Does any rule fire at all? Used by the analyze orchestrator and the
-// classifier to avoid recomputing the same boolean.
+// Report whether any rule fires at all. The analyze orchestrator and the
+// classifier use this so they do not recompute the same boolean.
 /** Return true if any detection rule (X or mR) fired at least once. */
 export function hasAnySignal(signals) {
   return (
@@ -226,10 +227,10 @@ export function hasAnySignal(signals) {
   );
 }
 
-// Does any X-chart rule fire? Distinct from `hasAnySignal` because mR Rule
-// 1 alone routes to a different classification (`chaos`) than X-chart
-// signals (`signals`).
-/** Return true if any X-chart rule (Rule 1, 2, or 3) fired, excluding mR Rule 1. */
+// Report whether any X-chart rule fires. This differs from `hasAnySignal`
+// because mR Rule 1 alone routes to a different classification (`chaos`)
+// than X-chart signals (`signals`).
+/** Return true if any X-chart rule (Rule 1, 2, or 3) fired. mR Rule 1 does not count. */
 export function anyXSignals(signals) {
   return (
     signals.xRule1.length > 0 ||

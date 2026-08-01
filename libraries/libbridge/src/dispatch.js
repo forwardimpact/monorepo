@@ -4,9 +4,9 @@
  * route through this helper so the request body and headers stay byte-
  * identical across bridges.
  *
- * Only includes `discussion_id` and `resume_context` in the `inputs` body
- * when defined, so callers that omit them stay byte-identical to the legacy
- * msteams dispatcher.
+ * This helper puts `discussion_id` and `resume_context` in the `inputs`
+ * body only when they are defined. Callers that omit them stay
+ * byte-identical to the legacy msteams dispatcher.
  *
  * @param {object} params
  * @param {string} params.workflowFile - Workflow filename, e.g. `"kata-dispatch.yml"`
@@ -15,8 +15,8 @@
  * @param {string} params.token - GitHub installation/access token
  * @param {string} params.prompt - The facilitator prompt
  * @param {string} params.callbackUrl - Where the workflow posts the reply
- * @param {string} params.correlationId - UUID linking dispatch → callback
- * @param {string} [params.inboxUrl] - Long-poll URL for injecting messages into a live run
+ * @param {string} params.correlationId - UUID that links dispatch → callback
+ * @param {string} [params.inboxUrl] - Long-poll URL to inject messages into a live run
  * @param {string} [params.discussionId] - For trace linkage in libharness
  * @param {string} [params.resumeContext] - JSON string carried across resumes
  * @returns {Promise<void>}
@@ -59,9 +59,10 @@ export async function dispatchWorkflow({
   });
 
   if (!res.ok) {
-    // GitHub's error body sometimes echoes the dispatched inputs, including
-    // the callback URL which carries a single-use token. Surface only the
-    // status — operators can inspect the run log if they need more.
+    // GitHub's error body sometimes echoes the dispatched inputs. Those
+    // inputs contain the callback URL, which carries a single-use token.
+    // Surface only the status. Operators can inspect the run log if they
+    // need more.
     throw new Error(
       `workflow_dispatch failed: ${res.status} ${res.statusText}`,
     );

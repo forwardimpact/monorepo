@@ -9,7 +9,7 @@ test("Tracer enriches errors with trace context in observeClientUnaryCall", asyn
     RecordSpan: async () => ({}),
   };
 
-  /** Mock gRPC metadata class for testing */
+  /** Mock gRPC metadata class for tests */
   const mockGrpcMetadata = class {
     /** Create mock metadata instance */
     constructor() {
@@ -49,7 +49,7 @@ test("Tracer enriches errors with trace context in observeClientUnaryCall", asyn
 
   try {
     await tracer.observeClientUnaryCall("TestMethod", request, callFn);
-    assert.fail("Should have thrown error");
+    assert.fail("Should throw an error");
   } catch (error) {
     // Verify error has trace context properties
     assert.ok(error.trace_id, "Error should have trace_id");
@@ -60,7 +60,7 @@ test("Tracer enriches errors with trace context in observeClientUnaryCall", asyn
       "Error should have service_name",
     );
 
-    // Verify error message is unchanged (Logger handles formatting)
+    // Verify error message is unchanged (Logger formats it)
     assert.strictEqual(
       error.message,
       "Test error message",
@@ -74,7 +74,7 @@ test("Tracer enriches errors with trace context in observeServerUnaryCall", asyn
     RecordSpan: async () => ({}),
   };
 
-  /** Mock gRPC metadata class for testing */
+  /** Mock gRPC metadata class for tests */
   const mockGrpcMetadata = class {
     /** Create mock metadata instance */
     constructor() {
@@ -117,7 +117,7 @@ test("Tracer enriches errors with trace context in observeServerUnaryCall", asyn
 
   try {
     await tracer.observeServerUnaryCall("TestMethod", call, handlerFn);
-    assert.fail("Should have thrown error");
+    assert.fail("Should throw an error");
   } catch (error) {
     // Verify error has trace context
     assert.ok(error.trace_id, "Error should have trace_id");
@@ -128,7 +128,7 @@ test("Tracer enriches errors with trace context in observeServerUnaryCall", asyn
       "Error should have service_name",
     );
 
-    // Verify error message is unchanged (Logger handles formatting)
+    // Verify error message is unchanged (Logger formats it)
     assert.strictEqual(
       error.message,
       "Server error",
@@ -142,7 +142,7 @@ test("Logger extracts trace context from error", async () => {
     RecordSpan: async () => ({}),
   };
 
-  /** Mock gRPC metadata class for testing */
+  /** Mock gRPC metadata class for tests */
   const mockGrpcMetadata = class {
     /** Create mock metadata instance */
     constructor() {
@@ -182,9 +182,9 @@ test("Logger extracts trace context from error", async () => {
 
   try {
     await tracer.observeClientUnaryCall("TestMethod", request, callFn);
-    assert.fail("Should have thrown error");
+    assert.fail("Should throw an error");
   } catch (error) {
-    // Verify trace context is in properties, not message
+    // Verify trace context is in the properties. The message does not hold it
     assert.ok(error.trace_id, "Error should have trace_id property");
     assert.strictEqual(
       error.message,
@@ -199,7 +199,7 @@ test("Tracer handles non-Error objects gracefully", async () => {
     RecordSpan: async () => ({}),
   };
 
-  /** Mock gRPC metadata class for testing */
+  /** Mock gRPC metadata class for tests */
   const mockGrpcMetadata = class {
     /** Create mock metadata instance */
     constructor() {
@@ -239,7 +239,7 @@ test("Tracer handles non-Error objects gracefully", async () => {
 
   try {
     await tracer.observeClientUnaryCall("TestMethod", request, callFn);
-    assert.fail("Should have thrown error");
+    assert.fail("Should throw an error");
   } catch (error) {
     // Should still throw the original error
     assert.strictEqual(error, stringError);

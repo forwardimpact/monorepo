@@ -6,10 +6,11 @@ import { Logger, createLogger } from "@forwardimpact/libtelemetry";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
 /**
- * A runtime whose `proc.stderr` captures every line into `sink`, with the live
- * `proc.env` (so `process.env.DEBUG`/`LOG_LEVEL` changes are visible) and real
- * clock preserved. The Logger writes through `runtime.proc.stderr`, so tests
- * inject this rather than patching the global `console`.
+ * A runtime whose `proc.stderr` captures every line into `sink`. It keeps the
+ * live `proc.env`, so `process.env.DEBUG` and `LOG_LEVEL` changes stay
+ * visible. It also keeps the real clock. The Logger writes through
+ * `runtime.proc.stderr`. So tests inject this runtime. They do not patch the
+ * global `console`.
  * @param {string[]} sink - Array that receives each written line.
  * @returns {import("@forwardimpact/libutil/runtime").Runtime}
  */
@@ -48,7 +49,7 @@ describe("Logger", () => {
     else process.env.LOG_LEVEL = originalLogLevel;
   });
 
-  test("creates Logger with domain", () => {
+  test("creates a Logger with a domain", () => {
     const logger = new Logger("test", runtime);
 
     assert.ok(logger instanceof Logger);
@@ -67,42 +68,42 @@ describe("Logger", () => {
     });
   });
 
-  test("enables logging when DEBUG=*", () => {
+  test("turns the logger on when DEBUG=*", () => {
     process.env.DEBUG = "*";
     const logger = new Logger("test", runtime);
 
     assert.strictEqual(logger.enabled, true);
   });
 
-  test("disables logging when DEBUG is empty", () => {
+  test("turns the logger off when DEBUG is empty", () => {
     process.env.DEBUG = "";
     const logger = new Logger("test", runtime);
 
     assert.strictEqual(logger.enabled, false);
   });
 
-  test("enables logging for exact domain match", () => {
+  test("turns the logger on for an exact domain match", () => {
     process.env.DEBUG = "test,other";
     const logger = new Logger("test", runtime);
 
     assert.strictEqual(logger.enabled, true);
   });
 
-  test("enables logging for wildcard pattern match", () => {
+  test("turns the logger on for a wildcard pattern match", () => {
     process.env.DEBUG = "test*";
     const logger = new Logger("test:service", runtime);
 
     assert.strictEqual(logger.enabled, true);
   });
 
-  test("disables logging for non-matching domain", () => {
+  test("turns the logger off for a domain that does not match", () => {
     process.env.DEBUG = "other";
     const logger = new Logger("test", runtime);
 
     assert.strictEqual(logger.enabled, false);
   });
 
-  test("logs debug message when enabled", () => {
+  test("logs a debug message when enabled", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test", runtime);
 
@@ -134,7 +135,7 @@ describe("Logger", () => {
     assert.ok(output[0].includes("Heads up"));
   });
 
-  test("warn is suppressed when LOG_LEVEL=error", () => {
+  test("the logger suppresses warn when LOG_LEVEL=error", () => {
     process.env.LOG_LEVEL = "error";
     const logger = new Logger("test", runtime);
 
@@ -154,7 +155,7 @@ describe("Logger", () => {
     assert.ok(output[0].includes("boom"));
   });
 
-  test("handles empty data object", () => {
+  test("handles an empty data object", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test", runtime);
 
@@ -165,7 +166,7 @@ describe("Logger", () => {
     assert.ok(output[0].includes("Test message"));
   });
 
-  test("includes timestamp in log output", () => {
+  test("includes a timestamp in the log output", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test", runtime);
 
@@ -175,7 +176,7 @@ describe("Logger", () => {
     assert.ok(output[0].match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/));
   });
 
-  test("merges trace context with provided attributes", () => {
+  test("merges the trace context with provided attributes", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test", runtime);
 
@@ -194,7 +195,7 @@ describe("Logger", () => {
     assert.ok(output[0].includes('status="500"'));
   });
 
-  test("exception logs message when disabled", () => {
+  test("exception logs the message when disabled", () => {
     process.env.DEBUG = "other";
     const logger = new Logger("test", runtime);
 
@@ -207,11 +208,11 @@ describe("Logger", () => {
     assert.ok(output[0].includes("Test error"));
     assert.ok(
       !output[0].includes("at "),
-      "Should not include stack trace when disabled",
+      "The output must not include a stack trace when disabled",
     );
   });
 
-  test("exception logs message with stack trace when enabled", () => {
+  test("exception logs the message with a stack trace when enabled", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test", runtime);
 
@@ -224,11 +225,11 @@ describe("Logger", () => {
     assert.ok(output[0].includes("Test error"));
     assert.ok(
       output[0].includes("at "),
-      "Should include stack trace when enabled",
+      "The output must include a stack trace when enabled",
     );
   });
 
-  test("exception extracts trace context from error", () => {
+  test("exception extracts the trace context from the error", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test", runtime);
 
@@ -245,7 +246,7 @@ describe("Logger", () => {
     assert.ok(output[0].includes('service_name="my-service"'));
   });
 
-  test("exception merges trace context with provided attributes", () => {
+  test("exception merges the trace context with provided attributes", () => {
     process.env.DEBUG = "test";
     const logger = new Logger("test", runtime);
 
@@ -261,14 +262,14 @@ describe("Logger", () => {
 });
 
 describe("createLogger", () => {
-  test("creates Logger instance", () => {
+  test("creates a Logger instance", () => {
     const logger = createLogger("test", createDefaultRuntime());
 
     assert.ok(logger instanceof Logger);
     assert.strictEqual(logger.domain, "test");
   });
 
-  test("passes through domain validation", () => {
+  test("also validates the domain", () => {
     assert.throws(() => createLogger("", createDefaultRuntime()), {
       message: /domain must be a non-empty string/,
     });

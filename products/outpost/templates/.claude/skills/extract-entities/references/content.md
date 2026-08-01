@@ -15,8 +15,8 @@ Extract owner, action, deadline (if mentioned), status (`open`).
 
 ## Key facts — substantive only
 
-Specific numbers (budget, team size, timeline), preferences, working style,
-background, technical requirements, what was discussed or proposed.
+Specific numbers (budget, team size, timeline), preferences, work style,
+background, technical requirements, what people discussed or proposed.
 
 **Never include:** meta-commentary about missing data, placeholder text, or
 data-quality observations. If no key facts exist, leave the section empty.
@@ -40,9 +40,9 @@ background".
 Always use canonical names with absolute paths (`[[People/Name]]`,
 `[[Organizations/Name]]`).
 
-## Summary — relationship not method
+## Summary — relationship over method
 
-2–3 sentences answering: "Who is this person and why do I know them?"
+Write 2–3 sentences that answer: "Who is this person and why do I know them?"
 
 - **Good:** "VP Engineering at [[Organizations/Acme Corp]] leading the
   [[Projects/Acme Integration]] pilot."
@@ -84,8 +84,8 @@ Change `- [ ]` → `- [x]` with completion date.
 
 ## Conservatism
 
-Only apply clear, unambiguous state changes. If uncertain, add to activity but
-don't change fields.
+Only apply clear, unambiguous state changes. If you are uncertain, add to
+activity but don't change fields.
 
 Log changes inline:
 
@@ -95,10 +95,11 @@ Log changes inline:
 
 ## Duplicate check (Step 8)
 
-Before writing:
+Before you write:
 
 - Look at the Activity section for an existing entry on this date from this
   source.
-- Compare key facts; skip duplicates.
+- Compare key facts, then skip duplicates.
 - Don't add the same open item twice.
-- If new info contradicts existing, keep both with "(needs clarification)".
+- If new info contradicts the existing info, keep both with
+  "(needs clarification)".

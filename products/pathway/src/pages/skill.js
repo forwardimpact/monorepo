@@ -26,7 +26,7 @@ let skillTemplateCache = null;
 let referenceTemplateCache = null;
 
 /**
- * Load skill Mustache template with caching
+ * Load the skill Mustache template and cache it
  * @returns {Promise<string>}
  */
 async function getSkillTemplate() {
@@ -38,7 +38,7 @@ async function getSkillTemplate() {
 }
 
 /**
- * Load reference Mustache template with caching
+ * Load the reference Mustache template and cache it
  * @returns {Promise<string>}
  */
 async function getReferenceTemplate() {
@@ -138,7 +138,7 @@ export async function renderSkillDetail(params) {
     }
   }
 
-  // Use DOM formatter - it handles transformation internally
+  // Use the DOM formatter. It transforms the data internally.
   render(
     skillToDOM(skill, {
       disciplines: data.disciplines,

@@ -6,9 +6,9 @@ import { isBelowFloor, floorPercentText } from "../lib/confidence-floor.js";
 import { renderHeader } from "./shared.js";
 
 const LIFT_HINT =
-  "Add artifact-interpreted evidence, run Guide's evaluate-evidence skill, or hand-attest markers via WriteEvidence to lift the floor.";
+  "Add artifact-interpreted evidence, run Guide's evaluate-evidence skill, or hand-attest markers with WriteEvidence to lift the floor.";
 
-/** A persona with zero artifacts is "no signal", not "below floor". */
+/** A persona with zero artifacts is "no signal". It is not "below floor". */
 function isBelowFloorWithSignal(coverage) {
   return coverage && coverage.total > 0 && isBelowFloor(coverage.ratio);
 }
@@ -18,18 +18,18 @@ function coverageLine(coverage) {
   return `Evidence coverage: ${coverage.scored}/${coverage.total} artifacts interpreted (${pct}%).`;
 }
 
-/** Marker line for one checklist item: checkbox, marker text, artifact id. */
+/** Build one checklist item line: checkbox, marker text, artifact id. */
 function itemLine(item) {
   const check = item.evidenced ? "[x]" : "[ ]";
   const artifact = item.artifactId ? ` (${item.artifactId})` : "";
   return `${check} ${item.marker}${artifact}`;
 }
 
-/** Suppression copy shared by text and markdown below-floor branches. */
+/** Build the copy that the text and markdown below-floor branches share. */
 function suppressionLines(coverage) {
   const pct = (coverage.ratio * 100).toFixed(1);
   return [
-    `Coverage below floor (${pct}% < ${floorPercentText()}) — verdict suppressed.`,
+    `Coverage below floor (${pct}% < ${floorPercentText()}). Verdict suppressed.`,
     coverageLine(coverage),
     LIFT_HINT,
   ];

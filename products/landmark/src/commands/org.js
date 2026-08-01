@@ -17,7 +17,7 @@ export const needsSupabase = true;
  * @param {object} params.options
  * @param {object} params.supabase
  * @param {string} params.format
- * @param {object} [params.queries] - Injectable query module for testing.
+ * @param {object} [params.queries] - Injectable query module for tests.
  */
 export async function runOrgCommand({
   args,

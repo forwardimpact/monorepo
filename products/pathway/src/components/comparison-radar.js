@@ -1,6 +1,6 @@
 /**
  * Comparison radar chart component
- * Displays two overlaid radar charts for comparing current vs target levels
+ * Displays two overlaid radar charts to compare current and target levels
  */
 
 /** @typedef {import('../types.js').SkillMatrixItem} SkillMatrixItem */
@@ -160,7 +160,7 @@ export function createComparisonSkillRadar(
     }),
   );
 
-  // Render chart after container is in DOM
+  // Render the chart after the container is in the DOM
   setTimeout(() => {
     const wrapper = container.querySelector(".radar-chart-wrapper");
     if (!wrapper || !currentMatrix || currentMatrix.length === 0) return;
@@ -225,7 +225,7 @@ export function createComparisonBehaviourRadar(
     }),
   );
 
-  // Render chart after container is in DOM
+  // Render the chart after the container is in the DOM
   setTimeout(() => {
     const wrapper = container.querySelector(".radar-chart-wrapper");
     if (!wrapper || !currentProfile || currentProfile.length === 0) return;

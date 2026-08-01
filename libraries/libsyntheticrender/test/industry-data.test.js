@@ -25,7 +25,7 @@ describe("generateDrugs", () => {
     }
   });
 
-  test("drug IRIs use /id/drug/ prefix", () => {
+  test("drug IRIs use the /id/drug/ prefix", () => {
     const drugs = generateDrugs(DOMAIN);
     for (const drug of drugs) {
       assert.ok(
@@ -60,7 +60,7 @@ describe("generatePlatforms", () => {
     }
   });
 
-  test("platform IRIs use /id/platform/ prefix", () => {
+  test("platform IRIs use the /id/platform/ prefix", () => {
     const platforms = generatePlatforms(DOMAIN);
     for (const p of platforms) {
       assert.ok(

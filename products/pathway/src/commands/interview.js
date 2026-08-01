@@ -22,7 +22,7 @@ const VALID_TYPES = Object.keys(INTERVIEW_TYPES);
 /**
  * Format a single interview type as markdown
  * @param {Object} view - Presenter view
- * @param {Object} options - Options including standard
+ * @param {Object} options - Options that include the standard
  */
 function formatInterview(view, options, runtime) {
   runtime.proc.stdout.write(
@@ -33,7 +33,7 @@ function formatInterview(view, options, runtime) {
 /**
  * Format all interview types as markdown with separators
  * @param {Array<Object>} views - Array of presenter views
- * @param {Object} options - Options including standard
+ * @param {Object} options - Options that include the standard
  */
 function formatAllInterviews(views, options, runtime) {
   for (let i = 0; i < views.length; i++) {

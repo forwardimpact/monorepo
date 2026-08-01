@@ -10,22 +10,22 @@ describe("Retry", () => {
   let clock;
 
   beforeEach(() => {
-    // Mock clock collapses every backoff sleep to a microtask.
+    // The mock clock collapses every backoff sleep to a microtask.
     clock = createMockClock();
     retry = new Retry({ delay: 1, sleep: clock.sleep });
   });
 
-  test("creates retry instance with default config", () => {
+  test("creates a retry instance with the default config", () => {
     const defaultRetry = new Retry();
     assert.ok(defaultRetry instanceof Retry);
   });
 
-  test("creates retry instance with custom config", () => {
+  test("creates a retry instance with a custom config", () => {
     const customRetry = new Retry({ retries: 5, delay: 500 });
     assert.ok(customRetry instanceof Retry);
   });
 
-  test("retry mechanism works with exhausted retries on 429", async () => {
+  test("the retry mechanism works with exhausted retries on 429", async () => {
     const retryResponse = {
       ok: false,
       status: 429,
@@ -180,7 +180,7 @@ describe("Retry", () => {
     assert.strictEqual(response.status, 500);
   });
 
-  test("executes successfully without validation function", async () => {
+  test("executes successfully without a validation function", async () => {
     const successResponse = {
       ok: true,
       status: 200,

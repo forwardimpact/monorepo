@@ -30,7 +30,7 @@ teams:
   const task = diff.capabilityChanges.find(
     (c) => c.skillId === "task-completion",
   );
-  // Alice (J060) is at working, Bob (J040) is below working.
+  // Alice (J060) is at working. Bob (J040) is below working.
   assert.equal(task.direction, "down");
 });
 
@@ -52,7 +52,8 @@ teams:
   const left = snapshot(roster, data, "a");
   const right = snapshot(roster, data, "b");
   const risks = diffRisks(left.risks, right.risks);
-  // Team a has task-completion as SPOF (only Alice at working); team b has 2 working.
+  // Team a has task-completion as a SPOF (only Alice at working).
+  // Team b has 2 at working.
   const removedIds = risks.removed.singlePoints.map((s) => s.skillId);
   assert.ok(removedIds.includes("task-completion"));
 });

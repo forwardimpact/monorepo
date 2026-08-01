@@ -1,8 +1,8 @@
 /**
  * Render-gate primitives for the level field contract.
  *
- * Browser-safe: this module must not import `fs/promises`, `path`, or any
- * other Node-only module. The pathway browser bundles
+ * This module is browser-safe. It must not import `fs/promises`, `path`,
+ * or any other Node-only module. The pathway browser bundles
  * (main.js / slide-main.js / handout-main.js) consume `throwIfErrors`.
  */
 

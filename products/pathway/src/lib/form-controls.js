@@ -5,14 +5,14 @@
 import { select, option, optgroup, div, label, input, span } from "./render.js";
 
 /**
- * Create a select element with initial value and change handler
+ * Create a select element with an initial value and a change handler
  * @param {Object} options - Configuration options
  * @param {string} options.id - Element ID
  * @param {Array} options.items - Array of items to display
  * @param {string} options.initialValue - Initial selected value
- * @param {string} options.placeholder - Placeholder text for empty option
- * @param {Function} options.onChange - Callback when selection changes
- * @param {Function} [options.getDisplayName] - Optional function to get display name from item
+ * @param {string} options.placeholder - Placeholder text for the empty option
+ * @param {Function} options.onChange - Callback for when the selection changes
+ * @param {Function} [options.getDisplayName] - Optional function to get the display name from an item
  * @returns {HTMLElement}
  */
 export function createSelectWithValue({
@@ -52,9 +52,9 @@ export function createSelectWithValue({
  * @param {string} options.id - Element ID
  * @param {Array} options.disciplines - Array of discipline objects
  * @param {string} options.initialValue - Initial selected value
- * @param {string} options.placeholder - Placeholder text for empty option
- * @param {Function} options.onChange - Callback when selection changes
- * @param {Function} [options.getDisplayName] - Optional function to get display name from item
+ * @param {string} options.placeholder - Placeholder text for the empty option
+ * @param {Function} options.onChange - Callback for when the selection changes
+ * @param {Function} [options.getDisplayName] - Optional function to get the display name from an item
  * @returns {HTMLElement}
  */
 export function createDisciplineSelect({
@@ -85,7 +85,7 @@ export function createDisciplineSelect({
       return opt;
     });
 
-  // Build optgroups - Professional first, then Management
+  // Build optgroups. Professional first, then Management
   const groups = [];
   if (professional.length > 0) {
     groups.push(
@@ -110,13 +110,13 @@ export function createDisciplineSelect({
 }
 
 /**
- * Create a multi-discipline checkbox group with Professional/Management grouping
+ * Create a multi-discipline checkbox group with Professional and Management groups
  * @param {Object} options
  * @param {string} options.id - Element ID prefix
  * @param {Array} options.disciplines - Array of discipline objects
  * @param {Set<string>} options.selected - Currently selected discipline IDs
- * @param {Function} options.onChange - Callback with updated Set of selected IDs
- * @param {Function} [options.getDisplayName] - Get display name from discipline
+ * @param {Function} options.onChange - Callback with the updated Set of selected IDs
+ * @param {Function} [options.getDisplayName] - Get the display name from a discipline
  * @returns {HTMLElement}
  */
 export function createMultiDisciplineSelect({

@@ -1,13 +1,13 @@
 // Invariant: test files must not spawn `node` or a project bin to
 // exercise behavior that can run in-process against injected fakes. The one
 // legitimate smoke test per binary lives in a `*.integration.test.js` file
-// (exempt whole-file) or is named in subprocess-in-tests.allow.json.
+// (exempt whole-file), or subprocess-in-tests.allow.json names it.
 //
 // Two lists govern the check:
 //   - subprocess-in-tests.allow.json — [{ test, bin }] one smoke test
 //     per binary.
 //   - subprocess-in-tests.deny.json — a MONOTONE list of grandfathered
-//     spawning tests, shrinking as each migration PR converts them.
+//     tests that spawn. It shrinks as each migration PR converts them.
 //
 // Refresh the deny-list for current violators:
 //   bunx jidoka invariants --seed subprocess-in-tests
@@ -39,7 +39,7 @@ function targetsNodeOrBin(arg) {
     const v = arg.value;
     return v === "node" || v === "bun" || /\/bin\//.test(v) || /\bfit-/.test(v);
   }
-  // Template literal containing a bin path fragment.
+  // A template literal that contains a bin path fragment.
   if (arg.type === "TemplateLiteral") {
     return arg.quasis.some((q) => /\/bin\/|fit-/.test(q.value.raw));
   }
@@ -91,7 +91,7 @@ export default {
     };
   },
 
-  // Print a deny-list of the current violators, for seeding/refreshing
+  // Print a deny-list of the current violators, to seed or refresh
   // subprocess-in-tests.deny.json.
   seed(kit) {
     const violators = buildSubjects(kit)

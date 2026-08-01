@@ -168,12 +168,12 @@ export function createMockDiscussionClient(overrides = {}) {
 }
 
 /**
- * Reject a request that omits `tenant_id`, mirroring `services/bridge`'s
- * `requireTenant` guard. Every tenant-scoped RPC carries a `tenant_id` in
- * both deployment modes (single-tenant binds the literal `"default"`); an
- * empty value is a caller error, not an empty result. The stateful mock
- * applies the same guard so production callers that forget to thread a
- * `tenant_id` fail in tests exactly as they would against the real service.
+ * Reject a request that omits `tenant_id`. This mirrors the `requireTenant`
+ * guard in `services/bridge`. Every tenant-scoped RPC carries a `tenant_id`
+ * in both deployment modes (single-tenant binds the literal `"default"`).
+ * An empty value is a caller error. It is not an empty result. The stateful
+ * mock applies the same guard. A production caller that forgets to thread a
+ * `tenant_id` fails in tests exactly as it fails against the real service.
  *
  * @param {{tenant_id?: string}} obj
  * @returns {string} the validated tenant id
@@ -208,7 +208,7 @@ function coerceInt64Fields(obj) {
 
 /**
  * Creates a stateful mock discussion client that retains records across
- * save/load cycles, coercing proto int64 fields back to numbers.
+ * save/load cycles. The client coerces proto int64 fields back to numbers.
  * @returns {object} Stateful mock discussion client
  */
 export function createStatefulDiscussionClient() {
@@ -241,8 +241,8 @@ export function createStatefulDiscussionClient() {
       const obj = req?.toJSON?.() ?? req;
       const tenant_id = requireTenant(obj);
       for (const rec of records.values()) {
-        // Filter to the requesting tenant after the correlation scan so a
-        // correlation owned by tenant A is invisible to tenant B.
+        // Filter to the tenant that made the request, after the correlation
+        // scan. A correlation owned by tenant A stays invisible to tenant B.
         if (rec.tenant_id !== tenant_id) continue;
         if (
           Object.values(rec.pending_callbacks ?? {}).includes(
@@ -274,8 +274,8 @@ export function createStatefulDiscussionClient() {
     RecordOrigin: spy(async (req) => {
       const obj = req?.toJSON?.() ?? req;
       const tenant_id = requireTenant(obj);
-      // Tenant-scope the origin key so a comment id recorded by tenant A is
-      // not seen as self-originated by tenant B.
+      // Tenant-scope the origin key so tenant B does not see a comment id
+      // recorded by tenant A as self-originated.
       origins.set(`${tenant_id}:${obj.id}`, obj);
       return {};
     }),

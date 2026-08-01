@@ -3,23 +3,24 @@
  *
  * The genuine wall-clock read ("what time is it now?") routes through the
  * injected `runtime.clock` (see `Scheduler#wakeDueAgents` and `failAgent`).
- * The pure cron helpers below receive that `now` as an explicit `Date` and
+ * The pure cron helpers below receive that `now` as an explicit `Date`. They
  * construct further `Date` objects only for deterministic date *arithmetic*
  * over caller-supplied or parsed-from-state inputs (never an ambient no-arg
- * `new Date()`); the AST checker cannot distinguish the two, so this file is
- * allow-listed in .jidoka/invariants/ambient-deps.allow.yml with that reason.
+ * `new Date()`). The AST checker cannot distinguish the two, so
+ * .jidoka/invariants/ambient-deps.allow.yml allow-lists this file with that
+ * reason.
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";
 
-/** Maximum time an agent can be "active" before being considered stale (35 min). */
+/** Maximum time an agent can be "active" before it becomes stale (35 min). */
 const MAX_AGENT_RUNTIME_MS = 35 * 60_000;
 
 /**
  * Build a `Date` for "now" from the injected clock's milliseconds. The cron
- * helpers operate on `Date` objects; this is the single seam that turns the
- * wall-clock read (`runtime.clock.now()`) into one, so callers in other
- * modules never construct an ambient `new Date()` themselves.
+ * helpers operate on `Date` objects. This function is the single seam that
+ * turns the wall-clock read (`runtime.clock.now()`) into one. So callers in
+ * other modules never construct an ambient `new Date()` themselves.
  * @param {{now: () => number}} clock
  * @returns {Date}
  */
@@ -28,9 +29,9 @@ export function nowFromClock(clock) {
 }
 
 /**
- * Format a stored ISO timestamp as a human-readable local time string. Parses
- * an explicit value (never the wall clock); lives here so the only `new Date`
- * construction sites stay in this allow-listed module.
+ * Format a stored ISO timestamp as a human-readable local time string. This
+ * function parses an explicit value (never the wall clock). It lives here so
+ * the only `new Date` construction sites stay in this allow-listed module.
  * @param {string} iso
  * @returns {string}
  */
@@ -179,7 +180,7 @@ export function failAgent(agentState, error, nowMs) {
 
 // --- Scheduler class ---------------------------------------------------------
 
-/** Orchestrate periodic agent wakes by evaluating schedules and delegating to AgentRunner. */
+/** Orchestrate periodic agent wakes. Evaluate schedules and delegate to AgentRunner. */
 export class Scheduler {
   #loadConfig;
   #stateManager;
@@ -209,7 +210,8 @@ export class Scheduler {
   }
 
   /**
-   * Reset any agents exceeding max runtime, reload config, then wake each agent whose schedule is due.
+   * Reset any agent that exceeds the maximum runtime. Reload the config. Then
+   * wake each agent whose schedule is due.
    */
   async wakeDueAgents() {
     const config = await this.#loadConfig();

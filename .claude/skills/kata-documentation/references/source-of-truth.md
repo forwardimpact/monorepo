@@ -1,7 +1,7 @@
 # Source of Truth
 
-When writing or reviewing documentation, verify claims against the canonical
-source. Never trust documentation alone — read the code.
+Verify claims against the canonical source when you write or review
+documentation. Never trust documentation alone. Read the code.
 
 | Documentation topic  | Verify against                                   |
 | -------------------- | ------------------------------------------------ |

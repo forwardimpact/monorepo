@@ -1,5 +1,5 @@
 name: FIT Harness
-description: Run agent tasks via the gemba-harness CLI using the Claude Agent SDK
+description: Run agent tasks with the gemba-harness CLI, which uses the Claude Agent SDK
 
 inputs:
   task-file:
@@ -11,12 +11,13 @@ inputs:
   task-event:
     description: |
       Path to a native GitHub event payload JSON (typically github.event_path).
-      The CLI composes the task from the payload using the (event_name, action)
-      template that matches `$GITHUB_EVENT_NAME`, and lifts `payload.inputs.prompt`
-      into the task amendment. Mutually exclusive with task-file / task-text.
+      The CLI composes the task from the payload with the (event_name, action)
+      template that matches `$GITHUB_EVENT_NAME`. It also lifts
+      `payload.inputs.prompt` into the task amendment. Mutually exclusive with
+      task-file / task-text.
     required: false
   mode:
-    description: Execution mode — "run", "supervise", "facilitate", or "discuss"
+    description: 'Execution mode: "run", "supervise", "facilitate", or "discuss"'
     required: false
     default: "run"
   cwd:
@@ -32,11 +33,11 @@ inputs:
     required: false
     default: "."
   agent-model:
-    description: Claude model for agents (all modes); empty uses the gemba-harness CLI default
+    description: Claude model for agents (all modes). An empty value uses the gemba-harness CLI default.
     required: false
     default: ""
   lead-model:
-    description: Claude model for the lead role (supervisor / facilitator / chair) — used by supervise, facilitate, and discuss modes; empty uses the gemba-harness CLI default
+    description: Claude model for the lead role (supervisor / facilitator / chair). The supervise, facilitate, and discuss modes use it. An empty value uses the gemba-harness CLI default.
     required: false
     default: ""
   max-turns:
@@ -51,7 +52,7 @@ inputs:
     description: Comma-separated list of allowed tools for the supervisor (supervise mode only)
     required: false
   lead-profile:
-    description: Lead role profile name (supervisor / facilitator / chair) — used by supervise, facilitate, and discuss modes
+    description: Profile name for the lead role (supervisor / facilitator / chair). The supervise, facilitate, and discuss modes use it.
     required: false
   agent-profile:
     description: Agent profile name (run and supervise modes)
@@ -60,13 +61,13 @@ inputs:
     description: Comma-separated agent profile names (facilitate and discuss modes)
     required: false
   task-amend:
-    description: Additional text appended to the task prompt for steering
+    description: Additional text the CLI appends to the task prompt to steer the run
     required: false
   mcp-server:
-    description: "MCP service name to connect to (e.g. guide); adds mcp__<name>__* to allowed tools"
+    description: "MCP service name to connect to (e.g. guide). The CLI adds mcp__<name>__* to the allowed tools."
     required: false
   discussion-id:
-    description: Stable id for the threaded discussion (discuss mode); carried through traces for linking and used by callers to resume a suspended run
+    description: Stable id for the threaded discussion (discuss mode). The traces carry it to link runs. Callers use it to resume a suspended run.
     required: false
   resume-context:
     description: JSON-serialized prior state for a resumed discuss run (discuss mode)
@@ -76,30 +77,31 @@ inputs:
     required: false
     default: "true"
   timeout-minutes:
-    description: Maximum minutes the agent step may run before being cancelled
+    description: Maximum minutes the agent step may run. The action cancels it after that.
     required: false
     default: "45"
   case:
-    description: Case identifier embedded in trace artifact filenames (use the matrix case id for matrix runs; defaults to "default")
+    description: Case identifier that appears in the trace artifact filenames. Use the matrix case id for matrix runs. It defaults to "default".
     required: false
     default: "default"
 
 outputs:
   trace-dir:
     description: |
-      Absolute path of the mktemp directory holding all trace files for this
-      run (empty when `trace` is disabled). Use this to read or post-process
-      the raw or split trace files from subsequent workflow steps without
-      globbing `/tmp`.
+      Absolute path of the mktemp directory that holds all trace files for
+      this run (empty when `trace` is disabled). Use it to read or
+      post-process the raw or split trace files from later workflow steps.
+      You do not need to glob `/tmp`.
     value: ${{ steps.setup.outputs.trace-dir }}
   trace-file:
     description: |
       Absolute path of the raw NDJSON trace file
       (`<trace-dir>/trace--<case>.raw.ndjson`). Empty when `trace` is
-      disabled. Wraps each agent/supervisor/facilitator/chair/orchestrator
-      event in `{source, seq, event}` envelopes; downstream tooling that
-      needs the structured envelope (e.g. extracting the orchestrator
-      summary) should read this path directly.
+      disabled. The file wraps each
+      agent/supervisor/facilitator/chair/orchestrator event in
+      `{source, seq, event}` envelopes. Downstream tools that need the
+      structured envelope (e.g. to extract the orchestrator summary) should
+      read this path directly.
     value: ${{ steps.setup.outputs.trace-file }}
   case:
     description: Effective case identifier (the `case` input, or "default").
@@ -118,8 +120,8 @@ runs:
         TRACE_DIR=$(mktemp -d)
         CASE="${CASE:-default}"
         # Publish the trace dir, effective case, and raw trace file path so
-        # downstream steps read them without globbing /tmp. The trace-file path
-        # is kept in sync with the --output passed in "Run gemba-harness".
+        # downstream steps read them and never glob /tmp. Keep the trace-file
+        # path in sync with the --output passed in "Run gemba-harness".
         {
           echo "trace-dir=$TRACE_DIR"
           echo "case=$CASE"
@@ -132,9 +134,9 @@ runs:
         # The agent runs in bypass-permissions mode
         # (--dangerously-skip-permissions), which Claude Code refuses under
         # uid 0 unless the process is marked sandboxed. CI containers may run
-        # as root, so mark the run sandboxed; the SDK forwards this env to the
-        # spawned Claude Code process. Harmless on non-root runners. Without it
-        # the agent exits 1 with no output before its first turn.
+        # as root, so mark the run sandboxed. The SDK forwards this env to the
+        # spawned Claude Code process. It is harmless on non-root runners.
+        # Without it the agent exits 1 with no output before its first turn.
         IS_SANDBOX: "1"
         MODE: ${{ inputs.mode }}
         TASK_FILE: ${{ inputs.task-file }}
@@ -160,14 +162,15 @@ runs:
         TRACE_CASE: ${{ steps.setup.outputs.case }}
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
-        # gemba-harness + gemba-trace are pinned gear binaries on PATH, installed by
-        # forwardimpact/bootstrap (clis: gemba-harness gemba-trace) — assumed present.
+        # gemba-harness + gemba-trace are pinned gear binaries on PATH.
+        # forwardimpact/bootstrap installs them (clis: gemba-harness
+        # gemba-trace). Assume they are present.
         #
-        # Flags accepted by every mode. Empty values are forwarded verbatim: the
-        # CLI treats an empty flag as unset and falls back to its own default, so
-        # no per-flag `if [ -n ]` guards are needed. The CLI also enforces
-        # task-source mutual exclusivity (exactly one of file/text/event), so the
-        # workflow just forwards all three and lets it select.
+        # Every mode accepts these flags. The workflow forwards empty values
+        # verbatim. The CLI treats an empty flag as unset and falls back to its
+        # own default. So the workflow needs no per-flag `if [ -n ]` guards.
+        # The CLI also requires exactly one task source (file, text, or event).
+        # The workflow forwards all three and lets the CLI select.
         base=(
           "--task-file=$TASK_FILE"
           "--task-text=$TASK_TEXT"
@@ -180,10 +183,10 @@ runs:
           base+=("--output=$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson")
         fi
 
-        # Composite action steps can't use the GitHub `timeout-minutes` field, so
-        # enforce the cap with the shell `timeout` command. One branch per mode —
-        # each subcommand declares its own flag set, so the flags are scoped to
-        # the mode that accepts them.
+        # Composite action steps cannot use the GitHub `timeout-minutes` field.
+        # So enforce the cap with the shell `timeout` command. Use one branch
+        # per mode. Each subcommand declares its own flag set, so each flag
+        # stays scoped to the mode that accepts it.
         case "$MODE" in
           supervise)
             timeout "${TIMEOUT_MINUTES}m" gemba-harness supervise \
@@ -234,9 +237,9 @@ runs:
         MODE: ${{ inputs.mode }}
         TRACE_CASE: ${{ steps.setup.outputs.case }}
       run: |
-        # gemba-trace accepts `discuss` directly (it buckets by envelope source,
-        # mapping discuss onto the facilitate shape internally), so the mode is
-        # forwarded as-is.
+        # gemba-trace accepts `discuss` directly. It buckets by envelope source
+        # and maps discuss onto the facilitate shape internally. So the
+        # workflow forwards the mode as-is.
         gemba-trace split "$TRACE_DIR/trace--${TRACE_CASE}.raw.ndjson" \
           --mode="$MODE" \
           --case="$TRACE_CASE" \

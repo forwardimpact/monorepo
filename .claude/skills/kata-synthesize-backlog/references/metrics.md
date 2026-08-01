@@ -9,6 +9,6 @@ Record per KATA.md § Metrics. Append one row per run.
 | issues_closed      | count | Addressed issues closed as duplicate            | Corpus map   |
 | prs_superseded     | count | Open PRs closed as superseded by the spec       | Corpus map   |
 
-The coding table itself is run output, not memory — the wiki keeps the corpus
-map and these counts, so the next sweep re-derives rows from the tracker
-rather than trusting a stale table.
+The coding table is run output. It is not memory. The wiki keeps the corpus
+map and these counts. The next sweep then re-derives rows from the tracker. It
+does not trust a stale table.

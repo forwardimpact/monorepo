@@ -9,15 +9,17 @@ import { currentDayIso } from "./util/clock.js";
 
 /**
  * A git `insteadOf` rule that maps a URL to itself. Some sandboxed
- * environments install a broad global rewrite —
- * `url.<local-proxy>.insteadOf = https://github.com/` — that diverts every
- * github.com URL, the wiki included, to a proxy that serves only the main repo
- * and returns 403 for the wiki. An identity rule keyed to the full wiki URL is
- * a longer prefix match than the broad `https://github.com/` rule, so git wins
- * it by longest-match and leaves the URL untouched; the request then reaches
- * github.com over the ambient HTTPS proxy. Where no such broad rewrite exists,
- * the rule is a harmless no-op. Applied inline on clone and persisted into the
- * clone's local config for every later network op (see {@link WikiSync#pinTransport}).
+ * environments install a broad global rewrite,
+ * `url.<local-proxy>.insteadOf = https://github.com/`. That rewrite diverts
+ * every github.com URL to a proxy, the wiki URL included. The proxy serves
+ * only the main repo and returns 403 for the wiki. An identity rule keyed to
+ * the full wiki URL is a longer prefix match than the broad
+ * `https://github.com/` rule. So git picks it by longest match and leaves the
+ * URL untouched. The request then reaches github.com over the ambient HTTPS
+ * proxy. Where no such broad rewrite exists, the rule is a harmless no-op.
+ * `WikiSync` applies the rule inline on clone. It also persists the rule into
+ * the clone's local config for every later network op
+ * (see {@link WikiSync#pinTransport}).
  * @param {string} url - The wiki clone URL.
  * @returns {string} A `-c`-form `url.<url>.insteadOf=<url>` entry.
  */
@@ -37,9 +39,9 @@ const PUSH_RANGE = "origin/master..HEAD";
 const UNMERGED_CODES = new Set(["UU", "AA", "DD", "AU", "UA", "DU", "UD"]);
 
 /**
- * The honest push-outcome reason taxonomy (D2). Success-shaped
- * outcomes (`landed`, `nothing-to-push`) are returned; every other reason is
- * carried by a thrown {@link WikiPushFailure}.
+ * The honest push-outcome reason taxonomy (D2). `commitAndPush` returns the
+ * success-shaped outcomes (`landed`, `nothing-to-push`). A thrown
+ * {@link WikiPushFailure} carries every other reason.
  */
 export const PUSH_REASONS = Object.freeze({
   LANDED: "landed",
@@ -53,7 +55,7 @@ export const PUSH_REASONS = Object.freeze({
   BUDGET: "budget",
 });
 
-/** Error thrown when a wiki pull encounters a rebase conflict that cannot be resolved automatically. */
+/** Error thrown when a wiki pull hits a rebase conflict it cannot resolve automatically. */
 export class WikiPullConflict extends Error {
   /** Create a WikiPullConflict with the stderr output from the failed rebase. */
   constructor(stderr) {
@@ -64,8 +66,8 @@ export class WikiPullConflict extends Error {
 }
 
 // A push rejected because the remote tip moved (non-fast-forward) is the
-// re-apply loop's retry signal; an auth or network failure is not contention.
-// git surfaces a rejection on stderr with these markers.
+// re-apply loop's retry signal. An auth or network failure is not
+// contention. git surfaces a rejection on stderr with these markers.
 const PUSH_REJECTION_RE =
   /\b(rejected|non-fast-forward|fetch first|tip of your current branch is behind)\b/i;
 
@@ -76,17 +78,17 @@ function isPushRejection(err) {
 }
 
 /**
- * Error thrown when the ancestry guard refuses to commit or push because the
- * relationship between the history that would be published and the remote
- * branch cannot be positively confirmed. `kind` is `"unrelated"`
- * (confirmed no shared history) or `"unverifiable"` (the relationship could be
- * neither confirmed nor refuted). The two kinds carry distinct messages so the
- * operator knows which state they are recovering from.
+ * Error thrown when the ancestry guard refuses to commit or push. The guard
+ * refuses when it cannot positively confirm the relationship between the
+ * remote branch and the history the push would publish. `kind` is
+ * `"unrelated"` (confirmed no shared history) or `"unverifiable"` (the guard
+ * could neither confirm nor refute the relationship). The two kinds carry
+ * distinct messages, so the operator knows which state they recover from.
  */
 export class AncestryRefusal extends Error {
   /**
    * @param {"unrelated"|"unverifiable"} kind
-   * @param {string} message - Recovery-naming message.
+   * @param {string} message - A message that names the recovery.
    */
   constructor(kind, message) {
     super(message);
@@ -97,8 +99,8 @@ export class AncestryRefusal extends Error {
 
 /**
  * Error thrown when a registered-singleton operation cannot land within the
- * bounded re-apply budget: contention recurred on each round, so the publish
- * fails loud rather than resolving the contended hunk textually.
+ * bounded re-apply budget. Contention recurred on each round. The publish
+ * fails loud and does not resolve the contended hunk textually.
  */
 export class WikiSyncConflict extends Error {
   /** @param {string[]} paths @param {string} reason */
@@ -111,14 +113,15 @@ export class WikiSyncConflict extends Error {
 }
 
 /**
- * The refusal reason taxonomy for {@link WikiSync.commitAndPush}. A refusal is
- * surfaced in the result rather than thrown, so callers reading the result keep
- * working; `WikiSyncRefusal.result(reason, details)` builds that result object.
- * `reason` is one of `mid-merge`, `stranded-merge`, `would-publish-markers`,
- * `introduced-scan-failed`; `workAt` (only for `stranded-merge`) names where
- * retained work lives. The reason set is additive to the existing `clean` and
- * `pushed` outcomes, so a future refusal taxonomy on this flow can union new
- * reasons in without rewriting the existing ones.
+ * The refusal reason taxonomy for {@link WikiSync.commitAndPush}. The method
+ * surfaces a refusal in the result and does not throw it, so a caller that
+ * reads the result keeps working. `WikiSyncRefusal.result(reason, details)`
+ * builds that result object. `reason` is one of `mid-merge`,
+ * `stranded-merge`, `would-publish-markers`, `introduced-scan-failed`.
+ * `workAt` (only for `stranded-merge`) names where retained work lives. The
+ * reason set is additive to the `clean` and `pushed` outcomes already
+ * defined. So a future refusal taxonomy on this flow can union new reasons in
+ * and rewrite none of the reasons that exist.
  */
 export class WikiSyncRefusal {
   /** @type {readonly string[]} The recognized refusal reasons. */
@@ -144,9 +147,9 @@ export class WikiSyncRefusal {
 
 // Markers introduced into a prose markdown surface may be legitimately quoted
 // inside a fenced code block (the false-positive surface Layer 1 exempts).
-// STATUS.md is data, not prose — its fenced rows are never legitimately marked
-// — and non-markdown files (e.g. metrics CSVs) have no quoted-form idiom, so
-// neither is fence-exempt on the publish path.
+// STATUS.md is data. It is not prose, and its fenced rows are never
+// legitimately marked. Non-markdown files (e.g. metrics CSVs) have no
+// quoted-form idiom. So neither is fence-exempt on the publish path.
 function pushFenceExempt(filePath) {
   const base = path.basename(filePath);
   return filePath.endsWith(".md") && base !== "STATUS.md";
@@ -155,15 +158,16 @@ function pushFenceExempt(filePath) {
 /**
  * Error thrown when `commitAndPush` cannot honestly report a landed push.
  * `reason` is one of {@link PUSH_REASONS} other than `landed` /
- * `nothing-to-push`; `stashSha` names a preserved autostash on a
- * `residue-conflict`; on a `budget` refusal `refusals` and `surfaced` carry the
- * offending and surfaced-only `(file, ruleId, baseline, value)` tuples from the
- * size-axis re-validation gate.
+ * `nothing-to-push`. `stashSha` names a preserved autostash on a
+ * `residue-conflict`. On a `budget` refusal, `refusals` and `surfaced` carry
+ * the offending and surfaced-only `(file, ruleId, baseline, value)` tuples
+ * from the size-axis re-validation gate.
  */
 export class WikiPushFailure extends Error {
   /**
    * @param {string} reason - A {@link PUSH_REASONS} value.
-   * @param {string} message - Operator message naming the reason and recovery.
+   * @param {string} message - An operator message that names the reason and
+   *   the recovery.
    * @param {object} [opts]
    * @param {string} [opts.stashSha] - Preserved stash SHA (residue-conflict).
    * @param {Array<object>} [opts.refusals] - Budget refusal tuples (budget).
@@ -182,14 +186,15 @@ export class WikiPushFailure extends Error {
 /**
  * Consolidates the wiki repository's pull / rebase / conflict-resolve / push
  * flow over an injected {@link import('@forwardimpact/libutil').GitClient}.
- * Replaces the pre-1370 `WikiRepo`: all shelling-out flows through
+ * Replaces the pre-1370 `WikiRepo`. Every subprocess call flows through
  * `gitClient` (itself over `runtime.subprocess`), so libwiki never imports
  * `node:child_process` and tests inject `createMockGitClient`.
  *
- * Network operations (fetch / clone / push) authenticate by resolving a token
- * lazily through `resolveToken` and threading it via `gitClient.withAuth`;
- * local operations never call `resolveToken`. The callback owns the entire
- * resolution policy and its throws propagate to the caller.
+ * Network operations (fetch / clone / push) authenticate with a token. They
+ * resolve the token lazily through `resolveToken`. They thread it through
+ * `gitClient.withAuth`. Local operations never call `resolveToken`. The
+ * callback owns the entire resolution policy. Its throws propagate to the
+ * caller.
  */
 export class WikiSync {
   #runtime;
@@ -205,7 +210,7 @@ export class WikiSync {
    * @param {string} options.wikiDir - The wiki clone directory.
    * @param {string} options.parentDir - The parent project directory (identity source).
    * @param {() => (string|null)} [options.resolveToken] - Lazy token resolver
-   *   for network operations; returns a token string or null for anonymous.
+   *   for network operations. Returns a token string, or null for anonymous.
    */
   constructor({ runtime, gitClient, wikiDir, parentDir, resolveToken }) {
     if (!runtime) throw new Error("WikiSync: runtime is required");
@@ -250,12 +255,12 @@ export class WikiSync {
 
   /**
    * Persist the identity-`insteadOf` for the wiki's own URL into the clone's
-   * local config, so every later network op (fetch / push / ls-remote) that
-   * runs against the stored remote URL — and re-applies `insteadOf` at
-   * transport time — is covered without threading `-c` through each call. The
-   * clone command itself takes the same rule inline (the `.git/config` does not
-   * exist yet). Idempotent; safe to re-run on a resumed clone. See
-   * {@link selfInsteadOf} for why the rule is needed.
+   * local config. Every later network op (fetch / push / ls-remote) runs
+   * against the stored remote URL and re-applies `insteadOf` at transport
+   * time. The stored rule covers each one, and no call has to thread `-c`.
+   * The clone command itself takes the same rule inline (the `.git/config`
+   * does not exist yet). This method is idempotent. It is safe to re-run on a
+   * resumed clone. See {@link selfInsteadOf} for why the rule is needed.
    */
   async #pinTransport(url) {
     await this.#git.configSet(`url.${url}.insteadOf`, url, {
@@ -278,17 +283,18 @@ export class WikiSync {
     }
   }
 
-  /** Fetch origin/master using token auth when available. */
+  /** Fetch origin/master with token auth when it is available. */
   async fetch() {
     // Resolve auth first so a misconfigured `resolveToken` still surfaces.
     const client = this.#authed();
     try {
       await client.fetch("origin", "master", { cwd: this.#wikiDir });
     } catch {
-      // WikiRepo treated fetch as fire-and-forget (it ignored the git result);
-      // a failed fetch leaves the local origin/master ref in place and the
-      // rebase proceeds against it. Preserved so push/pull degrade gracefully
-      // rather than crash when the network or credentials are unavailable.
+      // WikiRepo treated fetch as fire-and-forget (it ignored the git result).
+      // A failed fetch leaves the local origin/master ref in place, and the
+      // rebase proceeds against it. This code keeps that behaviour so push and
+      // pull degrade gracefully when the network or credentials are
+      // unavailable. They do not crash.
     }
   }
 
@@ -302,7 +308,7 @@ export class WikiSync {
     return r.stdout.trim() === "";
   }
 
-  /** Fetch and rebase on origin/master, throwing WikiPullConflict if the rebase fails. */
+  /** Fetch and rebase on origin/master. Throws WikiPullConflict if the rebase fails. */
   async pull() {
     await this.fetch();
     const r = await this.#git.rebase("origin/master", { cwd: this.#wikiDir });
@@ -313,146 +319,155 @@ export class WikiSync {
   }
 
   /**
-   * Stage and commit working-tree changes, then reconcile on origin/master and
-   * push — reporting an honest outcome  The commit gate and the
-   * push gate are independent so a clean tree with local commits still pushes.
+   * Stage and commit working-tree changes. Then reconcile on origin/master
+   * and push. Report an honest outcome. The commit gate and the push gate are
+   * independent, so a clean tree with local commits still pushes.
    *
-   * The commit is always pathspec-scoped: with `paths` the scope is the
-   * caller's declared write-set, and without `paths` it is the session's own
+   * The commit is always pathspec-scoped. With `paths` the scope is the
+   * caller's declared write-set. Without `paths` it is the session's own
    * dirty set (`#dirtyPaths`, the `gemba-wiki push` contract under per-session
-   * checkout isolation). The whole-tree `add -A` sweep is gone, so foreign
-   * content on undeclared paths is never staged and the stale fast-forward
-   * eraser it carried no longer exists; the rebase runs with --autostash
-   * because any foreign residue stays uncommitted.
+   * checkout isolation). The whole-tree `add -A` sweep is gone. So the commit
+   * never stages foreign content on undeclared paths, and the stale
+   * fast-forward eraser that sweep carried no longer exists. The rebase runs
+   * with --autostash because any foreign residue stays uncommitted.
    *
    * Outcome contract (D2 taxonomy):
-   * - Returns `{ landed: true, reason: "landed" }` only when the push is
-   *   **grounded** in observed remote state — the per-ref `--porcelain` report,
-   *   or a post-push read of the remote tip containing HEAD — never inferred
-   *   from the subprocess's exit or prose.
+   * - Returns `{ landed: true, reason: "landed" }` only when observed remote
+   *   state **grounds** the push. That state is the per-ref `--porcelain`
+   *   report, or a post-push read of a remote tip that contains HEAD. The
+   *   method never infers the outcome from the subprocess's exit or prose.
    * - Returns `{ landed: false, reason: "nothing-to-push" }` only when the
-   *   observed remote ref already contains local HEAD (never pre-fetch
-   *   arithmetic), so a stranded-resume tree re-pushes.
+   *   observed remote ref already contains local HEAD. The method never uses
+   *   pre-fetch arithmetic, so a stranded-resume tree re-pushes.
    * - Throws {@link WikiPushFailure} for every failure reason: `precondition`
-   *   (rebase-in-progress / detached HEAD, before mutating), `conflict`
-   *   (rebase conflict — aborted, the remote side never mechanically
-   *   discarded), `residue-conflict` (autostash pop left unmerged paths — stash
-   *   preserved by SHA), `conservation` (the push would drop foreign content),
-   *   `rejected` (non-fast-forward after a successful fetch), `transport`
-   *   (push/fetch transport failure). A failed push never loses uncommitted
-   *   work.
+   *   (rebase-in-progress / detached HEAD, before any mutation), `conflict`
+   *   (a rebase conflict that the flow aborts, and it never mechanically
+   *   discards the remote side), `residue-conflict` (the autostash pop left
+   *   unmerged paths, and the flow preserves the stash by SHA),
+   *   `conservation` (the push would drop foreign content), `rejected`
+   *   (non-fast-forward after a successful fetch), `transport` (push/fetch
+   *   transport failure). A failed push never loses uncommitted work.
    *
-   * Bounded retry (D3) is in contract: the ancestry judgment is present
-   * (this is the second lander), so a `rejected` outcome reconciles once and
-   * re-pushes, re-entering {@link #assertPublishable} before the replay so the
-   * empty-remote allowance is never auto-re-granted. The retry is bounded at
-   * one, never re-pops a conflicted autostash, and never masks the final
-   * outcome — exhaustion reports `rejected`.
+   * Bounded retry (D3) is in contract. The ancestry judgment is present
+   * (this is the second lander). So a `rejected` outcome reconciles once and
+   * re-pushes. It re-enters {@link #assertPublishable} before the replay, so
+   * the flow never auto-re-grants the empty-remote allowance. The retry is
+   * bounded at one. It never re-pops a conflicted autostash. It never masks
+   * the final outcome. Exhaustion reports `rejected`.
    *
-   * Ancestry guard: before the commit and again before the push,
-   * {@link AncestryRefusal} is thrown when the published history's relationship
-   * to `origin/master` cannot be positively confirmed — a detached HEAD, an
-   * unborn HEAD or unrelated history against an existing remote branch, or a
-   * remote that cannot be observed. A new wiki's first publication is allowed
-   * only on positive evidence the remote branch is absent (a non-swallowed
-   * `ls-remote`); mere absence of the local remote-tracking ref never grants
-   * it, and the allowance is re-derived from live git on every call so a failed
-   * first publication is re-judged rather than auto-re-granted. The guard
-   * creates no commit, attempts no push, and adds no working-tree changes.
+   * Ancestry guard: the flow throws {@link AncestryRefusal} before the commit
+   * and again before the push. It throws when it cannot positively confirm
+   * the published history's relationship to `origin/master`. The unconfirmed
+   * cases are a detached HEAD, an unborn HEAD or unrelated history against a
+   * remote branch that exists, and a remote it cannot observe. A new wiki's
+   * first publication needs positive evidence that the remote branch is
+   * absent (a non-swallowed `ls-remote`). Mere absence of the local
+   * remote-tracking ref never grants it. The guard re-derives the allowance
+   * from live git on every call, so it re-judges a failed first publication
+   * and never auto-re-grants it. The guard creates no commit, attempts no
+   * push, and adds no working-tree changes.
    *
-   * Before the gates, the metrics-CSV union merge declaration is ensured in
-   * `.gitattributes`. When the ensure writes the file, the commit must carry it
-   * regardless of the session's payload: on the pathspec-scoped path the
-   * declaration is outside `paths` and would otherwise be autostashed aside, and
-   * on a no-payload sync there would be no commit at all. So `.gitattributes` is
-   * appended to the effective commit pathspec only when the ensure changed it;
-   * when it is already present-and-correct, behavior is byte-identical to a
-   * commit-and-push that ensures nothing.
+   * Before the gates, the flow ensures the metrics-CSV union merge
+   * declaration in `.gitattributes`. When the ensure writes the file, the
+   * commit must carry it whatever the session's payload is. On the
+   * pathspec-scoped path the declaration sits outside `paths`, and the
+   * autostash would otherwise set it aside. On a no-payload sync there would
+   * be no commit at all. So the flow appends `.gitattributes` to the
+   * effective commit pathspec only when the ensure changed it. When the
+   * declaration is already present-and-correct, behavior is byte-identical to
+   * a commit-and-push that ensures nothing.
    *
-   * **Singleton merge discipline.** The discipline applies when a
-   * rebase conflict arises for a *registered* row-structured singleton (the
-   * single committed path is in `SINGLETON_PATHS`) and the caller supplied a
-   * `reapply` operation. The contended hunk is then never resolved textually.
-   * The conflicting local commit is dropped with `resetSoft`, which preserves
-   * the working tree. Only the registered file is reset to the fresh tip with
-   * `checkoutPaths`. The operation is re-derived against that tip's content,
-   * re-committed, and pushed, bounded by `maxReapply`. A rejected push (the tip
-   * moved again) drives the retry; exhaustion fails loud with
-   * {@link WikiSyncConflict}. Foreign rows and untouched prose ride through from
-   * the tip. Without a `reapply` the conflict keeps the `-X ours` fallback, so
-   * prose surfaces and unregistered paths stay on the side-biased behavior.
+   * **Singleton merge discipline.** The discipline applies when a rebase
+   * conflict arises for a *registered* row-structured singleton and the
+   * caller supplied a `reapply` operation. A registered singleton has its
+   * single committed path in `SINGLETON_PATHS`. The flow then never resolves
+   * the contended hunk textually. It uses `resetSoft` to drop the local commit
+   * that conflicts, which preserves the working tree. It resets only the
+   * registered file to the fresh tip with `checkoutPaths`. It re-derives the
+   * operation against that tip's content, re-commits it, and pushes, bounded
+   * by `maxReapply`. A rejected push (the tip moved again) drives the retry.
+   * Exhaustion fails loud with {@link WikiSyncConflict}. Foreign rows and
+   * untouched prose ride through from the tip. Without a `reapply` the
+   * conflict keeps the `-X ours` fallback. Prose surfaces and unregistered
+   * paths then stay on the side-biased behavior.
    *
    * **Fail-closed secret gate.** After the reconcile and before the push, the
-   * content the push introduces (the commit range `origin/master..HEAD`) is
-   * secret-scanned fail-closed. A detected secret or an unavailable scanner
-   * refuses the push with a distinct reason and no remote contact, unless the
-   * matching off-by-default override is set in the environment —
-   * `FIT_WIKI_SECRET_OVERRIDE` permits a finding, `FIT_WIKI_SCANNER_ABSENT_OK`
-   * permits a scanner absence. Each override appends an audited line to the wiki
-   * tree's `secret-overrides.log` before the push. A *network/credential* push
-   * failure is distinct: it still degrades to "saved locally" (the preserved
+   * gate secret-scans the content the push introduces (the commit range
+   * `origin/master..HEAD`). The scan is fail-closed. A detected secret or an
+   * unavailable scanner refuses the push with a distinct reason and no remote
+   * contact. The matching off-by-default override lifts the refusal only when
+   * it is set in the environment. `FIT_WIKI_SECRET_OVERRIDE` permits a
+   * finding, and `FIT_WIKI_SCANNER_ABSENT_OK` permits a scanner absence. Each
+   * override appends an audited line to the wiki tree's
+   * `secret-overrides.log` before the push. A *network/credential* push
+   * failure is distinct. It still degrades to "saved locally" (the preserved
    * fire-and-forget behaviour).
    *
-   * **Budget re-validation gate (size axis).** After the reconcile
-   * (rebase / singleton re-apply re-derives content against the fresh tip) and
-   * after the secret gate, before the push, the flow re-runs the wiki audit's
-   * budget predicates over the **outgoing committed `HEAD`** (the tree that
-   * publishes — not the working dir, so autostash residue never counts). The
-   * push is refused with {@link WikiPushFailure} `budget` when it introduces or
-   * deepens a per-file/per-predicate budget breach relative to the worse of the
-   * writer's pre-fetch session base and the landed origin tip; the failure
-   * carries the offending and surfaced `(file, ruleId, baseline, value)` tuples.
-   * Equal-or-better states and foreign pre-existing breaches the writer did not
-   * worsen pass. Summary breaches on `exemptSummaryFiles` are surfaced (rode on
-   * the landed result's `surfaced`) rather than refused — the memo-delivery
-   * seam, so a delivery into deficient headroom is reported, not blocked.
-   * An unreadable baseline ref aborts the gate without refusing (the gate only
-   * refuses a regression it can prove), never fabricating a value-0 baseline.
-   * Inheriting the audit's rule objects by id, a future predicate change flows
-   * through the gate with no gate-code change.
+   * **Budget re-validation gate (size axis).** The reconcile (rebase or
+   * singleton re-apply) re-derives content against the fresh tip. After that
+   * reconcile, after the secret gate, and before the push, the flow re-runs
+   * the wiki audit's budget predicates over the **outgoing committed `HEAD`**.
+   * That is the tree that publishes. It is not the working dir, so autostash
+   * residue never counts. The gate refuses the push with
+   * {@link WikiPushFailure} `budget` when the push introduces or deepens a
+   * per-file/per-predicate budget breach. The baseline is the worse of the
+   * writer's pre-fetch session base and the landed origin tip. The failure
+   * carries the offending and surfaced `(file, ruleId, baseline, value)`
+   * tuples. Equal-or-better states pass. Foreign pre-existing breaches the
+   * writer did not worsen also pass. The gate surfaces a summary breach on
+   * `exemptSummaryFiles` on the landed result's `surfaced` and does not refuse
+   * it. That is the memo-delivery seam. The gate reports a delivery into
+   * deficient headroom. It does not block it. An unreadable baseline ref
+   * aborts the gate and refuses nothing, because the gate only refuses a
+   * regression it can prove. The gate never fabricates a value-0 baseline. The
+   * gate inherits the audit's rule objects by id, so a future predicate change
+   * flows through the gate with no gate-code change.
    *
    * @param {string} message - The commit message.
-   * @param {string[]} [paths] - Pathspecs limiting what gets committed.
+   * @param {string[]} [paths] - Pathspecs that limit what gets committed.
    * @param {{reapply?: (freshText: string) => string | null, maxReapply?: number, exemptSummaryFiles?: string[]}} [options]
    *   `reapply` re-derives the registered file's content from the operation's
-   *   own row edit against the fresh tip text; returns the new text or null when
-   *   the op is already satisfied on the tip. `exemptSummaryFiles` lists files
-   *   (relative to the wiki root) whose summary budget breach is surfaced rather
-   *   than refused (the memo-delivery seam).
+   *   own row edit against the fresh tip text. It returns the new text, or
+   *   null when the op is already satisfied on the tip. `exemptSummaryFiles`
+   *   lists files (relative to the wiki root). The gate surfaces a summary
+   *   budget breach in those files and does not refuse it (the memo-delivery
+   *   seam).
    * @returns {Promise<{landed?: boolean, pushed?: boolean, reason: string, findings?: Array<{file: string, line: number, rule: string}>, detections?: object[], surfaced?: object[], workAt?: string}>}
-   *   A grounded landing (`{landed: true, reason: "landed", surfaced}`), a grounded
-   *   nothing-to-push (`{landed: false, reason: "nothing-to-push"}`), a
-   *   re-apply landing (`{pushed: true, reason: "reapplied"}` / `already-satisfied`),
+   *   A grounded landed outcome (`{landed: true, reason: "landed", surfaced}`),
+   *   a grounded nothing-to-push (`{landed: false, reason: "nothing-to-push"}`),
+   *   a re-apply outcome (`{pushed: true, reason: "reapplied"}` / `already-satisfied`),
    *   or a pre-push gate refusal ({@link WikiSyncRefusal}: `mid-merge`,
    *   `would-publish-markers`, `introduced-scan-failed`, `secret-detected`,
    *   `scanner-unavailable`).
    * @throws {WikiPushFailure} On a non-landed push outcome (D2 taxonomy:
    *   `precondition`, `conflict`, `residue-conflict`, `conservation`,
    *   `rejected`, `transport`) or a `budget` breach.
-   * @throws {AncestryRefusal} When the published history cannot be verified.
-   * @throws {WikiSyncConflict} When the re-apply budget is exhausted.
+   * @throws {AncestryRefusal} When the guard cannot verify the published
+   *   history.
+   * @throws {WikiSyncConflict} When the flow exhausts the re-apply budget.
    */
   async commitAndPush(
     message,
     paths,
     { reapply, maxReapply = 3, exemptSummaryFiles = [] } = {},
   ) {
-    // Precondition (D7): refuse mid-rebase before mutating. A
-    // detached HEAD is judged by the ancestry guard below (its `unverifiable`
-    // refusal and this `precondition` collapse to one observable refusal); the
+    // Precondition (D7): refuse mid-rebase before any mutation. The ancestry
+    // guard below judges a detached HEAD (its `unverifiable` refusal and this
+    // `precondition` collapse to one observable refusal). The
     // rebase-in-progress check is the residual this guard owns.
     await this.#assertPreconditions();
-    // Guard 1 (hole 1): refuse mid-merge before staging. An abandoned merge
-    // leaves unmerged hunks or a pinned MERGE_HEAD; sweeping them would
-    // silently "complete" the merge and publish the markers. Decidable from
-    // the index/working tree alone, so it holds on a shallow clone.
+    // Guard 1 (hole 1): refuse mid-merge before the flow stages anything. An
+    // abandoned merge leaves unmerged hunks or a pinned MERGE_HEAD. A sweep of
+    // them would silently "complete" the merge and publish the markers. The
+    // index and working tree alone decide this guard, so it holds on a shallow
+    // clone.
     if (await this.#git.isMidMerge({ cwd: this.#wikiDir })) {
       return WikiSyncRefusal.result("mid-merge");
     }
     // Capture the writer's branch point before the reconcile's fetch advances
-    // origin/master. The local commit below does not move origin/master, so
-    // reading it here yields the pre-edit session base; "" means an unborn
-    // origin (a fresh clone), which the gate treats as a value-0 baseline.
+    // origin/master. The local commit below does not move origin/master, so a
+    // read here yields the pre-edit session base. "" means an unborn origin (a
+    // fresh clone), which the gate treats as a value-0 baseline.
     const sessionBaseSha = await this.#git.revParse("origin/master", {
       cwd: this.#wikiDir,
     });
@@ -463,18 +478,19 @@ export class WikiSync {
       this.#wikiDir,
       this.#runtime.fsSync,
     ).changed;
-    // Attribute the commit's write-set. A caller that knows
-    // its narrower write-set passes `paths` (the claim/release path, scoped to
-    // MEMORY.md). The session-close `gemba-wiki push` passes none and the
-    // write-set is the session's own dirty set, read from the working tree —
-    // correct because the canonical mechanism runs it in a per-session isolated
+    // Attribute the commit's write-set. A caller that knows its narrower
+    // write-set passes `paths` (the claim/release path, scoped to MEMORY.md).
+    // The session-close `gemba-wiki push` passes none, and the write-set is
+    // the session's own dirty set, read from the working tree. That is correct
+    // because the canonical mechanism runs it in a per-session isolated
     // checkout where the dirty set holds no foreign content. The whole-tree
-    // `commitAll` sweep is gone: it carried the stale fast-forward eraser, a
-    // clean fast-forward no loud-conflict contract could reach, so the scoped
-    // commit closes it at the source rather than relying on a later conflict.
+    // `commitAll` sweep is gone. It carried the stale fast-forward eraser, a
+    // clean fast-forward no loud-conflict contract could reach. So the scoped
+    // commit closes it at the source and does not rely on a later conflict.
     const writeSet = paths ?? (await this.#dirtyPaths());
-    // The metrics-CSV declaration must be committed when it was just written,
-    // even on the pathspec-scoped path; fold it into the effective pathspec.
+    // The commit must carry the metrics-CSV declaration when the ensure just
+    // wrote it, even on the pathspec-scoped path. Fold it into the effective
+    // pathspec.
     const commitPaths = gitattributesChanged
       ? [...writeSet, GITATTRIBUTES_FILE]
       : writeSet;
@@ -484,16 +500,17 @@ export class WikiSync {
       });
     }
 
-    // Grounded nothing-to-push (D2): assert it only when the
-    // observed remote ref already contains local HEAD — never pre-fetch
-    // arithmetic, so a stranded-resume tree (clean, ahead) re-pushes.
+    // Grounded nothing-to-push (D2): assert it only when the observed remote
+    // ref already contains local HEAD. Never use pre-fetch arithmetic, so a
+    // stranded-resume tree (clean, ahead) re-pushes.
     const preTip = await this.#observeRemoteTip();
     if (preTip && (await this.#headContainedIn(preTip))) {
       return { landed: false, reason: PUSH_REASONS.NOTHING };
     }
 
-    // Ancestry guard again before the push (the empty-remote allowance is
-    // re-derived per call so a failed first publication is re-judged).
+    // Ancestry guard again before the push (the guard re-derives the
+    // empty-remote allowance per call, so it re-judges a failed first
+    // publication).
     await this.#assertPublishable();
     return this.#reconcileAndPush(message, paths, preTip, {
       reapply,
@@ -504,13 +521,13 @@ export class WikiSync {
   }
 
   /**
-   * Reconcile on the remote and push, grounding the outcome (D2/D3).
-   * Split from {@link commitAndPush} so the bounded ×1 retry (D3) re-enters the
-   * ancestry judgment and re-reconciles without duplicating the gates. On a
-   * `rejected` outcome it retries once: re-asserts {@link #assertPublishable}
+   * Reconcile on the remote and push. Ground the outcome (D2/D3). Split from
+   * {@link commitAndPush} so the bounded ×1 retry (D3) re-enters the ancestry
+   * judgment and re-reconciles with no duplicate gates. On a `rejected`
+   * outcome it retries once. The retry re-asserts {@link #assertPublishable}
    * (no auto-re-grant), refreshes the observed tip, and replays. The retry
-   * never re-pops a conflicted autostash — a `residue-conflict` is refused, not
-   * retried.
+   * never re-pops a conflicted autostash. The flow refuses a
+   * `residue-conflict`. It never retries one.
    *
    * @param {string} message
    * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
@@ -522,16 +539,18 @@ export class WikiSync {
    */
   async #reconcileAndPush(message, paths, preTip, opts) {
     // Bounded retry (D3): at most one reconcile-and-retry on `rejected`. The
-    // first iteration uses `preTip`; the retry re-asserts the ancestry judgment
-    // (no auto-re-grant) and re-observes the tip before replaying. `transport`,
-    // `conflict`, `residue-conflict`, and `conservation` are never retried.
+    // first iteration uses `preTip`. The retry re-asserts the ancestry
+    // judgment (no auto-re-grant) and re-observes the tip before the replay.
+    // The loop never retries `transport`, `conflict`, `residue-conflict`, and
+    // `conservation`.
     let tip = preTip;
     for (let attempt = 0; attempt <= 1; attempt++) {
       const outcome = await this.#reconcileAttempt(message, paths, tip, opts);
       if (outcome.result) return outcome.result;
-      // A non-landed grounded verdict. `transport` is never retried; `rejected`
-      // retries once, re-entering the ancestry judgment first so the
-      // empty-remote allowance is never auto-re-granted. Outcome never masked.
+      // A non-landed grounded verdict. The loop never retries `transport`. It
+      // retries `rejected` once, and it re-enters the ancestry judgment first
+      // so it never auto-re-grants the empty-remote allowance. The loop never
+      // masks the outcome.
       if (outcome.verdict.reason === PUSH_REASONS.TRANSPORT || attempt === 1) {
         throw outcome.verdict.error;
       }
@@ -545,10 +564,10 @@ export class WikiSync {
 
   /**
    * One reconcile-guards-push attempt. Returns `{ result }` for a terminal
-   * outcome (a landed/re-applied push, or a pre-push gate refusal), or
-   * `{ verdict }` carrying a non-landed grounded verdict the retry loop reads
-   * (it owns the retry decision). Throws for the unsafe-state refusals that are
-   * never retried: `conflict`, `residue-conflict`, `conservation`.
+   * outcome (a landed/re-applied push, or a pre-push gate refusal). Returns
+   * `{ verdict }` with a non-landed grounded verdict that the retry loop reads
+   * (it owns the retry decision). Throws for the unsafe-state refusals the
+   * loop never retries: `conflict`, `residue-conflict`, `conservation`.
    * @param {string} message
    * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
    * @param {string} tip - The remote tip observed before this attempt's reconcile.
@@ -562,19 +581,20 @@ export class WikiSync {
     });
 
     // Rebase conflict (D2): a non-zero rebase exit is a conflict on the rebase
-    // itself. For a registered singleton with a `reapply` op the singleton merge
-    // discipline re-derives the row against the fresh tip; the no-intent path
-    // fails loud (the `mergeOursStrategy` clobber fallback is removed — the
-    // merge-discipline fail-loud floor applies). Checked before the residue read
-    // because a stopped rebase also leaves UU markers.
+    // itself. For a registered singleton with a `reapply` op, the singleton
+    // merge discipline re-derives the row against the fresh tip. The no-intent
+    // path fails loud (the `mergeOursStrategy` clobber fallback is removed,
+    // and the merge-discipline fail-loud floor applies). This check runs
+    // before the residue read because a stopped rebase also leaves UU markers.
     if (rebase.exitCode !== 0) {
       const resolved = await this.#resolveRebaseConflict(message, paths, opts);
       if (resolved) return { result: resolved };
     }
 
-    // Residue check (D9): the rebase exited 0 but the autostash pop conflicted,
-    // leaving unmerged paths — grounded in tree state, the sole conflict-capable
-    // autostash site after the clobber fallback's removal. Never retried (D3).
+    // Residue check (D9): the rebase exited 0 but the autostash pop
+    // conflicted and left unmerged paths. Tree state grounds this check. The
+    // pop is the sole conflict-capable autostash site after the clobber
+    // fallback's removal. The loop never retries this refusal (D3).
     await this.#assertNoResidue();
 
     // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
@@ -586,21 +606,21 @@ export class WikiSync {
     // observed remote tip unless the removal is a deliberate act.
     await this.#assertConserved(tip, message);
 
-    // Capture the pushed delta now: HEAD is the final (rebased) local tip and
+    // Capture the pushed delta now. HEAD is the final (rebased) local tip and
     // origin/master is still the pre-push base (the tier-1 integrity probe).
     const pushedDelta = await this.#capturePushedDelta();
 
     // Fail-closed secret gate. Scan exactly the commits this push introduces
-    // (the reconcile above made the range correct) before any remote contact;
-    // a finding or missing scanner refuses unless its own override is set.
+    // (the reconcile above made the range correct) before any remote contact.
+    // A finding or an absent scanner refuses unless its own override is set.
     const refusal = await this.#gateOrRefuse();
     if (refusal) return { result: refusal };
 
     // Budget re-validation gate (size axis). The reconcile above made HEAD the
-    // final outgoing tree (rebase / singleton re-apply re-derived its
-    // content against the fresh tip), so measuring HEAD here measures exactly
-    // what publishes. A breach this push introduces or deepens throws `budget`;
-    // surfaced-only memo-delivery breaches ride the landed result.
+    // final outgoing tree (rebase / singleton re-apply re-derived its content
+    // against the fresh tip). So a measurement of HEAD here measures exactly
+    // what publishes. A breach this push introduces or deepens throws
+    // `budget`. Surfaced-only memo-delivery breaches ride the landed result.
     const gate = await this.#revalidateBudgets(opts.sessionBaseSha, {
       exemptSummaryFiles: opts.exemptSummaryFiles ?? [],
     });
@@ -610,14 +630,14 @@ export class WikiSync {
 
     const verdict = await this.#groundedPush(fetched);
     if (verdict.landed) {
-      // The push landed; any declared removal it carried is now published, so
-      // clear the intent sidecar — it must not leak into an unrelated push.
+      // The push landed. Any declared removal it carried is now published, so
+      // clear the intent sidecar. It must not leak into an unrelated push.
       this.#clearIntentSidecar();
       const detections = await this.#tier1Probe(pushedDelta);
       const result = { landed: true, reason: PUSH_REASONS.LANDED, detections };
       // Attach `surfaced` only when the gate surfaced a (memo-delivery exempt)
       // breach, so a clean under-budget sync's landed result is byte-identical
-      // to today's — the gate adds no happy-path behaviour change (criterion 10).
+      // to today's. The gate adds no happy-path behaviour change (criterion 10).
       if (gate.surfaced.length > 0) result.surfaced = gate.surfaced;
       return { result };
     }
@@ -625,11 +645,12 @@ export class WikiSync {
   }
 
   /**
-   * Build the `budget` {@link WikiPushFailure} for a refusing gate result,
-   * naming the worst offending file and carrying every refusal and surfaced
-   * tuple so the operator can adjudicate (trim own content, or surface the
-   * carried content to its owner). The gate never edits — it refuses, keeping
-   * the commits local for re-push after the breach is resolved.
+   * Build the `budget` {@link WikiPushFailure} for a gate result that refuses.
+   * The failure names the worst offending file. It carries every refusal and
+   * surfaced tuple, so the operator can adjudicate (trim own content, or
+   * surface the carried content to its owner). The gate never edits. It
+   * refuses and keeps the commits local for re-push after the operator
+   * resolves the breach.
    * @param {{refusals: Array<object>, surfaced: Array<object>}} gate
    * @returns {WikiPushFailure}
    */
@@ -641,16 +662,16 @@ export class WikiSync {
       "gemba-wiki: refusing to push — it would introduce or deepen a budget " +
         `breach in ${files} (${lead.ruleId}: ${lead.value} vs baseline ` +
         `${lead.baseline}). Trim your own content or surface the carried ` +
-        "content to its owner, then re-push; your work is committed locally.",
+        "content to its owner, then re-push. Your work is committed locally.",
       { refusals: gate.refusals, surfaced: gate.surfaced },
     );
   }
 
   /**
-   * Run the budget gate over the outgoing tree, measuring the committed `HEAD`
-   * against the pre-fetch session base and the landed origin tip. Delegates the
-   * measurement, the unreadable-ref fail-visible posture, and the delta to
-   * {@link runBudgetGate}; this method binds only the clone's git/fs/clock.
+   * Run the budget gate over the outgoing tree. Measure the committed `HEAD`
+   * against the pre-fetch session base and the landed origin tip. Delegates
+   * the measurement, the unreadable-ref fail-visible posture, and the delta to
+   * {@link runBudgetGate}. This method binds only the clone's git/fs/clock.
    * @param {string} sessionBaseSha - origin/master before fetch, or "" when unborn.
    * @param {{exemptSummaryFiles: string[]}} options
    * @returns {Promise<{refusals: Array<object>, surfaced: Array<object>}>}
@@ -670,9 +691,10 @@ export class WikiSync {
   }
 
   /**
-   * Refuse (`residue-conflict`) when the reconcile left unmerged paths — the
-   * autostash pop conflicted under an exit-0 rebase (D9). The stash is left
-   * intact (git already kept it) and named by SHA for recovery.
+   * Refuse (`residue-conflict`) when the reconcile left unmerged paths. The
+   * autostash pop conflicted under an exit-0 rebase (D9). The stash stays
+   * intact (git already kept it), and the message names it by SHA for
+   * recovery.
    * @throws {WikiPushFailure} `residue-conflict` when the tree carries UU paths.
    */
   async #assertNoResidue() {
@@ -683,7 +705,7 @@ export class WikiSync {
     throw new WikiPushFailure(
       PUSH_REASONS.RESIDUE_CONFLICT,
       "gemba-wiki: refusing to push — a foreign writer's residue conflicted " +
-        "on the autostash pop; your stash is preserved at " +
+        "on the autostash pop. Your stash is preserved at " +
         `${stashSha || "refs/stash"} (git stash list). Resolve or pop it ` +
         "from the true tip.",
       { stashSha: stashSha || undefined },
@@ -692,9 +714,9 @@ export class WikiSync {
 
   /**
    * Capture the `origin/master..HEAD` delta for the post-push tier-1 probe. A
-   * two-tree range diff (not a single-commit show) is correct even when HEAD is
-   * a merge commit. Detection-only: a capture failure degrades to `null` so the
-   * probe never gates the push it follows.
+   * two-tree range diff is correct even when HEAD is a merge commit. A
+   * single-commit show is not. This capture is detection-only. A capture
+   * failure degrades to `null`, so the probe never gates the push it follows.
    * @returns {Promise<string|null>}
    */
   async #capturePushedDelta() {
@@ -708,14 +730,14 @@ export class WikiSync {
   }
 
   /**
-   * Resolve a failed rebase against the fresh tip. Aborts the rebase, then for a
-   * registered singleton with a `reapply` op re-derives the row against the tip
-   * via the bounded re-apply loop (the singleton merge discipline). Without a
-   * registered `reapply` the conflict fails loud: the `-X ours` clobber fallback
-   * is **removed** (the merge-discipline fail-loud floor), so the remote side is
-   * never mechanically discarded. The rebase is already aborted, leaving the working
-   * tree at `orig_head` with the autostash re-applied, so a `conflict` throw
-   * loses no uncommitted work.
+   * Resolve a failed rebase against the fresh tip. Aborts the rebase. Then,
+   * for a registered singleton with a `reapply` op, re-derives the row against
+   * the tip through the bounded re-apply loop (the singleton merge
+   * discipline). Without a registered `reapply` the conflict fails loud. The
+   * `-X ours` clobber fallback is **removed** (the merge-discipline fail-loud
+   * floor), so the method never mechanically discards the remote side. The
+   * rebase is already aborted, and the working tree stays at `orig_head` with
+   * the autostash re-applied. So a `conflict` throw loses no uncommitted work.
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs committed.
    * @param {{reapply?: (freshText: string) => string | null, maxReapply: number}} options
@@ -744,12 +766,13 @@ export class WikiSync {
   /**
    * Scan the content introduced by `origin/master..HEAD` for unresolved
    * conflict-marker blocks (Guard 3). Runs after the fetch + rebase/merge
-   * resolve, so the diff is against the freshly-fetched origin tip; pre-existing
-   * origin corruption is on the base side, never the added side, so an unrelated
-   * writer's push is not blocked. A throw from the scan (unresolvable ref on a
-   * shallow clone) refuses with a reason — never a silent pass.
-   * @returns {Promise<{pushed: false, reason: string}|null>} A refusal result, or
-   *   null when nothing introduced would publish a marker.
+   * resolve, so the diff is against the freshly-fetched origin tip.
+   * Pre-existing origin corruption is on the base side. It is never on the
+   * added side, so the guard does not block an unrelated writer's push. A
+   * throw from the scan (unresolvable ref on a shallow clone) refuses with a
+   * reason. It never passes silently.
+   * @returns {Promise<{pushed: false, reason: string}|null>} A refusal result,
+   *   or null when nothing introduced would publish a marker.
    */
   async #refuseIfIntroducedMarkers() {
     let introduced;
@@ -772,10 +795,11 @@ export class WikiSync {
   }
 
   /**
-   * Tier-1 post-push integrity probe: re-fetch the origin tip and verify the
-   * just-pushed delta — the full delta including shared surfaces —
-   * is still content-present, returning detections for any absence. Reads only;
-   * any error degrades to no detections so the probe never gates the push.
+   * Tier-1 post-push integrity probe: re-fetch the origin tip and verify that
+   * the just-pushed delta is still content-present. That delta is the full
+   * delta, and it covers shared surfaces. The probe returns detections for any
+   * absence. It only reads. Any error degrades to no detections, so the probe
+   * never gates the push.
    * @param {string|null} pushedDelta - `diffRange` text of the pushed delta.
    * @returns {Promise<object[]>}
    */
@@ -814,13 +838,13 @@ export class WikiSync {
 
   /**
    * Re-apply a registered singleton operation against the fresh remote tip,
-   * bounded by `maxReapply` rounds. The caller has already aborted the rebase.
+   * bounded by `maxReapply` rounds. The caller already aborted the rebase.
    * Each round: refresh the tip, drop the stale local commit (`resetSoft`,
    * working tree untouched so foreign residue survives), reset only the
-   * registered file to the tip (`checkoutPaths`, tolerating a tip that lacks
-   * it), re-derive via `reapply`, and — when the op still changes the tip —
-   * re-commit and push. A rejected push (the tip moved again) loops; an
-   * unchanged op is already satisfied; bound exhaustion throws.
+   * registered file to the tip (`checkoutPaths`, which tolerates a tip that
+   * lacks it), re-derive through `reapply`, and re-commit and push when the op
+   * still changes the tip. A rejected push (the tip moved again) loops. An
+   * unchanged op is already satisfied. Bound exhaustion throws.
    */
   async #reapplyLoop(message, paths, reapply, maxReapply) {
     const filePath = path.join(this.#wikiDir, paths[0]);
@@ -828,9 +852,9 @@ export class WikiSync {
       await this.fetch();
       await this.#git.resetSoft("origin/master", { cwd: this.#wikiDir });
       // Reset only the registered file to the tip. `resetSoft` leaves the
-      // working tree (so the dropped commit's copy of the file may linger), so
-      // a non-zero checkout — the tip lacks the file (a founding write) — means
-      // the fresh base is empty, NOT the lingering local copy.
+      // working tree, so the dropped commit's copy of the file may linger. A
+      // non-zero checkout means the tip lacks the file (a founding write). The
+      // fresh base is then empty. It is not the local copy that lingered.
       const checkout = await this.#git.checkoutPaths("origin/master", paths, {
         cwd: this.#wikiDir,
         allowMissing: true,
@@ -842,7 +866,7 @@ export class WikiSync {
           : "";
       const newText = reapply(freshText);
       if (newText === null) {
-        // The op is already satisfied on the tip; HEAD now equals the tip.
+        // The op is already satisfied on the tip. HEAD now equals the tip.
         return { pushed: false, reason: "already-satisfied" };
       }
       this.#runtime.fsSync.writeFileSync(filePath, newText);
@@ -851,10 +875,10 @@ export class WikiSync {
         await this.#authed().push("origin", "master", { cwd: this.#wikiDir });
         return { pushed: true, reason: "reapplied" };
       } catch (err) {
-        // Only a rejected push (the tip moved again) is a retry signal. An auth
-        // or network failure is not contention: rethrow it so the caller
-        // degrades to "saved locally" rather than burning the budget and
-        // misreporting a conflict that never happened.
+        // Only a rejected push (the tip moved again) is a retry signal. An
+        // auth or network failure is not contention. Rethrow it so the caller
+        // degrades to "saved locally". The loop must not burn the budget and
+        // misreport a conflict that never happened.
         if (!isPushRejection(err)) throw err;
       }
     }
@@ -866,7 +890,7 @@ export class WikiSync {
    * Returns a refusal envelope to short-circuit the push, or `null` to proceed
    * (clean, or an override that wrote its audit record). An override appends a
    * secret-free line to `secret-overrides.log` and commits it into the push
-   * range before returning `null`.
+   * range before the method returns `null`.
    *
    * @returns {Promise<{pushed: false, reason: "secret-detected"|"scanner-unavailable", findings?: Array<{file: string, line: number, rule: string}>}|null>}
    */
@@ -911,20 +935,19 @@ export class WikiSync {
   }
 
   /**
-   * Refuse before mutating when a rebase is mid-flight (D7). The other D7
-   * fixture — a detached HEAD — is deferred to the ancestry guard
-   * ({@link #assertPublishable}), where it surfaces as an `AncestryRefusal`
-   * ("unverifiable"): the two refusals collapse to one observable refusal, and
-   * the ancestry guard owns the reason naming for that fixture. This guard owns
-   * only the rebase-in-progress residual, which the ancestry guard does not
-   * cover.
+   * Refuse before any mutation when a rebase is mid-flight (D7). The ancestry
+   * guard ({@link #assertPublishable}) takes the other D7 fixture, a detached
+   * HEAD. There it surfaces as an `AncestryRefusal` ("unverifiable"). The two
+   * refusals collapse to one observable refusal, and the ancestry guard names
+   * the reason for that fixture. This guard owns only the rebase-in-progress
+   * residual, which the ancestry guard does not cover.
    */
   async #assertPreconditions() {
     if (this.#rebaseInProgress()) {
       throw new WikiPushFailure(
         PUSH_REASONS.PRECONDITION,
         "gemba-wiki: refusing to act — a rebase is in progress. Resolve or " +
-          "abort it before retrying; your uncommitted edit is preserved.",
+          "abort it before you retry. Your uncommitted edit is preserved.",
       );
     }
   }
@@ -949,12 +972,12 @@ export class WikiSync {
     }
   }
 
-  /** Whether HEAD is contained in `tip` (grounded nothing-to-push). */
+  /** Whether `tip` contains HEAD (grounded nothing-to-push). */
   async #headContainedIn(tip) {
     return this.#git.isAncestor("HEAD", tip, { cwd: this.#wikiDir });
   }
 
-  /** Fetch, returning whether it succeeded (feeds the rejected-vs-transport split). */
+  /** Fetch and return whether it succeeded (feeds the rejected-vs-transport split). */
   async #fetchObserved() {
     try {
       await this.#authed().fetch(REMOTE, BRANCH, { cwd: this.#wikiDir });
@@ -973,16 +996,17 @@ export class WikiSync {
   }
 
   /**
-   * The paths dirty in the working tree — the session's own write-set when no
-   * explicit pathspec was supplied. Each porcelain v1 line is `XY <path>` or,
-   * for a rename, `XY <orig> -> <new>`; the destination is the path that exists
-   * in the tree and is the one emitted (a `git mv` source no longer exists, so
-   * adding it to the pathspec would fault). A `"`-quoted path (a name with a
-   * space or non-ASCII byte) is unquoted so the pathspec matches the
-   * working-tree entry. Under the canonical per-session isolated checkout this
-   * set holds no foreign content, so committing exactly it stages the session's
-   * own work and nothing else; wiki session writes are edits and appends, not
-   * renames, so the destination-only scope covers the real workload.
+   * The paths dirty in the working tree. This is the session's own write-set
+   * when the caller supplied no explicit pathspec. Each porcelain v1 line is
+   * `XY <path>` or, for a rename, `XY <orig> -> <new>`. The destination is the
+   * path that exists in the tree, and the method emits that one. A `git mv`
+   * source no longer exists, so a pathspec that named it would fault. The
+   * method unquotes a `"`-quoted path (a name with a space or non-ASCII byte),
+   * so the pathspec matches the working-tree entry. Under the canonical
+   * per-session isolated checkout this set holds no foreign content. So a
+   * commit of exactly this set stages the session's own work and nothing else.
+   * Wiki session writes are edits and appends. They are not renames, so the
+   * destination-only scope covers the real workload.
    */
   async #dirtyPaths() {
     const r = await this.#git.status({ cwd: this.#wikiDir });
@@ -998,15 +1022,15 @@ export class WikiSync {
   }
 
   /**
-   * Refuse (`conservation`) when the would-be-pushed tree drops foreign content
-   * present at the observed remote tip, unless a deliberate removal carries it
-   * (D5). After a clean rebase HEAD descends from the remote tip, so the
-   * tip-first diff (`D`/`M`) is exactly the net effect of the pushed history:
-   * a `D` is a foreign file deleted; an `M` carries the pushed history's
-   * authored changes, where a row rewritten to a new state is an authored
-   * transition (passes) but a row removed without replacement is a drop
-   * (refuses). Row identity is the line's leading field, so a `plan approved`
-   * written over a foreign row keeps the row key and passes.
+   * Refuse (`conservation`) when the would-be-pushed tree drops foreign
+   * content present at the observed remote tip, unless a deliberate removal
+   * carries it (D5). After a clean rebase HEAD descends from the remote tip.
+   * So the tip-first diff (`D`/`M`) is exactly the net effect of the pushed
+   * history. A `D` is a foreign file deleted. An `M` carries the pushed
+   * history's authored changes. There, a row rewritten to a new state is an
+   * authored transition (passes), and a row removed without replacement is a
+   * drop (refuses). Row identity is the line's first field, so a
+   * `plan approved` written over a foreign row keeps the row key and passes.
    *
    * @param {string} remoteTip - The observed remote tip SHA.
    * @param {string} message - The pushed commit message (carries release intent).
@@ -1019,12 +1043,13 @@ export class WikiSync {
     const status = await this.#git.diffNameStatus(remoteTip, "HEAD", {
       cwd: this.#wikiDir,
     });
-    // When HEAD does not descend from the observed remote tip, the pushed
-    // history was written from a stale base and never saw the remote's advance,
-    // so a surviving-key row whose value differs from the remote is a stale
-    // revert (no authored transition to the restored state in the pushed
-    // history), not an approval-propagating transition. Only a HEAD that
-    // descends from the remote tip can have authored a transition over it.
+    // When HEAD does not descend from the observed remote tip, the writer
+    // built the pushed history from a stale base. That history never saw the
+    // remote's advance. So a row that keeps its key but carries a value
+    // different from the remote is a stale revert. The pushed history holds
+    // no authored transition to the restored state. It is not a transition
+    // that propagates an approval. Only a HEAD that descends from the remote
+    // tip can author a transition over it.
     const headAuthoredOverRemote = await this.#git.isAncestor(
       remoteTip,
       "HEAD",
@@ -1071,20 +1096,21 @@ export class WikiSync {
 
   /**
    * Whether the pushed tree drops foreign content present at the remote tip.
-   * A whole-file deletion drops it. Otherwise a remote line is dropped only
-   * when neither it **nor a line sharing its identity key** survives in HEAD —
-   * so a row rewritten to a new state (an authored transition) is conserved,
-   * while a row removed outright is a drop. The pusher's own additive edits
-   * never trip this because they remove no remote line.
+   * A whole-file deletion drops it. Otherwise the tree drops a remote line
+   * only when neither it **nor a line that shares its identity key** survives
+   * in HEAD. So the tree conserves a row rewritten to a new state (an authored
+   * transition), and a row removed outright is a drop. The pusher's own
+   * additive edits never trip this because they remove no remote line.
    *
-   * A surviving key with a changed value is an authored transition **only when
-   * the pushed history descends from the remote tip** (`headAuthoredOverRemote`).
-   * When it does not — a stale-base commit that never saw the remote's advance —
-   * the changed value restores a superseded state with no authoring commit, so
-   * it is a stale revert and counts as a drop (erases the foreign advance).
+   * A key that survives with a changed value is an authored transition **only
+   * when the pushed history descends from the remote tip**
+   * (`headAuthoredOverRemote`). When it does not, the commit has a stale base
+   * and never saw the remote's advance. The changed value then restores a
+   * superseded state with no commit that authored it. So it is a stale revert
+   * and counts as a drop (it erases the foreign advance).
    *
-   * `showFile` returns `null` for an absent blob; both `null` and `""` mean the
-   * file is gone at that ref.
+   * `showFile` returns `null` for an absent blob. Both `null` and `""` mean
+   * the file is gone at that ref.
    */
   #dropsForeignContent(remoteContent, headContent, headAuthoredOverRemote) {
     if (remoteContent == null || remoteContent === "") return false;
@@ -1097,29 +1123,31 @@ export class WikiSync {
       if (headSet.has(line)) return false; // exact line survives
       const key = this.#rowKey(line);
       if (key === null) {
-        // Unkeyed prose absent from HEAD. When the pushed history descends from
-        // the remote tip, the pusher saw this line and authored its edit — a
-        // legitimate prose change, not a foreign drop. Only a stale-base commit
-        // that never saw the line (a side-pick / clean-replay erasure) drops it.
+        // Unkeyed prose absent from HEAD. When the pushed history descends
+        // from the remote tip, the pusher saw this line and authored its edit.
+        // That is a legitimate prose change. It is not a foreign drop. Only a
+        // stale-base commit that never saw the line (a side-pick /
+        // clean-replay erasure) drops it.
         return !headAuthoredOverRemote;
       }
       if (!headKeys.has(key)) return true; // key gone outright ⇒ drop
-      // Key survives with a changed value: an authored transition only if the
-      // pushed history was built over the remote tip; otherwise a stale revert.
+      // The key survives with a changed value. This is an authored transition
+      // only if the writer built the pushed history over the remote tip.
+      // Otherwise it is a stale revert.
       return !headAuthoredOverRemote;
     });
   }
 
   /**
-   * The identity key of a structured row, used to tell an authored transition
-   * (same row, new state) from a drop (row gone). For a Markdown table row the
-   * key is the **first two cells** — the canonical Active Claims table is keyed
-   * by `(agent, target)`, and `agent` alone is non-unique (one agent holds many
-   * rows), so a single-cell key would let a real foreign-row drop masquerade as
-   * a transition. For a tab-delimited ledger row (e.g. STATUS
-   * `id<TAB>phase<TAB>status`) the key is the first field, whose later fields
-   * are the state that transitions. Unstructured prose has no stable key
-   * (`null`) and is conserved by exact-line match only.
+   * The identity key of a structured row. The caller uses it to tell an
+   * authored transition (same row, new state) from a drop (row gone). For a
+   * Markdown table row the key is the **first two cells**. The canonical
+   * Active Claims table has the key `(agent, target)`, and `agent` alone is
+   * non-unique (one agent holds many rows). So a single-cell key would let a
+   * real foreign-row drop masquerade as a transition. For a tab-delimited
+   * ledger row (e.g. STATUS `id<TAB>phase<TAB>status`) the key is the first
+   * field, whose later fields are the state that transitions. Unstructured
+   * prose has no stable key (`null`). An exact-line match alone conserves it.
    */
   #rowKey(line) {
     const trimmed = line.trim();
@@ -1139,13 +1167,13 @@ export class WikiSync {
   /** Whether the removal of `file` is declared deliberate (release/expiry/sidecar). */
   #removalDeclared(file, message, sidecar, headAuthoredOverRemote) {
     // A claim release/expiry records the deliberate act in the commit message,
-    // and a claim/release commit is pathspec-scoped to MEMORY.md — so the
-    // exemption is confined to that file, never a whole-tree trim. The blanket
-    // message exemption is honored only when HEAD descends from the remote tip:
-    // a release authored over current state drops exactly the row it released,
-    // but a stale-base release never saw a foreign row another writer added, so
-    // it must not blanket-exempt that collateral live-row drop (D5 — the
-    // deliberate act is the released row, not a file-level pass).
+    // and a claim/release commit is pathspec-scoped to MEMORY.md. So the
+    // exemption covers that file only. It never covers a whole-tree trim. The
+    // blanket message exemption holds only when HEAD descends from the remote
+    // tip. A release authored over current state drops exactly the row it
+    // released. A stale-base release never saw a foreign row another writer
+    // added, so it must not blanket-exempt that collateral live-row drop (D5).
+    // The deliberate act is the released row. It is not a file-level pass.
     if (
       headAuthoredOverRemote &&
       /^wiki: release\b/.test(message) &&
@@ -1159,10 +1187,10 @@ export class WikiSync {
 
   /**
    * Declare that the next push deliberately removes foreign content in `paths`
-   * (the cross-lane budget-trim shape, D5). The declaration is recorded
-   * clone-locally so it survives a stranded-push retry from the same clone, and
-   * is cleared only once a push lands (so the declaration never leaks into an
-   * unrelated later push).
+   * (the cross-lane budget-trim shape, D5). This method records the
+   * declaration clone-locally, so it survives a stranded-push retry from the
+   * same clone. Only a landed push clears it, so the declaration never leaks
+   * into an unrelated later push.
    * @param {string[]} paths - Files whose foreign-content removal is deliberate.
    */
   declareRemoval(paths) {
@@ -1204,12 +1232,13 @@ export class WikiSync {
   }
 
   /**
-   * Push once and classify the outcome, grounding *landed* in the
-   * remote-originated per-ref report or a post-push remote-tip read. Returns a
-   * verdict the retry loop reads (it carries the {@link WikiPushFailure} to
-   * throw on a terminal non-land so the loop owns the retry decision): a
-   * non-landed push is `rejected` when the fetch succeeded, `transport` when it
-   * failed or the push itself raised a transport error.
+   * Push once and classify the outcome. Ground *landed* in the
+   * remote-originated per-ref report or in a post-push remote-tip read.
+   * Returns a verdict the retry loop reads. The verdict carries the
+   * {@link WikiPushFailure} to throw on a terminal non-land, so the loop owns
+   * the retry decision. A non-landed push is `rejected` when the fetch
+   * succeeded. It is `transport` when the fetch failed or the push itself
+   * raised a transport error.
    * @param {boolean} fetched - Whether the pre-push fetch observed the remote.
    * @returns {Promise<{landed: boolean, reason: string, error?: WikiPushFailure}>}
    */
@@ -1227,7 +1256,7 @@ export class WikiSync {
         error: new WikiPushFailure(
           PUSH_REASONS.TRANSPORT,
           "gemba-wiki: push failed at transport (network or credentials). " +
-            "Your work is committed locally; retry when connectivity returns.",
+            "Your work is committed locally. Retry when connectivity returns.",
         ),
       };
     }
@@ -1257,10 +1286,10 @@ export class WikiSync {
   }
 
   /**
-   * Whether the push landed, grounded in observed remote state: the per-ref
-   * `--porcelain` report for `refs/heads/master` (flag ` `/`=` accepted, `!`
-   * rejected), falling back to a post-push remote-tip read when the report is
-   * unparseable.
+   * Whether the push landed. Observed remote state grounds the answer. That
+   * state is the per-ref `--porcelain` report for `refs/heads/master` (flag
+   * ` `/`=` accepted, `!` rejected). The method falls back to a post-push
+   * remote-tip read when it cannot parse the report.
    */
   async #pushLanded(result) {
     const verdict = this.#parsePorcelain(result.stdout);
@@ -1293,29 +1322,31 @@ export class WikiSync {
   }
 
   /**
-   * Refuse, before any commit or push, whenever the relationship between the
-   * history that would be published (the `master` branch ref, never bare HEAD)
-   * and the remote branch can be neither confirmed nor refuted. Implements the
-   * the ancestry decision table; throws {@link AncestryRefusal} on refusal and
-   * returns silently when publication is verified or the remote is positively
-   * empty. The emptiness probe runs only on the absent-tracking-ref path, so
-   * the healthy hot path adds no remote round-trip.
+   * Refuse before any commit or push. Refuse whenever the guard can neither
+   * confirm nor refute the relationship between the remote branch and the
+   * history the push would publish. That history is the `master` branch ref,
+   * never bare HEAD. Implements the ancestry decision table. Throws
+   * {@link AncestryRefusal} on refusal. Returns silently when the guard
+   * verifies the publication or finds the remote positively empty. The
+   * emptiness probe runs only on the absent-tracking-ref path, so the healthy
+   * hot path adds no remote round-trip.
    */
   async #assertPublishable() {
     const cwd = this.#wikiDir;
 
-    // 1. Detached HEAD: the push publishes the branch ref, not HEAD, so the
-    //    session's commits would be silently lost. Verify nothing — refuse.
+    // 1. Detached HEAD: the push publishes the branch ref. It does not publish
+    //    HEAD, so the session would silently lose its commits. Verify nothing.
+    //    Refuse.
     if ((await this.#git.headBranch({ cwd })) !== BRANCH) {
       throw new AncestryRefusal(
         "unverifiable",
-        "gemba-wiki: refusing to publish — HEAD is detached, so the configured " +
-          "branch would be pushed instead of your work. Re-clone the wiki.",
+        "gemba-wiki: refusing to publish — HEAD is detached, so the push would " +
+          "send the configured branch instead of your work. Re-clone the wiki.",
       );
     }
 
     // 2. Establish whether the remote branch is present. A resolvable local
-    //    remote-tracking ref is sufficient; otherwise probe the remote (the
+    //    remote-tracking ref is sufficient. Otherwise probe the remote (the
     //    only added round-trip, and only here).
     const branchPresent = await this.#git.refExists(REMOTE_BRANCH, { cwd });
     if (!branchPresent) {
@@ -1326,14 +1357,15 @@ export class WikiSync {
         throw new AncestryRefusal(
           "unverifiable",
           "gemba-wiki: refusing to publish — could not observe the remote to " +
-            "verify ancestry; the local change is not published.",
+            "verify ancestry. The local change is not published.",
         );
       }
       // Positive evidence the remote branch is absent ⇒ empty-new-wiki.
       if (!observed) return;
-      // Remote branch present but no local tracking ref: fetch it into the
-      // tracking ref so the unborn-HEAD and merge-base steps below judge
-      // against the probed branch tip rather than an unresolvable ref.
+      // The remote branch is present but there is no local tracking ref.
+      // Fetch it into the tracking ref, so the unborn-HEAD and merge-base
+      // steps below judge against the probed branch tip. They must not judge
+      // against an unresolvable ref.
       try {
         await this.#git.fetch(
           REMOTE,
@@ -1346,7 +1378,7 @@ export class WikiSync {
         throw new AncestryRefusal(
           "unverifiable",
           "gemba-wiki: refusing to publish — could not fetch the remote branch " +
-            "to verify ancestry; the local change is not published.",
+            "to verify ancestry. The local change is not published.",
         );
       }
     }
@@ -1378,7 +1410,7 @@ export class WikiSync {
       throw new AncestryRefusal(
         "unverifiable",
         "gemba-wiki: refusing to publish — could not deepen history to verify " +
-          "ancestry; the local change is not published.",
+          "ancestry. The local change is not published.",
       );
     }
     if (await this.#git.mergeBaseExists(REMOTE_BRANCH, "HEAD", { cwd })) return;

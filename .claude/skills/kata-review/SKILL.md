@@ -4,51 +4,50 @@ description: >
   Grade a single artifact (spec, design, plan, or implementation diff) against
   quality criteria and return findings by severity. Use when another skill
   spawns a fresh sub-agent for an independent review of its work. This skill
-  never spawns sub-agents — it produces findings only — which structurally
-  prevents the spec/design/plan/implement review loop from recursing.
+  never spawns sub-agents. It produces findings only. That structurally
+  prevents recursion in the spec/design/plan/implement review loop.
 ---
 
 # Review Artifacts
 
-Independent grading skill for artifacts produced by `kata-spec`, `kata-design`,
-`kata-plan`, and `kata-implement`. Returns severity-graded findings; takes no
-action. Never spawns sub-agents.
+This skill grades artifacts from `kata-spec`, `kata-design`, `kata-plan`, and
+`kata-implement` independently. It returns severity-graded findings. It takes
+no action. It never spawns sub-agents.
 
 ## When to Use
 
-- A `kata-spec`, `kata-design`, `kata-plan`, or `kata-implement` workflow has
-  reached its clean sub-agent review step and you have been spawned with no
-  prior context to grade the artifact.
-- Any time another agent needs an independent quality grade on a spec, design,
-  plan, or diff without changing it.
+- A `kata-spec`, `kata-design`, `kata-plan`, or `kata-implement` workflow
+  reaches its clean sub-agent review step. The caller spawns you with no prior
+  context to grade the artifact.
+- Another agent needs an independent quality grade on a spec, design, plan, or
+  diff. The grade does not change the artifact.
 
 ## Invariant: never spawn
 
-This skill's Process has **no step that launches a sub-agent**. That is the
-property that prevents the spec / design / plan / implement review loop from
-recursing —
-if you find yourself wanting to make an `Agent` tool call from inside this
-skill, stop and return findings instead.
+This skill's Process has **no step that launches a sub-agent**. That property
+prevents recursion in the spec / design / plan / implement review loop. If you
+want to make an `Agent` tool call from inside this skill, stop and return
+findings instead.
 
 ## Severity Vocabulary
 
 This is the canonical definition of review severity for the spec → design →
-plan → implement arc. Grade every finding using exactly one level:
+plan → implement arc. Grade every finding with exactly one level:
 
-- **Blocker** — The work is broken, dangerous, or materially wrong. Must fix
-  before advancing (approving the spec, advancing status, merging code).
-- **High** — A correctness or clarity problem that will cause rework, confusion,
-  or bugs downstream if shipped. Fix before advancing.
-- **Medium** — A real quality or consistency issue worth fixing now while the
-  context is fresh. Fix before advancing.
-- **Low** — Nit or preference. Optional; document if dismissed.
+- **Blocker** — The work is broken, dangerous, or materially wrong. You must
+  fix it before you advance (approve the spec, advance status, merge code).
+- **High** — A correctness or clarity problem. If you ship it, it causes
+  rework, confusion, or bugs downstream. Fix it before you advance.
+- **Medium** — A real quality or consistency issue. It is worth a fix now
+  while the context is fresh. Fix it before you advance.
+- **Low** — Nit or preference. The fix is optional. Document it if you dismiss
+  it.
 
-The caller is required to **verify** every finding against the actual artifact
-before acting on it — sub-agent reviewers operate without prior conversation
-context and can misread intent, miss surrounding code, or flag false positives.
-After verification, the caller must address every confirmed **blocker**,
-**high**, and **medium** finding before advancing. **Low** findings are
-optional.
+The caller must **verify** every finding against the actual artifact before it
+acts. Sub-agent reviewers operate without prior conversation context. They can
+misread intent, miss nearby code, or flag false positives. After it verifies a
+finding, the caller must address every confirmed **blocker**, **high**, and
+**medium** finding before it advances. **Low** findings are optional.
 
 ## Process
 
@@ -56,28 +55,29 @@ optional.
 
 The caller tells you whether the input is a `spec.md`, a `design-a.md`, a
 `plan-a.md` (plus any decomposed parts), or a code diff
-(`git diff origin/main...HEAD`). You are spawned cold with no back-channel to
-the caller — if the artifact type or path is genuinely ambiguous, return a
-single **Blocker** finding asking for clarification and stop. Do not guess.
+(`git diff origin/main...HEAD`). The caller spawns you cold with no
+back-channel. If the artifact type or path is genuinely ambiguous, return a
+single **Blocker** finding that asks for clarification. Then stop. Do not
+guess.
 
-### Step 2: Build context before grading
+### Step 2: Build context before you grade
 
 Read in this order:
 
-1. **The artifact itself.** Read fully before anything else.
+1. **The artifact itself.** Read it fully before anything else.
 2. **Upstream documents.** For a design, read the spec. For a plan, read the
    spec and design. For a diff, read the spec, design, plan, and
    CONTRIBUTING.md § Core Rules.
 3. **Codebase files the artifact references or modifies.** When the artifact
    names files, functions, classes, or APIs, read those source files. When a
    plan lists files to create or change, read the current versions. Verify
-   that the artifact's assumptions about existing code are accurate.
+   that the artifact's assumptions about the current code are accurate.
 
 ### Step 3: Grade against criteria
 
 Apply the artifact-specific criteria in the section below and any
-domain-specific review criteria defined by your agent profile. For each gap or
-risk, write one finding with:
+domain-specific review criteria that your agent profile defines. For each gap
+or risk, write one finding with:
 
 - File path and line number (or commit hash)
 - The criterion violated, in one short phrase
@@ -86,8 +86,8 @@ risk, write one finding with:
 
 ### Step 4: Return findings only
 
-Do not modify the artifact, do not open PRs, do not invoke other skills, do not
-spawn sub-agents. Group findings by severity and report.
+Do not modify the artifact. Do not open PRs. Do not invoke other skills. Do not
+spawn sub-agents. Group findings by severity. Report them.
 
 ## Artifact Criteria
 
@@ -95,11 +95,11 @@ Grade each artifact against its skill's DO-CONFIRM checklist. The deltas below
 are review-specific additions on top of the checklist.
 
 For every artifact except `spec.md`, grade whether the artifact faithfully
-represents the constraints and decisions established in the prior phase(s). A
-design that satisfies its own checklist but contradicts a spec constraint, a
-plan that ignores a design decision, or a diff that silently departs from the
-plan are each at minimum a **High** finding. Process Step 2 has you read the
-upstream artifacts — use them.
+represents the constraints and decisions from the prior phase or phases. Three
+cases are each at minimum a **High** finding. A design satisfies its own
+checklist but contradicts a spec constraint. A plan ignores a design decision.
+A diff silently departs from the plan. Process Step 2 has you read the upstream
+artifacts. Use them.
 
 ### spec.md
 
@@ -120,8 +120,8 @@ Match
 [`kata-implement` § Final verification](../kata-implement/SKILL.md#step-6-final-verification)
 and CONTRIBUTING.md § Core Rules. Look for:
 
-- Diff implements every spec success criterion
-- Old path deleted in the same change — no shims, aliases, fallbacks, or
+- The diff implements every spec success criterion
+- Old path deleted in the same change, with no shims, aliases, fallbacks, or
   compat flags unless the spec requires them
 - No scope creep (refactors, features, cleanup beyond the plan)
 - Atomic, conventional-style commits on the branch
@@ -129,14 +129,14 @@ and CONTRIBUTING.md § Core Rules. Look for:
 - No security regressions (input validation at boundaries, secrets, dangerous
   shell)
 
-You may run the repository's check and test commands yourself to verify the head
-commit, or trust the caller's assertion that they pass — the caller's Step 7
-already requires green checks before delegating to you. Treat any test or lint
-failure you observe as at minimum a **High** finding.
+You can run the repository's check and test commands yourself to verify the
+head commit. You can also trust the caller's assertion that they pass. The
+caller's Step 7 already requires green checks before it delegates to you. Treat
+any test or lint failure you observe as at minimum a **High** finding.
 
 ## Output Format
 
-Return findings grouped by severity exactly in this shape:
+Group findings by severity. Return them in exactly this shape:
 
 ```text
 ### Blocker
@@ -161,10 +161,10 @@ rubber-stamp.
 
 ## What NOT to Do
 
-- **Do not spawn sub-agents.** This skill must remain a leaf in the call graph;
-  spawning would re-introduce the recursion this skill exists to prevent.
-- **Do not modify the artifact.** Reviewers grade; they do not edit.
-- **Do not open PRs, comments, or commits.** Findings are returned to the
-  caller, who decides what to act on.
+- **Do not spawn sub-agents.** This skill must remain a leaf in the call graph.
+  A spawn would re-introduce the recursion this skill exists to prevent.
+- **Do not modify the artifact.** Reviewers grade. They do not edit.
+- **Do not open PRs, comments, or commits.** You return findings to the caller.
+  The caller decides what to act on.
 - **Do not invoke `kata-spec`, `kata-design`, `kata-plan`, or
   `kata-implement`.** Their Process steps would spawn another reviewer and loop.

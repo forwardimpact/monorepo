@@ -1,5 +1,5 @@
 /**
- * Progress/progression formatting for markdown/CLI output
+ * Progress/progression formatter for markdown/CLI output
  */
 
 import { tableToMarkdown } from "../shared.js";
@@ -67,7 +67,7 @@ export function progressToMarkdown(view) {
   }
 
   if (skillsWithChanges.length === 0 && behavioursWithChanges.length === 0) {
-    lines.push("No changes required for this progression.");
+    lines.push("This progression requires no changes.");
     lines.push("");
   }
 

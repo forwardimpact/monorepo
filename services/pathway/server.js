@@ -26,25 +26,25 @@ if (!handled) {
   });
 
   // The service entry point is a legitimate construction site for the
-  // production runtime; it threads the bag to every collaborator below.
+  // production runtime. It threads the bag to every collaborator below.
   const runtime = createDefaultRuntime();
 
   // Initialize observability
   const logger = createLogger("pathway", runtime);
   const tracer = await createTracer("pathway");
 
-  // Resolve the pathway data directory using the same upward-walk + HOME
-  // fallback rules as fit-pathway. SERVICE_PATHWAY_DATA_DIR (picked up by
-  // libconfig and exposed as config.data_dir) overrides the discovery.
+  // Resolve the pathway data directory with the same upward-walk and HOME
+  // fallback rules as fit-pathway. SERVICE_PATHWAY_DATA_DIR overrides the
+  // discovery. libconfig reads it and exposes it as config.data_dir.
   const data_dir = config.data_dir
     ? String(config.data_dir)
     : join(runtime.finder.findData("data", homedir()), "pathway");
 
-  // Three-call load sequence matching products/pathway/src/commands/agent.js.
-  // loadAllData drops `human` from each skill (loader.js:102-127) while
-  // loadSkillsWithAgentData spreads the full raw skill, which is the shape
-  // generateAgentProfile walks. Both are required.
-  // createDataLoader requires an injected runtime; reuse the bag built above.
+  // The three-call load sequence matches
+  // products/pathway/src/commands/agent.js. loadAllData drops `human` from
+  // each skill (loader.js:102-127). loadSkillsWithAgentData spreads the full
+  // raw skill, the shape generateAgentProfile walks. The service needs both.
+  // createDataLoader requires an injected runtime. Reuse the bag built above.
   const loader = createDataLoader(runtime);
   const data = await loader.loadAllData(data_dir);
   const agentData = await loader.loadAgentData(data_dir);

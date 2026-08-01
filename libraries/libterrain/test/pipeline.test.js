@@ -93,10 +93,11 @@ function makePipelineDeps({
 } = {}) {
   const logger = makeLogger();
   const runtime = createDefaultRuntime();
-  // no-prose mode never reads or writes the cache; back its path with an
+  // no-prose mode never reads or writes the cache. Back its path with an
   // in-memory fs so the deps need no real tmpdir. The pipeline's own runtime
-  // stays real to read the on-disk DSL fixtures and HTML templates, and write
-  // output stays in `result.files` (asserted in memory below).
+  // stays real to read the on-disk DSL fixtures and HTML templates. Write
+  // output stays in `result.files`, and the assertions below check it in
+  // memory.
   const proseCache = new ProseCache({
     runtime: createTestRuntime({ fs: createMockFs() }),
     cachePath: "/prose/cache.json",
@@ -130,7 +131,7 @@ function makePipelineDeps({
 }
 
 describe("Pipeline integration", () => {
-  test("parses minimal DSL fixture", () => {
+  test("parses the minimal DSL fixture", () => {
     const source = readFileSync(FIXTURE_PATH, "utf-8");
     const parser = createDslParser();
     const ast = parser.parse(source);
@@ -142,7 +143,7 @@ describe("Pipeline integration", () => {
     assert.ok(ast.projects.length > 0);
   });
 
-  test("generates entities from minimal DSL", () => {
+  test("generates entities from the minimal DSL", () => {
     const source = readFileSync(FIXTURE_PATH, "utf-8");
     const parser = createDslParser();
     const ast = parser.parse(source);
@@ -160,7 +161,7 @@ describe("Pipeline integration", () => {
     assert.ok(entities.domain);
   });
 
-  test("entity IRIs use consistent /id/ namespace", () => {
+  test("entity IRIs use a consistent /id/ namespace", () => {
     const source = readFileSync(FIXTURE_PATH, "utf-8");
     const parser = createDslParser();
     const ast = parser.parse(source);
@@ -196,7 +197,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("constructor requires both proseCache and proseGenerator", () => {
+  test("the constructor requires both proseCache and proseGenerator", () => {
     const deps = makePipelineDeps();
     {
       assert.throws(
@@ -212,7 +213,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("run to write terminal in no-prose mode aggregates stats", async () => {
+  test("run to the write terminal in no-prose mode aggregates stats", async () => {
     const deps = makePipelineDeps({ mode: "no-prose" });
     {
       const pipeline = new Pipeline(deps);
@@ -237,7 +238,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("check verb walks only cache-lookup closure", async () => {
+  test("the check verb walks only the cache-lookup closure", async () => {
     const deps = makePipelineDeps({ mode: "no-prose" });
     {
       const pipeline = new Pipeline(deps);
@@ -259,7 +260,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("validate verb pulls datasets via skeleton → fhir-cross-ref", async () => {
+  test("the validate verb pulls datasets through skeleton → fhir-cross-ref", async () => {
     const deps = makePipelineDeps({ mode: "no-prose" });
     {
       const pipeline = new Pipeline(deps);
@@ -272,9 +273,10 @@ describe("Pipeline integration", () => {
       assert.ok(result.ran.has("enriched"));
       // skeleton depends on fhir-cross-ref → datasets. With no toolFactory
       // wired, `datasets` short-circuits and the extra work stays O(1). When
-      // Synthea IS configured but no `fhir_microdata_html` output is declared,
-      // `datasets` still runs fully (and serializes ahead of `skeleton`); the
-      // cost is accepted as the alternative to a stateful post-render mutation pass.
+      // Synthea IS configured but the DSL declares no `fhir_microdata_html`
+      // output, `datasets` still runs fully and serializes ahead of
+      // `skeleton`. The design accepts that cost as the alternative to a
+      // stateful mutation pass after render.
       assert.ok(result.ran.has("datasets"));
       assert.ok(result.ran.has("fhir-cross-ref"));
       assert.ok(!result.ran.has("write"));
@@ -285,7 +287,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("run rejects unknown terminal stage", async () => {
+  test("run rejects an unknown terminal stage", async () => {
     const deps = makePipelineDeps({ mode: "no-prose" });
     {
       const pipeline = new Pipeline(deps);
@@ -296,7 +298,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("clinical-output produces zero files when no clinical block", async () => {
+  test("clinical-output produces zero files when the clinical block is absent", async () => {
     const deps = makePipelineDeps({ mode: "no-prose" });
     {
       const pipeline = new Pipeline(deps);
@@ -328,7 +330,7 @@ describe("Pipeline integration", () => {
     }
   });
 
-  test("write stage merges clinical output alongside other files", async () => {
+  test("the write stage merges clinical output alongside other files", async () => {
     const deps = makePipelineDeps({ mode: "no-prose" });
     {
       const pipeline = new Pipeline(deps);
@@ -339,7 +341,7 @@ describe("Pipeline integration", () => {
       const paths = [...result.files.keys()];
       assert.ok(paths.some((p) => p.startsWith("bn_") && p.endsWith(".sql")));
       assert.ok(paths.includes("out/clinical.jsonl"));
-      // Existing knowledge files still produced
+      // The pipeline still produces the knowledge files
       assert.ok(paths.some((p) => p.startsWith("data/knowledge/")));
     }
   });
@@ -377,7 +379,8 @@ describe("Pipeline integration", () => {
     const entities = generator.generate(ast);
     const result = validateCrossContent(entities);
 
-    // Minimal fixture has no snapshots block, so snapshot checks are expected to fail
+    // The minimal fixture has no snapshots block, so the snapshot checks
+    // fail as expected
     const snapshotChecks = new Set([
       "getdx_snapshots_list_response",
       "getdx_snapshots_info_responses",

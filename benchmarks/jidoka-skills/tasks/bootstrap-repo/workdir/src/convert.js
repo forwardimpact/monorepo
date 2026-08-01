@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // unitconv: convert a value between two units of the same dimension.
-// Uses only Node.js built-ins so it runs with no install step.
+// It uses only Node.js built-ins so it runs with no install step.
 
 const TO_BASE = {
   km: 1000,

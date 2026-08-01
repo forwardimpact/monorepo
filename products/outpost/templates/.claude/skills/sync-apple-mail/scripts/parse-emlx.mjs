@@ -3,11 +3,11 @@
  * Parse a macOS Mail .emlx or .partial.emlx file and output the plain text body.
  *
  * The .emlx format is: first line = byte count, then RFC822 message, then Apple
- * plist. This script reads the RFC822 portion, walks MIME parts to find
- * text/plain, and prints it to stdout. If the email is HTML-only, falls back to
- * stripping tags and decoding entities.
+ * plist. This script reads the RFC822 portion. It walks the MIME parts to find
+ * text/plain. It prints that part to stdout. If the email is HTML-only, the
+ * script strips the tags and decodes the entities instead.
  *
- * Also exports `parseEmlx()` and `extractBody()` for use by sync-apple-mail.
+ * It also exports `parseEmlx()` and `extractBody()` for sync-apple-mail.
  */
 
 if (process.argv.includes("-h") || process.argv.includes("--help")) {
@@ -16,7 +16,7 @@ if (process.argv.includes("-h") || process.argv.includes("--help")) {
 Usage: node scripts/parse-emlx.mjs <path-to-emlx-file> [-h|--help]
 
 Parses a macOS Mail .emlx or .partial.emlx file and prints the plain text
-body to stdout. Falls back to stripping HTML tags for HTML-only emails.`);
+body to stdout. For an HTML-only email, it strips the HTML tags instead.`);
   process.exit(0);
 }
 
@@ -127,7 +127,7 @@ function parseHeaders(raw) {
       continue;
     }
 
-    // New header — save previous
+    // New header. Save the previous one.
     pushHeader(headers, currentName, currentValue);
 
     const colonIdx = line.indexOf(":");
@@ -141,7 +141,7 @@ function parseHeaders(raw) {
 }
 
 /**
- * Parse Content-Type header value.
+ * Parse a Content-Type header value.
  * @param {string} value - e.g. 'text/plain; charset="utf-8"; boundary="abc"'
  * @returns {{ type: string, params: Record<string, string> }}
  */
@@ -217,7 +217,7 @@ function decodePayload(data, encoding) {
 }
 
 /**
- * Decode text from a buffer using the given charset.
+ * Decode text from a buffer with the given charset.
  * @param {Buffer} data
  * @param {string} [charset]
  * @returns {string}
@@ -342,7 +342,7 @@ export function extractBody(raw) {
  */
 export function parseEmlx(filePath) {
   const data = readFileSync(filePath);
-  // First line is the byte count
+  // The first line is the byte count
   const newline = data.indexOf(0x0a);
   const byteCount = parseInt(data.subarray(0, newline).toString("ascii"), 10);
   const raw = data.subarray(newline + 1, newline + 1 + byteCount);

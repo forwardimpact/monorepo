@@ -19,8 +19,8 @@ beforeEach(() => {
     configurable: true,
     writable: true,
   });
-  // libui's render helpers branch on `instanceof HTMLElement`; expose it so
-  // element children created via `section(...)`/`p(...)` are recognised.
+  // libui's render helpers branch on `instanceof HTMLElement`. Expose it so
+  // they recognise element children that `section(...)`/`p(...)` create.
   globalThis.HTMLElement = win.HTMLElement;
 });
 
@@ -56,7 +56,7 @@ function findAllByTag(el, tagName) {
 }
 
 describe("createFirstVisitBanner", () => {
-  test("returns a backdrop wrapping a <section> with the spec-required ARIA wiring", () => {
+  test("returns a backdrop that wraps a <section> with the ARIA attributes the spec requires", () => {
     const el = createFirstVisitBanner({ onDismiss: () => {} });
     assert.strictEqual(el.tagName, "DIV");
     assert.strictEqual(el.getAttribute("role"), "dialog");
@@ -76,7 +76,7 @@ describe("createFirstVisitBanner", () => {
     assert.strictEqual(heading.tagName, "H2");
   });
 
-  test("exposes exactly one dismiss button labelled 'Got it' and no checkbox", () => {
+  test("exposes exactly one dismiss button with the label 'Got it' and no checkbox", () => {
     const el = createFirstVisitBanner({ onDismiss: () => {} });
     const buttons = findAllByTag(el, "button");
     assert.strictEqual(buttons.length, 1);
@@ -91,7 +91,7 @@ describe("createFirstVisitBanner", () => {
     }
   });
 
-  test("clicking the dismiss button invokes onDismiss exactly once", () => {
+  test("invokes onDismiss exactly once when the user clicks the dismiss button", () => {
     let calls = 0;
     const el = createFirstVisitBanner({
       onDismiss: () => {
@@ -106,8 +106,8 @@ describe("createFirstVisitBanner", () => {
   test("dismiss element is a native button with no tabindex override", () => {
     const el = createFirstVisitBanner({ onDismiss: () => {} });
     const btn = findAllByTag(el, "button")[0];
-    // Native buttons are Tab-reachable and Enter/Space-activatable by default;
-    // any tabindex attribute would override that behaviour.
+    // Native buttons are Tab-reachable and Enter/Space-activatable by
+    // default. Any tabindex attribute would override that behaviour.
     assert.strictEqual(btn.tagName, "BUTTON");
     assert.strictEqual(btn.hasAttribute("tabindex"), false);
     assert.strictEqual(btn.getAttribute("type"), "button");

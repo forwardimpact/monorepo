@@ -21,7 +21,7 @@ describe("stringifySorted", () => {
     expect(stringifySorted(input)).toBe(stringifySorted(input));
   });
 
-  test("ends with newline", () => {
+  test("ends with a newline", () => {
     expect(stringifySorted({ a: 1 })).toMatch(/\n$/);
   });
 });
@@ -34,7 +34,7 @@ describe("parseFrontmatter", () => {
     expect(result.description).toBe("A test");
   });
 
-  test("returns empty object for missing frontmatter", () => {
+  test("returns an empty object for missing frontmatter", () => {
     expect(parseFrontmatter("# No frontmatter")).toEqual({});
   });
 });

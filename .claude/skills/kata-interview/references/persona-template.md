@@ -1,21 +1,21 @@
 # Persona template
 
 The persona file describes **who** the persona is and **the situation**
-they're in. It does not state the job they want a product to do — that is
-delivered by the supervisor's Ask 2 so it lands inline in the trace.
+they're in. It does not state the job they want a product to do. The
+supervisor's Ask 2 delivers the job so it lands inline in the trace.
 
 Two distinct sources:
 
 - **Identity** (name, team, manager, teammates, repos, recent project
-  context, company facts) — drawn from the installation's synthetic
-  content. In a repository using `fit-terrain`, that is typically the DSL at
-  `data/synthetic/story.dsl` and the generated prose at
+  context, company facts) — take it from the installation's synthetic
+  content. In a repository that uses `fit-terrain`, that is typically the
+  DSL at `data/synthetic/story.dsl` and the generated prose at
   `data/synthetic/prose-cache.json`.
-- **Situation** (Trigger, Forces, Competes With) — drawn from the chosen
-  JTBD entry, rephrased lightly into the persona's voice.
+- **Situation** (Trigger, Forces, Competes With) — take it from the chosen
+  JTBD entry. Rephrase it lightly into the persona's voice.
 
-**Excluded** from the persona file: goal sentence, Big Hire, Little Hire,
-Fired-When, and any product name.
+**Exclude** these from the persona file: goal sentence, Big Hire, Little
+Hire, Fired-When, and any product name.
 
 ```markdown
 You are <Name>, <one or two lines of role narrative — no goal>.
@@ -58,5 +58,5 @@ Note friction in your final output — do not write findings to files.
 
 ## Worked examples
 
-See [`example-personas.md`](example-personas.md) for two complete personas
-filled out from a BioNova-themed installation.
+See [`example-personas.md`](example-personas.md) for two complete personas.
+Both come from a BioNova-themed installation.

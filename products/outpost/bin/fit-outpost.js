@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Thin entry point — the sole construction site for the runtime collaborator
-// bag, threaded into src/outpost.js's dispatch via run(runtime, version).
+// This file is the thin entry point. It is the sole construction site for the
+// runtime collaborator bag. It threads that bag into the dispatch in
+// src/outpost.js through run(runtime, version).
 import "@forwardimpact/libpreflight/node22";
 
 import { resolveVersion } from "@forwardimpact/libcli";

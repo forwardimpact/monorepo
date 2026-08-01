@@ -1,7 +1,7 @@
 # Jobs structure decision
 
-The jobs layer (L2) has two shapes. The choice is structural — it follows how
-the repository is packaged, not taste.
+The jobs layer (L2) has two shapes. The choice is structural. It follows how
+the repository is packaged. It does not follow taste.
 
 ## Decision
 
@@ -11,17 +11,17 @@ the repository is packaged, not taste.
 | Many packages, each with its own `package.json` | Generated `.jobs` blocks |
 | Unsure | Single static `JTBD.md` (fewer moving parts) |
 
-A repository can start static and migrate later. Going the other way — folding
-generated blocks back into a static file — is rarely worth it.
+A repository can start static and migrate later. The other direction folds
+generated blocks back into a static file. It is rarely worth it.
 
 ## Single static JTBD.md
 
-Author Big Hire entries directly in `JTBD.md`. Nothing generates them; the file
+Author Big Hire entries directly in `JTBD.md`. Nothing generates them. The file
 is the source of truth. `jidoka jtbd` validates entry structure but has
 nothing to regenerate.
 
-Best for a repository that ships as one unit: a single library, one service,
-or a monolith.
+This shape is best for a repository that ships as one unit: a single library,
+one service, or a monolith.
 
 ## Generated .jobs blocks
 
@@ -42,15 +42,17 @@ Each package declares its jobs in `package.json`:
 }
 ```
 
-`jidoka jtbd --fix` reads every package's `jobs`, validates them against
-the JTBD schema, and regenerates the marker-delimited catalog and job blocks in
-the directory READMEs and the root `JTBD.md`. Run it whenever a manifest's
-`jobs` change; CI fails if a generated block is stale.
+`jidoka jtbd --fix` reads every package's `jobs` and validates them against
+the JTBD schema. It then regenerates the marker-delimited catalog and job
+blocks in the directory READMEs and the root `JTBD.md`. Run it whenever a
+manifest's `jobs` change. CI fails if a generated block is stale.
 
-Best for a repository that is genuinely many packages with distinct personas.
+This shape is best for a repository that is genuinely many packages with
+distinct personas.
 
 ## Either way
 
-Entry quality is the same problem in both shapes — Big Hire vs Little Hire,
-trigger as a moment not a role, competing hires that include nonconsumption.
+Entry quality is the same problem in both shapes. Distinguish the Big Hire from
+the Little Hire. Make every trigger a moment. A role is not a trigger. Name the
+hires that compete, and include nonconsumption.
 Author entries with [jidoka-jtbd](../../jidoka-jtbd/SKILL.md).

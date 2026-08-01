@@ -1,40 +1,40 @@
 # Open Comment Gate — Resolution Model
 
 The STATUS approval signal in `wiki/STATUS.md` says ready-to-merge. A fresh,
-unaddressed concern from a trusted human contributor overrides it — do not
-close a thread on behalf of a human who has not yet reacted.
+unaddressed concern from a trusted human contributor overrides it. Do not close
+a thread on behalf of a human who did not react yet.
 
 ## Procedure
 
 `read` the change's discussion thread
 ([work-trackers.md](../../../agents/x-work-trackers.md)).
-For each top-7 human contributor (kata-release-merge Step 2 lookup) who has
+For each top-7 human contributor (kata-release-merge Step 2 lookup) who
 commented on the PR, read their **most recent** comment. If it raises a
-concern, question, or objection that has not been resolved by a **later**
-comment from the **same** human acknowledging or accepting the response, mark
-**blocked** with reason `awaiting trusted-contributor reply`.
+concern, question, or objection, look for a **later** comment from the **same**
+human that acknowledges or accepts the response. If no such comment exists,
+mark the PR **blocked** with reason `awaiting trusted-contributor reply`.
 
 ## What Does and Does Not Resolve the Gate
 
-- **A bot reply** (`product-manager`, `staff-engineer`, etc.) addressing the
-  concern does **not** resolve it — the trusted human must respond. The bot
+- **A bot reply** (`product-manager`, `staff-engineer`, etc.) that addresses
+  the concern does **not** resolve it. The trusted human must respond. The bot
   cannot speak for the human.
-- **A later comment from the same human** acknowledging or accepting the
-  response resolves the gate. Different humans do not substitute.
-- **An explicit approval signal from a trusted human** — label applied,
-  APPROVED review submitted, or merge performed by that human — overrides the
-  gate. These are direct resolution: the human has spoken with their hands on
-  the keyboard.
+- **A later comment from the same human** resolves the gate when it
+  acknowledges or accepts the response. Different humans do not substitute.
+- **An explicit approval signal from a trusted human** overrides the gate. That
+  signal is a label applied, an APPROVED review submitted, or a merge performed
+  by that human. These are direct resolution. The human spoke with their hands
+  on the keyboard.
 
 ## Why This Matters
 
-Speed of merge is not consent. A merge posted seconds after a substantive
-revision request, citing "all gates pass," treats the comment thread as
-ornamental. The gate exists so that humans who took the time to write feedback
-are not bypassed by a bot that finished its checks first. The block is **held
-open** until the human who raised the concern has the chance to either accept
-the response or supply an explicit override signal.
+Speed of merge is not consent. A merge that lands seconds after a substantive
+revision request treats the comment thread as ornamental, even when it cites
+"all gates pass". The gate exists so that a bot which finishes its checks first
+does not bypass the humans who took the time to write feedback. Hold the block
+open until the human who raised the concern gets the chance to accept the
+response or to supply an explicit override signal.
 
-The cost of waiting is small — a few minutes to hours. The cost of merging
-through an unaddressed concern is a broken trust loop: contributors stop
-commenting when comments are treated as no-ops.
+The cost of a wait is small. It runs from a few minutes to a few hours. A merge
+through an unaddressed concern breaks the trust loop. Contributors write no
+more comments when their comments become no-ops.

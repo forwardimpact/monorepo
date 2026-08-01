@@ -9,6 +9,6 @@ Specialties: {{specialties_joined}}.
 
 Write a description of this clinical trial site for potential participants.
 Cover: location, what specialties are available, how to get there, and
-what trials are currently recruiting. Be welcoming and practical.
+which trials recruit now. Be friendly and practical.
 
 {{#orgName}}Company: {{orgName}}.{{/orgName}}

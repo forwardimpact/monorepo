@@ -2,10 +2,11 @@
  * Negative-case schema tests for the kebab-case migration.
  *
  * The simplified standard enforces one delimiter (kebab-case) for every
- * lowercase identifier, drops `skill.agent.name`, and renames the
- * `role_modeling` maturity to `role-modeling`. These tests stage a temp data
- * dir and run the real SchemaValidator (same path as `fit-map validate`) to
- * prove each old shape is now rejected.
+ * lowercase identifier. It drops `skill.agent.name`. It renames the
+ * `role_modeling` maturity to `role-modeling`. These tests stage a temp
+ * data dir. They run the real SchemaValidator. That is the same path as
+ * `fit-map validate`. They prove that the validator now rejects each old
+ * shape.
  */
 
 import { test, describe } from "node:test";
@@ -34,7 +35,7 @@ function errorsFor(result, fileFragment) {
 }
 
 describe("kebab-case schema enforcement", () => {
-  test("snake_case driver id is rejected by the id pattern", async () => {
+  test("the id pattern rejects a snake_case driver id", async () => {
     const dir = stageDir();
     write(
       dir,
@@ -70,7 +71,7 @@ describe("kebab-case schema enforcement", () => {
     }
   });
 
-  test("role_modeling maturity is rejected by the enum", async () => {
+  test("the enum rejects the role_modeling maturity", async () => {
     const dir = stageDir();
     write(
       dir,
@@ -101,7 +102,7 @@ describe("kebab-case schema enforcement", () => {
     }
   });
 
-  test("skill.agent.name is rejected (additionalProperties)", async () => {
+  test("additionalProperties rejects skill.agent.name", async () => {
     const dir = stageDir();
     write(
       dir,

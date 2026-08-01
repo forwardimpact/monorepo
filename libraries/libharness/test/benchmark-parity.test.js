@@ -1,7 +1,7 @@
 /**
  * Skill ↔ CLI parity (spec criterion 13). Both must list the same
- * documentation entries in the same order — same title, same url, same
- * description.
+ * documentation entries in the same order. The title, the url, and the
+ * description must match.
  */
 
 import { describe, test } from "node:test";

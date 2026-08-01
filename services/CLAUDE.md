@@ -1,12 +1,12 @@
 # Services
 
-Conventions when working under `services/`. The catalog and jobs live in
-[README.md](README.md).
+Conventions that apply when you work under `services/`. The catalog and jobs
+live in [README.md](README.md).
 
 ## Audience
 
-Internal contributors only. Services are not published to npm. External
-users reach them through product CLIs and the MCP server.
+Internal contributors only. The repository does not publish services to npm.
+External users reach them through product CLIs and the MCP server.
 
 ### Mandate
 
@@ -24,13 +24,13 @@ server.js defaults → config.json service.<name> → .env SERVICE_{NAME}_*
 ```
 
 `libconfig` resolves `SERVICE_{NAME}_{KEY}` env vars **only for keys that
-already exist** in the merged object. Undeclared `.env` keys are ignored.
+already exist** in the merged object. It ignores undeclared `.env` keys.
 
 ### Key naming
 
-Config keys use **`snake_case`** — `github_repo`, `callback_base_url`,
-`backend_port`. This maps directly to `SERVICE_{NAME}_{KEY}` env vars.
-Do not use camelCase.
+Config keys use **`snake_case`**, for example `github_repo`,
+`callback_base_url`, `backend_port`. This maps directly to
+`SERVICE_{NAME}_{KEY}` env vars. Do not use camelCase.
 
 ### Where to declare keys
 
@@ -48,7 +48,7 @@ const config = await createServiceConfig("ghbridge", {
 
 This is the authoritative manifest of what the service expects.
 
-**`.env` (values).** Supplies actual values via `SERVICE_{NAME}_{KEY}`.
+**`.env` (values).** Supplies actual values through `SERVICE_{NAME}_{KEY}`.
 See `.env.*.example` for the full list.
 
 **`config.json` service blocks (rare).** Only when a key needs a
@@ -60,60 +60,61 @@ See [`config/CLAUDE.md`](../config/CLAUDE.md) and
 ## Architecture
 
 Most services expose gRPC (`proto/`). HTTP services standardize on `libhttp`'s
-`createHttpService` (Hono + `@hono/node-server`): `oauth` directly,
-`ghbridge`/`msbridge` via `libbridge`, `mcp` via a raw req/res escape hatch.
+`createHttpService` (Hono + `@hono/node-server`). `oauth` uses it directly.
+`ghbridge`/`msbridge` use it through `libbridge`. `mcp` uses it through a raw
+req/res escape hatch.
 
 Each service follows the same structure:
 
 - **`server.js`** — entry point (see § `server.js` sequence below). Shebang
-  `#!/usr/bin/env node`; bin entry `fit-svc<name>`.
+  `#!/usr/bin/env node`. Bin entry `fit-svc<name>`.
 - **`index.js`** — service class (gRPC) or factory (MCP).
 - **`proto/*.proto`** — gRPC definition (except `mcp`).
 - **`test/`** — `bun test test/*.test.js`.
 
 ### `server.js` sequence
 
-1. `createServiceConfig(name, defaults)` — declare keys, load config.
+1. `createServiceConfig(name, defaults)` — declare keys and load config.
 2. `createLogger(name)` and `createTracer(name)` — observability.
 3. Initialize domain dependencies (indexes, clients, data loaders).
-4. Construct service instance, wrap in `Server`, call `start()`.
+4. Construct the service instance. Wrap it in `Server`. Call `start()`.
 
 ## `package.json` metadata
 
 `description` becomes the catalog row in README.md. `keywords` are 4–6
-lowercase tokens; last is always `agent`. `jobs` are Little Hire entries.
-See `services/svcgraph/package.json` for a worked example. After editing,
-regenerate: `bun run context:fix`.
+lowercase tokens. The last one is always `agent`. `jobs` are Little Hire
+entries. See `services/svcgraph/package.json` for a worked example. After you
+edit, run `bun run context:fix` to regenerate.
 
 ## No external documentation
 
-Services have no published skills, no `--help` linking rules, and no
+Services have no published skills, no rules for `--help` links, and no
 fully-qualified documentation URLs. Each carries its own `README.md` for
 contributor context.
 
 ## Running services
 
-`fit-rc` runs the services in `config/config.json` `init.services` — gitignored,
-so create it first from the `init` structure in
-[`config/CLAUDE.md`](../config/CLAUDE.md) (dependency order; `start <name>`
-brings up everything before it). Use the `just` wrappers (`rc-start`, `rc-stop`,
-`rc-status`, `rc-restart`): they load `.env` (`set dotenv-load`), which services
+`fit-rc` runs the services in `config/config.json` `init.services`. Git ignores
+that file, so create it first from the `init` structure in
+[`config/CLAUDE.md`](../config/CLAUDE.md). Use dependency order. `start <name>`
+brings up everything before it. Use the `just` wrappers (`rc-start`, `rc-stop`,
+`rc-status`, `rc-restart`). They load `.env` (`set dotenv-load`), which services
 need for `SERVICE_*` config and auth. A bare `bunx fit-rc …` needs `.env`
 sourced first (`set -a; source .env; set +a`) or gRPC auth fails and calls hang.
 
 `fit-rc` spawns each service under Node (`node -e "import(...)"`). Do not
-hand-launch a gRPC `server.js` under Bun (`bun run …`) — it binds the port but
+hand-launch a gRPC `server.js` under Bun (`bun run …`). Bun binds the port but
 never dispatches RPCs, so clients hang. Logs: `data/logs/<name>/current`.
 
 ## Runtime data
 
-Runtime data lives under `data/`; bridge discussion and origin state at
-`data/bridges/{discussions,origins}.jsonl` (owned by `services/bridge`).
+Runtime data lives under `data/`. Bridge discussion and origin state lives at
+`data/bridges/{discussions,origins}.jsonl`, which `services/bridge` owns.
 
 ## Proto definitions
 
-gRPC services define their interface in `proto/<name>.proto`. After
-editing a proto file, regenerate bindings with `just codegen`.
+gRPC services define their interface in `proto/<name>.proto`. After you
+edit a proto file, regenerate the bindings with `just codegen`.
 
 ## Adding a service
 
@@ -123,5 +124,5 @@ editing a proto file, regenerate bindings with `just codegen`.
 - `index.js` — service implementation.
 - `proto/<name>.proto` — gRPC definition (unless MCP-only).
 - `test/` — `*.test.js` files.
-- Add entry to `config/config.json` under `init.services`.
+- Add an entry to `config/config.json` under `init.services`.
 - Run `bun run context:fix` to regenerate the catalog.

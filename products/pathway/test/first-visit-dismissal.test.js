@@ -32,10 +32,10 @@ afterEach(() => {
 });
 
 /**
- * Re-import the module with cache busting so each test gets a fresh module
- * graph. The module reads `window.localStorage` lazily inside its functions,
- * so a single import would still see the per-test window — the cache-bust
- * guards against any future hoisting of state into module top level.
+ * Re-import the module with a cache bust so each test gets a fresh module
+ * graph. The module reads `window.localStorage` lazily inside its functions.
+ * A single import would still see the per-test window. The cache-bust guards
+ * against any future move of state into the module top level.
  */
 async function loadModule() {
   return import(`${MODULE_PATH}?cache-bust=${Math.random()}`);
@@ -43,11 +43,11 @@ async function loadModule() {
 
 /**
  * Replace `window.localStorage` with an in-memory fake whose `name` method
- * throws. Stubbing a method on the real Storage instance is unreliable — the
- * DOM exposes Storage as a proxy that treats `storage.setItem = …` as writing
- * a *key* named "setItem" rather than shadowing the method. The module reads
- * `window.localStorage` lazily per call, so swapping the whole object on the
- * window is the dependable way to inject a failing method.
+ * throws. A stub on the real Storage instance is unreliable. The DOM exposes
+ * Storage as a proxy. That proxy treats `storage.setItem = …` as a write to a
+ * *key* named "setItem". It does not shadow the method. The module reads
+ * `window.localStorage` lazily per call. So this helper swaps the whole object
+ * on the window. That swap reliably injects a method that throws.
  */
 function stubStorageMethod(win, name, impl) {
   const store = new Map();
@@ -89,7 +89,7 @@ describe("first-visit-dismissal", () => {
     assert.strictEqual(isDismissed(), false);
   });
 
-  test("setItem throws — markDismissed returns without throwing", async () => {
+  test("setItem throws — markDismissed returns and does not throw", async () => {
     const { isDismissed, markDismissed } = await loadModule();
     stubStorageMethod(win, "setItem", () => {
       throw new Error("quota");

@@ -1,5 +1,5 @@
 /**
- * Pathway test fixtures for creating realistic test data
+ * Pathway test fixtures that create realistic test data
  * Provides mock disciplines, levels, tracks, skills, and behaviours
  */
 
@@ -27,7 +27,7 @@ export function createTestLevel(overrides = {}) {
 }
 
 /**
- * Creates a set of mock levels spanning junior to senior
+ * Creates a set of mock levels from junior to senior
  * @returns {object[]} Array of mock levels
  */
 export function createTestLevels() {
@@ -260,9 +260,9 @@ export function createTestDriver(overrides = {}) {
 }
 
 /**
- * Creates a mock skill matrix entry
+ * Creates a mock skill-matrix entry
  * @param {object} overrides - Properties to override
- * @returns {object} Mock skill matrix entry
+ * @returns {object} Mock skill-matrix entry
  */
 export function createTestSkillEntry(overrides = {}) {
   return {
@@ -278,9 +278,9 @@ export function createTestSkillEntry(overrides = {}) {
 }
 
 /**
- * Creates a mock behaviour profile entry
+ * Creates a mock behaviour-profile entry
  * @param {object} overrides - Properties to override
- * @returns {object} Mock behaviour profile entry
+ * @returns {object} Mock behaviour-profile entry
  */
 export function createTestBehaviourEntry(overrides = {}) {
   return {
@@ -314,7 +314,7 @@ export function createTestDrivers() {
 }
 
 /**
- * Creates a set of mock capabilities spanning delivery / scale / ai.
+ * Creates a set of mock capabilities across delivery / scale / ai.
  * @returns {object[]}
  */
 export function createTestCapabilities() {
@@ -416,7 +416,7 @@ export function createTestRoster(overrides = {}) {
 }
 
 /**
- * Creates a mock evidence row shared across map and landmark tests.
+ * Creates a mock evidence row that map tests and landmark tests share.
  * @param {object} [overrides]
  * @returns {object}
  */
@@ -433,7 +433,7 @@ export function createTestEvidenceRow(overrides = {}) {
 }
 
 /**
- * Creates a mock skill augmented with per-level markers (human + agent arrays).
+ * Creates a mock skill with per-level markers (human + agent arrays).
  * @param {object} [overrides]
  * @returns {object}
  */

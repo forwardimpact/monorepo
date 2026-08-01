@@ -1,9 +1,9 @@
 ---
 name: req-assess
 description: >
-  Analyze interview transcripts against the agent-aligned engineering standard,
-  updating skill and behaviour ratings with observed evidence. Produces
-  per-interview assessments and panel briefs for subsequent interview stages.
+  Analyze interview transcripts against the agent-aligned engineering standard.
+  Update skill and behaviour ratings with observed evidence. Produces
+  per-interview assessments and panel briefs for later interview stages.
   Use when transcript files appear in a candidate's folder.
 ---
 
@@ -11,7 +11,7 @@ description: >
 
 Analyze a candidate's interview transcripts. Update their skill and behaviour
 profile with **observed** (not claimed) evidence. Interview evidence is
-higher-fidelity than CV evidence — it confirms or contradicts the screening
+higher-fidelity than CV evidence. It confirms or contradicts the screening
 assessment.
 
 This is **Stage 2** of the three-stage hiring pipeline:
@@ -25,14 +25,14 @@ This is **Stage 2** of the three-stage hiring pipeline:
 - A new `transcript-*.md` file appears in `Knowledge/Candidates/{Name}/`.
 - The user asks to analyze an interview or debrief.
 - The user asks to prepare a panel brief.
-- The concierge agent processes a Anarlog interview recording.
+- The concierge agent processes an Anarlog interview recording.
 
 ## Prerequisites
 
 - `fit-pathway` CLI installed.
 - At least one transcript in `Knowledge/Candidates/{Name}/`.
-- `screening.md` should exist; if missing, run `req-screen` first (proceed
-  regardless).
+- `screening.md` should exist. If it is missing, run `req-screen` first.
+  Proceed regardless.
 
 ## Inputs
 
@@ -50,15 +50,15 @@ This is **Stage 2** of the three-stage hiring pipeline:
 <do_confirm_checklist goal="Verify the assessment is grounded in transcript
 evidence">
 
-- [ ] Every skill re-rating cites a specific moment from the transcript.
-- [ ] Behaviour assessments reference observed actions, not claimed traits.
-- [ ] Level assessment uses standard progression criteria, not gut feel.
-- [ ] Interviewer observations are attributed by name.
-- [ ] Confirmed strengths and new concerns are distinguished.
-- [ ] Panel brief (if created) is written for non-technical readers and ties
-      suggested questions to remaining gaps.
-- [ ] Brief's Pipeline section, links, and Status are updated.
-- [ ] Gender field is **not** updated from interview observations.
+- [ ] Cite a specific moment from the transcript for every skill re-rating.
+- [ ] Base behaviour assessments on observed actions. Ignore claimed traits.
+- [ ] Assess the level with standard progression criteria. Ignore gut feel.
+- [ ] Attribute interviewer observations by name.
+- [ ] Distinguish confirmed strengths from new concerns.
+- [ ] Write the panel brief (if created) for non-technical readers. Tie the
+      suggested questions to the remaining gaps.
+- [ ] Update the brief's Pipeline section, links, and Status.
+- [ ] **Never** update the Gender field from interview observations.
 
 </do_confirm_checklist>
 
@@ -79,8 +79,8 @@ bunx fit-pathway skill {skill_id}
 bunx fit-pathway behaviour --list
 ```
 
-If screening recommended a different level than originally targeted (e.g. J100 →
-J090), load **both** for comparison.
+If screening recommended a level different from the original target (e.g. J100
+→ J090), load **both** for comparison.
 
 ### 3. Re-rate skills
 
@@ -90,8 +90,8 @@ moment, quote, or observation per change.
 
 ### 4. Re-rate behaviours
 
-Behaviours are better assessed in interviews than CVs — they describe how
-someone acts, not what they've done. Use the
+Interviews assess behaviours better than CVs. Behaviours describe how someone
+acts. They do not describe what someone did. Use the
 [behaviour signals](references/rubric.md#behaviour-signals) and the
 [behaviour maturity scale](references/rubric.md#behaviour-maturity-scale).
 
@@ -105,23 +105,23 @@ Apply the [level signals](references/rubric.md#level-signals).
 
 ### 6. Write the interview assessment
 
-Save to `Knowledge/Candidates/{Name}/interview-{date}.md` using
+Save to `Knowledge/Candidates/{Name}/interview-{date}.md` with
 [references/interview-template.md](references/interview-template.md). Include
-only skills with new evidence — don't repeat the full matrix.
+only skills with new evidence. Do not repeat the full matrix.
 
 ### 7. Generate the panel brief (if applicable)
 
-When more interview stages are planned (panel, technical, etc.), pull question
+When you plan more interview stages (panel, technical, etc.), pull question
 candidates:
 
 ```bash
 bunx fit-pathway interview {discipline} {level} --track={track}
 ```
 
-Save `Knowledge/Candidates/{Name}/panel.md` using
-[references/panel-template.md](references/panel-template.md). Audience:
-next-stage interviewers, often non-engineers — explain without jargon and tie
-suggested questions to remaining gaps.
+Save `Knowledge/Candidates/{Name}/panel.md` with
+[references/panel-template.md](references/panel-template.md). The audience is
+next-stage interviewers, often non-engineers. Explain without jargon. Tie the
+suggested questions to the remaining gaps.
 
 ### 8. Update the candidate brief
 

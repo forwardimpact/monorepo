@@ -1,18 +1,18 @@
 import { composeTaskFromGitHubEvent } from "../events/github.js";
 
 /**
- * Resolve `--task-file` / `--task-text` / `--task-event` into the task pair the
- * runner consumes. Exactly one of the three must be set. For `--task-event`,
- * libharness reads the event payload and extracts both the main task (from the
- * template that matches `$GITHUB_EVENT_NAME` + `payload.action`) and the
- * amendment (from `payload.inputs?.prompt`) — so the workflow doesn't need to
- * wire `--task-amend` separately. For the other two modes, `--task-amend`
- * works as before.
+ * Resolve `--task-file` / `--task-text` / `--task-event` into the task pair
+ * the runner consumes. Exactly one of the three must be set. For
+ * `--task-event`, libharness reads the event payload. It extracts both the
+ * main task (from the template that matches `$GITHUB_EVENT_NAME` +
+ * `payload.action`) and the amendment (from `payload.inputs?.prompt`). So the
+ * workflow does not need to wire `--task-amend` separately. For the other two
+ * modes, `--task-amend` works as before.
  *
  * @param {object} values - Parsed option values from cli.parse()
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Ambient
- *   collaborators; `fsSync.readFileSync` loads `--task-file`/`--task-event`
- *   and `proc.env` resolves `GITHUB_EVENT_NAME`.
+ *   collaborators. `fsSync.readFileSync` loads `--task-file`/`--task-event`.
+ *   `proc.env` resolves `GITHUB_EVENT_NAME`.
  * @returns {{ task: string, amend: string | undefined }}
  */
 export function resolveTaskContent(values, runtime) {

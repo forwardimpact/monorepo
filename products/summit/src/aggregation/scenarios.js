@@ -1,8 +1,8 @@
 /**
- * Scenario parsing and validation for what-if simulations.
+ * Parse and validate scenarios for what-if simulations.
  *
- * Split out from what-if.js so tests can exercise the parser and the
- * mutator independently.
+ * This module is separate from what-if.js so tests can exercise the
+ * parser and the mutator independently.
  */
 
 import { parse as parseYaml } from "yaml";
@@ -40,7 +40,7 @@ export class ScenarioError extends Error {
 /**
  * Parse CLI options into a normalized Scenario object.
  *
- * @param {object} options - Raw CLI options (already parsed by libcli).
+ * @param {object} options - Raw CLI options (libcli already parsed them).
  * @param {object} context
  * @param {string} [context.teamId]
  * @param {string} [context.projectId]
@@ -93,8 +93,8 @@ export function parseScenario(options, context = {}) {
 }
 
 /**
- * Parse a flow-style YAML job expression. Used by both what-if and
- * (potentially) other callers that need to parse CLI job arguments.
+ * Parse a flow-style YAML job expression. What-if uses it. Other
+ * callers that need to parse CLI job arguments can also use it.
  *
  * @param {string} input
  * @returns {{ discipline: string, level: string, track?: string }}

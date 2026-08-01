@@ -2,10 +2,10 @@
 /**
  * Summarize the contents of ~/Desktop/ and ~/Downloads/.
  *
- * Counts top-level files in both directories by type (Screenshots, PDFs,
- * Images, Documents, Archives, Installers, Other) and prints a human-readable
- * table for each. Used by the organize-files skill to preview directory
- * contents before organizing.
+ * The script counts top-level files in both directories by type
+ * (Screenshots, PDFs, Images, Documents, Archives, Installers, Other). It
+ * prints a human-readable table for each directory. The organize-files skill
+ * uses this script to preview directory contents before it organizes them.
  */
 
 import { existsSync, readdirSync, statSync } from "node:fs";

@@ -1,7 +1,7 @@
 import { Readable, Writable } from "node:stream";
 import { spy } from "./spy.js";
 /**
- * Creates a mock filesystem backed by an in-memory Map
+ * Creates a mock filesystem over an in-memory Map
  * @param {Object<string, string>} files - Initial file contents keyed by path
  * @returns {object} Mock fs with readFile, writeFile, readdir, stat, mkdir, access, copyFile
  */
@@ -55,8 +55,8 @@ export function createMockFs(files = {}) {
       data.delete(src);
     }),
     readdir: spy(async (path, opts = {}) => {
-      // Collect immediate children; an entry is a directory if anything lives
-      // below it (a deeper key) or it was registered via mkdir/cp.
+      // Collect immediate children. An entry is a directory if anything lives
+      // below it (a deeper key), or if mkdir/cp registered it.
       const prefix = path.endsWith("/") ? path : `${path}/`;
       const isDir = new Map();
       for (const key of [...data.keys(), ...dirs]) {
@@ -95,7 +95,7 @@ export function createMockFs(files = {}) {
     }),
     mkdtemp: spy(async (prefix) => {
       // Mirror node:fs/promises.mkdtemp: append 6 random chars to the prefix
-      // and register the directory. Returns the created path.
+      // and register the directory. Then return the created path.
       const path = `${prefix}${Math.random().toString(36).slice(2, 8)}`;
       dirs.add(path);
       return path;
@@ -173,8 +173,8 @@ export function createMockFs(files = {}) {
       }
       for (const dir of [...dirs].filter(under)) dirs.add(reroot(dir));
     }),
-    // Timestamps and permissions are not modeled by the in-memory store; these
-    // record the call (via spy) so consumers stay testable and assertable.
+    // The in-memory store does not model timestamps or permissions. These
+    // record the call (with spy) so consumers stay testable and assertable.
     utimes: spy(async () => {}),
     chmod: spy(async () => {}),
     existsSync: spy((path) => data.has(path) || dirs.has(path)),
@@ -230,12 +230,12 @@ export function createMockFs(files = {}) {
       }
       return [...names];
     }),
-    // Permissions are not modeled by the in-memory store; record the call.
+    // The in-memory store does not model permissions. Record the call.
     chmodSync: spy(() => {}),
     openSync: spy((path, flags = "r") => {
-      // For write/append flags, create/truncate; for read flags, require the
+      // For write/append flags, create/truncate. For read flags, require the
       // file to exist (mirror node:fs.openSync ENOENT). Hand back a synthetic
-      // descriptor that records its backing path.
+      // descriptor that records the path it opens.
       const reading = typeof flags === "string" && flags.startsWith("r");
       if (reading && !data.has(path)) {
         const err = new Error(
@@ -251,7 +251,7 @@ export function createMockFs(files = {}) {
     }),
     readSync: spy((fd, buffer, offset = 0, length, position = 0) => {
       // Mirror fs.readSync(fd, buffer, offset, length, position): copy bytes
-      // from the file's stored content into `buffer`, returning the byte count.
+      // from the file's stored content into `buffer`. Return the byte count.
       const path = openFds.get(fd);
       if (path === undefined) {
         const err = new Error("EBADF: bad file descriptor, read");

@@ -18,7 +18,8 @@ const definition = {
     {
       name: "search",
       args: "<query>",
-      description: "Search the vector index by embedding a query string",
+      description:
+        "Search the vector index with an embedding of the query string",
       examples: ["fit-rag search 'career progression'"],
     },
     {
@@ -44,19 +45,19 @@ const definition = {
       title: "Search Semantically",
       url: "https://www.forwardimpact.team/docs/libraries/ground-agents/search-semantically/index.md",
       description:
-        "Find related content by meaning with ranked results from a vector index, no vector database required.",
+        "Find related content by meaning with ranked results from a vector index. You do not need a vector database.",
     },
     {
       title: "Query a Knowledge Graph",
       url: "https://www.forwardimpact.team/docs/libraries/ground-agents/query-graph/index.md",
       description:
-        "Answer relationship questions from an RDF graph index with triple-pattern queries and type-filtered subject listings.",
+        "Answer relationship questions from an RDF graph index with triple-pattern queries and type-filtered subject lists.",
     },
     {
       title: "Give Agents Typed, Retrievable Knowledge",
       url: "https://www.forwardimpact.team/docs/libraries/ground-agents/index.md",
       description:
-        "The full workflow for building the graph and vector indexes from HTML knowledge sources, then querying them.",
+        "The full workflow to build the graph and vector indexes from HTML knowledge sources, then query them.",
     },
   ],
 };
@@ -75,7 +76,7 @@ const cli = createCli(definition, {
 const logger = createLogger("rag", runtime);
 
 /**
- * Parse argv, route the leading positional to its read handler.
+ * Parse argv. Route the leading positional to its read handler.
  * @returns {Promise<void>}
  */
 async function main() {

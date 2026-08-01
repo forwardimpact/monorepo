@@ -2,7 +2,7 @@
 
 ## Information Architecture
 
-Six-tier hierarchy under `websites/<site>/docs/` serving four user groups
+A six-tier hierarchy under `websites/<site>/docs/` serves four user groups
 (Leadership, Engineers, Builders and Agents, Contributors):
 
 | Tier              | Intent                              | Subsections                                                                                                                                                                            |
@@ -34,30 +34,30 @@ names, or import statements.
 ## Writing Principles
 
 **Product, Library, and Service tiers are task-oriented.** The folder name
-signals audience, not page contents. A task may span multiple products or
-libraries.
+signals the audience. It does not signal the page contents. A task may span
+multiple products or libraries.
 
-**Reference is lookup, not tutorial.** Structured, scannable — no prose
-narrative.
+**Reference is lookup.** Do not write a tutorial. Keep it structured and
+scannable. Write no prose narrative.
 
-**Link to existing artifacts, don't duplicate.** Published JSON Schema and
-RDF/SHACL live under the product's schema directory — link to them instead of
-reproducing. Published SKILL.md files link to Product Guides, Library Guides,
+**Link to existing artifacts. Do not duplicate them.** Published JSON Schema and
+RDF/SHACL live under the product's schema directory. Link to them. Do not
+reproduce them. Published SKILL.md files link to Product Guides, Library Guides,
 and Reference markdown companions for progressive disclosure.
 
 **Published skills use absolute URLs.** Published skills (`fit-*`) run on
-external systems — use the full domain. Internal skills (`libs-*`, `kata-*`) may
+external systems. Use the full domain. Internal skills (`libs-*`, `kata-*`) may
 use repo-relative paths.
 
-**All tiers produce stable agent-fetchable URLs.** Every page gets a markdown
-companion via `libdoc` at a predictable URL.
+**All tiers produce stable agent-fetchable URLs.** `libdoc` gives every page a
+markdown companion at a predictable URL.
 
 ## Formatting Consistency
 
-Formatting and terminology must be identical across pages.
+The format and terminology must be identical across pages.
 
-**Repeating tables** — Canonical proficiency and behaviour maturity tables live
-in the Authoring Standards guide; copies must match exactly.
+**Repeated tables** — The canonical tables for proficiency and behaviour
+maturity live in the Authoring Standards guide. Copies must match exactly.
 
 **Field names** — Use the same tier vocabulary across disciplines and levels:
 
@@ -69,7 +69,7 @@ in the Authoring Standards guide; copies must match exactly.
 Tier names in `baseSkillProficiencies` match discipline `<tier>Skills` arrays.
 
 **Required/optional fields** — Verify against the product's JSON schema
-directory. The schema's `required` array is the single source of truth — do not
+directory. The schema's `required` array is the single source of truth. Do not
 guess from examples.
 
 **Casing** — Table cells lowercase unless proper nouns or sentence starts.
@@ -87,23 +87,26 @@ Documentation lives in two layers: repository root and website.
 | `CONTRIBUTING.md` | PR workflow, git conventions, quality, security | All contributors |
 | `SECURITY.md`     | Vulnerability reporting                         | All contributors |
 
-CONTRIBUTING.md is canonical for policies — CLAUDE.md references it. Onboarding
-at `getting-started/contributors/`; operations at `internals/operations/`.
+CONTRIBUTING.md is canonical for policies. CLAUDE.md references it. Onboarding
+lives at `getting-started/contributors/`. Operations live at
+`internals/operations/`.
 
 ## Content Framing
 
-Guides frame around the reader's progress, not product features.
+Guides frame around the reader's progress. Do not frame around product
+features.
 
 | Instead of                            | Write                                                              |
 | ------------------------------------- | ------------------------------------------------------------------ |
 | "Summit generates coverage heatmaps"  | "See which capabilities the team covers and where the gaps are"    |
 | "Guide answers career questions"      | "When a promotion conversation ends with 'not yet,' get specifics" |
 
-Banned JTBD vocabulary in guides: job, hire, fire, trigger, forces, compete.
+Never use this JTBD vocabulary in guides: job, hire, fire, trigger, forces,
+compete.
 
 ## Layouts
 
-| Layout    | Use for                                                                             |
-| --------- | ----------------------------------------------------------------------------------- |
-| `product` | Section index pages (Getting Started, Guides, Reference, Internals) — grid of cards |
-| _(none)_  | Leaf pages — prose with table of contents                                           |
+| Layout    | Use for                                                                              |
+| --------- | ------------------------------------------------------------------------------------ |
+| `product` | Section index pages (Getting Started, Guides, Reference, Internals) as a card grid   |
+| _(none)_  | Leaf pages with prose and a table of contents                                        |

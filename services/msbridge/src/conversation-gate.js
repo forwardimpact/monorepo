@@ -4,15 +4,15 @@ const REDIRECT_MESSAGE =
   "To link your GitHub account, please DM this bot directly.";
 
 /**
- * Fail-closed personal-conversation gate for the link-resume flow. Anything
- * other than a `"personal"` Bot Framework conversation type (including
- * `undefined`, `null`, `"groupChat"`, `"channel"`, and any future channel
- * shape) short-circuits to a static DM-redirect notice without writing
- * pending-dispatch state. The bridge-originated-proof identity contract
- * requires link-token confidentiality, which only personal conversations
- * provide; a multi-party conversation that sees the augmented URL lets any
- * participant race `/authorize` and bind the asserted identity to their
- * own GitHub account.
+ * Fail-closed personal-conversation gate for the link-resume flow. The gate
+ * accepts only a `"personal"` Bot Framework conversation type. Every other
+ * value (`undefined`, `null`, `"groupChat"`, `"channel"`, and any future
+ * channel shape) short-circuits to a static DM-redirect notice. The gate
+ * writes no pending-dispatch state in that case. The identity contract for
+ * bridge-originated proof needs the link token to stay confidential. Only a
+ * personal conversation keeps it confidential. A multi-party conversation
+ * that sees the augmented URL lets any participant race `/authorize`. That
+ * participant then binds the asserted identity to their own GitHub account.
  *
  * @param {string | undefined | null} conversationType
  * @param {object} ctx

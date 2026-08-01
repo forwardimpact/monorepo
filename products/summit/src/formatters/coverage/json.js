@@ -1,9 +1,9 @@
 /**
  * JSON formatter for the `coverage` command.
  *
- * Shape mirrors spec.md:836–847 for project teams. For reporting teams,
- * `effectiveFte` is omitted and skill rows carry a simple `depth` instead
- * of split derived/effective fields.
+ * The shape mirrors spec.md:836–847 for project teams. For reporting
+ * teams, the formatter omits `effectiveFte`. Skill rows then carry a
+ * simple `depth` in place of split derived and effective fields.
  */
 
 /**

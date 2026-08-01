@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/libui",
   "version": "1.4.1",
-  "description": "Agent-friendly web surfaces — share handler logic across web and terminal so capabilities ship once, not twice.",
+  "description": "Agent-friendly web surfaces — share handler logic across web and terminal so capabilities ship only once.",
   "keywords": [
     "ui",
     "dom",
@@ -22,7 +22,7 @@
       "user": "Platform Builders",
       "goal": "Enable Agents on Every Surface",
       "trigger": "Building a web view for a product and realizing the handler logic is already written for the CLI but locked to the terminal.",
-      "bigHire": "ship a web surface reusing the same handler logic as the terminal.",
+      "bigHire": "ship a web surface that reuses the same handler logic as the terminal.",
       "littleHire": "add a capability once and have it appear in both web and terminal.",
       "competesWith": "duplicating handlers per surface; terminal-only products; building a separate web app from scratch"
     }

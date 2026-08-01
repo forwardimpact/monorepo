@@ -1,5 +1,5 @@
 /**
- * Discipline formatting for DOM output
+ * Discipline formatter for DOM output
  */
 
 import {
@@ -25,7 +25,7 @@ import { createJsonLdScript, disciplineToJsonLd } from "../json-ld.js";
 import { createBadge } from "../../components/card.js";
 
 /**
- * Get type badges for discipline (Management/Professional)
+ * Get the type badges for the discipline (Management/Professional)
  * @param {Object} discipline - Raw discipline entity
  * @returns {HTMLElement[]}
  */

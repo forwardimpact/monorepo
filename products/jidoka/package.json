@@ -22,7 +22,7 @@
     {
       "user": "Teams Using Agents",
       "goal": "Build Quality Into Agent Instructions",
-      "trigger": "The team's layered instructions exist, but nothing enforces them — layers drift and restate each other, and stale jobs blocks ship unnoticed until an agent misbehaves.",
+      "trigger": "The team's layered instructions exist, but nothing enforces them. Layers drift and restate each other. Stale jobs blocks ship unnoticed until an agent misbehaves.",
       "bigHire": "keep humans and agents on one layered instruction architecture, with checks that stop the line the moment a layer drifts.",
       "littleHire": "check one layer's caps, validate the jobs blocks, or run the repository's invariant rules with a single command before commit.",
       "competesWith": "unenforced conventions; review-time nitpicking; hand-rolled lint scripts; letting drift accumulate until a rewrite",
@@ -30,7 +30,7 @@
         "push": "Instruction sprawl keeps breaking agent behavior with no layer to blame.",
         "pull": "One command family and CI action that stop the line at the first drifted layer.",
         "habit": "Trusting contributors to keep instructions tidy by hand.",
-        "anxiety": "Another gate slowing every commit."
+        "anxiety": "Another gate that slows every commit."
       },
       "firedWhen": "the checks block more work than the drift they catch, or the team stops layering its instructions."
     }

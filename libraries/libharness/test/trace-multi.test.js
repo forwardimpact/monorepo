@@ -9,8 +9,9 @@ import {
 } from "../src/trace-multi.js";
 
 /**
- * Build a stub loader: maps a filename to a fixed TraceQuery-like object whose
- * methods the tests drive. The orchestrator only calls the injected `query`.
+ * Build a stub loader. It maps a filename to a fixed TraceQuery-like object
+ * whose methods the tests drive. The orchestrator only calls the injected
+ * `query`.
  */
 function stubLoad(map) {
   return (file) => map[file];

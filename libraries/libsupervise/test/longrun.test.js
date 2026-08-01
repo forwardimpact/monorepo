@@ -63,7 +63,7 @@ describe("LongrunProcess", () => {
       );
     });
 
-    test("creates instance with valid parameters", () => {
+    test("creates an instance with valid parameters", () => {
       const longrun = new LongrunProcess("test", "echo hello", opts());
       assert.ok(longrun instanceof LongrunProcess);
       assert.ok(longrun instanceof EventEmitter);
@@ -90,7 +90,7 @@ describe("LongrunProcess", () => {
   });
 
   describe("getState", () => {
-    test("returns initial state as down", () => {
+    test("returns the initial state as down", () => {
       const longrun = new LongrunProcess("test", "echo hello", opts());
       const state = longrun.getState();
 
@@ -101,14 +101,14 @@ describe("LongrunProcess", () => {
   });
 
   describe("signal", () => {
-    test("does not throw when process is not running", () => {
+    test("does not throw when the process is not running", () => {
       const longrun = new LongrunProcess("test", "echo hello", opts());
       assert.doesNotThrow(() => longrun.signal("SIGTERM"));
     });
   });
 
   describe("stop", () => {
-    test("resolves immediately when process is not running", async () => {
+    test("resolves immediately when the process is not running", async () => {
       const longrun = new LongrunProcess("test", "echo hello", opts());
       await longrun.stop();
       const state = longrun.getState();
@@ -116,7 +116,7 @@ describe("LongrunProcess", () => {
       assert.strictEqual(state.state, "down");
     });
 
-    test("transitions to down state", async () => {
+    test("transitions to the down state", async () => {
       const longrun = new LongrunProcess("test", "echo hello", opts());
       await longrun.stop();
 
@@ -138,7 +138,7 @@ describe("LongrunProcess", () => {
     });
   });
 
-  describe("subprocess.spawn bridging (mock subprocess)", () => {
+  describe("subprocess.spawn bridge (mock subprocess)", () => {
     test("routes through subprocess.spawn with a detached process group", async () => {
       const subprocess = createMockSubprocess({
         responses: { bash: { stdout: "hello\n", pid: 1234 } },
@@ -160,7 +160,7 @@ describe("LongrunProcess", () => {
       assert.deepStrictEqual(call.args, ["-c", "echo hello"]);
       assert.strictEqual(call.opts.detached, true);
       assert.deepStrictEqual(ups, [{ name: "svc", pid: 1234 }]);
-      // Stop supervising so the auto-restart backoff loop doesn't keep firing.
+      // Call stop() so the auto-restart backoff loop does not fire again.
       await longrun.stop();
     });
 
@@ -184,8 +184,8 @@ describe("LongrunProcess", () => {
       await longrun.stop();
     });
 
-    test("emits error when spawn returns no pid (spawn failure)", async () => {
-      // The default mock always hands back a pid; a spawn failure (pid
+    test("emits an error when spawn returns no pid (spawn failure)", async () => {
+      // The default mock always hands back a pid. A spawn failure (pid
       // undefined) needs an explicit stub.
       const subprocess = {
         spawn: () => ({
@@ -212,7 +212,7 @@ describe("LongrunProcess", () => {
       assert.match(errors[0].error.message, /failed to spawn/);
     });
 
-    test("signal kills the process group via runtime.proc.kill", async () => {
+    test("signal kills the process group through runtime.proc.kill", async () => {
       // A child whose exitCode never resolves stays "up" so the synchronous
       // signal() path can read its live pid.
       const subprocess = {

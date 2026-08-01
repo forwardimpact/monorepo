@@ -1,7 +1,7 @@
 /**
  * Text formatter for the `coverage` command.
  *
- * Output layout mirrors spec.md:179–189 for reporting teams and
+ * The output layout mirrors spec.md:179–189 for reporting teams and
  * spec.md:211–221 for project teams with allocation.
  */
 
@@ -11,7 +11,7 @@ import { formatFte, padRight, renderBar } from "../shared.js";
  * Render a TeamCoverage object as plain text.
  *
  * @param {import("../../aggregation/coverage.js").TeamCoverage} coverage
- * @param {object} data - Map data for capability ordering.
+ * @param {object} data - Map data for the capability order.
  * @returns {string}
  */
 export function coverageToText(coverage, data) {

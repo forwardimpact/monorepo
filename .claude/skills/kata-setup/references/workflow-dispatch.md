@@ -1,18 +1,18 @@
 # Workflow Template: Event-Driven Dispatch
 
-Responds to issue and PR events. The product-manager facilitates and routes to
-the best-suited agent. File name: `agent-dispatch.yml`. Replace `{{AGENT_LIST}}`
-(all agents except product-manager and improvement-coach), `{{MODEL}}`, and the
-`{{FIT_BOOTSTRAP_REF}}` / `{{FIT_HARNESS_REF}}` / `{{FIT_WIKI_REF}}` action refs
-(resolved at generation time — see
-[`workflow-shift.md` § Resolving action refs](workflow-shift.md#resolving-action-refs)).
+This workflow responds to issue and PR events. The product-manager facilitates
+and routes to the best-suited agent. File name: `agent-dispatch.yml`. Replace
+`{{AGENT_LIST}}` (all agents except product-manager and improvement-coach),
+`{{MODEL}}`, and the `{{FIT_BOOTSTRAP_REF}}` / `{{FIT_HARNESS_REF}}` /
+`{{FIT_WIKI_REF}}` action refs. Resolve the refs at generation time. See
+[`workflow-shift.md` § Resolving action refs](workflow-shift.md#resolving-action-refs).
 
-The workflow does **no prompt assembly**: it hands the runner's native event
-payload to the action (`task-event: ${{ github.event_path }}`), which composes
-the task (context, routing, recursion guard), so untrusted fields never hit a
-shell. The block below is **self-hosted**; for the **hosted** control plane
-([`SKILL.md`](../SKILL.md) `--hosted`) apply the
-[§ Hosted variant](#hosted-variant) delta — no `KATA_APP_PRIVATE_KEY`.
+The workflow does **no prompt assembly**. It hands the runner's native event
+payload to the action (`task-event: ${{ github.event_path }}`). The action
+composes the task from context, routing, and the recursion guard. So untrusted
+fields never hit a shell. The block below is **self-hosted**. For the
+**hosted** control plane ([`SKILL.md`](../SKILL.md) `--hosted`), apply the
+[§ Hosted variant](#hosted-variant) delta. It uses no `KATA_APP_PRIVATE_KEY`.
 
 ## Template (Self-Hosted)
 
@@ -109,9 +109,9 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-Uses `harness` (not `kata-agent`) so it can pass `task-event` and select `mode`
-per event; keep `if:` aligned with `on:`. Refs are SHA-pinned at generation
-time (Dependabot per `SKILL.md`).
+This workflow uses `harness` rather than `kata-agent`, so it can pass
+`task-event` and select `mode` per event. Keep `if:` aligned with `on:`. Pin
+the refs to SHAs at generation time (Dependabot per `SKILL.md`).
 
 ## Hosted Variant
 
@@ -121,8 +121,8 @@ This workflow mints its own token, so the hosted delta differs from shift:
 2. Replace the `Generate token` step with the OIDC mint step from
    [`workflow-shift.md` § Template (hosted)](workflow-shift.md).
 3. Change the checkout `token:`, the bootstrap `token:`, and the `Assess and
-   Act` `GH_TOKEN:` from `${{ steps.ci-app.outputs.token }}` to
+   Act` `GH_TOKEN:`. Each moves from `${{ steps.ci-app.outputs.token }}` to
    `${{ steps.mint.outputs.token }}`.
 
-`Push wiki changes` still mints from App secrets (unchanged); needs the
-`FIT_OIDC_URL` repository variable.
+`Push wiki changes` still mints from App secrets and does not change. The
+hosted variant needs the `FIT_OIDC_URL` repository variable.

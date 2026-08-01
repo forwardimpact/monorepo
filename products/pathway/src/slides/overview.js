@@ -38,7 +38,7 @@ function formatDisciplineGroupName(groupName) {
 /**
  * Render discipline group header
  * @param {string} groupName - Group name
- * @param {number} count - Number of items in group
+ * @param {number} count - Number of items in the group
  * @returns {HTMLElement}
  */
 function renderDisciplineGroupHeader(groupName, count) {

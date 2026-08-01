@@ -68,13 +68,13 @@ describe("evaluateTrigger", () => {
     );
   });
 
-  test("kind=escalation_needed throws as reserved for future use", () => {
+  test("kind=escalation_needed throws because it is reserved for future use", () => {
     expect(() =>
       evaluateTrigger({ kind: "escalation_needed", signal: "ack" }, {}, 0),
     ).toThrow(/reserved for future use/);
   });
 
-  test("now is caller-provided — function never reads Date.now()", () => {
+  test("the caller provides now and the function never reads Date.now()", () => {
     const t = { kind: "elapsed", elapsed: "P14D" };
     const fixed = 0;
     const result = evaluateTrigger(t, { opened_at: -1_000 }, fixed);

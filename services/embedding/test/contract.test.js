@@ -3,11 +3,11 @@ import assert from "node:assert";
 
 import { EmbeddingService } from "../index.js";
 
-// RPC-contract snapshot (plan-a-06 Step 2 substitution for services): the
+// RPC-contract snapshot (plan-a-06 Step 2 substitution for services). The
 // embedding adapter is a thin translator over the TEI HTTP backend, so the
 // contract is the request it issues and the proto-shaped response it returns.
-// The backend is stubbed via a fake `fetch`, so no real subprocess or network
-// is touched — the test exercises only the adapter's record shape.
+// A fake `fetch` stubs the backend, so the test touches no real subprocess
+// and no real network. The test exercises only the adapter's record shape.
 
 describe("embedding service contract", () => {
   const config = { backend_port: 8090, model: "test-model" };
@@ -22,7 +22,7 @@ describe("embedding service contract", () => {
     globalThis.fetch = originalFetch;
   });
 
-  test("construction requires a backendUrl", () => {
+  test("the constructor requires a backendUrl", () => {
     assert.throws(() => new EmbeddingService(config, ""), /backendUrl/);
   });
 
@@ -44,9 +44,9 @@ describe("embedding service contract", () => {
     assert.strictEqual(calls.length, 1);
     assert.strictEqual(calls[0].url, `${backendUrl}/v1/embeddings`);
     assert.strictEqual(calls[0].init.method, "POST");
-    // The adapter intentionally sends a fixed `model: "default"` (TEI is
-    // single-model per process; the model is selected at spawn via
-    // `--model-id`), so `config.model` does not flow into the request body.
+    // The adapter intentionally sends a fixed `model: "default"`. TEI is
+    // single-model per process, and `--model-id` selects the model at
+    // spawn. So `config.model` does not flow into the request body.
     assert.deepStrictEqual(JSON.parse(calls[0].init.body), {
       input: ["a", "b"],
       model: "default",

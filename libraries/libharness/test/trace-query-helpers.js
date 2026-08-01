@@ -2,7 +2,7 @@
  * Shared trace fixture for the TraceQuery sibling suites.
  */
 /**
- * Build a minimal structured trace for testing.
+ * Build a minimal structured trace for the tests.
  * @param {object} [overrides]
  * @returns {object}
  */

@@ -4,18 +4,19 @@ export const BROADCAST_TARGET = "all";
 
 export const MEMORY_FILE = "MEMORY.md";
 
-// Row-structured singleton surfaces under the sync-merge discipline: when a
+// Row-structured singleton surfaces under the sync-merge discipline. When a
 // landing on one of these is contended, the resolution re-runs the row
-// operation against the fresh remote tip (rebase the operation, not the
-// lines), never a textual merge. Founding member: MEMORY.md (the Active Claims
-// table). STATUS.md phase rows join as their own re-apply operations land.
-// Metrics CSV appends take the complementary union-merge path below.
+// operation against the fresh remote tip. It rebases the operation. It does
+// not rebase the lines, and it never does a textual merge. Founding member:
+// MEMORY.md (the Active Claims table). STATUS.md phase rows join as their own
+// re-apply operations land. Metrics CSV appends take the complementary
+// union-merge path below.
 export const SINGLETON_PATHS = new Set([MEMORY_FILE]);
 
 // The tracked `.gitattributes` declaration that makes concurrent appends to
-// metrics CSVs union-merge (keep both sides' rows) on every publish path,
-// instead of conflicting or side-picking. Carried by the wiki repo itself so
-// it governs every clone.
+// metrics CSVs union-merge (keep both sides' rows) on every publish path. The
+// appends then never conflict, and nothing picks one side. The wiki repo
+// carries the declaration itself, so it governs every clone.
 export const GITATTRIBUTES_FILE = ".gitattributes";
 export const METRICS_CSV_MERGE_ATTRIBUTE = "metrics/**/*.csv merge=union";
 export const ACTIVE_CLAIMS_HEADING = "## Active Claims";
@@ -25,9 +26,9 @@ export const ACTIVE_CLAIMS_TABLE_SEPARATOR =
   "| --- | --- | --- | --- | --- | --- |";
 
 // Match a rendered pipe-table row (header or separator) line-anchored and
-// whitespace-tolerant between cells. Deriving the matcher from the rendered
-// literal keeps the claims parser (active-claims.js) and the audit
-// (audit/rules.js) from drifting on the column set — one literal, one matcher.
+// whitespace-tolerant between cells. The matcher comes from the rendered
+// literal, so the claims parser (active-claims.js) and the audit
+// (audit/rules.js) cannot drift on the column set. One literal, one matcher.
 function pipeRowRe(literal, flags) {
   const cells = literal
     .split("|")
@@ -51,8 +52,8 @@ export const DECISION_HEADING = "### Decision";
 // Unified budgets for the audited surfaces (summary, weekly-log, storyboard,
 // memory). They keep per-surface rule pairs so the limits can diverge as the
 // context-tax model says one surface should be looser or tighter. MEMORY.md is
-// the tightest: it is read on every boot and holds settled cross-cutting state,
-// not history, so its budget is sized to keep the on-boot read cheap.
+// the tightest. Every boot reads it, and it holds settled cross-cutting state
+// and no history. So its budget keeps the on-boot read cheap.
 export const SUMMARY_LINE_BUDGET = 496;
 export const SUMMARY_WORD_BUDGET = 2048;
 export const WEEKLY_LOG_LINE_BUDGET = 496;
@@ -70,25 +71,27 @@ export const WEEKLY_LOG_NAME_RE = /^([a-z][a-z-]*)-(\d{4})-W(\d{2})\.md$/;
 export const WEEKLY_LOG_PART_NAME_RE =
   /^([a-z][a-z-]*)-(\d{4})-W(\d{2})-part\d+\.md$/;
 
-// Day-section seam: `## YYYY-MM-DD` at line start, a trailing suffix tolerated
-// (e.g. `## 2026-05-19 (third activation)`). One home so the rotation
-// seam-finder (weekly-log.js), the `log` command's last-entry probe
-// (commands/log.js), and the audit's heading-grammar-drift rule (audit/rules.js)
-// cannot disagree on what a conforming entry heading is. Source has no flags;
-// call sites add `g`/`m` as needed via `new RegExp(WEEKLY_LOG_SEAM_RE.source, …)`.
+// Day-section seam: `## YYYY-MM-DD` at line start. The matcher tolerates a
+// trailing suffix (e.g. `## 2026-05-19 (third activation)`). One home so the
+// rotation seam-finder (weekly-log.js), the `log` command's last-entry probe
+// (commands/log.js), and the audit's heading-grammar-drift rule
+// (audit/rules.js) cannot disagree on what a conforming entry heading is. The
+// source has no flags. Call sites add `g`/`m` as needed with
+// `new RegExp(WEEKLY_LOG_SEAM_RE.source, …)`.
 export const WEEKLY_LOG_SEAM_RE = /^## (\d{4}-\d{2}-\d{2})/;
 
-// Tier-2 integrity sweep idle-gap: lane-authored commits separated by more
-// than this delimit sessions in the wiki history. 30 minutes.
+// Idle-gap for the tier-2 integrity sweep. Lane-authored commits with a gap
+// larger than this value delimit sessions in the wiki history. 30 minutes.
 export const SESSION_GAP_MS = 30 * 60 * 1000;
 
 // Carry-surface filename and H1 convention: `<agent>-carries.md` with an H1
-// `# <agent> — Carries`. The name capture group is the agent prefix (used by
-// the H1↔filename agreement rule). A Carry entry names its clearance trigger
-// with the `**Carry-clearance:**` marker — the existing live convention in
-// `wiki/release-engineer.md § Message Inbox`, preserved verbatim so the
-// migration relocates without re-marking. One home so the audit's classifier
-// (audit/scopes.js) and rules (audit/rules.js) cannot drift on the syntax.
+// `# <agent> — Carries`. The name capture group is the agent prefix, which the
+// H1↔filename agreement rule uses. A Carry entry names its clearance trigger
+// with the `**Carry-clearance:**` marker. That is the existing live convention
+// in `wiki/release-engineer.md § Message Inbox`, kept verbatim so the
+// migration relocates the entry and does not re-mark it. One home so the
+// audit's classifier (audit/scopes.js) and rules (audit/rules.js) cannot drift
+// on the syntax.
 export const CARRY_SURFACE_NAME_RE = /^(.+)-carries\.md$/;
 export const CARRY_SURFACE_H1_RE = /^# (.+) — Carries$/;
 export const CARRY_CLEARANCE_MARKER_RE = /\*\*Carry-clearance:\*\*/;
@@ -98,8 +101,9 @@ export const CARRY_CLEARANCE_MARKER_RE = /\*\*Carry-clearance:\*\*/;
 // refresh." notice). One home so the marker scanner (marker-scanner.js) and the
 // audit's balance check (audit/rules.js) cannot drift on the syntax.
 // Capture groups: 1 metric, 2 csvPath, 3 optional prior-read anchor date. The
-// `prior=YYYY-MM-DD` token sits before the trailing-text group so the "Do not
-// edit" notice is still tolerated and does not swallow the anchor.
+// `prior=YYYY-MM-DD` token sits before the trailing-text group, so the scanner
+// still tolerates the "Do not edit" notice and the notice does not swallow the
+// anchor.
 export const XMR_OPEN_RE =
   /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+prior=(\d{4}-\d{2}-\d{2}))?(?:\s+[^>]*?)?\s*-->\s*$/;
 export const XMR_CLOSE_RE = /^<!--\s*\/xmr(?:\s+[^>]*?)?\s*-->\s*$/;
@@ -108,9 +112,9 @@ export const ISSUE_OPEN_RE =
 export const ISSUE_CLOSE_RE =
   /^<!--\s*\/(obstacles|experiments)(?:\s+[^>]*?)?\s*-->\s*$/;
 
-// Materialized per-agent experiments surface. A distinct marker
-// kind from `experiments:open` — it carries attributed, sanitized items plus a
-// last-successful-sync stamp, and is read offline by `gemba-wiki boot`. One home
+// Materialized per-agent experiments surface. This is a distinct marker kind
+// from `experiments:open`. It carries attributed, sanitized items plus a
+// last-successful-sync stamp, and `gemba-wiki boot` reads it offline. One home
 // so the scanner (marker-scanner.js), the refresh renderer (commands/refresh.js),
 // the boot parser (boot.js), and the audit balance check (audit/rules.js) cannot
 // drift on the syntax.
@@ -121,7 +125,7 @@ export const AGENT_EXPERIMENTS_CLOSE_RE =
 export const LAST_SYNC_RE =
   /^<!--\s*last-successful-sync:\s*(\d{4}-\d{2}-\d{2})\s*-->\s*$/;
 // Attributed item line: `- #<n> [<agent>] <title> (by <author>)`. The author
-// suffix is mandatory and anchored at end; the title group is greedy, which is
+// suffix is mandatory and anchored at end. The title group is greedy, which is
 // unambiguous because sanitizeTitle defuses any embedded ` (by ` token.
 export const AGENT_EXPERIMENT_ITEM_RE =
   /^- #(\d+) \[([a-z][a-z-]*)\] (.*) \(by (.+)\)$/;

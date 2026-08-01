@@ -1,20 +1,20 @@
 # Config
 
-Local runtime configuration. This directory is gitignored — each contributor
-maintains their own `config.json`, read by `libconfig` at startup. A fresh
-clone has none: create one from the structure below. A minimal `init.services`
-block (dependency order) is enough for `fit-rc`; `service`/`product` blocks
-override constructor defaults.
+Local runtime configuration. Git ignores this directory. Each contributor
+maintains their own `config.json`. `libconfig` reads it at startup. A fresh
+clone has none. Create one from the structure below. A minimal `init.services`
+block (dependency order) is enough for `fit-rc`. The `service` and `product`
+blocks override the constructor defaults.
 
 ## Audience
 
-Internal contributors only. External users never reach `config/` — products
-and services ship constructor defaults, and `npx fit-<product> init` writes
-a starter `config.json` on first run.
+Internal contributors only. External users never reach `config/`. Products
+and services ship constructor defaults. `npx fit-<product> init` writes a
+starter `config.json` on first run.
 
 ## Layered consumers
 
-`config.json` is the canonical source. Three layers consume it via
+`config.json` is the canonical source. Three layers consume it through
 [`libconfig`](../libraries/libconfig/CLAUDE.md):
 
 | Block            | Factory                     | Consumed by                                  |
@@ -25,7 +25,7 @@ a starter `config.json` on first run.
 
 ## `config.json` structure
 
-Three top-level sections, each consumed by a different factory:
+The file has three top-level sections. A different factory consumes each one:
 
 ```json
 {
@@ -37,7 +37,7 @@ Three top-level sections, each consumed by a different factory:
 
 ### `init` — service supervision
 
-Defines which processes `fit-rc` manages.
+The `init` block defines which processes `fit-rc` manages.
 
 ```json
 {
@@ -56,15 +56,15 @@ Defines which processes `fit-rc` manages.
 ```
 
 Each entry has a `name` and a `command` (the shell command `fit-rc`
-spawns); non-Node commands needing `.env` must source it explicitly.
+spawns). A non-Node command that needs `.env` must source it explicitly.
 
 **Declaration order matters.** `start <name>` starts the target and
-everything before it (bringing up dependencies). `stop <name>` and
-`restart <name>` operate on the target and everything after it (tearing
-down dependents). List infrastructure (tunnels, databases) before
+everything before it. This brings up the dependencies. `stop <name>` and
+`restart <name>` operate on the target and everything after it. This tears
+down the dependents. List infrastructure (tunnels, databases) before the
 services that depend on them.
 
-Optional services — add when working on those features:
+Optional services. Add them when you work on those features:
 
 ```json
 { "name": "oauthtunnel", "command": "sh -c '. ./.env && exec cloudflared tunnel --url ${SERVICE_OAUTH_URL} --protocol http2'" }
@@ -83,13 +83,13 @@ Optional services — add when working on those features:
 { "name": "embedding",   "command": "node -e \"import('@forwardimpact/svcembedding/server.js')\"" }
 ```
 
-This order mirrors the `.env.*.example` profiles (ports `3006`–`3015`) and
-lists each service after what it depends on: `tenancy` → `ghserver` → `oidc`,
-ahead of the multi-tenant `ghbridge`/`msbridge` that consume them. Only `oidc`
-is public-facing (its `oidctunnel` mirrors `oauthtunnel`); `tenancy` and
-`ghserver` are internal gRPC (loopback) and need no tunnel.
+This order mirrors the `.env.*.example` profiles (ports `3006`–`3015`). It lists
+each service after what it depends on. The chain is `tenancy` → `ghserver` →
+`oidc`, ahead of the multi-tenant `ghbridge` and `msbridge` that consume them.
+Only `oidc` is public-facing. Its `oidctunnel` mirrors `oauthtunnel`. `tenancy`
+and `ghserver` are internal gRPC (loopback). They need no tunnel.
 
-Oneshots (optional; `just supabase-up` bypasses them) use `up`/`down`:
+Oneshots are optional. `just supabase-up` bypasses them. They use `up`/`down`:
 
 ```json
 { "name": "supabase", "type": "oneshot",
@@ -99,12 +99,11 @@ Oneshots (optional; `just supabase-up` bypasses them) use `up`/`down`:
 
 ### `service.<name>` — service configuration
 
-Values merge with the service's constructor defaults, then overridden by
-`SERVICE_{NAME}_{KEY}` environment variables from `.env` or the shell.
+Values merge with the service's constructor defaults. `SERVICE_{NAME}_{KEY}`
+environment variables from `.env` or the shell then override them.
 
-For the platform apps whose credentials feed these blocks and `.env` —
-self-hosted (single-tenant) vs hosted (multi-tenant) — see the per-app
-guides:
+Platform apps supply credentials for these blocks and `.env`. See the per-app
+guides for self-hosted (single-tenant) and hosted (multi-tenant) apps:
 
 - [GitHub server App](../services/ghserver/github-app.md) — installation-token
   App (`ghbridge` / `ghserver`).
@@ -114,15 +113,16 @@ guides:
 
 ### `product.<name>` — product configuration
 
-Same merge/override pattern as services, with `PRODUCT_{NAME}_{KEY}` environment
-variables. Guide's `service.mcp` block and `product.guide.systemPrompt` copy
-from `products/guide/starter/config.json` — the single source of truth
-([products/guide/CLAUDE.md](../products/guide/CLAUDE.md)); with no `tools`, the
-MCP server warns and exposes nothing.
+Products use the same merge and override pattern as services, with
+`PRODUCT_{NAME}_{KEY}` environment variables. Guide's `service.mcp` block and
+`product.guide.systemPrompt` copy from `products/guide/starter/config.json`,
+the single source of truth
+([products/guide/CLAUDE.md](../products/guide/CLAUDE.md)). Without `tools`,
+the MCP server warns and exposes nothing.
 
 ## `.env`
 
 Merge order: constructor defaults → `config.json` → `.env`. The `.env` file
-is the persistent source of truth — non-credential keys overwrite
+is the persistent source of truth. Non-credential keys overwrite
 `process.env` unconditionally on load. Credential keys (API keys, tokens) go
-to a private map; shell env wins at read time for credentials only.
+to a private map. For credentials only, the shell env wins at read time.

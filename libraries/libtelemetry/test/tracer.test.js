@@ -5,7 +5,7 @@ import { Tracer } from "../src/tracer.js";
 import { createMockClock } from "@forwardimpact/libmock";
 
 /**
- * Mock gRPC Metadata class for testing
+ * Mock gRPC Metadata class for tests
  */
 class MockMetadata {
   /**
@@ -104,18 +104,18 @@ describe("Tracer", () => {
 
       // Run within AsyncLocalStorage context
       context.run(parentSpan, () => {
-        // Create a CLIENT span - should automatically use parent from storage
+        // Create a CLIENT span. It should automatically use parent from storage
         const { span: clientSpan, metadata } = tracer.startClientSpan(
           "test-service",
           "testMethod",
         );
 
-        // Verify client span was created and shares trace ID with parent
+        // Verify the tracer created the client span with the parent trace ID
         assert.strictEqual(clientSpan.trace_id, parentSpan.trace_id);
         assert.ok(clientSpan.span_id);
         assert.notStrictEqual(clientSpan.span_id, parentSpan.span_id);
 
-        // Verify metadata was created and populated
+        // Verify the tracer created and populated the metadata
         assert.ok(metadata instanceof MockMetadata);
         assert.strictEqual(metadata.get("x-trace-id")[0], clientSpan.trace_id);
         assert.strictEqual(metadata.get("x-span-id")[0], clientSpan.span_id);
@@ -147,7 +147,7 @@ describe("Tracer", () => {
         metadata,
       );
 
-      // Verify trace context was extracted (trace ID should match)
+      // Verify the tracer extracted the trace context (trace ID should match)
       assert.strictEqual(serverSpan.trace_id, "test-trace-id");
       assert.ok(serverSpan.span_id);
     });

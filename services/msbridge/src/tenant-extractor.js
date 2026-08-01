@@ -2,13 +2,13 @@ const CHANNEL = "msteams";
 
 /**
  * Microsoft Teams tenant extraction. The channel-agnostic resolver lives
- * in `libbridge`; this module owns the Teams-specific step of reading the
+ * in `libbridge`. This module owns the Teams-specific step. It reads the
  * Entra tenant id from an inbound Bot Framework activity.
  *
  * Every activity carries `channelData.tenant.id`. The resolver maps that
- * channel tenant key to an active tenant; activities from `pending_consent`
- * tenants resolve to `null` (the resolver filters out non-active tenants),
- * so a tenant that consented but has not finished onboarding cannot
+ * channel tenant key to an active tenant. Activities from `pending_consent`
+ * tenants resolve to `null`, because the resolver filters out non-active
+ * tenants. So a tenant that consented but did not finish onboarding cannot
  * dispatch.
  */
 

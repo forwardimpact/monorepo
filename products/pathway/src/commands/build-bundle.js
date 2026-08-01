@@ -1,10 +1,10 @@
 /**
- * Bundle generation for Pathway distribution.
+ * Generate the bundle for Pathway distribution.
  *
- * Emits `bundle.tar.gz` and `install.sh` alongside the static site so
- * engineers can install `@forwardimpact/pathway` globally via
- * `curl -fsSL <site>/install.sh | bash`. Invoked from build.js when
- * `standard.distribution.siteUrl` is configured.
+ * This module emits `bundle.tar.gz` and `install.sh` alongside the static
+ * site. Engineers then install `@forwardimpact/pathway` globally with
+ * `curl -fsSL <site>/install.sh | bash`. build.js calls this module when
+ * the config sets `standard.distribution.siteUrl`.
  */
 
 import { join } from "path";

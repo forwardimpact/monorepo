@@ -30,11 +30,11 @@ The prompt must contain "evaluate" and one of:
    engineer is expected to demonstrate. Each line is tab-separated:
    `skill_id\tlevel_id\tmarker_text`.
    d. Evaluate the artifact against each returned marker:
-      - Determine `matched` (boolean): does the artifact demonstrate this
-        marker?
-      - Write a 1-3 sentence `rationale` explaining your reasoning.
-      - `matched: false` rows are valid — write them to document what was
-        checked and not found.
+      - Determine `matched` (boolean). Set it to true when the artifact
+        demonstrates this marker.
+      - Write a 1-3 sentence `rationale` that explains your reasoning.
+      - `matched: false` rows are valid. Write them to record what you
+        checked and did not find.
    e. Call `WriteEvidence` once per marker with: `artifact_id`, `skill_id`,
    `level_id`, `marker_text`, `matched`, `rationale`, and
    `provenance: 'agent_attested'`. The `provenance` argument tags the
@@ -45,14 +45,14 @@ The prompt must contain "evaluate" and one of:
 ## Constraints
 
 - Every `skill_id` + `marker_text` pair must come **verbatim** from
-  `GetMarkersForProfile` — never invent or paraphrase markers.
+  `GetMarkersForProfile`. Never invent or paraphrase markers.
 - Every row must have non-null `rationale` and `level_id`.
-- Do not re-evaluate artifacts that already have evidence — they will not
+- Do not re-evaluate artifacts that already have evidence. They will not
   appear in `GetUnscoredArtifacts`.
-- Evaluation is idempotent: `WriteEvidence` upserts on
+- Evaluation is idempotent. `WriteEvidence` upserts on
   `(artifact_id, skill_id, level_id, marker_text)`.
 - The `provenance` argument is always `'agent_attested'` for rows this
-  skill writes. Other values exist for other producers; this skill does
+  skill writes. Other values exist for other producers. This skill does
   not emit them.
 
 ## Multi-source note
@@ -64,5 +64,5 @@ what the artifact contains:
 - **Reviews:** review body, comments, verdict
 - **Commits:** commit message, changed files
 
-After all artifacts are evaluated, report the count of evidence rows written
+After you evaluate all artifacts, report the count of evidence rows written
 and exit.

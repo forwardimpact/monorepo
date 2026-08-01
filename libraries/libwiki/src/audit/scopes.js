@@ -39,8 +39,8 @@ function listMdFiles(wikiRoot, fs) {
 }
 
 // Recursively collect every *.csv under `<wikiRoot>/metrics/`. The real layout
-// is `metrics/<skill>/<year>.csv` (two levels), so the walk recurses rather
-// than assuming a fixed depth. Uses readdirSync + statSync (rather than
+// is `metrics/<skill>/<year>.csv` (two levels), so the walk recurses and does
+// not assume a fixed depth. The walk uses readdirSync + statSync (rather than
 // `withFileTypes` Dirents) so it runs unchanged under the in-memory mock fs.
 function listCsvFiles(wikiRoot, fs) {
   const metricsRoot = path.join(wikiRoot, "metrics");
@@ -57,7 +57,7 @@ function listCsvFiles(wikiRoot, fs) {
   return found;
 }
 
-// Load a metrics CSV as an audit subject: `rows` is the array of line strings,
+// Load a metrics CSV as an audit subject. `rows` is the array of line strings,
 // so a rule indexes `rows[i]` (a string) and `i + 1` is its line number.
 function loadCsv(filePath, fs) {
   return {
@@ -97,8 +97,8 @@ function loadFile(filePath, fs) {
 function classifyFile(filePath, fs) {
   const base = path.basename(filePath);
   if (EXCLUDED_BASES.has(base)) return null;
-  // STATUS.md is loaded separately (readOptional in buildContext) and audited
-  // via the dedicated `status-row` scope — skip the per-file classification.
+  // buildContext loads STATUS.md separately with readOptional. The dedicated
+  // `status-row` scope audits it. So skip the per-file classification.
   if (base === "STATUS.md") return null;
   if (NON_SUMMARY_PREFIXES.some((p) => base.startsWith(p))) return null;
   if (WEEKLY_LOG_NAME_RE.test(base)) {
@@ -109,23 +109,23 @@ function classifyFile(filePath, fs) {
   }
   const subject = loadFile(filePath, fs);
   // Carry surface: a `<agent>-carries.md` whose H1 matches the Carry H1 RE.
-  // Both axes must match (filename prefix and H1), mirroring the summary
-  // classifier. The two H1 REs end in distinct literals (`— Carries` vs
-  // `— Summary`) so the branches cannot cross-capture regardless of order;
-  // a name-match + H1-miss is left unclassified, like a malformed summary.
+  // Both axes must match (filename prefix and H1), like the summary
+  // classifier. The two H1 REs end in distinct literals (`— Carries` and
+  // `— Summary`) so the branches cannot cross-capture regardless of order.
+  // A name-match with an H1-miss stays unclassified, like a malformed summary.
   if (CARRY_SURFACE_NAME_RE.test(base)) {
     if (CARRY_SURFACE_H1_RE.test(subject.firstLine)) {
       return { kind: "carry-surface", subject };
     }
     return null;
   }
-  // Files that do not match a summary or weekly-log shape are left
-  // unclassified: stray files are not audited.
+  // A file that does not match a summary or weekly-log shape stays
+  // unclassified. The audit skips stray files.
   if (!SUMMARY_H1_RE.test(subject.firstLine)) return null;
   return { kind: "summary", subject };
 }
 
-// Read a file if present; an absent file yields empty text so callers audit
+// Read a file if present. An absent file yields empty text so callers audit
 // "missing" uniformly. The common { path, text, exists } shape backs the
 // MEMORY.md, STATUS.md, and storyboard context loads.
 function readOptional(filePath, fs) {
@@ -139,7 +139,8 @@ function readOptional(filePath, fs) {
 
 // MEMORY.md carries the same line/word budget rules as the prose surfaces, so
 // its subject needs the `lines`/`words` counters those check builders read.
-// Counted off the canonical budget.js pair, like every other budgeted surface.
+// The loader counts them off the canonical budget.js pair, like every other
+// budgeted surface.
 function loadMemory(filePath, fs) {
   const base = readOptional(filePath, fs);
   return {
@@ -150,11 +151,11 @@ function loadMemory(filePath, fs) {
 }
 
 /**
- * Parse the rows inside STATUS.md's fenced block into audit subjects. Lines
- * outside the ``` fence (header prose) and blank lines are skipped. Each row
- * carries a `kind` from {@link parseStatusRowId} (`"spec"`, `"experiment"`, or
- * `null` for an unrecognized id); spec-shaped rules read the positional
- * `id`/`phase`/`status` fields, experiment rules read `cells`.
+ * Parse the rows inside STATUS.md's fenced block into audit subjects. The
+ * parser skips lines outside the ``` fence (header prose) and blank lines.
+ * Each row carries a `kind` from {@link parseStatusRowId} (`"spec"`,
+ * `"experiment"`, or `null` for an unrecognized id). Spec-shaped rules read
+ * the positional `id`/`phase`/`status` fields. Experiment rules read `cells`.
  * @param {string} statusText - The full STATUS.md contents.
  * @returns {Array<{lineNo: number, text: string, cells: string[], id: string, phase: string, status: string, kind: string|null}>}
  */
@@ -171,9 +172,9 @@ function parseStatusRows(statusText) {
     if (!inFence || line.trim() === "") continue;
     const cells = line.split("\t");
     // Classify by id prefix so a malformed `exp:` row (e.g. wrong cell count)
-    // is still routed to the experiment rules, which flag it — rather than
-    // slipping through the spec-shaped rules. parseStatusRowId returns the
-    // structured fields only for a well-formed row; the rules read `cells`.
+    // still routes to the experiment rules, which flag it. It does not slip
+    // through the spec-shaped rules. parseStatusRowId returns the structured
+    // fields only for a well-formed row. The rules read `cells`.
     const isExp = typeof cells[0] === "string" && cells[0].startsWith("exp:");
     const parsed = parseStatusRowId(cells[0], cells);
     rows.push({
@@ -276,12 +277,12 @@ const SCOPE_RESOLVERS = {
 
 // Normalize every audited surface into a uniform `{ path, text, fenceExempt }`
 // subject for the conflict-marker scan. The per-file subjects (summaries,
-// weekly logs and sealed parts, storyboard) carry `fileLines`; MEMORY.md and
+// weekly logs and sealed parts, storyboard) carry `fileLines`. MEMORY.md and
 // STATUS.md carry `text` (readOptional shape). `fenceExempt` is true for prose
-// surfaces, where a fence quotes content, and false for STATUS.md, whose fenced
-// rows are data — a marker there is never legitimate (per-surface fence
-// contract). Files absent from disk (missing MEMORY/STATUS/storyboard) yield
-// empty text and produce no findings.
+// surfaces, where a fence quotes content. It is false for STATUS.md, whose
+// fenced rows are data. A marker there is never legitimate (per-surface fence
+// contract). A file absent from disk (no MEMORY/STATUS/storyboard) yields
+// empty text and produces no findings.
 function conflictScanSubjects(ctx) {
   const subjects = [];
   const fileScopes = ["summary", "weekly-log-main", "weekly-log-part"];
@@ -320,12 +321,12 @@ export function resolveScope(scopeKey, ctx) {
 }
 
 /**
- * Build the admission slice: the tracked-file universe plus the
- * `rootSummaryAgents` set that gates `<agent>/` sidecar directories. The agent
- * set is derived first (a root-level summary-class file's stem) so the
- * `admission` scope can classify sidecar directories against it.
+ * Build the admission slice. It holds the tracked-file universe plus the
+ * `rootSummaryAgents` set that gates `<agent>/` sidecar directories. The
+ * function derives the agent set first (a root-level summary-class file's
+ * stem) so the `admission` scope can classify sidecar directories against it.
  *
- * Returns the empty universe when `subprocess` is absent — callers that only
+ * Returns the empty universe when `subprocess` is absent. Callers that only
  * read `.subjects` (the rotation pre-pass) skip the git read and the tree walk
  * entirely, and produce no `admission` findings.
  */
@@ -342,9 +343,9 @@ function buildAdmission(wikiRoot, fs, subprocess) {
 }
 
 /**
- * Build the audit context: classifies and loads every wiki file once.
+ * Build the audit context. It classifies and loads every wiki file once.
  * @param {{wikiRoot: string, today: string, fs: object, subprocess: object}} options
- *   `fs` is the sync filesystem surface (`runtime.fsSync`); `subprocess` is
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`). `subprocess` is
  *   `runtime.subprocess` (its `runSync` backs the admission scope's git read).
  */
 export function buildContext({ wikiRoot, today, fs, subprocess }) {

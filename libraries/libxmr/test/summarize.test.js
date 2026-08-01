@@ -17,9 +17,9 @@ function makeCSV(metric, values, { unit = "count" } = {}) {
   return [header, ...rows].join("\n");
 }
 
-// Seed the CSV in an in-memory fs and hand `fn` both the path and the fs the
-// command should read it through. The commands only emit to stdout, so the
-// on-disk file is never inspected.
+// Seed the CSV in an in-memory fs. Hand `fn` both the path and the fs the
+// command should read it through. The commands only emit to stdout. So
+// nothing inspects the on-disk file.
 function withTempCSV(content, fn) {
   const fsSync = createMockFs({ [CSV_PATH]: content });
   return fn(CSV_PATH, fsSync);
@@ -125,8 +125,9 @@ describe("summarize command", () => {
     assert.match(result.error, /requires a <csv-path>/);
   });
 
-  test("flags non-stable classification when X Rule 2 fires", () => {
-    // 10 above-mean then 10 below-mean → run of 10 above + run of 10 below.
+  test("flags a non-stable classification when X Rule 2 fires", () => {
+    // 10 above-mean values come first, then 10 below-mean values. That gives
+    // a run of 10 above and a run of 10 below.
     const values = [
       ...Array.from({ length: 10 }, () => 20),
       ...Array.from({ length: 10 }, () => 5),
@@ -151,7 +152,8 @@ describe("chart command", () => {
       const { result, stdout } = runChart(file, fsSync, { metric: "ex" });
       assert.ok(result.ok, JSON.stringify(result));
       const lines = stdout.replace(/\n$/, "").split("\n");
-      // Two leading lines name the event_type slice; the chart body is 14.
+      // The first two lines name the event_type slice. The chart body is 14
+      // lines.
       assert.strictEqual(lines.length, 16);
       assert.strictEqual(lines[0], "# event_type: kata-shift");
       assert.ok(lines[2].includes("UPL 12.5"));
@@ -162,7 +164,7 @@ describe("chart command", () => {
     });
   });
 
-  test("defaults to the sole metric when --metric is omitted", () => {
+  test("defaults to the sole metric when the caller omits --metric", () => {
     const csv = makeCSV("ex", [5, 6, 7, 5, 6, 4, 7, 8, 6, 13, 5, 6, 7, 6, 5]);
     withTempCSV(csv, (file, fsSync) => {
       const { result, stdout } = runChart(file, fsSync);
@@ -223,7 +225,7 @@ describe("chart command", () => {
   });
 });
 
-describe("event_type slice naming", () => {
+describe("commands name the event_type slice", () => {
   function mixedCSV() {
     const header = "date,metric,value,unit,run,note,event_type";
     const rows = [];

@@ -1,5 +1,5 @@
 /**
- * System prompt composition for agent runners.
+ * Compose system prompts for agent runners.
  *
  * libharness assembles every agent system prompt from up to two parallel,
  * sibling-tagged sections (see JIDOKA.md § L0):
@@ -12,39 +12,40 @@
  *     …orchestration mechanics, then any amendment…
  *     </session_protocol>
  *
- * The two tags are siblings joined by a blank line — neither nests inside
+ * The two tags are siblings. A blank line joins them. Neither nests inside
  * the other. A section appears only when its content is present. The tag
- * convention lives entirely here: profile `.md` files and trailer constants
+ * convention lives entirely here. Profile `.md` files and trailer constants
  * carry no tags.
  *
- * The `<session_protocol>` body is assembled from up to three fragments, in
- * order of decreasing generality:
+ * The composer assembles the `<session_protocol>` body from up to three
+ * fragments, in order of decreasing generality:
  *
  *   1. the role-invariant orchestration trailer (libharness-owned);
  *   2. the profile's own hoisted `## Session Protocol` section, if present;
  *   3. a run-specific amendment, if supplied.
  *
- * Fragment 2 is the convention-based hoist: a profile may carry a level-2
+ * Fragment 2 is the convention-based hoist. A profile may carry a level-2
  * `## Session Protocol` markdown heading whose body is the role's work
- * routine. When present, that section is lifted out of `<agent_profile>` and
- * folded into `<session_protocol>` next to the orchestration mechanics, so
- * the harness comms protocol and the role's work routine read as one
- * coherent block. The heading line itself is dropped — the tag already names
- * the section. Profiles with no such heading are unaffected (the entire body
- * stays in `<agent_profile>`).
+ * routine. When the heading is present, the composer lifts that section out
+ * of `<agent_profile>`. It folds the section into `<session_protocol>` next
+ * to the orchestration mechanics. The harness comms protocol and the role's
+ * work routine then read as one coherent block. The composer drops the
+ * heading line itself, because the tag already names the section. A profile
+ * with no such heading is unaffected. Its entire body stays in
+ * `<agent_profile>`.
  *
  * Helpers:
  *
  * - `composeProfilePrompt(name, opts)` — profile + `claude_code` preset.
- *   Used by agent participants that need the full Claude Code tool surface.
+ *   Agent participants that need the full Claude Code tool surface use it.
  *
- * - `composeLeadPrompt(opts)` — plain string, no preset. Used by lead
- *   roles (supervisor, facilitator, discuss lead) that should only see
+ * - `composeLeadPrompt(opts)` — plain string, no preset. Lead roles
+ *   (supervisor, facilitator, discuss lead) use it. They should only see
  *   the orchestration instructions and optionally a profile body.
  *
  * - `composeSystemPrompt(opts)` — unified entry point. Threads `amend` into
- *   the protocol section as the run-specific fragment, then delegates to one
- *   of the above based on `opts.role`.
+ *   the protocol section as the run-specific fragment. Then delegates to one
+ *   of the above by `opts.role`.
  */
 
 import { join } from "node:path";
@@ -55,13 +56,13 @@ const SESSION_PROTOCOL_TAG = "session_protocol";
 
 /**
  * A level-2 heading that names the profile's hoisted session-protocol
- * section. Case-insensitive, tolerant of trailing whitespace, but the level
- * is fixed at two `#` so a `### Session Protocol` subsection does not trip
- * the hoist.
+ * section. The match ignores case. It tolerates trailing whitespace. The
+ * level is fixed at two `#`, so a `### Session Protocol` subsection does
+ * not trip the hoist.
  */
 const SESSION_PROTOCOL_HEADING = /^##[ \t]+session protocol[ \t]*$/i;
 
-/** A level-1 or level-2 heading — the boundary that ends a hoisted section. */
+/** A level-1 or level-2 heading. This boundary ends a hoisted section. */
 const SECTION_BOUNDARY = /^#{1,2}[ \t]+\S/;
 
 /** Wrap content in a semantic section tag, each on its own line. */
@@ -71,11 +72,11 @@ function wrapSection(tag, content) {
 
 /**
  * Assemble the parallel `<agent_profile>` / `<session_protocol>` sections.
- * The profile section is emitted only when `body` is non-empty. The protocol
- * section is built by joining its fragments (in the order given) with a
- * blank-line separator, dropping any that are empty, and is emitted only
- * when at least one fragment survives. The two tags are siblings joined by a
- * blank line and never nest.
+ * This function emits the profile section only when `body` is non-empty. It
+ * builds the protocol section from the fragments in the order given. It
+ * joins them with a blank-line separator and drops any empty fragment. It
+ * emits the protocol section only when at least one fragment survives. The
+ * two tags are siblings. A blank line joins them. They never nest.
  *
  * @param {object} parts
  * @param {string} [parts.body] - Profile body, frontmatter-stripped and with
@@ -95,10 +96,10 @@ function assembleSections({ body, protocolParts = [] }) {
 /**
  * Split a frontmatter-stripped profile body into its persona and an optional
  * hoisted `## Session Protocol` section. The section runs from its heading to
- * the next level-1/level-2 heading (or end of body); the heading line is
- * dropped. Anything before and after the section is rejoined into `persona`.
- * When the body carries no `## Session Protocol` heading, the whole body is
- * returned as `persona` and `protocol` is `undefined`.
+ * the next level-1/level-2 heading (or end of body). This function drops the
+ * heading line. It rejoins anything before and after the section into
+ * `persona`. When the body carries no `## Session Protocol` heading, the
+ * whole body returns as `persona` and `protocol` is `undefined`.
  *
  * @param {string} body - Frontmatter-stripped, trimmed profile body.
  * @returns {{ persona: string, protocol: string | undefined }}
@@ -127,14 +128,14 @@ function splitSessionProtocol(body) {
 }
 
 /**
- * Read a profile `.md`, strip its frontmatter, and split off any hoisted
+ * Read a profile `.md`. Strip its frontmatter. Split off any hoisted
  * `## Session Protocol` section. Reads synchronously off the injected
- * `runtime.fsSync` surface — this composer runs inside the synchronous
+ * `runtime.fsSync` surface. This composer runs inside the synchronous
  * SDK-option builders of the supervisor / facilitator / discusser / judge
- * factories, so it cannot go async without an unbounded cascade.
+ * factories. So it cannot go async without an unbounded cascade.
  *
  * @param {string} name - Profile basename (no `.md` suffix)
- * @param {string} profilesDir - Directory containing `<name>.md`
+ * @param {string} profilesDir - Directory that contains `<name>.md`
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime
  * @returns {{ persona: string, protocol: string | undefined }}
  */
@@ -145,19 +146,19 @@ function readProfileSections(name, profilesDir, runtime) {
 }
 
 /**
- * Compose a `claude_code`-preset system prompt from a profile file. The
- * persona is wrapped in `<agent_profile>`; the protocol trailer, the
- * profile's hoisted `## Session Protocol` section, and any amendment are
- * joined (in that order) into a sibling `<session_protocol>`.
+ * Compose a `claude_code`-preset system prompt from a profile file. This
+ * function wraps the persona in `<agent_profile>`. It joins the protocol
+ * trailer, the profile's hoisted `## Session Protocol` section, and any
+ * amendment into a sibling `<session_protocol>`, in that order.
  *
  * @param {string} name - Profile basename (no `.md` suffix)
  * @param {object} opts
- * @param {string} opts.profilesDir - Directory containing `<name>.md`
- * @param {string} [opts.trailer] - Session protocol orchestration mechanics,
- *   the first fragment of the `<session_protocol>` section.
+ * @param {string} opts.profilesDir - Directory that contains `<name>.md`
+ * @param {string} [opts.trailer] - Orchestration mechanics for the session
+ *   protocol, the first fragment of the `<session_protocol>` section.
  * @param {string} [opts.amend] - Run-specific amendment, the last fragment of
  *   the `<session_protocol>` section.
- * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators; uses `fsSync.readFileSync`.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators. Uses `fsSync.readFileSync`.
  * @returns {{type: "preset", preset: "claude_code", append: string}}
  */
 export function composeProfilePrompt(
@@ -177,18 +178,18 @@ export function composeProfilePrompt(
 
 /**
  * Compose a plain-string system prompt for a lead role (no Claude Code
- * preset). The protocol trailer, an optional profile's hoisted
- * `## Session Protocol` section, and any amendment are joined into
- * `<session_protocol>`; an optional persona is wrapped in a sibling
- * `<agent_profile>` before it.
+ * preset). This function joins the protocol trailer, an optional profile's
+ * hoisted `## Session Protocol` section, and any amendment into
+ * `<session_protocol>`. It wraps an optional persona in a sibling
+ * `<agent_profile>` before that section.
  *
  * @param {object} opts
  * @param {string} [opts.profile] - Profile basename (no `.md` suffix)
- * @param {string} [opts.profilesDir] - Directory containing profile files
+ * @param {string} [opts.profilesDir] - Directory that contains profile files
  * @param {string} opts.trailer - Session protocol (orchestration instructions)
  * @param {string} [opts.amend] - Run-specific amendment, the last fragment of
  *   the `<session_protocol>` section.
- * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators; uses `fsSync.readFileSync`.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators. Uses `fsSync.readFileSync`.
  * @returns {string}
  */
 export function composeLeadPrompt({
@@ -209,20 +210,20 @@ export function composeLeadPrompt({
 }
 
 /**
- * Unified entry point for composing system prompts. Threads an optional
+ * Unified entry point that composes a system prompt. Threads an optional
  * amendment through as the run-specific fragment of `<session_protocol>`
- * (after the trailer and any hoisted profile section), then delegates by
+ * (after the trailer and any hoisted profile section). Then delegates by
  * role.
  *
  * @param {object} opts
- * @param {"lead"|"agent"} opts.role - `"lead"` produces a plain string;
+ * @param {"lead"|"agent"} opts.role - `"lead"` produces a plain string.
  *   `"agent"` produces a `claude_code` preset object.
  * @param {string} [opts.profile] - Profile basename
  * @param {string} [opts.profilesDir]
  * @param {string} opts.trailer - Session protocol (orchestration instructions)
  * @param {string} [opts.amend] - Caller-supplied amendment, the last fragment
  *   inside `<session_protocol>`, joined with a blank-line separator.
- * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators; uses `fsSync.readFileSync`.
+ * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime - Ambient collaborators. Uses `fsSync.readFileSync`.
  * @returns {string | {type: "preset", preset: "claude_code", append: string}}
  */
 export function composeSystemPrompt({

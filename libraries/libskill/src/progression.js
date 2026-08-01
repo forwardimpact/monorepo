@@ -1,9 +1,9 @@
 /**
  * Career Progression Functions
  *
- * This module provides pure functions for calculating skill and behaviour
- * changes between job definitions, supporting both level progression and
- * track comparison scenarios.
+ * This module holds pure functions. They calculate skill and behaviour
+ * changes between job definitions. They support both level progression
+ * and track comparison.
  */
 
 import {
@@ -59,7 +59,8 @@ import {
 
 /**
  * Calculate skill proficiency changes between two skill matrices
- * Handles cross-discipline comparisons by including gained and lost skills
+ * This function handles cross-discipline comparisons. To do this, it
+ * includes gained and lost skills
  * @param {Array} currentMatrix - Current skill matrix entries
  * @param {Array} targetMatrix - Target skill matrix entries
  * @returns {SkillChange[]} Array of skill changes, sorted by change magnitude
@@ -68,13 +69,13 @@ export function calculateSkillChanges(currentMatrix, targetMatrix) {
   const changes = [];
   const processedSkillIds = new Set();
 
-  // Process skills in current matrix
+  // Process skills in the current matrix
   for (const current of currentMatrix) {
     processedSkillIds.add(current.skillId);
     const target = targetMatrix.find((t) => t.skillId === current.skillId);
 
     if (target) {
-      // Skill exists in both - calculate level change
+      // The skill exists in both matrices, so calculate the level change
       const currentIndex = getSkillProficiencyIndex(current.proficiency);
       const targetIndex = getSkillProficiencyIndex(target.proficiency);
       const change = targetIndex - currentIndex;
@@ -93,7 +94,7 @@ export function calculateSkillChanges(currentMatrix, targetMatrix) {
         targetDescription: target.proficiencyDescription,
       });
     } else {
-      // Skill is lost (in current but not in target)
+      // The skill is lost (in current but not in target)
       const currentIndex = getSkillProficiencyIndex(current.proficiency);
       changes.push({
         id: current.skillId,
@@ -104,7 +105,7 @@ export function calculateSkillChanges(currentMatrix, targetMatrix) {
         targetLevel: null,
         currentIndex,
         targetIndex: -1,
-        change: -(currentIndex + 1), // Negative change representing loss
+        change: -(currentIndex + 1), // A negative change marks the loss
         currentDescription: current.proficiencyDescription,
         targetDescription: null,
         isLost: true,
@@ -112,7 +113,7 @@ export function calculateSkillChanges(currentMatrix, targetMatrix) {
     }
   }
 
-  // Process skills only in target matrix (gained skills)
+  // Process skills only in the target matrix (gained skills)
   for (const target of targetMatrix) {
     if (!processedSkillIds.has(target.skillId)) {
       const targetIndex = getSkillProficiencyIndex(target.proficiency);
@@ -125,7 +126,7 @@ export function calculateSkillChanges(currentMatrix, targetMatrix) {
         targetLevel: target.proficiency,
         currentIndex: -1,
         targetIndex,
-        change: targetIndex + 1, // Positive change representing gain
+        change: targetIndex + 1, // A positive change marks the gain
         currentDescription: null,
         targetDescription: target.proficiencyDescription,
         isGained: true,
@@ -133,7 +134,7 @@ export function calculateSkillChanges(currentMatrix, targetMatrix) {
     }
   }
 
-  // Sort using policy comparator
+  // Sort with the policy comparator
   changes.sort(compareBySkillChange);
 
   return changes;
@@ -171,7 +172,7 @@ export function calculateBehaviourChanges(currentProfile, targetProfile) {
     }
   }
 
-  // Sort using policy comparator
+  // Sort with the policy comparator
   changes.sort(compareByBehaviourChange);
 
   return changes;
@@ -236,8 +237,8 @@ export function analyzeProgression(currentJob, targetJob) {
  * @param {Object} params.discipline - The discipline
  * @param {Object} params.level - Current level
  * @param {Object} params.track - The track
- * @param {Object} params.nextLevel - Target level (optional, will find next if not provided)
- * @param {Array} params.levels - All levels (needed if nextLevel not provided)
+ * @param {Object} params.nextLevel - Target level (optional, defaults to the next level)
+ * @param {Array} params.levels - All levels (needed if you omit nextLevel)
  * @param {Array} params.skills - All skills
  * @param {Array} params.behaviours - All behaviours
  * @returns {ProgressionAnalysis|null} Progression analysis or null if no next level
@@ -251,7 +252,7 @@ export function analyzeLevelProgression({
   skills,
   behaviours,
 }) {
-  // Find next level if not provided
+  // Find the next level if the caller does not provide one
   let targetLevel = nextLevel;
   if (!targetLevel && levels) {
     const sortedLevels = [...levels].sort(
@@ -310,7 +311,7 @@ export function analyzeTrackComparison({
   behaviours,
   levels,
 }) {
-  // Check if target track is valid for this discipline
+  // Check if the target track is valid for this discipline
   if (
     !isValidJobCombination({ discipline, level, track: targetTrack, levels })
   ) {
@@ -346,7 +347,7 @@ export function analyzeTrackComparison({
  * @param {Object} params
  * @param {Object} params.discipline - The discipline
  * @param {Object} params.level - The level
- * @param {Object} params.currentTrack - Current track (will be excluded from results)
+ * @param {Object} params.currentTrack - Current track (the results omit it)
  * @param {Array} params.tracks - All available tracks
  * @param {Array} params.levels - All levels (for validation)
  * @returns {Array} Valid tracks for comparison
@@ -395,7 +396,7 @@ export function getPreviousLevel({ level, levels }) {
 
 /**
  * Analyze custom progression from current role to any target discipline × level × track combination
- * This is the main abstraction for comparing arbitrary role combinations.
+ * This is the main abstraction to compare arbitrary role combinations.
  *
  * @param {Object} params
  * @param {Object} params.discipline - Current discipline
@@ -420,10 +421,10 @@ export function analyzeCustomProgression({
   behaviours,
   levels,
 }) {
-  // Use current discipline if target not specified
+  // Use the current discipline if the caller gives no target
   const targetDisc = targetDiscipline || discipline;
 
-  // Validate target combination is valid
+  // Check that the target combination is valid
   if (
     !isValidJobCombination({
       discipline: targetDisc,
@@ -462,7 +463,7 @@ export function analyzeCustomProgression({
 
 /**
  * Get all valid level × track combinations for a discipline
- * Useful for populating dropdowns in the UI
+ * Use it to populate dropdowns in the UI
  *
  * @param {Object} params
  * @param {Object} params.discipline - The discipline

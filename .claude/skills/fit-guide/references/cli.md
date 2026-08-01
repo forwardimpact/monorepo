@@ -16,14 +16,14 @@ npx fit-guide --status                     # Check system readiness
 npx fit-guide --status --json              # Machine-readable status
 ```
 
-Positional words are always prompt text, never commands — `npx fit-guide
-status` sends the word "status" to the agent. Operational commands are
-always flags (`--status`, `--login`).
+Positional words are always prompt text. They are never commands.
+`npx fit-guide status` sends the word "status" to the agent. Operational
+commands are always flags (`--status`, `--login`).
 
-The CLI is built on the Claude Agent SDK. It connects to the MCP endpoint for
-tools and prompts, and streams the response.
+The CLI builds on the Claude Agent SDK. It connects to the MCP endpoint for
+tools and prompts. It then streams the response.
 
-### Supporting CLI Tools
+### Helper CLI Tools
 
 ```sh
 npx fit-rag search "query text"              # Vector similarity search

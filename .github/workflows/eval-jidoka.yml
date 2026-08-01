@@ -12,10 +12,10 @@ permissions:
 
 jobs:
   # Fan the jidoka-skills family (2 tasks × runs:5 = 10 cells) across
-  # machines via the benchmark reusable workflow, then merge the shard ledgers
-  # into one pass@k. One shard per task keeps each machine's run small. This
-  # caller only picks the family and shard count; the filesystem work-tracker is
-  # the reusable workflow's env contract.
+  # machines through the benchmark reusable workflow. Then merge the shard
+  # ledgers into one pass@k. One shard per task keeps each machine's run small.
+  # This caller only picks the family and shard count. The filesystem
+  # work-tracker is the reusable workflow's env contract.
   benchmark:
     uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@027b1a5947f5e1bf6752fba7b68a753d8957fde9 # v1.0.8
     with:

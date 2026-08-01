@@ -1,9 +1,9 @@
-gemba-wiki X.Y.Z — Wiki lifecycle management for the Kata agent system
+gemba-wiki X.Y.Z — Manage the wiki lifecycle for the Kata agent system
 
 Usage: gemba-wiki <command> [options]
 
 Commands:
-  boot                              Print on-boot digest (priorities, claims, storyboard items) as JSON
+  boot                              Print the on-boot digest (priorities, claims, storyboard items) as JSON
   log [subcommand]                  Append a decision/note/done entry to the current weekly log
   claim                             Claim a target in MEMORY.md ## Active Claims (refuses duplicates)
   release                           Release a claim (or all expired claims with --expired)

@@ -1,10 +1,10 @@
 # GitHub Actions SHA Inventory
 
-When evaluating SHA pinning (Policy Check 2), verify the PR updates **all**
+When you evaluate SHA pinning (Policy Check 2), verify the PR updates **all**
 workflow files and composite actions that reference the action. Derive the
-inventory live — never rely on a remembered or written-down mapping.
+inventory live. Never rely on a remembered or written-down mapping.
 
-## Deriving the Inventory
+## Derive the Inventory
 
 List every reference to the bumped action across workflows and composite
 actions:
@@ -13,17 +13,18 @@ actions:
 grep -rn "<action>@" .github/workflows/ .github/actions/
 ```
 
-Confirm every match has been updated to the new SHA. A PR that updates some
-references but not others leaves the repository split across two pins — **fix**
-by aligning the stragglers.
+Confirm the PR updates every match to the new SHA. A PR that updates some
+references but not others leaves the repository split across two pins. Align
+the stragglers to **fix** it.
 
 ## Composite Actions
 
-Composite actions in `.github/actions/` are consumed by workflows via
-`uses: ./.github/actions/<name>` and inherit any third-party action references
-they contain. When updating a SHA used inside a composite action, no workflow
-file changes are needed — only the composite action's `action.yml`.
+Workflows consume composite actions in `.github/actions/` through
+`uses: ./.github/actions/<name>`. Those composite actions inherit any
+third-party action references they contain. When you update a SHA inside a
+composite action, no workflow file needs a change. Only the composite action's
+`action.yml` changes.
 
 Actions consumed from external repositories (e.g. published composite actions)
-pin their own third-party refs in their home repos — out of scope for this
-inventory.
+pin their own third-party refs in their home repos. Those refs are out of scope
+for this inventory.

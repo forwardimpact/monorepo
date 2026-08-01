@@ -3,19 +3,19 @@ title: Traverse Knowledge and Search Semantically
 description: Products that query relationships and search content without per-product stores — shared graph and vector gRPC services.
 ---
 
-You are building a product feature that needs relationship traversal or semantic
-search, and you do not want each product to stand up its own graph database or
-vector store. Two gRPC services -- `graph` and `vector` -- provide those
+You build a product feature that needs relationship traversal or semantic
+search. You do not want each product to stand up its own graph database or
+vector store. Two gRPC services (`graph` and `vector`) provide those
 capabilities to any product through a shared backend. Connect once with the
-generated client code from `npx fit-codegen generate --all`, and every product
-in the monorepo can query relationships and search content through the same
+generated client code from `npx fit-codegen generate --all`. Every product in
+the monorepo can then query relationships and search content through the same
 typed interface.
 
-This guide walks through connecting to both services, running a representative
-call against each, and verifying the responses match what the underlying indexes
-contain. By the end, your product will have a working connection to both
-services, and you will understand the request/response shape well enough to
-build features on top of them.
+In this guide you connect to both services. You run a representative call
+against each one. You then check that the responses match what the underlying
+indexes contain. By the end, your product connects to both services. You will
+also understand the request/response shape well enough to build features on
+top of them.
 
 ## Prerequisites
 
@@ -23,8 +23,8 @@ build features on top of them.
 - Generated client code available (run `npx fit-codegen generate --all` if not)
 - Services running (`npx fit-rc start`)
 - A populated knowledge base: `data/graphs/index.jsonl` for the graph service,
-  `data/vectors/index.jsonl` for the vector service. If you have not built these
-  yet, see the
+  `data/vectors/index.jsonl` for the vector service. If these indexes do not
+  exist yet, see the
   [Ground Agents in Context](/docs/libraries/ground-agents/) library guide for
   the ingestion pipeline.
 
@@ -37,9 +37,9 @@ npm install @forwardimpact/librpc @forwardimpact/libtype
 ## Architecture overview
 
 Both services sit behind gRPC and expose typed RPC methods. Products never read
-the JSONL index files directly -- they call the service, which holds the index
-in memory and handles query execution. This separation means a single index
-load serves all connected products, and individual products carry no index
+the JSONL index files directly. They call the service. The service holds the
+index in memory and runs the queries. This separation means that a single index
+load serves all connected products. Individual products carry no index
 management code.
 
 ```text
@@ -71,7 +71,7 @@ an `identifiers` array of resource identifiers.
 
 ## Connect to the graph service
 
-Create a graph client using the generated `GraphClient` class. The client reads
+Create a graph client with the generated `GraphClient` class. The client reads
 its connection details from `config/config.json` automatically:
 
 ```js
@@ -85,9 +85,10 @@ const graphClient = await createClient("graph", logger, tracer);
 ```
 
 `createClient("graph")` resolves the host and port from the service
-configuration, creates a `GraphClient` instance, and establishes the gRPC
-channel with automatic retry (up to 10 retries on transient errors, exponential
-backoff starting at 1 second with jitter).
+configuration. It creates a `GraphClient` instance. It then establishes the
+gRPC channel with automatic retry. The client retries up to 10 times on
+transient errors, with exponential backoff that starts at 1 second with
+jitter.
 
 ## Query the graph
 
@@ -149,8 +150,8 @@ https://acme.example/people/bob	https://schema.org/Person
 ### Read the ontology
 
 The ontology describes all types and predicates observed in the graph. Agents
-typically read this before writing queries to understand what relationships
-exist:
+typically read this to learn what relationships exist before they write
+queries:
 
 ```js
 import { common } from "@forwardimpact/libtype";
@@ -159,7 +160,7 @@ const ontology = await graphClient.GetOntology(common.Empty.fromObject({}));
 console.log(ontology.content.substring(0, 200));
 ```
 
-The response is a Turtle RDF string containing SHACL shape definitions.
+The response is a Turtle RDF string that contains SHACL shape definitions.
 
 ## Connect to the vector service
 
@@ -172,8 +173,8 @@ const vectorClient = await createClient("vector", logger, tracer);
 ## Search for related content
 
 Pass natural-language text to `SearchContent`. The service embeds the text
-using its configured embedding endpoint, scores the vectors against the index,
-and returns the ranked resource identifiers:
+with its configured embedding endpoint. It scores the vectors against the
+index. It then returns the ranked resource identifiers:
 
 ```js
 import { vector } from "@forwardimpact/libtype";
@@ -231,8 +232,9 @@ internally.
 
 ## Resolve identifiers to content
 
-Both services return resource identifiers, not the content itself. To retrieve
-the actual content chunks, resolve identifiers through `libresource`:
+Both services return resource identifiers. They do not return the content
+itself. To retrieve the actual content chunks, resolve identifiers through
+`libresource`:
 
 ```js
 import { createResourceIndex } from "@forwardimpact/libresource";
@@ -248,11 +250,12 @@ for (const item of items) {
 ```
 
 This two-step pattern (query the service, resolve the identifiers) keeps the
-services stateless and the resource resolution local to the calling product.
+services stateless. The product that calls the service resolves the resources
+locally.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `createClient("graph")` connects without error and
   `graphClient.GetSubjects(...)` returns a content string with subject URIs.
@@ -261,9 +264,9 @@ You have reached the outcome of this guide when:
 - You can apply a `QueryFilter` to constrain results by limit or prefix.
 - You can resolve returned identifiers to content through `libresource`.
 
-If any connection fails, confirm the services are running with
-`npx fit-rc status` and check that `config/config.json` lists the correct host
-and port for each service.
+If any connection fails, confirm the services run with `npx fit-rc status`.
+Then check that `config/config.json` lists the correct host and port for each
+service.
 
 ## What's next
 

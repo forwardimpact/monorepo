@@ -4,7 +4,7 @@ import assert from "node:assert";
 import { MessageBus, createMessageBus } from "../src/message-bus.js";
 
 describe("MessageBus", () => {
-  test("announce delivers to all others, not sender", () => {
+  test("announce delivers to all others and never to the sender", () => {
     const bus = new MessageBus({ participants: ["a", "b", "c"] });
     bus.announce("a", "hello");
 
@@ -39,7 +39,7 @@ describe("MessageBus", () => {
     assert.strictEqual(msgs[0].askId, 7);
   });
 
-  test("answer accepts orchestrator-origin null answers without asserting participant", () => {
+  test("answer accepts orchestrator-origin null answers and does not assert the participant", () => {
     const bus = new MessageBus({ participants: ["a", "b"] });
     bus.answer("@orchestrator", "a", "[no answer]", 12);
     const msgs = bus.drain("a");

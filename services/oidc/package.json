@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/svcoidc",
   "version": "0.1.6",
-  "description": "GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a repo-scoped installation token without holding signing material.",
+  "description": "GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a repo-scoped installation token without signing material.",
   "keywords": [
     "oidc",
     "github-actions",
@@ -21,10 +21,10 @@
     {
       "user": "Platform Builders",
       "goal": "Broker Scoped Credentials for Agents",
-      "trigger": "Agent infrastructure needs GitHub and OAuth tokens, but private keys and long-lived secrets must stay out of workflows and public-facing processes.",
+      "trigger": "Agent infrastructure needs GitHub and OAuth tokens. Private keys and long-lived secrets must stay out of workflows and public-facing processes.",
       "bigHire": "issue short-lived, scoped credentials to agents and workflows while signing material stays in one custody service.",
-      "littleHire": "validate the inbound OIDC token's signature, issuer, audience, and repository claim, then call the custody backend to mint a token scoped to the asserted repository.",
-      "competesWith": "shipping the App private key into every workflow as a repository secret; long-lived personal access tokens; per-provider HTTP services that mix protocol handling with exchange logic"
+      "littleHire": "validate the inbound OIDC token's signature, issuer, audience, and repository claim. Then call the custody backend to mint a token scoped to the asserted repository.",
+      "competesWith": "the App private key in every workflow as a repository secret; long-lived personal access tokens; per-provider HTTP services that handle the protocol and the exchange logic together"
     }
   ],
   "type": "module",

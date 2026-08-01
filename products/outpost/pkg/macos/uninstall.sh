@@ -3,8 +3,8 @@ set -e
 
 # Outpost Uninstaller
 #
-# Removes fit-outpost.app. User data at ~/.local/share/fit/outpost/ and config
-# at ~/.fit/outpost/ are preserved.
+# This script removes fit-outpost.app. It keeps user data at
+# ~/.local/share/fit/outpost/ and config at ~/.fit/outpost/.
 
 APP_PATH="/Applications/Forward Impact/fit-outpost.app"
 
@@ -15,7 +15,8 @@ echo ""
 
 # --- Stop running processes --------------------------------------------------
 
-# Try graceful shutdown first (stops running agents cleanly), then killall as fallback.
+# Try a graceful shutdown first. It stops active agents cleanly. Then use
+# killall as a fallback.
 if [ -f "$APP_PATH/Contents/MacOS/fit-outpost" ]; then
   "$APP_PATH/Contents/MacOS/fit-outpost" stop 2>/dev/null || true
 fi
@@ -32,7 +33,7 @@ if [ -d "$APP_PATH" ]; then
   sudo rm -rf "$APP_PATH"
   echo "  Removed $APP_PATH"
 else
-  echo "  fit-outpost.app not found, skipping."
+  echo "  fit-outpost.app not found, skipped."
 fi
 
 # --- Remove CLI symlink ------------------------------------------------------
@@ -51,8 +52,8 @@ fi
 
 echo ""
 echo "Outpost uninstalled."
-echo "Your data at ~/.local/share/fit/outpost/ has been preserved."
-echo "Your config at ~/.fit/outpost/ has been preserved."
+echo "Your data at ~/.local/share/fit/outpost/ stays in place."
+echo "Your config at ~/.fit/outpost/ stays in place."
 echo ""
 echo "To remove all data:   rm -rf ~/.local/share/fit/outpost/"
 echo "To remove all config: rm -rf ~/.fit/outpost/"

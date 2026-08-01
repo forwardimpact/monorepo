@@ -1,9 +1,9 @@
 // Canonical line- and word-counters for the budgeted wiki surfaces. The audit
 // (`audit/scopes.js`) and the rotation primitive's bisecting seal
-// (`weekly-log.js`) both import this one pair so a part the seal calls
-// conforming cannot later be flagged by an audit counting differently.
+// (`weekly-log.js`) both import this one pair. So no audit that counts
+// differently can later flag a part the seal accepts as conforming.
 
-/** Count lines, not counting a trailing newline as an empty final line. */
+/** Count lines. Do not count a trailing newline as an empty final line. */
 export function countLines(text) {
   return text.split("\n").length - (text.endsWith("\n") ? 1 : 0);
 }

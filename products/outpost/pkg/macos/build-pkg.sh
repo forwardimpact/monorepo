@@ -3,9 +3,9 @@ set -e
 
 # Build a macOS installer package (.pkg) for fit-outpost.app.
 #
-# Creates a .pkg that installs fit-outpost.app to "/Applications/Forward Impact/"
-# (matching the Homebrew cask) and runs a postinstall script to set up config
-# and default KB.
+# This script creates a .pkg. The .pkg installs fit-outpost.app to
+# "/Applications/Forward Impact/", which matches the Homebrew cask. The .pkg
+# also runs a postinstall script to set up config and the default KB.
 #
 # Usage: build-pkg.sh <dist_dir> <version>
 #   e.g.  build-pkg.sh dist 1.0.0
@@ -52,7 +52,7 @@ cp "$SCRIPT_DIR/postinstall" "$SCRIPTS_DIR/postinstall"
 chmod +x "$SCRIPTS_DIR/postinstall"
 
 # --- Disable bundle relocation -----------------------------------------------
-# By default pkgbuild marks app bundles as relocatable, so macOS will install
+# By default pkgbuild marks app bundles as relocatable. So macOS will install
 # updates wherever it finds an existing copy instead of /Applications/.
 
 COMPONENT_PLIST="$DIST_DIR/pkg-component.plist"
@@ -99,9 +99,10 @@ EOF
 
 # --- Build distribution package ----------------------------------------------
 
-# Sign the installer with a Developer ID Installer identity when provided
-# (set only in the publish workflow, from environment-scoped secrets). Unsigned
-# otherwise, for local builds. Notarization + stapling happen in the workflow.
+# Sign the installer with a Developer ID Installer identity when the
+# environment provides one. Only the publish workflow sets it, from
+# environment-scoped secrets. Local builds stay unsigned. Notarization and
+# stapling happen in the workflow.
 INSTALLER_IDENTITY="${MACOS_INSTALLER_IDENTITY:-}"
 SIGN_ARGS=()
 [ -n "$INSTALLER_IDENTITY" ] && SIGN_ARGS=(--sign "$INSTALLER_IDENTITY")

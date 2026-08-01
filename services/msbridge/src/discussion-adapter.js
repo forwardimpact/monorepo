@@ -37,11 +37,11 @@ function inflateMetadata(rec) {
 
 /**
  * gRPC-backed `DiscussionAdapter` for `services/msbridge`. Every request
- * carries a `tenant_id` resolved from the constructor-injected
- * `TenantResolver`: single-tenant deployments thread the literal
- * `"default"` (via `DefaultTenantResolver`), multi-tenant deployments
- * thread the registry-resolved tenant (via `RegistryTenantResolver`). The
- * adapter never omits the field — `services/bridge` rejects an empty
+ * carries a `tenant_id` that comes from the constructor-injected
+ * `TenantResolver`. Single-tenant deployments thread the literal
+ * `"default"` (through `DefaultTenantResolver`). Multi-tenant deployments
+ * thread the registry-resolved tenant (through `RegistryTenantResolver`).
+ * The adapter never omits the field. `services/bridge` rejects an empty
  * `tenant_id` with `INVALID_ARGUMENT`.
  */
 export class DiscussionAdapter {
@@ -61,9 +61,9 @@ export class DiscussionAdapter {
   }
 
   /**
-   * Resolve the tenant id for a context record. Prefers a `tenant_id`
-   * already bound on the context; otherwise resolves through the injected
-   * resolver and binds the result back onto the context.
+   * Resolve the tenant id for a context record. Prefer a `tenant_id`
+   * already bound on the context. If none exists, resolve through the
+   * injected resolver and bind the result back onto the context.
    *
    * @param {object} ctx
    * @returns {Promise<string>}
@@ -101,10 +101,10 @@ export class DiscussionAdapter {
   }
 
   /**
-   * Resolve a tenant by channel key, returning `null` instead of throwing
-   * when none resolves. Used by cross-tenant rehydration paths
-   * (`listOpenRecesses`, `loadByCorrelation`) where, in multi-tenant mode,
-   * the channel is not itself a tenant key.
+   * Resolve a tenant by channel key. Return `null` when none resolves. Do
+   * not throw. The cross-tenant rehydration paths (`listOpenRecesses`,
+   * `loadByCorrelation`) use this method, because in multi-tenant mode the
+   * channel is not itself a tenant key.
    *
    * @param {string} channel
    * @returns {Promise<string | null>}
@@ -160,11 +160,12 @@ export class DiscussionAdapter {
 
   /**
    * Rehydrate open recesses for the resolvable tenant. Single-tenant resolves
-   * `default`; multi-tenant has no single tenant at startup, so the channel
+   * `default`. Multi-tenant has no single tenant at startup, so the channel
    * key does not resolve and rearm returns no refs. This is a documented
-   * hosted-mode limitation: multi-tenant `elapsed`-trigger recesses re-arm
-   * lazily on the next inbound activity via `processInbound` rather than at
-   * restart, because the registry exposes no cross-tenant recess enumeration.
+   * hosted-mode limitation. Multi-tenant `elapsed`-trigger recesses re-arm
+   * lazily on the next inbound activity through `processInbound`. They do
+   * not re-arm at restart, because the registry exposes no way to list
+   * recesses across tenants.
    * See README § Documented limitation: multi-tenant elapsed-recess re-arm.
    */
   async listOpenRecesses() {

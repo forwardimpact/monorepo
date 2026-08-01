@@ -1,8 +1,8 @@
 /**
- * GraphQL mutations used by the GitHub Discussions adapter. Kept in a single
- * file so reviewers can grep one location for every channel-specific
- * GraphQL string — the libbridge invariant forbids these strings from
- * leaking into the shared package.
+ * The GitHub Discussions adapter uses these GraphQL mutations. They stay in
+ * a single file so reviewers can grep one location for every
+ * channel-specific GraphQL string. The libbridge invariant forbids these
+ * strings in the shared package.
  */
 
 export const ADD_DISCUSSION_COMMENT_MUTATION = `
@@ -28,7 +28,7 @@ export const REMOVE_REACTION_MUTATION = `
 
 /**
  * Post each reply in `replies` as a separate `addDiscussionComment`
- * GraphQL mutation. Skips entries lacking a body.
+ * GraphQL mutation. Skip an entry that has no body.
  *
  * @param {(query: string, vars: object) => Promise<unknown>} graphqlClient
  * @param {{discussion_id: string}} ctx

@@ -104,7 +104,7 @@ describe("validateCrossContent", () => {
   });
 
   describe("manager references", () => {
-    test("fails when manager references unknown team", () => {
+    test("fails when a manager references an unknown team", () => {
       const entities = buildEntities({
         people: [
           {
@@ -150,13 +150,13 @@ describe("validateCrossContent", () => {
   });
 
   describe("pathway validity", () => {
-    test("passes with simple standard config", () => {
+    test("passes with a simple standard config", () => {
       const result = validateCrossContent(buildEntities());
       const check = result.checks.find((c) => c.name === "pathway_validity");
       assert.strictEqual(check.passed, true);
     });
 
-    test("fails when standard has no proficiencies", () => {
+    test("fails when the standard has no proficiencies", () => {
       const entities = buildEntities({
         standard: {
           proficiencies: [],
@@ -171,7 +171,7 @@ describe("validateCrossContent", () => {
       assert.strictEqual(check.passed, false);
     });
 
-    test("fails when discipline references unknown skill (extended mode)", () => {
+    test("fails when a discipline references an unknown skill (extended mode)", () => {
       const entities = buildEntities({
         standard: {
           proficiencies: ["awareness"],
@@ -194,7 +194,7 @@ describe("validateCrossContent", () => {
       assert.ok(check.message.includes("unknown skill"));
     });
 
-    test("fails when driver references unknown behaviour (extended mode)", () => {
+    test("fails when a driver references an unknown behaviour (extended mode)", () => {
       const entities = buildEntities({
         standard: {
           proficiencies: ["awareness"],
@@ -218,7 +218,7 @@ describe("validateCrossContent", () => {
   });
 
   describe("roster completeness", () => {
-    test("fails when roster is missing people", () => {
+    test("fails when the roster lacks people", () => {
       const entities = buildEntities();
       entities.activity.roster = [{ email: "zeus@acme.com" }];
       const result = validateCrossContent(entities);
@@ -267,7 +267,7 @@ describe("validateCrossContent", () => {
       assert.strictEqual(check.passed, false);
     });
 
-    test("fails with unknown webhook sender", () => {
+    test("fails with an unknown webhook sender", () => {
       const entities = buildEntities();
       entities.activity.webhook = {
         events: [
@@ -308,7 +308,7 @@ describe("validateCrossContent", () => {
       assert.strictEqual(check.passed, false);
     });
 
-    test("fails with scores out of 0-100 range", () => {
+    test("fails with scores out of the 0-100 range", () => {
       const entities = buildEntities();
       entities.activity.scores = [
         {
@@ -323,7 +323,7 @@ describe("validateCrossContent", () => {
       assert.strictEqual(check.passed, false);
     });
 
-    test("fails with invalid evidence proficiency", () => {
+    test("fails with an invalid evidence proficiency", () => {
       const entities = buildEntities();
       entities.activity.evidence = [
         { skill_id: "js", proficiency: "invalid_level" },
@@ -345,7 +345,7 @@ describe("validateCrossContent", () => {
   });
 
   describe("result structure", () => {
-    test("returns total count matching number of checks", () => {
+    test("returns a total count that matches the number of checks", () => {
       const result = validateCrossContent(buildEntities());
       assert.strictEqual(result.total, result.checks.length);
     });

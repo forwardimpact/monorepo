@@ -179,7 +179,7 @@ describe("tokenize", () => {
     });
   });
 
-  describe("line tracking", () => {
+  describe("line numbers", () => {
     test("tracks line numbers across newlines", () => {
       const tokens = tokenize("terrain\ndomain\nindustry");
       assert.strictEqual(tokens[0].line, 1);
@@ -187,7 +187,7 @@ describe("tokenize", () => {
       assert.strictEqual(tokens[2].line, 3);
     });
 
-    test("ignores carriage returns for line counting", () => {
+    test("ignores carriage returns in the line count", () => {
       const tokens = tokenize("terrain\r\ndomain");
       assert.strictEqual(tokens[0].line, 1);
       assert.strictEqual(tokens[1].line, 2);
@@ -270,7 +270,7 @@ describe("tokenize", () => {
       });
     });
 
-    test("multi-segment dotted path", () => {
+    test("tokenizes a multi-segment dotted path", () => {
       const tokens = tokenize("a.b.c");
       assert.deepStrictEqual(tokens[0], {
         type: "DOTTED_IDENT",
@@ -338,13 +338,13 @@ describe("tokenize", () => {
       ]);
     });
 
-    test("YYYY-MM dates are unaffected by hyphen identifiers", () => {
+    test("hyphen identifiers do not affect YYYY-MM dates", () => {
       const tokens = tokenize("2024-01");
       assert.strictEqual(tokens[0].type, "DATE");
       assert.strictEqual(tokens[0].value, "2024-01");
     });
 
-    test("keywords are still recognised next to hyphenated idents", () => {
+    test("still recognises keywords next to hyphenated idents", () => {
       const tokens = tokenize("disciplines software-engineering").filter(
         (t) => t.type !== "EOF",
       );

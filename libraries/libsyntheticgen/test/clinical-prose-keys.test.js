@@ -100,7 +100,7 @@ describe("clinical prose key generation", () => {
   const loader = makePromptLoader();
   const clinical = makeClinicalEntities();
 
-  test("yields expected number of keys", () => {
+  test("yields the expected number of keys", () => {
     const keys = Array.from(
       clinicalProseKeys(clinical, "example.com", "BioNova", loader),
     );
@@ -115,7 +115,7 @@ describe("clinical prose key generation", () => {
     assert.strictEqual(keys.length, 11);
   });
 
-  test("all keys start with clinical_ prefix", () => {
+  test("all keys start with the clinical_ prefix", () => {
     const keys = Array.from(
       clinicalProseKeys(clinical, "example.com", "BioNova", loader),
     );
@@ -151,7 +151,7 @@ describe("clinical prose key generation", () => {
     }
   });
 
-  test("condition explainer uses entity prose_topic when set", () => {
+  test("condition explainer uses entity prose_topic when it is not null", () => {
     const keys = Array.from(
       clinicalProseKeys(clinical, "example.com", "BioNova", loader),
     );

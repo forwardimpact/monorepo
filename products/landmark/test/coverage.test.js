@@ -52,7 +52,7 @@ describe("coverage command", () => {
     assert.equal(result.view.uncoveredByType.review, 1);
   });
 
-  it("breaks down the numerator by provenance class, zero classes shown", async () => {
+  it("breaks down the numerator by provenance class and shows the zero-count classes", async () => {
     const result = await runCoverageCommand({
       options: { email: "alice@example.com" },
       supabase: {},
@@ -134,7 +134,7 @@ describe("coverage command", () => {
     assert.ok(result.meta.emptyState.includes("nobody@example.com"));
   });
 
-  it("returns NO_ARTIFACTS when person has no artifacts", async () => {
+  it("returns NO_ARTIFACTS when the person has no artifacts", async () => {
     const result = await runCoverageCommand({
       options: { email: "alice@example.com" },
       supabase: {},

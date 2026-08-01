@@ -1,16 +1,16 @@
 /**
- * `fit-landmark login` — sign an engineer in via Supabase magic-link.
+ * `fit-landmark login` — sign an engineer in with a Supabase magic-link.
  *
  * Two modes:
  *
- *   - Browser flow (default): start a localhost listener; ask Supabase to
- *     email a magic-link that redirects to the listener; capture the PKCE
- *     `code` query param; exchange it for a session.
+ *   - Browser flow (default): start a localhost listener. Ask Supabase to
+ *     email a magic-link that redirects to the listener. Capture the PKCE
+ *     `code` query param. Exchange it for a session.
  *
- *   - OTP flow (`--otp`): ask Supabase to email a 6-digit code; prompt
- *     for it on stdin; verify and persist the resulting session.
+ *   - OTP flow (`--otp`): ask Supabase to email a 6-digit code. Prompt
+ *     for it on stdin. Verify and persist the session.
  *
- * Persistence lives in `products/landmark/src/lib/credentials.js`.
+ * `products/landmark/src/lib/credentials.js` persists the session.
  */
 
 import { createServer } from "node:http";
@@ -96,10 +96,10 @@ function persistSession(runtime, session, email, env) {
 
 // In-process storage for the PKCE code verifier. supabase-js writes the
 // verifier here on `signInWithOtp` and reads it back on
-// `exchangeCodeForSession` — both calls run inside the same CLI process,
-// so a Map outlives the call sequence and dies when the process exits.
-// `persistSession: false` plus `autoRefreshToken: false` keep the client
-// from trying to write the session itself; we manage that via
+// `exchangeCodeForSession`. Both calls run inside the same CLI process.
+// So a Map outlives the call sequence and dies when the process exits.
+// `persistSession: false` plus `autoRefreshToken: false` make sure the
+// client does not write the session itself. We manage that with
 // `writeCredentials` once exchange succeeds.
 function createPkceStorage() {
   const store = new Map();
@@ -144,9 +144,9 @@ function resolveAnonClient({ config, createClient, flowType = "implicit" }) {
  * @param {object} params.runtime - The injected collaborator bag (clock, fs, proc).
  * @param {{email?:string, otp?:boolean}} params.options
  * @param {{stdin?:NodeJS.ReadableStream,stdout?:{write:(s:string)=>unknown}}} params.io
- *   stdout defaults to `runtime.proc`; stdin must be supplied by the bin (a
- *   real Readable for `readline`) when the command may prompt interactively.
- * @param {object} params.config - libconfig Config carrying Supabase URL + anon key.
+ *   stdout defaults to `runtime.proc`. The bin must supply stdin (a real
+ *   Readable for `readline`) when the command may prompt interactively.
+ * @param {object} params.config - libconfig Config with the Supabase URL and anon key.
  * @param {NodeJS.ProcessEnv} [params.env] - Carries LANDMARK_CREDENTIALS_FILE.
  * @param {(url:string,key:string)=>any} [params.createClient]
  * @param {() => Promise<{port:number,codePromise:Promise<string>,close:()=>void}>} [params.openListener]
@@ -171,10 +171,10 @@ export async function runLoginCommand({
     const client = resolveAnonClient({ config, createClient });
     return runOtpFlow({ runtime, client, email, io, env });
   }
-  // Browser flow needs PKCE so the magic-link redirect lands `?code=` (a
-  // query param the localhost listener can read) rather than the default
-  // implicit flow's `#access_token=...` URL fragment (which browsers strip
-  // before sending the request — making it invisible to the listener).
+  // Browser flow needs PKCE. The magic-link redirect then lands `?code=`, a
+  // query param the localhost listener can read. The default implicit flow
+  // instead returns a `#access_token=...` URL fragment. Browsers strip that
+  // fragment before they send the request, so the listener never sees it.
   const client = resolveAnonClient({ config, createClient, flowType: "pkce" });
   return runBrowserFlow({ runtime, client, email, io, env, openListener });
 }
@@ -198,8 +198,8 @@ async function runBrowserFlow({
   io.stdout.write(
     "Sent a magic link to " +
       email +
-      ".\nOpen the email on this machine and click the link — the CLI is " +
-      "listening on 127.0.0.1:" +
+      ".\nOpen the email on this machine and click the link. The CLI " +
+      "listens on 127.0.0.1:" +
       port +
       ".\n",
   );

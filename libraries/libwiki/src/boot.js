@@ -130,10 +130,11 @@ function bulletItem(threshold, agent) {
 }
 
 // Advance the agent-section scan for one storyboard line that is NOT inside the
-// materialized block. Returns the next `inAgent` state and pushes an h3-bullet
-// item for the booting agent when one is found. An h2 ends the agent-section
-// scan (team-wide sections follow the last agent h3 — without this the scan
-// would run past the agent sections and misattribute team-wide bullets).
+// materialized block. Returns the next `inAgent` state. When the scan finds an
+// h3 bullet for the agent that boots, it pushes that item. An h2 ends the
+// agent-section scan, because team-wide sections follow the last agent h3.
+// Without this the scan would run past the agent sections and misattribute
+// team-wide bullets.
 function scanAgentLine(line, agent, inAgent, items) {
   if (/^## /.test(line)) return false;
   const h3Match = line.match(/^### (.+)$/);
@@ -152,8 +153,9 @@ function parseStoryboardItems(text, agent) {
   let inBlock = false;
   for (const line of text.split("\n")) {
     // The materialized block carries `- #N [agent] …` bullets that the agent
-    // scan must never capture; track it so the bullet loop skips inside it.
-    // (Without it the legacy scan double-counted these as the last agent's bullets.)
+    // scan must never capture. Track it so the bullet loop skips inside it.
+    // (Without it the legacy scan double-counted these as the last agent's
+    // bullets.)
     if (AGENT_EXPERIMENTS_OPEN_RE.test(line)) {
       inBlock = true;
       inAgent = false;
@@ -204,7 +206,7 @@ function countInbox(text) {
 /**
  * Remaining budget for a budgeted surface: current value, cap, and headroom for
  * both the line and word budget. An absent file (empty text) reports zero usage
- * and full headroom so a writer sees the ceiling before composing.
+ * and full headroom so a writer sees the ceiling before they compose.
  */
 function headroom(text, lineCap, wordCap) {
   const lines = countLines(text);
@@ -237,7 +239,7 @@ function mapClaim(c) {
 /**
  * Build the boot digest JSON object.
  * @param {{wikiRoot: string, agent: string, today: string, fs: object}} options
- *   `fs` is the sync filesystem surface (`runtime.fsSync`); `today` is an ISO
+ *   `fs` is the sync filesystem surface (`runtime.fsSync`). `today` is an ISO
  *   date string.
  */
 export function buildDigest({ wikiRoot, agent, today, fs }) {

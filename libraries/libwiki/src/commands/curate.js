@@ -7,8 +7,8 @@ import { resolveProjectRoot } from "../util/wiki-dir.js";
 import { auditWiki } from "./audit.js";
 
 // The routing contract: a single open issue, addressed to the technical-writer,
-// holding the audit findings. The title is matched verbatim on every run so a
-// dirty wiki appends to one issue rather than opening a new one each day.
+// that holds the audit findings. Every run matches the title verbatim, so a
+// dirty wiki appends to one issue and does not open a new one each day.
 const LABEL = {
   name: "wiki-curation",
   color: "BFD4F2",
@@ -19,13 +19,14 @@ const TITLE = "Wiki curation: shared-state audit findings";
 // GitHub rejects an issue or comment body over 65536 characters. Keep the whole
 // body under a margin below that so the preamble, JSON fence, and truncation
 // notice always fit. When the findings overflow, the body carries the first N
-// that fit plus a count; the full list stays reproducible via `gemba-wiki audit`.
+// that fit plus a count. `gemba-wiki audit` still reproduces the full list.
 const MAX_BODY = 65000;
 
 /**
  * Compose the issue body from the audit's JSON findings. The findings ride a
- * fenced ```json block; the body is passed to `gh` via `--body-file` (a temp
- * file), never argv, so untrusted finding text cannot be misread as a flag.
+ * fenced ```json block. The caller passes the body to `gh` through
+ * `--body-file` (a temp file) and never through argv. So `gh` cannot misread
+ * untrusted finding text as a flag.
  * @param {string} findingsJson
  * @param {{shown?: number, total?: number}} [trunc]
  * @returns {string}
@@ -34,12 +35,12 @@ function buildBody(findingsJson, { shown, total } = {}) {
   const lines = [
     "Scheduled `curate-wiki` audit found shared-wiki violations.",
     "",
-    "Owner: **technical-writer** (service these via the curation shift; the per-PR `wiki` gate no longer reads shared wiki state).",
+    "Owner: **technical-writer**. Service these through the curation shift. The per-PR `wiki` gate no longer reads shared wiki state.",
     "",
   ];
   if (total != null && shown != null && shown < total) {
     lines.push(
-      `Showing ${shown} of ${total} findings — the body was truncated to fit GitHub's comment limit. Run \`gemba-wiki audit\` for the full list.`,
+      `Showing ${shown} of ${total} findings. The body is truncated to fit GitHub's comment limit. Run \`gemba-wiki audit\` for the full list.`,
       "",
     );
   }
@@ -49,9 +50,10 @@ function buildBody(findingsJson, { shown, total } = {}) {
 
 /**
  * Build the largest postable body for the audit findings. The full findings
- * usually fit; when they don't, keep the first N `fail` findings that stay
- * under GitHub's body limit and label the body as truncated. The shrink steps
- * down proportionally to the overflow, so it converges in a couple of passes.
+ * usually fit. When they do not fit, keep the first N `fail` findings that
+ * stay under GitHub's body limit. Label the body as truncated. The shrink
+ * steps down proportionally to the overflow, so it converges in a couple of
+ * passes.
  * @param {{level: string}[]} findings
  * @returns {string}
  */
@@ -76,8 +78,8 @@ function fitBody(findings) {
 
 // Resolve the monorepo's `owner/repo` slug the way refresh.js/product-mix.js
 // do: an explicit FIT_GH_REPO override (sandbox proxy URLs), else the origin
-// remote parsed via the injected git client. Null lets `gh` fall back to its
-// own cwd resolution.
+// remote parsed through the injected git client. Null lets `gh` fall back to
+// its own cwd resolution.
 async function deriveRepo(gitClient, cwd, env) {
   if (env.FIT_GH_REPO) return env.FIT_GH_REPO;
   if (!gitClient) return null;
@@ -88,7 +90,7 @@ async function deriveRepo(gitClient, cwd, env) {
   }
 }
 
-// A missing token is non-fatal: `gh` may still resolve ambient auth.
+// A missing token is non-fatal. `gh` may still resolve ambient auth.
 async function resolveToken() {
   try {
     return (await createScriptConfig("wiki")).ghToken();
@@ -98,8 +100,9 @@ async function resolveToken() {
 }
 
 /**
- * Find the open `wiki-curation` issue by its verbatim title, or null. Any
- * parse failure or empty result is treated as "no issue" (create path).
+ * Find the open `wiki-curation` issue by its verbatim title, or null. This
+ * function treats any parse failure or empty result as "no issue" (create
+ * path).
  * @param {import("@forwardimpact/libcli").InvocationContext["deps"]["runtime"]} runtime
  * @param {string[]} repoArgs
  * @param {{cwd: string, env: object}} opts
@@ -129,11 +132,11 @@ async function findOpenIssue(runtime, repoArgs, opts) {
 }
 
 /**
- * Route the composed body to the single `wiki-curation` issue: ensure the
- * label, find the open issue by title, then comment on it or create it. The
- * body goes through a temp file (never argv) so untrusted finding text cannot
- * be read as a flag. On a `gh` failure the reason is logged and `ok:false`
- * returned so the caller exits non-zero.
+ * Route the composed body to the single `wiki-curation` issue: make sure the
+ * label exists, find the open issue by title, then comment on it or create it.
+ * The body goes through a temp file and never through argv. So `gh` cannot
+ * read untrusted finding text as a flag. On a `gh` failure this function logs
+ * the reason and returns `ok:false`, so the caller exits non-zero.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @param {string} body
  * @param {ReturnType<typeof createLogger>} logger
@@ -150,8 +153,8 @@ async function routeFindings(ctx, body, logger) {
     : runtime.proc.env;
   const repoArgs = repo ? ["--repo", repo] : [];
 
-  // Ensure the label exists; a re-create on an existing label exits non-zero,
-  // which is expected and ignored.
+  // Make sure the label exists. A re-create on an existing label exits
+  // non-zero. That is expected, and the code ignores it.
   await runtime.subprocess.run(
     "gh",
     [
@@ -169,8 +172,8 @@ async function routeFindings(ctx, body, logger) {
 
   const number = await findOpenIssue(runtime, repoArgs, { cwd, env });
 
-  // Pass the body through a temp file, not argv — robust to length and immune
-  // to finding text being read as a flag.
+  // Pass the body through a temp file instead of argv. A temp file is robust
+  // to length, and `gh` cannot read finding text as a flag.
   const tmp = runtime.proc.env.RUNNER_TEMP || runtime.proc.env.TMPDIR || "/tmp";
   const bodyFile = path.join(tmp, "wiki-curation-body.md");
   runtime.fsSync.writeFileSync(bodyFile, body);
@@ -208,12 +211,12 @@ async function routeFindings(ctx, body, logger) {
 }
 
 /**
- * Audit the shared wiki and, when it is dirty, route the findings to the
- * single `wiki-curation` issue (create or comment) addressed to the
- * technical-writer. This is the SOLE home of the shared-wiki audit verdict; the
- * per-PR `wiki` gate no longer reads live wiki state. A clean wiki routes
- * nothing. The label/search/create-or-comment logic lives here, not in the
- * workflow, so the curation step is one CLI call.
+ * Audit the shared wiki. When it is dirty, route the findings to the single
+ * `wiki-curation` issue (create or comment) addressed to the technical-writer.
+ * This is the SOLE home of the shared-wiki audit verdict. The per-PR `wiki`
+ * gate no longer reads live wiki state. A clean wiki routes nothing. The
+ * label/search/create-or-comment logic lives here and not in the workflow, so
+ * the curation step is one CLI call.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  * @returns {Promise<{ok: boolean}>}
@@ -224,7 +227,7 @@ export async function runCurateCommand(ctx) {
   const { findings } = auditWiki(ctx);
 
   if (!findings.some((f) => f.level === "fail")) {
-    runtime.proc.stdout.write("wiki audit clean — no curation issue routed\n");
+    runtime.proc.stdout.write("wiki audit clean, no curation issue routed\n");
     return { ok: true };
   }
 

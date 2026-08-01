@@ -22,7 +22,7 @@ describe("RateLimiter", () => {
     expect(blocked.retryAfterMs).toBeGreaterThanOrEqual(0);
   });
 
-  test("evicts timestamps outside the window before measuring", () => {
+  test("evicts timestamps outside the window before it measures", () => {
     const limiter = new RateLimiter({ clock, windowMs: 1000, max: 5 });
     const now = Date.now();
     const dispatches = [now - 5000, now - 3000, now - 2000];

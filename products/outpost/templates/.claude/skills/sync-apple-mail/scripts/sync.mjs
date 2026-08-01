@@ -3,9 +3,9 @@
  * Sync Apple Mail threads to ~/.cache/fit/outpost/apple_mail/ as markdown.
  *
  * Queries the macOS Mail Envelope Index SQLite database for threads with new
- * messages since the last sync. Writes one markdown file per thread containing
- * sender, recipients, date, body text (parsed from .emlx files), and attachment
- * links. Attachments are copied into a per-thread subdirectory.
+ * messages since the last sync. Writes one markdown file per thread. Each file
+ * holds the sender, recipients, date, body text (parsed from .emlx files), and
+ * attachment links. Copies the attachments into a per-thread subdirectory.
  *
  * Requires macOS with Mail app configured and Full Disk Access granted.
  */

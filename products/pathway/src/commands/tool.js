@@ -1,7 +1,7 @@
 /**
  * Tool CLI Command
  *
- * Handles tool summary, listing, and detail display in the terminal.
+ * Shows the tool summary, the tool list, and the tool detail in the terminal.
  *
  * Usage:
  *   npx fit-pathway tool              # Summary with stats
@@ -96,7 +96,7 @@ function formatSummary(tools, totalCount, runtime) {
     "\n" + formatSubheader(`Total: ${totalCount} tools`) + "\n",
   );
   if (sorted.length > 15) {
-    runtime.proc.stdout.write(formatBullet("(showing top 15 by usage)") + "\n");
+    runtime.proc.stdout.write(formatBullet("(top 15 by usage)") + "\n");
   }
   runtime.proc.stdout.write("\n");
   runtime.proc.stdout.write(

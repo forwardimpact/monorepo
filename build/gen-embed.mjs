@@ -2,20 +2,23 @@
 /**
  * Generate the embed barrel + entry shim for a `bun build --compile` binary.
  *
- * Reads the CLI's `assets` block from `build/cli-manifest.json`, inlines every
- * matching asset file's text via `import ... with { type: "text" }`, and emits:
+ * This script reads the CLI's `assets` block from `build/cli-manifest.json`.
+ * It inlines the text of every asset file that matches, with
+ * `import ... with { type: "text" }`. It then emits:
  *
  *   <outDir>/<cli>.assets.mjs  — text imports + registerAssets() calls
  *   <outDir>/<cli>.entry.mjs   — imports the barrel, then the real entry
  *
- * The barrel runs before the entry, so the asset registry is populated before
- * the entry's module body executes. Prints the path to compile (the shim when
- * the CLI declares assets, otherwise the original entry unchanged) to stdout so
- * `just build-binary` can feed it straight to `bun build --compile`.
+ * The barrel runs before the entry, so the barrel fills the asset registry
+ * before the entry's module body executes. The script prints the path to
+ * compile on stdout. `just build-binary` then feeds that path straight to
+ * `bun build --compile`. The path is the shim when the CLI declares assets.
+ * Otherwise it is the original entry, unchanged.
  *
- * Asset selection: every file under each `from` directory except code modules
- * (.js/.mjs/.cjs/.ts/.tsx/.jsx) — those are part of the JS module graph and are
- * bundled by Bun already. An asset entry may narrow this with an `ext` array.
+ * The script selects every file under each `from` directory except code
+ * modules (.js/.mjs/.cjs/.ts/.tsx/.jsx). Those modules belong to the JS module
+ * graph, and Bun bundles them already. An asset entry may narrow this with an
+ * `ext` array.
  *
  * Usage: node build/gen-embed.mjs <cliName> <entryAbsPath> <outDir>
  */
@@ -87,8 +90,9 @@ for (const asset of assets) {
   );
 }
 
-// Absolute so the emitted `import` statements resolve as files, not bare
-// package specifiers, regardless of where `bun build` runs from.
+// Keep the path absolute. The emitted `import` statements then resolve as
+// files. They do not resolve as bare package specifiers. This holds wherever
+// `bun build` runs from.
 const outAbs = resolve(repoRoot, outDir);
 mkdirSync(outAbs, { recursive: true });
 
@@ -103,8 +107,9 @@ writeFileSync(
     `${mountBlocks.join("\n")}\n`,
 );
 
-// Absolute so the shim's `import` resolves the entry as a file, not a bare
-// package specifier (the manifest hands us a repo-relative entry path).
+// Keep the path absolute. The shim's `import` then resolves the entry as a
+// file. It does not resolve the entry as a bare package specifier. The
+// manifest hands us a repo-relative entry path.
 const entryAbs = resolve(repoRoot, entryPath);
 
 writeFileSync(

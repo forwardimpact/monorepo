@@ -3,22 +3,22 @@ title: Fetch a Derived Role or Agent Profile
 description: Get a derived role or agent profile without reimplementing derivation — pass coordinates to the pathway service, receive Turtle RDF.
 ---
 
-You have a discipline, level, and optional track, and you need the derived role
+You have a discipline, level, and optional track. You need the derived role
 definition or agent profile as structured data from the pathway service. This
-page walks through the bounded task of going from those coordinates to a
-Turtle RDF response you can parse, render, or pass downstream -- without
-embedding derivation logic in your product.
+page covers that bounded task. It takes you from those coordinates to a Turtle
+RDF response that you can parse, render, or pass downstream. Your product does
+not embed the derivation logic.
 
-For the full setup including all seven RPCs and architecture context, see
-[Query the Engineering Standard](/docs/services/integrate-standard/).
+For the full setup, see
+[Query the Engineering Standard](/docs/services/integrate-standard/). That
+guide covers all seven RPCs and the architecture context.
 
 ## Prerequisites
 
-- Completed the
-  [Query the Engineering Standard](/docs/services/integrate-standard/) guide --
-  you have `@forwardimpact/librpc` and `@forwardimpact/libtype` installed, the
-  pathway service is running, and `createClient("pathway")` connects
-  successfully.
+- You completed the
+  [Query the Engineering Standard](/docs/services/integrate-standard/) guide.
+  You installed `@forwardimpact/librpc` and `@forwardimpact/libtype`. The
+  pathway service runs. `createClient("pathway")` connects successfully.
 
 ## Connect
 
@@ -62,9 +62,10 @@ Expected output (Turtle RDF, abbreviated):
   fit:behaviourCount 5 .
 ```
 
-The response includes the full skill matrix (each skill with its type,
-proficiency, and description), the behaviour profile, derived responsibilities,
-and expectation dimensions (scope, autonomy, influence, complexity).
+The response includes the full skill matrix, the behaviour profile, derived
+responsibilities, and expectation dimensions. The skill matrix gives each skill
+with its type, proficiency, and description. The expectation dimensions are
+scope, autonomy, influence, and complexity.
 
 ### Without a track
 
@@ -84,8 +85,8 @@ error. Check valid combinations first with `ListJobs` if you are unsure.
 
 ## Fetch an agent profile
 
-Agent profiles use `DescribeAgentProfile` instead. The `track` field is
-required:
+Agent profiles use `DescribeAgentProfile` instead. The service requires the
+`track` field:
 
 ```js
 const request = pathway.DescribeAgentProfileRequest.fromObject({
@@ -109,10 +110,11 @@ Expected output (Turtle RDF, abbreviated):
   fit:behaviourCount 5 .
 ```
 
-The agent profile is smaller than the full role because human-only skills are
-removed and lower-proficiency duplicates are collapsed. Skills and behaviours
-are sorted by strength descending, which is useful when generating agent
-instructions where the most important capabilities should lead.
+The agent profile is smaller than the full role because the service removes
+human-only skills and collapses lower-proficiency duplicates. The service sorts
+skills and behaviours by strength descending. This order helps when you generate
+agent instructions. In those instructions, the most important capabilities
+should lead.
 
 ## Handle errors
 
@@ -141,17 +143,17 @@ Common error cases:
 | Missing required track        | `Invalid job combination: discipline=... level=...`  |
 | Agent profile without track   | `track is required for DescribeAgentProfile`         |
 
-To discover valid values before calling, use `ListJobs` (for roles) or
+To discover valid values before you call, use `ListJobs` (for roles) or
 `ListAgentProfiles` (for agent profiles).
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `DescribeJob` with a valid discipline, level, and track returns Turtle RDF
-  containing the role title, skill matrix, and behaviour profile.
-- `DescribeAgentProfile` with a valid discipline and track returns a filtered
-  agent profile with human-only skills removed.
+  that contains the role title, skill matrix, and behaviour profile.
+- `DescribeAgentProfile` with a valid discipline and track returns an agent
+  profile that has no human-only skills.
 - Invalid coordinates produce a gRPC error with a message that names the
   invalid entity.
 

@@ -1,10 +1,10 @@
 # Templates
 
-Markdown templates used by `req-track` for Role files and Candidate briefs.
+`req-track` uses these markdown templates for Role files and Candidate briefs.
 
 ## Role file stub
 
-Used by Step 0b when a Req appears on a candidate brief but no Role file exists.
+Step 0b uses this stub when a candidate brief has a Req but no Role file exists.
 
 ```markdown
 # {Title from candidate Req field}
@@ -36,7 +36,7 @@ Used by Step 0b when a Req appears on a candidate brief but no Role file exists.
 
 ## Role Candidates table
 
-Step 0b rebuilds this table on each Role file by scanning briefs:
+Step 0b scans briefs and rebuilds this table on each Role file:
 
 ```markdown
 ## Candidates
@@ -49,7 +49,7 @@ Sort by First seen, newest first.
 
 ## Candidate brief
 
-Used by Step 5 for new candidates. File:
+Step 5 uses this template for new candidates. File:
 `Knowledge/Candidates/{Full Name}/brief.md`.
 
 ```markdown

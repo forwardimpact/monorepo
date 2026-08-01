@@ -48,7 +48,7 @@ function sortByCapabilityThenLevel(skills, capabilityOrder) {
  * Create a skill matrix table
  * @param {SkillMatrixItem[]} skillMatrix - Skill matrix entries
  * @param {Object} [options]
- * @param {string[]} [options.capabilityOrder] - Capability IDs in desired display order
+ * @param {string[]} [options.capabilityOrder] - Capability IDs in the desired display order
  * @returns {HTMLElement}
  */
 export function createSkillMatrix(skillMatrix, options = {}) {
@@ -74,7 +74,7 @@ export function createSkillMatrix(skillMatrix, options = {}) {
               {
                 className: "human-only-indicator",
                 title:
-                  "Human-Only — Requires interpersonal skills; excluded from agents",
+                  "Human-Only — Requires interpersonal skills. Excluded from agents",
               },
               " 🤲",
             )

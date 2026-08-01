@@ -6,10 +6,10 @@ import { postSingleDiscussionReply } from "./graphql.js";
 const CHANNEL = "github-discussions";
 
 /**
- * Reply-path helpers for `services/ghbridge`, extracted from the service class
- * to keep `index.js` within its line budget. Each helper closes over the
- * collaborators the service injects; behaviour is identical to the prior
- * in-class methods.
+ * Reply-path helpers for `services/ghbridge`, extracted from the service
+ * class to keep `index.js` within its line budget. Each helper closes over
+ * the collaborators the service injects. The behaviour is identical to the
+ * prior in-class methods.
  *
  * @param {object} deps
  * @param {(q: string, v: object) => Promise<unknown>} deps.graphqlClient
@@ -38,10 +38,11 @@ export function createReplyRender({
   logger,
 }) {
   /**
-   * Resolve the GraphQL client for a context's reply path. Multi-tenant mints
-   * an installation token for the resolved tenant repo; single-tenant returns
-   * the static client. Guards the `resolveByTenantId` privilege-escalation
-   * hazard (rows return regardless of state) by refusing non-active tenants.
+   * Resolve the GraphQL client for a context's reply path. Multi-tenant
+   * mints an installation token for the resolved tenant repo. Single-tenant
+   * returns the static client. This function refuses non-active tenants, so
+   * it guards the `resolveByTenantId` privilege-escalation hazard (rows
+   * return regardless of state).
    */
   async function graphqlFor(ctx) {
     if (!multiTenant || !makeGraphqlClient) return graphqlClient;
@@ -108,11 +109,11 @@ export function createReplyRender({
         break;
       case "reauth_required":
         body =
-          "Your GitHub link has expired. Please re-link your account to dispatch.";
+          "Your GitHub link expired. Please re-link your account to dispatch.";
         break;
       case "transient":
         body =
-          "Unable to verify your GitHub identity right now. Please try again later.";
+          "The bridge cannot verify your GitHub identity right now. Please try again later.";
         break;
       default:
         return;

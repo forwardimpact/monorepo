@@ -1,9 +1,10 @@
 /**
- * Skill Modifier Expansion Functions
+ * Expansion Functions for Skill Modifiers
  *
- * This module provides pure functions for expanding capability-based skill modifiers
- * to individual skill modifiers. Tracks define modifiers by capability only
- * (e.g., "delivery: 1", "scale: -1") - individual skill modifiers are not allowed.
+ * This module holds pure functions. They expand capability-based skill
+ * modifiers to individual skill modifiers. Tracks define modifiers by
+ * capability only (e.g., "delivery: 1", "scale: -1"). Individual skill
+ * modifiers are not allowed.
  */
 
 import { Capability } from "./levels.js";
@@ -57,8 +58,9 @@ export function buildCapabilityToSkillsMap(skills) {
 /**
  * Expand capability-based skill modifiers to individual skill modifiers
  *
- * Takes a skillModifiers object containing capability-based modifiers only
- * (e.g., { delivery: 1, scale: -1 }). Individual skill modifiers are not allowed.
+ * Takes a skillModifiers object with capability-based modifiers only
+ * (e.g., { delivery: 1, scale: -1 }). Individual skill modifiers are not
+ * allowed.
  *
  * Returns an object with individual skill modifiers expanded from capabilities.
  *
@@ -77,13 +79,13 @@ export function expandModifiersToSkills({ skillModifiers, skills }) {
   // Expand capability modifiers to individual skills
   for (const [key, modifier] of Object.entries(skillModifiers)) {
     if (isCapability(key)) {
-      // This is a capability - expand to all skills in that capability
+      // A capability key expands to all skills in that capability
       const skillIds = capabilityMap[key] || [];
       for (const skillId of skillIds) {
         expanded[skillId] = modifier;
       }
     }
-    // Non-capability keys are ignored (validation should catch these)
+    // The loop ignores non-capability keys (validation should catch these)
   }
 
   return expanded;

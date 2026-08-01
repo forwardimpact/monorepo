@@ -71,7 +71,7 @@ export class EntityGenerator {
 }
 
 /**
- * Creates an EntityGenerator with the built-in seeded RNG factory.
+ * Create an EntityGenerator with the built-in seeded RNG factory.
  * @param {object} logger - Logger instance
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Injected runtime bag
  * @returns {EntityGenerator}

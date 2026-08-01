@@ -1,7 +1,8 @@
 # Pipeline Statuses
 
-Used by Step 3 of `req-track`. Default to `new` if no advancement signals are
-found. Read the full thread chronologically; the most recent signal wins.
+Step 3 of `req-track` uses these statuses. Default to `new` if you find no
+advancement signals. Read the full thread chronologically. The most recent
+signal wins.
 
 ## Statuses
 

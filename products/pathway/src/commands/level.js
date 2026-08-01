@@ -1,7 +1,8 @@
 /**
  * Level CLI Command
  *
- * Handles level summary, listing, and detail display in the terminal.
+ * Shows the level summary, the level list, and the level detail in the
+ * terminal.
  *
  * Usage:
  *   npx fit-pathway level              # Summary with stats

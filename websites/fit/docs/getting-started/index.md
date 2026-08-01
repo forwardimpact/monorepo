@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Go from zero to your first meaningful result — whether you're defining standards, exploring expectations, or running the codebase.
+description: Go from zero to your first meaningful result, whether you define standards, explore expectations, or run the codebase.
 layout: product
 toc: false
 ---

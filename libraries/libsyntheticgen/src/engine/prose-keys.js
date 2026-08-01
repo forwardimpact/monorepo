@@ -3,16 +3,16 @@
  *
  * Each key maps to a context object that guides the LLM prompt. The
  * activity-prose branches dispatch through the `PROSE_ACTIVITIES`
- * registration (see `libsyntheticgen/activity/`); non-activity prose
+ * registration (see `libsyntheticgen/activity/`). Non-activity prose
  * (org_readme, projects, guide-html, outpost-markdown) stays inline
- * because it is not bound by the prose-bearing activity contract.
+ * because the prose-bearing activity contract does not bind it.
  */
 
 import { PROSE_ACTIVITIES } from "../activity/index.js";
 import { clinicalProseKeys } from "./clinical-prose-keys.js";
 
 /**
- * Add guide HTML content keys (articles, blogs, FAQs, etc).
+ * Add content keys for guide HTML (articles, blogs, FAQs, etc).
  * @param {Map<string, object>} keys
  * @param {object} guideContent
  * @param {string} domain

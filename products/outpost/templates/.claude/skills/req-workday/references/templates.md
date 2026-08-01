@@ -5,8 +5,8 @@ Reference templates for `req-workday` Steps 1b, 4, and 5.
 ## Role file stub
 
 Use when no Role file exists for the requisition. Filename:
-`Knowledge/Roles/{Req ID} — {Short Title}.md`. The `**Status:**` field
-(`open`/`closed`) is updated in place — never move files.
+`Knowledge/Roles/{Req ID} — {Short Title}.md`. Update the `**Status:**` field
+(`open`/`closed`) in place. Never move files.
 
 ```markdown
 # {Requisition Title}
@@ -37,14 +37,14 @@ Use when no Role file exists for the requisition. Filename:
 - Created from requisition export on {today}.
 ```
 
-If the Role file already exists: set `Hiring manager` only when the export
-provides one and the field is `—`; update `Last activity` to today; append
-`- Requisition export processed on {today}: {N} candidates` to Notes.
+If the Role file already exists, set `Hiring manager` only when the export
+provides one and the field is `—`. Then update `Last activity` to today. Then
+append `- Requisition export processed on {today}: {N} candidates` to Notes.
 
 ## CV.md template
 
 Save to `Knowledge/Candidates/{Clean Name}/CV.md` when resume text exists. Skip
-when it doesn't.
+the file when it does not.
 
 ```markdown
 # {Clean Name} — Resume
@@ -57,8 +57,8 @@ when it doesn't.
 {Resume text from column AC, preserving original formatting}
 ```
 
-**Formatting:** preserve paragraph breaks; convert ALL-CAPS headers to
-`## Heading`; keep bullets/lists; never rewrite or summarise.
+**Formatting:** preserve paragraph breaks. Convert ALL-CAPS headers to
+`## Heading`. Keep bullets and lists. Never rewrite or summarise.
 
 ## Candidate brief
 
@@ -121,8 +121,8 @@ Gender is `—` (Workday exports carry no gender signals).
 
 ## Existing-candidate edits
 
-Apply targeted edits to `brief.md` — never rewrite. Set/update `Req`, advance
-`Status` if the Workday step is more advanced, update `Last activity`, append
-`**{Date Applied}**: Applied to {Req ID} — {Title} via {Source}` to Pipeline,
-fill only missing Email/Phone/ Location. Never overwrite richer existing data
-with sparser Workday data.
+Apply targeted edits to `brief.md`. Never rewrite it. Set or update `Req`.
+Advance `Status` if the Workday step is more advanced. Update `Last activity`.
+Append `**{Date Applied}**: Applied to {Req ID} — {Title} via {Source}` to
+Pipeline. Fill only missing Email, Phone, and Location. Never overwrite richer
+existing data with sparser Workday data.

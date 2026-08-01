@@ -2,8 +2,9 @@
 /**
  * Engineering Pathway CLI
  *
- * A command-line interface for browsing and generating job definitions,
- * interview questions, career progression analysis, and AI agent configurations.
+ * This command-line interface browses and generates job definitions,
+ * interview questions, career progression analysis, and AI agent
+ * configurations.
  *
  * Usage:
  *   npx fit-pathway <command> [options]
@@ -160,7 +161,7 @@ const definition = {
         clean: {
           type: "boolean",
           default: true,
-          description: "Clean output directory before building",
+          description: "Clean output directory before the build",
         },
       },
     },

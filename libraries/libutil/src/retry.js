@@ -1,7 +1,7 @@
 const defaultSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Retry class for handling transient errors with exponential backoff
+ * Retry class that handles transient errors with exponential backoff
  */
 export class Retry {
   #retries;
@@ -25,7 +25,7 @@ export class Retry {
   /**
    * Checks if an HTTP status code or error should trigger a retry
    * @param {number} status - HTTP status code
-   * @returns {boolean} True if the status should be retried
+   * @returns {boolean} True if the status should trigger a retry
    * @private
    */
   #isRetryableStatus(status) {
@@ -43,7 +43,7 @@ export class Retry {
   /**
    * Checks if an error is a network error that should trigger a retry
    * @param {Error} error - Error object
-   * @returns {boolean} True if the error should be retried
+   * @returns {boolean} True if the error should trigger a retry
    * @private
    */
   #isRetryableError(error) {
@@ -71,10 +71,10 @@ export class Retry {
   }
 
   /**
-   * Executes a function with exponential backoff retry logic for transient errors
+   * Executes a function and retries transient errors with exponential backoff
    * @param {() => Promise<Response>} requestFn - Function that returns a fetch promise
    * @returns {Promise<Response>} Response from successful request
-   * @throws {Error} When all retry attempts are exhausted
+   * @throws {Error} When `execute` exhausts all retry attempts
    */
   async execute(requestFn) {
     let lastError;
@@ -115,7 +115,7 @@ export class Retry {
       }
     }
 
-    // This should never be reached, but if it is, throw the last error
+    // Execution should never reach here, but if it does, throw the last error
     throw lastError || new Error("Retries exhausted without a valid response");
   }
 }

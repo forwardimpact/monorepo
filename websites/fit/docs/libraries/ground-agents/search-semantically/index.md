@@ -1,15 +1,15 @@
 ---
 title: Search Semantically
-description: Find related content by meaning, not keywords — ranked results from a vector index without standing up a vector database.
+description: Find related content by meaning instead of by keyword. A vector index returns ranked results, and you deploy no vector database.
 ---
 
-You need to find resources related to a query by meaning, not by exact keyword
-match. Standing up a vector database for a few hundred embeddings is overhead
-you do not need. `@forwardimpact/libvector` keeps the index in a JSONL file,
-loads it into memory on first access, and scores queries using dot-product
-similarity. `fit-rag search` wraps this into a single CLI command.
+You need to find resources related to a query by meaning. An exact keyword
+match does not do this. You do not need the overhead of a vector database for a
+few hundred embeddings. `@forwardimpact/libvector` keeps the index in a JSONL
+file. It loads the index into memory on first access. It scores queries with
+dot-product similarity. `fit-rag search` wraps this into a single CLI command.
 
-For the full workflow of building an embedding pipeline from knowledge sources,
+For the full workflow that builds an embedding pipeline from knowledge sources,
 see [Ground Agents in Context](/docs/libraries/ground-agents/).
 
 ## Prerequisites
@@ -21,8 +21,8 @@ see [Ground Agents in Context](/docs/libraries/ground-agents/).
 npm install @forwardimpact/libvector
 ```
 
-- A populated vector index under `data/vectors/` (produced by
-  `fit-process vectors` during the ingestion pipeline)
+- A populated vector index under `data/vectors/` (`fit-process vectors`
+  produces it during the ingestion pipeline)
 - For the CLI: an embedding endpoint reachable at the configured base URL, and
   a valid API token
 
@@ -44,10 +44,11 @@ common.Message.m3n4o5	0.6991
 ```
 
 Each line is a tab-separated pair: the resource identifier and its similarity
-score. Results are sorted by score descending. The default limit is 10.
+score. The command sorts results by score, highest first. The default limit is
+10.
 
-The returned identifiers can be resolved to full context chunks through
-`@forwardimpact/libresource` -- see
+You can resolve the returned identifiers to full context chunks through
+`@forwardimpact/libresource`. See
 [Resolve a Resource](/docs/libraries/ground-agents/resolve-resource/).
 
 ## Search programmatically
@@ -64,8 +65,8 @@ const vectorIndex = new VectorIndex(storage);
 
 ### Embed the query
 
-`VectorIndex` works with pre-computed embedding vectors, not raw text. Embed
-your query using whatever embedding client your pipeline uses:
+`VectorIndex` works with pre-computed embedding vectors. It does not accept raw
+text. Embed your query with whatever embedding client your pipeline uses:
 
 ```js
 async function embed(texts, client) {
@@ -103,29 +104,29 @@ common.Message.g7h8i9	0.7856
 | ------------ | ------- | ----------------------------------------------------------- |
 | `threshold`  | 0       | Minimum similarity score to include in results              |
 | `limit`      | 0 (all) | Maximum number of results                                   |
-| `prefix`     | none    | Only include identifiers starting with this string          |
-| `max_tokens` | none    | Stop accumulating results when the token budget is exceeded |
+| `prefix`     | none    | Only include identifiers that start with this string        |
+| `max_tokens` | none    | Return no more results once the token count exceeds the budget |
 
-Filters apply in order: prefix, then scoring and threshold, then limit, then
+Filters apply in order: prefix, then score and threshold, then limit, then
 token budget.
 
-#### Choosing a threshold
+#### Choose a threshold
 
-The score is a dot product. For the normalized vectors that standard embedding
-APIs produce, that dot product is cosine similarity, so the score lands on a
-**0-to-1 scale**: `1.0` is an identical direction (a near-perfect match) and
-`0.0` is orthogonal (unrelated). A `threshold` of `0` -- the default -- returns
-every item the limit allows; raise it toward `0.5`-`0.7` to drop weak matches
-and keep only results that mean roughly the same thing as the query. There is no
-upper bound enforced, but values above `1.0` will exclude everything for
-normalized vectors.
+The score is a dot product. Standard embedding APIs produce normalized vectors.
+For those vectors, the dot product is cosine similarity, so the score lands on
+a **0-to-1 scale**. `1.0` is an identical direction (a near-perfect match).
+`0.0` is orthogonal (unrelated). A `threshold` of `0` is the default, and it
+returns every item the limit allows. Raise it toward `0.5`-`0.7` to drop weak
+matches. A higher threshold keeps only results that mean roughly the same thing
+as the query. The code enforces no upper bound. For normalized vectors, values
+above `1.0` exclude everything.
 
 ### Multiple query vectors
 
 Pass several query vectors at once to broaden a search across phrasings or
 related concepts. The index scores each stored item against **every** query
-vector and keeps only that item's **highest** score -- so an item that matches
-any one of your phrasings ranks by its best match, not its average:
+vector. It keeps only that item's **highest** score. An item that matches any
+one of your phrasings ranks by its best match. It does not rank by its average:
 
 ```js
 const vectors = await embed(
@@ -135,11 +136,11 @@ const vectors = await embed(
 const results = await vectorIndex.queryItems(vectors, { limit: 5 });
 ```
 
-Each item still appears at most once in the results, ranked by its best score
-across the query set. This keep-highest pass means one call covers several
-related queries without de-duplicating or merging result lists yourself. The
-`threshold` is compared against each item's best score, so an item survives if
-any one query vector clears the bar.
+Each item still appears at most once in the results. Its rank comes from its
+best score across the query set. This keep-highest pass means one call covers
+several related queries. You do not de-duplicate or merge result lists
+yourself. The index compares the `threshold` against each item's best score, so
+an item survives if any one query vector clears the bar.
 
 ## Add embeddings to the index
 
@@ -160,22 +161,24 @@ await vectorIndex.add(identifier, vector);
 ```
 
 For bulk ingestion, use `fit-process vectors` instead. The processor reads all
-resources from `data/resources/`, skips entries already present in the index,
-embeds the rest in batches, and appends the results:
+resources from `data/resources/`. It skips entries already present in the
+index. It embeds the rest in batches and appends the results:
 
 ```sh
 npx fit-process vectors
 ```
 
-## How scoring works
+## How the index scores
 
 `VectorIndex` computes the dot product of the query vector and each stored
 vector. For normalized vectors (which standard embedding APIs produce), the dot
-product equals cosine similarity -- 1.0 means identical direction, 0.0 means
-orthogonal. The implementation uses loop unrolling for performance; scoring
-1000 items with 1536-dimension embeddings takes under 10 milliseconds.
+product equals cosine similarity. A score of 1.0 means identical direction. A
+score of 0.0 means orthogonal. The implementation unrolls loops for
+performance. A score pass over 1000 items with 1536-dimension embeddings takes
+under 10 milliseconds.
 
-The `calculateDotProduct` function is exported separately for direct use:
+The library exports the `calculateDotProduct` function separately for direct
+use:
 
 ```js
 import { calculateDotProduct } from "@forwardimpact/libvector";
@@ -186,7 +189,7 @@ console.log(score.toFixed(4));  // 0.3200
 
 ## Typical retrieval flow
 
-Embed the query, score the index, then resolve the top results through the
+Embed the query. Score the index. Then resolve the top results through the
 resource index:
 
 ```js

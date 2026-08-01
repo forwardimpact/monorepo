@@ -21,7 +21,7 @@
     font-size: var(--font-size-xs);
   }
 
-  /* Match score label uses smaller font */
+  /* The match score label uses a smaller font */
   .score-label {
     font-size: var(--font-size-xs);
     color: var(--color-text-muted);
@@ -34,7 +34,7 @@
     margin-bottom: var(--space-xs);
   }
 
-  /* Filter title has bold weight and wider letter-spacing */
+  /* The filter title has a bold weight and wider letter-spacing */
   .filter-title {
     font-weight: 600;
     color: var(--color-text-secondary);

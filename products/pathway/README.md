@@ -3,7 +3,7 @@
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
 Explore roles, generate agent profiles, and surface career expectations so
-progression and team configuration are visible, not guessed.
+progression and team configuration are visible instead of guessed.
 
 <!-- END:description -->
 

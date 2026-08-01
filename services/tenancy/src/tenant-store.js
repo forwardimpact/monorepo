@@ -4,22 +4,22 @@ import { BufferedIndex } from "@forwardimpact/libindex";
 /**
  * Durable registry of channel-to-customer tenants.
  *
- * Records are keyed by tenant id (UUID). Lookups by
+ * The store keys records by tenant id (UUID). Lookups by
  * `(channel, channel_tenant_key)` and by `repo` iterate the loaded
- * index — the registry is sized by the number of installed customers
- * and a sequential scan suffices for the initial delivery.
+ * index. The number of installed customers sets the registry size. A
+ * sequential scan suffices for the initial delivery.
  *
  * Lifecycle states:
  *
- * - `pending_consent` — Teams consent recorded, customer has not yet
- *   self-served the repo mapping. Not returned by `resolveByChannelKey`
- *   or `resolveByRepo`.
+ * - `pending_consent` — The row records the Teams consent. The customer
+ *   did not self-serve the repo mapping yet. `resolveByChannelKey` and
+ *   `resolveByRepo` do not return the row.
  * - `active` — Resolvable. The bridges and `services/ghserver` mint
  *   against rows in this state.
- * - `revoked` — Terminal. Not returned by `resolveByChannelKey` or
- *   `resolveByRepo`. `resolveByTenantId` still returns the row so
- *   callback verification can compare a request's `tenant_id` against
- *   any known tenant.
+ * - `revoked` — Terminal. `resolveByChannelKey` and `resolveByRepo` do
+ *   not return the row. `resolveByTenantId` still returns it. Callback
+ *   verification can then compare a request's `tenant_id` against any
+ *   known tenant.
  *
  * @augments BufferedIndex
  */
@@ -31,8 +31,9 @@ export class TenantStore extends BufferedIndex {
    * @param {object} [options]
    * @param {string} [options.indexKey] - Override the JSONL filename.
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} options.clock
-   *   Injected clock collaborator; drives `created_at` and
-   *   `last_active_at` timestamps so tests can use a virtual clock.
+   *   The caller injects this clock collaborator. It drives the
+   *   `created_at` and `last_active_at` timestamps. Tests can then use
+   *   a virtual clock.
    */
   constructor(storage, { indexKey = "tenants.jsonl", clock } = {}) {
     if (!clock) throw new Error("clock is required");
@@ -102,9 +103,9 @@ export class TenantStore extends BufferedIndex {
 
   /**
    * Create or update a row keyed by `(channel, channel_tenant_key)`.
-   * The Teams consent handler (part 05) drives this path: a fresh
-   * `pending_consent` row is inserted on `installationUpdate`, and
-   * re-consent re-upserts without resetting `created_at`.
+   * The Teams consent handler (part 05) drives this path. An
+   * `installationUpdate` event inserts a fresh `pending_consent` row.
+   * A re-consent re-upserts the row and keeps `created_at`.
    *
    * @param {{channel: string, channel_tenant_key: string, state: string}} req
    * @returns {Promise<object>}
@@ -137,9 +138,10 @@ export class TenantStore extends BufferedIndex {
 
   /**
    * Upsert a GitHub install row keyed by `(installation_id, owner/name)`.
-   * The GitHub install handler (part 05) drives this path: every repo
-   * in an `installation.created` or `repositories_added` event produces
-   * one row, idempotent on repeat delivery of the same event.
+   * The GitHub install handler (part 05) drives this path. Every repo
+   * in an `installation.created` or `repositories_added` event
+   * produces one row. This path is idempotent when the same event
+   * arrives again.
    *
    * @param {{installation_id: string, owner: string, name: string}} req
    * @returns {Promise<object>}

@@ -2,7 +2,7 @@
  * Privacy filters for Summit's audience model.
  *
  * Summit defines three audience modes: engineer, manager, director.
- * Every command filters its output before rendering so director-scope
+ * Every command filters its output before it renders. Director-scope
  * outputs never leak individual names, per spec.md:75–87.
  */
 
@@ -29,11 +29,11 @@ export function resolveAudience(options) {
 }
 
 /**
- * Return a coverage object with holder identity stripped for the
- * director audience. Manager and engineer audiences see their own
- * team's detail, so they pass through unchanged.
+ * Return a coverage object. For the director audience, this function
+ * strips the holder identity. Manager and engineer audiences see their
+ * own team's detail. Their coverage passes through unchanged.
  *
- * The input is not mutated.
+ * This function does not mutate the input.
  *
  * @param {import("../aggregation/coverage.js").TeamCoverage} coverage
  * @param {string} audience

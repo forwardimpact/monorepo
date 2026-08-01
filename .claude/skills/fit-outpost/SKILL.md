@@ -1,80 +1,81 @@
 ---
 name: fit-outpost
 description: >
-  Keep track of people, projects, and threads without depending on
-  memory. Use when context is scattered across email, calendar, and notes
-  and you need a daily briefing, when managing email drafts, or when
-  scheduling background AI tasks, maintaining a personal knowledge base,
-  checking agent status, and waking agents on demand.
+  Keep track of people, projects, and threads. You do not depend on memory.
+  Use when context is scattered across email, calendar, and notes and you
+  need a daily briefing. Use when you manage email drafts. Use when you
+  schedule background AI tasks, maintain a personal knowledge base, check
+  agent status, and wake agents on demand.
 ---
 
 # Outpost Package
 
-Personal knowledge system with scheduled Claude Code agents. No server, no
-database — just plain files, markdown, and the `claude` CLI. Packaged as a
-native macOS app bundle (`fit-outpost.app`) with TCC-compliant process
-management.
+Outpost is a personal knowledge system with scheduled Claude Code agents. It
+needs no server and no database. It uses plain files, markdown, and the
+`claude` CLI. Outpost ships as a native macOS app bundle (`fit-outpost.app`)
+with TCC-compliant process management.
 
 ## When to Use
 
 **Be prepared and productive:**
 
-- Preparing daily briefings from email, calendar, and knowledge context —
+- Prepare daily briefings from email, calendar, and knowledge context —
   `npx fit-outpost wake briefing`
-- Managing email drafts and response preparation — `npx fit-outpost wake drafts`
-- Maintaining a personal knowledge graph of people, projects, and topics
+- Manage email drafts and prepare responses — `npx fit-outpost wake drafts`
+- Maintain a personal knowledge graph of people, projects, and topics
 
 **Manage the scheduler and knowledge base:**
 
-- Running the scheduler continuously — `npx fit-outpost daemon`
-- Checking agent status and last decisions — `npx fit-outpost status`
-- Waking a specific agent immediately — `npx fit-outpost wake <agent>`
-- Initializing a new knowledge base — `npx fit-outpost init <path>`
-- Updating with latest templates and skills — `npx fit-outpost update`
-- Stopping the scheduler — `npx fit-outpost stop`
-- Validating agent/skill references — `npx fit-outpost validate`
-- Adding, removing, disabling, or changing agent schedules — edit
+- Run the scheduler continuously — `npx fit-outpost daemon`
+- Check agent status and last decisions — `npx fit-outpost status`
+- Wake a specific agent immediately — `npx fit-outpost wake <agent>`
+- Initialize a new knowledge base — `npx fit-outpost init <path>`
+- Update with the latest templates and skills — `npx fit-outpost update`
+- Stop the scheduler — `npx fit-outpost stop`
+- Validate agent/skill references — `npx fit-outpost validate`
+- Add, remove, disable, or change agent schedules — edit
   `~/.fit/outpost/scheduler.json`
 
 ---
 
 ## How It Works
 
-### Scheduling
+### Schedules
 
 The scheduler polls configured tasks and evaluates whether each should wake:
 
-- **Cron tasks** — the 5-field cron expression is matched against the current
-  time; skipped if the agent already woke in the same minute
-- **Interval tasks** — wakes when elapsed time since last wake exceeds the
-  configured interval in minutes
-- **Once tasks** — wakes exactly once when the scheduled time arrives
+- **Cron tasks** — the scheduler matches the 5-field cron expression against
+  the current time. It skips the task if the agent already woke in the same
+  minute
+- **Interval tasks** — the task wakes when the elapsed time since the last
+  wake exceeds the configured interval in minutes
+- **Once tasks** — the task wakes exactly once when the scheduled time arrives
 
-Tasks with `enabled: false` or an already-active agent are always skipped. Stale
-agents left "active" from a previous daemon session are automatically reset on
-startup.
+The scheduler always skips tasks with `enabled: false` or an already-active
+agent. On startup it resets stale agents left "active" from a previous daemon
+session.
 
 ### Task Execution
 
-When a task wakes, the scheduler spawns a child process running
+When a task wakes, the scheduler spawns a child process. That process runs
 `claude --agent <name> --print` with the configured prompt. The process inherits
-TCC attributes from the parent app bundle (via `posix_spawn` on macOS) so agents
-can access Mail, Calendar, and other protected resources. Agent status, exit
-code, and stderr are tracked in `state.json`.
+TCC attributes from the parent app bundle (through `posix_spawn` on macOS).
+Agents can then access Mail, Calendar, and other protected resources.
+`state.json` tracks agent status, exit code, and stderr.
 
 ### Knowledge Base Initialization
 
-Running `init <path>` copies the bundled template into the target directory —
-`CLAUDE.md` (instructions), `.claude/agents/` and `.claude/skills/` (built-in
-agents and skills), and `.claude/settings.json` (permissions) — and scaffolds
-the knowledge base structure. The `Knowledge/` graph (People, Organizations,
-Projects, Topics) is meant to be shared with the team over a synced filesystem;
-the personal `Briefings/` directory sits at the KB root, outside the shared
-graph. User identity is not a copied file — it is resolved live by the
-`identify-user` skill, which caches it at
-`~/.cache/fit/outpost/state/identity.md`. Running `update` on an existing KB
-merges new files without overwriting user customizations — settings permissions
-are reconciled rather than replaced.
+The `init <path>` command copies the bundled template into the target
+directory. The template holds `CLAUDE.md` (instructions), `.claude/agents/` and
+`.claude/skills/` (built-in agents and skills), and `.claude/settings.json`
+(permissions). `init` also scaffolds the knowledge base structure. The
+`Knowledge/` graph (People, Organizations, Projects, Topics) is for the team to
+share over a synced filesystem. The personal `Briefings/` directory sits at the
+KB root, outside the shared graph. The template does not copy the user identity.
+The `identify-user` skill resolves it live and caches it at
+`~/.cache/fit/outpost/state/identity.md`. The `update` command on an existing
+KB merges new files and keeps user customizations. It reconciles the settings
+permissions. It does not replace them.
 
 ---
 
@@ -97,7 +98,7 @@ fit-outpost.app/Contents/MacOS/Outpost  ← Swift launcher, TCC responsible
 
 ### Cache Directory
 
-Synced data and runtime state live outside the KB; notes, drafts, and briefings
+Synced data and runtime state live outside the KB. Notes, drafts, and briefings
 live inside it.
 
 ```text
@@ -112,10 +113,10 @@ live inside it.
 
 ## Common Tasks
 
-### Managing Agent Schedules
+### Manage Agent Schedules
 
-Agent schedules are configured in `~/.fit/outpost/scheduler.json`. The file has
-this structure:
+Configure agent schedules in `~/.fit/outpost/scheduler.json`. The file has this
+structure:
 
 ```json
 {
@@ -130,7 +131,7 @@ this structure:
 }
 ```
 
-Each key in `agents` is the agent name matching a definition in
+Each key in `agents` is the agent name. The name matches a definition in
 `.claude/agents/`. The schedule types are:
 
 - `{"type": "cron", "expression": "<5-field cron>"}` — standard cron
@@ -139,8 +140,9 @@ Each key in `agents` is the agent name matching a definition in
 
 **Remove an agent** — delete its key from the `agents` object.
 
-**Disable without removing** — set `"enabled": false` to keep the config but
-stop the scheduler from waking it. Set back to `true` to re-enable.
+**Disable without removal** — set `"enabled": false`. The config stays and the
+scheduler does not wake the agent. Set it back to `true` to enable the agent
+again.
 
 **Change schedule** — edit the `schedule` object. Examples:
 
@@ -149,7 +151,7 @@ stop the scheduler from waking it. Set back to `true` to re-enable.
 "schedule": { "type": "interval", "minutes": 30 }
 ```
 
-### Adding a New KB Skill
+### Add a New KB Skill
 
 1. Create `template/.claude/skills/{skill-name}/SKILL.md`
 2. Add YAML front matter with `name`, `description`, optional `compatibility`
@@ -157,8 +159,8 @@ stop the scheduler from waking it. Set back to `true` to re-enable.
 4. Update `template/CLAUDE.md` to list the new skill
 5. If scheduled, add a default task entry to `config/scheduler.json`
 6. Run `npx fit-outpost update <kb-path>` for each existing KB to push the new
-   skill (or run `npx fit-outpost update` from inside the KB to update the
-   current directory)
+   skill. As an alternative, run `npx fit-outpost update` from inside the KB to
+   update the current directory
 
 ## Verification
 

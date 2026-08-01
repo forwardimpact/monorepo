@@ -3,7 +3,7 @@ import { BufferedIndex } from "@forwardimpact/libindex";
 import { span as spanType } from "@forwardimpact/libtype";
 
 /**
- * Specialized index for trace spans with custom filtering
+ * Specialized index for trace spans with custom filters
  * Extends BufferedIndex to provide trace-specific query capabilities
  * @augments BufferedIndex
  */
@@ -20,13 +20,15 @@ export class TraceIndex extends BufferedIndex {
 
   /**
    * Loads data from storage and reconstructs Span objects
-   * Overrides parent to ensure proper protobuf enum deserialization
+   * Overrides the parent method to make sure protobuf enums deserialize
+   * correctly
    * @returns {Promise<void>}
    */
   async loadData() {
     await super.loadData();
 
-    // Reconstruct span objects from plain JSON to ensure proper enum values
+    // Reconstruct span objects from plain JSON to make sure the enum values
+    // are correct
     for (const item of this.index.values()) {
       if (item.span && typeof item.span === "object") {
         item.span = spanType.SpanItem.fromObject(item.span);
@@ -35,7 +37,7 @@ export class TraceIndex extends BufferedIndex {
   }
 
   /**
-   * Adds a span to the index with custom item structure
+   * Adds a span to the index with a custom item structure
    * @param {import("@forwardimpact/libtype").span.SpanItem} span - Span to add to the index
    * @returns {Promise<void>}
    */
@@ -64,7 +66,7 @@ export class TraceIndex extends BufferedIndex {
    * Finds all trace IDs that contain spans with the given resource_id
    * @param {string} resource_id - Resource ID to match
    * @param {string} [trace_id] - Optional trace ID filter
-   * @returns {Set<string>} Set of matching trace IDs
+   * @returns {Set<string>} Set of the trace IDs that match
    */
   #findTracesWithResource(resource_id, trace_id) {
     const matchingTraceIds = new Set();
@@ -95,9 +97,9 @@ export class TraceIndex extends BufferedIndex {
   }
 
   /**
-   * Gets all spans matching the optional trace_id filter
+   * Gets all spans that match the optional trace_id filter
    * @param {string} [trace_id] - Optional trace ID filter
-   * @returns {import("@forwardimpact/libtype").span.SpanItem[]} Array of matching spans
+   * @returns {import("@forwardimpact/libtype").span.SpanItem[]} Array of the spans that match
    */
   #getSpansByTraceId(trace_id) {
     const spans = [];
@@ -111,11 +113,11 @@ export class TraceIndex extends BufferedIndex {
   }
 
   /**
-   * Filters traces by evaluating JMESPath query per-trace
+   * Filters traces. Evaluates the JMESPath query for each trace.
    * Returns trace IDs where the JMESPath query has a positive match
    * @param {Map<string, import("@forwardimpact/libtype").span.SpanItem[]>} traceGroups - Spans grouped by trace_id
    * @param {string} query - JMESPath expression to evaluate
-   * @returns {string[]} Array of matching trace IDs
+   * @returns {string[]} Array of the trace IDs that match
    */
   #filterTracesByQuery(traceGroups, query) {
     const matchingTraces = [];
@@ -137,17 +139,19 @@ export class TraceIndex extends BufferedIndex {
   }
 
   /**
-   * Queries spans from the index using trace-specific filters and JMESPath expressions
-   * Overrides the base queryItems to support trace_id and resource_id filtering
-   * When filtering by resource_id, returns all spans from traces that contain
-   * at least one span with that resource_id (complete trace visualization)
-   * JMESPath queries are evaluated per-trace to select which complete traces to return
+   * Queries spans from the index with trace-specific filters and JMESPath expressions
+   * Overrides the base queryItems to support trace_id and resource_id filters
+   * When the filter has resource_id, returns all spans from traces that contain
+   * at least one span with that resource_id (a complete trace to visualize)
+   * Evaluates JMESPath queries per-trace to select which complete traces to return
    * Returns spans sorted chronologically by start time
-   * @param {string|null} [query] - Optional JMESPath expression to filter traces (not spans)
+   * @param {string|null} [query] - Optional JMESPath expression that filters
+   *   traces. It does not filter spans.
    * @param {object} [filter] - Filter object for query constraints
    * @param {string} [filter.trace_id] - Filter by trace ID
    * @param {string} [filter.resource_id] - Filter by resource ID
-   * @returns {Promise<import("@forwardimpact/libtype").span.SpanItem[]>} Array of spans matching the filter, sorted by start time
+   * @returns {Promise<import("@forwardimpact/libtype").span.SpanItem[]>} Array
+   *   of the spans that match the filter, sorted by start time
    */
   async queryItems(query = null, filter = {}) {
     if (!this.loaded) await this.loadData();
@@ -174,7 +178,7 @@ export class TraceIndex extends BufferedIndex {
       return spans;
     }
 
-    // Group spans by trace_id for per-trace JMESPath evaluation
+    // Group spans by trace_id so JMESPath can evaluate each trace
     const traceGroups = new Map();
     for (const span of spans) {
       if (!traceGroups.has(span.trace_id)) {
@@ -183,10 +187,10 @@ export class TraceIndex extends BufferedIndex {
       traceGroups.get(span.trace_id).push(span);
     }
 
-    // Apply JMESPath query per-trace to determine which traces match
+    // Apply the JMESPath query per-trace to find which traces match
     const matchingTraces = this.#filterTracesByQuery(traceGroups, query);
 
-    // Return all spans from matching traces
+    // Return all spans from the traces that match
     const matchingSpans = spans.filter((span) =>
       matchingTraces.includes(span.trace_id),
     );

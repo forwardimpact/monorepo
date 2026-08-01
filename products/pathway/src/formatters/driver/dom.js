@@ -1,5 +1,5 @@
 /**
- * Driver formatting for DOM output
+ * Driver formatter for DOM output
  */
 
 import { div, heading1, heading2, p, a, span } from "../../lib/render.js";

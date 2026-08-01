@@ -1,6 +1,6 @@
 /**
- * Command bar component — subscribes to a bound router's activeRoute
- * and displays the CLI equivalent of the current route.
+ * Command bar component — subscribes to a bound router's activeRoute.
+ * The bar displays the CLI equivalent of the current route.
  */
 
 /**

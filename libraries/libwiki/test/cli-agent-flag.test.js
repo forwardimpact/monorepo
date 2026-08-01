@@ -15,7 +15,7 @@ describe("requireAgentFlag", () => {
     assert.deepEqual(r, { ok: true, agent: "staff-engineer" });
   });
 
-  test("fails closed when --agent is absent, naming the flag and an example", () => {
+  test("fails closed when --agent is absent and names the flag and an example", () => {
     const r = requireAgentFlag(
       {},
       { command: "boot", example: "gemba-wiki boot --agent staff-engineer" },
@@ -50,8 +50,9 @@ describe("requireAgentFlag", () => {
     assert.match(missing.error, /^memo requires --from <name>; e\.g\. /);
   });
 
-  test("is pure — reads no environment", () => {
-    // No env set, no fs touched; the function only sees its options arg.
+  test("is pure and reads no environment", () => {
+    // The test sets no env and touches no fs. The function only sees its
+    // options arg.
     const r = requireAgentFlag({}, { command: "log", example: "x" });
     assert.equal(r.ok, false);
   });

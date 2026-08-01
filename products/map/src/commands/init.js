@@ -1,7 +1,7 @@
 /**
  * Init Command
  *
- * Initializes a new standard data directory by copying starter data.
+ * Initializes a new standard data directory from the starter data.
  */
 
 import { join, dirname } from "path";
@@ -21,9 +21,9 @@ const starterDir = join(__dirname, "..", "..", "starter");
 /**
  * Run the init command.
  *
- * Returns a result envelope (`{ ok }`); the bin translates a `false` `ok`
- * into a non-zero exit code (design Decision 4 — only bins call
- * `runtime.proc.exit`).
+ * Returns a result envelope (`{ ok }`). The bin translates a `false` `ok`
+ * into a non-zero exit code. Only bins call `runtime.proc.exit` (design
+ * Decision 4).
  *
  * @param {string|undefined} targetPath - Target directory (defaults to cwd)
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators (fs, proc).
@@ -33,7 +33,7 @@ export async function runInit(targetPath, runtime) {
   const target = targetPath || runtime.proc.cwd();
   const dataDir = join(target, "data", "pathway");
 
-  // Verify starter data is available
+  // Verify the starter data is available
   try {
     await runtime.fs.access(starterDir);
   } catch {
@@ -46,8 +46,8 @@ export async function runInit(targetPath, runtime) {
     return { ok: false, code: 1 };
   }
 
-  // Copy starter data — idempotent so substrate stage can re-stage a
-  // workspace produced by `fit-map init` as a no-op.
+  // Copy the starter data. The copy is idempotent. Substrate stage can
+  // then re-stage a workspace that `fit-map init` produced, as a no-op.
   runtime.proc.stdout.write(
     "Creating ./data/pathway/ with starter data...\n\n",
   );
@@ -57,9 +57,9 @@ export async function runInit(targetPath, runtime) {
     errorOnExist: false,
   });
 
-  // Materialise target/config/config.json so subsequent fit-map invocations
-  // anchor at the init target rather than upward-walking into an ancestor
-  // config/. No product.map starter fragment is shipped this spec.
+  // Materialise target/config/config.json so later fit-map invocations
+  // anchor at the init target. Without it they walk upward into an
+  // ancestor config/. This spec ships no product.map starter fragment.
   await bootstrapProject({ target, fragment: {}, deps: { runtime } });
 
   runtime.proc.stdout.write(

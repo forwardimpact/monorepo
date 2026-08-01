@@ -10,7 +10,8 @@ import { makeRuntime, ctxFor } from "./helpers.js";
 
 const CSV_PATH = "/metrics/metrics.csv";
 
-// Corruption shape observed in the field: both conflict branches interleaved among valid rows.
+// This corruption shape comes from the field. Both conflict branches
+// interleave among valid rows.
 const CORRUPTED = [
   "date,metric,value,unit,run,note,event_type",
   "2026-06-01,m,1,count,r1,,kata-shift",
@@ -34,8 +35,9 @@ function runCorrupted(handler, options = {}) {
   return { result, stdout: rt.stdout };
 }
 
-// Each read command must refuse a conflict-marker CSV with a clean error
-// envelope naming the file and line — never chart, list, or summarize it.
+// Each read command must refuse a conflict-marker CSV. It must return a clean
+// error envelope that names the file and the line. It must never chart, list,
+// or summarize the CSV.
 describe("read commands refuse conflict-marker CSVs", () => {
   const commands = [
     ["analyze", runAnalyzeCommand],
@@ -45,7 +47,7 @@ describe("read commands refuse conflict-marker CSVs", () => {
   ];
 
   for (const [name, handler] of commands) {
-    test(`${name} returns an error envelope, writes nothing`, () => {
+    test(`${name} returns an error envelope and writes nothing`, () => {
       const { result, stdout } = runCorrupted(handler);
       assert.strictEqual(result.ok, false);
       assert.strictEqual(result.code, 2);

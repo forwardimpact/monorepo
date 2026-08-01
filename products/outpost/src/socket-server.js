@@ -75,8 +75,9 @@ export class SocketServer {
   }
 
   /**
-   * Resolves once a shutdown has been requested (via socket or signal). The
-   * daemon awaits this, then the bin translates it to `runtime.proc.exit(0)`.
+   * The returned promise resolves once the daemon receives a shutdown request
+   * through the socket or a signal. The daemon awaits this. Then the bin
+   * translates it to `runtime.proc.exit(0)`.
    * @returns {Promise<void>}
    */
   whenStopped() {
@@ -102,7 +103,7 @@ export class SocketServer {
   }
 
   /**
-   * Find the most recently modified file in a directory matching a filter.
+   * Find the most recently modified file in `dir` whose name passes `filter`.
    * @param {string} dir
    * @param {(name: string) => boolean} filter
    * @returns {string|null}
@@ -124,7 +125,7 @@ export class SocketServer {
   }
 
   /**
-   * Resolve briefing file for an agent
+   * Resolve the briefing file for an agent
    * @param {string} agentName
    * @param {Object} agentConfig
    * @returns {string|null}
@@ -218,7 +219,7 @@ export class SocketServer {
     if (request.type === "status") return this.#handleStatusRequest(socket);
 
     if (request.type === "shutdown") {
-      this.#log("Shutdown requested via socket.");
+      this.#log("Shutdown requested through the socket.");
       this.#send(socket, { type: "ack", command: "shutdown" });
       socket.end();
       this.#requestShutdown();
@@ -258,9 +259,9 @@ export class SocketServer {
   }
 
   /**
-   * Tear down active children and the listening socket, then signal the daemon
-   * (via `whenStopped`) that it is safe to exit. The bin owns the actual
-   * `runtime.proc.exit` call (design Decision 4).
+   * Tear down active children and the socket that listens. Then signal the
+   * daemon through `whenStopped` that it is safe to exit. The bin owns the
+   * actual `runtime.proc.exit` call (design Decision 4).
    */
   #requestShutdown() {
     this.#agentRunner.killActiveChildren();
@@ -272,7 +273,7 @@ export class SocketServer {
   }
 
   /**
-   * Remove any existing socket file, bind the server, and register
+   * Remove any existing socket file. Bind the server. Register
    * SIGTERM/SIGINT handlers that request a graceful shutdown.
    * @returns {import('node:net').Server}
    */
@@ -324,15 +325,15 @@ export class SocketServer {
 }
 
 /**
- * Connect to the running daemon and ask it to wake an agent.
+ * Connect to the daemon that already runs and ask it to wake an agent.
  *
- * The wake runs inside the daemon process, which is the only spawn site that
- * descends from fit-outpost.app — so the spawned `claude` inherits the app as
- * its TCC responsible process. Routing every wake through the daemon is what
- * keeps the single-grant model intact; a wake spawned from this CLI process
- * would be attributed to the terminal instead. The daemon acknowledges
- * (`ack`) once it has accepted the request and then runs the wake
- * asynchronously, so this resolves on the ack rather than on completion.
+ * The wake runs inside the daemon process. That process is the only spawn site
+ * that descends from fit-outpost.app. So the spawned `claude` inherits the app
+ * as its TCC responsible process. Every wake routes through the daemon to keep
+ * the single-grant model intact. macOS would attribute a wake spawned from
+ * this CLI process to the terminal instead. The daemon acknowledges (`ack`)
+ * once it accepts the request. It then runs the wake asynchronously. So this
+ * function resolves on the ack. It does not wait for the wake to finish.
  *
  * @param {string} socketPath
  * @param {string} agent - Agent name to wake.
@@ -379,7 +380,7 @@ export async function requestWake(socketPath, agent, runtime) {
       }
     });
 
-    // A stale socket file (daemon crashed) refuses the connection; treat it
+    // A stale socket file (daemon crashed) refuses the connection. Treat it
     // the same as a missing daemon.
     socket.on("error", () => {
       runtime.clock.clearTimeout(timeout);

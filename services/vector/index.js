@@ -3,7 +3,7 @@ import { services } from "@forwardimpact/librpc";
 const { VectorBase } = services;
 
 /**
- * Vector search service for querying content vector index
+ * Vector search service that queries the content vector index
  */
 export class VectorService extends VectorBase {
   #vectorIndex;
@@ -14,7 +14,7 @@ export class VectorService extends VectorBase {
    * @param {import("@forwardimpact/libconfig").ServiceConfigInterface} config - Service configuration object
    * @param {import("@forwardimpact/libvector").VectorIndexInterface} vectorIndex - Pre-initialized vector index
    * @param {(input: string[]) => Promise<{data: Array<{embedding: number[]}>}>} embeddingFn - Returns embeddings for input texts
-   * @param {Function} logFn - Optional logging function
+   * @param {Function} logFn - Optional function for log output
    */
   constructor(config, vectorIndex, embeddingFn, logFn) {
     super(config, logFn);
@@ -26,7 +26,7 @@ export class VectorService extends VectorBase {
   }
 
   /**
-   * Search content index using text input
+   * Search the content index with text input
    * @param {import("@forwardimpact/libtype").vector.TextQuery} req - Text query request
    * @returns {Promise<import("@forwardimpact/libtype").tool.ToolCallResult>} Query results with resource identifiers
    */

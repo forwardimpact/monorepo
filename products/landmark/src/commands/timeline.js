@@ -1,7 +1,7 @@
 /**
  * `fit-landmark timeline --email <email> [--skill <id>]`
  *
- * Individual growth timeline: aggregate evidence by quarter per skill.
+ * Individual growth timeline. Aggregate evidence by quarter per skill.
  */
 
 import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
@@ -45,8 +45,8 @@ export async function runTimelineCommand({
 
   const timeline = highestLevelPerSkillPerQuarter(evidenceRows);
 
-  // Same zero-artifact semantics as readiness: null coverage = "no
-  // signal"; the below-floor banner needs a measured ratio.
+  // Same zero-artifact semantics as readiness. Null coverage means "no
+  // signal". The below-floor banner needs a measured ratio.
   const allArtifacts =
     (await q.getArtifacts(supabase, { email: options.email })) ?? [];
   let coverage = null;

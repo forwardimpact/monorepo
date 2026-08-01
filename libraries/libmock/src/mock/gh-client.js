@@ -9,9 +9,9 @@ const GH_METHODS = [
 ];
 
 /**
- * Creates a mock `GhClient` collaborator. Each method is a spy returning the
- * configured `responses[method]` value (or a no-op default). Invocations are
- * recorded on `calls`.
+ * Creates a mock `GhClient` collaborator. Each method is a spy that returns
+ * the configured `responses[method]` value (or a no-op default). The mock
+ * records every call on `calls`.
  *
  * @param {object} [options]
  * @param {Record<string, unknown>} [options.responses] - Per-method returns.

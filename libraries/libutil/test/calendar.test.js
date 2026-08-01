@@ -19,7 +19,7 @@ describe("calendar", () => {
   test("isoWeek anchors on the Thursday of the week", () => {
     // 2026-05-30 is a Saturday in ISO week 22.
     assert.deepEqual(isoWeek("2026-05-30"), { year: 2026, week: 22 });
-    // 2027-01-01 is a Friday belonging to ISO week 53 of 2026.
+    // 2027-01-01 is a Friday that belongs to ISO week 53 of 2026.
     assert.deepEqual(isoWeek("2027-01-01"), { year: 2026, week: 53 });
   });
 
@@ -33,11 +33,11 @@ describe("calendar", () => {
     assert.equal(yearMonth("2026-11-01"), "2026-M11");
   });
 
-  test("addDays shifts forward and backward without mutating the input", () => {
+  test("addDays shifts forward and backward and does not mutate the input", () => {
     const d = new Date(Date.UTC(2026, 4, 30));
     assert.equal(addDays("2026-05-30", 7), "2026-06-06");
     assert.equal(addDays("2026-05-30", -9), "2026-05-21");
     addDays(d, 5);
-    assert.equal(d.getUTCDate(), 30, "input Date must not be mutated");
+    assert.equal(d.getUTCDate(), 30, "addDays must not mutate the input Date");
   });
 });

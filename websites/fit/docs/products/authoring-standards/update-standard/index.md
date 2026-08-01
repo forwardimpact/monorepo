@@ -1,17 +1,17 @@
 ---
 title: "Validate and Update the Standard"
-description: "Evolve your engineering standard with confidence — structural mistakes surface during validation, not after the team has adopted the change."
+description: "Evolve your engineering standard with confidence. Structural mistakes surface during validation, before the team adopts the change."
 ---
 
-You need to update your agent-aligned engineering standard -- add a skill,
-adjust a level description, rename a behaviour -- and confirm the result is
-structurally sound before anyone else sees it.
+You need to update your agent-aligned engineering standard. You add a skill,
+adjust a level description, or rename a behaviour. You then confirm the result
+is structurally sound before anyone else sees it.
 
 ## Prerequisites
 
 Complete the
 [Authoring Agent-Aligned Engineering Standards](/docs/products/authoring-standards/)
-guide first -- this page assumes you have a working standard that already passes
+guide first. This page assumes you already have a standard that passes
 validation.
 
 ## Edit the YAML
@@ -28,9 +28,11 @@ each entity lives:
 | Behaviour  | `data/pathway/behaviours/`     |
 | Driver     | `data/pathway/drivers.yaml`    |
 
-Skills are defined inside capability files, not in their own directory.
+You define skills inside capability files. Skills do not live in their own
+directory.
 
-Make your change. For example, to add a new skill to an existing capability:
+Make your change. For example, to add a new skill to a capability that already
+exists:
 
 ```yaml
 # data/pathway/capabilities/delivery.yaml
@@ -59,18 +61,18 @@ skills:
 ```
 
 Every skill requires `proficiencyDescriptions` at all five levels (`awareness`,
-`foundational`, `working`, `practitioner`, `expert`). Missing levels cause a
-schema error.
+`foundational`, `working`, `practitioner`, `expert`). If you leave out a level,
+you get a schema error.
 
 ## Run validation
 
-After editing, run Map validation against your data directory:
+After you edit, validate your data directory with Map:
 
 ```sh
 npx fit-map validate
 ```
 
-A passing run prints the data summary:
+A run that passes prints the data summary:
 
 ```text
 Validation passed
@@ -84,7 +86,7 @@ Data Summary
   Drivers      — 3
 ```
 
-Check the Skills count -- it should reflect the skill you added or removed.
+Check the Skills count. It should reflect the skill you added or removed.
 
 ## Fix validation errors
 
@@ -106,7 +108,8 @@ Common error types and what they mean:
 | `DUPLICATE_ID`        | Two entities share the same ID                               | Rename one of the duplicates                             |
 | `MISSING_REQUIRED`    | A required entity type has no entries                        | Add at least one entry for that entity type              |
 
-After fixing, run `npx fit-map validate` again. Repeat until validation passes.
+After you fix the errors, run `npx fit-map validate` again. Repeat until
+validation passes.
 
 ## Assign the new skill to a discipline
 
@@ -114,7 +117,7 @@ Skip this step if you did not add a new skill.
 
 If you added a skill, it needs to appear in at least one discipline's tier
 arrays. Otherwise Pathway cannot place it in a role. Open the relevant
-discipline file and add the skill ID to `coreSkills`, `supportingSkills`, or
+discipline file. Add the skill ID to `coreSkills`, `supportingSkills`, or
 `broadSkills`:
 
 ```yaml
@@ -126,7 +129,7 @@ coreSkills:
   - release-management        # newly added
 ```
 
-Run validation again -- Map checks that every skill ID referenced in a
+Run validation again. Map checks that every skill ID referenced in a
 discipline exists in your capability files:
 
 ```sh
@@ -149,9 +152,9 @@ looks right:
 npx fit-pathway dev
 ```
 
-Browse the local development server and check that the updated entity appears
-where you expect it -- correct proficiency levels, correct discipline
-placement, correct track modifiers applied.
+Browse the local development server. Check that the updated entity appears
+where you expect it. Confirm the correct proficiency levels, the correct
+discipline placement, and the applied track modifiers.
 
 ## Verify
 
@@ -162,9 +165,9 @@ The update is complete when all three conditions are true:
    before).
 3. `npx fit-pathway dev` renders the change correctly in the browser.
 
-For the full field reference -- required vs. optional fields, ID patterns, and
-allowed values -- see the
-[YAML Schema Reference](/docs/reference/yaml-schema/).
+The [YAML Schema Reference](/docs/reference/yaml-schema/) has the full field
+reference. It covers required and optional fields, ID patterns, and allowed
+values.
 
 ## What's next
 

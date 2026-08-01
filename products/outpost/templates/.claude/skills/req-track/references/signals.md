@@ -1,7 +1,7 @@
 # Recruitment Signals
 
 Decide whether an email thread is recruitment-related. Skip threads that match
-no signal — most email is not.
+no signal. Most email is not recruitment-related.
 
 ## CV/resume attachments
 
@@ -10,25 +10,25 @@ no signal — most email is not.
 
 ## Recruiter sender domains
 
-Sender domain maps to an organization in `Knowledge/Organizations/` tagged as a
-recruitment agency. When no agencies are catalogued yet, treat these patterns as
-hints:
+The sender domain maps to an organization in `Knowledge/Organizations/` tagged
+as a recruitment agency. When no agencies are catalogued yet, treat these
+patterns as hints:
 
-- Multiple candidates presented by the same sender
-- Structured profile formatting (rate, availability, skills)
-- Forwarding candidate CVs on behalf of others
+- The same sender presents multiple candidates
+- The profile uses a structured format (rate, availability, skills)
+- The sender forwards candidate CVs on behalf of others
 
 ## Profile presentation patterns
 
-Structured candidate descriptions containing:
+Structured candidate descriptions that contain:
 
 - "Rate:" or rate/cost information
 - "Availability:" or notice period
 - "English:" or language level
 - "Location:" or country/city
-- Candidate name + role formatting (e.g. "Staff Software Engineer")
+- Candidate name + role format (e.g. "Staff Software Engineer")
 - "years of experience" / "YoE"
-- Skills/tech stack listings
+- Lists of skills or the tech stack
 
 ## Interview scheduling
 
@@ -38,5 +38,5 @@ Structured candidate descriptions containing:
 
 ## Follow-up on existing candidates
 
-A thread mentions a candidate already in `Knowledge/Candidates/` by name —
-process it to update pipeline status.
+A thread mentions a candidate already in `Knowledge/Candidates/` by name.
+Process it to update the pipeline status.

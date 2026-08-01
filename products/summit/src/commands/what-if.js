@@ -95,7 +95,7 @@ function resolveTarget(args, options) {
   const teamId = args[0];
   if (!teamId) {
     throw new Error(
-      "summit: a team id is required. Usage: fit-summit what-if <team> [mutation] or fit-summit what-if --project <name> [mutation].",
+      "summit: what-if requires a team id. Usage: fit-summit what-if <team> [mutation] or fit-summit what-if --project <name> [mutation].",
     );
   }
   return { teamId };

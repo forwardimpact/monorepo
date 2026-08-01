@@ -41,7 +41,7 @@ describe("Facilitator - createFacilitator factory", () => {
     );
   });
 
-  test("uses default facilitator tools when none specified", () => {
+  test("uses default facilitator tools when the caller specifies none", () => {
     const f = createFacilitator(baseOpts());
     assert.deepStrictEqual(f.facilitatorRunner.allowedTools, [
       "Read",
@@ -62,7 +62,7 @@ describe("Facilitator - createFacilitator factory", () => {
     ]);
   });
 
-  test("facilitator lead gets plain string system prompt (no preset)", () => {
+  test("facilitator lead gets a plain-string system prompt (no preset)", () => {
     const f = createFacilitator(baseOpts());
     assert.strictEqual(typeof f.facilitatorRunner.systemPrompt, "string");
     assert.strictEqual(
@@ -71,7 +71,7 @@ describe("Facilitator - createFacilitator factory", () => {
     );
   });
 
-  test("agents get claude_code preset system prompt", () => {
+  test("agents get the system prompt from the claude_code preset", () => {
     const f = createFacilitator(baseOpts());
     for (const agent of f.agents) {
       assert.deepStrictEqual(agent.runner.systemPrompt, {
@@ -166,7 +166,7 @@ describe("Facilitator - createFacilitator factory", () => {
     assert.match(denied.content[0].text, /Consult limit reached \(1\/1 used\)/);
   });
 
-  test("with advisorModel every agent carries the Advisor tool and guidance; the lead carries neither", () => {
+  test("with advisorModel every agent carries the Advisor tool and guidance. The lead carries neither", () => {
     const f = createFacilitator({
       ...baseOpts(),
       agentConfigs: [
@@ -215,7 +215,7 @@ describe("Facilitator - createFacilitator factory", () => {
     const advisor = findAgent(f, "agent-1").runner.mcpServers.orchestration
       .instance._registeredTools.Advisor;
     const pending = advisor.handler({ question: "Q" }, {});
-    // #stop() aborts this controller; trigger the same path directly.
+    // #stop() aborts this controller. Trigger the same path directly.
     f.abortController.abort();
     const result = await pending;
     assert.match(result.content[0].text, /advisor is unavailable/);

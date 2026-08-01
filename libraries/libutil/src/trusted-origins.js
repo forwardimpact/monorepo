@@ -1,14 +1,14 @@
 /**
  * Parse a comma-separated list of trusted `https://…` origins into a Set of
- * normalised origin strings (`new URL(s).origin`). Empty entries are dropped.
- * `http://` and malformed entries are skipped at load with a logged warning.
- * No globals read; caller hands in the raw string from its `libconfig`-loaded
- * service config.
+ * normalised origin strings (`new URL(s).origin`). This function drops empty
+ * entries. It skips `http://` entries and malformed entries at load, and it
+ * logs a warning for each one. It reads no globals. The caller hands in the
+ * raw string from its `libconfig`-loaded service config.
  *
  * @param {string|null|undefined} raw Comma-separated string of origins.
  * @param {object} [options]
  * @param {{warn?: (msg: string, meta?: object) => void}} [options.logger]
- *   Optional logger; warnings are emitted but never thrown.
+ *   Optional logger. The function emits warnings and never throws them.
  * @returns {Set<string>} Set of normalised origin strings.
  */
 export function loadTrustedIdpOrigins(raw, { logger } = {}) {
@@ -40,8 +40,8 @@ export function loadTrustedIdpOrigins(raw, { logger } = {}) {
 
 /**
  * Test whether `origin` (any URL string the caller has) belongs to `set`.
- * Compared as `new URL(origin).origin` against the Set's normalised entries.
- * Returns `false` on any URL parse error rather than throwing.
+ * It compares `new URL(origin).origin` against the Set's normalised entries.
+ * It returns `false` on any URL parse error. It does not throw.
  *
  * @param {string} origin URL or origin string to test.
  * @param {Set<string>} set Set produced by `loadTrustedIdpOrigins`.

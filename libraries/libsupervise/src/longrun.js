@@ -100,8 +100,8 @@ export class LongrunProcess extends EventEmitter {
   async #spawn() {
     this.#state.transitionTo("starting");
 
-    // Use detached: true to create a new process group. This allows us to
-    // kill the entire process tree (shell + children) with a negative PID.
+    // Use detached: true to create a new process group. This lets us kill
+    // the entire process tree (shell + children) with a negative PID.
     // Without this, only the bash shell receives SIGTERM and its children
     // become orphans. See: https://nodejs.org/api/child_process.html#optionsdetached
     const child = this.#subprocess.spawn("bash", ["-c", this.#command], {
@@ -113,9 +113,9 @@ export class LongrunProcess extends EventEmitter {
 
     this.#child = child;
 
-    // The streaming contract exposes no "spawn" event: a defined pid right
-    // after spawn() returns means the child is up; an undefined pid is the
-    // spawn failure the old `error` event reported.
+    // The streaming contract exposes no "spawn" event. A defined pid right
+    // after spawn() returns means the child is up. An undefined pid is the
+    // spawn failure that the old `error` event reported.
     if (child.pid === undefined) {
       this.#child = null;
       this.emit("error", {
@@ -128,27 +128,27 @@ export class LongrunProcess extends EventEmitter {
     this.#state.transitionTo("starting", { pid: child.pid });
 
     // Pipe the child's output into the held sinks as detached async loops so
-    // neither blocks supervision. `end: false` semantics are preserved by
-    // never calling `.end()` on the shared sinks here.
+    // neither blocks supervision. The loops never call `.end()` on the shared
+    // sinks, so the `end: false` semantics hold.
     void (async () => {
       try {
         for await (const chunk of child.stdout) this.#stdout.write(chunk);
       } catch {
-        // Stream torn down on kill — nothing to flush.
+        // Stream torn down on kill. Nothing to flush.
       }
     })();
     void (async () => {
       try {
         for await (const chunk of child.stderr) this.#stderr.write(chunk);
       } catch {
-        // Stream torn down on kill — nothing to flush.
+        // Stream torn down on kill. Nothing to flush.
       }
     })();
 
     this.#state.transitionTo("up", { pid: child.pid });
     this.emit("up", { name: this.#name, pid: child.pid });
 
-    // The exit event becomes the resolution of the exitCode/signal promises.
+    // The exitCode and signal promises resolve when the child exits.
     void Promise.all([child.exitCode, child.signal]).then(([code, signal]) => {
       if (this.#child === child) this.#child = null;
       this.#handleExit(code, signal);
@@ -222,7 +222,7 @@ export class LongrunProcess extends EventEmitter {
         resolve();
       });
 
-      // Send SIGTERM to the entire process group using negative PID.
+      // Send SIGTERM to the entire process group with a negative PID.
       // This kills the shell and all its children (npm, node, etc.).
       // See: https://nodejs.org/api/child_process.html#subprocesskillsignal
       if (pid) {

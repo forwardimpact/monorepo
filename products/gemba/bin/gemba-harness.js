@@ -32,7 +32,7 @@ const ADVISOR_OPTIONS = {
   "advisor-model": {
     type: "string",
     description:
-      "Claude model for advisor consults; omitting the flag disables the Advisor tool (default: off)",
+      "Claude model for advisor consults. Omit the flag to disable the Advisor tool (default: off)",
   },
   "advisor-max-uses": {
     type: "string",
@@ -42,8 +42,9 @@ const ADVISOR_OPTIONS = {
 };
 
 // Shared task-input flags: --task-file (path), --task-text (inline), and
-// --task-event (path to native GitHub event JSON composed into a task via
-// libharness/src/events/github.js). Exactly one of the three is required.
+// --task-event (path to native GitHub event JSON that
+// libharness/src/events/github.js composes into a task). Exactly one of the
+// three is required.
 const TASK_INPUT_OPTIONS = {
   "task-file": {
     type: "string",
@@ -56,7 +57,7 @@ const TASK_INPUT_OPTIONS = {
   "task-event": {
     type: "string",
     description:
-      "Path to a native GitHub event payload JSON, composed into the task via libharness/src/events/github.js (reads $GITHUB_EVENT_NAME)",
+      "Path to a native GitHub event payload JSON that libharness/src/events/github.js composes into the task (reads $GITHUB_EVENT_NAME)",
   },
   "task-amend": {
     type: "string",
@@ -67,7 +68,7 @@ const TASK_INPUT_OPTIONS = {
 const definition = {
   name: "gemba-harness",
   description:
-    "Run agents and capture NDJSON traces — for agent evaluations or multi-agent collaboration",
+    "Run agents and capture NDJSON traces for agent evaluations or multi-agent collaboration",
   commands: [
     {
       name: "run",
@@ -106,7 +107,7 @@ const definition = {
         "mcp-server": {
           type: "string",
           description:
-            "Connect to the MCP service (e.g. --mcp-server=guide); adds mcp__<name>__* to allowed tools",
+            "Connect to the MCP service (e.g. --mcp-server=guide). This adds mcp__<name>__* to allowed tools",
         },
         ...ADVISOR_OPTIONS,
       },
@@ -117,7 +118,7 @@ const definition = {
       argsUsage: "",
       handler: runSuperviseCommand,
       description:
-        "Run a supervisor–agent relay — typical shape for agent-as-judge evaluations",
+        "Run a supervisor–agent relay, the typical shape for agent-as-judge evaluations",
       options: {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
@@ -156,7 +157,7 @@ const definition = {
         "mcp-server": {
           type: "string",
           description:
-            "Connect to the MCP service (e.g. --mcp-server=guide); adds mcp__<name>__* to allowed tools",
+            "Connect to the MCP service (e.g. --mcp-server=guide). This adds mcp__<name>__* to allowed tools",
         },
         ...ADVISOR_OPTIONS,
       },
@@ -167,7 +168,7 @@ const definition = {
       argsUsage: "",
       handler: runFacilitateCommand,
       description:
-        "Run a facilitator with N participants — typical shape for multi-agent collaboration",
+        "Run a facilitator with N participants, the typical shape for multi-agent collaboration",
       options: {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
@@ -210,7 +211,7 @@ const definition = {
       argsUsage: "",
       handler: runDiscussCommand,
       description:
-        "Run an async, suspendable discussion — Chair + N participants + bridge callback",
+        "Run an async, suspendable discussion: Chair + N participants + bridge callback",
       options: {
         ...TASK_INPUT_OPTIONS,
         "agent-model": {
@@ -237,7 +238,7 @@ const definition = {
         "discussion-id": {
           type: "string",
           description:
-            "Stable id for the threaded conversation; carried through traces for linking",
+            "Stable id for the threaded conversation. Traces carry it so you can link them",
         },
         "resume-context": {
           type: "string",
@@ -265,7 +266,7 @@ const definition = {
       argsUsage: "[output.ndjson]",
       handler: runTeeCommand,
       description:
-        "Stream readable text to stdout while saving raw NDJSON to a file",
+        "Stream readable text to stdout while it saves raw NDJSON to a file",
     },
     {
       name: "callback",
@@ -304,7 +305,7 @@ const definition = {
       argsUsage: "",
       handler: runScanLogsCommand,
       description:
-        "Scan a run's log archive for secret literals; exit non-zero on any hit, fail closed on an unreadable archive",
+        "Scan a run's log archive for secret literals. Exit non-zero on any hit. Fail closed on an unreadable archive",
       options: {
         archive: {
           type: "string",
@@ -323,7 +324,7 @@ const definition = {
           type: "string",
           multiple: true,
           description:
-            "Repeatable label=literal; the literal (everything after the first =) is searched for in the logs",
+            "Repeatable label=literal. The scan searches the logs for the literal (everything after the first =)",
         },
       },
     },
@@ -347,31 +348,31 @@ const definition = {
       title: "Coordinate an Agent Team",
       url: "https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md",
       description:
-        "Run a lead and N participant agents in one async session — supervise, facilitate, or discuss — with Ask/Answer/Announce and a single NDJSON trace.",
+        "Run a lead and N participant agents in one async session (supervise, facilitate, or discuss) with Ask/Answer/Announce and a single NDJSON trace.",
     },
     {
       title: "Run an Eval",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md",
       description:
-        "Author a judge profile, run an eval locally, wire it into CI, and inspect the resulting trace.",
+        "Author a judge profile. Run an eval locally. Wire it into CI. Inspect the trace it produces.",
     },
     {
       title: "Prove Agent Changes",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/index.md",
       description:
-        "End-to-end workflow from dataset generation through evaluation to trace analysis, including multi-agent collaboration sessions.",
+        "End-to-end workflow from dataset generation through evaluation to trace analysis. It covers multi-agent collaboration sessions.",
     },
     {
       title: "Analyze Traces",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md",
       description:
-        "Read the NDJSON traces produced by `gemba-harness` with `gemba-trace` — grounded-theory method and worked examples.",
+        "Use `gemba-trace` to read the NDJSON traces that `gemba-harness` produces. It covers the grounded-theory method and worked examples.",
     },
     {
       title: "Agent Teams",
       url: "https://www.forwardimpact.team/docs/products/agent-teams/index.md",
       description:
-        "How to author the profiles consumed by --agent-profile, --lead-profile, and --agent-profiles.",
+        "How to author the profiles that --agent-profile, --lead-profile, and --agent-profiles consume.",
     },
   ],
 };

@@ -33,7 +33,7 @@ import {
 import { dispatchSubstrate } from "./dispatch-substrate.js";
 
 // Overlay the runtime so the prompt/template loaders read inlined assets when
-// this is a compiled binary; a no-op in source/npx execution.
+// this is a compiled binary. This is a no-op in source/npx execution.
 const runtime = withEmbeddedAssets(createDefaultRuntime());
 
 const documentation = [
@@ -47,7 +47,7 @@ const documentation = [
     title: "Generate an Eval Dataset",
     url: "https://www.forwardimpact.team/docs/libraries/prove-changes/generate-dataset/index.md",
     description:
-      "Using the Terrain DSL to define and generate synthetic datasets.",
+      "Use the Terrain DSL to define and generate synthetic datasets.",
   },
   {
     title: "The Substrate Contract",
@@ -68,7 +68,7 @@ const definition = {
   description: "Synthetic data generation pipeline",
   globalOptions: {
     story: { type: "string", description: "Path to a custom story DSL file" },
-    cache: { type: "string", description: "Path to prose cache file" },
+    cache: { type: "string", description: "Path to the prose cache file" },
     "output-root": {
       type: "string",
       description:
@@ -77,7 +77,7 @@ const definition = {
     "schema-dir": {
       type: "string",
       description:
-        "Directory of standard JSON schemas for pathway rendering (default: resolved from @forwardimpact/libskill)",
+        "Directory of standard JSON schemas the pathway stage reads (default: resolved from @forwardimpact/libskill)",
     },
     help: { type: "boolean", short: "h", description: "Show this help" },
     version: { type: "boolean", description: "Show version" },
@@ -86,7 +86,7 @@ const definition = {
   commands: [
     {
       name: "check",
-      description: "Verify cache completeness; prints hit-rate",
+      description: "Verify cache completeness and print the hit-rate",
       examples: [
         "bunx fit-terrain check",
         "LOG_LEVEL=error bunx fit-terrain check",
@@ -119,7 +119,7 @@ const definition = {
     },
     {
       name: "generate",
-      description: "Fill the prose cache via LLM, then build",
+      description: "Fill the prose cache with an LLM, then build",
       options: {
         model: {
           type: "string",
@@ -145,7 +145,7 @@ const definition = {
     {
       name: "substrate up",
       description:
-        "Bring up a local Supabase stack generically (start + discover); emit its URL/anon key. No migrations or seed — those stay with the consumer.",
+        "Bring up a local Supabase stack generically (start + discover). Emit its URL/anon key. It runs no migrations and no seed. Those stay with the consumer.",
       options: {
         cwd: {
           type: "string",
@@ -166,7 +166,7 @@ const definition = {
     {
       name: "substrate init",
       description:
-        "Scaffold a starter Substrate Contract migration (schema + commented example views) into <cwd>/supabase/migrations/ for editing. Offline — needs no stack or env.",
+        "Scaffold a starter Substrate Contract migration (schema + commented example views) into <cwd>/supabase/migrations/ so you can edit it. It runs offline and needs no stack or env.",
       options: {
         cwd: {
           type: "string",
@@ -179,7 +179,7 @@ const definition = {
     {
       name: "substrate check",
       description:
-        "Validate a live stack against the Substrate Contract: one diagnostic per missing or malformed relation; exits non-zero only when a required relation fails. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+        "Validate a live stack against the Substrate Contract. Reports one diagnostic per missing or malformed relation. Exits non-zero only when a required relation fails. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
       examples: ["bunx fit-terrain substrate check"],
     },
     {
@@ -191,7 +191,7 @@ const definition = {
     {
       name: "substrate pick",
       description:
-        "Return one invariant-satisfying persona, diversified against --memory when supplied (appending the pick on success; stateless otherwise). The output's parent/parent_email is the persona's upward manager — manager-scoped views (e.g. fit-landmark health --manager) take the persona's own email instead.",
+        "Return one invariant-satisfying persona, diversified against --memory when supplied. With --memory the verb appends the pick on success. Without it the verb is stateless. The output's parent/parent_email is the persona's upward manager. Manager-scoped views (e.g. fit-landmark health --manager) take the persona's own email instead.",
       options: {
         format: {
           type: "string",
@@ -200,7 +200,7 @@ const definition = {
         memory: {
           type: "string",
           description:
-            "Pick-memory CSV path; omit for a stateless pick with no memory",
+            "Pick-memory CSV path. Omit for a stateless pick with no memory",
         },
         "memory-window": {
           type: "string",
@@ -227,7 +227,7 @@ const definition = {
     {
       name: "substrate issue",
       description:
-        "Mint a persona JWT and atomically write the .env / .substrate.json / stash set. The .env variable name is caller-supplied via --token-env (required, no default). Needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and JWT_SECRET.",
+        "Mint a persona JWT and atomically write the .env / .substrate.json / stash set. The caller supplies the .env variable name with --token-env (required, no default). Needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and JWT_SECRET.",
       options: {
         email: {
           type: "string",
@@ -235,7 +235,7 @@ const definition = {
         },
         cwd: {
           type: "string",
-          description: "Directory receiving .env and .substrate.json",
+          description: "Directory that receives .env and .substrate.json",
         },
         "token-env": {
           type: "string",
@@ -271,8 +271,8 @@ const cli = createCli(definition, {
 const logger = createLogger("terrain", runtime);
 
 /**
- * Build an Anthropic-backed LLM client adapted to the OpenAI choices shape
- * consumed by ProseGenerator.
+ * Build an Anthropic-backed LLM client. Adapt it to the OpenAI choices
+ * shape that ProseGenerator consumes.
  */
 async function resolveLlmApi(config, modelOverride) {
   const { default: Anthropic } = await import("@anthropic-ai/sdk");
@@ -302,12 +302,12 @@ async function resolveLlmApi(config, modelOverride) {
 
 /**
  * Resolve the standard JSON-schema directory from the installed
- * `@forwardimpact/libskill` package. Pathway rendering reads nine
- * `<name>.schema.json` files from here. `libskill` is a required dependency,
- * so a resolution miss can only mean a broken install — fail loudly.
+ * `@forwardimpact/libskill` package. The pathway stage reads nine
+ * `<name>.schema.json` files from here. `libskill` is a required dependency.
+ * A resolution miss can only mean a broken install, so fail loudly.
  *
- * Called directly in this module so `this === import.meta`, which Bun requires
- * for `import.meta.resolve`.
+ * This module calls it directly so `this === import.meta`, which Bun
+ * requires for `import.meta.resolve`.
  */
 function defaultSchemaDir() {
   let url;
@@ -317,7 +317,7 @@ function defaultSchemaDir() {
     );
   } catch (cause) {
     throw new Error(
-      "Cannot resolve @forwardimpact/libskill/schema/json — reinstall fit-terrain (libskill is a required dependency).",
+      "Cannot resolve @forwardimpact/libskill/schema/json. Reinstall fit-terrain (libskill is a required dependency).",
       { cause },
     );
   }
@@ -325,8 +325,8 @@ function defaultSchemaDir() {
 }
 
 /**
- * Run the pipeline for the given verb. Returns whether the verb succeeded;
- * the caller maps that to process.exitCode.
+ * Run the pipeline for the given verb. Returns whether the verb succeeded.
+ * The caller maps that to process.exitCode.
  *
  * @param {object} options
  * @param {"check"|"validate"|"build"|"generate"} options.verb
@@ -347,8 +347,8 @@ async function runVerb(options) {
   });
 
   const mode = verb === "generate" ? "generate" : "cached";
-  // `check` walks only to `cache-lookup`; strict mode would abort on the
-  // first miss before the report is rendered.
+  // `check` walks only to `cache-lookup`. Strict mode would abort on the
+  // first miss, before the CLI renders the report.
   const strict = false;
   const persistCache = verb === "generate";
 
@@ -357,19 +357,19 @@ async function runVerb(options) {
 
   // The project tree this run reads (story DSL, schemas) and writes to. Finder
   // handles the compiled-vs-source split: cwd for a compiled binary, upward
-  // package.json search otherwise — so this stays free of build-mode checks.
+  // package.json search otherwise. So this stays free of build-mode checks.
   const monorepoRoot = runtime.finder.findProjectRoot();
   // Read root (story/cache/schema defaults) stays the resolved project root.
-  // Only the *write* target moves when `--output-root` is given, so an external
-  // consumer renders into a disposable directory it owns.
+  // Only the *write* target moves when the caller passes `--output-root`. An
+  // external consumer then renders into a disposable directory it owns.
   const outputRoot = options.outputRoot || monorepoRoot;
   const schemaDir = options.schemaDir || defaultSchemaDir();
   const cachePath =
     options.cache ||
     join(monorepoRoot, "data", "synthetic", "prose-cache.json");
 
-  // Bind to `import.meta` so the helper can invoke it under Bun, which
-  // requires `import.meta.resolve` to be called with `this === import.meta`.
+  // Bind to `import.meta` so the helper can invoke it under Bun. Bun needs
+  // a call to `import.meta.resolve` with `this === import.meta`.
   const { promptDir, templateDir } = resolvePackagePaths((specifier) =>
     import.meta.resolve(specifier),
   );
@@ -432,7 +432,7 @@ async function runVerb(options) {
     runtime.proc.stdout.write(
       "\n" +
         formatWarning(
-          `${cacheMisses} prose cache misses — run "fit-terrain generate" to fill the cache.`,
+          `${cacheMisses} prose cache misses. Run "fit-terrain generate" to fill the cache.`,
         ) +
         "\n",
     );
@@ -445,7 +445,7 @@ async function runVerb(options) {
   }
   // Verb-level outcome: build/generate exit 1 on validation failure (spec
   // line 173) or write failure. Per-block `ok` flags above describe each
-  // block independently; this conjunction is only the exit-code rule.
+  // block independently. This conjunction is only the exit-code rule.
   return { ok: validationOk && writeOk };
 }
 
@@ -509,8 +509,8 @@ async function main() {
 
   const { values, positionals } = parsed;
 
-  // Substrate verbs are stack/identity commands, not pipeline verbs — they
-  // build no synthetic-data pipeline, so they dispatch before resolveVerb.
+  // Substrate verbs are stack/identity commands. They are not pipeline verbs
+  // and build no synthetic-data pipeline. So they dispatch before resolveVerb.
   if (positionals[0] === "substrate") {
     const code = await dispatchSubstrate(positionals[1], values, { runtime });
     if (code === null) {

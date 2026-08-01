@@ -153,9 +153,9 @@
     --top-bar-height: 48px;
 
     /*
-   * Responsive breakpoints (used in @media queries):
-   * - 1280px: Tablet/laptop - layout stacking
-   * - 768px: Mobile - drawer overlays instead of pushing content
+   * Responsive breakpoints (the @media queries use these):
+   * - 1280px: Tablet/laptop - the layout stacks
+   * - 768px: Mobile - the drawer overlays content and does not push it
    * - 640px: Mobile - full-width buttons, simplified layouts
    */
   }

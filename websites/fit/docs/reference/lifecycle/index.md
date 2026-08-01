@@ -1,6 +1,6 @@
 ---
 title: Lifecycle
-description: Engineering lifecycle phases — workflow guidance for handoffs, constraints, and checklists.
+description: Engineering lifecycle phases, with workflow guidance for handoffs, constraints, and checklists.
 ---
 
 ## Overview
@@ -9,8 +9,8 @@ The lifecycle model describes six phases that engineering work moves through,
 from specification to deployment. Each phase has handoff triggers, constraints,
 and checklists that guide quality transitions.
 
-Phases are conceptual workflow vocabulary — they describe what kind of work is
-happening and what discipline applies, not data entities backed by YAML files.
+Phases are conceptual workflow vocabulary. They describe what kind of work
+happens and which discipline applies. No YAML file backs them as a data entity.
 
 ---
 
@@ -67,7 +67,7 @@ specify where work flows next.
 
 | Handoff        | Target | Trigger                                |
 | -------------- | ------ | -------------------------------------- |
-| Request Review | review | Implementation complete, tests passing |
+| Request Review | review | Implementation complete, tests pass    |
 
 ### Review Phase
 
@@ -88,7 +88,7 @@ specify where work flows next.
 ## Constraints
 
 Each phase defines constraints that limit what actions are allowed. Constraints
-are especially important for AI agents — they prevent scope creep and ensure
+are especially important for AI agents. They prevent scope creep. They make sure
 agents stay within their authorized boundaries.
 
 | Phase        | Cannot                                        |
@@ -104,20 +104,20 @@ agents stay within their authorized boundaries.
 
 ## Checklists
 
-Checklists ensure quality at phase transitions. Each skill defines its own
-checklist items as flat fields in the agent section of the skill's YAML
+Checklists make sure quality holds at phase transitions. Each skill defines its
+own checklist items as flat fields in the agent section of the skill's YAML
 definition.
 
 ### Two Types
 
-| Type                | When                 | Purpose                       |
-| ------------------- | -------------------- | ----------------------------- |
-| **Read-Then-Do**    | Before starting work | Prerequisites and preparation |
-| **Do-Then-Confirm** | Before handing off   | Verification criteria         |
+| Type                | When                  | Purpose                       |
+| ------------------- | --------------------- | ----------------------------- |
+| **Read-Then-Do**    | Before you start work | Prerequisites and preparation |
+| **Do-Then-Confirm** | Before you hand off   | Verification criteria         |
 
-Read-then-do checklists are entry gates — read each item, then do it.
-Do-then-confirm checklists are exit gates — do from memory, then confirm every
-item before crossing a boundary.
+Read-then-do checklists are entry gates. Read each item, then do it.
+Do-then-confirm checklists are exit gates. Do them from memory, then confirm
+every item before you cross a boundary.
 
 ### How Checklists Are Defined
 
@@ -126,34 +126,34 @@ Skills define checklists as flat fields in their agent section:
 - `agent.readChecklist` — items for the read-then-do gate
 - `agent.confirmChecklist` — items for the do-then-confirm gate
 
-Both fields are simple arrays of strings on the skill's `agent` section — they
-are not keyed by proficiency level and are not derived from a phase x skill
+Both fields are simple arrays of strings on the skill's `agent` section. They
+are not keyed by proficiency level. They do not come from a phase x skill
 matrix. Every skill that ships an `agent:` section must define both checklists.
 
 ### Example
 
 Given a practitioner-level CI/CD skill:
 
-**Read-Then-Do (before coding):**
+**Read-Then-Do (before you code):**
 
 - Review the deployment pipeline configuration
 - Understand the test infrastructure
 - Check branch protection rules
 
-**Do-Then-Confirm (before requesting review):**
+**Do-Then-Confirm (before you request review):**
 
 - All new code has test coverage
 - Pipeline passes on the feature branch
-- Documentation updated for changed interfaces
+- Documentation is updated for changed interfaces
 
 ---
 
 ## Phases and Agents
 
-Agents are generated per discipline and track — one agent per combination, not
-one per lifecycle phase. Phases guide an agent's workflow focus: what to
-prioritize, what constraints apply, and which checklist items are relevant at
-each point in the work.
+Agents are generated per discipline and track. Each combination gets one agent.
+A lifecycle phase does not get its own agent. Phases guide an agent's workflow
+focus: what to prioritize, what constraints apply, and which checklist items are
+relevant at each point in the work.
 
 Generate an agent profile for a discipline and track:
 
@@ -162,7 +162,7 @@ npx fit-pathway agent <discipline> --track=<track> --output=./agents
 ```
 
 The generated profile includes the agent's full skill set, checklist items, and
-behavioural expectations. Phases are not an input to agent generation — they
+behavioural expectations. Phases are not an input to agent generation. They
 describe the workflow context in which the agent operates.
 
 Run `npx fit-pathway agent --help` for the full command surface.

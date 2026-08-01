@@ -72,18 +72,18 @@ export class ResumeScheduler {
   }
 
   /**
-   * Begin watching `correlationId` for trigger resolution. Persists the
-   * trigger, the history index at recess time, and the triggering
-   * requester onto `ctx.open_rfcs[correlationId]`. If the trigger has an
+   * Start to watch `correlationId` for trigger resolution. Persists the
+   * trigger, the history index at recess time, and the requester who
+   * triggered it onto `ctx.open_rfcs[correlationId]`. If the trigger has an
    * elapsed component, schedules an in-memory timer.
    *
-   * The caller is responsible for flushing the store after this call —
-   * `enterRecess` mutates ctx but does not write.
+   * The caller must flush the store after this call. `enterRecess` mutates
+   * ctx. It does not write.
    *
    * @param {object} ctx
    * @param {string} correlationId
    * @param {import("./triggers.js").ResumeTrigger} trigger
-   * @param {string} requester - Surface user id of the triggering human
+   * @param {string} requester - Surface user id of the human who triggered it
    */
   enterRecess(ctx, correlationId, trigger, requester) {
     if (!trigger) return;
@@ -102,7 +102,7 @@ export class ResumeScheduler {
   }
 
   /**
-   * Stop watching `correlationId`. Removes the rfc from `ctx.open_rfcs`
+   * Stop the watch on `correlationId`. Removes the rfc from `ctx.open_rfcs`
    * and cancels any associated elapsed timer. Idempotent.
    *
    * @param {object} ctx
@@ -114,9 +114,9 @@ export class ResumeScheduler {
   }
 
   /**
-   * Walk `ctx.open_rfcs`. For each rfc whose trigger has fired,
-   * redispatch the workflow. Returns a summary so the host can decide
-   * whether to additionally fire a fresh lead session.
+   * Walk `ctx.open_rfcs`. For each rfc whose trigger fired, redispatch the
+   * workflow. Returns a summary, so the host can decide whether to also
+   * fire a fresh lead session.
    *
    * @param {object} ctx
    * @returns {Promise<{fired: number, hasOpenRfc: boolean, freshDispatchAllowed: boolean}>}

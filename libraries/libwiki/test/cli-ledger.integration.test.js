@@ -31,7 +31,7 @@ describe("ledger command (real git remote, mock gh)", () => {
     wikiDir = cloned.wikiDir;
     parent = cloned.parent;
     git(wikiDir, "checkout", "master");
-    // Point origin at a github-shaped URL so slug resolution has something to parse.
+    // Point origin at a github-shaped URL so slug resolution can parse it.
     git(
       wikiDir,
       "remote",
@@ -89,8 +89,8 @@ describe("ledger command (real git remote, mock gh)", () => {
       posts[0].args[0],
       "repos/forwardimpact/monorepo/issues/1564/comments",
     );
-    // No ledger page was written at allocation time — the anchor post is the
-    // only side effect; projections derive from the published sequence later.
+    // Allocation wrote no ledger page. The anchor post is the only side effect.
+    // Projections derive from the published sequence later.
     assert.equal(
       existsSync(join(wikiDir, "parallel-collision-ledger.md")),
       false,
@@ -129,7 +129,7 @@ describe("ledger command (real git remote, mock gh)", () => {
         ],
       },
     });
-    // Seed an existing page carrying a cited convention block.
+    // Seed an existing page that carries a cited convention block.
     writeFileSync(
       join(wikiDir, "parallel-collision-ledger.md"),
       "# Parallel-Collision Ledger\n\n## Conventions and floors (binding)\n\n<!-- anchor:100 -->\nA lost claim row voids no allocation.\n",
@@ -145,7 +145,7 @@ describe("ledger command (real git remote, mock gh)", () => {
     assert.match(page, /A lost claim row voids no allocation\./);
   });
 
-  test("rebuild writes the MEMORY row projection without clobbering narrative", async () => {
+  test("rebuild writes the MEMORY row projection and does not clobber narrative", async () => {
     const gh = createMockGhClient({
       responses: {
         apiGetPaginated: [
@@ -161,7 +161,7 @@ describe("ledger command (real git remote, mock gh)", () => {
     const { ctx } = ctxFor({ gh, args: { subcommand: "rebuild" } });
     assert.equal((await runLedgerCommand(ctx)).ok, true);
     const memory = readFileSync(join(wikiDir, "MEMORY.md"), "utf-8");
-    // Narrative preserved; derived row landed in a delimited region.
+    // The narrative survives. The derived row landed in a delimited region.
     assert.match(
       memory,
       /Authored collision narrative the rebuild must not erase/,
@@ -169,13 +169,13 @@ describe("ledger command (real git remote, mock gh)", () => {
     assert.match(memory, /<!-- ledger:memory-row -->/);
     assert.match(memory, /next free #98/);
 
-    // Round-trip: a verify against the just-written projection is clean.
+    // A verify against the just-written projection round-trips clean.
     const v = ctxFor({ gh, args: { subcommand: "verify" } });
     assert.equal((await runLedgerCommand(v.ctx)).ok, true);
     assert.match(v.harness.stdout, /verify: clean/);
   });
 
-  test("verify flags a MEMORY row diverging from the anchor record", async () => {
+  test("verify flags a MEMORY row that diverges from the anchor record", async () => {
     const gh = createMockGhClient({
       responses: {
         apiGetPaginated: [
@@ -184,12 +184,12 @@ describe("ledger command (real git remote, mock gh)", () => {
         ],
       },
     });
-    // A region whose counters predate the anchor record (stale projection).
+    // This region's counters predate the anchor record (a stale projection).
     writeFileSync(
       join(wikiDir, "MEMORY.md"),
       "narrative\n\n<!-- ledger:memory-row -->\nstale counters\n<!-- /ledger:memory-row -->\n",
     );
-    // Page must also match so the failure is attributable to the row alone.
+    // The page must also match so only the row can cause the failure.
     const seed = ctxFor({ gh, args: { subcommand: "rebuild" } });
     await runLedgerCommand(seed.ctx);
     writeFileSync(

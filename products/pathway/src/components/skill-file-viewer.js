@@ -3,9 +3,9 @@
  *
  * Vertically stacked collapsible panes for skill files: SKILL.md,
  * scripts/install.sh, and references/{name}.md.
- * Reused across agent builder and skill detail pages.
+ * The agent builder and the skill detail pages reuse the component.
  *
- * Each file is rendered as a collapsible code-display pane with
+ * The component renders each file as a collapsible code-display pane with
  * accordion behaviour (only one open at a time).
  */
 
@@ -16,7 +16,7 @@ import { createCodeDisplay, accordionize } from "./code-display.js";
  * @typedef {Object} SkillFile
  * @property {string} filename - File path for code display header
  * @property {string} content - File content
- * @property {string} [language="markdown"] - Syntax highlighting language
+ * @property {string} [language="markdown"] - Language for syntax highlighting
  */
 
 /**

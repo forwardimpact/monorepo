@@ -19,14 +19,16 @@ import { ADD_DISCUSSION_COMMENT_MUTATION } from "../src/graphql.js";
 
 const SECRET = "ghbridge-test-secret-long-enough";
 
-// Full multi-tenant path against the tightened stateful mock. Both modes run
-// the same code, the same tenant-scoped store RPCs, and the same dispatch
-// credential (the dispatching user's per-user OAuth token via services/ghuser).
-// Only the tenant resolver and the resolved repo differ.
+// The full multi-tenant path runs against the tightened stateful mock. Both
+// modes run the same code, the same tenant-scoped store RPCs, and the same
+// dispatch credential. That credential is the per-user OAuth token that
+// services/ghuser returns for the user who dispatches. Only the tenant
+// resolver and the resolved repo differ.
 
 /**
- * Stub tenancy client backing a `RegistryTenantResolver`. One active tenant
- * (`uuid-acme`) owns `acme/web` keyed by Entra/install key `acme-key`.
+ * This stub tenancy client backs a `RegistryTenantResolver`. One active
+ * tenant (`uuid-acme`) owns `acme/web`. The Entra/install key `acme-key`
+ * identifies that tenant.
  */
 function stubTenancyClient() {
   const tenant = {
@@ -79,11 +81,12 @@ function buildFetchHarness() {
 }
 
 /**
- * Build a service in single- or multi-tenant mode. Multi-tenant injects a
- * `RegistryTenantResolver` (over the stub tenancy client), a `tenancyClient`,
- * a `ghserverClient` mock (for the reply/reaction path only), and a
- * `makeGraphqlClient` factory so the reply path mints per the resolved tenant
- * repo. Dispatch credential is the per-user OAuth token in both modes.
+ * Build a service in single- or multi-tenant mode. Multi-tenant mode injects
+ * a `RegistryTenantResolver` over the stub tenancy client, a `tenancyClient`,
+ * and a `ghserverClient` mock for the reply/reaction path only. It also
+ * injects a `makeGraphqlClient` factory, so the reply path mints per the
+ * resolved tenant repo. The dispatch credential is the per-user OAuth token
+ * in both modes.
  *
  * @param {object} [opts]
  * @param {boolean} [opts.multi]
@@ -129,13 +132,14 @@ async function newService({ multi, tokenResult } = {}) {
     getInstallationToken: async () => "ghs_test",
     graphqlClient,
     makeGraphqlClient,
-    // Dispatch identity is the per-user OAuth token in both modes. A test may
-    // override the result to exercise the link_required path.
+    // The dispatch identity is the per-user OAuth token in both modes. A test
+    // may override the result to exercise the link_required path.
     ghuserClient: {
       GetToken: async () =>
         tokenResult ?? { result: "token", token: "ghs_per_user" },
     },
-    // Reply/reaction path only; dispatch no longer consults ghserver.
+    // Only the reply/reaction path uses this. Dispatch no longer consults
+    // ghserver.
     ghserverClient: {
       MintInstallationToken: async (req) => {
         mints.push(req);
@@ -254,7 +258,7 @@ for (const mode of ["single", "multi"]) {
       const sent = JSON.parse(dispatched.init.body);
       expect(sent.inputs.callback_url).toContain(`/api/callback/${tenantId}/`);
       expect(sent.inputs.inbox_url).toContain(`/api/inbox/${tenantId}/`);
-      // The record is stored under the resolved tenant.
+      // The store holds the record under the resolved tenant.
       const ctx = await service.store.loadByChannel(
         "github-discussions",
         "D_kw1",
@@ -264,7 +268,7 @@ for (const mode of ["single", "multi"]) {
       expect(ctx.tenant_id).toBe(tenantId);
     });
 
-    test("adjourned callback posts replies on the resolved repo via the reply path", async () => {
+    test("adjourned callback posts replies on the resolved repo through the reply path", async () => {
       await postSigned(
         baseUrl,
         "discussion",
@@ -283,13 +287,14 @@ for (const mode of ["single", "multi"]) {
         (c) => c.query === ADD_DISCUSSION_COMMENT_MUTATION,
       );
       expect(commentCalls).toHaveLength(1);
-      // Multi-tenant mints for the resolved repo; single-tenant uses the
-      // static client.
+      // Multi-tenant mode mints for the resolved repo. Single-tenant mode
+      // uses the static client.
       expect(commentCalls[0].repo).toBe(multi ? inboundRepo : "static");
     });
 
-    test("self-originated comment (HasOrigin/RecordOrigin) is skipped per tenant", async () => {
-      // First dispatch + adjourn so the bridge records an origin for its reply.
+    test("the bridge skips a self-originated comment (HasOrigin/RecordOrigin) per tenant", async () => {
+      // Dispatch first. Then adjourn. The bridge records an origin for its
+      // reply.
       await postSigned(
         baseUrl,
         "discussion",
@@ -308,8 +313,9 @@ for (const mode of ["single", "multi"]) {
         (c) => c.query === ADD_DISCUSSION_COMMENT_MUTATION,
       );
       const postedCommentId = `C_${commentCalls.length}`;
-      // A webhook for the comment the bridge itself posted must be recognized
-      // as self-originated and dropped (204) — no re-dispatch.
+      // The bridge must treat a webhook for its own comment as
+      // self-originated. It must drop the delivery (204) and must not
+      // re-dispatch.
       const res = await postSigned(
         baseUrl,
         "discussion_comment",
@@ -321,8 +327,8 @@ for (const mode of ["single", "multi"]) {
 
     test("inbox inject + reconcile round-trips on the tenant-scoped queue", async () => {
       // Dispatch a fresh run. The dispatcher sets active_requester and a
-      // pending callback, so a follow-up comment from the same requester is
-      // injected into the run's inbox rather than re-dispatched.
+      // pending callback. The bridge then injects a follow-up comment from the
+      // same requester into the run's inbox. It does not re-dispatch.
       await postSigned(
         baseUrl,
         "discussion",
@@ -355,7 +361,7 @@ for (const mode of ["single", "multi"]) {
     });
 
     if (multi) {
-      test("a delivery from an unknown tenant is dropped (204)", async () => {
+      test("the bridge drops a delivery from an unknown tenant (204)", async () => {
         const res = await postSigned(
           baseUrl,
           "discussion",
@@ -365,10 +371,10 @@ for (const mode of ["single", "multi"]) {
         expect(harness.dispatches).toHaveLength(0);
       });
 
-      test("hosted dispatch uses the per-user OAuth token, not a ghserver App-token mint", async () => {
-        // Unified dispatch identity: hosted mode dispatches with the
-        // dispatching user's per-user OAuth token on the resolved tenant repo.
-        // No ghserver App-token mint happens for dispatch; the reply/reaction
+      test("hosted dispatch uses the per-user OAuth token and mints no ghserver App token", async () => {
+        // The dispatch identity is unified. Hosted mode dispatches on the
+        // resolved tenant repo with the per-user OAuth token of the user who
+        // dispatches. Dispatch mints no ghserver App token. The reply/reaction
         // path keeps its own ghserver credential.
         const res = await postSigned(
           baseUrl,
@@ -392,11 +398,11 @@ for (const mode of ["single", "multi"]) {
         expect(Object.keys(ctx.pending_callbacks)).toHaveLength(1);
       });
 
-      test("unlinked multi-tenant dispatcher gets the link prompt, fires no workflow_dispatch", async () => {
+      test("unlinked multi-tenant dispatcher gets the link prompt and fires no workflow_dispatch", async () => {
         // An unlinked dispatcher resolves through TokenResolver → link_required
         // in multi-tenant mode too (criterion 4). The bridge posts the link
-        // prompt on the resolved repo and writes the pending row under the
-        // resolved tenant — proving the tenant carrier threads through.
+        // prompt on the resolved repo. It writes the pending row under the
+        // resolved tenant. That proves the tenant carrier threads through.
         const built = await newService({
           multi: true,
           tokenResult: {

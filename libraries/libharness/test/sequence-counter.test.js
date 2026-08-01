@@ -24,7 +24,7 @@ describe("SequenceCounter", () => {
     assert.strictEqual(b.next(), 1);
   });
 
-  test("createSequenceCounter factory returns instance", () => {
+  test("createSequenceCounter factory returns an instance", () => {
     const counter = createSequenceCounter();
     assert.ok(counter instanceof SequenceCounter);
     assert.strictEqual(counter.next(), 0);

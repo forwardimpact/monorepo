@@ -19,7 +19,7 @@ function collectFixture() {
 
 describe("TraceCollector v1.2 schema expansion", () => {
   describe("system turns", () => {
-    test("stores init as a system turn with full payload", () => {
+    test("stores init as a system turn with the full payload", () => {
       const collector = new TraceCollector();
       collector.addLine(
         JSON.stringify({
@@ -69,7 +69,7 @@ describe("TraceCollector v1.2 schema expansion", () => {
   });
 
   describe("initEvent top-level field", () => {
-    test("exposes full init event as top-level initEvent field", () => {
+    test("exposes the full init event as the top-level initEvent field", () => {
       const collector = new TraceCollector();
       collector.addLine(
         JSON.stringify({
@@ -95,7 +95,7 @@ describe("TraceCollector v1.2 schema expansion", () => {
       assert.strictEqual(trace.initEvent.type, undefined);
     });
 
-    test("initEvent is null when no init event seen", () => {
+    test("initEvent is null when the collector sees no init event", () => {
       const collector = new TraceCollector();
       const trace = collector.toJSON();
       assert.strictEqual(trace.initEvent, null);
@@ -162,7 +162,7 @@ describe("TraceCollector v1.2 schema expansion", () => {
     });
   });
 
-  describe("toText rendering for new roles", () => {
+  describe("toText output for new roles", () => {
     test("renders system turns with their subtype label", () => {
       const collector = collectFixture();
       const text = collector.toText();
@@ -171,7 +171,7 @@ describe("TraceCollector v1.2 schema expansion", () => {
       assert.ok(text.includes("[hook]"));
     });
 
-    test("renders user text with [user] prefix", () => {
+    test("renders user text with the [user] prefix", () => {
       const collector = collectFixture();
       const text = collector.toText();
 
@@ -180,7 +180,7 @@ describe("TraceCollector v1.2 schema expansion", () => {
   });
 
   describe("modelUsage additive merge across result events", () => {
-    test("sums additive fields and carries non-additive first-seen", () => {
+    test("sums additive fields and keeps the first value for non-additive fields", () => {
       const collector = new TraceCollector();
       const result = (cost, inTok, contextWindow) =>
         JSON.stringify({
@@ -204,7 +204,7 @@ describe("TraceCollector v1.2 schema expansion", () => {
       assert.strictEqual(mu.inputTokens, 150);
       assert.strictEqual(mu.outputTokens, 20);
       assert.strictEqual(mu.costUSD, 3.0);
-      // Non-additive field carried first-seen, never summed.
+      // The merge keeps the first value seen. It never sums this field.
       assert.strictEqual(mu.contextWindow, 200000);
     });
   });

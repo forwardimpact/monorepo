@@ -5,7 +5,7 @@ import { common } from "../src/index.js";
 
 describe("libtype", () => {
   describe("Simple type", () => {
-    test("creates type with required properties", () => {
+    test("creates a type with the required properties", () => {
       const message = new common.Message({
         role: "user",
         content: {

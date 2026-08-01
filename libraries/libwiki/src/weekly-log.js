@@ -8,12 +8,13 @@ import {
   WEEKLY_LOG_WORD_BUDGET,
 } from "./constants.js";
 
-// Block seam inside a day-section: a `### ` heading at line start. The finer
-// grain rotation falls to when a lone day-section alone exceeds a budget.
+// Block seam inside a day-section: a `### ` heading at line start. Rotation
+// falls to this finer grain when a lone day-section alone exceeds a budget.
 const BLOCK_SEAM_RE = /^### /;
 
-// ISO week computation lives in libutil's calendar util (the one place a
-// `new Date` is allowed); re-exported here for the existing public surface.
+// libutil's calendar util computes the ISO week. It is the one place that may
+// call `new Date`. This module re-exports the function for the existing
+// public surface.
 export { isoWeek } from "@forwardimpact/libutil";
 
 /** Return the path of the current weekly log file for an agent. */
@@ -27,10 +28,10 @@ function partPathAt(filePath, n) {
   return path.join(dir, `${base}-part${n}.md`);
 }
 
-// Find `count` part slots that are each verified free, skipping any occupied
-// `-partN.md` (e.g. a numbering gap left by a manually deleted middle part).
-// Every returned slot is unoccupied, so the seal never overwrites a pre-existing
-// part on commit nor unlinks one on rollback.
+// Find `count` part slots that are each verified free. Skip any occupied
+// `-partN.md` (e.g. a gap in the numbers after someone deleted a middle part
+// by hand). Every returned slot is unoccupied, so the seal never overwrites a
+// pre-existing part on commit nor unlinks one on rollback.
 function nextFreeSlots(filePath, count, fs) {
   const slots = [];
   let n = 1;
@@ -61,9 +62,9 @@ function residueOf(sec, partIndex, measure) {
 }
 
 /**
- * An over-cap prologue cannot merge with any day-section (adding content only
- * grows it), so it always seals as its own part 0. Flag it up front as the
- * first residue so it is never shipped silently over budget.
+ * An over-cap prologue cannot merge with any day-section, because more content
+ * only grows it. So it always seals as its own part 0. Flag it up front as the
+ * first residue so it never ships silently over budget.
  */
 function prologueResidue(prologue, { overBudget, measure }) {
   if (prologue.length === 0 || !overBudget(prologue)) return null;
@@ -72,23 +73,25 @@ function prologueResidue(prologue, { overBudget, measure }) {
 }
 
 /**
- * Greedily pack day-sections into part bodies under both budgets, the prologue
- * riding with part 1. A chunk that alone exceeds a budget — a lone day-section
- * or an over-cap prologue — is sealed as its own part and recorded as the
- * (first) residue; packed runs and single sections are kept under both budgets,
- * so the only over-cap part bodies are the ones `residue` accounts for.
+ * Greedily pack day-sections into part bodies under both budgets. The prologue
+ * rides with part 1. A chunk that alone exceeds a budget seals as its own part,
+ * and the packer records it as the (first) residue. Such a chunk is a lone
+ * day-section or an over-cap prologue. Packed runs and single sections stay
+ * under both budgets, so the only over-cap part bodies are the ones `residue`
+ * accounts for.
  * @param {Array<{date: string, text: string}>} sections
- * @param {string} prologue - Content above the first seam; rides with part 1.
+ * @param {string} prologue - Content above the first seam. It rides with
+ *   part 1.
  * @param {{overBudget: (s: string) => boolean, measure: (s: string) => {lines: number, words: number}}} budget
  * @returns {{partBodies: string[], residue: null | {section: string, lines: number, words: number, partIndex: number}}}
  */
 function packSections(sections, prologue, budget) {
   const { overBudget, measure } = budget;
   const partBodies = [];
-  // The prologue, when over budget, is always pushed first (part 0) — record it
-  // before packing so a later lone-section residue cannot displace it.
+  // The packer always pushes an over-budget prologue first (part 0). Record it
+  // before you pack, so a later lone-section residue cannot displace it.
   let residue = prologueResidue(prologue, budget);
-  let open = prologue; // body of the part currently being filled
+  let open = prologue; // body of the part the packer fills now
   let opened = prologue.length > 0;
   const flush = () => {
     if (opened) {
@@ -99,7 +102,7 @@ function packSections(sections, prologue, budget) {
   };
   for (const sec of sections) {
     if (overBudget(sec.text)) {
-      // Irreducible lone section: flush the open part, then seal it alone.
+      // Irreducible lone section. Flush the open part. Then seal it alone.
       flush();
       residue ??= residueOf(sec, partBodies.length, measure);
       partBodies.push(sec.text);
@@ -118,10 +121,10 @@ function packSections(sections, prologue, budget) {
 }
 
 /**
- * Slice `body` at `seamRe` seam offsets into `{label, text}` sections, the
- * label being the seam's full matched heading line (date or `### ` heading).
+ * Slice `body` at `seamRe` seam offsets into `{label, text}` sections. Each
+ * label is the seam's full matched heading line (date or `### ` heading).
  * Returns `{prologue, sections}` where the prologue is everything above the
- * first seam (the whole body when there are no seams). Concatenating the
+ * first seam (the whole body when there are no seams). A concatenation of the
  * prologue and every section's text reproduces `body` byte-for-byte.
  */
 function findSections(body, seamRe) {
@@ -131,7 +134,7 @@ function findSections(body, seamRe) {
   while ((match = re.exec(body)) !== null) {
     const eol = body.indexOf("\n", match.index);
     const headingLine = body.slice(match.index, eol === -1 ? body.length : eol);
-    // A captured group (the day seam's date) labels the section; otherwise the
+    // A captured group (the day seam's date) labels the section. Otherwise the
     // full heading line (a `### ` block heading) is the label.
     const label = match[1] ?? headingLine;
     seams.push({ offset: match.index, label });
@@ -150,23 +153,27 @@ function findSections(body, seamRe) {
 
 /**
  * Split an over-budget weekly-log source at its `## YYYY-MM-DD` day-section
- * seams into an ordered list of conforming parts. Pure — no I/O.
+ * seams into an ordered list of conforming parts. The function is pure. It does
+ * no I/O.
  *
- * The first line of `text` is the original H1; it is consumed and replaced by
- * per-part H1s, never appearing in a part body. Everything after that first
- * line is the body, sliced at the day-section seam byte offsets so that
- * concatenating the parts' bodies reproduces the original body byte-for-byte.
- * The prologue (any content above the first seam) rides with part 1. Sections
- * are greedily packed left-to-right under both the line- and word-budget, with
- * each candidate part measured H1-included so its own H1 is charged.
+ * The first line of `text` is the original H1. The function consumes it and
+ * replaces it with per-part H1s, so it never appears in a part body. Everything
+ * after that first line is the body. The function slices the body at the
+ * day-section seam byte offsets, so a concatenation of the parts' bodies
+ * reproduces the original body byte-for-byte. The prologue (any content above
+ * the first seam) rides with part 1. The function packs sections greedily from
+ * left to right under both the line- and word-budget. It measures each
+ * candidate part with the H1 included, so the measurement charges the part's
+ * own H1.
  *
- * When a lone day-section alone exceeds a budget, it is re-bisected at its
- * `### ` block seams (one grain finer) and the resulting block-parts replace it,
- * so a single over-cap day no longer forces a hand-split. Only a single `### `
- * block that alone exceeds a budget — or an over-cap seamless prologue — remains
- * an irreducible residue: it is sealed as its own (over-budget) part and named
- * in `residue` (the residue's `section` then names the block heading, not a
- * date); the rest still packs normally.
+ * When a lone day-section alone exceeds a budget, the function re-bisects it at
+ * its `### ` block seams (one grain finer). The block-parts then replace it, so
+ * a single over-cap day no longer forces a hand-split. Only these remain an
+ * irreducible residue: a single `### ` block that alone exceeds a budget, or an
+ * over-cap seamless prologue. The function seals such a chunk as its own
+ * (over-budget) part and names it in `residue`. The residue's `section` then
+ * names the block heading. It does not name a date. The rest still packs
+ * normally.
  *
  * @param {string} text - The full weekly-log source (H1 + body).
  * @param {string} agent - Agent profile id (e.g. "staff-engineer").
@@ -177,9 +184,9 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
   const nl = text.indexOf("\n");
   const body = nl === -1 ? "" : text.slice(nl + 1);
   const title = agentTitle(agent);
-  // `(part N of M)` costs the same 1 line and 4 word-tokens regardless of the
-  // digits in N/M, so a fixed template measures every part exactly without
-  // needing to know M before packing finishes.
+  // `(part N of M)` costs the same 1 line and 4 word-tokens whatever the
+  // digits in N/M are. So a fixed template measures every part exactly. It
+  // does not need M before the packer finishes.
   const h1Template = `# ${title} — ${isoWeekStr} (part 1 of 1)`;
   const measure = (chunk) => {
     const rendered = `${h1Template}\n${chunk}`;
@@ -199,12 +206,12 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
   };
 
   const budget = { overBudget, measure };
-  // Locate the day-section seams (date at line-start, trailing suffix
-  // tolerated, e.g. `## 2026-05-19 (third activation)`).
+  // Locate the day-section seams. The date sits at line-start. The regex
+  // tolerates a trailing suffix, e.g. `## 2026-05-19 (third activation)`.
   const { prologue, sections } = findSections(body, WEEKLY_LOG_SEAM_RE);
 
-  // Zero day-sections: the whole body is the prologue and its own single part,
-  // flagged as a residue when it alone exceeds a budget.
+  // Zero day-sections. The whole body is the prologue and its own single part.
+  // The function flags it as a residue when it alone exceeds a budget.
   if (sections.length === 0) {
     return finish([body], prologueResidue(body, budget));
   }
@@ -212,7 +219,7 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
   const { partBodies, residue } = packSections(sections, prologue, budget);
   // A lone day-section that alone exceeds a budget is the only residue
   // `packSections` can produce here (the prologue rides part 1). Re-bisect that
-  // day at its `### ` block seams and splice the block-parts in for it; the
+  // day at its `### ` block seams and splice the block-parts in for it. The
   // surfaced residue becomes the inner one (an over-cap block) or null.
   if (residue !== null) {
     const sub = resplitDaySection(partBodies, residue, budget);
@@ -223,22 +230,24 @@ export function bisectWeeklyLog(text, agent, isoWeekStr) {
 
 /**
  * Re-bisect the lone over-cap day-section that `packSections` flagged as the
- * residue: split that part's body at its `### ` block seams and splice the
- * resulting block-bodies into `partBodies` in its place. The day-section's body
- * carries its own `## ` heading as a prologue above the first `### ` block, so
- * that heading rides the first block-part. Returns the spliced `partBodies` and
- * the inner residue (a single over-cap `### ` block, or null when every block
- * now conforms), re-indexed to its position in the spliced list.
+ * residue. Split that part's body at its `### ` block seams. Then splice the
+ * block-bodies into `partBodies` in its place. The day-section's body carries
+ * its own `## ` heading as a prologue above the first `### ` block, so that
+ * heading rides the first block-part. Returns the spliced `partBodies` and the
+ * inner residue (a single over-cap `### ` block, or null when every block now
+ * conforms). The function re-indexes that residue to its position in the
+ * spliced list.
  */
 function resplitDaySection(partBodies, residue, budget) {
   const dayBody = partBodies[residue.partIndex];
-  // Only a day-section (its body opens with a `## ` heading) is re-split at the
-  // block grain; an over-cap seamless prologue has no day to descend into and
-  // stays the terminal residue.
+  // The function re-splits only a day-section (its body opens with a `## `
+  // heading) at the block grain. An over-cap seamless prologue has no day to
+  // descend into and stays the terminal residue.
   if (!dayBody.startsWith("## ")) return { partBodies, residue };
   const { prologue, sections } = findSections(dayBody, BLOCK_SEAM_RE);
-  // No `### ` block seam inside the day: nothing finer to cut — keep the day as
-  // the irreducible residue (criterion 3's terminal case at the day grain).
+  // No `### ` block seam inside the day. Nothing finer is left to cut. Keep the
+  // day as the irreducible residue (criterion 3's terminal case at the day
+  // grain).
   if (sections.length === 0) return { partBodies, residue };
   const { partBodies: blockBodies, residue: blockResidue } = packSections(
     sections,
@@ -261,13 +270,14 @@ function resplitDaySection(partBodies, residue, budget) {
 }
 
 /**
- * Stage every write to `${path}.tmp`, then commit by renaming each `leading`
- * write onto its path (tracked for rollback) and the `anchor` write LAST — the
- * single point of no return. The anchor is the live/source file: until its
- * rename it still holds its original bytes, so a failure anywhere unlinks every
- * committed leading path and remaining temp and re-throws, leaving the anchor's
- * path/contents/inode untouched. Leading paths must be verified-free slots (a
- * rollback unlinks them). Returns the leading paths, in order.
+ * Stage every write to `${path}.tmp`. Then commit. Rename each `leading` write
+ * onto its path (tracked for rollback). Rename the `anchor` write LAST. That
+ * last rename is the single point of no return. The anchor is the live/source
+ * file. Until its rename it still holds its original bytes. So a failure
+ * anywhere unlinks every committed leading path and remaining temp, and
+ * re-throws. The anchor's path, contents, and inode stay untouched. Leading
+ * paths must be verified-free slots (a rollback unlinks them). Returns the
+ * leading paths, in order.
  *
  * @param {Array<{path: string, content: string}>} leading - Committed first.
  * @param {{path: string, content: string}} anchor - Committed last.
@@ -305,9 +315,9 @@ function commitAtomic(leading, anchor, fs) {
 }
 
 /**
- * Seal a bisected weekly log: write each part to a fresh `-partN.md` slot and a
- * fresh empty main over `filePath` (the anchor, committed last). Returns the
- * `-partN.md` slot paths in part order.
+ * Seal a bisected weekly log. Write each part to a fresh `-partN.md` slot.
+ * Write a fresh empty main over `filePath` (the anchor, committed last).
+ * Returns the `-partN.md` slot paths in part order.
  *
  * @param {string} filePath - The current weekly-log path.
  * @param {Array<{h1: string, body: string}>} parts - Ordered parts to seal.
@@ -327,25 +337,26 @@ function atomicSeal(filePath, parts, agent, isoWeekStr, fs) {
 }
 
 /**
- * Rotate the current weekly log, sealing an over-budget source into
- * budget-conforming parts via a bisecting seal. Returns a tagged union:
+ * Rotate the current weekly log. The function bisects an over-budget source and
+ * seals it into budget-conforming parts. Returns a tagged union:
  * `{status:"noop"}` (no rotation needed), `{status:"sealed",parts}` (sealed
  * into one-or-more conforming parts), or `{status:"incomplete",parts,residue}`
- * (a lone day-section exceeds a budget and is named).
+ * (a lone day-section exceeds a budget, and the result names it).
  *
- * A `noop` return carries a `reason` — `"missing"` (no file; no size measured),
- * `"floor"` (header-only/empty body; nothing to seal), or `"under-budget"`
- * (under both budgets without `--force`) — plus the measured `lines`/`words`
- * for the two reasons that read the file, so the CLI guard need not re-read it.
- * "Over budget" is decided here over *either* budget (lines or words), so a
- * caller never needs `force: true` to seal a word-over/line-under log.
+ * A `noop` return carries a `reason`. The reason is `"missing"` (no file, no
+ * size measured), `"floor"` (header-only or empty body, nothing to seal), or
+ * `"under-budget"` (under both budgets without `--force`). The return also
+ * carries the measured `lines`/`words` for the two reasons that read the file,
+ * so the CLI guard need not re-read it. This function decides "over budget"
+ * over *either* budget (lines or words), so a caller never needs `force: true`
+ * to seal a word-over/line-under log.
  *
  * @returns {{status: "noop"|"sealed"|"incomplete", reason?: "missing"|"floor"|"under-budget", lines?: number, words?: number, fromPath: string, parts?: string[], residue?: {path: string, section: string, lines: number, words: number}}}
  * @param {string} wikiRoot
  * @param {string} agent
  * @param {string} today - ISO date string.
  * @param {{lines?: number, words?: number}} [delta={}] - Projected post-append
- *   line/word delta; the trigger fires when the current file plus this delta
+ *   line/word delta. The trigger fires when the current file plus this delta
  *   would breach either budget. Force-rotate callers pass `{}`.
  * @param {{force?: boolean}} [options]
  * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
@@ -366,10 +377,11 @@ export function rotateIfOverBudget(
   const text = fs.readFileSync(filePath, "utf-8");
   const lines = countLines(text);
   const words = countWords(text);
-  // A header-only (or empty) log has nothing to seal. Without this floor,
-  // force-rotating a freshly-reset main would mint an empty `(part 1 of 1)`
-  // file and reset the main again — once per invocation, forever. The floor
-  // holds even under `--force`, so it is checked before the force branch.
+  // A header-only (or empty) log has nothing to seal. Without this floor, a
+  // force-rotate of a freshly-reset main would mint an empty `(part 1 of 1)`
+  // file and reset the main again. That would repeat once per invocation,
+  // forever. The floor holds even under `--force`, so the code checks it
+  // before the force branch.
   const nl = text.indexOf("\n");
   if ((nl === -1 ? "" : text.slice(nl + 1)).trim() === "") {
     return {
@@ -380,11 +392,11 @@ export function rotateIfOverBudget(
       fromPath: filePath,
     };
   }
-  // Over either budget (lines or words), decided once here in core: a
+  // Core decides "over either budget" (lines or words) once, here. So a
   // word-over/line-under log seals without `--force`. The projection folds in
   // the caller's append delta so a pre-append rotate fires on the post-append
   // size. The `noop`/`under-budget` arm carries the measured size so the CLI
-  // handler can report the resolved target without re-reading the file.
+  // handler can report the resolved target and need not re-read the file.
   const { lines: dLines = 0, words: dWords = 0 } = delta;
   const projectedLines = lines + dLines;
   const projectedWords = words + dWords;
@@ -422,11 +434,11 @@ export function rotateIfOverBudget(
 
 /**
  * Derive the agent, ISO week, and MAIN-log path from a sealed part's path. The
- * week comes from the filename (a part may belong to a past week, not today),
- * and the main-log path — not the part path — is what `nextFreeSlots` must base
- * new sibling slots on. Returns null for a non-conforming filename. Shares
- * WEEKLY_LOG_PART_NAME_RE with the audit's file classifier so the two cannot
- * drift on the filename convention.
+ * week comes from the filename, because a part may belong to a past week
+ * instead of today. `nextFreeSlots` must base new sibling slots on the main-log
+ * path. It must not use the part path. Returns null for a non-conforming
+ * filename. Shares WEEKLY_LOG_PART_NAME_RE with the audit's file classifier so
+ * the two cannot drift on the filename convention.
  */
 function parsePartPath(partPath) {
   const m = path.basename(partPath).match(WEEKLY_LOG_PART_NAME_RE);
@@ -441,8 +453,8 @@ function parsePartPath(partPath) {
 }
 
 /**
- * Reseal a re-bisected part: the first sub-part overwrites the source slot (the
- * anchor, committed last) and the rest claim fresh sibling slots of the main-log
+ * Reseal a re-bisected part. The first sub-part overwrites the source slot (the
+ * anchor, committed last). The rest claim fresh sibling slots of the main-log
  * path. `nextFreeSlots` skips occupied slots (including the source's own), so a
  * commit never clobbers a sibling nor a rollback unlinks a pre-existing one.
  * Returns `[partPath, ...newSlots]` in part order.
@@ -463,16 +475,18 @@ function atomicResealPart(partPath, mainLogPath, parts, fs) {
 
 /**
  * Re-bisect a single over-budget sealed weekly-log PART in place. Agent and ISO
- * week come from the part filename. A part within both budgets is a noop; a part
- * whose body cannot be reduced (a lone over-cap day-section or an over-cap
- * zero-seam body) is left BYTE-IDENTICAL and reported `incomplete` with a
- * residue, so the re-audit re-flags it for a human. Otherwise the first sub-part
- * overwrites `partPath` (slot reused) and the remaining sub-parts land on fresh
- * sibling slots, with full rollback (source untouched on any failure).
+ * week come from the part filename. A part within both budgets is a noop. A
+ * part whose body cannot be reduced stays BYTE-IDENTICAL. The function reports
+ * it `incomplete` with a residue, so the re-audit re-flags it for a human. Such
+ * a part is a lone over-cap day-section or an over-cap zero-seam body.
+ * Otherwise the first sub-part overwrites `partPath` (slot reused) and the
+ * remaining sub-parts land on fresh sibling slots, with full rollback (source
+ * untouched on any failure).
  *
  * The produced sub-parts carry `bisectWeeklyLog`'s `(part i of M)` H1s, where M
- * is LOCAL to this part's split — not a global count of the week's parts.
- * Sibling parts are never renumbered (the audit does not validate the numbers).
+ * is LOCAL to this part's split. M is not a global count of the week's parts.
+ * The function never renumbers sibling parts (the audit does not validate the
+ * numbers).
  *
  * @param {string} partPath - Absolute path to an `<agent>-YYYY-Www-partN.md`.
  * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
@@ -493,7 +507,7 @@ export function rebisectOverBudgetPart(partPath, fs) {
     parsed.agent,
     parsed.isoWeekStr,
   );
-  // A single produced part has no splittable seam: leave the file untouched and
+  // A single produced part has no splittable seam. Leave the file untouched and
   // surface a residue (synthesised from the file when the bisector did not name
   // one) so the caller's re-audit re-flags it.
   if (parts.length === 1) {

@@ -34,7 +34,7 @@ function collectFixture() {
 
 describe("TraceCollector", () => {
   describe("toJSON", () => {
-    test("produces complete trace from fixture", () => {
+    test("produces a complete trace from the fixture", () => {
       const collector = collectFixture();
       const trace = collector.toJSON();
 
@@ -87,7 +87,8 @@ describe("TraceCollector", () => {
       const text = collector.toText();
 
       // Tool-call lines pair the tool name with a colon and the
-      // sanitized hint — no leading marker, no JSON punctuation.
+      // sanitized hint. They carry no leading marker and no JSON
+      // punctuation.
       assert.ok(text.includes("Bash: ls -la"));
       assert.ok(!text.includes("> Bash"));
       assert.ok(!text.includes("{"));
@@ -97,9 +98,9 @@ describe("TraceCollector", () => {
       const collector = collectFixture();
       const text = collector.toText();
 
-      // The fixture's tool_result is a success (`total 42\n...`). Per the
-      // updated rendering rule, successful tool results are silently dropped
-      // from text output — only `Error:` lines remain. The trailing
+      // The fixture's tool_result is a success (`total 42\n...`). The
+      // updated render rule silently drops successful tool results from the
+      // text output. Only `Error:` lines remain. The trailing
       // `--- Result: <verdict> ---` footer is a different shape.
       const previewLines = text
         .split("\n")
@@ -112,7 +113,7 @@ describe("TraceCollector", () => {
       assert.ok(!text.includes("Result: total 42"));
     });
 
-    test("failing tool_result emits an Error: preview line", () => {
+    test("a failed tool_result emits an Error: preview line", () => {
       const collector = new TraceCollector();
       collector.addLine(
         JSON.stringify({
@@ -150,7 +151,7 @@ describe("TraceCollector", () => {
       assert.ok(text.includes("Error: ENOENT: no such file"));
     });
 
-    test("includes result summary line", () => {
+    test("includes the result summary line", () => {
       const collector = collectFixture();
       const text = collector.toText();
 
@@ -160,11 +161,11 @@ describe("TraceCollector", () => {
       assert.ok(text.includes("Duration: 5s"));
     });
 
-    test("orchestrator verdict overrides SDK subtype in result footer", () => {
+    test("orchestrator verdict overrides the SDK subtype in the result footer", () => {
       const collector = collectFixture();
       // After fixture replay the SDK reported subtype=success. Inject an
-      // orchestrator summary with verdict=failure (the supervisor judged
-      // the agent failed) and verify the footer reflects the verdict.
+      // orchestrator summary with verdict=failure. The supervisor judged
+      // that the agent failed. Verify the footer reflects the verdict.
       collector.addLine(
         JSON.stringify({
           source: "orchestrator",
@@ -203,19 +204,19 @@ describe("TraceCollector", () => {
       );
 
       const text = collector.toText();
-      // New shape: `Bash: <hint>` where the hint is truncated with `...`.
-      // We look for the hint ending (strip ANSI first so the escape bytes
-      // don't inflate the visible length).
+      // New shape: `Bash: <hint>` where `...` truncates the hint. Look for
+      // the end of the hint. Strip ANSI first so the escape bytes do not
+      // inflate the visible length.
       // biome-ignore lint/suspicious/noControlCharactersInRegex: ANSI SGR stripping is intentional.
       const plain = text.replace(/\u001b\[[0-9;]*m/g, "");
       const toolLine = plain.split("\n").find((l) => l.startsWith("Bash:"));
       assert.ok(toolLine, "expected a `Bash:` line");
       assert.ok(toolLine.includes("..."));
-      // Full 300-char command must not survive unchanged.
+      // The full 300-char command must not survive unchanged.
       assert.ok(toolLine.length < 100);
     });
 
-    test("returns empty string for empty input", () => {
+    test("returns an empty string for empty input", () => {
       const collector = new TraceCollector();
       const text = collector.toText();
 
@@ -229,7 +230,7 @@ describe("TraceCollector", () => {
       assert.ok(collector instanceof TraceCollector);
     });
 
-    test("accepts injectable clock for deterministic timestamps", () => {
+    test("accepts an injectable clock for deterministic timestamps", () => {
       const fixedTime = "2026-01-01T00:00:00Z";
       const collector = createTraceCollector({ now: () => fixedTime });
       const trace = collector.toJSON();

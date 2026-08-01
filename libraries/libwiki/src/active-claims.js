@@ -5,9 +5,9 @@ import {
   ACTIVE_CLAIMS_TABLE_SEPARATOR,
 } from "./constants.js";
 
-// The header matcher is shared with the audit (via constants.js); the loose
-// separator and the 6-cell row parser stay local — they serve parsing, not the
-// audit's column-count check.
+// This module and the audit share the header matcher through constants.js.
+// The loose separator and the 6-cell row parser stay local. This module uses
+// them to parse the table. The audit's column-count check does not use them.
 const SEPARATOR_RE = /^\|\s*---\s*\|/;
 const ROW_RE =
   /^\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*?)\s*\|\s*$/;
@@ -169,7 +169,7 @@ export function appendClaim(memoryText, claim, _today) {
   };
 }
 
-/** Remove the claim row matching (agent, target). Idempotent. */
+/** Remove the claim row that matches (agent, target). Idempotent. */
 export function removeClaim(memoryText, { agent, target }) {
   const lines = memoryText.split("\n");
   const heading = findSection(lines);
@@ -186,7 +186,7 @@ export function removeClaim(memoryText, { agent, target }) {
   return { text: memoryText, removed: false };
 }
 
-/** Split claims into active vs expired based on `expires_at >= today`. */
+/** Split claims into active and expired, based on `expires_at >= today`. */
 export function filterExpired(claims, today) {
   const active = [];
   const expired = [];
