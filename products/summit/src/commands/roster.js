@@ -1,8 +1,9 @@
 /**
  * `fit-summit roster` — show the current roster as Summit sees it.
  *
- * Loads the roster (Map-sourced or YAML), then prints a plain-text or
- * JSON summary. This is a display command — no analytical aggregation.
+ * The command loads the roster (Map-sourced or YAML). Then it prints a
+ * plain-text or JSON summary. This is a display command. It does no
+ * analytical aggregation.
  */
 
 import { loadRoster } from "../roster/index.js";

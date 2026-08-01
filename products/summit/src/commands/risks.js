@@ -90,7 +90,7 @@ function resolveTarget(args, options) {
   const teamId = args[0];
   if (!teamId) {
     throw new Error(
-      "summit: a team id is required. Usage: fit-summit risks <team> or fit-summit risks --project <name>.",
+      "summit: risks requires a team id. Usage: fit-summit risks <team> or fit-summit risks --project <name>.",
     );
   }
   return { teamId };

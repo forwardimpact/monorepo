@@ -1,11 +1,12 @@
 /**
  * Integration tests for `fit-pathway agent --level=<id>`.
  *
- * Stages a copy of products/map/starter into a temp data dir, removes the
- * organizational-context slot so byte-comparisons are scoped to the
- * teamInstructions / level-expectations layer, then invokes runAgentCommand
- * with various combinations of `--level`. Covers level-driven output changes,
- * the unknown-level error shape, and the `--list` short-circuit.
+ * Each test stages a copy of products/map/starter into a temp data dir. It
+ * removes the organizational-context slot. Byte-comparisons then cover only
+ * the teamInstructions / level-expectations layer. Each test then invokes
+ * runAgentCommand with different combinations of `--level`. The suite covers
+ * level-driven output changes, the unknown-level error shape, and the
+ * `--list` short-circuit.
  */
 
 import { test, describe } from "node:test";
@@ -46,9 +47,10 @@ function stageDataDir({ stripOrgContext = true } = {}) {
   return { work, dataDir };
 }
 
-// Build a runtime whose `proc.stdout` captures into an array, so the command's
-// output can be read without patching the global `process.stdout` — patching
-// the global collides with `node --test`'s own stdout reporter stream.
+// Build a runtime whose `proc.stdout` captures into an array. The test then
+// reads the command's output without a patch to the global `process.stdout`.
+// A patch of the global collides with `node --test`'s own stdout reporter
+// stream.
 function captureRuntime() {
   const base = createDefaultRuntime();
   const chunks = [];
@@ -164,8 +166,8 @@ describe("agent --level integration", () => {
         "J040 output should carry its impact-scope expectation",
       );
 
-      // Composition-order guard: track teamInstructions anchor must precede
-      // the new ## Level Expectations heading in the rendered file.
+      // Composition-order guard. The track teamInstructions anchor must
+      // precede the new ## Level Expectations heading in the rendered file.
       const anchor = "Treat the platform as a";
       const headingIdx = renderedJ060.indexOf("## Level Expectations");
       const anchorIdx = renderedJ060.indexOf(anchor);

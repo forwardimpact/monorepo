@@ -2,13 +2,13 @@
  * Integration tests for `fit-pathway agent` with the
  * organizational-context slot wired through the CLI.
  *
- * Each test stages a copy of products/map/starter into a temp data dir,
- * optionally writes an organizational-context.yaml, optionally replaces a
- * track's teamInstructions, then invokes runAgentCommand against that
- * staged data dir and reads the rendered .claude/CLAUDE.md.
+ * Each test stages a copy of products/map/starter into a temp data dir. It
+ * can also write an organizational-context.yaml. It can also replace a
+ * track's teamInstructions. It then invokes runAgentCommand against that
+ * staged data dir. It reads the rendered .claude/CLAUDE.md.
  *
  * The seventh test (marker-contract collision) is the substantive
- * last-occurrence assertion — without it the rule is trivially true on any
+ * last-occurrence assertion. Without it the rule is trivially true on any
  * single-marker file.
  */
 
@@ -92,10 +92,10 @@ function clearTrackTeamInstructions(work, trackId) {
     /^ {2}teamInstructions:.*?(?=^\S|^ {2}\S|^$)/ms,
     "",
   );
-  // Sanity guard: silent no-op on YAML shape changes (e.g. indent style) would
-  // leave the teamInstructions intact and let the absent-teamInstructions cases
-  // exercise the populated path by accident. Fail fast if the strip did
-  // nothing.
+  // Sanity guard. A silent no-op on YAML shape changes (e.g. indent style)
+  // would leave the teamInstructions intact. The absent-teamInstructions
+  // cases would then exercise the populated path by accident. Fail fast if
+  // the strip did nothing.
   assert.notStrictEqual(
     after,
     before,
@@ -168,7 +168,7 @@ describe("runAgentCommand — organizational-context slot", () => {
       const outputDir = await runAgent(work);
       const claudeMd = readClaudeMd(outputDir);
       assert.ok(claudeMd.includes(MARKER), "marker missing");
-      // Last occurrence of the marker carries the section bullets.
+      // The last occurrence of the marker carries the section bullets.
       const markerIdx = claudeMd.lastIndexOf(MARKER);
       assert.ok(
         claudeMd.slice(markerIdx).includes("- **Repositories:** alpha, beta"),
@@ -222,7 +222,7 @@ describe("runAgentCommand — organizational-context slot", () => {
     }
   });
 
-  test("case 5: populated slot + absent teamInstructions → CLAUDE.md IS written (regression for old skip-on-falsy gate)", async () => {
+  test("case 5: populated slot + absent teamInstructions → runAgentCommand DOES write CLAUDE.md (regression for old skip-on-falsy gate)", async () => {
     const work = stageDataDir();
     try {
       setOrgContext(work, POPULATED_SLOT);
@@ -230,7 +230,7 @@ describe("runAgentCommand — organizational-context slot", () => {
       const outputDir = await runAgent(work);
       assert.ok(
         existsSync(join(outputDir, ".claude", "CLAUDE.md")),
-        "CLAUDE.md must be written when slot is the only signal",
+        "runAgentCommand must write CLAUDE.md when the slot is the only signal",
       );
     } finally {
       rmSync(work, { recursive: true, force: true });
@@ -277,7 +277,7 @@ describe("runAgentCommand — organizational-context slot", () => {
         "expected the marker to appear twice",
       );
 
-      // Last occurrence is followed by the populated-slot bullets.
+      // The populated-slot bullets follow the last occurrence.
       const lastIdx = claudeMd.lastIndexOf(MARKER);
       const tail = claudeMd.slice(lastIdx);
       assert.ok(
@@ -289,7 +289,7 @@ describe("runAgentCommand — organizational-context slot", () => {
         "actual section must contain populated bullets after LAST marker",
       );
 
-      // First occurrence is the prose collision, not the section.
+      // The first occurrence is the prose collision. It is not the section.
       const firstIdx = claudeMd.indexOf(MARKER);
       const between = claudeMd.slice(firstIdx, lastIdx);
       assert.ok(
