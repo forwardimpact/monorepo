@@ -57,9 +57,9 @@ Apply § Citation integrity before you propagate them.
 
 An in-scope surface is an Issue, PR, or comment body, or wiki file content.
 Before an authoring path publishes a body on one, every existence-asserting
-SHA-shaped token it cites must resolve on the repository that citation
-references. An unresolved token blocks the publish loudly. A record is appended
-to `wiki/citation-blocks.md`. The three properties and the resolution procedure
+SHA-shaped token it cites must resolve on its referenced repository. An
+unresolved token blocks the publish loudly. The block records it in
+`wiki/citation-blocks.md`. The three properties and the resolution procedure
 live in [citation-integrity.md](x-citation-integrity.md).
 
 ## Decision questions
@@ -89,7 +89,8 @@ reads the issue. That run re-implements the rejected route:
    in-run.
 2. **Close alternatives where they were opened.** When an issue thread poses
    routes A/B, land the selection on that thread. Name the rejected route
-   ("took A, not B"). A later reader then knows the run rejected B.
+   ("took A, not B"). A later reader then knows the run rejected B. B is not
+   unexplored.
 3. **Rescopes name in-flight state.** A comment that redefines an issue's
    actionable scope states what is in flight (claim, branch, or change). It can
    instead state the explicit negative: "no fix in flight as of this comment."

@@ -1,7 +1,8 @@
 /**
- * Verifies every Landmark-read activity.* table has RLS enabled.
+ * This test verifies that every Landmark-read activity.* table has RLS
+ * enabled.
  *
- * Live-Postgres test. Skipped when SUPABASE_URL / JWT_SECRET
+ * Live-Postgres test. It skips when SUPABASE_URL / JWT_SECRET
  * are unset (CI today does not boot Supabase).
  */
 
@@ -37,7 +38,7 @@ describe("RLS + retention migration", () => {
     for (const t of TABLES) {
       const ret = await readRetention(admin, t);
       if (t === "organization_people") {
-        // null-window class — both fields null.
+        // null-window class. Both fields are null.
         assert.equal(ret.window, null);
       } else {
         assert.match(
@@ -63,20 +64,21 @@ describe("RLS + retention migration", () => {
 
   test("pg_class.relrowsecurity is true for all six tables", async () => {
     const admin = createAdminClient();
-    // Use a public schema RPC isn't available — drive a raw query via the
-    // service-role REST surface against pg_class via PostgREST is not
-    // exposed by default. Instead use the activity.retention_blob helper
-    // (already shipped by the migration) as a proxy: it returns non-null
-    // for every RLS'd table the migration ENABLEd. The full pg_class
-    // check is in the migration's own DO $$ validation block — failing
-    // that block aborts the migrate command, so reaching this assertion
-    // already implies relrowsecurity = true.
+    // No public-schema RPC is available. PostgREST does not expose
+    // pg_class through the service-role REST surface by default, so a raw
+    // query is not possible. Instead use the activity.retention_blob
+    // helper (the migration already ships it) as a proxy. It returns
+    // non-null for every RLS'd table the migration ENABLEd. The full
+    // pg_class check lives in the migration's own DO $$ validation block.
+    // A failure in that block aborts the migrate command. So this
+    // assertion already implies relrowsecurity = true.
     for (const t of TABLES) {
       const { data, error } = await admin.rpc("retention_blob", {
         p_table: t,
       });
       assert.ok(!error, `${t}: ${error?.message ?? "ok"}`);
-      // Empty blob is admitted only for organization_people (null-window).
+      // The check admits an empty blob only for organization_people
+      // (null-window).
       if (t === "organization_people") {
         assert.equal(typeof data, "string");
       } else {
@@ -85,23 +87,23 @@ describe("RLS + retention migration", () => {
     }
   });
 
-  test("mutating a retention COMMENT changes the rendered window", async () => {
+  test("a mutated retention COMMENT changes the rendered window", async () => {
     const admin = createAdminClient();
     clearRetentionCache();
     const before = await readRetention(admin, "evidence");
     assert.match(before.window ?? "", /^P\d+/);
 
-    // Mutate evidence's retention window via raw SQL. Supabase JS does not
-    // expose DDL through the data API; we reuse the migrate command path
-    // by issuing a one-off COMMENT via the service-role admin client's
-    // RPC channel against a tiny helper function. The minimal route
-    // available without adding a new RPC is to mutate via psql; here we
-    // assert the contract that *after* clearing the cache, the same
+    // Mutate evidence's retention window with raw SQL. Supabase JS does
+    // not expose DDL through the data API. We reuse the migrate command
+    // path and issue a one-off COMMENT through the service-role admin
+    // client's RPC channel against a tiny helper function. The minimal
+    // route that adds no new RPC is to mutate through psql. Here we
+    // assert the contract that *after* the cache clears, the same
     // readRetention call returns the metadata that was on disk at the
-    // start of the test. The mutation-reflection contract is structurally
-    // verified by clearRetentionCache + re-read paired with the SQL
-    // grammar in the migration. An end-to-end DDL mutation is covered by
-    // the regression-scope golden capture follow-up.
+    // start of the test. clearRetentionCache plus a re-read, paired with
+    // the SQL grammar in the migration, verifies the mutation-reflection
+    // contract structurally. The golden-capture follow-up for regression
+    // scope covers an end-to-end DDL mutation.
     clearRetentionCache();
     const after = await readRetention(admin, "evidence");
     assert.deepEqual(before, after);

@@ -149,4 +149,4 @@ is the canvas. Each utility is a pocket.
    Map       Pathway       Guide   Landmark   Summit   Outpost     Gear
 ```
 
-Seven icons sit on a shared ground line with even spacing.
+Seven icons sit on a shared ground line, evenly spaced.

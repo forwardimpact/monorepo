@@ -78,10 +78,10 @@ export default {
 
 ### The build kit
 
-The engine binds a kit per run. The kit binds to the repo `root`, the
-module's own `dir` (for co-located config), and the `runtime` bag. fs and
-ripgrep route through the bag, so the engine carries no ambient dependencies.
-The module declares only policy. The kit owns the mechanism:
+The engine binds a kit per run to the repo `root`, the module's own `dir`
+(for co-located config), and the `runtime` bag. fs and ripgrep route through
+the bag, so the engine carries no ambient dependencies. The module declares
+only policy. The kit owns the mechanism:
 
 - `scan({ dirs, match, skip?, under?, read? })` — collect files as
   `{ path, rel, text? }`. `under` restricts to the per-package `src`/`test`
@@ -131,6 +131,6 @@ instruction layers and JTBD blocks. The service-lifecycle libraries run at
 **service runtime** against a live process. One guide for both would blur the
 audience. The service-lifecycle Big Hire carries a one-line cross-link to the
 Jidoka standard, so a reader who lands there can find this check. The
-service-lifecycle tree carries no other link. In a future doc audit, treat the
-absence of a service-lifecycle guide page for the invariant checks as
-intended.
+service-lifecycle tree should carry no other link. In a future doc audit,
+treat the absence of a service-lifecycle guide page for the invariant checks
+as intended.

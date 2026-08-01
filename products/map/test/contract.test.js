@@ -17,7 +17,7 @@ describe("throwIfErrors", () => {
     );
   });
 
-  test("throws ContractViolationError for the first matching error", () => {
+  test("throws ContractViolationError for the first error that matches", () => {
     let caught = null;
     try {
       throwIfErrors(

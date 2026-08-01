@@ -1,10 +1,10 @@
 /**
  * Tests for substrate-smoke's pure assertion helpers and iteration
- * builders. The actual `bunx fit-landmark` spawn loop is covered by
- * integration in the live stage run; here we verify every pure
- * surface the smoke composes from (shape/email/exp/role-claim guards,
- * persona kind check, smoke-list expansion, argv build, row-class
- * non-empty assertion).
+ * builders. Integration in the live stage run covers the actual
+ * `bunx fit-landmark` spawn loop. Here we verify every pure surface the
+ * smoke composes from (shape/email/exp/role-claim guards, persona kind
+ * check, smoke-list expansion, argv build, row-class non-empty
+ * assertion).
  */
 
 import { describe, test } from "node:test";
@@ -173,7 +173,7 @@ describe("assertDiscoveryResolves", () => {
 });
 
 describe("buildSmokeList expands manifest to iteration items", () => {
-  // A miniature manifest mirroring the real fit-landmark shape.
+  // A miniature manifest that mirrors the real fit-landmark shape.
   const manifest = {
     commands: {
       org: { needsSupabase: true },
@@ -210,7 +210,7 @@ describe("buildSmokeList expands manifest to iteration items", () => {
     );
   });
 
-  test("expands subcommand-style entries via SUBCOMMAND_EXPANSIONS", () => {
+  test("expands subcommand-style entries through SUBCOMMAND_EXPANSIONS", () => {
     const list = buildSmokeList(manifest);
     const orgs = list.filter((i) => i.command.startsWith("org "));
     assert.equal(orgs.length, 2);

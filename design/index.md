@@ -31,7 +31,7 @@ follow to derive a brand.
    single warm tone adds ambient warmth. Use it sparingly. It works like
    campfire light on a black-and-white photograph. The specific warm tone is a
    brand decision.
-2. **Use texture. Do not decorate.** Brand-chosen textures (e.g. contour lines)
+2. **Texture is not decoration.** Brand-chosen textures (e.g. contour lines)
    appear as subtle background elements. They never appear as foreground
    decoration.
 3. **Typography creates hierarchy.** No accent colors. Size, weight, and spacing
@@ -47,7 +47,7 @@ follow to derive a brand.
 
 The base palette runs from pure black to pure white through a ramp of
 warm-tinted grays. All grays carry a slight warm shift (about 3–5%, toward
-brown or taupe). The difference accumulates across a page. The result is
+brown or taupe). So the difference accumulates across a page. The result is
 warmer, more human, like paper.
 
 A single warm tone (e.g. sandstone, ochre, clay) sits on top:

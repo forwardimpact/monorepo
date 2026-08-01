@@ -1,8 +1,8 @@
 /**
  * Engineering Pathway Data Loader
  *
- * Utility for loading and parsing YAML data files.
- * Uses directory structure: disciplines/, tracks/, skills/
+ * This utility loads and parses YAML data files.
+ * It uses this directory structure: disciplines/, tracks/, skills/
  */
 
 import { parse as parseYaml } from "yaml";
@@ -85,7 +85,7 @@ export class DataLoader {
 
   /**
    * Load skills from capability files
-   * @param {string} capabilitiesDir - Path to capabilities directory
+   * @param {string} capabilitiesDir - Path to the capabilities directory
    * @returns {Promise<Array>} Array of skill objects in flat format
    */
   async #loadSkillsFromCapabilities(capabilitiesDir) {
@@ -136,8 +136,8 @@ export class DataLoader {
   }
 
   /**
-   * Load disciplines from directory (individual files: disciplines/{id}.yaml)
-   * @param {string} disciplinesDir - Path to disciplines directory
+   * Load disciplines from a directory (individual files: disciplines/{id}.yaml)
+   * @param {string} disciplinesDir - Path to the disciplines directory
    * @returns {Promise<Array>} Array of discipline objects
    */
   async #loadDisciplinesFromDir(disciplinesDir) {
@@ -188,8 +188,8 @@ export class DataLoader {
   }
 
   /**
-   * Load tracks from directory (individual files: tracks/{id}.yaml)
-   * @param {string} tracksDir - Path to tracks directory
+   * Load tracks from a directory (individual files: tracks/{id}.yaml)
+   * @param {string} tracksDir - Path to the tracks directory
    * @returns {Promise<Array>} Array of track objects
    */
   async #loadTracksFromDir(tracksDir) {
@@ -230,8 +230,8 @@ export class DataLoader {
   }
 
   /**
-   * Load behaviours from directory (individual files: behaviours/{id}.yaml)
-   * @param {string} behavioursDir - Path to behaviours directory
+   * Load behaviours from a directory (individual files: behaviours/{id}.yaml)
+   * @param {string} behavioursDir - Path to the behaviours directory
    * @returns {Promise<Array>} Array of behaviour objects
    */
   async #loadBehavioursFromDir(behavioursDir) {
@@ -258,8 +258,8 @@ export class DataLoader {
   }
 
   /**
-   * Load capabilities from directory
-   * @param {string} capabilitiesDir - Path to capabilities directory
+   * Load capabilities from a directory
+   * @param {string} capabilitiesDir - Path to the capabilities directory
    * @returns {Promise<Array>} Array of capability objects
    */
   async #loadCapabilitiesFromDir(capabilitiesDir) {
@@ -280,8 +280,8 @@ export class DataLoader {
   }
 
   /**
-   * Load questions from folder structure
-   * @param {string} questionsDir - Path to questions directory
+   * Load questions from the folder structure
+   * @param {string} questionsDir - Path to the questions directory
    * @returns {Promise<Object>}
    */
   async loadQuestionFolder(questionsDir) {
@@ -302,7 +302,8 @@ export class DataLoader {
   }
 
   /**
-   * Load all data from a directory (without validation — caller validates separately)
+   * Load all data from a directory without validation. The caller
+   * validates separately.
    * @param {string} dataDir - Path to the data directory
    * @returns {Promise<Object>} All loaded data
    */
@@ -364,10 +365,11 @@ export class DataLoader {
   }
 
   /**
-   * Try loading a YAML file from repository/ subdirectory first, then root.
+   * Try to load a YAML file from the repository/ subdirectory first, then
+   * from the root.
    * @param {string} dataDir - Data directory
    * @param {string} filename - File to load
-   * @param {*} fallback - Value if file not found in either location
+   * @param {*} fallback - Value to return when neither location has the file
    * @returns {Promise<*>}
    */
   async #loadRepoFile(dataDir, filename, fallback) {
@@ -379,7 +381,7 @@ export class DataLoader {
   }
 
   /**
-   * Load agent-specific data for agent profile generation
+   * Load agent-specific data to generate agent profiles
    * @param {string} dataDir - Path to the data directory
    * @returns {Promise<Object>} Agent data
    */

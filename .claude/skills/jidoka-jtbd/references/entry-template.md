@@ -25,8 +25,8 @@ products. Omit them for services and libraries.
 ## Manifest form (generated `.jobs` blocks)
 
 When `jidoka jtbd --fix` generates jobs from `package.json`, the same fields
-appear as a `jobs` array. Services and libraries carry Little Hire entries with no
-`forces` and no `firedWhen`:
+appear as a `jobs` array. Services and libraries carry Little Hire entries with
+no `forces` and no `firedWhen`:
 
 ```json
 {

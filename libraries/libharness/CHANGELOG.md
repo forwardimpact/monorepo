@@ -62,7 +62,7 @@ analysis run without Python wrappers:
 - **`commands` and `paths` verbs.** `commands` lists Bash command text
   (optional `--match <regex>`). `paths` gives a frequency-sorted list of the
   distinct `Read`/`Edit`/`Write` file paths (optional `--prefix`).
-- **`compare` verb.** The verb shows two traces side by side. Each side
+- **`compare` verb.** The verb shows two traces side by side. The view
   reports turn count, distinct tools, paths touched, cost, and a per-tool
   delta. The header carries each side's case name and participant. Identical
   traces emit zero deltas. An empty trace emits zeroed counters with an

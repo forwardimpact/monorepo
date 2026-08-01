@@ -1,7 +1,8 @@
 /**
- * Exporter tests — verify that exportAll writes one HTML microdata file per
- * base entity into the expected directory tree, that re-running is
- * idempotent, and that stale entries are removed before writing.
+ * Tests for the Exporter. They verify that exportAll writes one HTML
+ * microdata file for each base entity into the expected directory tree.
+ * They verify that a second run produces the same output. They verify that
+ * exportAll removes the stale entries before it writes.
  */
 
 import { test, describe, beforeEach } from "node:test";
@@ -19,8 +20,9 @@ import { DATA } from "./fixtures.js";
 const RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const OUTPUT_DIR = "/map-export";
 
-// A fresh in-memory fs per test; the Exporter writes/clears/reads the pathway
-// tree through it (the constructor's injected async fs surface).
+// Each test gets a fresh in-memory fs. The Exporter writes, clears, and
+// reads the pathway tree through it. The constructor injects it as the
+// async fs surface.
 let fs;
 let outputDir;
 
@@ -85,7 +87,7 @@ describe("Exporter", () => {
     );
   });
 
-  test("running twice yields byte-identical output", async () => {
+  test("a second run yields byte-identical output", async () => {
     const exporter = new Exporter(fs, createRenderer(createDefaultRuntime()));
     await exporter.exportAll({ data: DATA, outputDir });
 
@@ -98,7 +100,7 @@ describe("Exporter", () => {
     assert.strictEqual(first, second);
   });
 
-  test("clears stale files in pathway/ before writing", async () => {
+  test("clears stale files in pathway/ before it writes", async () => {
     const ghostDir = join(outputDir, "pathway", "skill");
     await fs.mkdir(ghostDir, { recursive: true });
     await fs.writeFile(join(ghostDir, "ghost.html"), "ghost");

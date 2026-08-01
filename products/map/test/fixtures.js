@@ -10,7 +10,7 @@
  * "planning" skill, "platform" track, "quality" driver, "systems-thinking"
  * behaviour, "software-engineering" discipline, and a J040 level.
  *
- * Shared by exporter.test.js and pipeline.test.js — both assert on the same
+ * exporter.test.js and pipeline.test.js share it. Both assert on the same
  * IRIs (skill/planning, capability/delivery, etc.), so the fixture must keep
  * these IDs stable.
  */
@@ -83,8 +83,9 @@ export const DATA = {
 };
 
 /**
- * Pipeline-variant of DATA — no tracks/drivers/behaviours. Kept as a separate
- * constant so pipeline.test.js's end-to-end graph flow remains minimal.
+ * Pipeline variant of DATA with no tracks, drivers, or behaviours. It is a
+ * separate constant so the end-to-end graph flow in pipeline.test.js stays
+ * minimal.
  */
 export const PIPELINE_DATA = {
   capabilities: [{ id: "delivery", name: "Delivery", description: "..." }],
@@ -119,8 +120,8 @@ export const PEOPLE_UNKNOWN_LEVEL = [
 ];
 
 /**
- * Evidence + artifact factories for transform-evidence.test.js. Kept as
- * factory functions so each test case can customise per-row fields.
+ * Evidence + artifact factories for transform-evidence.test.js. They are
+ * factory functions, so each test case can customise per-row fields.
  */
 export function makeEvidenceRow(overrides = {}) {
   return {

@@ -9,9 +9,10 @@ import { runTimelineCommand } from "../src/commands/timeline.js";
 import { toText } from "../src/formatters/timeline.js";
 import { EMPTY_STATES } from "../src/lib/empty-state.js";
 
-// Timeline-specific evidence: spans multiple quarters (2024-Q3 through 2025-Q1)
-// to exercise quarterly grouping. Distinct from fixtures.EVIDENCE_ROWS which
-// tests skill/level matching rather than quarter boundaries.
+// Timeline-specific evidence. It spans multiple quarters (2024-Q3 through
+// 2025-Q1) to exercise how the command groups by quarter. It differs from
+// fixtures.EVIDENCE_ROWS. That fixture tests skill and level matches. It
+// does not test quarter boundaries.
 const EVIDENCE = [
   {
     skill_id: "planning",
@@ -58,7 +59,7 @@ function stubQueries({
 }
 
 describe("timeline command", () => {
-  it("returns quarterly timeline", async () => {
+  it("returns the quarterly timeline", async () => {
     const result = await runTimelineCommand({
       options: { email: "alice@example.com" },
       supabase: {},
@@ -73,7 +74,7 @@ describe("timeline command", () => {
     assert.equal(q3Planning.highestLevel, "awareness");
   });
 
-  it("returns empty state when no evidence", async () => {
+  it("returns empty state when there is no evidence", async () => {
     const result = await runTimelineCommand({
       options: { email: "alice@example.com" },
       supabase: {},

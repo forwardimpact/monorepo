@@ -3,7 +3,7 @@
 # binaries. One code path serves every environment. CI (fit-bootstrap), Claude
 # session hooks, and `just install` all run this.
 #
-# The platform chooses between two install channels. Each channel prefers
+# The platform chooses between two install channels. The choice prefers
 # official packages where one exists:
 #
 #   Darwin  — Homebrew. Standard homebrew-core formulae (just, gh, ripgrep,
@@ -47,7 +47,8 @@
 #   --paths  Print the cache paths the requested names manage, one per line,
 #            and exit. fit-bootstrap consumes this to scope its actions/cache.
 #            On Darwin, brew-managed tools emit nothing (brew installs globally
-#            and is idempotent). Only the $HOME/.local download tools cache.
+#            and is idempotent). The cache holds only the $HOME/.local
+#            download tools.
 #   --only   Install only the named tools and skip the default set. Use it for
 #            a job that needs a single CLI without the dev/CI toolchain (e.g. a
 #            report-only merge job). Requires at least one NAME.
@@ -179,8 +180,8 @@ if [ "$PRINT_PATHS" = "1" ]; then
   #           brew installs globally into its own prefix and is idempotent, so
   #           the bootstrap action re-runs `brew install` each time. It does
   #           not cache brittle Cellar/Caskroom symlinks. Only the download
-  #           tools (apm, claude) live in $HOME/.local, so only they are worth
-  #           the cache.
+  #           tools (apm, claude) live in $HOME/.local and are worth the
+  #           cache.
   for name in "${NAMES[@]}"; do
     if is_gear_binary "$name"; then
       [ "$IS_DARWIN" = 1 ] && continue        # gear cask — not cached on Darwin

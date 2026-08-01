@@ -1,12 +1,14 @@
 /**
- * `fit-map auth issue --email <e>` — mint a long-lived Supabase-shaped JWT
+ * `fit-map auth issue --email <e>` mints a long-lived Supabase-shaped JWT
  * for an existing roster identity.
  *
- * Operator-only verb. Uses the service-role client (which we already need
- * to read `organization_people` and list `auth.users`) to verify both rows
- * exist before signing, then HMACs a JWT against JWT_SECRET.
- * Output goes to stdout so the operator can capture it into `.env`, a
- * secret manager, or pipe it to an agent's `PRODUCT_LANDMARK_TOKEN` setting.
+ * Operator-only verb. The command uses the service-role client to verify
+ * that both rows exist. We already need that client to read
+ * `organization_people` and to list `auth.users`. The command then HMACs a
+ * JWT against JWT_SECRET.
+ * The output goes to stdout. The operator can capture it into `.env` or a
+ * secret manager. The operator can also pipe it to an agent's
+ * `PRODUCT_LANDMARK_TOKEN` setting.
  */
 
 import {
@@ -82,7 +84,7 @@ export async function runAuthIssueCommand({
   runtime.proc.stdout.write(jwt + "\n\n");
   runtime.proc.stdout.write(
     formatBullet(
-      "Export: PRODUCT_LANDMARK_TOKEN=<jwt above>; never commit or echo it.",
+      "Export: PRODUCT_LANDMARK_TOKEN=<jwt above>. Never commit or echo it.",
       0,
     ) + "\n",
   );

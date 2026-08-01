@@ -1,10 +1,10 @@
 /**
  * People Transform
  *
- * Reads stored people files (CSV or YAML) from Supabase Storage and produces
- * structured rows in organization_people table. Deno-safe: no Node-only
- * imports. Used by both the fit-map CLI and the people-upload/transform
- * edge functions.
+ * Reads stored people files (CSV or YAML) from Supabase Storage. Produces
+ * structured rows in the organization_people table. Deno-safe. It has no
+ * Node-only imports. The fit-map CLI and the people-upload/transform edge
+ * functions both use it.
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";

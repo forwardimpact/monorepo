@@ -38,7 +38,7 @@ describe("DataLoader", () => {
       );
     });
 
-    test("creates instance with valid dependencies", () => {
+    test("creates an instance with valid dependencies", () => {
       const loader = new DataLoader(mockFs, mockParser);
       assert.ok(loader);
     });
@@ -77,7 +77,7 @@ describe("DataLoader", () => {
   });
 
   describe("loadStandardConfig", () => {
-    test("loads standard.yaml from data directory", async () => {
+    test("loads standard.yaml from the data directory", async () => {
       const standardData = { name: "Test Standard", version: "1.0" };
       mockFs.readFile = async (path) => {
         assert.ok(path.endsWith("standard.yaml"));
@@ -93,7 +93,7 @@ describe("DataLoader", () => {
   });
 
   describe("loadAllData", () => {
-    test("loads all entity types from data directory", async () => {
+    test("loads all entity types from the data directory", async () => {
       const fileSystem = {
         capabilities: ["coding.yaml", "design.yaml"],
         behaviours: ["teamwork.yaml"],
@@ -165,7 +165,8 @@ describe("DataLoader", () => {
       };
       mockParser.parseYaml = (content) => JSON.parse(content);
 
-      // stat needed for #fileExists — make capabilities/questions dirs not throw
+      // #fileExists needs stat. The capabilities/questions dirs must not
+      // throw.
       mockFs.stat = async () => ({});
 
       const loader = new DataLoader(mockFs, mockParser);
@@ -181,7 +182,7 @@ describe("DataLoader", () => {
       assert.ok(result.standard);
       assert.ok(result.questions);
 
-      // Skills extracted from capabilities
+      // The loader extracts skills from capabilities
       assert.strictEqual(result.skills.length, 1);
       assert.strictEqual(result.skills[0].id, "js");
       assert.strictEqual(result.skills[0].capability, "coding");
@@ -189,7 +190,7 @@ describe("DataLoader", () => {
   });
 
   describe("loadSkillsWithAgentData", () => {
-    test("loads skills preserving agent sections", async () => {
+    test("loads skills and keeps the agent sections", async () => {
       mockFs.readdir = async () => ["coding.yaml"];
       mockFs.readFile = async () => "content";
       mockParser.parseYaml = () => ({
@@ -242,7 +243,7 @@ describe("DataLoader", () => {
 
     test("neither root nor repository/ present → organizationalContext is null", async () => {
       const { fs, loader } = setupAgentLoader();
-      // Empty directories for disciplines/tracks/behaviours; no settings files
+      // The disciplines/tracks/behaviours dirs are empty. No settings files.
       fs.readdir = async () => [];
       fs.stat = async (path) => {
         if (
@@ -259,7 +260,7 @@ describe("DataLoader", () => {
       assert.strictEqual(result.organizationalContext, null);
     });
 
-    test("root file present → parsed YAML returned", async () => {
+    test("root file present → returns the parsed YAML", async () => {
       const { fs, parser, loader } = setupAgentLoader();
       const orgYaml = {
         team: "pharma-platform",
@@ -267,7 +268,8 @@ describe("DataLoader", () => {
       };
       fs.readdir = async () => [];
       fs.stat = async (path) => {
-        // Repository subdirectory paths fail; root paths succeed only for org-context
+        // Repository subdirectory paths fail. Root paths succeed only
+        // for org-context.
         if (path.includes("/repository/")) throw new Error("ENOENT");
         if (path.endsWith("organizational-context.yaml")) return {};
         if (
@@ -328,7 +330,7 @@ describe("DataLoader", () => {
   });
 
   describe("loadQuestionFolder", () => {
-    test("loads questions from skills and behaviours subdirectories", async () => {
+    test("loads questions from the skills and behaviours subdirectories", async () => {
       mockFs.readdir = async (dir) => {
         if (dir.includes("skills")) return ["coding.yaml"];
         if (dir.includes("behaviours")) return ["teamwork.yaml"];

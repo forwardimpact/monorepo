@@ -33,7 +33,7 @@ function stubQueries({
 }
 
 describe("readiness command", () => {
-  it("generates checklist for J040 targeting J060", async () => {
+  it("generates a checklist for J040 that targets J060", async () => {
     const result = await runReadinessCommand({
       options: { email: "alice@example.com" },
       mapData: MAP_DATA,
@@ -78,7 +78,7 @@ describe("readiness command", () => {
     assert.ok(result.meta.emptyState.includes("J060"));
   });
 
-  it("skips skills with no markers at required proficiency", async () => {
+  it("skips skills with no markers at the required proficiency", async () => {
     const mapDataPartialMarkers = {
       ...MAP_DATA,
       skills: [
@@ -141,7 +141,7 @@ describe("readiness command", () => {
     assert.equal(result.meta.emptyState, EMPTY_STATES.NO_MARKERS_AT_TARGET);
   });
 
-  it("returns PERSON_NOT_FOUND for unknown email", async () => {
+  it("returns PERSON_NOT_FOUND for an unknown email", async () => {
     const result = await runReadinessCommand({
       options: { email: "nobody@example.com" },
       mapData: MAP_DATA,
@@ -173,7 +173,7 @@ describe("readiness command", () => {
     });
   });
 
-  it("renders the coverage ratio adjacent to the markers-evidenced line above floor", async () => {
+  it("renders the coverage ratio adjacent to the markers-evidenced line above the floor", async () => {
     const artifacts = Array.from({ length: 10 }, (_, i) => ({
       artifact_id: `a${i}`,
     }));
@@ -227,7 +227,7 @@ describe("readiness command", () => {
     assert.doesNotMatch(text, /\[ \]/);
   });
 
-  it("renders the checklist, not below-floor copy, for a zero-artifact persona", async () => {
+  it("renders the checklist for a zero-artifact persona and omits below-floor copy", async () => {
     const result = await runReadinessCommand({
       options: { email: "alice@example.com" },
       mapData: MAP_DATA,
@@ -242,7 +242,7 @@ describe("readiness command", () => {
     assert.doesNotMatch(text, /Evidence coverage:/);
   });
 
-  it("reports unknown discipline (not unknown level) when the persona's discipline isn't defined", async () => {
+  it("reports an unknown discipline and no unknown level when the persona's discipline is not defined", async () => {
     const result = await runReadinessCommand({
       options: {
         email: "daedalus@bionova.example",

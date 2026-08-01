@@ -57,7 +57,7 @@ export async function bundleStandardData({ runtime, mapData, outPath }) {
   return 0;
 }
 
-/** Reset the local Supabase database by re-applying all migrations. */
+/** Reset the local Supabase database. This re-applies all migrations. */
 export async function migrate({ runtime } = {}) {
   await createSupabaseCli({ runtime }).run(["db", "reset"]);
   return 0;
@@ -164,7 +164,11 @@ async function countRows(supabase, table) {
   return count ?? 0;
 }
 
-/** Report per-table row counts for all activity tables and exit non-zero if the people roster or all derived-data tables (getdx_snapshots, github_events) are empty. */
+/**
+ * Report per-table row counts for all activity tables. Exit non-zero when
+ * the people roster is empty. Exit non-zero when all derived-data tables
+ * (getdx_snapshots, github_events) are empty.
+ */
 export async function verify(supabase, runtime) {
   const summary = makeSummary(runtime);
   const people = await getOrganization(supabase);
@@ -223,7 +227,7 @@ export async function verify(supabase, runtime) {
  * @param {import('@supabase/supabase-js').SupabaseClient} options.supabase
  * @param {import('@forwardimpact/libutil/runtime').Runtime} options.runtime - Injected collaborators (fs, clock).
  * @param {object} [options.mapData] - Standard data for the artifact-driven
- *   evidence producer; when omitted, that producer is skipped.
+ *   evidence producer. When you omit it, that producer does not run.
  * @returns {Promise<number>} exit code
  */
 export async function seed({ data, supabase, runtime, mapData }) {
@@ -233,7 +237,7 @@ export async function seed({ data, supabase, runtime, mapData }) {
   const activityDir = join(data, "activity");
   const rawDir = join(activityDir, "raw");
 
-  // 1. Upload roster to Supabase Storage (people/ prefix)
+  // 1. Upload the roster to Supabase Storage (people/ prefix)
   const rosterPath = join(activityDir, "roster.yaml");
   const rosterContent = await runtime.fs.readFile(rosterPath, "utf-8");
   const timestamp = isoTimestamp(runtime.clock.now()).replace(/[:.]/g, "-");
@@ -304,8 +308,8 @@ export async function seed({ data, supabase, runtime, mapData }) {
     result.evidence.errors.length === 0,
   );
 
-  // 4. Enforce the seeding invariant: every seeded level exists in the
-  // installed standard (skipped when no standard is installed).
+  // 4. Enforce the invariant: every seeded level exists in the installed
+  // standard. The check does not run without an installed standard.
   await assertSeededLevelsCovered({
     supabase,
     pathwayDir: join(data, "pathway"),
@@ -339,7 +343,7 @@ async function walkAndCollect(runtime, join, dir) {
   try {
     entries = await runtime.fs.readdir(dir, { withFileTypes: true });
   } catch {
-    return []; // directory doesn't exist — skip silently
+    return []; // the directory does not exist, so skip silently
   }
   const filePaths = [];
   for (const entry of entries) {
@@ -379,8 +383,8 @@ async function uploadRawDir(supabase, rawDir, runtime) {
 }
 
 /**
- * Summarize a transform result into label/description pairs, dropping the
- * errors array so numeric fields can be rendered individually.
+ * Summarize a transform result into label/description pairs. Drop the
+ * errors array so the renderer can show each numeric field individually.
  * @param {object} counts
  * @returns {object}
  */
@@ -397,7 +401,7 @@ function summarizeCounts(counts) {
 }
 
 /**
- * Render a labeled transform report using the SummaryRenderer.
+ * Render a labeled transform report with the SummaryRenderer.
  * @param {SummaryRenderer} summary
  * @param {string} target
  * @param {object} counts

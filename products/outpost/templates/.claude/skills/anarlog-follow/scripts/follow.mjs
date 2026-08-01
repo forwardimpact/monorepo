@@ -2,7 +2,7 @@
 
 /**
  * follow.mjs — Read a live Anarlog transcript and output new content since
- * the last read. Designed to be called repeatedly during a live session.
+ * the last read. Call it repeatedly during a live session.
  *
  * Usage:
  *   node follow.mjs <session-id>                    # First read — outputs everything
@@ -75,7 +75,7 @@ function detectActiveSession() {
         best = entry;
       }
     } catch {
-      // No transcript — skip
+      // Skip when no transcript exists
     }
   }
 
@@ -84,7 +84,7 @@ function detectActiveSession() {
     process.exit(1);
   }
 
-  // Check if the transcript was modified recently (within last 5 minutes)
+  // Check whether the transcript changed in the last 5 minutes
   const ageMs = Date.now() - bestMtime;
   const isLive = ageMs < 5 * 60 * 1000;
 
@@ -188,7 +188,7 @@ function buildChannelStats(allWords) {
 function filterNewWords(allWords, afterId) {
   if (!afterId) return allWords;
   const idx = allWords.findIndex((w) => w.id === afterId);
-  // If word ID not found, return everything (safety fallback)
+  // Return everything when the word ID is missing (safety fallback)
   return idx >= 0 ? allWords.slice(idx + 1) : allWords;
 }
 

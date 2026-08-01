@@ -4,7 +4,7 @@ Write {{length}} of {{tone}} content about: {{topic}}.
 Site: {{name}}.
 Location: {{city}}, {{state}}.
 Specialties: {{specialties_joined}}.
-{{#active_trials_joined}}This site now recruits for: {{active_trials_joined}}.{{/active_trials_joined}}
+{{#active_trials_joined}}Currently recruiting for: {{active_trials_joined}}.{{/active_trials_joined}}
 {{/clinical_site}}
 
 Write a description of this clinical trial site for potential participants.

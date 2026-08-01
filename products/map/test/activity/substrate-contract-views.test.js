@@ -1,10 +1,10 @@
 /**
- * The contract-view migration is map's implementation of the Substrate
+ * The contract-view migration is how map implements the Substrate
  * Contract. This test parses the migration SQL and compares it against
- * `libterrain`'s `SUBSTRATE_CONTRACT` — never a hand-copied column list —
- * so map's views and the library's probe cannot drift apart. It then runs
- * the real `substrate check` probe against a stub built from the
- * migration's own column lists.
+ * `libterrain`'s `SUBSTRATE_CONTRACT`. It never uses a hand-copied column
+ * list, so map's views and the library's probe cannot drift apart. It
+ * then runs the real `substrate check` probe against a stub built from
+ * the migration's own column lists.
  */
 
 import { describe, test } from "node:test";
@@ -24,8 +24,9 @@ const MIGRATION = path.join(
 
 /**
  * Extract the output column names of `create view substrate.<name>` from
- * the migration source: the top-level select list of the view body, taking
- * `as <alias>` when present, else the bare column name after the last dot.
+ * the migration source. Read the top-level select list of the view body.
+ * Take `as <alias>` when it is present. If not, take the bare column name
+ * after the last dot.
  */
 function viewColumns(sql, name) {
   const viewRe = new RegExp(
@@ -36,7 +37,7 @@ function viewColumns(sql, name) {
   if (!match) return null;
   let body = match[1];
   // For a WITH ... SELECT body, the output list is the first top-level
-  // select after the CTE closes; strip the CTE block first.
+  // select after the CTE closes. Strip the CTE block first.
   if (/^\s*with\s/i.test(body)) {
     body = body.slice(body.indexOf(")") + 1);
   }

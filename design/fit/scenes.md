@@ -154,16 +154,16 @@ closed-lipped smile shows that Stakeholder knows. One eyebrow is slightly
 raised.
 
 **Key details:** The joke is the cairn. The marker is right there. Anyone who
-looks down can see it. Three things tell the product thesis in one frame:
-Engineer's tiptoes-and-telescope-envy, Agent's instrument-grade scan, and
-Stakeholder's casual point at the obvious thing. The signals you should read
-are not always far away. The scene shows three relationships to sight:
-strained, instrumented, and grounded. This outward orientation is distinctive
-across the scene set. Here the trio faces the same direction. **No outcrop, no
-rocks, no cliff edge, no ground plane, no horizon line, no distant peaks.**
-Characters and the small cairn float freely on pure white per the family scene
-grammar. The cairn is the only object besides the trio. Render it simpler than
-the characters: lighter gray, fewer strokes, smaller.
+looks down can see it. Engineer's tiptoes-and-telescope-envy, Agent's
+instrument-grade scan, and Stakeholder's casual point at the obvious thing tell
+the product thesis in one frame. The signals you should read are not always far
+away. The scene shows three relationships to sight: strained, instrumented, and
+grounded. This outward orientation is distinctive across the scene set. Here the
+trio faces the same direction. **No outcrop, no rocks, no cliff edge, no ground
+plane, no horizon line, no distant peaks.** Characters and the small cairn float
+freely on pure white per the family scene grammar. The cairn is the only object
+besides the trio. Render it simpler than the characters: lighter gray, fewer
+strokes, smaller.
 
 ## Scene: Summit — Planning the Ascent
 

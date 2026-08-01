@@ -13,7 +13,7 @@ realizes each operation through that column. Production leaves the default
 `github`. The offline coordination benchmark runs `--work-tracker filesystem`.
 
 A **work item** is a tracked unit of coordination. It has two **kinds** that
-share one **envelope**. An **issue** tracks a unit of work or finding: bug,
+share one **envelope**. An **issue** is a tracked unit of work or finding: bug,
 feature, obstacle, experiment, RFC. A **change** is a proposed diff that carries
 an approval gate, a GitHub pull request.
 

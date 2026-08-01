@@ -1,15 +1,15 @@
 /**
  * Render-gate primitives for the level field contract.
  *
- * Browser-safe: this module must not import `fs/promises`, `path`, or any
- * other Node-only module. The pathway browser bundles
+ * This module is browser-safe. It must not import `fs/promises`, `path`,
+ * or any other Node-only module. The pathway browser bundles
  * (main.js / slide-main.js / handout-main.js) consume `throwIfErrors`.
  */
 
 import { CONTRACT_URL } from "./validation/level.js";
 
 /**
- * Error thrown when loaded data violates a level field contract.
+ * Throw this error when loaded data violates a level field contract.
  */
 export class ContractViolationError extends Error {
   /**
@@ -26,7 +26,8 @@ export class ContractViolationError extends Error {
 }
 
 /**
- * Throw a ContractViolationError for the first matching validation error.
+ * Throw a ContractViolationError for the first validation error that
+ * matches.
  * @param {{errors: Array}} result
  * @param {{ruleCodes: string[], paths: RegExp[]}} filter
  */

@@ -61,10 +61,10 @@ inputs:
     description: Comma-separated agent profile names (facilitate and discuss modes)
     required: false
   task-amend:
-    description: Additional text the action appends to the task prompt to steer the run
+    description: Additional text the CLI appends to the task prompt to steer the run
     required: false
   mcp-server:
-    description: "MCP service name to connect to (e.g. guide). The action adds mcp__<name>__* to the allowed tools."
+    description: "MCP service name to connect to (e.g. guide). The CLI adds mcp__<name>__* to the allowed tools."
     required: false
   discussion-id:
     description: Stable id for the threaded discussion (discuss mode). The traces carry it to link runs. Callers use it to resume a suspended run.

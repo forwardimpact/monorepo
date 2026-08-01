@@ -45,10 +45,11 @@ describe("landmark credentials store", () => {
     );
   });
 
-  // Drive the per-platform branches off an injected `proc.platform` rather
-  // than the host's real platform, so each branch is exercised deterministically
-  // on every CI runner (a host-gated test masks a `proc.platform === undefined`
-  // regression — the darwin branch would silently never run on Linux CI).
+  // Drive the per-platform branches off an injected `proc.platform`. Do not
+  // use the host's real platform. Every CI runner then exercises each branch
+  // deterministically. A host-gated test masks a `proc.platform === undefined`
+  // regression, because the darwin branch would silently never run on Linux
+  // CI.
   test("credentialsPath resolves the darwin-native location", () => {
     const darwin = createTestRuntime({
       proc: createMockProcess({ platform: "darwin" }),
@@ -86,7 +87,7 @@ describe("landmark credentials store", () => {
     );
   });
 
-  test("read returns null when file missing", async () => {
+  test("read returns null when the file is missing", async () => {
     const result = await readCredentials(runtime, makeEnv(file));
     assert.equal(result, null);
   });
@@ -166,7 +167,7 @@ describe("landmark credentials store", () => {
     assert.equal(await readCredentials(runtime, makeEnv(file)), null);
   });
 
-  test("clear is a no-op when file missing", async () => {
+  test("clear is a no-op when the file is missing", async () => {
     await assert.doesNotReject(() => clearCredentials(runtime, makeEnv(file)));
   });
 });

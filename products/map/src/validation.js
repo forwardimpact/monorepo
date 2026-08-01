@@ -146,7 +146,7 @@ export function validateAllData({
       allErrors.push(
         createError(
           "INVALID_VALUE",
-          `${shape.reason} — see ${CONTRACT_URL}`,
+          `${shape.reason}. See ${CONTRACT_URL}`,
           `${path}.professionalTitle`,
           level.professionalTitle,
         ),
@@ -158,7 +158,7 @@ export function validateAllData({
       allErrors.push(
         createError(
           "INVALID_VALUE",
-          `${disjoint.reason} — see ${CONTRACT_URL}`,
+          `${disjoint.reason}. See ${CONTRACT_URL}`,
           `${path}.professionalTitle`,
           level.professionalTitle,
         ),
@@ -171,7 +171,7 @@ export function validateAllData({
       allErrors.push(
         createError(
           "INVALID_VALUE",
-          `${autonomy.reason} — see ${CONTRACT_URL}`,
+          `${autonomy.reason}. See ${CONTRACT_URL}`,
           `${path}.expectations.autonomyExpectation`,
           exp.autonomyExpectation,
         ),

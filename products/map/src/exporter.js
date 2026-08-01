@@ -1,7 +1,8 @@
 /**
  * Exporter — writes one HTML microdata file per base entity into
- * `<outputDir>/pathway/<type>/<id>.html`. The output directory is wiped at
- * the start of each run so stale entries do not survive YAML deletions.
+ * `<outputDir>/pathway/<type>/<id>.html`. The exporter wipes the output
+ * directory at the start of each run. So stale entries do not survive
+ * YAML deletions.
  */
 
 import { join } from "node:path";
@@ -13,7 +14,7 @@ export class Exporter {
   #renderer;
 
   /**
-   * @param {object} fs - Node fs/promises (or compatible) — must provide
+   * @param {object} fs - Node fs/promises (or compatible). Must provide
    *   `mkdir`, `writeFile`, `rm`.
    * @param {import('./renderer.js').Renderer} renderer
    */
@@ -102,7 +103,8 @@ export class Exporter {
 }
 
 /**
- * Factory wiring the injected runtime's async fs surface and a Renderer.
+ * Create an Exporter wired to the injected runtime's async fs surface and
+ * a Renderer.
  * @param {object} opts
  * @param {import('@forwardimpact/libutil/runtime').Runtime} opts.runtime - Injected collaborators.
  * @param {import('./renderer.js').Renderer} [opts.renderer]

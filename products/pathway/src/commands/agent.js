@@ -1,11 +1,11 @@
 /**
  * Agent Command
  *
- * CLI command for generating AI coding agent configurations
- * from Engineering Pathway data. Outputs follow the Claude Code
+ * This CLI command generates configurations for AI coding agents
+ * from Engineering Pathway data. The outputs follow the Claude Code
  * agent specification.
  *
- * By default, outputs to console. Use --output to write files.
+ * The command writes to the console by default. Use --output to write files.
  *
  * Usage:
  *   npx fit-pathway agent <discipline> --track=<track>
@@ -54,7 +54,8 @@ import {
 export { findValidCombinations } from "./agent-list.js";
 
 /**
- * Assert that an entity was found, or print an error with available IDs and exit
+ * Assert that the lookup found an entity. If it did not, print an error with
+ * the available IDs and exit.
  * @param {Object|null} entity - The resolved entity (null triggers exit)
  * @param {string} errorMessage - Error message to display
  * @param {string} listHeader - Header for the available-items list
@@ -166,7 +167,7 @@ function printTeamInstructions(
 }
 
 /**
- * Handle agent generation (single profile per discipline/track)
+ * Generate the agent (a single profile per discipline/track)
  * @param {Object} params
  */
 async function handleAgent({
@@ -245,7 +246,7 @@ async function handleAgent({
 
   const baseDir = options.output || ".";
 
-  // Computed once so console and file paths share the same rendered section.
+  // Compute once so the console and file paths share one rendered section.
   const orgSection = renderOrganizationalContext(
     agentData.organizationalContext,
   );

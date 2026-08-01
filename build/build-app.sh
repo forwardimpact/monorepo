@@ -7,10 +7,10 @@
 # One manifest-driven path. This script does not branch per kind. The bundle's
 # executables are every CLI tagged `bundle: <BUNDLE>` in
 # build/cli-manifest.json. The first CLI is the primary exec. The rest ride
-# along. Its macOS assembly inputs come from that manifest's
+# along. The bundle's macOS assembly inputs come from that manifest's
 # `.bundles[<BUNDLE>]` entry: Info.plist, entitlements, version source, and any
 # native launcher or extra resources. To fold in a new bundle, add a manifest
-# entry. Never edit this script.
+# entry. Never edit this script to fold one in.
 #
 # A bundle that declares a `launcher` (outpost's menu-bar app) builds it with
 # the product's own `pkg/build.js --launcher`. It uses the launcher as the

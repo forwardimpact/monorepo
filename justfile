@@ -240,8 +240,8 @@ audit-secrets:
 # ── Sibling actions ───────────────────────────────────────────────
 
 # Replay an external sibling PR into its monorepo prefix. It keeps the original
-# authorship. Sibling main is a projection of the monorepo. Reviewers review an
-# external PR on the sibling. The PR then lands here. The result is a normal
+# authorship. Sibling main is a projection of the monorepo. So reviewers review
+# an external PR on the sibling. The PR still lands here. The result is a normal
 # monorepo PR under the usual gates. The next outbound split republishes it.
 # format-patch --binary plus am -3 cover binary hunks and merge fallback.
 # --directory rewrites each patched path into the prefix. am preserves the
@@ -324,7 +324,7 @@ storage-list:
 
 # ── Activity Seed ─────────────────────────────────────────────────
 
-# Seed the activity database from synthetic data (requires Supabase to run)
+# Seed the activity database from synthetic data (requires Supabase to be up)
 seed:
     bunx fit-map activity seed
 

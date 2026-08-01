@@ -1,8 +1,8 @@
 /**
  * Schema-based Validation for Engineering Pathway
  *
- * Validates YAML data files against JSON schemas using Ajv.
- * Replaces custom validation with declarative schema validation.
+ * This module validates YAML data files against JSON schemas with Ajv.
+ * It replaces custom validation with declarative schema validation.
  */
 
 import { parse as parseYaml } from "yaml";
@@ -14,7 +14,7 @@ import { validateAllData } from "./validation.js";
 
 /**
  * Schema mappings for different file types
- * Maps directory/file patterns to schema files
+ * This object maps directory/file patterns to schema files
  */
 const SCHEMA_MAPPINGS = {
   "drivers.yaml": "drivers.schema.json",

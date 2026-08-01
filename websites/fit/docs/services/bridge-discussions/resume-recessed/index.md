@@ -58,9 +58,9 @@ When the bridge receives a `recessed` callback, the libbridge
 2. **`ResumeScheduler.enterRecess(ctx, correlation_id, trigger, requester)`**
    records
    `open_rfcs[correlation_id] = { trigger, opened_at, history_index_at_open, requester }`.
-   The requester is the surface user id of the human whose message
-   triggered the recessed run. The record keeps it so the eventual resume
-   can name the requester.
+   The requester is the surface user id of the human whose message triggered the
+   recessed run. The record keeps it so the eventual resume can name the
+   requester.
 3. **For an `elapsed` trigger**, the scheduler computes
    `due_at = opened_at + parseIsoDuration(elapsed)`, stores it on the
    rfc, and arms the embedded `ElapsedScheduler`. When it fires the

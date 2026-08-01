@@ -27,8 +27,8 @@ export class StateManager {
   }
 
   /**
-   * Read and parse state from disk; on any read or parse error, write a fresh
-   * empty state and return it.
+   * Read and parse the state from disk. On any read or parse error, write a
+   * fresh empty state and return it.
    * @returns {Promise<Object>}
    */
   async load() {

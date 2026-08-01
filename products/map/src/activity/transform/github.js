@@ -1,10 +1,10 @@
 /**
  * GitHub Transform
  *
- * Reads stored GitHub webhook documents from Supabase Storage and produces
- * structured rows in github_events and github_artifacts tables.
- * Idempotent: running the same transform on the same raw data always produces
- * the same database state (via upsert).
+ * Reads stored GitHub webhook documents from Supabase Storage. Produces
+ * structured rows in the github_events and github_artifacts tables.
+ * This transform is idempotent. The same transform on the same raw data
+ * always produces the same database state (through upsert).
  */
 
 import { readRaw, listRaw } from "../storage.js";
@@ -206,7 +206,7 @@ function extractCommitArtifacts(payload) {
 }
 
 /**
- * Look up email for a GitHub username from organization_people.
+ * Look up the email for a GitHub username from organization_people.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {string} githubUsername - GitHub login
  * @returns {Promise<string|null>} Email or null if not found

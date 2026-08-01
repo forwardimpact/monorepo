@@ -52,7 +52,7 @@ await tree.stop();
 
 **LongrunProcess** — auto-restarts on crash with exponential backoff
 (100 ms → 5 s, 2x multiplier). Each process has a `LogWriter` subprocess.
-The kill targets the process group (`-pid`) to clean up child shells.
+`LongrunProcess` kills the process group (`-pid`) to clean up child shells.
 
 **OneshotProcess** — async `up(command)`/`down(command)` that spawn a
 child process and resolve on exit.

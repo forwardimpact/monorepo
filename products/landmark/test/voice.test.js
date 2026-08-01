@@ -32,7 +32,7 @@ describe("voice --email", () => {
     assert.ok(result.view.comments.length > 0);
   });
 
-  it("returns NO_COMMENTS_EMPTY when none found", async () => {
+  it("returns NO_COMMENTS_EMPTY when it finds no comments", async () => {
     const result = await runVoiceCommand({
       options: { email: "alice@example.com" },
       supabase: {},
@@ -45,7 +45,7 @@ describe("voice --email", () => {
     assert.ok(result.meta.hint);
   });
 
-  it("returns NO_COMMENTS when table is missing", async () => {
+  it("returns NO_COMMENTS when the table is missing", async () => {
     const result = await runVoiceCommand({
       options: { email: "alice@example.com" },
       supabase: {},
@@ -98,8 +98,8 @@ describe("voice --manager", () => {
   });
 });
 
-describe("voice subject defaulting", () => {
-  it("throws with the sign-in hint when no flags and no identity", async () => {
+describe("voice defaults the subject", () => {
+  it("throws with the sign-in hint when there are no flags and no identity", async () => {
     await assertRejectsMessage(
       () =>
         runVoiceCommand({

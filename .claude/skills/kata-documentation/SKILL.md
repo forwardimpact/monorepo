@@ -32,7 +32,8 @@ skill has two modes:
       see which code/data backs each documentation claim.
 - [ ] Identify the audience for every page you touch. Do not mix contributor
       content into user-facing pages or vice versa.
-- [ ] Verify claims against source code. Never verify against other docs.
+- [ ] Verify claims against source code. Do not verify against other
+      documentation.
 
 </read_do_checklist>
 

@@ -1,8 +1,9 @@
 /**
  * Agent file I/O helpers
  *
- * Handles writing agent profiles, skills, settings, and team instructions
- * to disk. Extracted from agent.js to keep command logic focused.
+ * This module writes agent profiles, skills, settings, and team instructions
+ * to disk. It splits that work out of agent.js to keep the command logic
+ * focused.
  */
 
 import { join, dirname } from "path";
@@ -17,9 +18,9 @@ import { formatSuccess } from "@forwardimpact/libcli";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
 /**
- * Async file-existence check over the injected async fs surface. Keeps this
- * module on a single fs surface (async only) per spec § Scope / design
- * Decision 7 instead of reaching for `fsSync.existsSync`.
+ * Check whether a file exists, over the injected async fs surface. This check
+ * keeps the module on a single fs surface (async only) per spec § Scope /
+ * design Decision 7. It does not use `fsSync.existsSync`.
  * @param {object} fs - The `runtime.fs` collaborator.
  * @param {string} path - Path to test.
  * @returns {Promise<boolean>}
@@ -34,7 +35,7 @@ async function pathExists(fs, path) {
 }
 
 /**
- * Ensure directory exists for a file path
+ * Make sure the directory for a file path exists
  * @param {string} filePath - Full file path
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators
  */
@@ -44,7 +45,7 @@ async function ensureDir(filePath, runtime) {
 
 /**
  * Generate Claude Code settings file
- * Merges with existing settings if file exists
+ * If the file exists, merge with the settings it holds
  * @param {string} baseDir - Base output directory
  * @param {Object} claudeSettings - Settings loaded from data
  */
@@ -71,7 +72,7 @@ export async function generateClaudeSettings(baseDir, claudeSettings, runtime) {
 
 /**
  * Generate VS Code settings file
- * Merges with existing settings if file exists
+ * If the file exists, merge with the settings it holds
  * @param {string} baseDir - Base output directory
  * @param {Object} vscodeSettings - Settings loaded from data
  */
@@ -137,17 +138,17 @@ export async function writeTeamInstructions(
   );
   if (!content) return null;
   const filePath = join(baseDir, ".claude", "CLAUDE.md");
-  // Exporting several agents into one --output directory makes them share this
-  // single CLAUDE.md. That is fine when their team instructions match, but a
-  // silent overwrite would lose differing content (e.g. per-track teams). Warn
-  // rather than clobber quietly.
+  // When you export several agents into one --output directory, they share
+  // this single CLAUDE.md. That is fine when their team instructions match.
+  // A silent overwrite would lose content that differs (e.g. per-track
+  // teams). Warn first. Do not clobber quietly.
   if (await pathExists(runtime.fs, filePath)) {
     const existing = await runtime.fs.readFile(filePath, "utf-8");
     if (existing !== content) {
       logger.warn(
-        `Overwriting ${filePath} with different team instructions — ` +
-          `exporting agents with distinct team content into one directory ` +
-          `loses all but the last. Use separate --output directories.`,
+        `This run overwrites ${filePath} with different team instructions. ` +
+          `Agents with distinct team content in one directory lose all but ` +
+          `the last. Use separate --output directories.`,
       );
     }
   }
@@ -158,11 +159,11 @@ export async function writeTeamInstructions(
 }
 
 /**
- * Write reference files for a skill, wiping the references/ directory first.
+ * Write reference files for a skill. Wipe the references/ directory first.
  *
- * The generator owns <skillDir>/references/. Every call removes any existing
- * directory contents before writing, so on-disk state matches YAML exactly
- * even when prior runs produced different filenames.
+ * The generator owns <skillDir>/references/. Every call removes the current
+ * directory contents before it writes. The on-disk state then matches YAML
+ * exactly, even when earlier runs produced different filenames.
  *
  * @param {string} skillDir - Skill directory (`.claude/skills/{dirname}`)
  * @param {Array<{name: string, title: string, body: string}>} references

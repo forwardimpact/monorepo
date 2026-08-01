@@ -6,8 +6,8 @@ import { createMockSupabaseClient } from "@forwardimpact/libmock";
 /**
  * Wraps `createMockSupabaseClient` to add a chainable
  * `.select().eq().single()` for `organization_people` (the only pattern the
- * shared helper does not cover natively). Storage + upsert-tracking come from
- * the shared helper via `mock.calls.upsert`.
+ * shared helper does not cover natively). The shared helper supplies
+ * storage and the upsert records through `mock.calls.upsert`.
  */
 function createFakeClient(storedDocument, path = "github/event.json") {
   const mock = createMockSupabaseClient({ files: { [path]: storedDocument } });

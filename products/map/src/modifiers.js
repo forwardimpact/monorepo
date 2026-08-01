@@ -1,14 +1,15 @@
 /**
  * Skill Modifier Helpers for Validation
  *
- * Contains only the isCapability function needed for schema validation.
+ * This module contains only the isCapability function. Schema validation
+ * needs that function.
  * Full modifier logic is in @forwardimpact/libskill.
  */
 
 import { Capability } from "@forwardimpact/libskill/levels";
 
 /**
- * Valid skill capability names (derived from Capability enum)
+ * Valid skill capability names (derived from the Capability enum)
  * @type {Set<string>}
  */
 const VALID_CAPABILITIES = new Set(Object.values(Capability));

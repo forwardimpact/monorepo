@@ -1,22 +1,22 @@
 /**
  * Factory for the fit-map Supabase CLI wrapper.
  *
- * `createSupabaseCli({ runtime })` returns an object with `run(args)` /
- * `capture(args)` methods that invoke the supabase CLI from the fit-map
- * package root without requiring the user to `cd` into node_modules. It
- * resolves the invocation the first time it is called and memoizes the
- * result on instance state — there are no module-level singletons.
+ * `createSupabaseCli({ runtime })` returns an object with `run(args)` and
+ * `capture(args)` methods. They invoke the supabase CLI from the fit-map
+ * package root. The user does not need to `cd` into node_modules. The
+ * object resolves the invocation on the first call. It then memoizes the
+ * result on instance state. There are no module-level singletons.
  *
  * Resolution order:
  *   1. Bare `supabase` on PATH (Homebrew, system package, npm -g bin on PATH)
- *   2. `npx --no-install -- supabase` (npm-local install, reached via npx
- *      walking up from the fit-map package root to the consumer's node_modules)
+ *   2. `npx --no-install -- supabase` (npm-local install, reached when npx
+ *      walks up from the fit-map package root to the consumer's node_modules)
  *
  * All process invocation goes through the injected `runtime.subprocess`
- * surface: `run` (buffered, resolves with `exitCode`) drives the probe and
- * the captured-output path; `spawn` with inherited stdio drives the
- * interactive path so `supabase start`/`db reset` progress streams to the
- * operator's terminal unchanged.
+ * surface. `run` is buffered and resolves with `exitCode`. It drives the
+ * probe and the captured-output path. `spawn` with inherited stdio drives
+ * the interactive path. So the `supabase start` and `db reset` progress
+ * streams to the operator's terminal unchanged.
  */
 
 import { getPackageRoot } from "./package-root.js";
@@ -25,9 +25,10 @@ const SUPABASE_INSTALL_URL =
   "https://supabase.com/docs/guides/local-development";
 
 /**
- * Probe a candidate invocation. `runtime.subprocess.run` resolves (never
- * rejects); a missing binary surfaces as `exitCode` 127, a failing probe as
- * any non-zero exit — both map to `false` (design Decision lesson 3).
+ * Probe a candidate invocation. `runtime.subprocess.run` resolves and never
+ * rejects. An absent binary surfaces as `exitCode` 127. A probe that fails
+ * surfaces as any non-zero exit. Both map to `false` (design Decision
+ * lesson 3).
  */
 async function probe(runtime, cwd, cmd, args) {
   const r = await runtime.subprocess.run(cmd, args, { cwd });
@@ -53,10 +54,10 @@ async function doResolve(runtime, cwd) {
 
 function missingCliError() {
   return new Error(
-    "Could not find the `supabase` CLI on PATH. Install it via Homebrew " +
+    "Could not find the `supabase` CLI on PATH. Install it with Homebrew " +
       "(`brew install supabase/tap/supabase`), npm " +
       "(`npm install supabase` in this project, or `npm install -g supabase`), " +
-      "or bun (`bun install -g supabase` — ensure the bun global bin " +
+      "or bun (`bun install -g supabase`, and make sure the bun global bin " +
       "directory is on PATH). Verify the install with `which supabase`. " +
       `See ${SUPABASE_INSTALL_URL}.`,
   );

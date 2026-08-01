@@ -1,11 +1,11 @@
 /**
  * Per-caller RLS scope matrix on the six RLS'd tables.
  *
- * Three callers (engineer A; manager M with reports A+B; engineer C under
- * a different manager M') hit each table; this test asserts the admit/deny
- * matrix matches the per-row-class scope rule.
+ * Three callers hit each table: engineer A, manager M with reports A+B,
+ * and engineer C under a different manager M'. This test asserts that the
+ * admit/deny matrix matches the per-row-class scope rule.
  *
- * Live-Postgres only — skipped when SUPABASE_URL / JWT_SECRET
+ * Live-Postgres only. It skips when SUPABASE_URL / JWT_SECRET
  * are unset.
  */
 
@@ -38,9 +38,9 @@ describe("RLS scope matrix", () => {
     return;
   }
 
-  test("engineer A sees only A's rows; manager M sees A + B + self; engineer C is invisible to M", async () => {
+  test("engineer A sees only A's rows, manager M sees A + B + self, and engineer C is invisible to M", async () => {
     await withLiveActivity(async (admin) => {
-      // Seed roster: M is manager of A and B; M' is manager of C.
+      // Seed roster: M manages A and B. M' manages C.
       await admin.from("organization_people").insert([
         {
           email: "m@example.com",
@@ -72,14 +72,14 @@ describe("RLS scope matrix", () => {
       const A = clientFor("a@example.com");
       const M = clientFor("m@example.com");
 
-      // organization_people — A sees self only.
+      // In organization_people, A sees self only.
       const aPeople = await A.from("organization_people").select("email");
       assert.deepEqual(
         new Set((aPeople.data ?? []).map((r) => r.email)),
         new Set(["a@example.com"]),
       );
 
-      // organization_people — M sees self + A + B (direct reports).
+      // In organization_people, M sees self + A + B (direct reports).
       const mPeople = await M.from("organization_people").select("email");
       assert.deepEqual(
         new Set((mPeople.data ?? []).map((r) => r.email)),
@@ -91,7 +91,7 @@ describe("RLS scope matrix", () => {
     });
   });
 
-  test("criterion 4 — scope matrix on the five other RLS'd tables", async () => {
+  test("criterion 4: scope matrix on the five other RLS'd tables", async () => {
     await withLiveActivity(async (admin) => {
       await admin.from("organization_people").insert([
         {
@@ -228,7 +228,7 @@ describe("RLS scope matrix", () => {
         new Set(["team-1"]),
       );
 
-      // getdx_snapshots is org-wide (USING true) by design — every
+      // getdx_snapshots is org-wide (USING true) by design. Every
       // authenticated caller sees all snapshot rows.
       const aSnaps = await A.from("getdx_snapshots").select("snapshot_id");
       assert.deepEqual(

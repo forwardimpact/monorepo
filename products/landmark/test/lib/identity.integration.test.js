@@ -84,7 +84,7 @@ describe("resolveIdentity — env-only path", () => {
     );
   });
 
-  it("throws on malformed JSON payload", async () => {
+  it("throws on a malformed JSON payload", async () => {
     const header = Buffer.from(
       JSON.stringify({ alg: "HS256", typ: "JWT" }),
     ).toString("base64url");
@@ -100,7 +100,7 @@ describe("resolveIdentity — env-only path", () => {
     );
   });
 
-  it("throws when email claim is missing", async () => {
+  it("throws when the email claim is missing", async () => {
     const header = Buffer.from(
       JSON.stringify({ alg: "HS256", typ: "JWT" }),
     ).toString("base64url");
@@ -125,7 +125,7 @@ describe("resolveIdentity — env-only path", () => {
     );
   });
 
-  it("throws when email claim is not a string", async () => {
+  it("throws when the email claim is not a string", async () => {
     const header = Buffer.from(
       JSON.stringify({ alg: "HS256", typ: "JWT" }),
     ).toString("base64url");
@@ -146,7 +146,7 @@ describe("resolveIdentity — env-only path", () => {
     );
   });
 
-  it("throws when exp claim is not a number", async () => {
+  it("throws when the exp claim is not a number", async () => {
     const header = Buffer.from(
       JSON.stringify({ alg: "HS256", typ: "JWT" }),
     ).toString("base64url");
@@ -164,7 +164,7 @@ describe("resolveIdentity — env-only path", () => {
     );
   });
 
-  it("throws on expired token", async () => {
+  it("throws on an expired token", async () => {
     const header = Buffer.from(
       JSON.stringify({ alg: "HS256", typ: "JWT" }),
     ).toString("base64url");

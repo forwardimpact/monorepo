@@ -4,7 +4,7 @@ Follow these conventions under `products/`. The catalog and jobs live in
 [README.md](README.md). This file documents the metadata, rules, and
 conventions a product must follow. Products are the nine end-user
 applications (Map, Pathway, Guide, Landmark, Summit, Outpost, Gear, Gemba,
-Jidoka). Metadata-only Kata makes the catalog ten. Users consume them
+Jidoka). Metadata-only Kata makes the catalog ten. Users consume the nine
 through `npm install` and `npx` (`fit-<product>`, `gemba-<name>` for the
 platform's family, or the scoped `@forwardimpact/jidoka`). Gear is a
 meta-package that re-exports the build-time service and library CLIs. Gemba

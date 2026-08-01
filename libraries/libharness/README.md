@@ -77,7 +77,7 @@ while participants work in parallel. Nothing blocks the LLM thread.
 In discussion mode, Answer calls routed to the lead stream to the
 discussion thread as the agents produce them. Each agent's Answer becomes
 a separate reply. The thread receives it immediately. The session does not
-batch the replies until it ends. The lead and agents can also call
+batch the replies at its end. The lead and agents can also call
 `Acknowledge` to post brief messages directly to the thread (status
 updates, human follow-up responses). The message bus intercepts answers
 and appends them to `ctx.replies[]`.

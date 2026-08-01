@@ -93,7 +93,8 @@ a fake imports it from here so production and test wire the same shape.
 | repl env | readline/process/os/formatter/storage bundle | `createReplEnvironment` | `const { readline, process } = createReplEnvironment();` |
 
 `test/runtime-completeness.test.js` asserts that every field on libutil's
-`Runtime` typedef has a fake here. The fakes cannot drift behind the bag.
+`Runtime` typedef has a matching fake here. So the fakes cannot drift behind
+the bag.
 
 ## When to extend libmock
 

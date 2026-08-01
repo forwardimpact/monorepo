@@ -144,7 +144,7 @@ preserve the key identifiers: hoodie ears, round robot head, tie.
 
 ## 3. Scene Grammar
 
-This section defines how to compose any scene with the characters from
+This section defines the rules for any scene that uses the characters from
 [§ 2](#2-the-three-characters-in-the-field). Individual scene prompts
 ([§ 4](#4-reusable-base-scenes) and [scenes.md](scenes.md)) describe specific
 poses, objects, and interactions. They should not restate these rules.
@@ -246,13 +246,13 @@ a late-night hackathon that happens to include someone in a blazer.
      hey!!   hello.   welcome.
 ```
 
-All three stand and face the viewer. The Engineer strides toward the viewer with
-both arms out wide. The Engineer is too enthusiastic and slightly off-balance.
-The hoodie ears bounce. The AI Agent stands still, with one hand raised in a
-precise right-angle wave and the head tilted in greeting. The Stakeholder stands
-one step behind, with the hand raised palm-out at shoulder height. The
-Stakeholder is the composed anchor. The feet are visible. Small action lines
-surround the Engineer's movement.
+All three stand and face the viewer. The Engineer is mid-stride toward the
+viewer, with both arms out wide. The Engineer is too enthusiastic and slightly
+off-balance. The hoodie ears bounce. The AI Agent stands still, with one hand
+raised in a precise right-angle wave and the head tilted in greeting. The
+Stakeholder stands one step behind, with the hand raised palm-out at shoulder
+height. The Stakeholder is the composed anchor. The feet are visible. Small
+action lines surround the Engineer's movement.
 
 **Key details:** The Engineer's over-eager stride forward creates the energy.
 The Agent's geometric wave is the visual punchline. It is friendly but

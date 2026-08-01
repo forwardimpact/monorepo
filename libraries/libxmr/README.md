@@ -3,7 +3,7 @@
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
 Wheeler/Vacanti XmR control charts — distinguish signal from noise so agent
-teams act on real changes, not fluctuations.
+teams act on real changes instead of fluctuations.
 
 <!-- END:description -->
 

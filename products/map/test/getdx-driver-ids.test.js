@@ -1,7 +1,8 @@
 /**
- * Anchors spec(1180) criterion 1: the starter `drivers.yaml` ids equal the
- * `ALL_DRIVERS` set the synthetic engine emits as `scoreRow.item_id`. Drift
- * on either side breaks the clean-install fit-landmark health view.
+ * This test anchors spec(1180) criterion 1. The starter `drivers.yaml` ids
+ * equal the `ALL_DRIVERS` set the synthetic engine emits as
+ * `scoreRow.item_id`. Drift on either side breaks the clean-install
+ * fit-landmark health view.
  */
 
 import { test } from "node:test";

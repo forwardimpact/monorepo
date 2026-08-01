@@ -42,8 +42,8 @@ Omit `[service]` to operate on all configured services.
 restarts it on a crash. Define it with `command`.
 
 **Oneshot** — runs once on start/stop. Define it with `type: "oneshot"`,
-`up`, and optionally `down`. Add `"optional": true`. The service then
-skips with a warning and does not fail.
+`up`, and optionally `down`. Add `"optional": true` to skip with a
+warning on failure.
 
 ## Programmatic usage
 
@@ -62,8 +62,8 @@ await manager.stop();           // tear down in reverse order
 ## Relationship to libsupervise
 
 `librc` owns the service list and lifecycle commands. It delegates
-actual process supervision to `libsupervise`. The delegation spawns the
-`fit-svscan` daemon and communicates with it over a Unix socket.
+actual process supervision to `libsupervise`. It spawns the `fit-svscan`
+daemon and communicates with it over a Unix socket.
 
 ## Documentation
 

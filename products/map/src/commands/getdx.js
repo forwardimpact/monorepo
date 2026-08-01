@@ -7,13 +7,16 @@ import {
   formatSuccess,
 } from "@forwardimpact/libcli";
 
-/** Fetch GetDX teams, snapshots, and scores from the API and transform them into the activity database. */
+/**
+ * Fetch GetDX teams, snapshots, and scores from the API. Transform them
+ * into the activity database.
+ */
 export async function sync(supabase, { baseUrl, runtime } = {}) {
   const apiToken = runtime.proc.env.GETDX_API_TOKEN;
   if (!apiToken) {
     runtime.proc.stderr.write(
       formatError(
-        "GETDX_API_TOKEN is not set. Export it before running getdx sync.",
+        "GETDX_API_TOKEN is not set. Export it before you run getdx sync.",
       ) + "\n",
     );
     return 1;

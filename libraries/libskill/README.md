@@ -14,7 +14,7 @@ data.
 import { deriveJob, deriveSkillMatrix, deriveBehaviourProfile } from '@forwardimpact/libskill';
 ```
 
-Use these subpath imports for focused access:
+Subpath imports are available for focused use:
 
 ```js
 import { calculateJobMatch } from '@forwardimpact/libskill/matching';

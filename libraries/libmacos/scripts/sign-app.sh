@@ -15,7 +15,7 @@ set -euo pipefail
 # The script signs inside-out. It signs the nested Mach-O executables first,
 # then the bundle. Apple recommends this order for notarized apps. The order is
 # also deterministic. So the bundle's cdhash stays stable across rebuilds. TCC
-# grants survive upgrades.
+# grants then survive upgrades.
 #
 # Requires codesign (Xcode command-line tools). Exits non-zero on failure
 # unless you set CODESIGN_ALLOW_FAIL=1 (for Linux CI where codesign is absent).

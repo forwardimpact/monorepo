@@ -127,7 +127,8 @@ graph LR
   feedback triage, one-topic-deep doc review, one-trace-deep grounded theory.
 - **Act** — Mechanical findings become **pushed fix PRs**. Structural findings
   become `spec.md` documents on **pushed spec branches**. Classify each finding
-  per [work-definition.md § Classification tests](.claude/agents/x-work-definition.md#classification-tests).
+  per
+  [work-definition.md § Classification tests](.claude/agents/x-work-definition.md#classification-tests).
   A local commit is not a PR. The URL is the only valid completion signal.
   `fix/` and `spec/` branches never mix.
 

@@ -1,8 +1,8 @@
 /**
- * Agent listing and summary helpers
+ * Helpers for the agent list and the agent summary
  *
- * Splits the listing / summary output out of agent.js so the command file
- * stays focused on orchestration.
+ * This module holds the list and summary output from agent.js. The command
+ * file then stays focused on orchestration.
  */
 
 import { getDisciplineAbbreviation } from "@forwardimpact/libskill/agent";
@@ -80,7 +80,7 @@ export function showAgentSummary(data, agentData, skillsWithAgent, runtime) {
 }
 
 /**
- * List available agent combinations — compact output for piping
+ * List available agent combinations. Write compact output for piping.
  * @param {Object} data - Pathway data
  * @param {Object} agentData - Agent-specific data
  */
@@ -101,7 +101,7 @@ function listAgentCombinationsCompact(data, agentData, runtime) {
 }
 
 /**
- * List available agent combinations — verbose output (markdown)
+ * List available agent combinations. Write verbose output (markdown).
  * @param {Object} data - Pathway data
  * @param {Object} agentData - Agent-specific data
  */

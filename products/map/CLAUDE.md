@@ -11,13 +11,12 @@ the stack survives):
     init → copy-activity → copy-pathway → stack → url-discovery →
     migrate → seed → provision → roster-standard → smoke
 
-**Activity and pathway are a matched pair.** The roster under
-`data/activity` carries level ids that `data/pathway` defines, so both
-copy phases ship from the same data root (`findDataDir`). `copy-pathway`
-replaces the staged pathway wholesale. The init phase already
-materialised the starter standard there. A merge copy would blend
-starter files into the source standard. When no source pathway exists, the starter copy stays
-as the fallback.
+**Activity and pathway are a matched pair.** The roster under `data/activity`
+carries level ids that `data/pathway` defines, so both copy phases ship from the
+same data root (`findDataDir`). `copy-pathway` replaces the staged pathway
+wholesale. The init phase already materialised the starter standard there. A
+merge copy would blend starter files into the source standard. When no source
+pathway exists, the starter copy stays as the fallback.
 
 The seed path owns the invariant "every seeded level exists in the
 installed standard". Stage does not own it. `assertSeededLevelsCovered`

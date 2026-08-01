@@ -159,7 +159,7 @@
   }
 
   .top-bar__copy.copied svg {
-    /* CSS swaps the copy icon for the checkmark. JS swaps the class. */
+    /* Swap from the copy icon to the checkmark with CSS. JS swaps the class */
   }
 
   /* --------------------------------------------------------------------------

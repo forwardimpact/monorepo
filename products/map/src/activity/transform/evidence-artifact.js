@@ -33,7 +33,7 @@ const STOP_WORDS = new Set([
   "what",
 ]);
 
-/** Lowercase, split on whitespace, strip token-edge punctuation. */
+/** Lowercase the text. Split on whitespace. Strip token-edge punctuation. */
 function tokenise(text) {
   return (text ?? "")
     .toLowerCase()
@@ -43,8 +43,8 @@ function tokenise(text) {
 }
 
 /**
- * Marker keywords: tokenised on whitespace, lowercased, stop-words removed,
- * tokens of length <4 dropped.
+ * Tokenise the marker text on whitespace. Lowercase each token. Remove the
+ * stop-words. Drop tokens shorter than 4 characters.
  * @param {string} markerText
  * @returns {Set<string>}
  */
@@ -55,8 +55,8 @@ export function tokeniseMarker(markerText) {
 }
 
 /**
- * Artifact text surface: title + body for PRs, body for reviews, message
- * for commits.
+ * Build the text surface for an artifact: title + body for PRs, body for
+ * reviews, message for commits.
  * @param {{artifact_type: string, metadata: object}} artifact
  * @returns {Set<string>}
  */
@@ -74,8 +74,8 @@ export function tokeniseArtifact(artifact) {
 }
 
 /**
- * Count distinct marker keywords appearing in the artifact's text surface,
- * returning the matched keywords.
+ * Count the distinct marker keywords that appear in the artifact's text
+ * surface. Return the matched keywords.
  * @param {string} markerText
  * @param {Set<string>} artifactTokens
  * @returns {{score: number, matchedKeywords: string[]}}
@@ -88,9 +88,9 @@ export function scoreMarkerAgainstArtifact(markerText, artifactTokens) {
 }
 
 /**
- * Rule 3 selection: highest token-overlap score; on a tie or zero overlap,
- * lexicographically earliest marker text, then chronologically earliest
- * artifact.
+ * Rule 3 selection. Pick the highest token-overlap score. On a tie or on
+ * zero overlap, pick the lexicographically earliest marker text. On a
+ * further tie, pick the chronologically earliest artifact.
  * @param {Array<{artifact: object, marker: string, score: number}>} pairs
  * @returns {{artifact: object, marker: string, score: number}}
  */
@@ -153,8 +153,8 @@ function scoreAllPairs(artifacts, markerList) {
 }
 
 /**
- * Rule 2: one row per (artifact_id, skill_id) — best marker wins,
- * lexicographic tie-break.
+ * Rule 2. Emit one row for each (artifact_id, skill_id). The best marker
+ * wins. Break a tie lexicographically.
  */
 function pickBestPerArtifact(hits) {
   const byArtifact = new Map();
@@ -172,8 +172,8 @@ function pickBestPerArtifact(hits) {
 }
 
 /**
- * Emit rows for one persona's artifacts against one matrix entry, applying
- * the three bounded-heuristic rules per repository.
+ * Emit rows for one persona's artifacts against one matrix entry. Apply
+ * the three bounded-heuristic rules for each repository.
  */
 function emitForSkill(entry, markerList, byRepo) {
   const rows = [];
@@ -186,18 +186,18 @@ function emitForSkill(entry, markerList, byRepo) {
           toRow(
             p,
             entry,
-            `Token-overlap score ${p.score}; ${p.matchedKeywords.length} keywords matched: ${p.matchedKeywords.join(", ")}.`,
+            `Token-overlap score ${p.score}. ${p.matchedKeywords.length} keywords matched: ${p.matchedKeywords.join(", ")}.`,
           ),
         );
       }
     } else if (pairs.length > 0) {
-      // Rule 3: per-(repo, skill) floor fires unconditionally.
+      // Rule 3. The per-(repo, skill) floor fires unconditionally.
       const p = pickFloorRow(pairs);
       rows.push(
         toRow(
           p,
           entry,
-          `Structural floor: persona has artifacts in ${repository} but no marker scored ≥2 keywords against this skill; row emitted to satisfy the per-repo, per-skill floor.`,
+          `Structural floor: persona has artifacts in ${repository} but no marker scored ≥2 keywords against this skill. This row satisfies the per-repo, per-skill floor.`,
         ),
       );
     }
@@ -205,7 +205,7 @@ function emitForSkill(entry, markerList, byRepo) {
   return rows;
 }
 
-/** Group joined artifact rows by email, counting profile-less rows as skipped. */
+/** Group joined artifact rows by email. Count profile-less rows as skipped. */
 function groupByPersona(data) {
   let skipped = 0;
   const byEmail = new Map();
@@ -254,11 +254,11 @@ function buildPersonaRows(personaRows, mapData, matrixCache) {
 
 /**
  * Artifact-driven evidence producer. Reads github_artifacts joined to
- * organization_people, derives each persona's skill matrix from pathway
- * data, applies the bounded match heuristic (two-keyword overlap floor,
+ * organization_people. Derives each persona's skill matrix from pathway
+ * data. Applies the bounded match heuristic (two-keyword overlap floor,
  * one row per artifact+skill, unconditional per-repo-per-skill emit
- * floor), and writes rows tagged provenance=artifact_interpreted with
- * a per-class delete + ON CONFLICT DO NOTHING upsert.
+ * floor). Writes rows tagged provenance=artifact_interpreted with a
+ * per-class delete + ON CONFLICT DO NOTHING upsert.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {{mapData: object}} collaborators - Standard data from loadAllData.
  * @returns {Promise<{inserted: number, skipped: number, errors: Array<string>}>}

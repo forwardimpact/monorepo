@@ -5,9 +5,10 @@ import { createMockSupabaseClient } from "@forwardimpact/libmock";
 import { makeEvidenceRow, makeArtifact } from "../fixtures.js";
 
 /**
- * transform/evidence.js chains `.delete().eq()` and `.select().not()`, neither
- * covered by `createMockSupabaseClient`. The storage download IS covered, so
- * we delegate that to the shared mock and hand-roll the table chains here.
+ * transform/evidence.js chains `.delete().eq()` and `.select().not()`.
+ * `createMockSupabaseClient` covers neither chain. It DOES cover the
+ * storage download, so we delegate that to the shared mock. We hand-roll
+ * the table chains here.
  */
 function createFakeClient({
   evidenceJson = null,

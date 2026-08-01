@@ -1,8 +1,8 @@
 /**
  * Static-inspection guard for the ingestion service-role credential.
  *
- * Map's ingestion code path keeps the service-role credential — this test
- * locks the property in so a future refactor does not silently migrate
+ * Map's ingestion code path keeps the service-role credential. This test
+ * locks the property in, so a future refactor does not silently migrate
  * ingestion to the anon-keyed client and break the write path.
  */
 
@@ -36,8 +36,8 @@ describe("Map ingestion retains the service-role write-path credential", () => {
     }
     assert.ok(
       hits >= 1,
-      "Map ingestion must keep at least one call to config.supabaseServiceRoleKey() — the write-path credential. " +
-        "Found zero references; ingestion may have been silently migrated to the anon-keyed client.",
+      "Map ingestion must keep at least one call to config.supabaseServiceRoleKey(), the write-path credential. " +
+        "Found zero references. A silent refactor possibly migrated ingestion to the anon-keyed client.",
     );
   });
 });

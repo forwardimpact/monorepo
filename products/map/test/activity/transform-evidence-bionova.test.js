@@ -19,12 +19,12 @@ const EMAIL = "daedalus@bionova.example";
 
 /**
  * BioNova manufacturing IT persona whose flagship work must surface as
- * evidence. Mirrors `data/synthetic/story.dsl` § manufacturing_it: repos
- * mes-connector + scada-bridge, flagship work = mes-connector v2 schema
- * cutover + scada-bridge operational record. The starter standard has no
- * J080 level (J040/J060 only), so the fixture pins the senior starter
- * level J060 — the contract anchors on the team's repo names, not the
- * literal level id.
+ * evidence. It mirrors `data/synthetic/story.dsl` § manufacturing_it:
+ * repos mes-connector + scada-bridge, flagship work = mes-connector v2
+ * schema cutover + scada-bridge operational record. The starter standard
+ * has no J080 level (J040/J060 only), so the fixture pins the senior
+ * starter level J060. The contract anchors on the team's repo names. It
+ * does not anchor on the literal level id.
  */
 const PERSON = { discipline: "data-engineering", level: "J060", track: null };
 
@@ -312,7 +312,7 @@ describe("BioNova evidence coverage contract", () => {
     assert.deepStrictEqual(project(second.rows), project(first.rows));
 
     // Every upsert ran with the conflict guard (determinism rule 2's
-    // belt-and-braces) and each producer deleted only its own class.
+    // belt-and-braces). Each producer deleted only its own class.
     for (const call of fake.upsertCalls) {
       assert.strictEqual(
         call.options?.onConflict,

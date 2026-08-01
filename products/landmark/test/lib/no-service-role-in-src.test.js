@@ -56,8 +56,8 @@ describe("Landmark src/ + bin/ — service-role boundary (criterion 3a)", () => 
 
   it("does not import anything from a /test/ path (no test-only helper in production)", async () => {
     // Covers `import x from ".../test/..."`, `import(".../test/...")` and
-    // `require(".../test/...")` — three routes a developer could use to
-    // pull a test helper into the production code path.
+    // `require(".../test/...")`. A developer could use any of these three
+    // routes to pull a test helper into the production code path.
     const hits = await grepRoots(
       /(?:from\s+|import\(\s*|require\(\s*)["'][^"']*\/test\//,
     );

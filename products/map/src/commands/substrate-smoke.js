@@ -1,11 +1,10 @@
 /**
- * Self-smoke for `fit-map substrate stage`. Mints a short-lived JWT for
- * the first invariant-satisfying persona and invokes every
- * `needsSupabase: true` command in fit-landmark's COMMANDS map to confirm
- * the seeded substrate answers every gated command to non-error
- * completion. Three row-class commands (`org team`, `evidence`,
- * `practice`) additionally assert non-empty payloads scoped to the
- * persona.
+ * Self-smoke for `fit-map substrate stage`. The smoke mints a short-lived
+ * JWT for the first invariant-satisfying persona. It then invokes every
+ * `needsSupabase: true` command in fit-landmark's COMMANDS map. This
+ * confirms the seeded substrate answers every gated command without an
+ * error. Three row-class commands (`org team`, `evidence`, `practice`)
+ * also assert non-empty payloads scoped to the persona.
  */
 
 import { Buffer } from "node:buffer";
@@ -18,11 +17,11 @@ const ROW_CLASS_KEYS = {
 };
 
 // Use the parent process's cwd (the CI checkout root) for bunx spawns so
-// fit-landmark resolves via the workspace; a fresh tmpdir would push bunx
-// up the filesystem looking for node_modules, hit nothing, and 404 from
-// npm. JWT/secret isolation comes from spawn-options env, not cwd.
-// `runtime.subprocess.run` resolves (never rejects); callers drive errors
-// off `exitCode` (lesson 3).
+// fit-landmark resolves through the workspace. A fresh tmpdir would push
+// bunx up the filesystem to look for node_modules, hit nothing, and 404
+// from npm. The spawn-options env gives the JWT and secret isolation. The
+// cwd does not. `runtime.subprocess.run` resolves and never rejects.
+// Callers drive errors off `exitCode` (lesson 3).
 function fitLandmarkSpawn(runtime, argv, extraEnv = {}) {
   return runtime.subprocess.run("bunx", ["fit-landmark", ...argv], {
     env: { ...runtime.proc.env, ...extraEnv },
@@ -39,7 +38,8 @@ async function fetchManifest(runtime) {
 
 /**
  * Expand the manifest into a flat list of {command, smokeOptions} pairs
- * the smoke loop spawns. Exported for unit-testing the iteration logic.
+ * the smoke loop spawns. Exported so unit tests can check the iteration
+ * logic.
  * @param {{commands: object, subcommandExpansions: object, flatSmokeOptions: object}} manifest
  * @returns {Array<{command: string, smokeOptions: object}>}
  */
@@ -87,8 +87,8 @@ async function runSmokeCommand(runtime, argv, jwt) {
 }
 
 /**
- * Run the self-smoke. Throws with a descriptive `[substrate stage: smoke]`-
- * style error on any failure; caller wraps in a phase tag.
+ * Run the self-smoke. Throws a descriptive `[substrate stage: smoke]`-style
+ * error on any failure. The caller wraps it in a phase tag.
  *
  * @param {object} params
  * @param {import("@supabase/supabase-js").SupabaseClient} params.supabase
@@ -183,12 +183,12 @@ export async function assertPersonaIsHuman(supabase, email) {
 
 /**
  * Verify both the persona row and the folded discovery object carry the
- * values the smoke loop will substitute into command argv placeholders.
- * The library degrades declaredly when `substrate.discovery` is absent;
- * the FI requirement that discovery resolves is enforced here, in map's
- * smoke — not in the library. The `parent_email` field is the
- * operator-surface name for the persona's organizational parent; the
- * assertion gates "persona has a non-null parent".
+ * values the smoke loop substitutes into command argv placeholders. The
+ * library degrades declaredly when `substrate.discovery` is absent. Map's
+ * smoke enforces the FI requirement that discovery resolves. The library
+ * does not. The `parent_email` field is the operator-surface name for the
+ * persona's organizational parent. The assertion gates "persona has a
+ * non-null parent".
  * @param {object} persona
  * @param {{snapshot_id: string, item_id: string}|null} discovery
  */
