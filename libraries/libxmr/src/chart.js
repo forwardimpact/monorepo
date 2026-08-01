@@ -418,9 +418,9 @@ function renderSinglePoint(value, glyphs, slotWidth) {
   return lines.join("\n");
 }
 
-// Edge case: R = 0 (every value identical). Limits collapse to μ, σ̂ = 0,
-// every zone has zero width. Render the X chart flat with a single
-// centerline-and-points row, plus the spec's verbatim warning.
+// Edge case: R = 0 (every value identical). The limits collapse to μ. σ̂
+// becomes 0. Every zone has zero width. Render the X chart flat with a
+// single centerline-and-points row, plus the spec's verbatim warning.
 function renderFlat(values, stats, glyphs, slotWidth, ascii) {
   const n = values.length;
   const plotWidth = n * slotWidth;

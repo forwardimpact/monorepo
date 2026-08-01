@@ -8,11 +8,11 @@ import {
   gateSubprocess,
 } from "./wiki-sync-harness.js";
 
-// A mock fsSync whose wiki already carries the metrics-CSV union declaration,
-// so `commitAndPush`'s ensure-before-gate is a no-op and the git call sequence
-// is byte-identical to a commit-and-push that ensures nothing. Provisioning
-// behavior (the ensure writing the file) is covered in
-// wiki-sync.integration.test.js against real git.
+// A mock fsSync whose wiki already carries the metrics-CSV union declaration.
+// So `commitAndPush`'s ensure-before-gate is a no-op. The git call sequence is
+// byte-identical to a commit-and-push that ensures nothing.
+// wiki-sync.integration.test.js covers the provision behavior (the ensure
+// writes the file) against real git.
 const provisionedFs = () =>
   createMockFs({
     [`${WIKI}/.gitattributes`]: "metrics/**/*.csv merge=union\n",
@@ -64,7 +64,7 @@ describe("WikiSync secret gate", () => {
     assert.deepEqual(result, { pushed: false, reason: "scanner-unavailable" });
     assert.ok(
       !methods().includes("pushPorcelain"),
-      "no push attempted when scanner absent",
+      "no push attempted when the scanner is absent",
     );
   });
 
@@ -118,7 +118,7 @@ describe("WikiSync secret gate", () => {
       detections: [],
     });
     assert.ok(methods().includes("pushPorcelain"), "override proceeds to push");
-    // The audit log is committed path-scoped into the same push.
+    // The gate commits the audit log path-scoped into the same push.
     const overrideCommit = git.calls.find(
       (c) =>
         c.method === "commitPaths" &&

@@ -1,14 +1,15 @@
 // Classify a metric report into a coarse process-behavior category.
 //
-//   insufficient — fewer than MIN_POINTS data points; limits not computed.
-//   chaos        — mR Rule 1 fires; the variation itself is unstable, which
-//                  makes every limit on the X chart unreliable until the
-//                  outsized moves are investigated.
-//   signals      — at least one X chart rule fires (and mR Rule 1 does not).
-//   stable       — predictable; no rules fire and the series varies.
-//   degenerate-zero — predictable but every observation equals zero: no
-//                  variation around zero, so predictability is trivial and the
-//                  series carries no process signal.
+//   insufficient — fewer than MIN_POINTS data points. The code does not
+//                  compute limits.
+//   chaos        — mR Rule 1 fires. The variation itself is unstable. Every
+//                  limit on the X chart stays unreliable until someone
+//                  investigates the outsized moves.
+//   signals      — at least one X chart rule fires. mR Rule 1 does not fire.
+//   stable       — predictable. No rules fire and the series varies.
+//   degenerate-zero — predictable. Every observation equals zero. There is
+//                  no variation around zero. Predictability is trivial.
+//                  The series carries no process signal.
 /** Classify a metric into a process-behavior category: insufficient, chaos, signals, stable, or degenerate-zero. */
 export function classify(metric) {
   if (metric.status === "insufficient_data") return "insufficient";

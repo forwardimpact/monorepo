@@ -32,9 +32,8 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed holds MEMORY.md and the current-month storyboard for
-// `today`. `extra` overlays it. buildContext reads these through
-// runtime.fsSync.
+// The clean-wiki seed holds MEMORY.md and the storyboard for `today`'s
+// month. `extra` overlays it. buildContext reads these through runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();

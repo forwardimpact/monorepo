@@ -52,9 +52,9 @@ export function runChartCommand(ctx) {
     };
   }
 
-  // If --metric is given, pick that one. If not given but the CSV carries
-  // exactly one metric, use it implicitly — the user couldn't have meant
-  // anything else.
+  // If the caller gives --metric, pick that metric. If the caller gives no
+  // --metric and the CSV carries exactly one metric, use that metric. The
+  // user could not have meant anything else.
   let target;
   if (values.metric) {
     target = report.metrics.find((m) => m.metric === values.metric);

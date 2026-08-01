@@ -39,13 +39,13 @@ npx fit-pathway job software-engineering J070 --track=platform
 ```
 
 The Expectations section of each output describes impact scope, autonomy, and
-complexity handled. Pick the level where the candidate's experience sits today,
-not where you hope they will grow.
+complexity handled. Pick the level where the candidate's experience sits today.
+Do not pick the level you hope they will grow into.
 
-## Simulate adding the candidate
+## Add the candidate to a simulation
 
 Run the `what-if --add` command against the team where the candidate would land.
-The `--add` flag takes a flow-style YAML object describing the role:
+The `--add` flag takes a flow-style YAML object that describes the role:
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
@@ -65,8 +65,8 @@ Expected output:
     Architecture capability   ████████░░ → ██████████  (+20%)
 ```
 
-The output answers two questions at once: which existing risks does this role
-resolve, and how does overall coverage shift. If the candidate's role resolves
+The output answers two questions at once. It names the existing risks this role
+resolves. It shows how overall coverage shifts. If the candidate's role resolves
 the risks you identified in the
 [parent guide](/docs/products/team-capability/), you have evidence that this
 position fills the actual gap.
@@ -94,14 +94,14 @@ Expected output:
     observability             ░░░░░░░░░░ → ████░░░░░░  (resolved gap)
 ```
 
-This is useful when two candidates target different capability areas and you
-want to see each one's contribution in isolation.
+Use this when two candidates target different capability areas. You then see
+each one's contribution in isolation.
 
 ## Compare two candidates
 
-To decide between candidates, run `what-if --add` once for each and compare the
-output. For example, one candidate is a J060 software engineer on the platform
-track; the other is a J070 data engineer:
+To decide between candidates, run `what-if --add` once for each candidate. Then
+compare the output. For example, one candidate is a J060 software engineer on
+the platform track. The other is a J070 data engineer:
 
 ```sh
 npx fit-summit what-if platform --roster ./summit.yaml \
@@ -140,14 +140,14 @@ The evaluation is complete when you can answer these questions from the
   candidate adds depth where the team is thin or redundancy where it is already
   strong.
 - **Can you articulate why this candidate over another?** If you compared two
-  candidates, you can point to the structural difference -- "Candidate A
-  resolves the observability gap; Candidate B does not" -- rather than relying
-  on impressions.
+  candidates, you can point to the structural difference. Say "Candidate A
+  resolves the observability gap. Candidate B does not." Do not rely on
+  impressions.
 
 If the `what-if` output shows the candidate's role resolves none of your
 identified risks, re-examine whether the position description matches the gap.
-The problem may not be the candidate -- it may be that the role was defined
-around the position description rather than the team's actual needs.
+The problem may not be the candidate. The role may follow the position
+description instead of the team's actual needs.
 
 ## What's next
 

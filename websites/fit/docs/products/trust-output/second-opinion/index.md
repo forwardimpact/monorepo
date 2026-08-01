@@ -23,9 +23,9 @@ assessment.
 ## Identify the deliverable
 
 Decide which artifact you want assessed. Guide works with any deliverable you
-can describe or paste -- a pull request diff, a design document, a configuration
-file, a test plan, or prose output. The more concrete the input, the more
-specific the assessment.
+can describe or paste. That includes a pull request diff, a design document, a
+configuration file, a test plan, or prose output. A more concrete input gives a
+more specific assessment.
 
 For a pull request, copy the diff or provide the PR URL. For a document, have
 the text ready to paste into the session.
@@ -38,14 +38,14 @@ Launch Guide in interactive mode:
 npx fit-guide
 ```
 
-Lines starting with `>` in the examples below are prompts you type inside the
-Guide session -- they are not shell commands.
+Lines that start with `>` in the examples below are prompts you type inside the
+Guide session. They are not shell commands.
 
 ## Ask Guide to assess the deliverable
 
-Describe the deliverable, the role the agent was performing, and what you want
-assessed. Be specific about the role coordinates -- Guide uses them to look up
-the expected skill proficiencies and behaviour maturities for that level.
+Describe the deliverable, the role the agent performed, and what you want
+assessed. Be specific about the role coordinates. Guide uses them to look up the
+expected skill proficiencies and behaviour maturities for that level.
 
 ```text
 > An agent configured as a J060 Software Engineering contributor on the
@@ -55,8 +55,8 @@ the expected skill proficiencies and behaviour maturities for that level.
 > [paste diff or describe the deliverable]
 ```
 
-Guide responds by checking the deliverable against the skill markers and
-behaviour expectations defined for that role in your engineering standard:
+Guide checks the deliverable against the skill markers and behaviour
+expectations that your engineering standard defines for that role:
 
 ```text
 Assessing against Software Engineering J060 (platform track) expectations:
@@ -93,7 +93,7 @@ approving.
 ```
 
 Every element in that assessment traces back to your capability YAML and
-behaviour definitions. Two people reviewing the same deliverable against the
+behaviour definitions. Two people who review the same deliverable against the
 same standard get the same foundational analysis.
 
 ## Narrow the assessment to a specific area

@@ -32,9 +32,8 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed holds MEMORY.md and the current-month storyboard for
-// `today`. `extra` overlays it. buildContext reads these through
-// runtime.fsSync.
+// The clean-wiki seed holds MEMORY.md and the storyboard for `today`'s
+// month. `extra` overlays it. buildContext reads these through runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();
@@ -420,9 +419,8 @@ describe("runRules", () => {
   });
 
   test("over-budget MEMORY.md fires line and word budget rules", () => {
-    // 200 lines × 13 words = 2600 words. That is over both the 128-line and
-    // 2048-word MEMORY budgets. The canonical sections stay valid, so only the
-    // budgets fire.
+    // 2600 words (200 lines × 13) breach the 128-line and 2048-word MEMORY
+    // budgets. Canonical sections stay valid, so only the budgets fire.
     const filler = Array.from(
       { length: 200 },
       (_, i) =>
