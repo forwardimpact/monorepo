@@ -1,6 +1,6 @@
 /**
  * Documentation assertion: `products/CLAUDE.md` records the "workspace
- * imports declare dependencies" rule and references the contributor-side
+ * imports declare dependencies" rule. It also references the contributor-side
  * guard by name (`workspace-imports`).
  */
 import { test, describe } from "node:test";
@@ -13,7 +13,7 @@ const ROOT = resolve(import.meta.dirname, "..");
 describe("products/CLAUDE.md documents the workspace imports rule", () => {
   const doc = readFileSync(resolve(ROOT, "products/CLAUDE.md"), "utf8");
 
-  test("states that @forwardimpact/* imports inside a product must be declared in its package.json", () => {
+  test("states that a product must declare each @forwardimpact/* import in its package.json", () => {
     assert.match(
       doc,
       /@forwardimpact\/\*/,
@@ -27,7 +27,7 @@ describe("products/CLAUDE.md documents the workspace imports rule", () => {
     assert.match(
       doc,
       /must\s+(appear|be\s+declared)/i,
-      "products/CLAUDE.md must state the requirement that the import appear in package.json",
+      "products/CLAUDE.md must state that the import must appear in package.json",
     );
   });
 

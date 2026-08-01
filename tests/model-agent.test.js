@@ -119,7 +119,7 @@ describe("Agent Module", () => {
       assert.strictEqual(result.id, "senior");
     });
 
-    it("throws when no levels provided", () => {
+    it("throws when no levels exist", () => {
       assertThrowsMessage(
         () => deriveReferenceLevel([]),
         /No levels configured/,
@@ -142,7 +142,7 @@ describe("Agent Module", () => {
       assert.strictEqual(result.id, "only");
     });
 
-    it("works with different level ID naming conventions", () => {
+    it("works with different conventions for level IDs", () => {
       // Customer might use L1/L2/L3 or Level1/Level2 or anything
       const levels = [
         {
@@ -205,7 +205,7 @@ describe("interpolateTeamInstructions", () => {
     assert.strictEqual(result, null);
   });
 
-  it("returns string unchanged when no placeholders present", () => {
+  it("returns the string unchanged when it has no placeholders", () => {
     const agentTrack = { teamInstructions: "Static instructions." };
     const result = interpolateTeamInstructions({
       agentTrack,
@@ -273,7 +273,7 @@ describe("renderOrganizationalContext", () => {
     assert.strictEqual(result, null);
   });
 
-  it("emits a single bullet when only manager is populated", () => {
+  it("emits a single bullet when the input has only a manager", () => {
     const result = renderOrganizationalContext({ manager: "athena" });
     assert.strictEqual(
       result,
@@ -288,7 +288,7 @@ describe("renderOrganizationalContext", () => {
     );
   });
 
-  it("emits adjacent leads without a trailing comma when single entry", () => {
+  it("emits adjacent leads without a trailing comma for one entry", () => {
     const result = renderOrganizationalContext({
       adjacentLeads: [{ handle: "iris", role: "DX" }],
     });

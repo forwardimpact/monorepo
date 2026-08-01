@@ -37,7 +37,7 @@ describe("products declare libconfig at floor 0.1.79", () => {
       assert.strictEqual(
         min.version,
         FLOOR,
-        `products/${product}/package.json declares ${PACKAGE} at ${range} (minVersion ${min.version}); libconfig dependency must meet minVersion ${FLOOR}`,
+        `products/${product}/package.json declares ${PACKAGE} at ${range} (minVersion ${min.version}). The libconfig dependency must meet minVersion ${FLOOR}`,
       );
     });
   }

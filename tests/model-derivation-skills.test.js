@@ -65,7 +65,8 @@ describe("Derivation", () => {
   describe("deriveSkillProficiency", () => {
     it("derives correct level for core skill with modifier capped at level max", () => {
       // Primary skill (practitioner) + modifier (+1 from scale capability)
-      // Cap: max base level for level is practitioner, so capped at practitioner
+      // Cap: the level's max base level is practitioner. The result caps
+      // there.
       const level = deriveSkillProficiency({
         discipline: testDiscipline,
         level: testLevel,
@@ -157,7 +158,7 @@ describe("Derivation", () => {
       assert.strictEqual(level, "expert");
     });
 
-    it("caps positive modifier at level max even when would exceed", () => {
+    it("caps positive modifier at level max even when it would exceed", () => {
       // Secondary skill (working) would be practitioner with +1
       // But max base is practitioner, so it's capped there
       const capLevel = {
