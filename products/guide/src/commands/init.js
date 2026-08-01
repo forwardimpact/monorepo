@@ -9,11 +9,11 @@ import {
 } from "@forwardimpact/libcli";
 
 /**
- * Bootstrap a Guide project by generating secrets, writing default service
- * URLs to .env, and copying starter configuration.
+ * Bootstrap a Guide project. Generate the secrets, write the default service
+ * URLs to .env, and copy the starter configuration.
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected collaborators.
- * @returns {Promise<{ok: boolean, code?: number}>} Result envelope; the bin shim
- *   translates a falsy `ok` into a non-zero exit.
+ * @returns {Promise<{ok: boolean, code?: number}>} Result envelope. The bin
+ *   shim translates a falsy `ok` into a non-zero exit.
  */
 export async function runInitCommand(runtime) {
   const { fs, proc } = runtime;
@@ -60,7 +60,8 @@ export async function runInitCommand(runtime) {
     },
   });
 
-  // Ensure package.json exists (needed by fit-codegen for project root detection)
+  // Make sure package.json exists. fit-codegen needs it to find the project
+  // root.
   const pkgPath = resolve("package.json");
   try {
     await fs.access(pkgPath);
@@ -78,7 +79,7 @@ export async function runInitCommand(runtime) {
         2,
       ) + "\n",
     );
-    proc.stdout.write(formatSuccess("package.json created.") + "\n");
+    proc.stdout.write(formatSuccess("Created package.json.") + "\n");
   }
 
   const summary = new SummaryRenderer({ process: proc });
@@ -104,10 +105,10 @@ export async function runInitCommand(runtime) {
     await fs.mkdir(skillsDir, { recursive: true });
     await fs.cp(starterSkills, skillsDir, { recursive: true });
     proc.stdout.write(
-      formatSuccess(".claude/skills/ created with starter skills.") + "\n",
+      formatSuccess("Created .claude/skills/ with starter skills.") + "\n",
     );
   } catch {
-    // No starter skills directory — skip silently
+    // No starter skills directory. Skip silently.
   }
 
   return { ok: true };

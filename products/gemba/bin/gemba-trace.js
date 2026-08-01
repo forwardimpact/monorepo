@@ -36,9 +36,9 @@ import {
 import { runAssertCommand } from "@forwardimpact/libharness/commands/assert.js";
 import { runByDiscussionCommand } from "@forwardimpact/libharness/commands/by-discussion.js";
 
-// Cross-trace verbs take one or more trace files via repeated `--file`
-// (libcli's named-slot `dispatch()` has no variadic positional). A value with
-// glob metacharacters is expanded by the handler via `runtime.fsSync.globSync`.
+// Cross-trace verbs take one or more trace files through repeated `--file`
+// (libcli's named-slot `dispatch()` has no variadic positional). The handler
+// expands a value with glob metacharacters through `runtime.fsSync.globSync`.
 const fileOption = () => ({
   file: {
     type: "string",
@@ -50,7 +50,7 @@ const fileOption = () => ({
 const definition = {
   name: "gemba-trace",
   description:
-    "Download, query, and analyze agent execution traces — read NDJSON output from gemba-harness as qualitative research",
+    "Download, query, and analyze agent execution traces. Read NDJSON output from gemba-harness as qualitative research",
   commands: [
     {
       name: "runs",
@@ -67,7 +67,7 @@ const definition = {
         participant: {
           type: "string",
           description:
-            "Filter to runs carrying this participant's trace lane; in-progress candidates are labeled, not dropped",
+            "Filter to runs that carry this participant's trace lane. In-progress candidates get a label and stay in the list",
         },
         repo: {
           type: "string",
@@ -82,7 +82,7 @@ const definition = {
       argsUsage: "<run-id> <participant>",
       handler: runFindCommand,
       description:
-        "Resolve a participant's lane trace for a known run id in one keyed lookup (no run enumeration, no content inspection)",
+        "Resolve a participant's lane trace for a known run id in one keyed lookup (it enumerates no runs and inspects no content)",
       options: {
         dir: {
           type: "string",
@@ -101,7 +101,7 @@ const definition = {
       argsUsage: "<run-id>",
       handler: runDownloadCommand,
       description:
-        "Download trace artifact and convert to structured JSON; pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts",
+        "Download trace artifact and convert to structured JSON. Pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts",
       options: {
         dir: { type: "string", description: "Output directory" },
         artifact: { type: "string", description: "Artifact name override" },
@@ -166,7 +166,7 @@ const definition = {
         },
         context: {
           type: "string",
-          description: "Surrounding turns per hit (default: 0)",
+          description: "Context turns per hit (default: 0)",
         },
         full: {
           type: "boolean",
@@ -188,7 +188,7 @@ const definition = {
       argsUsage: "<file> <name>",
       handler: runToolCommand,
       description:
-        "All turns involving a specific tool. See also `tools` (frequency) and `tool-calls` (paired use+result records)",
+        "All turns that involve a specific tool. See also `tools` (frequency) and `tool-calls` (paired use+result records)",
     },
     {
       name: "tool-calls",
@@ -203,7 +203,7 @@ const definition = {
       args: [],
       handler: runCommandsCommand,
       description:
-        "One record per Bash tool_use block, carrying the command text",
+        "One record per Bash tool_use block, with the command text",
       options: {
         ...fileOption(),
         match: {
@@ -222,7 +222,7 @@ const definition = {
         ...fileOption(),
         prefix: {
           type: "string",
-          description: "Filter to paths beginning with this prefix",
+          description: "Filter to paths that begin with this prefix",
         },
       },
     },
@@ -311,7 +311,7 @@ const definition = {
       argsUsage: "<discussion-id> [trace-dir]",
       handler: runByDiscussionCommand,
       description:
-        "List trace files whose meta header carries the given discussion_id, ordered by first-event timestamp",
+        "List trace files whose meta header carries the given discussion_id, in order of first-event timestamp",
       options: {
         "trace-dir": {
           type: "string",
@@ -346,7 +346,7 @@ const definition = {
       argsUsage: "<file>",
       handler: runSplitCommand,
       description:
-        "Split a combined trace into per-source files following the `trace--<case>--<participant>.<role>.ndjson` convention",
+        "Split a combined trace into per-source files that follow the `trace--<case>--<participant>.<role>.ndjson` convention",
       options: {
         mode: {
           type: "string",
@@ -369,7 +369,7 @@ const definition = {
       argsUsage: "<test-name> <file>",
       handler: runAssertCommand,
       description:
-        "Shell-friendly assertion — outputs structured JSON for invariant hooks",
+        "Shell-friendly assertion that outputs structured JSON for invariant hooks",
       options: {
         grep: {
           type: "string",
@@ -401,12 +401,12 @@ const definition = {
         gate: {
           type: "boolean",
           description:
-            "Mark the row a gate check (any failing gate fails the run)",
+            "Mark the row a gate check (the run fails if any gate fails)",
         },
         weight: {
           type: "string",
           description:
-            "Attach a numeric weight to the scored row; 0 marks the row diagnostic",
+            "Attach a numeric weight to the scored row. A weight of 0 marks the row diagnostic",
         },
       },
     },
@@ -471,7 +471,7 @@ const definition = {
       title: "Prove Agent Changes",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/index.md",
       description:
-        "End-to-end workflow including multi-agent collaboration; `split` is the bridge into per-source trace files.",
+        "End-to-end workflow that covers multi-agent collaboration. `split` is the bridge into per-source trace files.",
     },
   ],
 };
@@ -479,8 +479,8 @@ const definition = {
 const runtime = createDefaultRuntime();
 const logger = createLogger("trace", runtime);
 
-// Commands that talk to the GitHub API need a config-backed token resolver;
-// the rest only read local trace files through the runtime.
+// Commands that talk to the GitHub API need a config-backed token resolver.
+// The rest only read local trace files through the runtime.
 const NEEDS_CONFIG = new Set(["runs", "find", "download"]);
 
 async function main() {

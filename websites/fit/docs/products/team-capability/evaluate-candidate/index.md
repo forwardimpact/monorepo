@@ -65,7 +65,7 @@ Expected output:
     Architecture capability   ████████░░ → ██████████  (+20%)
 ```
 
-The output answers two questions at once. It names the existing risks this role
+The output answers two questions at once. It names the current risks this role
 resolves. It shows how overall coverage shifts. If the candidate's role resolves
 the risks you identified in the
 [parent guide](/docs/products/team-capability/), you have evidence that this

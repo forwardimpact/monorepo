@@ -20,7 +20,7 @@ Positional words are always prompt text. They are never commands.
 `npx fit-guide status` sends the word "status" to the agent. Operational
 commands are always flags (`--status`, `--login`).
 
-The CLI runs on the Claude Agent SDK. It connects to the MCP endpoint for
+The CLI builds on the Claude Agent SDK. It connects to the MCP endpoint for
 tools and prompts. It then streams the response.
 
 ### Helper CLI Tools

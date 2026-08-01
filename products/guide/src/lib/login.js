@@ -2,8 +2,8 @@ import { randomBytes, createHash } from "node:crypto";
 import { createServer } from "node:http";
 
 /**
- * Resolve the Anthropic OAuth endpoints, honouring environment overrides read
- * through the injected process collaborator.
+ * Resolve the Anthropic OAuth endpoints. Honour the environment overrides.
+ * This function reads them through the injected process collaborator.
  * @param {object} env - The `runtime.proc.env` surface.
  * @returns {{authorizeUrl: string, tokenUrl: string, clientId: string}}
  */
@@ -102,13 +102,14 @@ export async function login(config, runtime) {
   authorizeUrl.searchParams.set("state", pkce.state);
   authorizeUrl.searchParams.set("scope", "openid offline_access");
 
-  // Try to open browser; fall back to printing the URL. `subprocess.run`
-  // resolves with an exit code (it does not reject), so the fallback is driven
-  // by a non-zero exit (e.g. no `open` binary on Linux), not a thrown error.
+  // Try to open the browser. If that fails, print the URL instead.
+  // `subprocess.run` resolves with an exit code and does not reject. So a
+  // non-zero exit drives the fallback (e.g. no `open` binary on Linux). A
+  // thrown error does not.
   const openUrl = authorizeUrl.toString();
   const { exitCode } = await subprocess.run("open", [openUrl]);
   if (exitCode === 0) {
-    proc.stdout.write("Opening browser for login...\n");
+    proc.stdout.write("Opened the browser for login.\n");
   } else {
     proc.stdout.write(`Open this URL in your browser:\n\n  ${openUrl}\n\n`);
   }

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 /**
- * fit-guide CLI — Claude Agent SDK harness running inside librepl
+ * fit-guide CLI — the Claude Agent SDK harness that runs inside librepl
  *
- * Agent-aligned engineering standard knowledge agent reachable from three surfaces:
- * this CLI, Claude Code (MCP), and Claude Chat (Connector).
+ * It is a knowledge agent for the agent-aligned engineering standard. Three
+ * surfaces reach it: this CLI, Claude Code (MCP), and Claude Chat
+ * (Connector).
  */
 
 import "@forwardimpact/libpreflight/node22";
@@ -20,8 +21,8 @@ import { createStorage } from "@forwardimpact/libstorage";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 import { CHAT_MODEL } from "@forwardimpact/libutil/models";
 
-// Sole construction site for the injected collaborator bag threaded into the
-// single-flow command handlers (init, login, status).
+// This is the sole construction site for the injected collaborator bag. The
+// single-flow command handlers (init, login, status) receive it.
 const runtime = createDefaultRuntime();
 
 const VERSION = resolveVersion({
@@ -107,7 +108,8 @@ const repl = new Repl({
   prompt: "❯ ",
   indent: "  ",
   usage:
-    "**fit-guide** — Agent-aligned engineering standard knowledge agent.\n\n" +
+    "**fit-guide** — A knowledge agent for the agent-aligned engineering " +
+    "standard.\n\n" +
     "Type a question about your agent-aligned engineering standard.",
   storage: createStorage("guide"),
   state: {},

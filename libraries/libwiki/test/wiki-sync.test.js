@@ -19,8 +19,8 @@ import {
 
 // A mock fsSync whose wiki already carries the metrics-CSV union declaration,
 // so `commitAndPush`'s ensure-before-gate is a no-op and the git call sequence
-// is byte-identical to a commit-and-push that ensures nothing. Provisioning
-// behavior (the ensure writing the file) is covered in
+// is byte-identical to a commit-and-push that ensures nothing. The provision
+// behavior (the ensure writes the file) lives in
 // wiki-sync.integration.test.js against real git.
 const provisionedFs = () =>
   createMockFs({
@@ -47,17 +47,17 @@ describe("WikiSync", () => {
     const result = await wikiSync.ensureCloned("https://example/x.wiki.git");
     assert.deepEqual(result, { cloned: true, reason: "cloned" });
     assert.deepEqual(methods(), ["clone", "configSet"]);
-    // The clone carries the identity rule inline — the .git/config the persist
-    // step writes does not exist yet, so the broad rewrite must be neutralised
-    // on the clone invocation itself.
+    // The clone carries the identity rule inline. The .git/config that the
+    // persist step writes does not exist yet, so the clone invocation itself
+    // must neutralise the broad rewrite.
     const clone = git.calls.find((c) => c.method === "clone");
     assert.deepEqual(clone.args[2], {
       config: [
         "url.https://example/x.wiki.git.insteadOf=https://example/x.wiki.git",
       ],
     });
-    // and it is persisted so later fetch/push (which re-apply insteadOf against
-    // the stored remote URL) inherit it from the clone's own config.
+    // and the code persists it so a later fetch/push (which re-apply insteadOf
+    // against the stored remote URL) inherit it from the clone's own config.
     const set = git.calls.find((c) => c.method === "configSet");
     assert.deepEqual(set.args, [
       "url.https://example/x.wiki.git.insteadOf",
@@ -72,9 +72,9 @@ describe("WikiSync", () => {
     });
     const result = await wikiSync.ensureCloned("https://example/x.wiki.git");
     assert.deepEqual(result, { cloned: true, reason: "already-cloned" });
-    // No clone — a resumed clone persists from a prior session — but the pin is
-    // re-asserted (idempotent) so an older clone made before this rule still
-    // gains it.
+    // No clone runs, because a resumed clone persists from a prior session.
+    // But the code re-asserts the pin (idempotent), so an older clone made
+    // before this rule still gains it.
     assert.deepEqual(methods(), ["configSet"]);
     const set = git.calls.find((c) => c.method === "configSet");
     assert.deepEqual(set.args, [
@@ -132,8 +132,8 @@ describe("WikiSync", () => {
     assert.equal(result.landed, true);
     assert.equal(result.reason, PUSH_REASONS.LANDED);
     const m = methods();
-    // The bare push collects its own dirty set and commits it pathspec-scoped;
-    // the whole-tree `add -A` sweep that carried the eraser never runs.
+    // The bare push collects its own dirty set and commits it pathspec-scoped.
+    // The whole-tree `add -A` sweep that carried the eraser never runs.
     assert.ok(!m.includes("commitAll"), "the whole-tree sweep is gone");
     const commit = git.calls.find((c) => c.method === "commitPaths");
     assert.deepEqual(commit.args, [
@@ -154,7 +154,7 @@ describe("WikiSync", () => {
         ...HEALTHY,
         isMidMerge: false,
         status: { stdout: "", stderr: "", exitCode: 0 },
-        // Remote tip already contains HEAD ⇒ grounded nothing-to-push.
+        // The remote tip already contains HEAD ⇒ grounded nothing-to-push.
         remoteRefTip: "deadbeef",
         isAncestor: true,
       },
@@ -228,7 +228,7 @@ describe("WikiSync", () => {
     );
   });
 
-  test("stranded-resume (clean tree, ahead, stale ref) re-pushes — never nothing-to-push", async () => {
+  test("stranded-resume (clean tree, ahead, stale ref) re-pushes and never reports nothing-to-push", async () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
@@ -246,7 +246,7 @@ describe("WikiSync", () => {
     assert.ok(methods().includes("pushPorcelain"), "stranded tree re-pushes");
   });
 
-  test("commitAndPush fails loud on a rebase conflict — no -X ours, remote untouched", async () => {
+  test("commitAndPush fails loud on a rebase conflict, uses no -X ours, and leaves the remote untouched", async () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
@@ -262,14 +262,15 @@ describe("WikiSync", () => {
         err instanceof WikiPushFailure && err.reason === PUSH_REASONS.CONFLICT,
     );
     const m = methods();
-    assert.ok(m.includes("rebaseAbort"), "the rebase is aborted");
+    assert.ok(m.includes("rebaseAbort"), "commitAndPush aborts the rebase");
     assert.ok(!m.includes("mergeOursStrategy"), "remote side never discarded");
     assert.ok(!m.includes("pushPorcelain"), "no push on conflict");
   });
 
   test("commitAndPush folds .gitattributes into a scoped commit when the ensure writes it", async () => {
-    // No .gitattributes in the wiki → ensure writes it → it must be appended to
-    // the scoped commit pathspec so it is not autostashed aside.
+    // No .gitattributes in the wiki → the ensure writes it → the code must
+    // append it to the scoped commit pathspec so the autostash does not set it
+    // aside.
     const { git, wikiSync } = make({
       fsSync: createMockFs({}),
       responses: {
@@ -289,7 +290,7 @@ describe("WikiSync", () => {
     ]);
   });
 
-  test("registered op re-applies on rebase conflict instead of merging textually", async () => {
+  test("registered op re-applies on rebase conflict and never merges textually", async () => {
     const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip content\n" });
     const { wikiSync, methods } = make({
       fsSync,
@@ -310,7 +311,7 @@ describe("WikiSync", () => {
     );
     assert.deepEqual(result, { pushed: true, reason: "reapplied" });
     const seq = methods();
-    // The conflict path re-applies; it never calls mergeOursStrategy.
+    // The conflict path re-applies. It never calls mergeOursStrategy.
     assert.ok(seq.includes("resetSoft"));
     assert.ok(seq.includes("checkoutPaths"));
     assert.ok(seq.includes("commitPaths"));
@@ -326,7 +327,7 @@ describe("WikiSync", () => {
     );
   });
 
-  test("re-apply returning null is an already-satisfied no-op (criterion 3)", async () => {
+  test("a re-apply that returns null is an already-satisfied no-op (criterion 3)", async () => {
     const fsSync = createMockFs({
       [`${WIKI}/MEMORY.md`]: "tip already has it\n",
     });
@@ -347,7 +348,8 @@ describe("WikiSync", () => {
       },
     );
     assert.deepEqual(result, { pushed: false, reason: "already-satisfied" });
-    // Only the initial pre-conflict commit; the loop makes no second commit.
+    // Only the initial pre-conflict commit runs. The loop makes no second
+    // commit.
     assert.equal(methods().filter((m) => m === "commitPaths").length, 1);
   });
 
@@ -397,7 +399,7 @@ describe("WikiSync", () => {
     );
   });
 
-  test("an auth/network push failure is not contention: it rethrows, not loops", async () => {
+  test("an auth/network push failure is not contention, so it rethrows and does not loop", async () => {
     const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
     const { wikiSync, git } = make({
       fsSync,
@@ -406,7 +408,7 @@ describe("WikiSync", () => {
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 1, stderr: "CONFLICT" },
         revListCount: 1,
-        // A credential failure — not a non-fast-forward rejection.
+        // This is a credential failure. It is not a non-fast-forward rejection.
         push: { throw: "could not read Username: terminal prompts disabled" },
       },
     });
@@ -417,7 +419,7 @@ describe("WikiSync", () => {
       }),
       /could not read Username/,
     );
-    // The auth failure rethrew on the first push — it did not burn the budget.
+    // The auth failure rethrew on the first push. It did not burn the budget.
     assert.equal(
       git.calls.filter((c) => c.method === "push").length,
       1,
@@ -425,7 +427,7 @@ describe("WikiSync", () => {
     );
   });
 
-  test("a conflict without a reapply fails loud — the mergeOursStrategy floor is removed (1780 lands 1920's joint fail-loud)", async () => {
+  test("a conflict without a reapply fails loud, and the mergeOursStrategy floor is gone (1780 lands 1920's joint fail-loud)", async () => {
     const fsSync = createMockFs({ [`${WIKI}/MEMORY.md`]: "tip\n" });
     const { wikiSync, methods } = make({
       fsSync,
@@ -435,20 +437,20 @@ describe("WikiSync", () => {
         rebase: { exitCode: 1, stderr: "CONFLICT" },
       },
     });
-    // No reapply: the silent-clobber fallback is removed, so the
-    // no-intent conflict path fails loud rather than discarding the remote side.
+    // With no reapply, the silent-clobber fallback is gone. So the no-intent
+    // conflict path fails loud and never discards the remote side.
     await assert.rejects(
       () => wikiSync.commitAndPush("wiki: update", ["MEMORY.md"]),
       (err) =>
         err instanceof WikiPushFailure && err.reason === PUSH_REASONS.CONFLICT,
     );
     const seq = methods();
-    assert.ok(seq.includes("rebaseAbort"), "the rebase is aborted");
+    assert.ok(seq.includes("rebaseAbort"), "commitAndPush aborts the rebase");
     assert.ok(!seq.includes("mergeOursStrategy"), "the clobber floor is gone");
     assert.ok(!seq.includes("resetSoft"));
   });
 
-  test("network operations resolve and thread the token; local ones do not", async () => {
+  test("network operations resolve and thread the token, but local ones do not", async () => {
     let calls = 0;
     const { git, wikiSync } = make({
       responses: { status: { stdout: "", stderr: "", exitCode: 0 } },

@@ -3,12 +3,14 @@
 // `apm install` exits 0 even when a declared pack fails to resolve, so its exit
 // code cannot gate the run. This script reconciles the packs declared under
 // apm.yml `dependencies.apm` against the post-install apm.lock.yaml (matched by
-// repo_url) and the on-disk deployed files, and exits nonzero on any gap (SC4).
+// repo_url). It also reconciles them against the on-disk deployed files. It
+// exits nonzero on any gap (SC4).
 //
-// Run with Bun from the consumer checkout root; it reads apm.yml and
-// apm.lock.yaml from process.cwd() and parses them with the runtime's built-in
-// Bun.YAML.parse — no dependency, since it runs inside an arbitrary consumer
-// checkout where the monorepo's node_modules is absent.
+// Run this script with Bun from the consumer checkout root. It reads apm.yml
+// and apm.lock.yaml from process.cwd(). It parses them with the runtime's
+// built-in Bun.YAML.parse. That adds no dependency, because the script runs
+// inside an arbitrary consumer checkout where the monorepo's node_modules is
+// absent.
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -35,7 +37,7 @@ const lockPath = join(cwd, "apm.lock.yaml");
 const apmYml = parseYamlFile(apmYmlPath);
 const declared = apmYml?.dependencies?.apm;
 
-// Nothing declared under dependencies.apm — nothing to verify.
+// Nothing is declared under dependencies.apm, so there is nothing to verify.
 if (!Array.isArray(declared) || declared.length === 0) {
   console.log("apm-verify: no packs declared under apm.yml dependencies.apm.");
   process.exit(0);
@@ -44,15 +46,15 @@ if (!Array.isArray(declared) || declared.length === 0) {
 const errors = [];
 
 if (!existsSync(lockPath)) {
-  console.log("::error::apm-verify: apm.lock.yaml is missing; declared packs are unresolved.");
+  console.log("::error::apm-verify: apm.lock.yaml is missing. Declared packs are unresolved.");
   process.exit(1);
 }
 
 const lock = parseYamlFile(lockPath);
 const lockDeps = Array.isArray(lock?.dependencies) ? lock.dependencies : [];
 
-// Index lockfile entries by normalized repo_url so a declared pack can be joined
-// to its resolved entry.
+// Index lockfile entries by normalized repo_url so the loop below can join a
+// declared pack to its resolved entry.
 const byRepo = new Map();
 for (const entry of lockDeps) {
   const key = normalizeRepo(entry?.repo_url ?? "");
@@ -62,8 +64,9 @@ for (const entry of lockDeps) {
 
 const verified = [];
 
-// Anchor on the declared set, not on deployed_files present, so a pack that
-// never resolved (no lockfile entry) is caught rather than passing blind.
+// Anchor on the declared set. Do not anchor on the deployed_files present. The
+// script then catches a pack that never resolved (no lockfile entry) instead of
+// a blind pass.
 for (const decl of declared) {
   const repo = normalizeRepo(decl);
   const matches = byRepo.get(repo) ?? [];
@@ -73,7 +76,7 @@ for (const decl of declared) {
     continue;
   }
   if (matches.length > 1) {
-    errors.push(`declared pack '${decl}' matches ${matches.length} apm.lock.yaml entries; expected exactly one.`);
+    errors.push(`declared pack '${decl}' matches ${matches.length} apm.lock.yaml entries. Expected exactly one.`);
     continue;
   }
 
@@ -87,7 +90,7 @@ for (const decl of declared) {
   const missing = deployed.filter((rel) => !existsSync(join(cwd, rel)));
   if (missing.length > 0) {
     for (const rel of missing) {
-      errors.push(`declared pack '${decl}' is missing deployed file on disk: ${rel}`);
+      errors.push(`declared pack '${decl}' has no deployed file on disk: ${rel}`);
     }
     continue;
   }

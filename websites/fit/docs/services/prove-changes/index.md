@@ -1,18 +1,18 @@
 ---
 title: Collect Spans from Any Product
-description: Products that emit spans without managing storage — shared span gRPC service with a single collection point.
+description: Products emit spans and do not manage storage. One shared span gRPC service collects them.
 ---
 
-You are building a product that generates spans -- recording what an agent
-did, how long each step took, and whether it succeeded -- and you need those
-spans stored somewhere queryable. Managing per-product span files means each
-product reinvents storage, indexing, and query logic. The span gRPC service
-accepts spans from any product, stores them in a shared JSONL-backed index, and
-serves them back through a query interface. Your product sends a span; the
-service handles persistence and retrieval.
+You build a product that generates spans. A span records what an agent did,
+how long each step took, and whether it succeeded. You need to store those
+spans somewhere queryable. Per-product span files make each product reinvent
+storage, indexes, and query logic. The span gRPC service accepts spans from
+any product. It stores them in a shared JSONL-backed index. It serves them
+back through a query interface. Your product sends a span. The service stores
+the span and retrieves it.
 
-This guide walks through connecting to the span service, recording a span,
-querying it back, and verifying the round trip works.
+This guide shows how to connect to the span service, record a span, query it
+back, and verify that the round trip works.
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ The span service owns two RPCs:
 
 The service stores spans in a `TraceIndex` backed by a JSONL file at
 `data/spans/index.jsonl`. The index is append-only during the service
-lifetime and flushed on shutdown.
+lifetime. The service flushes it on shutdown.
 
 ```text
 Product A ──┐                    ┌── data/spans/index.jsonl
@@ -45,13 +45,13 @@ Product A ──┐                    ┌── data/spans/index.jsonl
 Product B ──┘                    └── (query interface)
 ```
 
-The span service intentionally does not trace itself -- connecting a tracer
-to a service that records spans would create infinite recursion.
+The span service does not trace itself on purpose. If you connect a tracer to
+a service that records spans, you create infinite recursion.
 
 ## Connect to the span service
 
-Create a span client. Because the span service cannot use distributed
-tracing internally, the client connection is simpler than other services:
+Create a span client. The span service cannot use distributed tracing
+internally. So the client connection is simpler than for other services:
 
 ```js
 import { createClient } from "@forwardimpact/librpc";
@@ -152,8 +152,8 @@ await spanClient.RecordSpan(spanWithEvents);
 
 ## Query spans
 
-Retrieve spans using `QuerySpans`. You can query by text, trace ID, or
-resource ID -- at least one must be provided:
+Retrieve spans with `QuerySpans`. You can query by text, trace ID, or
+resource ID. You must supply at least one:
 
 ### By trace ID
 
@@ -213,8 +213,8 @@ const result = await spanClient.QuerySpans(combined);
 
 ## Build a trace tree
 
-Spans reference their parent via `parent_span_id`. To reconstruct the tree
-structure from a query result:
+Spans reference their parent through `parent_span_id`. To reconstruct the
+tree structure from a query result:
 
 ```js
 function buildTree(spans) {
@@ -263,17 +263,17 @@ evaluate-agent-output (1500ms)
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - `createClient("span")` connects without error.
 - `RecordSpan` with a valid `trace_id` and `span_id` returns
   `{ success: true }`.
 - `QuerySpans` with the same `trace_id` returns the recorded spans.
-- Span attributes, events, and status are preserved in the round trip.
+- The round trip preserves span attributes, events, and status.
 
-If the connection fails, confirm the span service is running with
-`npx fit-rc status`. If `RecordSpan` fails, check that both `trace_id` and
-`span_id` are non-empty strings.
+If the connection fails, run `npx fit-rc status` to confirm that the span
+service runs. If `RecordSpan` fails, check that both `trace_id` and `span_id`
+are non-empty strings.
 
 ## What's next
 

@@ -90,5 +90,5 @@ fire-condition (2) requires the stamp.
 Established practice motivates this rule. The rule does not descend from it.
 The run that motivated it (RE run-254) actually probed githubstatus **last**.
 Its early component theorizing produced an attribution that had to be
-retracted. That experience argues **for** a probe of the platform first. The rule
-does not claim to codify how the team already worked.
+retracted. That experience argues **for** a probe of the platform first. The
+rule does not claim to codify how the team already worked.

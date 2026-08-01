@@ -24,7 +24,7 @@ export const ROUTE_NONE = "none";
 export const ROUTE_BEARING_METRICS = ["implementations_shipped"];
 
 // The route check is forward-only. It applies only to rows that the
-// shipped recording surface writes. Those rows come strictly after every
+// shipped recorder writes. Those rows come strictly after every
 // route-bearing row that existed when the convention shipped. The binding
 // case is the latest pre-convention `implementations_shipped` rows that
 // carry no route grammar. Pin the gate strictly after them. The whole

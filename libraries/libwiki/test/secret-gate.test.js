@@ -13,8 +13,9 @@ const RANGE = "origin/master..HEAD";
 
 /**
  * A subprocess stub that distinguishes the two `gitleaks` invocations the gate
- * makes — `version` (probe) and `detect` (scan) — by their first arg, since
- * the libmock subprocess keys responses by command name only. Records calls.
+ * makes: `version` (probe) and `detect` (scan). It keys on their first arg,
+ * because the libmock subprocess keys responses by command name only. Records
+ * calls.
  */
 function gitleaksSubprocess({ version = { exitCode: 0 }, detect = {} } = {}) {
   const calls = [];
@@ -30,9 +31,9 @@ function gitleaksSubprocess({ version = { exitCode: 0 }, detect = {} } = {}) {
   };
 }
 
-// The secret value is assembled from parts so no `ghp_`-prefixed literal sits
-// in source (GitHub push-protection rejects token literals). The test still
-// proves the value is never copied into a finding.
+// The test assembles the secret value from parts, so no `ghp_`-prefixed
+// literal sits in source (GitHub push-protection rejects token literals). The
+// test still proves the code never copies the value into a finding.
 const FAKE_SECRET = ["ghp", "THISMUSTNEVERAPPEARINAFINDING"].join("_");
 const FINDING_REPORT = JSON.stringify([
   {
@@ -110,7 +111,7 @@ describe("scanPushWindow", () => {
       range: RANGE,
     });
     assert.deepEqual(result, { status: "scanner-absent" });
-    // Only the probe runs; no detect call when the scanner is absent.
+    // Only the probe runs. No detect call follows when the scanner is absent.
     assert.equal(subprocess.calls.length, 1);
     assert.deepEqual(subprocess.calls[0].args, ["version"]);
   });
@@ -154,12 +155,12 @@ describe("appendOverrideRecord", () => {
     assert.match(line, /^2026-06-18T12:00:00\.000Z\t/);
     assert.match(line, /\tagent@example\.com\t/);
     assert.match(line, /\tfinding\t/);
-    // The reason is collapsed to a single line.
+    // appendOverrideRecord collapses the reason to a single line.
     assert.match(line, /\tconfirmed false positive from review\t/);
     assert.match(line, /\tMEMORY\.md:7:github-pat\n$/);
     // The audit line itself must never carry a secret value.
     assert.doesNotMatch(line, /ghp_/);
-    // The log is committed path-scoped into the same push.
+    // appendOverrideRecord commits the log path-scoped into the same push.
     const commit = gitClient.calls.find((c) => c.method === "commitPaths");
     assert.deepEqual(commit.args, [
       `wiki: secret-gate override (finding)`,

@@ -9,7 +9,7 @@ Options:
   --ids=<string>        Comma-separated ids to backfill an anchor for (instead of --count)
   --event=<string>      Durable key for the allocation (SHA or anchor id)
   --note=<string>       Free-text note for the anchor
-  --gapped              Render double-allocation losers as a gap, not a renumber
+  --gapped              Render double-allocation losers as a gap instead of a renumber
   --issue=<string>      Anchor issue number (default obstacle issue)
 
 Global options:

@@ -41,7 +41,7 @@ describe("renderIssueList", () => {
     assert.deepEqual(lines, ["- #1 obstacle one"]);
   });
 
-  test("passes the --repo slug to gh when provided", async () => {
+  test("passes the --repo slug to gh when the caller provides it", async () => {
     const { runtime, subprocess } = runtimeWithGh("[]");
     await renderIssueList({
       topic: "obstacles",
@@ -113,7 +113,7 @@ describe("renderIssueList", () => {
 });
 
 describe("renderAgentExperiments", () => {
-  test("emits attributed lines for labeled issues, drops unlabeled", async () => {
+  test("emits attributed lines for labeled issues and drops unlabeled ones", async () => {
     const { runtime } = runtimeWithGh(
       JSON.stringify([
         {
@@ -175,7 +175,7 @@ describe("renderAgentExperiments", () => {
     assert.equal(m[2], "release-engineer");
   });
 
-  test("a title containing ' (by ...)' round-trips to the real author", async () => {
+  test("a title that contains ' (by ...)' round-trips to the real author", async () => {
     const { runtime } = runtimeWithGh(
       JSON.stringify([
         {
@@ -192,7 +192,7 @@ describe("renderAgentExperiments", () => {
     assert.equal(m[4], "realauthor", "author group must be the gh author");
   });
 
-  test("a deleted-account author renders empty, not a crash", async () => {
+  test("a deleted-account author renders empty and does not crash", async () => {
     const { runtime } = runtimeWithGh(
       JSON.stringify([
         {

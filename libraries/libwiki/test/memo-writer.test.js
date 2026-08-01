@@ -61,7 +61,7 @@ describe("writeMemo", () => {
     assert.equal(fs.written, null);
   });
 
-  test("marker is preserved after write", () => {
+  test("preserves the marker after the write", () => {
     const content = ["## Message Inbox", MEMO_INBOX_MARKER, ""].join("\n");
 
     const fs = createFakeFs(content);
@@ -70,7 +70,7 @@ describe("writeMemo", () => {
     assert.ok(fs.written.includes(MEMO_INBOX_MARKER));
   });
 
-  test("multi-line message collapsed to single line", () => {
+  test("collapses a multi-line message to a single line", () => {
     const content = ["## Message Inbox", MEMO_INBOX_MARKER, ""].join("\n");
 
     const fs = createFakeFs(content);

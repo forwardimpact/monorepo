@@ -184,7 +184,7 @@ export function buildSignalMask(signals, n) {
   return mask;
 }
 
-// Same idea, but for the mR chart (only mR-Rule 1 participates).
+// This mask does the same for the mR chart (only mR-Rule 1 participates).
 /** Build a boolean array (1-indexed) that marks slots that participate in mR Rule 1 signals. */
 export function buildMRSignalMask(signals, n) {
   const mask = new Array(n + 1).fill(false);

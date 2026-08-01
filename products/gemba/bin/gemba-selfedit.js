@@ -24,19 +24,19 @@ Usage:
 Safeguards (checked in order):
   1. The nearest .claude/settings.json must contain an Edit(<glob>) rule
      in permissions.allow[] that resolves to the target path.
-  2. HEAD must not be detached and the current branch must not be 'main'.
+  2. HEAD must not be detached. The current branch must not be 'main'.
 
 Exit codes:
   0  wrote the file
-  2  safeguard violation (no settings.json, no matching Edit rule, on
-     main, detached HEAD, missing parent directory, TTY stdin)
+  2  safeguard violation (no settings.json, no Edit rule that matches, on
+     main, detached HEAD, absent parent directory, TTY stdin)
   1  unexpected I/O error
 
 Why this exists:
   Some session harnesses block Edit/Write (and interactive bash writes)
   on .claude/skills/**, even when the project allowlist permits them.
-  This CLI is a narrow, audited bypass: a subprocess write that still
-  has to clear the project allowlist and the normal merge gates.
+  This CLI is a narrow, audited bypass. It is a subprocess write that
+  still has to clear the project allowlist and the normal merge gates.
 `;
 
 function fail(message) {
@@ -71,7 +71,7 @@ if (extra.length > 0) fail(`unexpected extra arguments: ${extra.join(" ")}`);
 
 if (process.stdin.isTTY) {
   fail(
-    "stdin is a TTY — pipe content in (e.g. `echo … | gemba-selfedit <path>`)",
+    "stdin is a TTY. Pipe content in (e.g. `echo … | gemba-selfedit <path>`)",
   );
 }
 

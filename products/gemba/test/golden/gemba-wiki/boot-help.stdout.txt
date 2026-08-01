@@ -1,4 +1,4 @@
-gemba-wiki boot — Print on-boot digest (priorities, claims, storyboard items) as JSON
+gemba-wiki boot — Print the on-boot digest (priorities, claims, storyboard items) as JSON
 
 Usage: gemba-wiki boot [options]
 

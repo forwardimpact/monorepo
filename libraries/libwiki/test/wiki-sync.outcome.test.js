@@ -8,9 +8,9 @@ import {
   PUSH_REASONS,
 } from "../src/wiki-sync.js";
 // The shared harness composes the honest push-flow responses (HEALTHY_PUSH)
-// with the foundation guards (mid-merge, ancestry, marker, secret) so a
-// push-focused test reaches a grounded landing under the composed
-// composed flow (ancestry guard + merge discipline + integrity probe).
+// with the foundation guards (mid-merge, ancestry, marker, secret). A
+// push-focused test then reaches a grounded landing under the composed flow
+// (ancestry guard + merge discipline + integrity probe).
 import { WIKI, HEALTHY_PUSH, REMOTE_TIP, make } from "./wiki-sync-harness.js";
 
 describe("WikiSync honest-outcome contract", () => {
@@ -23,7 +23,7 @@ describe("WikiSync honest-outcome contract", () => {
     );
   }
 
-  test("precondition: rebase-in-progress refuses before mutating", async () => {
+  test("precondition: rebase-in-progress refuses before any mutation", async () => {
     const { git, wikiSync } = make({
       responses: { ...HEALTHY_PUSH, status: DIRTY, rebase: { exitCode: 0 } },
       fsSync: createMockFs({ [`${WIKI}/.git/rebase-merge`]: "" }),
@@ -40,10 +40,10 @@ describe("WikiSync honest-outcome contract", () => {
     );
   });
 
-  test("detached HEAD refuses before mutating (ancestry guard — D7 seam defers to 1750)", async () => {
-    // The detached-HEAD D7 fixture collapses onto the ancestry guard, which
-    // refuses with an AncestryRefusal ("unverifiable") before any mutation —
-    // the ancestry guard owns the reason naming for that fixture.
+  test("detached HEAD refuses before any mutation (ancestry guard, D7 seam defers to 1750)", async () => {
+    // The detached-HEAD D7 fixture collapses onto the ancestry guard. The
+    // guard refuses with an AncestryRefusal ("unverifiable") before any
+    // mutation. The ancestry guard names the reason for that fixture.
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -65,7 +65,7 @@ describe("WikiSync honest-outcome contract", () => {
       responses: {
         ...HEALTHY_PUSH,
         status: DIRTY,
-        rebase: { exitCode: 0, stderr: "" }, // rebase succeeds; pop conflicts
+        rebase: { exitCode: 0, stderr: "" }, // rebase ok but pop conflicts
         statusPorcelain: { stdout: "UU foreign.md\n", stderr: "", exitCode: 0 },
         revParse: "stash5ha",
       },
@@ -84,7 +84,10 @@ describe("WikiSync honest-outcome contract", () => {
     assert.equal(caught.stashSha, "stash5ha");
     const m = git.calls.map((c) => c.method);
     assert.ok(!m.includes("pushPorcelain"), "no push on residue-conflict");
-    assert.ok(!m.includes("stashDropBySha"), "stash is preserved, not dropped");
+    assert.ok(
+      !m.includes("stashDropBySha"),
+      "commitAndPush preserves the stash and does not drop it",
+    );
   });
 
   test("rejected after a successful fetch", async () => {
@@ -142,8 +145,8 @@ describe("WikiSync honest-outcome contract", () => {
   });
 
   test("occurrence-#41: success prose + zero exit but ref not updated ⇒ failure", async () => {
-    // Inadmissible channels (prose, exit 0) report success while the per-ref `!`
-    // flag says rejected and the remote tip does not advance.
+    // Inadmissible channels (prose, exit 0) report success. The per-ref `!`
+    // flag says rejected, and the remote tip does not advance.
     const { wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -173,8 +176,9 @@ describe("WikiSync honest-outcome contract", () => {
         pushPorcelain: { stdout: "garbage\n", stderr: "", exitCode: 0 },
       },
     });
-    // First remoteRefTip = pre-push grounding (not contained); second = post-push
-    // grounding after the ambiguous report. isAncestor true on the post-push read.
+    // The first remoteRefTip grounds the pre-push check (not contained). The
+    // second grounds the post-push check after the ambiguous report.
+    // isAncestor is true on the post-push read.
     git.isAncestor = async (_a, _b) => tipCalls++ > 0;
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.equal(result.landed, true);
@@ -183,14 +187,14 @@ describe("WikiSync honest-outcome contract", () => {
 
   // ── Conservation guard (D5) ──
 
-  // `isAncestor` is asked two opposite questions: nothing-to-push grounding
-  // asks `isAncestor("HEAD", tip)` (remote already has HEAD), the conservation
-  // guard asks `isAncestor(tip, "HEAD")` (HEAD descends from the remote tip).
-  // The conservation fixtures push real content (not nothing-to-push) onto a
-  // HEAD that, post-rebase, descends from the tip — so answer the two by
-  // argument order. `staleBase: true` models a stale-base HEAD that never saw
-  // the remote advance (clean-replay / stale-revert), so the guard's question
-  // answers false.
+  // The code asks `isAncestor` two opposite questions. The nothing-to-push
+  // check asks `isAncestor("HEAD", tip)` (remote already has HEAD). The
+  // conservation guard asks `isAncestor(tip, "HEAD")` (HEAD descends from the
+  // remote tip). The conservation fixtures push real content onto a HEAD that
+  // descends from the tip after the rebase. They are not nothing-to-push. So
+  // answer the two questions by argument order. `staleBase: true` models a
+  // stale-base HEAD that never saw the remote advance (clean-replay /
+  // stale-revert), so the guard's question answers false.
   function conservationFixture(extra = {}) {
     const { staleBase = false, ...rest } = extra;
     const fx = make({
@@ -201,7 +205,7 @@ describe("WikiSync honest-outcome contract", () => {
         ...rest,
       },
     });
-    fx.git.isAncestor = async (a) => (a === "HEAD" ? false : !staleBase); // nothing-to-push: no; descends: yes unless stale
+    fx.git.isAncestor = async (a) => (a === "HEAD" ? false : !staleBase); // no to nothing-to-push, yes to descends unless stale
     return fx;
   }
 
@@ -209,7 +213,7 @@ describe("WikiSync honest-outcome contract", () => {
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "D\tweekly-log.md",
     });
-    // Remote has content; HEAD dropped the whole file.
+    // The remote has content. HEAD dropped the whole file.
     git.showFile = async (ref) =>
       ref === REMOTE_TIP ? "foreign run record\n" : "";
     await rejectsReason(
@@ -246,13 +250,13 @@ describe("WikiSync honest-outcome contract", () => {
     assert.equal(result.reason, PUSH_REASONS.LANDED);
   });
 
-  test("conservation: stale-base release dropping a live foreign row is not blanket-exempted", async () => {
-    // A `release --expired` written from a stale base legitimately drops the
-    // expired row, but its stale tree also lacks a live foreign row another
-    // writer added after the base. The blanket release-message exemption must
-    // not pass that collateral live-row drop (D5): the deliberate act is the
-    // released row, not a file-level pass, and a stale base never saw the live
-    // row, so the drop is caught.
+  test("conservation: a stale-base release that drops a live foreign row gets no blanket exemption", async () => {
+    // Someone writes a `release --expired` from a stale base. It legitimately
+    // drops the expired row. Its stale tree also lacks a live foreign row that
+    // another writer added after the base. The blanket release-message
+    // exemption must not pass that collateral live-row drop (D5). The
+    // deliberate act is the released row. It is not a file-level pass. A stale
+    // base never saw the live row, so the guard catches the drop.
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "M\tMEMORY.md",
       staleBase: true,
@@ -268,7 +272,7 @@ describe("WikiSync honest-outcome contract", () => {
     );
   });
 
-  test("conservation: declared removal via the intent sidecar passes (and survives retry)", async () => {
+  test("conservation: declared removal through the intent sidecar passes (and survives retry)", async () => {
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -291,7 +295,7 @@ describe("WikiSync honest-outcome contract", () => {
     const { wikiSync } = conservationFixture({
       diffNameStatus: "M\tMEMORY.md",
     });
-    // Remote content is fully present in HEAD (HEAD only added) ⇒ no drop.
+    // The remote content is fully present in HEAD (HEAD only added) ⇒ no drop.
     // showFile default ("" both sides) ⇒ #dropsForeignContent returns false.
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.equal(result.landed, true);
@@ -302,8 +306,9 @@ describe("WikiSync honest-outcome contract", () => {
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "M\tSTATUS.md",
     });
-    // The foreign row `1750\tdesign\tapproved` is transitioned (same row key
-    // `1750`) to `1750\tplan\tapproved`. The row key survives ⇒ pass.
+    // HEAD transitions the foreign row `1750\tdesign\tapproved` to
+    // `1750\tplan\tapproved` with the same row key `1750`. The row key
+    // survives ⇒ pass.
     git.showFile = async (ref) =>
       ref === REMOTE_TIP
         ? "1750\tdesign\tapproved\n0010\tplan\timplemented\n"
@@ -313,10 +318,11 @@ describe("WikiSync honest-outcome contract", () => {
     assert.equal(result.reason, PUSH_REASONS.LANDED);
   });
 
-  test("stale revert of an advanced foreign row is caught loud (textual overlap ⇒ conflict)", async () => {
-    // A side-pick revert of the SAME row the remote advanced textually overlaps,
-    // so the rebase conflicts and fails loud before any push — conserved by the
-    // conflict path. D5's clean-replay guard handles non-overlapping drops.
+  test("a stale revert of an advanced foreign row fails loud (textual overlap ⇒ conflict)", async () => {
+    // A side-pick revert of the SAME row the remote advanced overlaps it
+    // textually. So the rebase conflicts and fails loud before any push. The
+    // conflict path conserves the row. D5's clean-replay guard handles drops
+    // that do not overlap.
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -331,15 +337,16 @@ describe("WikiSync honest-outcome contract", () => {
     assert.ok(!git.calls.map((c) => c.method).includes("pushPorcelain"));
   });
 
-  test("conservation: non-overlapping stale revert of an advanced foreign row refused", async () => {
-    // The clean-replay shape (spec criterion: stale revert refused): a
-    // stale-base commit restores a superseded state of a foreign row the remote
-    // advanced, with no authored transition in the pushed history. The row key
-    // survives, so the key heuristic alone would read it as a transition — but
-    // HEAD does not descend from the remote tip (stale base), so it is a revert.
+  test("conservation: a stale revert of an advanced foreign row refused (no textual overlap)", async () => {
+    // The clean-replay shape (spec criterion: stale revert refused). A
+    // stale-base commit restores a superseded state of a foreign row that the
+    // remote advanced. The pushed history holds no authored transition. The
+    // row key survives, so the key heuristic alone would read it as a
+    // transition. But HEAD does not descend from the remote tip (stale base),
+    // so it is a revert.
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "M\tSTATUS.md",
-      staleBase: true, // HEAD written from a stale base, never saw the advance
+      staleBase: true, // HEAD came from a stale base and never saw the advance
     });
     git.showFile = async (ref) =>
       ref === REMOTE_TIP
@@ -352,10 +359,11 @@ describe("WikiSync honest-outcome contract", () => {
   });
 
   test("conservation: side-pick drop of a foreign run-record section refused", async () => {
-    // A side-pick keeps the local side of a conflict, dropping a foreign
-    // run-record section the pusher's stale base never saw. The drop is keyed
-    // off the stale base (`staleBase: true`), so the prose lines — present at
-    // the tip, absent from HEAD, with no authored edit over the tip — refuse.
+    // A side-pick keeps the local side of a conflict. It drops a foreign
+    // run-record section that the pusher's stale base never saw. The guard
+    // keys the drop off the stale base (`staleBase: true`). The prose lines
+    // sit at the tip and are absent from HEAD, with no authored edit over the
+    // tip, so the guard refuses.
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "M\tweekly-log.md",
       staleBase: true,
@@ -371,9 +379,10 @@ describe("WikiSync honest-outcome contract", () => {
   });
 
   test("conservation: drop of one claim row of a multi-row agent refused (non-unique key)", async () => {
-    // The Active Claims table is keyed by (agent, target): agent alone fans out
-    // to many rows. Dropping agent X's proj-200 row while X's proj-100 survives
-    // must refuse — a single-cell key would wrongly read it as a transition.
+    // The Active Claims table uses (agent, target) as its key. Agent alone fans
+    // out to many rows. A drop of agent X's proj-200 row while X's proj-100
+    // survives must refuse. A single-cell key would wrongly read it as a
+    // transition.
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "M\tMEMORY.md",
     });

@@ -6,8 +6,8 @@ Options:
   --agent=<string>       Agent name (required; no environment fallback)
   --wiki-root=<string>   Override wiki root directory (default: wiki)
   --today=<string>       Override today's ISO date (testing)
-  --target=<string>      What is being claimed (spec id, PR id, etc.)
-  --branch=<string>      Branch carrying the work
+  --target=<string>      What you claim (spec id, PR id, etc.)
+  --branch=<string>      Branch that carries the work
   --pr=<string>          Optional PR id
   --expires-at=<string>  Override expiry ISO date (default claim+1d)
 

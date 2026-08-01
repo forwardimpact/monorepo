@@ -69,7 +69,7 @@ describe("insertMarkers", () => {
     ]);
   });
 
-  test("marker placed directly under heading", () => {
+  test("places the marker directly under the heading", () => {
     const fs = setup({
       "staff-engineer": "## Message Inbox\n\n- existing bullet\n",
     });

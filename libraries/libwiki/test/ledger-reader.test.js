@@ -11,7 +11,7 @@ function comment(id, anchor, createdAt = "2026-06-17T00:00:00Z") {
 describe("ledger reader", () => {
   test("reads anchors across paginated pages in id order", async () => {
     // The mock value is the already-flattened array a correct --slurp parse
-    // yields; comments arrive out of id order to prove the sort.
+    // yields. The comments arrive out of id order to prove the sort.
     const gh = createMockGhClient({
       responses: {
         apiGetPaginated: [
