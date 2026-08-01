@@ -314,7 +314,8 @@ for (const mode of ["single", "multi"]) {
       );
       const postedCommentId = `C_${commentCalls.length}`;
       // The bridge must treat a webhook for its own comment as
-      // self-originated. It drops the delivery (204) and does not re-dispatch.
+      // self-originated. It must drop the delivery (204) and must not
+      // re-dispatch.
       const res = await postSigned(
         baseUrl,
         "discussion_comment",

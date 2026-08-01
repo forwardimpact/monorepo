@@ -5,7 +5,7 @@ Usage: gemba-harness run [options]
 Options:
   --task-file=<string>         Path to a markdown task file
   --task-text=<string>         Inline task text (alternative to --task-file)
-  --task-event=<string>        Path to a native GitHub event payload JSON, composed into the task via libharness/src/events/github.js (reads $GITHUB_EVENT_NAME)
+  --task-event=<string>        Path to a native GitHub event payload JSON that libharness/src/events/github.js composes into the task (reads $GITHUB_EVENT_NAME)
   --task-amend=<string>        Additional text appended to the task
   --agent-model=<string>       Claude model for the agent (default: claude-opus-4-8[1m])
   --max-turns=<string>         Max agentic turns (default: 50, 0 = unlimited)
@@ -14,8 +14,8 @@ Options:
   --agent-profile=<string>     Agent profile name to load
   --work-tracker=<string>      Active work-item tracker (github|filesystem, default: github)
   --allowed-tools=<string>     Comma-separated tool allowlist
-  --mcp-server=<string>        Connect to the MCP service (e.g. --mcp-server=guide); adds mcp__<name>__* to allowed tools
-  --advisor-model=<string>     Claude model for advisor consults; omitting the flag disables the Advisor tool (default: off)
+  --mcp-server=<string>        Connect to the MCP service (e.g. --mcp-server=guide). This adds mcp__<name>__* to allowed tools
+  --advisor-model=<string>     Claude model for advisor consults. Omit the flag to disable the Advisor tool (default: off)
   --advisor-max-uses=<string>  Session-wide consult budget shared by all participants (default: 3; requires --advisor-model)
 
 Global options:

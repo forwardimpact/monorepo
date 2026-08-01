@@ -3,7 +3,7 @@ gemba-xmr 0.1.0 — Wheeler/Vacanti XmR control charts for time-series CSV metri
 Usage: gemba-xmr <command> [options]
 
 Commands:
-  analyze <csv-path>    Full XmR control chart report — chart, limits, signals, classification
+  analyze <csv-path>    Full XmR control-chart report: chart, limits, signals, classification
   chart <csv-path>      Render the 14-line Wheeler/Vacanti XmR chart for a single metric
   list <csv-path>       List metrics with counts and date ranges
   validate <csv-path>   Validate CSV against the metrics schema

@@ -175,7 +175,7 @@ describe("ghuser identity verification", () => {
       tenant_id: "tenant-b",
     });
 
-    // The contract must scope the proof to the tenant that Begin carries in
+    // The service must scope the proof to the tenant that Begin carries in
     // (criterion 3). A regression to a hard-coded literal fails this
     // assertion.
     assert.deepStrictEqual(verifyCalls[0], {

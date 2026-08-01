@@ -1,11 +1,11 @@
-gemba-trace 0.1.0 — Download, query, and analyze agent execution traces — read NDJSON output from gemba-harness as qualitative research
+gemba-trace 0.1.0 — Download, query, and analyze agent execution traces. Read NDJSON output from gemba-harness as qualitative research
 
 Usage: gemba-trace <command> [options]
 
 Commands:
   runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: kata|agent)
-  find <run-id> <participant>                Resolve a participant's lane trace for a known run id in one keyed lookup (no run enumeration, no content inspection)
-  download <run-id>                          Download trace artifact and convert to structured JSON; pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts
+  find <run-id> <participant>                Resolve a participant's lane trace for a known run id in one keyed lookup (it enumerates no runs and inspects no content)
+  download <run-id>                          Download trace artifact and convert to structured JSON. Pass --artifact to pick one when a matrix workflow emits multiple `trace--*` artifacts
   overview                                   Metadata, summary, turn count, tool frequency
   count                                      Number of turns
   batch <file> <from> <to>                   Turns in range [from, to) (zero-indexed)
@@ -13,9 +13,9 @@ Commands:
   tail                                       Last N turns (default 10; set with --lines)
   search <file> <pattern>                    Search all content for regex pattern
   tools                                      Tool usage frequency (descending). See also `tool` (turns for one tool) and `tool-calls` (paired use+result records)
-  tool <file> <name>                         All turns involving a specific tool. See also `tools` (frequency) and `tool-calls` (paired use+result records)
+  tool <file> <name>                         All turns that involve a specific tool. See also `tools` (frequency) and `tool-calls` (paired use+result records)
   tool-calls                                 One record per tool_use block, each paired with its tool_result by toolUseId (orphans emit result:null). See also `tool` and `tools`
-  commands                                   One record per Bash tool_use block, carrying the command text
+  commands                                   One record per Bash tool_use block, with the command text
   paths                                      Distinct Read/Edit/Write file_path arguments, frequency-sorted
   compare <file-a> <file-b>                  Side-by-side comparison of two traces: turns, tools, paths, cost, and per-tool delta
   errors                                     Tool results with isError=true
@@ -25,10 +25,10 @@ Commands:
   cost <file>                                Total run cost across every participant (agent, supervisor, judge, named profiles), with a per-source breakdown
   init                                       Full system/init event
   turn <file> <index>                        Single turn by index
-  by-discussion <discussion-id> [trace-dir]  List trace files whose meta header carries the given discussion_id, ordered by first-event timestamp
+  by-discussion <discussion-id> [trace-dir]  List trace files whose meta header carries the given discussion_id, in order of first-event timestamp
   filter                                     Filter turns by role, tool, or error status
-  split <file>                               Split a combined trace into per-source files following the `trace--<case>--<participant>.<role>.ndjson` convention
-  assert <test-name> <file>                  Shell-friendly assertion — outputs structured JSON for invariant hooks
+  split <file>                               Split a combined trace into per-source files that follow the `trace--<case>--<participant>.<role>.ndjson` convention
+  assert <test-name> <file>                  Shell-friendly assertion that outputs structured JSON for invariant hooks
 
 Options:
   --help, -h         Show this help
@@ -72,6 +72,6 @@ Documentation:
     How `gemba-harness supervise` produces the traces this skill analyzes.
   Prove Agent Changes
     https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
-    End-to-end workflow including multi-agent collaboration; `split` is the bridge into per-source trace files.
+    End-to-end workflow that covers multi-agent collaboration. `split` is the bridge into per-source trace files.
 
 Use gemba-trace <command> --help for command-specific options.
