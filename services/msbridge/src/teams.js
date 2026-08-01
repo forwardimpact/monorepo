@@ -6,10 +6,10 @@ const { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext } =
 export { CloudAdapter, ConfigurationBotFrameworkAuthentication, TurnContext };
 
 /**
- * No-op reaction adapter for the Bot Framework. Teams bots cannot
- * programmatically add reactions — the `messageReaction` activity type
- * is receive-only (fired when a *user* reacts). The typing adapter
- * provides user-visible progress instead.
+ * No-op reaction adapter for the Bot Framework. Teams bots cannot add
+ * reactions programmatically. The `messageReaction` activity type is
+ * receive-only. The Bot Framework fires it when a *user* reacts. The typing
+ * adapter provides user-visible progress instead.
  *
  * @returns {{add: Function, remove: Function}}
  */
@@ -21,9 +21,9 @@ export function buildReactionAdapter() {
 }
 
 /**
- * Typing adapter for the Bot Framework. Single responsibility: deliver
- * `text` to the conversation identified by `target.ref`. Acknowledgement
- * owns the verb pool and cadence.
+ * Typing adapter for the Bot Framework. It has one responsibility. It
+ * delivers `text` to the conversation identified by `target.ref`.
+ * Acknowledgement owns the verb pool and cadence.
  *
  * @param {object} adapter
  * @param {() => string} msAppIdFn
@@ -64,13 +64,14 @@ export async function sendReply(adapter, msAppIdFn, ref, text) {
 /**
  * Build the Bot Framework authenticator for the configured app type. The app
  * type follows whether `MICROSOFT_APP_TENANT_ID` is set, independent of
- * `tenancy_mode`: when present the authenticator runs SingleTenant bound to
- * that tenant (the supported shape — Microsoft deprecated multi-tenant Azure
- * Bot resources, so a hosted bot is a single-tenant resource in the operator's
- * home tenant); when absent it runs MultiTenant for a grandfathered
- * multi-tenant resource. The same authenticator validates both the
- * `/api/messages` activity stream and the `/onboard` JWT, so there is one SDK
- * validation path to maintain.
+ * `tenancy_mode`. When the variable is present, the authenticator runs
+ * SingleTenant bound to that tenant. That is the supported shape. Microsoft
+ * deprecated multi-tenant Azure Bot resources, so a hosted bot is a
+ * single-tenant resource in the operator's home tenant. When the variable is
+ * absent, the authenticator runs MultiTenant for a grandfathered multi-tenant
+ * resource. The same authenticator validates both the `/api/messages`
+ * activity stream and the `/onboard` JWT, so there is one SDK validation path
+ * to maintain.
  *
  * @param {object} config
  * @returns {object} ConfigurationBotFrameworkAuthentication
@@ -105,7 +106,7 @@ export function createDefaultAdapter(config) {
  * Adapt the Bot Framework's express-style `adapter.process(req, res, cb)`
  * to a Hono request handler. The bridge service hands off the inbound
  * activity stream to this helper and gets a normal `(c) => Response`
- * back — `index.js` never sees the express shim.
+ * back. `index.js` never sees the express shim.
  *
  * @param {object} adapter - Bot Framework CloudAdapter
  * @param {(turnContext: object) => Promise<void>} onContext

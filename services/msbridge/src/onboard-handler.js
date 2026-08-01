@@ -1,32 +1,34 @@
 const CHANNEL = "msteams";
 
 /**
- * Hosted Teams repo-mapping endpoint. After a tenant consents (registered
- * `pending_consent` by the consent handler), the customer maps their
+ * Hosted Teams repo-mapping endpoint. After a tenant consents, the consent
+ * handler registers it as `pending_consent`. The customer then maps their
  * target GitHub repository through `POST /onboard`. The handler binds the
- * mapping to the authenticated caller's Microsoft tenant and transitions
- * the tenant to `active`.
+ * mapping to the authenticated caller's Microsoft tenant. It then
+ * transitions the tenant to `active`.
  *
- * The caller's identity is signature-bound: `authenticateTenant` returns
- * the verified Microsoft Entra tenant id (`tid` claim) of the request, or
- * `null` when the request is unauthenticated. That `tid` lives in a
- * different id-space than the registry's `tenant_id` (a UUID), so the
- * handler resolves the Entra `tid` to its registry row before writing.
+ * A signature binds the caller's identity. `authenticateTenant` returns
+ * the verified Microsoft Entra tenant id (`tid` claim) of the request. It
+ * returns `null` when the request is unauthenticated. That `tid` lives in a
+ * different id-space than the registry's `tenant_id` (a UUID). So the
+ * handler resolves the Entra `tid` to its registry row before it writes.
  *
  * The consent handler registered the tenant as `pending_consent`, so an
- * active-only resolve (`ResolveByChannelKey`) would never see it — onboarding
- * is precisely the step that transitions `pending_consent` → `active`. The
- * handler therefore resolves and transitions the row in one state-agnostic
- * upsert: `UpsertByChannelKey({channel: "msteams", channel_tenant_key: tid,
- * state: "active"})` finds the row by `(channel, key)` regardless of state,
- * flips it active, and returns it with its registry `tenant_id` (a UUID). The
- * repo mapping is then written with `SetRepo({tenant_id, repo})`.
+ * active-only resolve (`ResolveByChannelKey`) would never see it. Onboarding
+ * is precisely the step that transitions `pending_consent` → `active`. So the
+ * handler resolves and transitions the row in one state-agnostic upsert.
+ * `UpsertByChannelKey({channel: "msteams", channel_tenant_key: tid,
+ * state: "active"})` finds the row by `(channel, key)` regardless of state.
+ * It flips the row active. It returns the row with its registry `tenant_id`
+ * (a UUID). The handler then writes the repo mapping with
+ * `SetRepo({tenant_id, repo})`.
  *
- * The request body carries only the repo — a body-supplied registry id is
- * never trusted, and the channel key comes only from the authenticated `tid`,
- * so one tenant cannot onboard a repository on behalf of another.
+ * The request body carries only the repo. The handler never trusts a
+ * body-supplied registry id. The channel key comes only from the
+ * authenticated `tid`. So one tenant cannot onboard a repository on behalf
+ * of another.
  *
- * Exposed only in multi-tenant mode.
+ * Only multi-tenant mode exposes this endpoint.
  */
 
 /**
@@ -71,8 +73,9 @@ export function createOnboardHandler({
       return c.json({ error: "repo is required" }, 400);
     }
 
-    // The caller's Entra tenant id is signature-bound; an unauthenticated
-    // request resolves to null and is refused before any registry read.
+    // A signature binds the caller's Entra tenant id. An unauthenticated
+    // request resolves to null. The handler refuses it before any registry
+    // read.
     const callerTid = await authenticateTenant(c);
     if (!callerTid) {
       logger?.debug?.("onboard", "unauthenticated caller");
@@ -80,14 +83,15 @@ export function createOnboardHandler({
     }
 
     // Resolve-and-transition the caller's row in one state-agnostic upsert.
-    // The consent handler registered the tid as `pending_consent`; onboarding
+    // The consent handler registered the tid as `pending_consent`. Onboarding
     // is the step that flips it `active`. An active-only resolve would never
-    // see the pending row, so `UpsertByChannelKey` keyed by the authenticated
+    // see the pending row. So `UpsertByChannelKey` keyed by the authenticated
     // tid finds the row regardless of state, sets it active, and returns its
-    // registry `tenant_id` (a UUID) — never a body-supplied value. Semantics:
-    // a tid with no prior consent row is created fresh as `active`, because the
-    // tid is signature-bound (the caller provably owns that Entra tenant), so
-    // self-service onboarding without a prior consent activity is safe.
+    // registry `tenant_id` (a UUID). It never returns a body-supplied value.
+    // Note the semantics. The upsert creates a tid with no prior consent row
+    // fresh as `active`. A signature binds the tid, so the caller provably
+    // owns that Entra tenant. Self-service onboarding with no prior consent
+    // activity is therefore safe.
     const row = await tenancyClient.UpsertByChannelKey({
       channel: CHANNEL,
       channel_tenant_key: callerTid,

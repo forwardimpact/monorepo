@@ -1,18 +1,18 @@
 /**
  * Bot Framework JWT verifier for the multi-tenant `POST /onboard` endpoint.
  *
- * Wraps the same Bot Framework authenticator
+ * This module wraps the same Bot Framework authenticator
  * (`ConfigurationBotFrameworkAuthentication`) that the `/api/messages` path
- * uses, so onboarding and message intake validate inbound JWTs through one SDK
- * path — there is no parallel Microsoft signing-key fetch to maintain. The
- * SDK's `authenticateChannelRequest` performs full validation (signature
+ * uses. So onboarding and message intake validate inbound JWTs through one
+ * SDK path. There is no parallel Microsoft signing-key fetch to maintain. The
+ * SDK's `authenticateChannelRequest` validates the token in full (signature
  * against Microsoft's published keys, audience = the bot's `MicrosoftAppId`,
- * issuer) and returns a `ClaimsIdentity`; the verified Entra tenant id is the
+ * issuer). It returns a `ClaimsIdentity`. The verified Entra tenant id is the
  * `tid` claim.
  *
  * A forged, expired, or wrong-audience token makes `authenticateChannelRequest`
- * throw, and an absent header is rejected before the SDK is reached — both map
- * to `null`, which the onboard handler turns into a 401.
+ * throw. The verifier rejects an absent header before it reaches the SDK.
+ * Both cases map to `null`, which the onboard handler turns into a 401.
  */
 
 const TENANT_ID_CLAIM = "tid";

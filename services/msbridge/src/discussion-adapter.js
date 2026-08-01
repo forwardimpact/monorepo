@@ -101,10 +101,10 @@ export class DiscussionAdapter {
   }
 
   /**
-   * Resolve a tenant by channel key, returning `null` instead of throwing
-   * when none resolves. Used by cross-tenant rehydration paths
-   * (`listOpenRecesses`, `loadByCorrelation`) where, in multi-tenant mode,
-   * the channel is not itself a tenant key.
+   * Resolve a tenant by channel key. Return `null` when none resolves. Do
+   * not throw. The cross-tenant rehydration paths (`listOpenRecesses`,
+   * `loadByCorrelation`) use this method, because in multi-tenant mode the
+   * channel is not itself a tenant key.
    *
    * @param {string} channel
    * @returns {Promise<string | null>}
@@ -160,11 +160,12 @@ export class DiscussionAdapter {
 
   /**
    * Rehydrate open recesses for the resolvable tenant. Single-tenant resolves
-   * `default`; multi-tenant has no single tenant at startup, so the channel
+   * `default`. Multi-tenant has no single tenant at startup, so the channel
    * key does not resolve and rearm returns no refs. This is a documented
-   * hosted-mode limitation: multi-tenant `elapsed`-trigger recesses re-arm
-   * lazily on the next inbound activity via `processInbound` rather than at
-   * restart, because the registry exposes no cross-tenant recess enumeration.
+   * hosted-mode limitation. Multi-tenant `elapsed`-trigger recesses re-arm
+   * lazily on the next inbound activity through `processInbound`. They do
+   * not re-arm at restart, because the registry exposes no way to list
+   * recesses across tenants.
    * See README § Documented limitation: multi-tenant elapsed-recess re-arm.
    */
   async listOpenRecesses() {

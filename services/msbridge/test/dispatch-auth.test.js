@@ -96,7 +96,7 @@ describe("msbridge dispatch-auth", () => {
     globalThis.fetch = originalFetch;
   });
 
-  test("sender S triggers ghuser query with (msteams, S); sender T triggers (msteams, T)", async () => {
+  test("sender S triggers ghuser query with (msteams, S) and sender T with (msteams, T)", async () => {
     const client = makeGhuserClient(() => ({
       result: "token",
       token: "ghs_user",
@@ -212,8 +212,8 @@ describe("msbridge dispatch-auth", () => {
     });
 
     expect(dispatches).toHaveLength(0);
-    // No link comment posted into the channel: the trusted-origin gate
-    // refused the authorize URL.
+    // The bridge posts no link comment into the channel. The trusted-origin
+    // gate refused the authorize URL.
     expect(
       adapter.sent.some((m) =>
         typeof m === "string" ? m.includes("link-complete") : false,
