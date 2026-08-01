@@ -477,18 +477,19 @@ export class WikiSync {
       this.#wikiDir,
       this.#runtime.fsSync,
     ).changed;
-    // Attribute the commit's write-set. A caller that knows
-    // its narrower write-set passes `paths` (the claim/release path, scoped to
-    // MEMORY.md). The session-close `gemba-wiki push` passes none and the
-    // write-set is the session's own dirty set, read from the working tree —
-    // correct because the canonical mechanism runs it in a per-session isolated
+    // Attribute the commit's write-set. A caller that knows its narrower
+    // write-set passes `paths` (the claim/release path, scoped to MEMORY.md).
+    // The session-close `gemba-wiki push` passes none, and the write-set is
+    // the session's own dirty set, read from the working tree. That is correct
+    // because the canonical mechanism runs it in a per-session isolated
     // checkout where the dirty set holds no foreign content. The whole-tree
-    // `commitAll` sweep is gone: it carried the stale fast-forward eraser, a
-    // clean fast-forward no loud-conflict contract could reach, so the scoped
-    // commit closes it at the source rather than relying on a later conflict.
+    // `commitAll` sweep is gone. It carried the stale fast-forward eraser, a
+    // clean fast-forward no loud-conflict contract could reach. So the scoped
+    // commit closes it at the source and does not rely on a later conflict.
     const writeSet = paths ?? (await this.#dirtyPaths());
-    // The metrics-CSV declaration must be committed when it was just written,
-    // even on the pathspec-scoped path; fold it into the effective pathspec.
+    // The commit must carry the metrics-CSV declaration when the ensure just
+    // wrote it, even on the pathspec-scoped path. Fold it into the effective
+    // pathspec.
     const commitPaths = gitattributesChanged
       ? [...writeSet, GITATTRIBUTES_FILE]
       : writeSet;
@@ -498,16 +499,17 @@ export class WikiSync {
       });
     }
 
-    // Grounded nothing-to-push (D2): assert it only when the
-    // observed remote ref already contains local HEAD — never pre-fetch
-    // arithmetic, so a stranded-resume tree (clean, ahead) re-pushes.
+    // Grounded nothing-to-push (D2): assert it only when the observed remote
+    // ref already contains local HEAD. Never use pre-fetch arithmetic, so a
+    // stranded-resume tree (clean, ahead) re-pushes.
     const preTip = await this.#observeRemoteTip();
     if (preTip && (await this.#headContainedIn(preTip))) {
       return { landed: false, reason: PUSH_REASONS.NOTHING };
     }
 
-    // Ancestry guard again before the push (the empty-remote allowance is
-    // re-derived per call so a failed first publication is re-judged).
+    // Ancestry guard again before the push (the guard re-derives the
+    // empty-remote allowance per call, so it re-judges a failed first
+    // publication).
     await this.#assertPublishable();
     return this.#reconcileAndPush(message, paths, preTip, {
       reapply,
@@ -518,13 +520,13 @@ export class WikiSync {
   }
 
   /**
-   * Reconcile on the remote and push, grounding the outcome (D2/D3).
-   * Split from {@link commitAndPush} so the bounded ×1 retry (D3) re-enters the
-   * ancestry judgment and re-reconciles without duplicating the gates. On a
-   * `rejected` outcome it retries once: re-asserts {@link #assertPublishable}
+   * Reconcile on the remote and push. Ground the outcome (D2/D3). Split from
+   * {@link commitAndPush} so the bounded ×1 retry (D3) re-enters the ancestry
+   * judgment and re-reconciles with no duplicate gates. On a `rejected`
+   * outcome it retries once. The retry re-asserts {@link #assertPublishable}
    * (no auto-re-grant), refreshes the observed tip, and replays. The retry
-   * never re-pops a conflicted autostash — a `residue-conflict` is refused, not
-   * retried.
+   * never re-pops a conflicted autostash. The flow refuses a
+   * `residue-conflict`. It never retries one.
    *
    * @param {string} message
    * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
@@ -536,16 +538,18 @@ export class WikiSync {
    */
   async #reconcileAndPush(message, paths, preTip, opts) {
     // Bounded retry (D3): at most one reconcile-and-retry on `rejected`. The
-    // first iteration uses `preTip`; the retry re-asserts the ancestry judgment
-    // (no auto-re-grant) and re-observes the tip before replaying. `transport`,
-    // `conflict`, `residue-conflict`, and `conservation` are never retried.
+    // first iteration uses `preTip`. The retry re-asserts the ancestry
+    // judgment (no auto-re-grant) and re-observes the tip before the replay.
+    // The loop never retries `transport`, `conflict`, `residue-conflict`, and
+    // `conservation`.
     let tip = preTip;
     for (let attempt = 0; attempt <= 1; attempt++) {
       const outcome = await this.#reconcileAttempt(message, paths, tip, opts);
       if (outcome.result) return outcome.result;
-      // A non-landed grounded verdict. `transport` is never retried; `rejected`
-      // retries once, re-entering the ancestry judgment first so the
-      // empty-remote allowance is never auto-re-granted. Outcome never masked.
+      // A non-landed grounded verdict. The loop never retries `transport`. It
+      // retries `rejected` once, and it re-enters the ancestry judgment first
+      // so it never auto-re-grants the empty-remote allowance. The loop never
+      // masks the outcome.
       if (outcome.verdict.reason === PUSH_REASONS.TRANSPORT || attempt === 1) {
         throw outcome.verdict.error;
       }
@@ -559,10 +563,10 @@ export class WikiSync {
 
   /**
    * One reconcile-guards-push attempt. Returns `{ result }` for a terminal
-   * outcome (a landed/re-applied push, or a pre-push gate refusal), or
-   * `{ verdict }` carrying a non-landed grounded verdict the retry loop reads
-   * (it owns the retry decision). Throws for the unsafe-state refusals that are
-   * never retried: `conflict`, `residue-conflict`, `conservation`.
+   * outcome (a landed/re-applied push, or a pre-push gate refusal). Returns
+   * `{ verdict }` with a non-landed grounded verdict that the retry loop reads
+   * (it owns the retry decision). Throws for the unsafe-state refusals the
+   * loop never retries: `conflict`, `residue-conflict`, `conservation`.
    * @param {string} message
    * @param {string[]} [paths] - The caller's pathspec (singleton-discipline scope).
    * @param {string} tip - The remote tip observed before this attempt's reconcile.
@@ -576,19 +580,20 @@ export class WikiSync {
     });
 
     // Rebase conflict (D2): a non-zero rebase exit is a conflict on the rebase
-    // itself. For a registered singleton with a `reapply` op the singleton merge
-    // discipline re-derives the row against the fresh tip; the no-intent path
-    // fails loud (the `mergeOursStrategy` clobber fallback is removed — the
-    // merge-discipline fail-loud floor applies). Checked before the residue read
-    // because a stopped rebase also leaves UU markers.
+    // itself. For a registered singleton with a `reapply` op, the singleton
+    // merge discipline re-derives the row against the fresh tip. The no-intent
+    // path fails loud (the `mergeOursStrategy` clobber fallback is removed,
+    // and the merge-discipline fail-loud floor applies). This check runs
+    // before the residue read because a stopped rebase also leaves UU markers.
     if (rebase.exitCode !== 0) {
       const resolved = await this.#resolveRebaseConflict(message, paths, opts);
       if (resolved) return { result: resolved };
     }
 
-    // Residue check (D9): the rebase exited 0 but the autostash pop conflicted,
-    // leaving unmerged paths — grounded in tree state, the sole conflict-capable
-    // autostash site after the clobber fallback's removal. Never retried (D3).
+    // Residue check (D9): the rebase exited 0 but the autostash pop
+    // conflicted and left unmerged paths. Tree state grounds this check. The
+    // pop is the sole conflict-capable autostash site after the clobber
+    // fallback's removal. The loop never retries this refusal (D3).
     await this.#assertNoResidue();
 
     // Guard 3 (hole 3 / Layer 2): refuse to push commits that introduce an
@@ -600,21 +605,21 @@ export class WikiSync {
     // observed remote tip unless the removal is a deliberate act.
     await this.#assertConserved(tip, message);
 
-    // Capture the pushed delta now: HEAD is the final (rebased) local tip and
+    // Capture the pushed delta now. HEAD is the final (rebased) local tip and
     // origin/master is still the pre-push base (the tier-1 integrity probe).
     const pushedDelta = await this.#capturePushedDelta();
 
     // Fail-closed secret gate. Scan exactly the commits this push introduces
-    // (the reconcile above made the range correct) before any remote contact;
-    // a finding or missing scanner refuses unless its own override is set.
+    // (the reconcile above made the range correct) before any remote contact.
+    // A finding or an absent scanner refuses unless its own override is set.
     const refusal = await this.#gateOrRefuse();
     if (refusal) return { result: refusal };
 
     // Budget re-validation gate (size axis). The reconcile above made HEAD the
-    // final outgoing tree (rebase / singleton re-apply re-derived its
-    // content against the fresh tip), so measuring HEAD here measures exactly
-    // what publishes. A breach this push introduces or deepens throws `budget`;
-    // surfaced-only memo-delivery breaches ride the landed result.
+    // final outgoing tree (rebase / singleton re-apply re-derived its content
+    // against the fresh tip). So a measurement of HEAD here measures exactly
+    // what publishes. A breach this push introduces or deepens throws
+    // `budget`. Surfaced-only memo-delivery breaches ride the landed result.
     const gate = await this.#revalidateBudgets(opts.sessionBaseSha, {
       exemptSummaryFiles: opts.exemptSummaryFiles ?? [],
     });
@@ -624,14 +629,14 @@ export class WikiSync {
 
     const verdict = await this.#groundedPush(fetched);
     if (verdict.landed) {
-      // The push landed; any declared removal it carried is now published, so
-      // clear the intent sidecar — it must not leak into an unrelated push.
+      // The push landed. Any declared removal it carried is now published, so
+      // clear the intent sidecar. It must not leak into an unrelated push.
       this.#clearIntentSidecar();
       const detections = await this.#tier1Probe(pushedDelta);
       const result = { landed: true, reason: PUSH_REASONS.LANDED, detections };
       // Attach `surfaced` only when the gate surfaced a (memo-delivery exempt)
       // breach, so a clean under-budget sync's landed result is byte-identical
-      // to today's — the gate adds no happy-path behaviour change (criterion 10).
+      // to today's. The gate adds no happy-path behaviour change (criterion 10).
       if (gate.surfaced.length > 0) result.surfaced = gate.surfaced;
       return { result };
     }
@@ -639,11 +644,12 @@ export class WikiSync {
   }
 
   /**
-   * Build the `budget` {@link WikiPushFailure} for a refusing gate result,
-   * naming the worst offending file and carrying every refusal and surfaced
-   * tuple so the operator can adjudicate (trim own content, or surface the
-   * carried content to its owner). The gate never edits — it refuses, keeping
-   * the commits local for re-push after the breach is resolved.
+   * Build the `budget` {@link WikiPushFailure} for a gate result that refuses.
+   * The failure names the worst offending file. It carries every refusal and
+   * surfaced tuple, so the operator can adjudicate (trim own content, or
+   * surface the carried content to its owner). The gate never edits. It
+   * refuses and keeps the commits local for re-push after the operator
+   * resolves the breach.
    * @param {{refusals: Array<object>, surfaced: Array<object>}} gate
    * @returns {WikiPushFailure}
    */

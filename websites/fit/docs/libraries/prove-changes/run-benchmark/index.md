@@ -406,27 +406,27 @@ npx gemba-benchmark run --family=./my-coding-family --runs=5 \
 ```
 
 The `N` shards form an exact partition: every cell runs on exactly one shard,
-none twice, none dropped. Assignment is at `(task, runIndex)` granularity and
-round-robins across shards, so a slow task's runs spread out rather than
-landing one whole task on a single machine. When `N` exceeds the cell count the
-high-index shards select zero cells — a valid run with an empty ledger.
+none twice, none dropped. The harness assigns cells at `(task, runIndex)`
+granularity and round-robins them across shards. So a slow task's runs spread
+out. One whole task does not land on a single machine. When `N` exceeds the
+cell count, the high-index shards select zero cells. That is a valid run with
+an empty ledger.
 
-Collect the shard outputs under one directory and merge them into a single
-pass@k — identical to what a non-sharded run over the same cells would
-report — with the recursive `report --input`:
+Collect the shard outputs under one directory. The merged pass@k is identical
+to what a non-sharded run over the same cells reports. Merge them with the
+recursive `report --input`:
 
 ```sh
 npx gemba-benchmark report --input=./runs --k=1,3,5 --format=text
 ```
 
-Each shard run also uses in-process concurrency internally, so effective
+Each shard run also uses in-process concurrency internally. Effective
 parallelism is `N` machines × the per-machine concurrency.
 
 ## Compare Before and After
 
-The reproducibility claim is the heart of the tool. Run the family
-twice, once with the old skill manifest and once with the new, then
-compare:
+The reproducibility claim is the heart of the tool. Run the family twice. Use
+the old skill manifest first and the new manifest second. Then compare:
 
 ```sh
 # Before
@@ -438,9 +438,9 @@ npx gemba-benchmark run --family=./my-coding-family --output=./runs/after --runs
 npx gemba-benchmark report --input=./runs/after --format=json > after.json
 ```
 
-Each record carries `skillSetHash`, so any cross-comparison script can
-verify the two reports came from materially different skill sets before
-declaring an improvement.
+Each record carries `skillSetHash`. A cross-comparison script can verify the
+two reports came from materially different skill sets before it declares an
+improvement.
 
 ## What's Next
 

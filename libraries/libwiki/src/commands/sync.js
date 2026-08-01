@@ -10,17 +10,17 @@ import { resolveWikiRoot } from "../util/wiki-dir.js";
 
 /**
  * Commit all wiki changes and push them through the secret-gated push path.
- * A detected secret or unavailable scanner fails the command closed and names
- * the cause on stderr without attempting the push; a clean write pushes or
- * reports nothing to push. The post-push tier-1 integrity detections surface in
- * the output; they never gate the push.
+ * A detected secret or unavailable scanner fails the command closed. It names
+ * the cause on stderr and never tries the push. A clean write pushes, or it
+ * reports nothing to push. The post-push tier-1 integrity detections surface
+ * in the output. They never gate the push.
  */
 export async function runPushCommand(ctx) {
   const { runtime, wikiSync } = ctx.deps;
   await wikiSync.inheritIdentity();
 
-  // A caller that knows its narrower write-set passes `--paths` (repeatable);
-  // the bare session-close invocation passes none and lands the session's own
+  // A caller that knows its narrower write-set passes `--paths` (repeatable).
+  // The bare session-close invocation passes none. It lands the session's own
   // dirty set under per-session checkout isolation.
   const paths = ctx.options?.paths?.length ? ctx.options.paths : undefined;
 
@@ -28,17 +28,19 @@ export async function runPushCommand(ctx) {
   try {
     result = await wikiSync.commitAndPush("wiki: update from session", paths);
   } catch (err) {
-    // Honest CLI contract (the honest-CLI contract): non-zero on any non-land push
-    // failure, and on the ancestry guard's refusal (the ancestry guard). The Stop-hook
-    // recipe maps this to a stop-blocking exit; CI steps see a loud failure.
+    // Honest CLI contract (the honest-CLI contract): non-zero on any non-land
+    // push failure, and on the ancestry guard's refusal (the ancestry guard).
+    // The Stop-hook recipe maps this to a stop-blocking exit. CI steps see a
+    // loud failure.
     if (err instanceof WikiPushFailure || err instanceof AncestryRefusal) {
       runtime.proc.stderr.write(`${err.message}\n`);
       return { ok: false, code: 1 };
     }
     throw err;
   }
-  // Fail the command closed on a secret-gate refusal (secret detected or scanner
-  // unavailable); a clean push falls through to the normal reporting below.
+  // Fail the command closed on a secret-gate refusal (secret detected or
+  // scanner unavailable). A clean push falls through to the normal report
+  // below.
   const refusal = refusalEnvelope(runtime, result);
   if (refusal) return refusal;
   if (result.landed) {

@@ -273,10 +273,10 @@ To debug or understand the intermediate output of any stage, use `inspect`:
 npx fit-terrain inspect entities --story=evals/terrain/story.dsl
 ```
 
-The command prints the stage's output as formatted JSON. Valid stage names match the
-pipeline table above: `parse`, `entities`, `prose-keys`, `cache-lookup`,
-`skeleton`, `enriched`, `raw`, `markdown`, `pathway`, `datasets`, `validate`,
-`write`.
+The command prints the stage's output as formatted JSON. Valid stage names
+match the pipeline table above: `parse`, `entities`, `prose-keys`,
+`cache-lookup`, `skeleton`, `enriched`, `raw`, `markdown`, `pathway`,
+`datasets`, `validate`, `write`.
 
 ## What's next
 

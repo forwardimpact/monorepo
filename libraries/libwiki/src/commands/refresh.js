@@ -150,8 +150,9 @@ export async function runRefreshCommand(ctx) {
   const logger = createLogger("wiki", runtime);
   const projectRoot = resolveProjectRoot(runtime);
 
-  // Independent of the storyboard render below (and its early returns), so a
-  // wiki with no storyboard or no marker blocks still gets its claims swept.
+  // This is independent of the storyboard render below (and its early
+  // returns). The sweep still runs on a wiki with no storyboard and on a wiki
+  // with no marker blocks.
   clearExpiredClaims(runtime, options, currentDayIso(runtime), logger);
 
   const storyboardPath = path.resolve(
@@ -173,14 +174,14 @@ export async function runRefreshCommand(ctx) {
   try {
     token = config.ghToken();
   } catch {
-    // Missing token is non-fatal; issue-list renders will fail with a stderr
-    // warning and the block will collapse to the notice line.
+    // A missing token is non-fatal. An issue-list render then fails with a
+    // stderr warning, and the block collapses to the notice line.
   }
   // Spawn `gh` from the project root so it resolves the monorepo's origin
   // instead of whatever git context the caller's cwd happens to be in (the
   // wiki sibling repo, a subagent worktree, a service dir, etc.). Also
-  // resolve an explicit owner/repo slug so `gh` works when origin has been
-  // rewritten to a proxy URL (sandbox environments) — `FIT_GH_REPO` env
+  // resolve an explicit owner/repo slug so `gh` works when a proxy URL
+  // replaced origin (sandbox environments). The `FIT_GH_REPO` env var
   // overrides the parsed origin.
   const ghContext = {
     cwd: projectRoot,

@@ -15,8 +15,8 @@ import { runRotateCommand } from "../src/commands/rotate.js";
 import { weeklyLogPath } from "../src/weekly-log.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
-// rotateIfOverBudget seals via fs.renameSync, which createMockFs does not
-// model — so this drives the real fs under a temp dir, like cli-fix.
+// rotateIfOverBudget seals through fs.renameSync, which createMockFs does not
+// model. So this drives the real fs under a temp dir, like cli-fix.
 describe("gemba-wiki rotate CLI (in-process)", () => {
   let dir;
   let wikiRoot;
