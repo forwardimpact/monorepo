@@ -44,7 +44,7 @@ describe("Skill Modifiers", () => {
   });
 
   describe("getSkillsByCapability", () => {
-    it("returns skills matching the capability", () => {
+    it("returns the skills in the capability", () => {
       const scaleSkills = getSkillsByCapability({
         skills: testSkills,
         capability: "scale",
@@ -88,8 +88,9 @@ describe("Skill Modifiers", () => {
         skillModifiers: modifiers,
         skills: testSkills,
       });
-      // Individual skill modifiers are ignored - only capability modifiers are expanded
-      // skill_a gets value from scale capability (1), not from individual modifier
+      // The expansion ignores individual skill modifiers. It expands
+      // capability modifiers only. skill_a gets its value from the scale
+      // capability (1). The individual modifier does not apply.
       assert.strictEqual(expanded.skill_a, 1);
     });
 
@@ -170,7 +171,7 @@ describe("Skill Modifiers", () => {
   });
 
   describe("deriveSkillProficiency with capability modifiers", () => {
-    it("applies capability modifier when skills array is provided (capped at level max)", () => {
+    it("applies capability modifier with a skills array (capped at level max)", () => {
       const trackWithCapabilityModifier = {
         ...testTrack,
         skillModifiers: { scale: 1 },
@@ -182,8 +183,8 @@ describe("Skill Modifiers", () => {
         skillId: "skill_a",
         skills: testSkills,
       });
-      // skill_a is core, base is practitioner (index 3), +1 would be expert
-      // but capped at level max (practitioner)
+      // skill_a is core. Its base is practitioner (index 3). A +1 would give
+      // expert. The level max (practitioner) caps it.
       assert.strictEqual(level, "practitioner");
     });
 
@@ -199,7 +200,7 @@ describe("Skill Modifiers", () => {
         skillId: "skill_a",
         skills: testSkills,
       });
-      // skill_a is core, base is practitioner (index 3), -1 = working
+      // skill_a is core. Its base is practitioner (index 3). -1 gives working.
       assert.strictEqual(level, "working");
     });
   });

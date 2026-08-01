@@ -44,7 +44,7 @@ describe("Matching", () => {
       assert.strictEqual(match.gaps.length, 0);
     });
 
-    it("uses track matching weights", () => {
+    it("uses the weights the track defines", () => {
       const match = calculateJobMatch(
         {
           skillProficiencies: {
@@ -81,7 +81,7 @@ describe("Matching", () => {
     });
 
     it("gives partial credit for close levels with smooth decay", () => {
-      // One level below should give 0.7 credit (smooth decay scoring)
+      // One level below should give 0.7 credit. The score decays smoothly.
       // Job requires: skill_a=practitioner, skill_b=foundational, skill_c=foundational
       // Job requires: behaviour_x=role-modeling, behaviour_y=role-modeling
       const closeAssessment = {

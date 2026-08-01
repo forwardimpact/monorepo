@@ -63,7 +63,7 @@ describe("Matching", () => {
       const disciplineWithValidTracks = {
         ...testDiscipline,
         id: "restricted_discipline",
-        validTracks: [null, "other_track"], // null allows trackless, test_track not allowed
+        validTracks: [null, "other_track"], // null allows trackless. test_track is absent
       };
 
       const matches = findMatchingJobs({
@@ -85,7 +85,7 @@ describe("Matching", () => {
       const disciplineWithValidTracks = {
         ...testDiscipline,
         id: "restricted_discipline",
-        validTracks: [null, "test_track"], // null allows trackless, test_track allowed
+        validTracks: [null, "test_track"], // null allows trackless. test_track is present
       };
 
       const matches = findMatchingJobs({
@@ -140,7 +140,7 @@ describe("Matching", () => {
       assert.ok(coreItem.priority > broadItem.priority);
     });
 
-    it("returns empty items when fully qualified", () => {
+    it("returns empty items when the candidate is fully qualified", () => {
       const perfectAssessment = {
         skillProficiencies: {
           skill_a: "expert",
@@ -163,7 +163,7 @@ describe("Matching", () => {
   });
 
   describe("findNextStepJob", () => {
-    it("finds next level rank job", () => {
+    it("finds the job at the next level rank", () => {
       const level2 = { ...testLevel, id: "level2", ordinalRank: 2 };
       const level3 = { ...testLevel, id: "level3", ordinalRank: 3 };
       const level4 = {
@@ -199,7 +199,7 @@ describe("Matching", () => {
       assert.strictEqual(result.job.level.ordinalRank, 4);
     });
 
-    it("returns null when at top level", () => {
+    it("returns null when the job is at the top level", () => {
       const topLevel = { ...testLevel, id: "top_level", ordinalRank: 7 };
 
       const currentJob = deriveJob({

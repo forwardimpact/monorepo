@@ -121,7 +121,7 @@ describe("Matching", () => {
   });
 
   describe("calculateGapScore", () => {
-    it("returns 1.0 for no gap or exceeds", () => {
+    it("returns 1.0 when the gap is zero or negative", () => {
       assert.strictEqual(calculateGapScore(0), GAP_SCORES[0]);
       assert.strictEqual(calculateGapScore(-1), GAP_SCORES[0]);
       assert.strictEqual(calculateGapScore(-2), GAP_SCORES[0]);

@@ -84,7 +84,7 @@ describe("Matching", () => {
       assert.ok(result.estimatedLevel.confidence !== undefined);
     });
 
-    it("filters by level range when enabled", () => {
+    it("filters by level range when the caller enables it", () => {
       const result = findRealisticMatches({
         selfAssessment: {
           skillProficiencies: { skill_a: "foundational" },
@@ -137,7 +137,7 @@ describe("Matching", () => {
         filterByLevel: false,
       });
 
-      // Check that each tier is sorted by level rank descending
+      // Check that the level rank descends inside each tier
       for (const tierNum of [1, 2, 3, 4]) {
         const tierMatches = result.matchesByTier[tierNum];
         for (let i = 1; i < tierMatches.length; i++) {
@@ -173,7 +173,7 @@ describe("Matching", () => {
         tracks: [testTrack],
         skills: testSkills,
         behaviours: testBehaviours,
-        filterByLevel: false, // Disable initial level filtering to test the intelligent filter
+        filterByLevel: false, // Disable the initial level filter to test the intelligent filter
       });
 
       // Find highest level rank with strong/good match
