@@ -35,18 +35,23 @@ Valid labels: `agent:staff-engineer`, `agent:product-manager`,
 
 ## Approval signal
 
-Phase artifacts are gated into `main`
-by `kata-release-merge` against `wiki/STATUS.md`. See
-[`approval-signals.md`](x-approval-signals.md) for the full signal catalogue,
-trust rule, and write protocol. `kata-dispatch` is the bridge from PR-side
-signals (labels, comments, reviews) to STATUS — it never originates approvals,
-only propagates signals already expressed by a trusted human.
+Phase artifacts are gated into `main` by `kata-release-merge` against
+`wiki/STATUS.md`; [`approval-signals.md`](x-approval-signals.md) holds the
+signal catalogue, trust rule, and write protocol. `kata-dispatch` bridges
+PR-side signals (labels, comments, reviews, merges) to STATUS — it never
+originates approvals, only propagates what a trusted human expressed.
 
 **Approval is not phase progression.** A STATUS row at `{phase} approved`
 authorizes merge; it does not advance the phase. The next phase begins only
-when the prior phase's artifact is on `main`. The STATUS rows and PR-side
-comments `kata-dispatch` lands are bodies on in-scope surfaces, so apply
-§ Citation integrity before propagating them.
+when the prior phase's artifact is on `main`.
+
+**A human merge is both.** It approves the change and lands it — record the
+approval, not just the progression
+([`approval-signals.md`](x-approval-signals.md) § Merge as approval). The
+separation above never implies a merged change went unapproved.
+
+STATUS rows and PR-side comments `kata-dispatch` lands are in-scope bodies —
+apply § Citation integrity before propagating.
 
 ## Citation integrity
 
@@ -68,9 +73,9 @@ When an output could fit multiple channels, ask in order:
    [work-definition.md § Classification tests](x-work-definition.md#classification-tests).)
 4. Otherwise → wiki.
 
-A finding can require **multiple channels in parallel** — e.g., a CVE raising
-a policy question is both a `fix/` change and a Discussion. `fix/` and `spec/`
-branches never share a change, but either may run alongside a Discussion.
+A finding can require **multiple channels in parallel** — a CVE raising a policy
+question is both a `fix/` change and a Discussion. `fix/` and `spec/` never
+share a change, but either may run alongside a Discussion.
 
 ## Fix-in-flight marker
 
@@ -87,12 +92,11 @@ reading the issue, which re-implements the rejected route:
    ("took A, not B") — so a later reader knows B is rejected, not unexplored.
 3. **Rescopes name in-flight state.** A comment that redefines an issue's
    actionable scope states what is in flight (claim, branch, or change) — or the
-   explicit negative: "no fix in flight as of this comment." Closure and
-   routing comments are rescopes: a comment that closes a thread or routes a
-   decision or disposition to a named owner redefines actionable scope even
-   though it reads as terminal, so it carries the same marker and reminds the
-   routed owner to announce at `open-change`. A rescope is a
-   latest-state beacon; silence reads as an open invitation.
+   explicit negative: "no fix in flight as of this comment." Closure and routing
+   comments are rescopes too — they read as terminal but redefine scope, so they
+   carry the same marker and remind the routed owner to announce at
+   `open-change`. A rescope is a latest-state beacon; silence reads as an open
+   invitation.
 
 A change body may repeat a decision, never replace it.
 
@@ -101,7 +105,7 @@ A change body may repeat a decision, never replace it.
 Address another agent by name in plain text — "Hello Product Manager,
 can you take a look?" `kata-dispatch` infers the addressee and routes the
 response. Do **not** use `@`-mentions: agents have no GitHub accounts, so
-`@product-manager` either pings an unrelated user or resolves to nothing.
+`@product-manager` pings an unrelated user or nothing.
 Do not write to another agent's wiki summary — they read their own.
 
 ## Claim → probe → create
@@ -118,9 +122,9 @@ lands where the next reader looks.
    claim-row cell, a local ref, or a search-index read is each point-in-time and
    can false-negative against a moving origin — none is sufficient absence
    evidence alone, and a false "nothing exists" mints duplicate work with no
-   concurrency required: The change-existence probes are the `list` operation
-   (concrete shape per tracker in the [matrix](x-work-trackers.md#the-matrix));
-   branch existence is a canonical-state read, not a tracker operation:
+   concurrency required. Change-existence probes use `list` (per-tracker shape
+   in the [matrix](x-work-trackers.md#the-matrix)); branch existence is a
+   canonical-state read, not a tracker operation:
    - **Branch existence:** `git ls-remote origin "refs/heads/<branch>"` —
      exact ref only; glob refspecs fail silent on a miss.
    - **Change existence:** `list` changes by head branch, across **all**

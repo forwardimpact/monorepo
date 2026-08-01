@@ -311,12 +311,16 @@ row per spec: `{id}\t{phase}\t{status}`. STATUS is the canonical record;
 | `<phase>:approved` label | Human or `/ship-it` | `kata-dispatch` |
 | APPROVED review | Trusted-account approver | `kata-dispatch` |
 | Approval comment ("LGTM", "ship it") | Trusted contributor | `kata-dispatch` |
+| Human merge of a PR | Trusted human — the merge _is_ the approval | `kata-dispatch` (close event) |
 | In-session user message | Trusted user | Active agent |
 | `kata-plan` panel-clean | `staff-engineer` (plans only) | `kata-plan` skill |
 | retention-PR approval | `product-manager` (retention PRs only) | `kata-release-merge` at the gate |
 
 Agents never autonomously originate `spec approved` or `design approved` —
-they only propagate signals from trusted humans. Plans may be approved by
+they only propagate signals from trusted humans. A human merging a PR is one of
+those signals: when STATUS does not record it, reconcile the row to what was
+merged. A `kata-release-merge` merge is not — the gate merges only what STATUS
+already authorized. Plans may be approved by
 `staff-engineer` after `kata-plan` review; the product manager may originate a
 retention-PR approval, read by `kata-release-merge` at the gate rather than from
 a STATUS row. See

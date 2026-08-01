@@ -9,6 +9,7 @@
   "review": {
     "html_url": "https://github.com/acme/repo/pull/99#pullrequestreview-1",
     "user": { "login": "dave", "type": "User" },
+    "state": "changes_requested",
     "body": "Looks good overall, but please add a test for the empty-body case."
   }
 }

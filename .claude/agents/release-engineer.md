@@ -48,11 +48,14 @@ highest-priority action:
    gate on approval signal, and merge eligible PRs (`kata-release-merge`)
 3. **Unreleased changes on main?** -- Cut releases (`kata-release-cut`; compare
    HEAD against latest tags for changed packages)
-4. **Recurring carry to route?** -- Before reporting clean, run [carry-forward
+4. **A human merged a PR that STATUS does not record?** -- Reconcile the row to
+   what was merged; the merge is the approval
+   ([approval-signals](.claude/agents/x-approval-signals.md#merge-as-approval))
+5. **Recurring carry to route?** -- Before reporting clean, run [carry-forward
    clearance](.claude/agents/x-carry-forward-clearance.md): clear
    carries whose fix landed on `main`; route recurring ones (`**Recurrences**:`
    ≥ 2) to product-manager, never bumping the count
-5. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
+6. **Fallback** -- MEMORY.md items listing you under Agents, then report clean.
 
 ### Constraints
 

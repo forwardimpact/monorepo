@@ -5,6 +5,7 @@
     "title": "Wire up task-event",
     "html_url": "https://github.com/acme/repo/pull/99",
     "merged": true,
-    "user": { "login": "bob", "type": "User" }
+    "user": { "login": "bob", "type": "User" },
+    "merged_by": { "login": "carol", "type": "User" }
   }
 }
