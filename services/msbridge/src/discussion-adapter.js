@@ -37,11 +37,11 @@ function inflateMetadata(rec) {
 
 /**
  * gRPC-backed `DiscussionAdapter` for `services/msbridge`. Every request
- * carries a `tenant_id` resolved from the constructor-injected
- * `TenantResolver`: single-tenant deployments thread the literal
- * `"default"` (via `DefaultTenantResolver`), multi-tenant deployments
- * thread the registry-resolved tenant (via `RegistryTenantResolver`). The
- * adapter never omits the field — `services/bridge` rejects an empty
+ * carries a `tenant_id` that comes from the constructor-injected
+ * `TenantResolver`. Single-tenant deployments thread the literal
+ * `"default"` (through `DefaultTenantResolver`). Multi-tenant deployments
+ * thread the registry-resolved tenant (through `RegistryTenantResolver`).
+ * The adapter never omits the field. `services/bridge` rejects an empty
  * `tenant_id` with `INVALID_ARGUMENT`.
  */
 export class DiscussionAdapter {
@@ -61,9 +61,9 @@ export class DiscussionAdapter {
   }
 
   /**
-   * Resolve the tenant id for a context record. Prefers a `tenant_id`
-   * already bound on the context; otherwise resolves through the injected
-   * resolver and binds the result back onto the context.
+   * Resolve the tenant id for a context record. Prefer a `tenant_id`
+   * already bound on the context. If none exists, resolve through the
+   * injected resolver and bind the result back onto the context.
    *
    * @param {object} ctx
    * @returns {Promise<string>}

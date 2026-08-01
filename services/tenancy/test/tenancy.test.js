@@ -82,7 +82,7 @@ describe("tenancy ResolveByRepo", () => {
     assert.strictEqual(
       resolved.tenant_id,
       undefined,
-      "revoked tenants are not returned by ResolveByRepo",
+      "ResolveByRepo does not return revoked tenants",
     );
   });
 

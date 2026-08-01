@@ -24,7 +24,7 @@ export function isConsentActivity(activity) {
 }
 
 /**
- * Register the consenting tenant in the registry as `pending_consent`.
+ * Register the tenant that consented in the registry as `pending_consent`.
  *
  * @param {object} activity - The Bot Framework activity
  * @param {object} deps
