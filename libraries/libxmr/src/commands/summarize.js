@@ -54,9 +54,9 @@ export function runSummarizeCommand(ctx) {
   return { ok: true };
 }
 
-// Same `{source, generated, metrics: [...]}` shape as analyze, with each
-// metric stripped down to summary-relevant fields. Consumers parsing
-// either command get a consistent schema.
+// The report has the same `{source, generated, metrics: [...]}` shape as
+// analyze. Each metric keeps only the summary-relevant fields. Consumers
+// that parse either command get a consistent schema.
 /** Build a JSON-serializable summary report with rounded stats and compact signal data. */
 export function jsonReport(report) {
   return {
@@ -124,7 +124,8 @@ export function renderMarkdown(report) {
 }
 
 // Compact signal labels: `R1×k`, `R2×len`, `R3×slots`, `mR1×k`. Each rule
-// type gets its own token so the column scans without expanding.
+// type gets its own token. The column then scans in place and does not
+// expand.
 function formatSignals(signals) {
   if (!signals) return "—";
   const tokens = [];

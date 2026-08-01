@@ -52,10 +52,11 @@ function parseRecordOptions(values, runtime) {
   const noteResult = buildNote(values);
   if (noteResult.error) return { error: noteResult.error };
 
-  // A CI session knows its own host workflow run id; a local session does not.
-  // Record the run id when present, the explicit `local` marker otherwise —
-  // never a silent empty field. Lets a deferred backfill resolve a
-  // row to its host run with a keyed lookup instead of a forensic sweep.
+  // A CI session knows the run id of its host workflow. A local session does
+  // not. Record the run id when it is present. Record the explicit `local`
+  // marker otherwise. Never write a silent empty field. A deferred backfill
+  // then resolves a row to its host run with a keyed lookup. It does not need
+  // a forensic sweep.
   const hostRun = runtime.proc.env.GITHUB_RUN_ID || "local";
 
   return {
@@ -74,9 +75,10 @@ function parseRecordOptions(values, runtime) {
   };
 }
 
-// A route-bearing metric must carry a known route; the route-decision
-// grammar is prepended to the note so a downstream reader partitions the
-// row without parsing free text. Non-route-bearing metrics pass through.
+// A route-bearing metric must carry a known route. The code prepends the
+// route-decision grammar to the note. A downstream reader then partitions
+// the row and does not parse free text. Non-route-bearing metrics pass
+// through.
 function buildNote(values) {
   const note = values.note || "";
   if (!ROUTE_BEARING_METRICS.includes(values.metric)) return { note };
@@ -105,7 +107,7 @@ function buildNote(values) {
 }
 
 // $GITHUB_WORKFLOW_REF looks like
-// `owner/repo/.github/workflows/kata-shift.yml@refs/heads/main`; the
+// `owner/repo/.github/workflows/kata-shift.yml@refs/heads/main`. The
 // workflow's machine name is the filename without its extension.
 function workflowName(ref) {
   if (!ref) return "";
@@ -131,7 +133,7 @@ function printSummary(csvPath, metric, eventType, runtime) {
   }
 }
 
-/** Append a metric data point to `wiki/metrics/<skill>/<year>.csv` (creating the directory and header if absent) and print a one-line XmR status summary for the recorded metric. */
+/** Append a metric data point to `wiki/metrics/<skill>/<year>.csv`. Create the directory and the header when they are absent. Print a one-line XmR status summary for the recorded metric. */
 export function runRecordCommand(ctx) {
   const {
     options: values,

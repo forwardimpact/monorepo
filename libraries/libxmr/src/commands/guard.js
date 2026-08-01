@@ -1,9 +1,9 @@
 import { CSVIntegrityError } from "../csv.js";
 
-// CSVIntegrityError carries line number + content; the command layer owns
-// the file path, so the envelope prepends it. Anything else is a bug and
-// keeps propagating.
-/** Run a CSV-parsing thunk; on CSVIntegrityError return a CLI error envelope naming the file, otherwise `{ok: true, value}`. */
+// CSVIntegrityError carries the line number and the content. The command
+// layer owns the file path, so the envelope prepends it. Any other error
+// is a bug. It propagates.
+/** Run a CSV-parsing thunk. On CSVIntegrityError, return a CLI error envelope that names the file. Otherwise return `{ok: true, value}`. */
 export function withIntegrityGuard(csvPath, fn) {
   try {
     return { ok: true, value: fn() };

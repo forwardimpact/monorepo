@@ -1,6 +1,6 @@
 ---
 title: Lifecycle
-description: Engineering lifecycle phases — workflow guidance for handoffs, constraints, and checklists.
+description: Engineering lifecycle phases, with workflow guidance for handoffs, constraints, and checklists.
 ---
 
 ## Overview
@@ -9,8 +9,8 @@ The lifecycle model describes six phases that engineering work moves through,
 from specification to deployment. Each phase has handoff triggers, constraints,
 and checklists that guide quality transitions.
 
-Phases are conceptual workflow vocabulary — they describe what kind of work is
-happening and what discipline applies, not data entities backed by YAML files.
+Phases are conceptual workflow vocabulary. They describe what kind of work
+happens and which discipline applies. No YAML file backs them as a data entity.
 
 ---
 
@@ -67,7 +67,7 @@ specify where work flows next.
 
 | Handoff        | Target | Trigger                                |
 | -------------- | ------ | -------------------------------------- |
-| Request Review | review | Implementation complete, tests passing |
+| Request Review | review | Implementation complete, tests pass    |
 
 ### Review Phase
 
@@ -88,7 +88,7 @@ specify where work flows next.
 ## Constraints
 
 Each phase defines constraints that limit what actions are allowed. Constraints
-are especially important for AI agents — they prevent scope creep and ensure
+are especially important for AI agents. They prevent scope creep. They make sure
 agents stay within their authorized boundaries.
 
 | Phase        | Cannot                                        |
@@ -104,7 +104,7 @@ agents stay within their authorized boundaries.
 
 ## Checklists
 
-Checklists ensure quality at phase transitions. Each skill defines its own
+Checklists make sure quality holds at phase transitions. Each skill defines its own
 checklist items as flat fields in the agent section of the skill's YAML
 definition.
 

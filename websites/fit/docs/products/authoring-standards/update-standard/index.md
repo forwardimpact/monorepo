@@ -128,7 +128,7 @@ coreSkills:
   - release-management        # newly added
 ```
 
-Run validation again -- Map checks that every skill ID referenced in a
+Run validation again. Map checks that every skill ID referenced in a
 discipline exists in your capability files:
 
 ```sh
@@ -151,9 +151,9 @@ looks right:
 npx fit-pathway dev
 ```
 
-Browse the local development server and check that the updated entity appears
-where you expect it -- correct proficiency levels, correct discipline
-placement, correct track modifiers applied.
+Browse the local development server. Check that the updated entity appears
+where you expect it. Confirm the correct proficiency levels, the correct
+discipline placement, and the applied track modifiers.
 
 ## Verify
 
@@ -164,9 +164,9 @@ The update is complete when all three conditions are true:
    before).
 3. `npx fit-pathway dev` renders the change correctly in the browser.
 
-For the full field reference -- required vs. optional fields, ID patterns, and
-allowed values -- see the
-[YAML Schema Reference](/docs/reference/yaml-schema/).
+The [YAML Schema Reference](/docs/reference/yaml-schema/) has the full field
+reference. It covers required and optional fields, ID patterns, and allowed
+values.
 
 ## What's next
 

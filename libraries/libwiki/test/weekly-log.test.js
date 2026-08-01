@@ -275,7 +275,11 @@ describe("bisectWeeklyLog", () => {
       "staff-engineer",
       "2026-W21",
     );
-    assert.equal(residue, null, "every block fits a part, so there is no residue");
+    assert.equal(
+      residue,
+      null,
+      "every block fits a part, so there is no residue",
+    );
     // Content-equal with the input (move-not-copy at the finer grain).
     assert.equal(parts.map((p) => p.body).join(""), bodyBelowH1(text));
     // No part exceeds a cap.

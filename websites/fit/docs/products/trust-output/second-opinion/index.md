@@ -120,8 +120,8 @@ would define new module boundaries or introduce integration patterns — this
 work stays within the existing structure, which is appropriate for J060.
 ```
 
-This focused mode is useful when you have already reviewed most of the
-deliverable yourself and want a standards-grounded check on one aspect.
+This focused mode is useful when you already reviewed most of the deliverable
+yourself and want a standards-grounded check on one aspect.
 
 ## Ask about unfamiliar markers
 
@@ -138,33 +138,34 @@ expects and whether Guide's assessment is well-grounded.
 
 ## Use piped input for a quick assessment
 
-When you want a single assessment without entering an interactive session, pipe
-your question directly:
+To get a single assessment without an interactive session, pipe your question
+directly:
 
 ```sh
 echo "Does this test plan meet J060 testing expectations? [paste plan]" | npx fit-guide
 ```
 
-Guide prints the assessment and exits. This is useful when you are reviewing
-multiple deliverables in sequence and want a fast check on each one.
+Guide prints the assessment and exits. This is useful when you review multiple
+deliverables in sequence and want a fast check on each one.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - **You received a standards-grounded assessment.** Guide's response referenced
   specific skill markers and behaviour expectations from your engineering
-  standard -- not generic quality advice.
+  standard. It did not give generic quality advice.
 - **You can name what meets the bar and what does not.** The assessment
   identified specific areas where the deliverable aligns with the expected level
   and areas where it falls short, with enough detail to act on.
-- **You know what to ask for before approving.** If Guide identified gaps, you
+- **You know what to ask for before you approve.** If Guide identified gaps, you
   can describe the specific changes needed in terms the agent (or a human
   contributor) can act on.
 
-For the full workflow -- understanding what to expect from agent output at each
-role level and building a systematic review practice -- return to
-[Get Output Review Grounded in the Standard](/docs/products/trust-output/).
+Return to
+[Get Output Review Grounded in the Standard](/docs/products/trust-output/) for
+the full workflow. It covers what to expect from agent output at each role
+level. It also covers how to build a systematic review practice.
 
 ## What's next
 

@@ -129,7 +129,11 @@ describe("rebisectOverBudgetPart (part re-bisect)", () => {
     const r = rebisectOverBudgetPart(partPath, nodeFs);
 
     assert.equal(r.status, "resealed");
-    assert.equal(r.parts[0], partPath, "the re-bisect reuses the source slot part2");
+    assert.equal(
+      r.parts[0],
+      partPath,
+      "the re-bisect reuses the source slot part2",
+    );
     assert.match(
       r.parts[1],
       /-part3\.md$/,
