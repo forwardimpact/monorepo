@@ -17,7 +17,7 @@ import { resolveSubjectEmail } from "../lib/identity.js";
 
 export const needsSupabase = true;
 
-/** Simple theme keywords for crude bucketing. */
+/** Simple theme keywords that crudely bucket the comments. */
 const THEME_KEYWORDS = [
   "estimation",
   "incident",
@@ -31,7 +31,7 @@ const THEME_KEYWORDS = [
   "tooling",
 ];
 
-/** Surface engineer voice from GetDX snapshot comments, dispatching to email-scoped or manager-scoped mode. */
+/** Surface engineer voice from GetDX snapshot comments. Dispatch to email-scoped or manager-scoped mode. */
 export async function runVoiceCommand({
   options,
   identity,

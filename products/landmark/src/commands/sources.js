@@ -18,12 +18,12 @@ const CLASSES = [
   {
     id: "organization_people",
     label: "Profile",
-    // organization_people is the null-window class — its retention COMMENT is
-    // intentionally empty (admitted by activity._validate_retention_blob's
-    // organization_people exemption), so readRetention returns {window: null,
-    // clock: null}. The table's actual timestamp column is `updated_at`, so
-    // declare it here so the asc/desc probes in inventoryClass don't fall
-    // back to `imported_at` (which doesn't exist on this table).
+    // organization_people is the null-window class. Its retention COMMENT is
+    // intentionally empty. activity._validate_retention_blob's
+    // organization_people exemption admits that. So readRetention returns
+    // {window: null, clock: null}. The table's actual timestamp column is
+    // `updated_at`. Declare it here so the asc/desc probes in inventoryClass
+    // do not fall back to `imported_at`, which does not exist on this table.
     clock: "updated_at",
     plan: async (_s, e) => ({
       table: "organization_people",
@@ -138,7 +138,7 @@ async function inventoryClass(supabase, cls, email) {
 }
 
 /**
- * Run the sources command — list activity row classes retained about the
+ * Run the sources command. It lists activity row classes retained about the
  * subject (explicit `--email`, else the signed-in identity).
  *
  * @param {object} params

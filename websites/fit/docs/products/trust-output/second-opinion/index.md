@@ -14,10 +14,9 @@ guide first. The steps below assume that you installed Guide, that codegen is
 complete, and that the service stack runs.
 
 Also know the role you configured the agent to perform. If you set up the agent
-with
-[Agent Teams](/docs/products/agent-teams/), the agent profile already defines
-the role coordinates (discipline, level, and track). If not, identify the
-closest match before you continue. Guide needs a role context to ground its
+with [Agent Teams](/docs/products/agent-teams/), the agent profile already
+defines the role coordinates (discipline, level, and track). If not, identify
+the closest match before you continue. Guide needs a role context to ground its
 assessment.
 
 ## Identify the deliverable

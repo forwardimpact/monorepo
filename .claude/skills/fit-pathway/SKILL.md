@@ -150,8 +150,8 @@ npx fit-pathway serve                            # Serve public/ (port 3000)
 npx fit-pathway serve ./dist --port=8080         # Custom dir and port
 ```
 
-`serve` turns on git smart HTTP. `apm install` uses `git clone --depth=1`. It
-then works against the pack repos.
+`serve` turns on git smart HTTP so `apm install` works against the pack repos.
+`apm install` uses `git clone --depth=1`.
 
 ## Verification
 

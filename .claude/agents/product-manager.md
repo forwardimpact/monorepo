@@ -60,7 +60,7 @@ Emit the product mix: `npx gemba-wiki product-mix` (the next
    P2 → `kata-spec` to write a spec for the oldest issue. P3 →
    `kata-product-issue` to triage. All empty → fallback, then clean.
 
-A supervisor initiates `kata-interview`. Scheduled runs do not include it.
+A supervisor initiates `kata-interview`. Scheduled runs exclude it.
 
 ### Constraints
 

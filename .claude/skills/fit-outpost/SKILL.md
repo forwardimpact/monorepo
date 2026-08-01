@@ -1,7 +1,7 @@
 ---
 name: fit-outpost
 description: >
-  Keep track of people, projects, and threads. Do not depend on memory.
+  Keep track of people, projects, and threads. You do not depend on memory.
   Use when context is scattered across email, calendar, and notes and you
   need a daily briefing. Use when you manage email drafts. Use when you
   schedule background AI tasks, maintain a personal knowledge base, check
@@ -68,11 +68,11 @@ Agents can then access Mail, Calendar, and other protected resources.
 The `init <path>` command copies the bundled template into the target
 directory. The template holds `CLAUDE.md` (instructions), `.claude/agents/` and
 `.claude/skills/` (built-in agents and skills), and `.claude/settings.json`
-(permissions). `init` also scaffolds the knowledge base structure. Share the
-`Knowledge/` graph (People, Organizations, Projects, Topics) with the team over
-a synced filesystem. The personal `Briefings/` directory sits at the KB root,
-outside the shared graph. The template does not copy the user identity. The
-`identify-user` skill resolves it live and caches it at
+(permissions). `init` also scaffolds the knowledge base structure. The
+`Knowledge/` graph (People, Organizations, Projects, Topics) is for the team to
+share over a synced filesystem. The personal `Briefings/` directory sits at the
+KB root, outside the shared graph. The template does not copy the user identity.
+The `identify-user` skill resolves it live and caches it at
 `~/.cache/fit/outpost/state/identity.md`. The `update` command on an existing
 KB merges new files and keeps user customizations. It reconciles the settings
 permissions. It does not replace them.
@@ -159,8 +159,8 @@ again.
 4. Update `template/CLAUDE.md` to list the new skill
 5. If scheduled, add a default task entry to `config/scheduler.json`
 6. Run `npx fit-outpost update <kb-path>` for each existing KB to push the new
-   skill. From inside the KB, run `npx fit-outpost update` to update the
-   current directory
+   skill. As an alternative, run `npx fit-outpost update` from inside the KB to
+   update the current directory
 
 ## Verification
 

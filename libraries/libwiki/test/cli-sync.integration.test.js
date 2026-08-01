@@ -130,8 +130,9 @@ describe("push/pull commands (real git)", () => {
     assert.equal(result.ok, false);
     assert.equal(result.code, 1);
     assert.match(harness.stderr, /detached/);
-    // No commit was created and HEAD did not move; the pending work survives as
-    // an uncommitted change rather than being swept into a lost detached commit.
+    // The command created no commit. HEAD did not move. The pending work
+    // survives as an uncommitted change. Nothing sweeps it into a lost
+    // detached commit.
     assert.equal(git(wikiDir, "rev-parse", "HEAD"), head);
     assert.match(
       git(wikiDir, "status", "--porcelain", "--", "pending.md"),
@@ -142,7 +143,7 @@ describe("push/pull commands (real git)", () => {
   test("push refuses on severed (unrelated) local history", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "push-severed");
     git(wikiDir, "checkout", "master");
-    // Replace master with an unrelated root sharing no merge-base.
+    // Replace master with an unrelated root that shares no merge-base.
     git(wikiDir, "checkout", "--orphan", "severed");
     writeFileSync(join(wikiDir, "alien.md"), "unrelated");
     git(wikiDir, "add", "-A");

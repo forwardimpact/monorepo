@@ -72,7 +72,7 @@ Apply the one rule that governs every layer: **no layer restates another.**
   tables go in a reference (L6).
 - A reference (L6) is declarative. If it prescribes steps, it belongs in L5.
 - A checklist (L7) verifies a known step. If an item teaches, the procedure
-  above it is incomplete. Move the content up.
+  above it is incomplete. Move the explanation up.
 
 When two layers must mention the same tool, separate them by voice. The lower
 layer describes ("ToolX sends a message"). The higher layer directs ("Use ToolX
