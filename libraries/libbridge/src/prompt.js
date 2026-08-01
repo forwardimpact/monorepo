@@ -1,8 +1,8 @@
 /**
- * Build a facilitator prompt from the current message text and a rolling
- * conversation history. History is bounded to the last `maxExchanges`
- * exchanges (2x entries) and the total prompt size is capped at `charCap`
- * characters by dropping the oldest history entries until it fits.
+ * Build a facilitator prompt from the current message text and a bounded
+ * conversation history. The function keeps only the last `maxExchanges`
+ * exchanges (2x entries). It also caps the total prompt size at `charCap`
+ * characters. To stay inside the cap, it drops the oldest history entries.
  *
  * @param {string} text - The current user message
  * @param {Array<{role: "user"|"assistant", text: string}>} history - Prior

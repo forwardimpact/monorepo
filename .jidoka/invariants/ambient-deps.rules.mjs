@@ -1,17 +1,18 @@
 // Invariant: src modules under libraries/products/services must not
-// reach for ambient node-runtime dependencies (node:fs, node:child_process,
-// Date.now/new Date/setTimeout, or process.*) outside the allow-listed
-// default-collaborator factories, bin shims, and libcli internals. They
-// destructure the injected `runtime` bag instead.
+// reach for ambient node-runtime dependencies. Those are node:fs,
+// node:child_process, Date.now/new Date/setTimeout, and process.*. The
+// allow-listed default-collaborator factories, bin shims, and libcli
+// internals are exempt. Every other module destructures the injected
+// `runtime` bag instead.
 //
-// Two YAML lists govern the check (YAML so each entry can carry an inline
-// comment explaining why it is exempt):
-//   - ambient-deps.allow.yml — path globs that are permitted to use ambient
-//     deps forever (factories, bins, libcli internals, scripts, and domain
-//     files whose flagged construct is a deterministic false positive).
+// Two YAML lists govern the check. The lists use YAML so each entry can
+// carry an inline comment that explains why it is exempt:
+//   - ambient-deps.allow.yml — path globs that may use ambient deps forever
+//     (factories, bins, libcli internals, scripts, and domain files whose
+//     flagged construct is a deterministic false positive).
 //   - ambient-deps.deny.yml — a MONOTONE list of grandfathered files that
 //     still carry legacy smells. Each migration PR removes its files from
-//     this list; entries are removed only, never added.
+//     this list. Remove entries only. Never add an entry.
 //
 // Refresh the deny-list for current violators:
 //   bunx jidoka invariants --seed ambient-deps
@@ -117,10 +118,10 @@ function smellsInAst(ast, walk) {
   return smells;
 }
 
-// The smells that should fail for one file: every smell of a
-// non-grandfathered file, plus any smell a grandfathered file accrued
-// beyond its allowed set. `fs-and-fssync` is a new-code rule that fails
-// even for grandfathered files, preserving per-smell granularity.
+// These smells fail for one file: every smell of a non-grandfathered file,
+// plus any smell a grandfathered file accrued beyond its allowed set.
+// `fs-and-fssync` is a new-code rule that fails even for grandfathered
+// files. This preserves per-smell granularity.
 function flaggedSmells(smells, allowed) {
   const grandfathered = Array.isArray(allowed);
   const flagged = new Set(
@@ -163,7 +164,7 @@ export default {
     };
   },
 
-  // Print a deny-list for the current violators, for seeding/refreshing
+  // Print a deny-list for the current violators. Use it to seed or refresh
   // ambient-deps.deny.yml.
   seed(kit) {
     const map = {};

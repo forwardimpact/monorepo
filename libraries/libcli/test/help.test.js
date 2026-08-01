@@ -36,14 +36,14 @@ const fullDefinition = {
 
 describe("HelpRenderer", () => {
   describe("render", () => {
-    test("includes header line with name, version, description", () => {
+    test("includes a header line with the name, version, and description", () => {
       const stream = createStream();
       createRenderer().render(fullDefinition, stream);
       assert.ok(stream.output.includes("fit-test 1.0.0"));
       assert.ok(stream.output.includes("A test CLI"));
     });
 
-    test("includes one-line-per-command with aligned descriptions", () => {
+    test("includes one line per command with aligned descriptions", () => {
       const stream = createStream();
       createRenderer().render(fullDefinition, stream);
       assert.ok(stream.output.includes("run <file>"));

@@ -1,7 +1,7 @@
 /**
- * Sliding-window rate limiter. Operates on a caller-owned `dispatches: number[]`
- * array of timestamps and returns a structured result so callers can both
- * gate dispatch and surface retry-after hints.
+ * Sliding-window rate limiter. It operates on a caller-owned
+ * `dispatches: number[]` array of timestamps. It returns a structured
+ * result, so callers can both gate dispatch and surface retry-after hints.
  */
 export class RateLimiter {
   #windowMs;

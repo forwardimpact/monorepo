@@ -1,12 +1,12 @@
 const CHUNK_CAP_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
- * In-memory scheduler for `elapsed` resume triggers. JS `setTimeout`'s
- * practical cap is ~24.8 days; this scheduler chunks longer durations
- * into <= 7-day rearm segments so future >24-day windows work, while
- * the persistent `due_at` in `open_rfcs` is the source of truth across
- * restarts. Channel-agnostic — used by `ResumeScheduler` for both
- * bridges.
+ * In-memory scheduler for `elapsed` resume triggers. The practical cap of
+ * JS `setTimeout` is ~24.8 days. This scheduler chunks longer durations
+ * into <= 7-day rearm segments, so future >24-day windows work. The
+ * persistent `due_at` in `open_rfcs` stays the source of truth across
+ * restarts. This scheduler is channel-agnostic. `ResumeScheduler` uses it
+ * for both bridges.
  */
 export class ElapsedScheduler {
   #timers = new Map();
@@ -16,8 +16,8 @@ export class ElapsedScheduler {
 
   /**
    * @param {object} options
-   * @param {(correlationId: string) => Promise<void>} options.onFire - Invoked when the deadline passes.
-   * @param {(err: Error, correlationId: string) => void} [options.onError] - Invoked when `onFire` rejects.
+   * @param {(correlationId: string) => Promise<void>} options.onFire - Runs when the deadline passes.
+   * @param {(err: Error, correlationId: string) => void} [options.onError] - Runs when `onFire` rejects.
    * @param {import("@forwardimpact/libutil/runtime").Runtime["clock"]} [options.clock]
    */
   constructor({ onFire, onError = () => {}, clock }) {

@@ -1,10 +1,10 @@
 import { validateCallbackPayload } from "./callback-payload.js";
 
 /**
- * Thrown from a `handleReply` callback to short-circuit `createCallbackHandler`
- * with a specific HTTP status (e.g. 410 when a conversation reference is
- * missing). The handler emits the response without logging the throw as an
- * error.
+ * A `handleReply` callback throws this error to short-circuit
+ * `createCallbackHandler` with a specific HTTP status (e.g. 410 when a
+ * conversation reference is missing). The handler emits the response. It
+ * does not log the throw as an error.
  */
 export class CallbackHandlerError extends Error {
   /**
@@ -113,8 +113,8 @@ export function createCallbackHandler({
     const discussionId = loadDiscussionId(meta);
     // The dispatcher bound the resolved tenant on the callback token's domain
     // meta (`default` in single-tenant). Thread it into the load so
-    // multi-tenant lookups hit the tenant-scoped key rather than re-resolving
-    // by channel (which the registry cannot do — the channel is not a key).
+    // multi-tenant lookups hit the tenant-scoped key. The registry cannot
+    // re-resolve by channel, because the channel is not a key.
     const ctx = await store.loadByChannel(
       channel,
       discussionId,

@@ -11,21 +11,21 @@ import {
   LIBCLI_IS_COMPILED,
 } from "../src/embed.js";
 
-// The registry is module-global and shared across the whole `bun test` process.
-// Reset before each test so this file neither leaks the active flag into later
-// test files nor lets one test's mounts bleed into the next — the no-op-when-
-// unregistered assertion below depends on starting from a clean registry.
+// The registry is module-global. The whole `bun test` process shares it.
+// Reset before each test. Without the reset, this file leaks the active flag
+// into later test files. One test's mounts also bleed into the next. The
+// no-op-when-unregistered assertion below needs a clean registry.
 describe("embed", () => {
   beforeEach(() => {
     resetEmbeddedAssets();
   });
 
-  test("embeddedAssetsActive flips to true once a mount is registered", () => {
+  test("embeddedAssetsActive flips to true after registerAssets adds a mount", () => {
     registerAssets("test/active", { "x.md": "hello" });
     assert.strictEqual(embeddedAssetsActive(), true);
   });
 
-  test("embeddedDir + overlay serve registered content by joined path", () => {
+  test("embeddedDir and the overlay serve registered content by the joined path", () => {
     registerAssets("test/prompts", {
       "greet.prompt.md": "Hi {{name}}",
       "nested/deep.md": "deep",
@@ -55,7 +55,7 @@ describe("embed", () => {
     );
   });
 
-  test("overlay delegates non-embedded paths to the base fsSync", () => {
+  test("the overlay delegates non-embedded paths to the base fsSync", () => {
     registerAssets("test/delegate", { "a.md": "embedded" });
     let seen = null;
     const base = {
@@ -77,24 +77,25 @@ describe("embed", () => {
     );
   });
 
-  test("LIBCLI_IS_COMPILED is a boolean, false outside a compiled binary", () => {
+  test("LIBCLI_IS_COMPILED is a boolean. It is false outside a compiled binary", () => {
     // The constant folds to true only when build/build-binary.sh injects
-    // `--define process.env.LIBCLI_IS_COMPILED="1"`; in source/test execution
-    // the env var is unset, so it must be a plain false.
+    // `--define process.env.LIBCLI_IS_COMPILED="1"`. In source runs and test
+    // runs the env var is unset, so it must be a plain false.
     assert.strictEqual(typeof LIBCLI_IS_COMPILED, "boolean");
     assert.strictEqual(LIBCLI_IS_COMPILED, false);
   });
 
-  test("overlay is a no-op when no assets are registered", () => {
-    // With an empty registry (the beforeEach reset guarantees this), the overlay
-    // returns the runtime unchanged so source/npx execution keeps its on-disk fs.
+  test("the overlay is a no-op when the registry is empty", () => {
+    // The beforeEach reset guarantees an empty registry. With an empty
+    // registry, the overlay returns the runtime unchanged. Runs from source
+    // and runs from npx keep their on-disk fs.
     const base = {
       fsSync: { existsSync: () => false, readFileSync: () => "" },
     };
     assert.strictEqual(withEmbeddedAssets(base), base);
   });
 
-  test("overlay wraps into a distinct frozen runtime once a mount is registered", () => {
+  test("the overlay wraps into a distinct frozen runtime after registerAssets adds a mount", () => {
     registerAssets("test/frozen", { "a.md": "embedded" });
     const base = {
       fsSync: { existsSync: () => false, readFileSync: () => "" },

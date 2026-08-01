@@ -1,34 +1,35 @@
 # Using the Design Language
 
-> How to apply the [shared design language](index.md): the contract for
-> deriving a brand that stays recognizable as a sibling, and the four-layer
-> CSS architecture that realizes the language in code.
+> How to apply the [shared design language](index.md): the contract to derive
+> a brand that stays recognizable as a sibling, and the four-layer CSS
+> architecture that realizes the language in code.
 
-This document is about _use_. The language itself — philosophy, color,
-typography, spacing, components, motion, and accessibility — lives in
-[index.md](index.md). Read that first.
+This document is about _use_. The language itself lives in
+[index.md](index.md). It covers philosophy, color, typography, spacing,
+components, motion, and accessibility. Read that first.
 
-Brand-specific illustration systems — characters, scene grammar, base scenes —
-live with the brand that owns them. Forward Impact Engineering is the only
-brand that ships an illustration system; its layered illustration checklist is
-in [`fit/index.md § 3 Scene Grammar`](fit/index.md#3-scene-grammar).
+Brand-specific illustration systems live with the brand that owns them. These
+systems include characters, scene grammar, and base scenes. Forward Impact
+Engineering is the only brand that ships an illustration system. Its layered
+illustration checklist is in
+[`fit/index.md § 3 Scene Grammar`](fit/index.md#3-scene-grammar).
 
 ---
 
 ## 1. Deriving a Brand
 
 A brand inherits the shared language and adds its own interpretation. The split
-below preserves family resemblance: someone who has seen one brand should
+below preserves family resemblance. Someone who sees one brand should
 immediately recognize a sibling, even when the metaphor and palette differ.
 
 ### Inherited (do not override)
 
 These elements are the family's shared DNA. A brand that diverges on any of them
-stops being part of the family.
+is no longer part of the family.
 
 - **Monochrome with one warm signal**
-  ([index.md § 2](index.md#2-color-philosophy)). The hue varies; the pattern
-  doesn't.
+  ([index.md § 2](index.md#2-color-philosophy)). The hue varies. The pattern
+  does not.
 - **Typography pairing** — display serif + sans body + monospace code
   ([index.md § 3](index.md#3-typography-pattern)).
 - **8px spacing rhythm** and the spacing token names
@@ -41,21 +42,22 @@ stops being part of the family.
 
 ### Specified per brand
 
-These are the dimensions a brand uses to find its distinct voice while staying
+These are the dimensions a brand uses to find its distinct voice while it stays
 inside the family.
 
 - **Premise / metaphor** — what world the brand inhabits (e.g. expedition,
-  practice, fieldwork). Surfaces in motifs and naming, never in structural UI.
+  practice, fieldwork). It surfaces in motifs and names. It never surfaces in
+  structural UI.
 - **Product taxonomy** — which products belong to the brand and what each one
   answers.
 - **Illustration system** — whether the brand uses characters, object-only
-  motifs, or no illustrations at all. If characters are used, the brand owns
+  motifs, or no illustrations at all. If the brand uses characters, it owns
   their full specification, the scene grammar that frames them, and any reusable
   base scenes. Forward Impact Engineering's three characters and scene grammar
   live in
   [`fit/index.md § 2–4`](fit/index.md#2-the-three-characters-in-the-field).
 - **Color values** — the warm-tinted gray ramp and the warm-signal hue and ramp.
-  The pattern is fixed; the values are not.
+  The pattern is fixed. The values are not fixed.
 - **Typeface choices** — specific serif, sans, and mono families, plus
   type-scale numbers (sizes, weights, line heights).
 - **Product motifs** — visual symbols (e.g. compass, cairn, dojo mat) used in
@@ -68,8 +70,8 @@ inside the family.
   styles, dashboard overlays).
 - **Radii values** — concrete `--radius-sm/md/lg` numbers may differ per brand
   to match the brand's material vocabulary (e.g. journal cards vs stamped
-  paper). Brands diverging on radii must restate the affected component specs in
-  their own `index.md`, since the family's component vocabulary in
+  paper). A brand that diverges on radii must restate the affected component
+  specs in its own `index.md`. The family's component vocabulary in
   [index.md § 5](index.md#5-components) names sizes only by token.
 - **CSS design tokens** — the concrete `:root` realization of the above.
 

@@ -15,21 +15,21 @@ export const DEFAULT_TYPING_VERBS = Object.freeze([
 /**
  * Channel-agnostic acknowledgement lifecycle. The consumer provides a
  * reaction adapter that knows how to add and remove the channel's
- * "received" reaction. Optionally, the consumer may pass a typing adapter
- * — its only job is to deliver a single string to the channel.
- * Acknowledgement owns *when* to react, *which* typing verb to use, and
- * *how often* to send one.
+ * "received" reaction. The consumer can also provide a typing adapter.
+ * The typing adapter has one job. It delivers a single string to the
+ * channel. Acknowledgement owns *when* to react, *which* typing verb to
+ * use, and *how often* to send one.
  *
  *   reactionAdapter.add(target) -> reactionId | null
  *   reactionAdapter.remove(reactionId, target) -> void
  *   typingAdapter.send(target, text) -> void           // optional
  *
- * `start(token, target)` adds the reaction immediately. If a typing
- * adapter was supplied, it also begins posting a random typing verb
- * every `intervalMs` (default 25s) — e.g. `"Crafting..."`,
+ * `start(token, target)` adds the reaction immediately. If the consumer
+ * provided a typing adapter, `start` also sends a random typing verb
+ * every `intervalMs` (default 25s). The verb reads `"Crafting..."` or
  * `"Moonwalking..."`. `finish(token, target)` stops the typing ticker
- * and removes the reaction. Adapter errors are logged through the
- * optional logger but never thrown.
+ * and removes the reaction. The optional logger records adapter errors.
+ * Acknowledgement never throws them.
  */
 export class Acknowledgement {
   #reactionAdapter;
@@ -81,8 +81,8 @@ export class Acknowledgement {
   }
 
   /**
-   * Begin acknowledging the dispatch identified by `token`. Idempotent on
-   * the same token — a second start is a no-op.
+   * Start the acknowledgement for the dispatch that `token` identifies.
+   * Idempotent on the same token. A second start is a no-op.
    * @param {string} token
    * @param {unknown} target
    */
@@ -99,8 +99,8 @@ export class Acknowledgement {
   }
 
   /**
-   * Stop acknowledging the dispatch identified by `token`. No-op if the
-   * token has no active acknowledgement.
+   * Stop the acknowledgement for the dispatch that `token` identifies.
+   * No-op if the token has no active acknowledgement.
    * @param {string} token
    * @param {unknown} [target]
    */

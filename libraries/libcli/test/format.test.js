@@ -31,7 +31,7 @@ describe("formatTable", () => {
     assert.ok(lines[3].startsWith("longer name"));
   });
 
-  test("compact option omits separator", () => {
+  test("the compact option omits the separator", () => {
     const result = formatTable(
       ["A", "B"],
       [["1", "2"]],
@@ -44,34 +44,34 @@ describe("formatTable", () => {
 });
 
 describe("formatHeader", () => {
-  test("returns bold+cyan text when color supported", () => {
+  test("returns bold and cyan text when the process supports color", () => {
     const result = formatHeader("Title", withColor);
     assert.ok(result.includes(colors.bold));
     assert.ok(result.includes(colors.cyan));
     assert.ok(result.includes("Title"));
   });
 
-  test("returns plain text when color not supported", () => {
+  test("returns plain text when the process does not support color", () => {
     const result = formatHeader("Title", noColor);
     assert.strictEqual(result, "Title");
   });
 });
 
 describe("formatError", () => {
-  test("returns red Error text when color supported", () => {
+  test("returns red Error text when the process supports color", () => {
     const result = formatError("bad thing", withColor);
     assert.ok(result.includes(colors.red));
     assert.ok(result.includes("Error: bad thing"));
   });
 
-  test("returns plain text when color not supported", () => {
+  test("returns plain text when the process does not support color", () => {
     const result = formatError("bad thing", noColor);
     assert.strictEqual(result, "Error: bad thing");
   });
 });
 
 describe("indent", () => {
-  test("adds correct padding to all lines", () => {
+  test("adds the correct padding to all lines", () => {
     const result = indent("line1\nline2", 4);
     assert.strictEqual(result, "    line1\n    line2");
   });
@@ -83,7 +83,7 @@ describe("indent", () => {
 });
 
 describe("horizontalRule", () => {
-  test("returns correct-width dashed line", () => {
+  test("returns a dashed line of the correct width", () => {
     const result = horizontalRule(10, noColor);
     assert.strictEqual(result, "\u2500".repeat(10));
   });

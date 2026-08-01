@@ -1,17 +1,17 @@
 # Design Language
 
 > A monochrome design language for product suites where people, AI agents, and
-> domain experts collaborate as equals. Inspired by the restraint of Ollama,
-> adapted for professional product suites.
+> domain experts collaborate as equals. The restraint of Ollama inspired it. It
+> adapts that restraint for professional product suites.
 
 This document describes the abstract design language: the philosophy and the
 cross-brand patterns for color, typography, spacing, components, motion, and
-accessibility. Concrete implementations — palette values, fonts, product
-taxonomies, layouts, design tokens, and any character-driven illustration
-system — live in per-brand files. Brands derive from this shared language and
-stay recognizable as siblings while taking distinct stances on metaphor,
-palette, and motif. The contract for deriving a brand lives in
-[usage.md](usage.md).
+accessibility. Concrete implementations live in per-brand files. They cover
+palette values, fonts, product taxonomies, layouts, design tokens, and any
+character-driven illustration system. Brands derive from this shared language
+and stay recognizable as siblings. Each brand takes a distinct stance on
+metaphor, palette, and motif. [usage.md](usage.md) holds the contract you
+follow to derive a brand.
 
 **Brand implementations:**
 
@@ -27,15 +27,17 @@ palette, and motif. The contract for deriving a brand lives in
 
 ### Core Principles
 
-1. **Monochrome with one warm signal.** Pure black and white base, with a single
-   warm tone used sparingly for ambient warmth — campfire light on a
-   black-and-white photograph. The specific warm tone is a brand decision.
-2. **Texture, not decoration.** Brand-chosen textures (e.g. contour lines)
-   appear as subtle background elements, never as foreground decoration.
+1. **Monochrome with one warm signal.** The base is pure black and white. A
+   single warm tone adds ambient warmth. Use it sparingly. It works like
+   campfire light on a black-and-white photograph. The specific warm tone is a
+   brand decision.
+2. **Use texture. Do not decorate.** Brand-chosen textures (e.g. contour lines)
+   appear as subtle background elements. They never appear as foreground
+   decoration.
 3. **Typography creates hierarchy.** No accent colors. Size, weight, and spacing
    do all the work.
-4. **Each product has its own visual motif.** Product-level differentiation
-   happens in icons and illustrations, never in structural UI.
+4. **Each product has its own visual motif.** Icons and illustrations
+   differentiate the products. Structural UI never does.
 
 ---
 
@@ -43,16 +45,17 @@ palette, and motif. The contract for deriving a brand lives in
 
 **Monochrome with one warm signal.**
 
-The base palette is pure black through pure white via a ramp of warm-tinted
-grays. All grays carry a slight warm shift (~3–5%, pulling toward brown or
-taupe) so the difference accumulates across a page — warmer, more human, like
-paper.
+The base palette runs from pure black to pure white through a ramp of
+warm-tinted grays. All grays carry a slight warm shift (about 3–5%, toward
+brown or taupe). The difference accumulates across a page. The result is
+warmer, more human, like paper.
 
-A single warm tone (e.g. sandstone, ochre, clay) is layered on top:
+A single warm tone (e.g. sandstone, ochre, clay) sits on top:
 
-- **Used in backgrounds and borders, never in text or interactive elements.**
-- **Ambient — parchment showing through the ink.**
-- Provides a small ramp (50, 100, 200, 400, 600) for warm surfaces, selected
+- **Use it in backgrounds and borders. Never use it in text or interactive
+  elements.**
+- **It is ambient, like parchment that shows through the ink.**
+- It provides a small ramp (50, 100, 200, 400, 600) for warm surfaces, selected
   cards, warm borders, and the rare warm accent.
 
 Brands choose:
@@ -78,10 +81,11 @@ concrete realization.
 | **Body**           | Sans-serif |
 | **Mono / Code**    | Monospace  |
 
-The serif/sans pairing creates hierarchy beyond size and weight. The serif
-anchors the brand's character — what it specifically evokes is a brand decision
-(e.g. field journals, training manuals, archival records). Brands choose the
-specific families and the type scale; the pairing pattern is fixed.
+The serif and sans combination creates hierarchy beyond size and weight. The
+serif anchors the brand's character. What it specifically evokes is a brand
+decision (e.g. field journals, training manuals, archival records). Brands
+choose the specific families and the type scale. The pattern that combines
+serif and sans is fixed.
 
 A typical scale spans hero (≈ 64px serif) → display (≈ 44px serif) → h1–h3
 (sans, 32/24/20px) → body (16px) → small/badge/mono (14/12/14px). Colors follow
@@ -191,18 +195,19 @@ All animations respect `prefers-reduced-motion`.
 
 | Concern                   | Solution                                                                                        |
 | ------------------------- | ----------------------------------------------------------------------------------------------- |
-| **Color-only indicators** | Not applicable — monochrome uses shape, size, weight, position                                  |
+| **Color-only indicators** | Not applicable. Monochrome uses shape, size, weight, position                                   |
 | **Contrast ratios**       | Black-on-white = 21:1. Body gray-on-white must meet AA (≥ 4.5:1). Large text may meet AA-large. |
 | **Focus states**          | 2px solid darkest-gray outline with 2px offset                                                  |
 | **Motion sensitivity**    | All animations respect `prefers-reduced-motion`                                                 |
-| **Dark mode**             | Invert system — darkest gray bg, warm-light text, white-on-dark line art                        |
-| **Image alt text**        | All illustrations include descriptive alt text identifying subject and action                   |
+| **Dark mode**             | Invert the system: darkest gray bg, warm-light text, white-on-dark line art                     |
+| **Image alt text**        | All illustrations include descriptive alt text that identifies subject and action               |
 
 ---
 
-_The design language is brand-agnostic. For how to apply it — the contract for
-deriving a brand, and the four-layer CSS architecture that ships with it — see
-[usage.md](usage.md). For concrete palettes, fonts, products, and CSS tokens —
-plus any brand-specific illustration system such as Forward Impact's three
-characters and scene grammar — see the brand implementation files listed at
-the top of this page._
+_The design language is brand-agnostic. See [usage.md](usage.md) for how to
+apply it. That page holds the contract you follow to derive a brand. It also
+holds the four-layer CSS architecture that ships with it. See the brand
+implementation files listed at the top of this page for concrete palettes,
+fonts, products, and CSS tokens. Those files also hold any brand-specific
+illustration system, such as Forward Impact's three characters and scene
+grammar._
