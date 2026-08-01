@@ -769,7 +769,7 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     const { wikiSync } = conservationFixture({
       diffNameStatus: "M\tMEMORY.md",
     });
-    // The remote content is fully present in HEAD (HEAD only added) ⇒ no drop.
+    // HEAD holds all the remote content (HEAD only added) ⇒ no drop.
     // showFile default ("" both sides) ⇒ #dropsForeignContent returns false.
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.equal(result.landed, true);

@@ -312,7 +312,7 @@ function noMatchText(driverJoin) {
   const { scoreIds, yamlIds } = driverJoin;
   return [
     "  Drivers (no matches)",
-    `  Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}; none overlap.`,
+    `  Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}. None overlap.`,
     "  Edit `data/pathway/drivers.yaml` to align with the GetDX taxonomy",
     "  (`npx fit-map init` resets it).",
   ];
@@ -331,7 +331,7 @@ function noMatchMarkdown(driverJoin) {
   return [
     "## Drivers (no matches)",
     "",
-    `Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}; none overlap.`,
+    `Snapshot has ${scoreIds} driver ids, your \`data/pathway/drivers.yaml\` declares ${yamlIds}. None overlap.`,
     "",
     "Edit `data/pathway/drivers.yaml` to align with the GetDX taxonomy (`npx fit-map init` resets it).",
   ];
@@ -342,7 +342,7 @@ function noMatchMarkdown(driverJoin) {
 // ---------------------------------------------------------------------------
 
 /** Render the health view as indented plain text. Default mode emits a compact
- * table plus a deduped Recommendations trailer; verbose mode emits the
+ * table plus a deduped Recommendations trailer. Verbose mode emits the
  * per-driver paragraph layout with all anchors disclosed. */
 export function toText(view, meta) {
   const lines = [renderHeader(`${view.teamLabel} — health view`), ""];
@@ -371,11 +371,11 @@ export function toText(view, meta) {
 
 /**
  * Render a director-tier rollup as a scope line plus one symmetric block per
- * team, in resolution order. No team is sorted, ranked, or compared against
- * another — each block is the same default driver table the team-manager view
- * produces for that team. The scope line distinguishes a director view from a
- * team view; the symmetric, unranked layout keeps the surface from singling
- * out any one team.
+ * team, in resolution order. The renderer does not sort, rank, or compare any
+ * team against another. Each block is the same default driver table the
+ * team-manager view produces for that team. The scope line distinguishes a
+ * director view from a team view. The symmetric, unranked layout makes sure
+ * the surface singles out no team.
  */
 function renderTextRollup(view, meta, lines) {
   lines.push(
@@ -402,7 +402,7 @@ export function toJson(view, meta) {
 }
 
 /** Render the health view as markdown. Default mode emits a compact driver
- * table plus a deduped Recommendations trailer; verbose mode emits the
+ * table plus a deduped Recommendations trailer. Verbose mode emits the
  * per-driver section layout with all anchors disclosed. */
 export function toMarkdown(view, meta) {
   const lines = [`# ${view.teamLabel} — health view`, ""];
@@ -430,9 +430,9 @@ export function toMarkdown(view, meta) {
 }
 
 /**
- * Markdown form of the director-tier rollup: a scope heading plus one section
- * per team in resolution order, symmetric and unranked so no team is singled
- * out.
+ * Render the markdown form of the director-tier rollup. It emits a scope
+ * heading plus one section per team in resolution order. The layout is
+ * symmetric and unranked, so it singles out no team.
  */
 function renderMdRollup(view, meta, lines) {
   lines.push(

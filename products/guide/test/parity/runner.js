@@ -6,8 +6,8 @@
  *   node runner.js --surface cli     # Test via fit-guide CLI
  *   node runner.js --surface mcp     # Test via direct MCP tool calls
  *
- * Requires a running Guide stack and ANTHROPIC_API_KEY.
- * Claude Chat surface requires manual evaluation (document steps).
+ * This runner needs a live Guide stack and ANTHROPIC_API_KEY.
+ * Evaluate the Claude Chat surface manually (document steps).
  */
 
 import { readFileSync } from "node:fs";

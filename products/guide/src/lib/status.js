@@ -247,7 +247,7 @@ export async function runStatus(deps) {
     clock,
   );
 
-  // Data inventory — only query if graph is reachable
+  // Data inventory. Query it only when graph is reachable.
   const queryFn = deps.queryDataInventory || queryDataInventory;
   let dataCounts = { resources: 0, triples: 0 };
   if (services.graph?.status === "ok") {
@@ -255,7 +255,7 @@ export async function runStatus(deps) {
   }
   const data = { ...dataCounts };
 
-  // Credential check — use any available config
+  // Credential check. Use any available config.
   const anyConfig = configs.mcp || configs.graph || Object.values(configs)[0];
   const anthropicTokenStatus = anyConfig
     ? await checkAnthropicToken(anyConfig)

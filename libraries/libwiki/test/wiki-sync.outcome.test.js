@@ -205,7 +205,7 @@ describe("WikiSync honest-outcome contract", () => {
         ...rest,
       },
     });
-    fx.git.isAncestor = async (a) => (a === "HEAD" ? false : !staleBase); // no to nothing-to-push, yes to descends unless stale
+    fx.git.isAncestor = async (a) => (a === "HEAD" ? false : !staleBase); // nothing-to-push no, descends yes unless stale
     return fx;
   }
 
@@ -295,7 +295,7 @@ describe("WikiSync honest-outcome contract", () => {
     const { wikiSync } = conservationFixture({
       diffNameStatus: "M\tMEMORY.md",
     });
-    // The remote content is fully present in HEAD (HEAD only added) ⇒ no drop.
+    // HEAD holds all the remote content (HEAD only added) ⇒ no drop.
     // showFile default ("" both sides) ⇒ #dropsForeignContent returns false.
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.equal(result.landed, true);

@@ -21,9 +21,9 @@ the memory protocol defines (budgets, section order, decision blocks, MEMORY.md
 structure, Active Claims schema, storyboard markers). The same rules gate CI. A
 file that does not match a summary or weekly-log shape stays unclassified by
 design. The audit does not flag it. Per-deliverable agent files then coexist
-with audited surfaces. `gemba-wiki fix` auto-clears findings. Run it first, then
-run `audit` to confirm. The remaining areas are the _meaning_ audit cannot
-read.
+with audited surfaces. `gemba-wiki fix` auto-clears findings. Run it first,
+then run `audit` to confirm. The remaining areas are the _meaning_ audit
+cannot read.
 
 | Area               | What to check                                            | Tool                         |
 | ------------------ | -------------------------------------------------------- | ---------------------------- |

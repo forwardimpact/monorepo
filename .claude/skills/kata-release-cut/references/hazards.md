@@ -54,5 +54,5 @@ consumers now depend on, the new library has no first-release tag yet.
   consumer changes, **before** you re-tag any consumer that depends on it. Tag
   strictly in dependency order: the new library first, then its consumers.
 - Hazard (b) is the observed symptom when you violate this order. The
-  consumer's smoke test cannot resolve the dependency. The dependency
-  published after the consumer, or at the same time as the consumer.
+  consumer's smoke test cannot resolve the dependency, because its publish
+  came after the consumer's publish, or at the same time.

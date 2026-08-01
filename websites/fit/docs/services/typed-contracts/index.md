@@ -30,7 +30,7 @@ npm install @modelcontextprotocol/sdk
 ## Architecture overview
 
 The MCP service is the only non-gRPC service in the stack. It exposes an
-HTTP/SSE interface using `@modelcontextprotocol/sdk` and delegates every tool
+HTTP/SSE interface with `@modelcontextprotocol/sdk`. It delegates every tool
 call to one of the gRPC backend services. Each client session gets its own
 `McpServer` instance for isolation.
 
@@ -70,9 +70,9 @@ Tool registration is declarative. The `service.mcp.tools` section of
 
 Each entry specifies a `method` in `<package>.<Service>.<RPC>` format and a
 `description` that becomes the tool's human-readable summary. The MCP service
-reads the codegen metadata for each method to build a Zod schema for parameter
-validation, so tool parameters are typed automatically from the proto
-definitions.
+reads the codegen metadata for each method. It builds a Zod schema for
+parameter validation. So the tool parameters take their types from the proto
+definitions automatically.
 
 ## Default tool set
 
@@ -82,7 +82,7 @@ The MCP service ships with these tools pre-configured:
 | ---------------------- | -------------------- | ---------------------------------------------------- |
 | `GetOntology`          | graph                | Returns entity types and relationship predicates     |
 | `GetSubjects`          | graph                | Lists entity URIs, optionally filtered by type       |
-| `QueryByPattern`       | graph                | Traverses relationships using triple patterns        |
+| `QueryByPattern`       | graph                | Traverses relationships with triple patterns         |
 | `SearchContent`        | vector               | Semantic similarity search over indexed content      |
 | `ListJobs`             | pathway              | Lists valid discipline/level/track combinations      |
 | `DescribeJob`          | pathway              | Derives a full role definition                       |
@@ -93,7 +93,7 @@ The MCP service ships with these tools pre-configured:
 | `GetMarkersForProfile` | pathway              | Lists skill markers expected at a discipline/level/track |
 | `GetUnscoredArtifacts` | map                  | Lists artifacts with no evidence rows, scoped by person, manager, or org |
 | `GetArtifact`          | map                  | Returns full detail for a single artifact by UUID    |
-| `WriteEvidence`        | map                  | Writes an evidence row linking an artifact to a skill marker |
+| `WriteEvidence`        | map                  | Writes an evidence row that links an artifact to a skill marker |
 | `GetPerson`            | map                  | Returns an engineer's profile by email               |
 
 ## Start the MCP service
@@ -111,7 +111,7 @@ MCP_TOKEN=your-token node --watch services/mcp/server.js
 ```
 
 The server listens on port 3011 by default (configurable in
-`config/config.json` or `SERVICE_MCP_URL` in `.env`). Verify it is running:
+`config/config.json` or `SERVICE_MCP_URL` in `.env`). Verify that it runs:
 
 ```sh
 curl http://localhost:3011/health
@@ -194,8 +194,8 @@ const result = await client.callTool({
 console.log(result.content[0].text.substring(0, 300));
 ```
 
-The response is the Turtle RDF content from the pathway service, wrapped in
-the MCP content format.
+The response is the Turtle RDF content from the pathway service. The MCP
+content format wraps it.
 
 ## How tool registration works
 
@@ -205,33 +205,33 @@ configuration and for each entry:
 1. Parses the `method` string into package, service, and RPC name.
 2. Looks up the codegen metadata for the RPC's request type fields.
 3. Builds a Zod schema from the field metadata for parameter validation.
-4. Registers the tool on the `McpServer` with the schema and a handler that
-   normalizes parameters, creates a typed request via `fromObject`, calls the
-   gRPC client, and returns the result.
+4. Registers the tool on the `McpServer` with the schema and a handler. The
+   handler normalizes parameters and creates a typed request through
+   `fromObject`. It then calls the gRPC client and returns the result.
 
-When the RPC returns resource identifiers (rather than content), the service
-resolves them through the resource index and returns the content as text.
+An RPC can return resource identifiers instead of content. The service then
+resolves them through the resource index. It returns the content as text.
 
 ## Session management
 
-Each client connection gets its own `McpServer` and transport pair. Sessions
-are tracked by session ID and reaped after 30 minutes of inactivity. The
-reaping interval runs every 60 seconds.
+Each client connection gets its own `McpServer` and transport pair. The
+service tracks sessions by session ID. It reaps a session after 30 minutes of
+inactivity. It runs the reap check every 60 seconds.
 
-When a client disconnects, its session is removed from the session map. When
-the server shuts down, it closes all active sessions before stopping the HTTP
-listener.
+When a client disconnects, the service removes its session from the session
+map. When the server shuts down, it closes all active sessions before it stops
+the HTTP listener.
 
 ## Authentication
 
 Every request must include a `Bearer` token in the `Authorization` header. The
-token is compared against `config.mcpToken()`, which reads from the
-`MCP_TOKEN` environment variable. Requests without a valid token receive a 401
-response.
+service compares the token against `config.mcpToken()`. That function reads
+the `MCP_TOKEN` environment variable. Requests without a valid token receive a
+401 response.
 
 ## Verify
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - The MCP service starts and `/health` returns `{"status":"ok"}`.
 - An MCP client connects with the correct bearer token.
@@ -240,9 +240,9 @@ You have reached the outcome of this guide when:
 - `callTool` for a graph or vector RPC returns content or resolved
   resource text.
 
-If the MCP service starts but tool calls fail, confirm the backend gRPC
-services are running with `npx fit-rc status`. The MCP service cannot serve
-tool calls if the backend it delegates to is unreachable.
+If the MCP service starts but tool calls fail, run `npx fit-rc status` to
+confirm that the backend gRPC services run. The MCP service cannot serve tool
+calls if the backend it delegates to is unreachable.
 
 ## What's next
 

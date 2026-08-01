@@ -55,9 +55,9 @@ A second PR that references the same issue is a potential duplicate. Comment on
 the issue and name both PRs. Assess which route stands before you merge either
 one. The Step 7 comment gate applies. `--state all` is load-bearing at the gate
 for the same reason it is load-bearing in
-[coordination-protocol § Claim → probe → create](../../../agents/x-coordination-protocol.md#claim--probe--create):
-a just-merged sibling settles which route stands, and an open-only search
-cannot see it.
+[coordination-protocol § Claim → probe → create](../../../agents/x-coordination-protocol.md#claim--probe--create).
+A just-merged sibling settles which route stands. An open-only search cannot
+see it.
 
 The search index lags by minutes, so an empty result is not absence
 evidence. The comment scan in the announcement check above is the lag-free

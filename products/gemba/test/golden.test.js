@@ -8,9 +8,9 @@ import { createDefinition } from "@forwardimpact/libwiki/cli-definition.js";
 import { createTestRuntime } from "@forwardimpact/libmock";
 
 // Byte-for-byte CLI-contract guard: the definition + libcli help
-// renderer must keep producing the snapshots captured in golden/gemba-wiki/.
-// The committed `*.txt` were captured from the bin with the version normalised
-// to `X.Y.Z`; rendering in-process with that version reproduces them without a
+// renderer must still produce the snapshots captured in golden/gemba-wiki/.
+// The committed `*.txt` came from the bin with the version normalised to
+// `X.Y.Z`. An in-process render with that version reproduces them without a
 // process spawn. `scripts/capture-cli-golden.mjs --verify` runs the same cases
 // against the real spawned bin in the release-merge gate.
 const GOLDEN_DIR = fileURLToPath(
@@ -24,7 +24,7 @@ function golden(file) {
 function cli() {
   const runtime = createTestRuntime();
   const definition = createDefinition();
-  // Goldens were captured with the version normalised to X.Y.Z; set it
+  // Goldens came from a capture with the version normalised to X.Y.Z. Set it
   // explicitly so createCli's packageJsonUrl auto-fill stays out of the way.
   definition.version = "X.Y.Z";
   return {

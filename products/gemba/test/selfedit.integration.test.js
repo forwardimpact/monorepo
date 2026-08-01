@@ -152,7 +152,8 @@ describe("gemba-selfedit", () => {
 
   test("settings-allow check runs before the branch check", () => {
     const dir = makeRepo({ branch: "main" });
-    // Path is disallowed AND we're on main; expect the allow-rule error first.
+    // The path is disallowed AND we are on main. Expect the allow-rule error
+    // first.
     const result = runSelfedit(dir, ["README.md"], "x");
     assert.strictEqual(result.status, 2);
     assert.match(result.stderr, /no Edit\(\) rule/);
@@ -161,7 +162,7 @@ describe("gemba-selfedit", () => {
 
   test("refuses when parent directory does not exist", () => {
     const dir = makeRepo();
-    // .claude/agents/** is allowed; the parent .claude/agents/ does not exist.
+    // .claude/agents/** is allowed. The parent .claude/agents/ does not exist.
     const result = runSelfedit(dir, [".claude/agents/sub/probe.md"], "x");
     assert.strictEqual(result.status, 2);
     assert.match(result.stderr, /does not exist/);
