@@ -15,7 +15,7 @@ export const RDF_PREFIXES = {
 };
 
 /**
- * Checks if a value is a wildcard in graph queries
+ * Checks if a value represents a wildcard in graph queries
  * @param {any} value - The value to check
  * @returns {boolean} True if the value represents a wildcard
  */

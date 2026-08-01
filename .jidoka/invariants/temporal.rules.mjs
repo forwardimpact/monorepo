@@ -60,7 +60,7 @@ const PATTERNS = [
     pattern: "\\b(Exp|Experiment|Obstacle)[- ]?[0-9]+\\b",
     caseSensitive: true,
   },
-  // Agent-role initialisms serve as a numbered shorthand for that agent's
+  // Agent-role initialisms can serve as a numbered shorthand for that agent's
   // experiments or findings (SE = staff/security engineer, RE = release
   // engineer, TW = technical writer, PM = product manager, IC = improvement
   // coach). None occur today. This rule guards against the shorthand before

@@ -5,8 +5,8 @@ export const MAX_REPLY_COUNT = 50;
  * Validate and sanitize the kata-dispatch callback payload. This
  * validator is lenient by design. A missing `verdict` or `summary`
  * defaults to a safe sentinel. The validator does not reject the
- * payload. A host can then surface a degraded callback and still post
- * something useful. Returns a clean object, or `null` if
+ * payload for that reason. A host can then surface a degraded callback
+ * and still post something useful. Returns a clean object, or `null` if
  * `correlation_id` is missing.
  *
  * @param {unknown} body

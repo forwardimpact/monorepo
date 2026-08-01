@@ -30,7 +30,7 @@ export class SummaryRenderer {
    * Report whether the renderer would render a block for a run with the given
    * `ok` under the current LOG_LEVEL. This method centralizes the suppression
    * rule. A caller that gates richer output (tables, multi-line blocks) on the
-   * same policy does not reimplement the level check.
+   * same policy does not need to reimplement the level check.
    *
    * @param {boolean} ok
    * @returns {boolean}
@@ -62,7 +62,7 @@ export class SummaryRenderer {
    * @param {string}   params.title       Block title. `render` writes it after the leading blank line.
    * @param {Array<{label: string, description: string}>} params.items  Rows.
    * @param {boolean}  params.ok          Whether the run this summary describes succeeded.
-   * @param {string}   [params.extras]    Free-form content that `render` writes after the items. The same suppression applies to it.
+   * @param {string}   [params.extras]    Free-form content that `render` writes after the items. `render` applies the same suppression to it as to the rest of the block.
    * @param {{ write: (s: string) => void }} [stream]  Defaults to process.stdout.
    */
   render({ title, items, ok, extras }, stream = this.#proc.stdout) {

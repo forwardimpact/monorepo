@@ -4,7 +4,7 @@
 // fit-codegen binary then crashes at startup
 // (`util.Long.fromNumber is not a function`). Bind it explicitly.
 //
-// Two entry points import this module for its side effect.
+// Two modules import this module for its side effect.
 // `bin/fit-codegen.js` imports it ahead of the `@grpc/proto-loader` import,
 // whose descriptor extension runs `resolveAll()` at module-evaluation time.
 // base.js imports it ahead of its own runtime `Root.resolveAll()`. ES module

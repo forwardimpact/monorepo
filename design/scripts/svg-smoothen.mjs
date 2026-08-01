@@ -4,7 +4,8 @@
 //
 // Chips are small protrusions that hang off what should be smooth outlines.
 // This script detects where each chip departs the main stroke and where it
-// returns. It then cuts the chip off. It connects those two points directly.
+// returns. It then cuts the chip off. To do this, it connects those two
+// points directly.
 //
 // Usage:
 //   node design/scripts/svg-smoothen.mjs [--level 1-5] <file ...>

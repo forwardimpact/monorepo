@@ -119,7 +119,7 @@ export default {
       skip: SKIP_DIRS,
       match: (name) => name.endsWith(".test.js"),
     })
-      // Expect libmock's own self-tests to redefine some helpers.
+      // libmock's own self-tests redefine some helpers on purpose.
       .filter((s) => !s.path.includes("/libraries/libmock/"))
       .map(({ path, text }) => ({
         path,

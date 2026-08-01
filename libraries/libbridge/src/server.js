@@ -50,9 +50,9 @@ export function createBridgeServer({
   }
 
   // `@forwardimpact/libhttp` owns the lifecycle, the security headers, the
-  // body limit, and the health route. This factory only mounts the bridge
-  // routes through the `configure` callback. It also mounts the raw-body
-  // capture that those routes depend on.
+  // body limit, and the health route. This factory mounts only the bridge
+  // routes and the raw-body capture that those routes depend on. It mounts
+  // them through the `configure` callback.
   return createHttpService({
     name: "bridge",
     config,

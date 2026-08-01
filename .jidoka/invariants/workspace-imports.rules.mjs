@@ -9,8 +9,8 @@
 // in `bun install`. `npm install <published>` does not mask it. So a fresh
 // adopter hits `Cannot find package …` before any package code runs.
 //
-// Scope: `products/*`, `libraries/*`, `services/*` — every tree the
-// workspace globs of the root `package.json` list.
+// Scope: `products/*`, `libraries/*`, `services/*` — every tree in the
+// workspace globs of the root `package.json`.
 
 import { join } from "node:path";
 

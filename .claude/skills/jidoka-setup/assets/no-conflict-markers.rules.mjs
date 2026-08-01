@@ -35,7 +35,7 @@ export default {
     failAll("conflict-marker", {
       id: "no-conflict-markers.present",
       message: (s) => `leftover merge-conflict marker: ${s.text.trim()}`,
-      hint: "Resolve the conflict. Delete the marker lines git inserted. Run the check again.",
+      hint: "resolve the conflict. Delete the marker lines git inserted. Run the check again",
     }),
   ],
 };

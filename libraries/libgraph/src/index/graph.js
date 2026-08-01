@@ -40,7 +40,7 @@ export class GraphIndex extends IndexBase {
   }
 
   /**
-   * Adds quads to the index and maps them to an identifier
+   * Adds quads to the index and maps the identifier to them
    * @param {resource.Identifier} identifier - Resource identifier
    * @param {object[]} quads - Array of quad objects with subject, predicate, object
    * @returns {Promise<void>}

@@ -13,7 +13,7 @@
 //
 // Out of scope: specs/, references/, wiki/, benchmarks/ (historical
 // records), test files and libmock. Test files and libmock hold fixture
-// data. Fixture data is an arbitrary sample value. It is not a default.
+// data. Fixture data holds arbitrary sample values. They are not defaults.
 
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";

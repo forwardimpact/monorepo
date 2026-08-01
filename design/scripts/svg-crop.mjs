@@ -92,8 +92,8 @@ function isEmpty(box) {
 
 // Tokenises an SVG path "d" attribute into command letters and number tokens.
 // The two number-shape sub-groups are independent (mantissa, exponent). They
-// cannot backtrack across each other. Eslint's unsafe-regex heuristic flags
-// the optional exponent suffix even though it is bounded.
+// cannot backtrack across each other. But eslint's unsafe-regex heuristic
+// flags the optional exponent suffix even though it is bounded.
 const TOKEN_RE = /([MmLlHhVvCcSsQqTtAaZz])|(-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?)/g;
 const isLetter = (t) => /^[A-Za-z]$/.test(t);
 

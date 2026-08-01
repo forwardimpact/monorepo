@@ -26,7 +26,7 @@ export const DEFAULT_TYPING_VERBS = Object.freeze([
  *
  * `start(token, target)` adds the reaction immediately. If the consumer
  * provided a typing adapter, `start` also sends a random typing verb
- * every `intervalMs` (default 25s). The verb reads `"Crafting..."` or
+ * every `intervalMs` (default 25s), e.g. `"Crafting..."` or
  * `"Moonwalking..."`. `finish(token, target)` stops the typing ticker
  * and removes the reaction. The optional logger records adapter errors.
  * Acknowledgement never throws them.

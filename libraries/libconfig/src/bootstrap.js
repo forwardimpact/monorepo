@@ -21,9 +21,9 @@ import { bootstrapRefusal } from "./errors.js";
  * @param {object} params
  * @param {string} [params.target]   Absolute path. Defaults to `runtime.proc.cwd()`.
  * @param {object} [params.fragment] Top-level keys are product-owned
- *   namespaces. Pass `{}` or omit the parameter.
+ *   namespaces. You can pass `{}` or omit it.
  * @param {Record<string,string>} [params.env] `.env` entries the product
- *   wants on disk. Pass `{}` or omit the parameter.
+ *   wants on disk. You can pass `{}` or omit it.
  * @param {{ config?: string[], env?: string[] }} [params.overwrites]
  *   Explicit overwrite intent, with one list per file. `config` entries are
  *   top-level namespace names (single segment). `env` entries are bare keys.

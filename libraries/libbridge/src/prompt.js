@@ -1,6 +1,6 @@
 /**
- * Build a facilitator prompt from the current message text and a bounded
- * conversation history. The function keeps only the last `maxExchanges`
+ * Build a facilitator prompt from the current message text and a conversation
+ * history that rolls. The function keeps only the last `maxExchanges`
  * exchanges (2x entries). It also caps the total prompt size at `charCap`
  * characters. To stay inside the cap, it drops the oldest history entries.
  *

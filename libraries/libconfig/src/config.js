@@ -375,10 +375,10 @@ export class Config {
 
   /**
    * Resolves a config-param override against shell env, then #envOverrides.
-   * Applies credential-key semantics. Treats an empty string as absent, so
-   * a workflow ternary that emits '' cannot clobber a .env value. Returns
-   * the JSON-parsed value or the raw string. Returns undefined when nothing
-   * is set.
+   * Applies credential-key semantics. For a credential key, treats an empty
+   * string as absent, so a workflow ternary that emits '' cannot clobber a
+   * .env value. Returns the JSON-parsed value or the raw string. Returns
+   * undefined when nothing is set.
    * @param {string} varName - Fully-qualified env var name
    * @returns {*|undefined}
    * @private

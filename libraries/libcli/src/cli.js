@@ -198,10 +198,10 @@ export class Cli {
  * @param {object} definition - The CLI definition.
  * @param {object} options
  * @param {import('@forwardimpact/libutil/runtime').Runtime} options.runtime
- * @param {URL|string} [options.packageJsonUrl] - Pass this when the definition
- *   carries no explicit `version`. {@link resolveVersion} then resolves the
- *   version, so every bin shares one compile-time version literal. An explicit
- *   `definition.version` wins.
+ * @param {URL|string} [options.packageJsonUrl] - If you provide this, and the
+ *   definition carries no explicit `version`, {@link resolveVersion} resolves
+ *   the version. Every bin then shares one compile-time version literal. An
+ *   explicit `definition.version` wins.
  * @returns {Cli}
  */
 export function createCli(definition, { runtime, packageJsonUrl } = {}) {

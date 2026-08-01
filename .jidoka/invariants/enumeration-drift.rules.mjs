@@ -2,7 +2,7 @@
 // enumeration block must match its source-of-truth set. libinvariant's
 // invariant kit holds the engine: the source probes, the list/count
 // extractors, the consumer parser, the build/seed orchestration, and the
-// rule set. The kit injects the engine here as `kit.enumDrift` and
+// rule set. The host injects the engine here as `kit.enumDrift` and
 // `kit.enumDriftRules`. This module carries only policy, the registry of
 // topics beside it. This file is config, outside the ambient-deps src
 // scope, so it stays free of imports. The host binds the kit.

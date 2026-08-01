@@ -107,7 +107,7 @@ function parseColor(value) {
   }
 
   // rgba() syntax pattern. Literal commas and a closing paren anchor the
-  // optional alpha clause. It has no nested quantifiers.
+  // optional alpha clause. The pattern has no nested quantifiers.
   const rgb = v.match(
     /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*[\d.]+\s*)?\)$/,
   );

@@ -9,7 +9,7 @@ import sanitizeHtml from "sanitize-html";
  */
 
 /**
- * Replaces details/summary tags in text with a callback
+ * Replaces details/summary tags in text through a callback
  * @param {string} text - Text to process
  * @param {Function} replacer - Callback function ({ attributes, summary, content }) => string
  * @returns {string} Processed text

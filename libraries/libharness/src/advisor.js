@@ -213,8 +213,8 @@ export function createAdvisor({
     },
 
     /**
-     * Abort the in-flight consult, if any. A consult blocks the tool
-     * call, so one caller cannot overlap its own consults. Each advisor
+     * Abort the in-flight consult, if any. A consult is a tool call that
+     * blocks, so one caller cannot overlap its own consults. Each advisor
      * belongs to one caller, so the code tracks at most one runner.
      */
     abort() {

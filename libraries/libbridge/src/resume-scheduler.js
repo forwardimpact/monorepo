@@ -77,7 +77,7 @@ export class ResumeScheduler {
    * triggered it onto `ctx.open_rfcs[correlationId]`. If the trigger has an
    * elapsed component, schedules an in-memory timer.
    *
-   * The caller flushes the store after this call. `enterRecess` mutates
+   * The caller must flush the store after this call. `enterRecess` mutates
    * ctx. It does not write.
    *
    * @param {object} ctx

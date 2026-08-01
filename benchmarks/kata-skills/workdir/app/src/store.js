@@ -3,7 +3,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
-/** Resolve the store path from $TODO_FILE, or ./todos.json when unset. */
+/** Resolve the store path from $TODO_FILE. Falls back to ./todos.json. */
 export function storePath(env = process.env) {
   return env.TODO_FILE || "todos.json";
 }

@@ -2,8 +2,7 @@
 //   - every package.json#engines.node lower bound parses to a major ≥ 22
 //   - every file a published package.json#bin references includes
 //     `import "@forwardimpact/libpreflight/nodeNN"` as its first import,
-//     with NN equal to the engines.node lower-bound major in its own
-//     manifest
+//     with NN equal to the owning manifest's engines.node lower-bound major
 //   - every getting-started/{leaders,engineers}/**/index.md that names
 //     "Node.js" names "Node.js 22+" and no other major
 //   - the floor literal at one doc page, one manifest, and the libpreflight
@@ -208,7 +207,7 @@ export default {
       check: (s) => (s.floor === null ? {} : null),
       message: (s) =>
         `${s.pkgDir}/package.json ships a bin but has no parseable engines.node`,
-      hint: "declare engines.node on the manifest that publishes the bin",
+      hint: "declare engines.node on the manifest that ships the bin",
     },
     {
       id: "node-floor.bin-unreadable",

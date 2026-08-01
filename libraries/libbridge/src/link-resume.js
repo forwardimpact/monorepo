@@ -7,9 +7,10 @@ import { buildPrompt } from "./prompt.js";
 /**
  * Prepare a link-resume URL for the IdP authorize step.
  *
- * This function returns a discriminated result. A missing `catch` in the
- * caller cannot become a 5xx oracle. The keyword-arg shape makes "forgot to
- * pass trustedOrigins" a loud boot-time `TypeError` for any future xbridge.
+ * This function returns a discriminated result, so a missing `catch` in
+ * the caller cannot become a 5xx oracle. The keyword-arg shape makes
+ * "forgot to pass trustedOrigins" a loud boot-time `TypeError` for any
+ * future xbridge.
  *
  * @param {object} args
  * @param {string} args.authorizeUrl Upstream IdP authorize URL the bridge
