@@ -4,8 +4,8 @@ tracked coordination.
 Run the coordination loop end to end with the
 **abstract work-item operations**. Resolve each operation through the active
 tracker that `.claude/agents/references/work-trackers.md` describes. This run
-sets `LIBEVAL_WORK_TRACKER=filesystem`. Each operation therefore realizes as a
-file write under the `.tracker/` layout that reference defines.
+sets `LIBEVAL_WORK_TRACKER=filesystem`. So each operation realizes as a file
+write under the `.tracker/` layout that reference defines.
 **The network is unavailable.** Do not call any remote tracker. The filesystem
 column needs none.
 

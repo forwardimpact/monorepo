@@ -1,5 +1,6 @@
-// Baseline behaviour tests — the regression surface the implement task must
-// keep green. The new --filter feature is covered by a hidden test, not here.
+// Baseline behaviour tests. They are the regression surface the implement
+// task must keep green. A hidden test covers the new --filter feature. This
+// file does not.
 
 import { test, describe, beforeEach } from "node:test";
 import assert from "node:assert/strict";
@@ -22,7 +23,7 @@ describe("store", () => {
     assert.throws(() => addTodo(todos, "   "), /must not be empty/);
   });
 
-  test("completeTodo marks done and throws on missing id", () => {
+  test("completeTodo marks a todo done and throws on an unknown id", () => {
     addTodo(todos, "a");
     assert.equal(completeTodo(todos, 1).done, true);
     assert.throws(() => completeTodo(todos, 99), /no todo with id 99/);

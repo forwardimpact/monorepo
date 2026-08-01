@@ -1,6 +1,6 @@
 #!/bin/sh
-# Confirm the scaffold before the agent starts: the fixture project is present
-# and the jidoka-setup skill was staged by apm install.
+# Confirm the scaffold before the agent starts. The fixture project is
+# present, and apm install staged the jidoka-setup skill.
 set -eu
 test -f "$AGENT_CWD/README.md"
 test -f "$AGENT_CWD/package.json"

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Thin CLI shell over src/store.js. Arg parsing uses node:util.parseArgs so the
-// fixture stays dependency-free.
+// Thin CLI shell over src/store.js. It parses arguments with
+// node:util.parseArgs so the fixture stays dependency-free.
 
 import { parseArgs } from "node:util";
 

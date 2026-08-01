@@ -2,7 +2,7 @@
 
 ## Current Focus
 
-Working on implementation tasks.
+The staff engineer works on implementation tasks.
 
 ## Open Blockers
 

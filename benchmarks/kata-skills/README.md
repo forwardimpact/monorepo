@@ -7,7 +7,7 @@ This task family serves `fit-benchmark`. It targets the
 Four tasks exercise the Plan→Do artifact spine of spec → design → plan →
 implement. They run against **one shared mock app and one feature** (`todo list
 --filter`, spec 042). This family maintains the app once, at the family level.
-Each task carries its own *frozen* upstream artifacts. Each task therefore runs
+Each task carries its own *frozen* upstream artifacts. So each task runs
 independently, and all the tasks share one coherent narrative. A fifth task,
 `coordinate-finding`, exercises the **coordination half** of the loop: file →
 open change → gate → merge. It runs offline under the filesystem work tracker.
@@ -38,9 +38,9 @@ leaves it unchanged. The artifact-spine tasks never read
 
 The mock app lives once at `workdir/app/`. The harness copies a family-level
 `workdir/` into **every** task's agent CWD. It copies the directory if it is
-present, by convention over configuration. All four tasks therefore get `app/`
-with no per-task script. Per-task `workdir/` and `specs/` then overlay on top of
-this shared base.
+present, by convention over configuration. So all four tasks get `app/` with no
+per-task script. Per-task `workdir/` and `specs/` then overlay on top of this
+shared base.
 
 ```text
 workdir/app/                    # the one mock app, shared by all tasks → cwd/app
@@ -53,14 +53,13 @@ tasks/implement-feature/specs/042-todo-filter/ spec.md, design-a.md, plan-a.md
 **The mock app** (`workdir/app/`) is a tiny `todo` CLI (`add` / `list` /
 `done`). A JSON store backs it. It deliberately uses **only `node:` built-ins**
 (`node:util.parseArgs`, `node:fs`, `node:test`). It uses no `@forwardimpact/*`
-package and no other package. It therefore runs in the benchmark CWD with **no
-install step**. Run its tests with `node --test` from `workdir/app/`. The
-fixture app does *not* have the `--filter` feature. The `implement-feature` task
-adds it.
+package and no other package. So it runs in the benchmark CWD with **no install
+step**. Run its tests with `node --test` from `workdir/app/`. The fixture app
+does *not* have the `--filter` feature. The `implement-feature` task adds it.
 
 To change the app, edit `workdir/app/` once. All four tasks then follow. Each
 task deliberately freezes its own upstream artifacts (spec/design/plan). A
-benchmark's inputs therefore never shift when a sibling task changes.
+benchmark's inputs never shift when a sibling task changes.
 
 ## Hidden tests
 

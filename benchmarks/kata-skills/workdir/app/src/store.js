@@ -1,9 +1,9 @@
-// Pure todo-store logic for the mock benchmark app. Zero dependencies —
-// node: built-ins only — so the fixture runs with no install step.
+// Pure todo-store logic for the mock benchmark app. It has zero dependencies.
+// It uses node: built-ins only. The fixture then runs with no install step.
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
-/** Resolve the store path from $TODO_FILE, falling back to ./todos.json. */
+/** Resolve the store path from $TODO_FILE, or ./todos.json when unset. */
 export function storePath(env = process.env) {
   return env.TODO_FILE || "todos.json";
 }

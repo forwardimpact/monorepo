@@ -1,6 +1,7 @@
-// Shared support for the hidden --filter feature checks. Staged beside them
-// by the harness; not a check itself (no .test.js suffix). Verifies the
-// --filter feature from spec 042 without the agent ever seeing the asserts.
+// Shared support for the hidden --filter feature checks. The harness stages
+// this file beside them. It is not a check itself (no .test.js suffix). It
+// verifies the --filter feature from spec 042. The agent never sees the
+// asserts.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

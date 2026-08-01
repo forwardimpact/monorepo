@@ -7,8 +7,8 @@
 The `todo list` command prints every todo in the store. Once the list grows past
 a screenful, the engineer must scan all of it each morning. The engineer scans
 to find the few items relevant to the current work. The only workaround today is
-to pipe the output into an external tool. The CLI therefore does not serve the
-job on its own. There is no way to narrow the list from within `todo`.
+to pipe the output into an external tool. So the CLI does not serve the job on
+its own. There is no way to narrow the list from within `todo`.
 
 ## Scope
 

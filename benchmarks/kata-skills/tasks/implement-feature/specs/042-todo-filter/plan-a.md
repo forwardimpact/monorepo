@@ -1,12 +1,12 @@
 # Plan 042-a — `todo list --filter`
 
-Executes [design-a.md](./design-a.md) for [spec.md](./spec.md).
+This plan executes [design-a.md](./design-a.md) for [spec.md](./spec.md).
 
 ## Approach
 
-Add a pure `filterTodos` selector to the store, then route `list` output through
-it when `--filter` is supplied; the CLI stays a thin shell and the stored shape
-is untouched.
+Add a pure `filterTodos` selector to the store. Then route `list` output through
+it when `--filter` is present. The CLI stays a thin shell. The stored shape is
+untouched.
 
 ## Step 1 — Add `filterTodos` to the store
 
@@ -28,8 +28,8 @@ prints `1`.
 
 ## Step 2 — Apply the filter in the `list` command
 
-Parse `--filter` and narrow the loaded todos before printing; unchanged when the
-option is absent.
+Parse `--filter`. Narrow the loaded todos before you print them. The output is
+unchanged when the option is absent.
 
 - Modified: `bin/todo.js`
 
@@ -56,7 +56,7 @@ case "list": {
 ```
 
 Verification: with two todos `apple` and `banana`, `todo list --filter app`
-prints only the `apple` line; `todo list` prints both.
+prints only the `apple` line. `todo list` prints both.
 
 ## Step 3 — Document the option in usage
 
@@ -68,17 +68,17 @@ Add the option to the `list` line of the `USAGE` string.
   todo list [--filter <substring>]   List todos (optionally narrowed)
 ```
 
-Verification: `todo` with no args prints usage containing `--filter`.
+Verification: `todo` with no args prints usage that contains `--filter`.
 
 Libraries used: none.
 
 ## Risks
 
-- `parseArgs` with `strict: false` silently ignores unknown options, so a
-  mistyped `--filter` would list everything rather than erroring — acceptable
-  for this CLI but worth knowing when reading test failures.
+- `parseArgs` with `strict: false` silently ignores unknown options. So a
+  mistyped `--filter` lists everything and raises no error. This is acceptable
+  for this CLI. Keep it in mind when you read test failures.
 
 ## Execution
 
-Single engineering agent, steps in order — Step 2 imports the symbol added in
-Step 1.
+Use a single engineering agent. Run the steps in order. Step 2 imports the
+symbol that Step 1 adds.
