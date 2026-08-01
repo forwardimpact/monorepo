@@ -13,7 +13,7 @@
 //
 // The registry (service-url-drift.registry.yml) lists each service's
 // manifest and consumer surfaces. To add a service, edit the registry only.
-// The build kit's `restatementDrift` holds the generic "single source
+// The build kit's `restatementDrift` is the generic "single source
 // restated across consumers" scan and compare. This module supplies only
 // the domain pieces: the expected URL (expectedUrl) and the equality that
 // normalizes hosts (urlsEqual).

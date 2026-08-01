@@ -56,7 +56,7 @@ const PATTERNS = [
   },
   {
     pattern: "\\bnpx (fit-|gemba-|jidoka\\b|kata-)",
-    reason: "invoke CLIs bare — drop the npx prefix",
+    reason: "CLIs are invoked bare — drop the npx prefix",
   },
   {
     pattern: "`bun`",
