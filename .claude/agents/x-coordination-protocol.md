@@ -85,8 +85,7 @@ decision that lives only in a change body is invisible to a parallel run that
 reads the issue. That run re-implements the rejected route:
 
 1. **Announce at `open-change`.** Comment on the coordinating issue at or before
-   `open-change`. Give the change link, branch, and any route decision you made
-   in-run.
+   `open-change`. Give the change link, branch, and any in-run route decision.
 2. **Close alternatives where they were opened.** When an issue thread poses
    routes A/B, land the selection on that thread. Name the rejected route
    ("took A, not B"). A later reader then knows the run rejected B. B is not

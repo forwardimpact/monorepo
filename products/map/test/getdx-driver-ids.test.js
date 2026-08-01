@@ -16,7 +16,7 @@ import { ALL_DRIVERS } from "@forwardimpact/libsyntheticgen/engine/activity";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const starterPath = join(__dirname, "..", "starter", "drivers.yaml");
 
-test("starter drivers.yaml id set equals ALL_DRIVERS", () => {
+test("the ids in starter drivers.yaml equal ALL_DRIVERS", () => {
   const text = readFileSync(starterPath, "utf8");
   const entries = parse(text);
   const starterIds = entries.map((e) => e.id);

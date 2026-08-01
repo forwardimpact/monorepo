@@ -1,7 +1,7 @@
 /**
- * Tests for `fit-map init` — covers the bootstrap writer adoption + the
- * idempotency requirement that lets `substrate stage` re-stage a
- * workspace produced by direct `fit-map init` invocation.
+ * Tests for `fit-map init`. They cover the bootstrap writer adoption. They
+ * also cover the idempotency requirement that lets `substrate stage`
+ * re-stage a workspace that a direct `fit-map init` call produced.
  */
 
 import { describe, test, beforeEach, afterEach } from "node:test";
@@ -14,9 +14,10 @@ import { runInit } from "../src/commands/init.js";
 import { createProductConfig } from "@forwardimpact/libconfig";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 
-// Integration test: runInit performs real fs copies into a tmpdir, so it
-// threads a real createDefaultRuntime() with a quiet proc surface (no
-// terminal noise) instead of patching the global process.stdout/stderr.
+// This is an integration test. runInit performs real fs copies into a
+// tmpdir. So it threads a real createDefaultRuntime() with a quiet proc
+// surface (no terminal noise). It does not patch the global
+// process.stdout/stderr.
 let baseDir;
 let prevCwd;
 
@@ -60,7 +61,7 @@ describe("fit-map init", () => {
     assert.deepEqual(config, {});
   });
 
-  test("re-run against same dir is byte-stable (no `./data/pathway/ already exists` error)", async () => {
+  test("re-run against the same dir is byte-stable (no `./data/pathway/ already exists` error)", async () => {
     await runInit(baseDir, quietRuntime());
     const configBefore = await fs.readFile(
       path.join(baseDir, "config", "config.json"),
@@ -72,7 +73,7 @@ describe("fit-map init", () => {
     assert.equal(configBefore.equals(configAfter), true);
   });
 
-  test("anchoring: after runInit at <outer>/inner, createProductConfig from <outer>/inner/sub resolves the local config/", async () => {
+  test("anchor: after runInit at <outer>/inner, createProductConfig from <outer>/inner/sub resolves the local config/", async () => {
     // Plant a decoy ancestor config so a broken anchor would land on it.
     const decoyDir = path.join(baseDir, "config");
     await fs.mkdir(decoyDir, { recursive: true });
@@ -89,19 +90,20 @@ describe("fit-map init", () => {
 
     process.chdir(sub);
     const config = await createProductConfig("map");
-    // Assert against libconfig's resolved anchor: the rootDir Config
+    // Assert against libconfig's resolved anchor. The rootDir that Config
     // exposes is the parent of the resolved `config/` directory. After
     // runInit(inner), the upward walk from `sub` must land on
-    // `inner/config/`, so rootDir resolves to `inner`. realpath both
-    // sides to normalise on platforms that symlink tmpdir.
+    // `inner/config/`, so rootDir resolves to `inner`. Call realpath on
+    // both sides to normalise on platforms that symlink tmpdir.
     assert.equal(await fs.realpath(config.rootDir), await fs.realpath(inner));
   });
 
-  test("anchoring control: without runInit, createProductConfig resolves the ancestor decoy", async () => {
+  test("anchor control: without runInit, createProductConfig resolves the ancestor decoy", async () => {
     // Without bootstrap, the upward walk from `sub` skips the empty
-    // `inner` and lands on the planted `<baseDir>/config/`. Asserting
-    // on the resolved anchor proves the resolver actually walked
-    // upward — not merely that the decoy file still exists on disk.
+    // `inner` and lands on the planted `<baseDir>/config/`. This test
+    // asserts on the resolved anchor. That proves the resolver walked
+    // upward. It does not only prove that the decoy file still exists
+    // on disk.
     const decoyDir = path.join(baseDir, "config");
     await fs.mkdir(decoyDir, { recursive: true });
     await fs.writeFile(
@@ -115,7 +117,7 @@ describe("fit-map init", () => {
     process.chdir(sub);
     const config = await createProductConfig("map");
     assert.equal(await fs.realpath(config.rootDir), await fs.realpath(baseDir));
-    // And no local config was planted at <inner>/config/.
+    // And no local config exists at <inner>/config/.
     await assert.rejects(() => fs.stat(path.join(inner, "config")), {
       code: "ENOENT",
     });

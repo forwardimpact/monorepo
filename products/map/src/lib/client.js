@@ -1,9 +1,9 @@
 /**
- * Shared Supabase client wiring for fit-map CLI commands.
+ * Shared setup of the Supabase client for fit-map CLI commands.
  *
- * Reads Supabase URL and service-role key from libconfig — never
- * directly from process.env. Callers build a Config via
- * `createProductConfig("map")` in their bin and pass it through.
+ * The client reads the Supabase URL and service-role key from libconfig.
+ * It never reads them directly from process.env. Callers build a Config
+ * with `createProductConfig("map")` in their bin and pass it through.
  */
 
 import { createClient } from "@supabase/supabase-js";
