@@ -11,7 +11,7 @@ const template = readFileSync(
 );
 
 /**
- * Build a minimal profile input as produced by buildProfileBodyData.
+ * Build a minimal profile input that buildProfileBodyData produces.
  * @param {Object} bodyOverrides - Fields to override on bodyData
  * @returns {Object}
  */

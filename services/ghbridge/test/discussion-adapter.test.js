@@ -107,7 +107,7 @@ describe("ghbridge DiscussionAdapter threads the tenant id", () => {
 
     const req = client.seen.PutPendingDispatch;
     expect(req.tenant_id).toBe("t-acme");
-    // tenant_id is a sibling of pending, never nested inside it.
+    // tenant_id is a sibling of pending. It is never nested inside pending.
     expect(req.pending?.tenant_id).toBeUndefined();
     expect(req.pending.link_token).toBe("lt");
   });

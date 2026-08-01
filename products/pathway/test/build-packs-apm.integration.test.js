@@ -83,7 +83,7 @@ describe("APM bundles", () => {
       assert.ok(existsSync(join(extractDir, ".claude", "skills")));
       assert.ok(existsSync(join(extractDir, ".claude", "agents")));
 
-      // Enriched lock file required by apm unpack
+      // apm unpack requires the enriched lock file
       assert.ok(existsSync(join(extractDir, "apm.lock.yaml")));
 
       const lockContent = await readFile(

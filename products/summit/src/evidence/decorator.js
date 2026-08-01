@@ -3,8 +3,8 @@
  *
  * loadEvidence fetches practice patterns from Map's activity schema
  * and turns them into a shared `EvidenceMap` that the decorator
- * functions consume. All decorators are pure — they clone before
- * mutating.
+ * functions consume. All decorators are pure. They clone the input
+ * before they mutate it.
  */
 
 import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
@@ -16,11 +16,12 @@ import { getEvidence } from "@forwardimpact/map/activity/queries/evidence";
 /**
  * Load evidence aggregates for a resolved team.
  *
- * Uses `getEvidence` directly (rather than `getPracticePatterns`) so
- * Summit can build per-skill practitioner sets that the growth and
- * coverage decorators need. When a resolved team is provided, the
- * result is pre-filtered to that team's email set to avoid bringing
- * org-wide evidence into decorator logic.
+ * This function uses `getEvidence` directly (and not
+ * `getPracticePatterns`). Summit can then build per-skill practitioner
+ * sets that the growth and coverage decorators need. When the caller
+ * gives a resolved team, the function pre-filters the result to that
+ * team's email set. The filter keeps org-wide evidence out of the
+ * decorator logic.
  *
  * @param {import("@supabase/supabase-js").SupabaseClient} supabase
  * @param {object} params

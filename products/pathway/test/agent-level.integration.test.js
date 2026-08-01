@@ -188,7 +188,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("populated level expectations appear on stdout with Team Instructions umbrella label", async () => {
+  test("populated level expectations appear on stdout under the umbrella label for Team Instructions", async () => {
     const { work, dataDir } = stageDataDir();
     const stdout = captureWrite(process.stdout);
     try {
@@ -206,11 +206,11 @@ describe("agent --level integration", () => {
       );
       assert.ok(
         text.includes("# Team Instructions (CLAUDE.md)"),
-        "stdout should carry the Team Instructions umbrella label",
+        "stdout should carry the umbrella label for Team Instructions",
       );
       assert.ok(
         !text.includes("# Team Instructions + Organizational Context"),
-        "org-context was removed; combined header must not appear",
+        "org-context is absent, so the combined header must not appear",
       );
     } finally {
       stdout.restore();
@@ -218,7 +218,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("SC3a — unknown --level rejected with shared error shape", async () => {
+  test("SC3a — the CLI rejects an unknown --level with the shared error shape", async () => {
     const { work, dataDir } = stageDataDir({ stripOrgContext: false });
     const stderr = captureWrite(process.stderr);
     const restoreExit = stubProcessExit();
@@ -246,7 +246,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("SC3b — unknown --track error shape regressions: shared requireEntity helper still works", async () => {
+  test("SC3b — the shared requireEntity helper still shapes the unknown --track error", async () => {
     const { work, dataDir } = stageDataDir({ stripOrgContext: false });
     const stderr = captureWrite(process.stderr);
     const restoreExit = stubProcessExit();
@@ -272,7 +272,7 @@ describe("agent --level integration", () => {
     }
   });
 
-  test("LIST — --list short-circuits before --level resolution (C-5)", async () => {
+  test("LIST — --list short-circuits before it resolves --level (C-5)", async () => {
     const { work, dataDir } = stageDataDir({ stripOrgContext: false });
     try {
       const baselineCapture = captureRuntime();
