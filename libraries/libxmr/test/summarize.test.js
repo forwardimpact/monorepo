@@ -152,7 +152,7 @@ describe("chart command", () => {
       const { result, stdout } = runChart(file, fsSync, { metric: "ex" });
       assert.ok(result.ok, JSON.stringify(result));
       const lines = stdout.replace(/\n$/, "").split("\n");
-      // Two leading lines name the event_type slice. The chart body is 14
+      // The first two lines name the event_type slice. The chart body is 14
       // lines.
       assert.strictEqual(lines.length, 16);
       assert.strictEqual(lines[0], "# event_type: kata-shift");

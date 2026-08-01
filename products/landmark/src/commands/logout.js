@@ -1,6 +1,6 @@
 /**
- * `fit-landmark logout` — delete the credentials store written by
- * `fit-landmark login`. A no-op when no session is present.
+ * `fit-landmark logout` — delete the credentials store that
+ * `fit-landmark login` writes. A no-op when no session is present.
  */
 
 import { formatSuccess } from "@forwardimpact/libcli";

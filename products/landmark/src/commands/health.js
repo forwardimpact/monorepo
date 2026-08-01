@@ -1,7 +1,7 @@
 /**
  * `fit-landmark health [--manager <email>]`
  *
- * Health view joining snapshot scores, contributing-skill evidence, and
+ * Health view that joins snapshot scores, contributing-skill evidence, and
  * Summit growth recommendations.
  */
 
@@ -25,7 +25,7 @@ import { computeGrowth } from "../lib/summit.js";
 
 export const needsSupabase = true;
 
-/** Build a health view joining snapshot scores, contributing-skill evidence, comments, and Summit growth recommendations. */
+/** Build a health view that joins snapshot scores, contributing-skill evidence, comments, and Summit growth recommendations. */
 export async function runHealthCommand({
   options,
   mapData,
@@ -62,7 +62,7 @@ export async function runHealthCommand({
     { managerEmail: options.manager },
   );
 
-  // Snapshot comments are fetched once for the whole resolved set; each team's
+  // Fetch snapshot comments once for the whole resolved set. Each team's
   // driver section filters them by its own contributing-skill keywords.
   const allComments = await fetchComments(
     q,
@@ -76,7 +76,7 @@ export async function runHealthCommand({
 
   // 4. When the resolved members span two or more GetDX teams (a director-tier
   // rollup), emit one symmetric per-team section instead of a single collapsed
-  // driver table. Each section is built from that team's own members and score
+  // driver table. Each section comes from that team's own members and score
   // subset, so it equals the output of the existing per-team-manager filter.
   const teamIds = [
     ...new Set(team.map((p) => p.getdx_team_id).filter(Boolean)),
@@ -112,7 +112,7 @@ export async function runHealthCommand({
     };
   }
 
-  // Single-team (or org-wide) path — unchanged shape.
+  // Single-team (or org-wide) path. The shape stays unchanged.
   const section = await buildTeamSection(ctx, team, scores, allComments);
   meta.warnings = [...new Set(meta.warnings)];
 
@@ -131,8 +131,8 @@ export async function runHealthCommand({
 
 /**
  * Build the driver rows, driver-join state, and Summit availability for one
- * scope (a single team's members and score subset). Shared by the single-team
- * path and each per-team rollup section so they produce identical row shapes.
+ * scope (a single team's members and score subset). The single-team path and
+ * each per-team rollup section share it, so they produce identical row shapes.
  *
  * @param {{mapData: object, q: object, supabase: object, options: object,
  *   growth: Function, meta: object}} ctx
@@ -174,8 +174,8 @@ async function buildTeamSection(ctx, members, scores, allComments) {
 
 /**
  * Classify the snapshot-to-drivers.yaml join into one of three observable
- * states so the formatter can distinguish "no drivers configured" from
- * "configured but disjoint from snapshot ids" from "matched".
+ * states. The formatter can then tell "no drivers configured" apart from
+ * "configured but disjoint from snapshot ids" and from "matched".
  */
 function computeDriverJoin(mapData, scores, drivers) {
   const yamlIds = (mapData.drivers ?? []).length;
@@ -234,7 +234,7 @@ async function buildDriverRows(
     const driver = driverMap.get(scoreRow.item_id);
     if (!driver) {
       meta.warnings.push(
-        `Unknown item_id "${scoreRow.item_id}" in snapshot scores — no matching driver in drivers.yaml.`,
+        `Unknown item_id "${scoreRow.item_id}" in snapshot scores. No matching driver in drivers.yaml.`,
       );
       continue;
     }
@@ -292,7 +292,7 @@ async function gatherSkillEvidence(
   return skillEvidence;
 }
 
-/** Fetch snapshot comments, returning [] on error or absence. */
+/** Fetch snapshot comments. Returns [] on error or absence. */
 async function fetchComments(q, supabase, latestSnapshot, options, meta) {
   if (!q.getSnapshotComments) return [];
   try {
@@ -302,7 +302,9 @@ async function fetchComments(q, supabase, latestSnapshot, options, meta) {
     });
   } catch (err) {
     if (isRelationNotFoundError(err)) {
-      meta.warnings.push("Snapshot comments unavailable — table not present.");
+      meta.warnings.push(
+        "Snapshot comments unavailable. The table is not present.",
+      );
       return [];
     }
     throw err;

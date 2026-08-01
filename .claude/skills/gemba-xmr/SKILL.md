@@ -78,7 +78,7 @@ npx gemba-xmr <command> <csv-path> [options]
 | Flag                     | Purpose                                                                                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `--metric <name>` / `-m` | Filter to a single metric. Optional on `chart` when the CSV has exactly one metric. Required otherwise. Filters `analyze` and `summarize` when you give it.               |
-| `--event-type <name>`    | Restrict read commands to one `event_type` slice (default: `kata-shift`; `'*'` for all rows). On `record`, sets the row's value and falls back to `$GITHUB_WORKFLOW_REF`. |
+| `--event-type <name>`    | Restrict read commands to one `event_type` slice (default: `kata-shift`; `'*'` for all rows). On `record`, sets the row's value. Without the flag, `record` falls back to `$GITHUB_WORKFLOW_REF`. |
 | `--format <text\|json>`  | Output format (default: text). `chart` is text-only.                                                                                                                     |
 | `--ascii`                | Substitute ASCII glyphs for Unicode in the chart                                                                                                                         |
 | `--help` / `-h`          | Show help (`--json` formats help itself as JSON)                                                                                                                         |
@@ -88,8 +88,8 @@ path exits 2 with a friendly error. It does not print a stack trace.
 
 ## The Three Rules
 
-These three rules come from Wheeler's _Understanding Variation_. Vacanti
-applies them the same way in _Actionable Agile Metrics_:
+These three rules come from Wheeler's _Understanding Variation_. `gemba-xmr`
+applies them as Vacanti does in _Actionable Agile Metrics_:
 
 | Rule          | Condition                                                           | Applied to |
 | ------------- | ------------------------------------------------------------------- | ---------- |

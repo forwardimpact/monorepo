@@ -1,7 +1,7 @@
 /**
  * `fit-landmark readiness --email <email> [--target <level>]`
  *
- * Show marker checklist for a target level.
+ * Show the marker checklist for a target level.
  */
 
 import { getPerson } from "@forwardimpact/map/activity/queries/org";
@@ -69,8 +69,8 @@ export async function runReadinessCommand({
   const items = buildChecklistItems(checklist, matchedEvidence);
   const summary = summarizeChecklist(items);
 
-  // Zero-artifact short-circuit: a persona with no artifacts is "no
-  // signal", not "below floor" — coverage stays null so the formatter
+  // Zero-artifact short-circuit. A persona with no artifacts is "no
+  // signal". It is not "below floor". Coverage stays null, so the formatter
   // renders the checklist as a roadmap instead of the suppression copy.
   const allArtifacts = (await q.getArtifacts(supabase, { email })) ?? [];
   let coverage = null;
@@ -105,8 +105,8 @@ function unknownDisciplineError(person, email, mapData) {
     .join(", ");
   const availableSuffix = available
     ? ` Available disciplines: ${available}.`
-    : " No disciplines are defined in the pathway.";
-  return `Unknown discipline "${person.discipline}" for ${email}. The discipline is not defined in the pathway.${availableSuffix}`;
+    : " The pathway defines no disciplines.";
+  return `Unknown discipline "${person.discipline}" for ${email}. The pathway does not define the discipline.${availableSuffix}`;
 }
 
 /** Resolve current level, target level, discipline, and track from the person and options. */

@@ -14,7 +14,7 @@ job is to see what the standard expects of you. For that half, see
 
 ## Prerequisites
 
-Complete these guides before continuing:
+Complete these guides before you continue:
 
 - [Getting Started: Pathway for Engineers](/docs/getting-started/engineers/pathway/)
   -- install Pathway and initialize a `data/pathway/` directory with starter

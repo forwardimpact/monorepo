@@ -6,11 +6,11 @@ import { detectSignals } from "../src/signals.js";
 import { renderChart } from "../src/chart.js";
 
 // The canonical worked example from SCRATCHPAD-4.md §10.
-// Diff-checking this golden block byte-for-byte is the only reliable
+// A byte-for-byte diff of this golden block is the only reliable
 // regression detector for column alignment, signal placement, and
 // rounding (per spec §12).
 //
-// NOTE: trailing spaces in zone rows are intentional — they preserve
+// NOTE: the trailing spaces in zone rows are intentional. They preserve
 // fixed-width column alignment.
 const GOLDEN_SECTION_10 = [
   " UPL 12.5 ┬                             ●               ",
@@ -71,8 +71,8 @@ describe("renderChart — alignment invariant", () => {
 
     const breachCol = lines[0].indexOf("●");
     const axisLine = lines[13];
-    // Slot 10 is rendered as "10" right-aligned in its 3-char slot, so the
-    // "0" sits at the same column as the breach glyph.
+    // The chart renders slot 10 as "10" right-aligned in its 3-char slot,
+    // so the "0" sits at the same column as the breach glyph.
     assert.strictEqual(axisLine[breachCol], "0");
     assert.strictEqual(axisLine[breachCol - 1], "1");
   });
@@ -100,7 +100,7 @@ describe("renderChart — ASCII fallback", () => {
 });
 
 describe("renderChart — boundary buckets per spec §11", () => {
-  test("v exactly on UPL renders in inner-upper, not as a breach", () => {
+  test("v exactly on UPL renders in inner-upper and not as a breach", () => {
     // Construct stats then a series whose final value sits exactly on UPL.
     const values = [10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10, 11, 10];
     const stats = computeXmR(values);
@@ -115,8 +115,8 @@ describe("renderChart — boundary buckets per spec §11", () => {
       "\n",
     );
 
-    // UPL row (line 0) must NOT carry a `●` for the on-limit slot — that
-    // would imply Rule 1 fired, but Rule 1 is strict inequality.
+    // UPL row (line 0) must NOT carry a `●` for the on-limit slot. Such a
+    // glyph would imply Rule 1 fired, but Rule 1 is strict inequality.
     assert.ok(!lines[0].includes("●"));
     // Inner-upper row (line 2) carries a glyph for slot 15.
     assert.ok(lines[2].includes("·") || lines[2].includes("●"));

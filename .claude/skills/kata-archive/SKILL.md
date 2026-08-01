@@ -59,7 +59,8 @@ before you remove it.
 
 The 12-week log window sits deliberately beyond a summary's `detail:`-link
 horizon. Live summaries routinely link logs many weeks back. So the Step 2
-deferral would dominate a shorter window and retire almost nothing. The
+deferral would dominate a shorter window. That window would retire almost
+nothing. The
 dangling-link check is the hard safety net regardless of the window. You never
 retire a still-linked log at any age.
 

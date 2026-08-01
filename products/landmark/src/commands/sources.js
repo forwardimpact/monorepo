@@ -1,11 +1,11 @@
 /**
  * `fit-landmark sources` — list activity row classes retained about an engineer.
  *
- * Iterates the SOURCE_CLASSES registry — one entry per RLS'd activity table —
- * issuing an asc+desc pair through the authenticated Supabase client. RLS
- * clamps both, so results reflect the caller's view. Classes with zero
- * visible rows are filtered out; if all classes clamp to zero the command
- * renders NO_SOURCES_FOR_PERSON.
+ * The command iterates the SOURCE_CLASSES registry, one entry per RLS'd
+ * activity table. For each entry it issues an asc+desc pair through the
+ * authenticated Supabase client. RLS clamps both, so results reflect the
+ * caller's view. The command drops classes with zero visible rows. If all
+ * classes clamp to zero, the command renders NO_SOURCES_FOR_PERSON.
  */
 
 import { readRetention } from "@forwardimpact/map/activity/retention";

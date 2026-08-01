@@ -25,18 +25,18 @@ import {
 } from "../src/lib/identity.js";
 import { formatResult } from "../src/formatters/index.js";
 
-// Hidden manifest export consumed by `fit-map substrate stage`'s self-smoke.
-// Placed before the top-level createProductConfig() await so introspection
-// does not pay the libconfig load cost and is independent of the spawn cwd's
-// .env. The branch must sit above the top-level await — if future
-// contributors move createProductConfig earlier in this file, the
+// `fit-map substrate stage`'s self-smoke consumes this hidden manifest export.
+// It sits before the top-level createProductConfig() await. Introspection then
+// avoids the libconfig load cost. It also does not depend on the spawn cwd's
+// .env. The branch must sit above the top-level await. If a future contributor
+// moves createProductConfig earlier in this file, the
 // products/landmark/test/lib/commands-verb.test.js runtime test fails.
 if (process.argv[2] === "_commands") {
   const { SUBCOMMAND_EXPANSIONS, FLAT_SMOKE_OPTIONS } = await import(
     "../src/lib/commands-manifest.js"
   );
-  // JSON.stringify drops handler function references — that's intentional:
-  // the smoke only needs needsSupabase per entry, which serialises fine.
+  // JSON.stringify drops handler function references. That is intentional.
+  // The smoke needs only needsSupabase per entry, which serialises fine.
   process.stdout.write(
     JSON.stringify({
       commands: COMMANDS,
@@ -117,8 +117,9 @@ const definition = {
         manager: {
           type: "string",
           description:
-            "Filter by manager email; resolves transitively, so a director " +
-            "email rolls up every team beneath it across the department",
+            "Filter by manager email. It resolves transitively, so a " +
+            "director email rolls up every team beneath it across the " +
+            "department",
         },
         verbose: {
           type: "boolean",
@@ -177,12 +178,13 @@ const definition = {
     },
     {
       name: "login",
-      description: "Sign in via Supabase magic-link (browser or --otp)",
+      description: "Sign in with a Supabase magic-link (browser or --otp)",
       options: {
         email: { type: "string", description: "Email to sign in as" },
         otp: {
           type: "boolean",
-          description: "Skip the browser; prompt for the 6-digit code instead",
+          description:
+            "Skip the browser and prompt for the 6-digit code instead",
         },
       },
     },
@@ -224,7 +226,7 @@ const definition = {
       title: "Demonstrate Engineering Progress",
       url: "https://www.forwardimpact.team/docs/products/engineering-outcomes/index.md",
       description:
-        "Show evidence of engineering progress without blaming individuals.",
+        "Show evidence of engineering progress and do not blame individuals.",
     },
     {
       title: "Tell Whether Culture Investments Are Working",
@@ -251,7 +253,7 @@ const definition = {
       title: "Sign In to Landmark",
       url: "https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md",
       description:
-        "Sign in via Supabase magic-link so commands resolve your identity automatically.",
+        "Sign in with a Supabase magic-link so commands resolve your identity automatically.",
     },
   ],
 };
@@ -302,7 +304,7 @@ async function main() {
       supabase: ctx.supabase,
       format: ctx.format,
       runtime,
-      // login/logout prompt and print directly; give them a real stdin
+      // login/logout prompt and print directly. Give them a real stdin
       // (a Readable that readline can consume) plus the runtime stdout.
       io: { stdin: process.stdin, stdout: runtime.proc.stdout },
     });

@@ -92,7 +92,7 @@ The design answers which components exist, where they interact, and what
 interfaces connect them. It also answers why this architecture beats the
 alternatives.
 
-- **Architecture, no execution.** Name components, interfaces, data flow. Do
+- **Architecture only.** Name components, interfaces, data flow. Do
   not specify file-level changes or execution order. Those belong in the plan.
 - **Decisions with trade-offs.** Each architectural choice names at least one
   rejected alternative and why.
@@ -169,7 +169,7 @@ Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md). Invoke it on the local
 `design-a.md` before push. Tell each reviewer not to invoke `kata-design`.
 Address every confirmed blocker/high/medium finding before you open the PR. The
-PR must not become visible to `kata-dispatch` until the panel is clean.
+PR should not become visible to `kata-dispatch` until the panel is clean.
 
 ### Step 6: Open a design PR
 

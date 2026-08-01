@@ -104,7 +104,7 @@ describe("WikiSync budget re-validation gate (size axis)", () => {
     );
   });
 
-  test("criterion 3: deepening an existing breach → refused", async () => {
+  test("criterion 3: a write that deepens an existing breach → refused", async () => {
     const bare = createBareRepo();
     // Origin is already over cap. The writer adds more words to that same file.
     seedBareRepo(bare, { files: { [SUMMARY]: summaryBody("Staff", 2060) } });

@@ -99,7 +99,7 @@ npx fit-pathway job software-engineering J070 --track=platform
 
 ## Connect expectations to skill and behaviour changes
 
-Expectation shifts do not happen in isolation. Corresponding changes in skills
+Expectation shifts do not happen in isolation. Related changes in skills
 and behaviours support them. Use the `progress` command to see those changes:
 
 ```sh
@@ -153,7 +153,7 @@ story:
 | J080  | defines goals with minimal oversight            | shapes outcomes across multiple teams  |
 
 This table is a summary for illustration. Your organization's standard may
-use different wording. Always read the actual output of `npx fit-pathway job`
+use different words. Always read the actual output of `npx fit-pathway job`
 for the authoritative definition.
 
 ## Verify

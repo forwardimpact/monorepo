@@ -5,9 +5,9 @@ description: File format reference for every entity type, with examples and link
 
 ## Overview
 
-Agent-aligned engineering standard definitions are stored as YAML files. Two
-schema formats validate these files, ensuring structural correctness and
-enabling tooling integration.
+YAML files store the definitions of an agent-aligned engineering standard. Two
+schema formats validate these files. The validation confirms structural
+correctness. It also lets tools integrate.
 
 ---
 
@@ -35,9 +35,9 @@ enabling tooling integration.
 | Questions              | How do you assess this?                          | `questions/{type}/`            | `schema/json/*-questions.schema.json`           |
 | Organizational Context | What facts apply to this team?                   | `organizational-context.yaml`  | `schema/json/organizational-context.schema.json` |
 
-Entity file locations are relative to your data directory — typically
-`data/pathway/`, configurable via `npx fit-map validate --data=<path>`. Schema
-paths are relative to each schema's package root.
+Entity file locations are relative to your data directory. That directory is
+typically `data/pathway/`. Set it with `npx fit-map validate --data=<path>`.
+Schema paths are relative to each schema's package root.
 
 ---
 
@@ -57,10 +57,10 @@ paths are relative to each schema's package root.
 
 | Maturity        | Index | Description                                          |
 | --------------- | ----- | ---------------------------------------------------- |
-| `emerging`      | 0     | Shows interest, needs prompting                      |
+| `emerging`      | 0     | Shows interest, needs a prompt                       |
 | `developing`    | 1     | Regularly applies with some guidance                 |
 | `practicing`    | 2     | Consistently demonstrates in daily work              |
-| `role-modeling` | 3     | Influences the team's approach, others seek them out |
+| `role-modeling` | 3     | Influences the team's approach. Others seek them out |
 | `exemplifying`  | 4     | Shapes organizational culture in this area           |
 
 ---
@@ -70,7 +70,7 @@ paths are relative to each schema's package root.
 All entities use `human:` and `agent:` sections in the same YAML file. The
 `human:` section contains descriptions for people. The `agent:` section contains
 instructions for AI coding agents. Skills with an `agent:` section render as
-SKILL.md content via `npx fit-pathway skill <id> --agent`.
+SKILL.md content through `npx fit-pathway skill <id> --agent`.
 
 ---
 
@@ -264,7 +264,7 @@ Validation checks:
 - **Schema compliance** -- Each file matches its JSON Schema definition
 - **Referential integrity** -- All cross-references between entities resolve
   (e.g. discipline skill references exist in capabilities)
-- **SHACL conformance** -- RDF shapes validate when `--shacl` is specified
+- **SHACL conformance** -- RDF shapes validate when you specify `--shacl`
 
 ---
 

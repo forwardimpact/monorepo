@@ -52,7 +52,7 @@ distinct personas.
 
 ## Either way
 
-Entry quality is the same problem in both shapes. Both need a Big Hire and a
-Little Hire. Both need a trigger that names a moment. A role is not a trigger.
-Both need the hires that compete, and those include nonconsumption.
+Entry quality is the same problem in both shapes. Distinguish the Big Hire from
+the Little Hire. Make every trigger a moment. A role is not a trigger. Name the
+hires that compete, and include nonconsumption.
 Author entries with [jidoka-jtbd](../../jidoka-jtbd/SKILL.md).

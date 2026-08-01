@@ -1,8 +1,8 @@
 /**
  * `fit-landmark marker <skill> [--level <level>]` — marker reference view.
  *
- * Displays marker definitions from Map's capability YAML files.
- * Does not require Supabase.
+ * Show marker definitions from Map's capability YAML files. This command
+ * does not need Supabase.
  */
 
 import { EMPTY_STATES } from "../lib/empty-state.js";

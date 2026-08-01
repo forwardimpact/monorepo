@@ -105,7 +105,7 @@ a Haiku technical-writer. One such finding is a missing `### Decision` to
 insert. `fix` re-audits after each round, to a maximum of three rounds. It
 flags anything irreducible for a human. One example is a lone day-section that
 exceeds the budget on its own and cannot be split. `fix` exits non-zero. It
-does not change that file. Run `fix` after you edit wiki files.
+does not change the flagged content. Run `fix` after you edit wiki files.
 
 ### `memo` — Cross-team memo
 

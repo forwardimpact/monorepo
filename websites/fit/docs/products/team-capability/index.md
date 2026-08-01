@@ -5,8 +5,8 @@ description: "Replace staffing intuition with evidence: coverage heatmaps, struc
 
 A post-mortem surfaces the same skill gap that caused the last incident. Nobody
 saw the gap when you staffed the team. You need to make staffing decisions you
-can defend, so first see what each role requires. This guide walks through the
-full workflow. You define role requirements with Pathway. You model team
+can defend. To do that, see what each role requires. This guide walks through
+the full workflow. You define role requirements with Pathway. You model team
 composition with Summit. You simulate changes before you commit to them.
 
 ## Prerequisites
@@ -181,7 +181,7 @@ Expected output:
 ```
 
 The output shows which risks the new role would resolve and how coverage
-changes. You can now articulate exactly why this position matters. Say "a J060
+changes. You can now articulate exactly why this position matters. Say "A J060
 platform engineer resolves both the observability gap and the infrastructure
 single point of failure."
 
@@ -301,9 +301,9 @@ npx fit-summit compare platform delivery --roster ./summit.yaml
   Risks unique to Delivery:  estimation (single point of failure)
 ```
 
-This diffs coverage and risks across both teams, making structural differences
-visible. It is especially useful when deciding where to allocate a new position
-or when a reorganization is under consideration.
+This diffs coverage and risks across both teams. It makes structural differences
+visible. Use it when you decide where to allocate a new position. Use it when
+you consider a reorganization.
 
 ## Match the audience to the conversation
 
@@ -320,29 +320,30 @@ context. Use the `--audience` flag to match the output to your conversation:
 npx fit-summit coverage platform --roster ./summit.yaml --audience director
 ```
 
-When sharing coverage or risk reports beyond the team manager, use
-`--audience director` to strip individual names and show only aggregated counts.
+When you share coverage or risk reports beyond the team manager, use
+`--audience director`. It strips individual names and shows only aggregated
+counts.
 
 ## Verify
 
-You have reached the outcome of this guide when you can answer these questions
-from your Pathway and Summit output:
+You reach the outcome of this guide when you can answer these questions from
+your Pathway and Summit output:
 
-- **What does each role on the team require?** You have generated role
-  definitions with `npx fit-pathway job` for each distinct position and can
-  describe the skills, behaviours, and scope each role expects.
-- **Where is the team strong and where are the gaps?** You have run
-  `npx fit-summit coverage` and can point to depth numbers for each capability
+- **What does each role on the team require?** You generated role definitions
+  with `npx fit-pathway job` for each distinct position. You can describe the
+  skills, behaviours, and scope each role expects.
+- **Where is the team strong and where are the gaps?** You ran
+  `npx fit-summit coverage`. You can point to depth numbers for each capability
   area.
-- **What structural risks does the team carry?** You have run
-  `npx fit-summit risks` and can name the single points of failure, critical
+- **What structural risks does the team carry?** You ran
+  `npx fit-summit risks`. You can name the single points of failure, critical
   gaps, and concentration risks.
-- **What would a specific roster change do?** You have run at least one
-  `npx fit-summit what-if` scenario and can describe the coverage and risk
-  impact of the change you are considering.
+- **What would a specific roster change do?** You ran at least one
+  `npx fit-summit what-if` scenario. You can describe the coverage and risk
+  impact of the change you have in mind.
 - **Can you defend the decision with evidence?** For your next staffing
   conversation, you can show the coverage gap or structural risk the decision
-  addresses -- not just assert that the team "needs" something.
+  addresses. You do not assert only that the team "needs" something.
 
 ## What's next
 

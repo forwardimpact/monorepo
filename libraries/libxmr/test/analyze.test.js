@@ -104,7 +104,7 @@ describe("analyze", () => {
     assert.strictEqual(m.classification, "insufficient");
   });
 
-  test("exposes raw stats and full series for chart rendering", () => {
+  test("exposes raw stats and full series for the chart renderer", () => {
     const csv = makeCSV(
       "ex",
       Array.from({ length: 20 }, (_, i) => 10 + (i % 2)),
@@ -121,7 +121,7 @@ describe("analyze", () => {
     assert.strictEqual(m.values.length, m.n);
   });
 
-  test("reads a file mixing legacy 7-col and 8-col host_run rows", () => {
+  test("reads a file that mixes legacy 7-col and 8-col host_run rows", () => {
     // Build a 20-point series where odd rows are legacy (7 columns, no
     // host_run) and even rows carry the trailing host_run column. host_run
     // never feeds analysis, so the result must match the host_run-free series.
@@ -142,7 +142,7 @@ describe("analyze", () => {
   });
 });
 
-describe("analyze event_type slicing", () => {
+describe("analyze event_type slices", () => {
   const mixed = [
     "date,metric,value,unit,run,note,event_type",
     "2026-01-01,m,1,count,r,,kata-dispatch",
@@ -172,7 +172,7 @@ describe("analyze event_type slicing", () => {
   });
 });
 
-describe("analyze command slice naming", () => {
+describe("analyze command slice names", () => {
   const CSV_PATH = "/metrics/metrics.csv";
   const MIXED = [
     "date,metric,value,unit,run,note,event_type",

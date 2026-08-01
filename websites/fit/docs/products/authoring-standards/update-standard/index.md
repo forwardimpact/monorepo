@@ -31,7 +31,8 @@ each entity lives:
 You define skills inside capability files. Skills do not live in their own
 directory.
 
-Make your change. For example, to add a new skill to an existing capability:
+Make your change. For example, to add a new skill to a capability that already
+exists:
 
 ```yaml
 # data/pathway/capabilities/delivery.yaml
@@ -60,8 +61,8 @@ skills:
 ```
 
 Every skill requires `proficiencyDescriptions` at all five levels (`awareness`,
-`foundational`, `working`, `practitioner`, `expert`). A missing level causes a
-schema error.
+`foundational`, `working`, `practitioner`, `expert`). If you leave out a level,
+you get a schema error.
 
 ## Run validation
 

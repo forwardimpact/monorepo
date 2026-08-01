@@ -134,11 +134,11 @@ The rules for what goes where follow from how the agent loads these files:
 
 When you need to add organizational context, ask: "Who needs to know this?"
 
-| Who needs it                 | Where it goes        | Example                                                    |
-| ---------------------------- | -------------------- | ---------------------------------------------------------- |
-| Every agent on the project   | Team Instructions    | "All services deploy to AWS eu-west-1"                     |
-| One role specialization      | Agent Profile        | "Platform engineers own backward compatibility"            |
-| Anyone doing a specific task | Skill                | "Code review follows the four-step checklist in REVIEW.md" |
+| Who needs it                    | Where it goes        | Example                                                    |
+| ------------------------------- | -------------------- | ---------------------------------------------------------- |
+| Every agent on the project      | Team Instructions    | "All services deploy to AWS eu-west-1"                     |
+| One role specialization         | Agent Profile        | "Platform engineers own backward compatibility"            |
+| Anyone who does a specific task | Skill                | "Code review follows the four-step checklist in REVIEW.md" |
 
 The `--level` flag is the per-invocation calibration surface. It differs from
 `teamInstructions` (shared across every agent on a track) and from the

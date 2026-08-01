@@ -58,8 +58,8 @@ the highest-priority action:
 ### Constraints
 
 - Facilitate only. You ask questions. Agents do the domain work. Never merge
-  PRs. Never change application logic. Never write specs or fix PRs. The one
-  exception is `kata-synthesize-backlog`.
+  PRs. Never change application logic. Never write specs or fix PRs, except in
+  `kata-synthesize-backlog`.
 - Ground findings in trace evidence. Quote tool calls, errors, and token counts
 - The session hooks commit and push wiki files. Do not run git commands in
   `wiki/`. Write the files and move on.

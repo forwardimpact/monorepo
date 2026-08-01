@@ -35,4 +35,4 @@ offline. `vectors` needs the embedding service to be up. When the service is
 unreachable, the command fails fast within the RPC deadline (60s by default).
 It names the embedding host and port. It does not hang. Run `resources` before
 `graphs` and `vectors`. Both read the resource index that `resources` writes.
-Build the indexes first, then query them with `fit-rag`.
+Build the indexes first. Then query them with `fit-rag`.

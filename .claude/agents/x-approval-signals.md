@@ -31,9 +31,9 @@ the PM review directly at merge time.
 A human who merges a change approves it. The merge **is** the approval. It is
 not bookkeeping that trails an approval held elsewhere.
 
-Sometimes the gate never authorized the merge. An example: a `spec(NNN)` PR
-merged while its row reads `spec draft`. STATUS then contradicts the trunk and
-the next phase stalls. Reconcile the row to what was merged:
+When the gate never authorized the merge, STATUS contradicts the trunk and the
+next phase stalls. An example is a `spec(NNN)` PR merged while its row reads
+`spec draft`. Reconcile the row to what was merged:
 
 | Merged by a human | Row to write |
 |---|---|
@@ -143,8 +143,8 @@ waits until the owner backfills registration.
 **Head pin.** The `approved` write records the head SHA at signal time, read at
 the gate. Any later commit re-blocks until a fresh human signal covers the new
 head. This includes a gate-performed rebase. So the gate does not rebase an
-approved-and-pinned experiment PR. This is stricter than
-pin-less spec rows because no artifact bounds the approved commits.
+approved-and-pinned experiment PR. This is stricter than pin-less spec rows
+because no artifact bounds the approved commits.
 
 Only the trusted-human PR-side signals in § The signals feed `approved` (label,
 `gate` marker, approval comment, human merge, in-session message). An agent
