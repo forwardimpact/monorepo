@@ -13,15 +13,16 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     ">>>>>>> y",
   ].join("\n");
 
-  // A wiki that already carries the metrics-CSV union declaration, so
-  // `commitAndPush`'s ensure-before-gate is a no-op and the bare push commits
-  // its own dirty set pathspec-scoped (1850 D3/KD6), never the whole tree.
+  // A wiki that already carries the metrics-CSV union declaration. So
+  // `commitAndPush`'s ensure-before-gate is a no-op. The bare push then
+  // commits its own dirty set pathspec-scoped (1850 D3/KD6). It never commits
+  // the whole tree.
   const provisionedFs = () =>
     createMockFs({
       [`${WIKI}/.gitattributes`]: "metrics/**/*.csv merge=union\n",
     });
 
-  test("C7: refuses mid-merge before staging or committing", async () => {
+  test("C7: refuses mid-merge before it stages or commits", async () => {
     const { wikiSync, methods } = make({
       responses: { isMidMerge: true },
     });
@@ -34,9 +35,9 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
   });
 
   test("C8: a no-intent rebase conflict fails loud (the ours-strategy fallback is removed)", async () => {
-    // The silent -X ours clobber on the no-reapply path is removed
-    // (the merge-discipline fail-loud floor). A whole-tree rebase conflict now throws
-    // `conflict` and never discards the remote side.
+    // The no-reapply path no longer carries the silent -X ours clobber (the
+    // merge-discipline fail-loud floor). A whole-tree rebase conflict now
+    // throws `conflict`. It never discards the remote side.
     const { wikiSync, methods } = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -51,12 +52,12 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
         err instanceof WikiPushFailure && err.reason === PUSH_REASONS.CONFLICT,
     );
     const m = methods();
-    assert.ok(m.includes("rebaseAbort"), "the rebase is aborted");
+    assert.ok(m.includes("rebaseAbort"), "the rebase aborts");
     assert.ok(!m.includes("mergeOursStrategy"), "the clobber fallback is gone");
     assert.ok(!m.includes("pushPorcelain"));
   });
 
-  test("C9: refuses to push commits introducing a conflict block; commits stay local", async () => {
+  test("C9: refuses to push commits that introduce a conflict block and keeps them local", async () => {
     const { wikiSync, methods } = make({
       fsSync: provisionedFs(),
       responses: {
@@ -74,7 +75,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
       reason: "would-publish-markers",
     });
     const m = methods();
-    assert.ok(m.includes("commitPaths"), "the commit is kept local");
+    assert.ok(m.includes("commitPaths"), "the guard keeps the commit local");
     assert.ok(
       !m.includes("commitAll"),
       "the whole-tree sweep is gone (1850 D3)",
@@ -82,7 +83,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     assert.ok(!m.includes("push"));
   });
 
-  test("C9: dual-lineage — each push attempt is refused independently (stateless)", async () => {
+  test("C9: dual-lineage — the guard refuses each push attempt independently (stateless)", async () => {
     const lane = (added) =>
       make({
         responses: {
@@ -110,8 +111,8 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
         status: { stdout: " M MEMORY.md", stderr: "", exitCode: 0 },
         rebase: { exitCode: 0, stderr: "" },
         revListCount: 1,
-        // Pre-existing origin corruption is on the base side, never the added
-        // side, so introducedByFile is clean for this writer.
+        // Pre-existing origin corruption sits on the base side. It never sits
+        // on the added side. So introducedByFile is clean for this writer.
         introducedByFile: new Map([["staff-engineer.md", "added clean line"]]),
       },
     });
@@ -168,7 +169,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     assert.ok(methods().includes("pushPorcelain"));
   });
 
-  test("C11: introduced scan resolves shallow without deepening; a throw refuses", async () => {
+  test("C11: the introduced scan resolves shallow without a deepen and a throw refuses", async () => {
     const ok = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -181,7 +182,7 @@ describe("WikiSync commit-and-push conflict-marker publish guards", () => {
     });
     const okResult = await ok.wikiSync.commitAndPush("wiki: update");
     assert.equal(okResult.landed, true);
-    // No clone/deepen on the normal path — the diff decides from in-clone state.
+    // No clone/deepen on the normal path. The diff decides from in-clone state.
     assert.ok(!ok.methods().includes("clone"));
 
     const thrown = make({

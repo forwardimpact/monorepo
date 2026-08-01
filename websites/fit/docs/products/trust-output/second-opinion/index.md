@@ -1,23 +1,23 @@
 ---
 title: "Get a Second Opinion on a Deliverable"
-description: "Know what meets the bar and what falls short before you approve — assessed against your engineering standard, not intuition."
+description: "Know what meets the bar and what falls short before you approve. Your engineering standard grounds the assessment. Intuition does not."
 ---
 
 You need to assess a specific piece of agent output against your organization's
-engineering standard before deciding whether to approve it.
+engineering standard before you approve it.
 
 ## Prerequisites
 
 Complete the
 [Get Output Review Grounded in the Standard](/docs/products/trust-output/)
-guide first. The steps below assume you have Guide installed, codegen complete,
-and the service stack running.
+guide first. The steps below assume that you installed Guide, that codegen is
+complete, and that the service stack runs.
 
-You should also know the role the agent was configured to perform. If the agent
-was set up using
-[Agent Teams](/docs/products/agent-teams/), the role coordinates (discipline,
-level, and track) are already defined in the agent profile. If not, identify the
-closest match before continuing -- Guide needs a role context to ground its
+Also know the role you configured the agent to perform. If you set up the agent
+with
+[Agent Teams](/docs/products/agent-teams/), the agent profile already defines
+the role coordinates (discipline, level, and track). If not, identify the
+closest match before you continue. Guide needs a role context to ground its
 assessment.
 
 ## Identify the deliverable

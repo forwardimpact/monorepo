@@ -8,9 +8,9 @@ import { WikiSync } from "../src/wiki-sync.js";
 export const WIKI = "/repo/wiki";
 export const PARENT = "/repo";
 
-// Mock responses placing the clone in a healthy, publishable ancestry state:
-// HEAD on `master`, the remote-tracking ref and HEAD both resolve, and a
-// merge-base exists — so #assertPublishable allows on the local-only path.
+// Mock responses that place the clone in a healthy, publishable ancestry
+// state. HEAD is on `master`. The remote-tracking ref and HEAD both resolve.
+// A merge-base exists. So #assertPublishable allows on the local-only path.
 export const HEALTHY_ANCESTRY = {
   headBranch: "master",
   refExists: true,
@@ -20,16 +20,18 @@ export const HEALTHY_ANCESTRY = {
 /** A remote tip the healthy push lands onto. */
 export const REMOTE_TIP = "aaaa111";
 
-// Mock responses placing the clone in a healthy, publishable PUSH state for the
-// honest commitAndPush (the honest commitAndPush contract). It folds in HEALTHY_ANCESTRY because the
-// composed flow always runs the ancestry guard (the ancestry guard) before the push, so
-// a push-focused test still needs `headBranch`/`refExists`/`mergeBaseExists`
-// satisfied. Adds: a remote tip the push lands onto, HEAD not yet contained (so
-// not nothing-to-push), no unmerged paths, no foreign drops, and an accepted
-// per-ref push report. `isAncestor` defaults false (the nothing-to-push check
-// `isAncestor("HEAD", tip)`); conservation's `isAncestor(tip, "HEAD")` only
-// runs when `diffNameStatus` reports a drop, so healthy-landing tests (empty
-// diff) never reach it. `isMidMerge` defaults absent (falsy ⇒ not mid-merge).
+// Mock responses that place the clone in a healthy, publishable PUSH state for
+// the honest commitAndPush (the honest commitAndPush contract). It folds in
+// HEALTHY_ANCESTRY because the composed flow always runs the ancestry guard
+// before the push. So a push-focused test still needs
+// `headBranch`/`refExists`/`mergeBaseExists` satisfied. It adds a remote tip
+// the push lands onto, HEAD not yet contained (so not nothing-to-push), no
+// unmerged paths, no foreign drops, and an accepted per-ref push report.
+// `isAncestor` defaults false (the nothing-to-push check
+// `isAncestor("HEAD", tip)`). Conservation's `isAncestor(tip, "HEAD")` only
+// runs when `diffNameStatus` reports a drop. So tests with a healthy landing
+// (empty diff) never reach it. `isMidMerge` defaults absent (falsy ⇒ not
+// mid-merge).
 export const HEALTHY_PUSH = {
   ...HEALTHY_ANCESTRY,
   isMidMerge: false,
@@ -49,8 +51,8 @@ export const HEALTHY_PUSH = {
 /** Alias of the full healthy push+ancestry state (HEALTHY_PUSH folds ancestry). */
 export const HEALTHY = HEALTHY_PUSH;
 
-// Git methods the ancestry guard issues; filtered out of flow-sequence
-// assertions that care only about the commit/rebase/push flow.
+// Git methods the ancestry guard issues. Flow-sequence assertions filter them
+// out. Those assertions care only about the commit/rebase/push flow.
 export const GUARD_METHODS = new Set([
   "headBranch",
   "refExists",
@@ -88,9 +90,9 @@ export function make({
   const runtime = createTestRuntime({
     ...(fsSync ? { fsSync } : {}),
     ...(subprocess ? { subprocess } : {}),
-    // Build a full mock proc carrying the custom env so capturing
+    // Build a full mock proc that carries the custom env, so the captured
     // stdout/stderr stay available (the conservation self-report writes to
-    // proc.stderr — the honest commitAndPush contract).
+    // proc.stderr, per the honest commitAndPush contract).
     ...(env ? { proc: createMockProcess({ env }) } : {}),
   });
   const wikiSync = new WikiSync({

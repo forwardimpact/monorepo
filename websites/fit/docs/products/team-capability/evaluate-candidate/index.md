@@ -1,23 +1,23 @@
 ---
 title: "Evaluate a Candidate Against Team Gaps"
-description: "Know whether a candidate fills the team's actual capability gap before making an offer — not after onboarding reveals the mismatch."
+description: "Know whether a candidate fills the team's actual capability gap before you make an offer. Do not wait until the new hire starts to see the mismatch."
 ---
 
 You need to check whether a specific candidate addresses the structural gaps in
-your team, not just the position description.
+your team. Do not compare the candidate only against the position description.
 
 ## Prerequisites
 
 Complete the
 [Make Staffing Decisions You Can Defend](/docs/products/team-capability/) guide
-first -- this page assumes you have a `summit.yaml` roster, have run `coverage`
-and `risks`, and understand where your team's gaps are.
+first. This page assumes you have a `summit.yaml` roster and ran `coverage` and
+`risks`. It also assumes you know where your team's gaps are.
 
 ## Describe the candidate as a role
 
-Summit evaluates a candidate by their role definition -- discipline, level, and
-optionally track. You are not entering a name or a CV; you are describing the
-position the candidate would fill.
+Summit evaluates a candidate by their role definition. The definition holds a
+discipline, a level, and an optional track. You do not enter a name or a CV.
+You describe the position the candidate would fill.
 
 Determine the candidate's closest match from your engineering standard:
 
@@ -25,13 +25,13 @@ Determine the candidate's closest match from your engineering standard:
 npx fit-pathway job --list
 ```
 
-This prints every valid discipline, level, and track combination. Find the row
-that matches the candidate's experience. For example, a mid-level software
+This prints every valid combination of discipline, level, and track. Find the
+row that matches the candidate's experience. For example, a mid-level software
 engineer with a platform background maps to `software-engineering J060` with
 track `platform`.
 
-If you are unsure which level applies, generate two adjacent role definitions
-and compare the expectations:
+If you are unsure which level applies, generate two adjacent role definitions.
+Then compare the expectations:
 
 ```sh
 npx fit-pathway job software-engineering J060 --track=platform
