@@ -9,7 +9,7 @@ links: []
 # Add animated emoji themes and a social activity feed
 
 Please add animated emoji themes for the task list. Also add a social activity
-feed. Users could then follow each other's todos and react to them with emojis.
+feed. Users can then follow each other's todos and react to them with emojis.
 It would make the tool more fun and engaging.
 
 ## Comments

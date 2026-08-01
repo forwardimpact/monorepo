@@ -19,7 +19,7 @@ Cross-reference the agent's instructions. Confirm that the agent classified the
 issue as out of scope. Confirm that it appended a rationale grounded in the
 brief. Confirm that it labelled the issue `wontfix` and closed it. Confirm that
 it opened no change and no spec. Confirm that every action went through the
-work-item operations. The agent must not call `gh`.
+work-item operations. Confirm that the agent did not call `gh`.
 
 Call `Conclude` with `verdict="success"` if the triage is correct and grounded.
 Call it with `verdict="failure"` if the agent misclassified the issue, acted
