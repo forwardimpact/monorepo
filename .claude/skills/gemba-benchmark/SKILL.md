@@ -125,7 +125,7 @@ Task-authoring guidance lives in
 
 ## GitHub Action
 
-The `forwardimpact/benchmark@v1` composite action wraps the CLI: it
+The `forwardimpact/benchmark@v1` composite action wraps the CLI. It
 installs deps, runs the benchmark, appends the report to the step summary, and
 uploads `results.jsonl`.
 
@@ -139,15 +139,15 @@ uploads `results.jsonl`.
 
 All CLI `run` flags are action inputs, plus CI extras (`summary`,
 `upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and a
-`results-path` output — see the action README. For parallelism it takes
+`results-path` output. See the action README. For parallelism it takes
 `concurrency` and `shard-index`/`shard-total` with `mode` (`run` a shard, or
-`merge` every shard's partial ledger); a `benchmark.yml` reusable workflow
-fans shards out from one `shard-total` input — see the CI guide below.
+`merge` every shard's partial ledger). A `benchmark.yml` reusable workflow
+fans shards out from one `shard-total` input. See the CI guide below.
 
 | Command | Purpose |
 | --- | --- |
-| `run` | Run every task N times against a family; append result records to `<output>/results.jsonl`. |
-| `grade` | Grade a single task against a post-run workdir without invoking an agent — both producers, same derivation as `run`; the exit mirrors the verdict. |
+| `run` | Run every task N times against a family. Append result records to `<output>/results.jsonl`. |
+| `grade` | Grade a single task against a post-run workdir with no agent. Both producers use the same derivation as `run`. The exit mirrors the verdict. |
 | `report` | Aggregate `results.jsonl` into pass@k (plus mean score and score@k for scored tasks), check rows, judge commentary, and operational stats. |
 
 ## Typical Workflow
@@ -172,21 +172,21 @@ npx gemba-benchmark report --format=text   # aggregate into pass@k + score@k
 ## Grading Surfaces
 
 Behavioral checks ("does the code work?") belong in the hidden `tests/`
-suite; `hooks/invariants.sh` covers structural surfaces — a service probe,
-a repository-state digest, artifact content via `gemba-trace assert` — with
-gates for presence/anti-tamper and scored rows for content.
+suite. `hooks/invariants.sh` covers structural surfaces: a service probe,
+a repository-state digest, and artifact content through `gemba-trace assert`.
+It uses gates for presence/anti-tamper and scored rows for content.
 
 ## Result Records
 
-One record per `(taskId, runIndex)`, appended to `<output>/results.jsonl`,
-each validating against
+One record per `(taskId, runIndex)` is appended to `<output>/results.jsonl`.
+Each validates against
 [`benchmark/result.js`](https://github.com/forwardimpact/monorepo/blob/main/libraries/libharness/src/benchmark/result.js).
-Records carry the `grade`, the effective `score` (zeroed by a failing gate,
-judge, or grader), skill-set hash, family revision, judge verdict, trace
+Records carry the `grade`, the effective `score` (a failed gate, judge, or
+grader zeroes it), skill-set hash, family revision, judge verdict, trace
 paths, cost, turn count, and (on pre-flight failure) a `preflightError`.
 
-Each run produces agent and judge NDJSON traces, both consumable by
-`gemba-trace overview --file <trace>`.
+Each run produces agent and judge NDJSON traces.
+`gemba-trace overview --file <trace>` reads both.
 
 ---
 

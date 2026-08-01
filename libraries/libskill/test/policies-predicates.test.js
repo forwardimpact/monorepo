@@ -156,12 +156,12 @@ describe("predicates", () => {
     });
   });
 
-  // The three level-ordered predicates each cross-multiplied a threshold against
-  // the ordered proficiency set, all flowing through a single
-  // `getSkillProficiencyIndex(...)` comparison (>=, ===, <). Per Decision 6 this
-  // is a single implementation path, so each collapses to boundary cases
-  // (at-threshold, one-below, one-above, and the floor/ceiling) plus one
-  // monotonicity property loop over the full ordered axis.
+  // The three level-ordered predicates each cross-multiplied a threshold
+  // against the ordered proficiency set. They all go through one
+  // `getSkillProficiencyIndex(...)` comparison (>=, ===, <). Per Decision 6
+  // this is a single implementation path. So each predicate collapses to
+  // boundary cases (at-threshold, one-below, one-above, and the floor/ceiling)
+  // plus one monotonicity property loop over the full ordered axis.
   const PROFICIENCY_ORDER = [
     "awareness",
     "foundational",
@@ -183,7 +183,8 @@ describe("predicates", () => {
         true,
       ); // one-above
 
-      // awareness floor accepts everything; expert ceiling accepts only expert.
+      // The awareness floor accepts everything. The expert ceiling accepts
+      // only expert.
       const atAwareness = hasMinLevel("awareness");
       assert.strictEqual(
         atAwareness(skill({ proficiency: "awareness" })),

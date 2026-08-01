@@ -54,11 +54,10 @@ markdown companion at a predictable URL.
 
 ## Formatting Consistency
 
-The format and the terminology must be identical across pages.
+The format and terminology must be identical across pages.
 
 **Repeated tables** — The canonical tables for proficiency and behaviour
-maturity live in the Authoring Standards guide. Every copy must match them
-exactly.
+maturity live in the Authoring Standards guide. Copies must match exactly.
 
 **Field names** — Use the same tier vocabulary across disciplines and levels:
 
@@ -94,7 +93,7 @@ lives at `getting-started/contributors/`. Operations live at
 
 ## Content Framing
 
-Guides frame around the reader's progress. They do not frame around product
+Guides frame around the reader's progress. Do not frame around product
 features.
 
 | Instead of                            | Write                                                              |
@@ -102,7 +101,7 @@ features.
 | "Summit generates coverage heatmaps"  | "See which capabilities the team covers and where the gaps are"    |
 | "Guide answers career questions"      | "When a promotion conversation ends with 'not yet,' get specifics" |
 
-Do not use this JTBD vocabulary in guides: job, hire, fire, trigger, forces,
+Never use this JTBD vocabulary in guides: job, hire, fire, trigger, forces,
 compete.
 
 ## Layouts

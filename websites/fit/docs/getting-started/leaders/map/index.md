@@ -6,9 +6,9 @@ description: "Initialize your agent-aligned engineering standard, validate again
 Map is the data product at the centre of every other tool. It has two layers
 that you set up in order:
 
-1. **Standard layer** — YAML files that define your skills, behaviours, levels,
-   disciplines, and tracks. Validate them locally with `npx fit-map validate`.
-   Pathway, Outpost, and `libskill` consume this layer.
+1. **Standard layer** — YAML files that define your skills, behaviours,
+   levels, disciplines, and tracks. Validate them locally with
+   `npx fit-map validate`. Pathway, Outpost, and `libskill` consume this layer.
 2. **Activity layer** — A Supabase database that stores your organization
    roster, GitHub activity, evidence, and GetDX snapshots. It powers Landmark
    and Summit. It also lets Guide write skill evidence back against markers in

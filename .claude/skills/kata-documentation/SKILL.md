@@ -3,36 +3,36 @@ name: kata-documentation
 description: >
   Write and review documentation in the websites/ folder. Scheduled runs review
   one topic in depth for accuracy, audience purity, and staleness. Interactive
-  runs write or update pages following documentation standards. Use when
+  runs write or update pages that follow the documentation standards. Use when
   writing, editing, auditing, or reviewing documentation, or running scheduled
   documentation review.
 ---
 
 # Write and Review Documentation
 
-Write effective documentation and systematically review it for accuracy. Two
-modes of operation:
+Write effective documentation. Review it for accuracy in a systematic way. This
+skill has two modes:
 
-- **Scheduled review** — Pick one topic, go deep, verify against source code.
-- **Interactive writing** — Write or update pages following the standards.
+- **Scheduled review** — Pick one topic. Go deep. Verify against source code.
+- **Interactive writing** — Write or update pages that follow the standards.
 
 ## When to Use
 
 - Scheduled documentation review (one topic per run)
-- Writing or updating pages in `websites/`
-- Auditing documentation accuracy against source code
+- New or updated pages in `websites/`
+- An audit of documentation accuracy against the source code
 
 ## Checklists
 
 <read_do_checklist goal="Load documentation standards before starting">
 
-- [ ] Read [`references/standards.md`](references/standards.md) — audience
-      rules, formatting conventions, terminology.
-- [ ] Read [`references/source-of-truth.md`](references/source-of-truth.md) —
-      which code/data backs each documentation claim.
-- [ ] Identify the audience for every page touched — do not mix contributor
+- [ ] Read [`references/standards.md`](references/standards.md) for audience
+      rules, formatting conventions, and terminology.
+- [ ] Read [`references/source-of-truth.md`](references/source-of-truth.md) to
+      see which code/data backs each documentation claim.
+- [ ] Identify the audience for every page you touch. Do not mix contributor
       content into user-facing pages or vice versa.
-- [ ] Verify claims against source code, not against other documentation.
+- [ ] Verify claims against source code. Do not verify against documentation.
 
 </read_do_checklist>
 
