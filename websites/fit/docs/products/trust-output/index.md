@@ -68,7 +68,7 @@ Here is what the Expectations section looks like:
 ```
 
 The Skill Matrix is the most useful section for output review. It lists every
-skill the role requires with the proficiency level expected for each one. An
+skill the role requires and the proficiency level expected at each one. An
 agent configured for this role should produce output consistent with
 `working`-level Architecture Design, `working`-level Code Quality, and so on.
 When a skill shows `foundational` or `awareness`, the standard expects less
@@ -281,7 +281,7 @@ You reach the outcome of this guide when you can answer these questions:
 
 If any of these are unclear, revisit the relevant step. You shift from "review
 everything" to "review by exception" when you trust the standard to define the
-quality bar. You must also trust Guide to apply it.
+quality bar and Guide to apply it.
 
 ## What's next
 

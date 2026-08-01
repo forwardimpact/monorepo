@@ -16,9 +16,9 @@ function fakeContext(body, authHeader) {
 }
 
 /**
- * Bot Framework authenticator stub for the end-to-end verifier integration:
- * returns a `ClaimsIdentity`-shaped object carrying `tid`, or throws to model
- * a forged token.
+ * Bot Framework authenticator stub for the end-to-end verifier integration.
+ * It returns a `ClaimsIdentity`-shaped object that carries `tid`, or it
+ * throws to model a forged token.
  */
 function fakeAuth({ tid, throws = false } = {}) {
   return {
@@ -33,15 +33,16 @@ function fakeAuth({ tid, throws = false } = {}) {
 }
 
 /**
- * Faithful tenancy stub mirroring the real `services/tenancy` contract. Rows
- * are keyed by `(channel, channel_tenant_key)` — the Entra `tid` — and carry a
- * distinct registry `tenant_id` (a UUID), the id-space split the onboarding
- * contract must bridge. The handler must never write to a body-supplied id.
+ * Faithful tenancy stub that mirrors the real `services/tenancy` contract.
+ * The stub keys rows by `(channel, channel_tenant_key)`, the Entra `tid`.
+ * Each row carries a distinct registry `tenant_id` (a UUID). That is the
+ * id-space split the onboarding contract must bridge. The handler must never
+ * write to a body-supplied id.
  *
  * `UpsertByChannelKey` finds the row by `(channel, channel_tenant_key)`
- * STATE-AGNOSTICALLY (so it sees a `pending_consent` row), updates its state,
- * and returns it with a stable `tenant_id`; if none exists it creates one.
- * This is the contract `onboard-handler` relies on to transition
+ * STATE-AGNOSTICALLY, so it sees a `pending_consent` row. It updates the
+ * state and returns the row with a stable `tenant_id`. If no row exists, it
+ * creates one. `onboard-handler` relies on this contract to transition
  * `pending_consent` → `active`.
  *
  * @param {Array<{channel_tenant_key: string, tenant_id: string, state: string}>} [seed]
@@ -54,7 +55,7 @@ function fakeTenancyClient(seed = []) {
   return {
     calls,
     rows,
-    // ACTIVE-ONLY, mirroring services/tenancy: a pending_consent row is
+    // ACTIVE-ONLY, as in services/tenancy. A pending_consent row is
     // invisible here. Pre-fix onboard used this and 404'd on a pending row.
     ResolveByChannelKey: async ({ channel, key }) => {
       const row = rows.find(
@@ -105,11 +106,11 @@ describe("msbridge onboard handler", () => {
   });
 
   test("transitions a pending_consent row to active and sets repo on its registry UUID", async () => {
-    // The caller authenticates as Entra tid "entra-acme"; the consent handler
-    // already registered that tid as a pending_consent row carrying a distinct
-    // UUID "uuid-acme". Onboarding must SEE that pending row (state-agnostic)
-    // and flip it active — an active-only resolve would 404 here, which is the
-    // C1 bug the faithful stub now catches.
+    // The caller authenticates as Entra tid "entra-acme". The consent handler
+    // already registered that tid as a pending_consent row with a distinct
+    // UUID "uuid-acme". The onboard handler must SEE that pending row
+    // (state-agnostic) and flip it active. An active-only resolve would 404
+    // here. That is the C1 bug the faithful stub now catches.
     const tenancyClient = fakeTenancyClient([
       {
         channel_tenant_key: "entra-acme",
@@ -135,7 +136,8 @@ describe("msbridge onboard handler", () => {
       },
     ]);
     expect(tenancyClient.rows[0].state).toBe("active");
-    // The repo write targets the resolved UUID, never the Entra tid.
+    // The repo write targets the resolved UUID. It never targets the Entra
+    // tid.
     expect(tenancyClient.calls.setRepo).toEqual([
       { tenant_id: "uuid-acme", repo: { owner: "acme", name: "web" } },
     ]);
@@ -153,7 +155,8 @@ describe("msbridge onboard handler", () => {
       authenticateTenant: () => "entra-acme",
       tenancyClient,
     });
-    // Attacker tries to bind a repo onto another tenant's UUID via the body.
+    // An attacker tries to bind a repo onto another tenant's UUID through the
+    // body.
     const res = await onboard(
       fakeContext({
         tenant_id: "uuid-victim",
@@ -161,12 +164,13 @@ describe("msbridge onboard handler", () => {
       }),
     );
     expect(res.status).toBe(200);
-    // The key came from the authenticated tid; the body's tenant_id is ignored.
+    // The key came from the authenticated tid. The handler ignores the body's
+    // tenant_id.
     expect(tenancyClient.calls.upsert[0].channel_tenant_key).toBe("entra-acme");
     expect(tenancyClient.calls.setRepo[0].tenant_id).toBe("uuid-acme");
   });
 
-  test("unauthenticated caller is rejected with 401 and writes nothing", async () => {
+  test("the handler rejects an unauthenticated caller with 401 and writes nothing", async () => {
     const tenancyClient = fakeTenancyClient([
       {
         channel_tenant_key: "entra-acme",
@@ -186,10 +190,10 @@ describe("msbridge onboard handler", () => {
     expect(tenancyClient.calls.setRepo.length).toBe(0);
   });
 
-  test("an authenticated tid with no prior consent is created fresh as active", async () => {
-    // Chosen semantics: onboarding without a prior consent activity is allowed
-    // because the tid is signature-bound. The upsert creates a fresh active row
-    // and the repo binds to its newly minted UUID.
+  test("the handler creates a fresh active row for an authenticated tid with no prior consent", async () => {
+    // Chosen semantics. The handler allows a caller to onboard without a
+    // prior consent activity, because the tid is signature-bound. The upsert
+    // creates a fresh active row. The repo binds to its newly minted UUID.
     const tenancyClient = fakeTenancyClient();
     const onboard = createOnboardHandler({
       authenticateTenant: () => "entra-fresh",
@@ -206,7 +210,7 @@ describe("msbridge onboard handler", () => {
     );
   });
 
-  test("missing repo is rejected with 400 before any registry write", async () => {
+  test("the handler rejects a missing repo with 400 before any registry write", async () => {
     const tenancyClient = fakeTenancyClient([
       {
         channel_tenant_key: "entra-acme",
@@ -223,10 +227,11 @@ describe("msbridge onboard handler", () => {
     expect(tenancyClient.calls.upsert.length).toBe(0);
   });
 
-  // End-to-end against the faithful stub contract: consent registers
-  // pending_consent, then onboard transitions the SAME row to active and binds
-  // the repo. Pre-fix onboard used the active-only ResolveByChannelKey, which
-  // could never see the pending row → 404. This proves the C1 fix.
+  // End-to-end against the faithful stub contract. Consent registers
+  // pending_consent. Then onboard transitions the SAME row to active and
+  // binds the repo. Pre-fix onboard used the active-only
+  // ResolveByChannelKey, which could never see the pending row → 404. This
+  // proves the C1 fix.
   test("consent then onboard transitions the same row to active with a repo", async () => {
     const tenancyClient = fakeTenancyClient();
     await handleConsent(
@@ -257,9 +262,9 @@ describe("msbridge onboard handler", () => {
   });
 });
 
-// End-to-end through the real Bot Framework verifier (over a fake authenticator):
-// proves criterion 5's trio — a cryptographically proven tid onboards; a forged
-// or absent proof returns 401 with no registry write.
+// End-to-end through the real Bot Framework verifier (over a fake
+// authenticator). This proves criterion 5's trio. A cryptographically proven
+// tid onboards. A forged or absent proof returns 401 with no registry write.
 describe("msbridge onboard handler with the Bot Framework verifier", () => {
   test("a proven tid transitions the tenant active and maps its repo", async () => {
     const tenancyClient = fakeTenancyClient([

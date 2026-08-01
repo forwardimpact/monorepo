@@ -4,18 +4,18 @@ import * as types from "@forwardimpact/libtype";
 const OUTCOME_PAGES = {
   identity_mismatch:
     "<!DOCTYPE html><html><body><h1>Account mismatch</h1>" +
-    "<p>The account that authorized does not match the " +
-    "account that requested linking. No binding was created. " +
-    "Please try again from the correct account.</p></body></html>",
+    "<p>The account that authorized does not match the account " +
+    "that requested the link. The service did not create a " +
+    "binding. Try again from the correct account.</p></body></html>",
   untrusted_origin:
     "<!DOCTYPE html><html><body><h1>Account not linked</h1>" +
-    "<p>The identity provider that authorized is not in the " +
-    "configured trusted set. No binding was created.</p></body></html>",
+    "<p>The identity provider that authorized is not in the configured " +
+    "trusted set. The service did not create a binding.</p></body></html>",
 };
 
 const LINKED_PAGE =
   "<!DOCTYPE html><html><body><h1>Linked</h1>" +
-  "<p>Your account has been linked. You can close this window.</p></body></html>";
+  "<p>Your account is linked. You can close this window.</p></body></html>";
 
 function buildRedirectUrl(result) {
   const url = new URL(result.redirect_uri);
@@ -27,10 +27,10 @@ function buildRedirectUrl(result) {
 }
 
 /**
- * Create the OAuth 2.1 authorization server HTTP adapter.
+ * Create the HTTP adapter for the OAuth 2.1 authorization server.
  *
- * Transport boilerplate (security headers, error envelope, `/health`, lifecycle)
- * is owned by `@forwardimpact/libhttp`; this factory only declares the OAuth
+ * `@forwardimpact/libhttp` owns the transport boilerplate (security headers,
+ * error envelope, `/health`, lifecycle). This factory only declares the OAuth
  * routes inside the `configure` callback.
  *
  * @param {object} options

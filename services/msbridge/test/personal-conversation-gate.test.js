@@ -129,7 +129,7 @@ describe("msbridge personal-conversation gate", () => {
     globalThis.fetch = originalFetch;
   });
 
-  test("personal: pending dispatch written, augmented link URL posted, no DM-redirect", async () => {
+  test("personal: bridge writes pending dispatch, posts augmented link URL, no DM-redirect", async () => {
     const { adapter, discussionClient } = await driveOne("personal");
     expect(discussionClient.PutPendingDispatch.mock.callCount()).toBe(1);
     const [req] = discussionClient.PutPendingDispatch.mock.calls[0].arguments;
@@ -152,7 +152,7 @@ describe("msbridge personal-conversation gate", () => {
     ).toBe(false);
   });
 
-  test("groupChat: no pending dispatch, DM-redirect posted", async () => {
+  test("groupChat: no pending dispatch, bridge posts DM-redirect", async () => {
     const { adapter, discussionClient } = await driveOne("groupChat");
     expect(discussionClient.PutPendingDispatch.mock.callCount()).toBe(0);
     expect(
@@ -167,7 +167,7 @@ describe("msbridge personal-conversation gate", () => {
     ).toBe(false);
   });
 
-  test("channel: no pending dispatch, DM-redirect posted", async () => {
+  test("channel: no pending dispatch, bridge posts DM-redirect", async () => {
     const { adapter, discussionClient } = await driveOne("channel");
     expect(discussionClient.PutPendingDispatch.mock.callCount()).toBe(0);
     expect(
@@ -182,7 +182,7 @@ describe("msbridge personal-conversation gate", () => {
     ).toBe(false);
   });
 
-  test("undefined conversationType: no pending dispatch, DM-redirect posted (fail-closed default)", async () => {
+  test("undefined conversationType: no pending dispatch, bridge posts DM-redirect (fail-closed default)", async () => {
     const { adapter, discussionClient } = await driveOne(undefined);
     expect(discussionClient.PutPendingDispatch.mock.callCount()).toBe(0);
     expect(
@@ -197,7 +197,7 @@ describe("msbridge personal-conversation gate", () => {
     ).toBe(false);
   });
 
-  test("futureUnknownType: no pending dispatch, DM-redirect posted (forward-compat fail-closed)", async () => {
+  test("futureUnknownType: no pending dispatch, bridge posts DM-redirect (forward-compat fail-closed)", async () => {
     const { adapter, discussionClient } = await driveOne("futureUnknownType");
     expect(discussionClient.PutPendingDispatch.mock.callCount()).toBe(0);
     expect(

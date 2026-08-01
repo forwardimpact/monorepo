@@ -22,7 +22,7 @@ import {
 // Full multi-tenant path for msbridge against the tightened stateful mock:
 // inbound activity → Entra-tid extraction → resolve → dispatch → callback.
 // Both modes run the same code and the same dispatch credential (the
-// dispatching user's per-user OAuth token); only the tenant resolver and the
+// dispatching user's per-user OAuth token). Only the tenant resolver and the
 // resolved repo differ.
 
 const ENTRA_TID = "entra-acme";
@@ -47,7 +47,7 @@ function stubTenancyClient() {
 
 /**
  * Build an adapter whose `process` drives `#handleNewMessage` with a supplied
- * activity, and whose `continueConversationAsync` captures posted replies.
+ * activity. The adapter's `continueConversationAsync` captures posted replies.
  */
 function makeDrivableAdapter() {
   const sent = [];
@@ -132,9 +132,10 @@ for (const mode of ["single", "multi"]) {
       if (multi) {
         deps.tenantResolver = new RegistryTenantResolver({ client: tenancy });
         deps.tenancyClient = tenancy;
-        // Multi-tenant mounts /onboard, which now requires a real verifier
-        // (no default-deny fallback). These tests exercise dispatch/inbox, not
-        // onboarding, so a stub verifier suffices.
+        // Multi-tenant mode mounts /onboard, which now requires a real
+        // verifier (no default-deny fallback). These tests exercise
+        // dispatch/inbox. They do not exercise onboarding, so a stub verifier
+        // suffices.
         deps.authenticateTenant = () => "entra-test";
       }
       service = new MsBridgeService(
@@ -170,10 +171,10 @@ for (const mode of ["single", "multi"]) {
       expect(sent.inputs.callback_url).toContain(`/api/callback/${tenantId}/`);
       expect(sent.inputs.inbox_url).toContain(`/api/inbox/${tenantId}/`);
       if (multi) {
-        // Unified dispatch identity: the workflow_dispatch fires on the
-        // resolved tenant repo, but the credential is the dispatching user's
-        // per-user OAuth token in both modes, with no ghserver App-token mint.
-        // Repo resolution is unchanged (criterion 8).
+        // Unified dispatch identity. The workflow_dispatch fires on the
+        // resolved tenant repo. In both modes the credential is the
+        // dispatching user's per-user OAuth token. No ghserver App-token mint
+        // happens. Repo resolution does not change (criterion 8).
         expect(dispatches[0].url).toContain("/repos/acme/web/actions/");
         expect(dispatches[0].init.headers.Authorization).toBe(
           "Bearer ghs_per_user",
@@ -186,7 +187,7 @@ for (const mode of ["single", "multi"]) {
         );
         expect(mints).toHaveLength(0);
       }
-      // The discussion is stored under the resolved tenant.
+      // The service stores the discussion under the resolved tenant.
       const ctx = await service.store.loadByChannel("msteams", "t-1", tenantId);
       expect(ctx.tenant_id).toBe(tenantId);
     });
@@ -197,8 +198,8 @@ for (const mode of ["single", "multi"]) {
       const token = Object.keys(ctx.pending_callbacks)[0];
       const meta = service.callbacks.peek(token, { tenant_id: tenantId });
 
-      // Same requester sends a follow-up while the run is active → injected
-      // onto the tenant-scoped queue (EnqueueInbox).
+      // The same requester sends a follow-up while the run is active. The
+      // service injects it onto the tenant-scoped queue (EnqueueInbox).
       await deliver(
         messageActivity({ text: "more", tid: multi ? ENTRA_TID : undefined }),
       );
@@ -221,16 +222,16 @@ for (const mode of ["single", "multi"]) {
     });
 
     if (multi) {
-      test("an activity from an unknown tenant is dropped (no dispatch)", async () => {
+      test("the bridge drops an activity from an unknown tenant (no dispatch)", async () => {
         await deliver(messageActivity({ tid: "entra-stranger" }));
         expect(dispatches).toHaveLength(0);
       });
 
-      test("unlinked multi-tenant dispatcher gets the link prompt, fires no workflow_dispatch", async () => {
-        // Unified dispatch identity: an unlinked dispatcher resolves through
+      test("unlinked multi-tenant dispatcher gets the link prompt and fires no workflow_dispatch", async () => {
+        // Unified dispatch identity. An unlinked dispatcher resolves through
         // TokenResolver → link_required in multi-tenant mode too (criterion 4).
         // The bridge posts the link prompt with the resolved tenant on the
-        // authorize URL and fires no workflow_dispatch.
+        // authorize URL. It fires no workflow_dispatch.
         const linkAdapter = makeDrivableAdapter();
         const tenancy = stubTenancyClient();
         const linkService = new MsBridgeService(
@@ -266,14 +267,14 @@ for (const mode of ["single", "multi"]) {
               body: JSON.stringify({}),
             },
           );
-          // No workflow_dispatch fired: the unlinked user took the link path
+          // No workflow_dispatch fired. The unlinked user took the link path
           // in multi-tenant mode, exactly as in single-tenant (criterion 4).
           expect(dispatches.length).toBe(before);
-          // The link path was reached — the bridge posted a link-related
-          // prompt rather than dispatching. (The personal-conversation gate
-          // intercepts the URL-bearing reply in a group thread; the end-to-end
-          // tenant_id-on-authorize-URL threading is asserted by the ghbridge
-          // multi-tenant suite, which has no such gate.)
+          // The flow reached the link path. The bridge posted a link-related
+          // prompt and did not dispatch. The personal-conversation gate
+          // intercepts the URL-bearing reply in a group thread. The ghbridge
+          // multi-tenant suite asserts end-to-end that the tenant_id reaches
+          // the authorize URL. That suite has no such gate.
           const prompt = linkAdapter.sent.find(
             (a) => typeof a === "string" && a.toLowerCase().includes("link"),
           );

@@ -25,7 +25,7 @@
 //                                       #   then SERVICE_GHBRIDGE_APP_INSTALLATION_ID
 //     --tid <entra-tenant-id>          # default: SEED_ENTRA_TENANT_ID or MICROSOFT_APP_TENANT_ID
 //
-//   bun scripts/seed-tenancy.mjs --verify-only   # read-back without writing
+//   bun scripts/seed-tenancy.mjs --verify-only   # read-back, no writes
 
 import { createServiceConfig } from "@forwardimpact/libconfig";
 import { clients } from "@forwardimpact/librpc";

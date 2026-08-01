@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// The release-blocking test gate. It runs `node --test` over the gate set, once
-// per file. The gate set is the SAME file selector the `test` script uses,
+// The test gate that blocks a release. It runs `node --test` over the gate set,
+// once per file. The gate set is the SAME file selector the `test` script uses,
 // minus the bun-only paths in GATE_EXEMPT_PATHS that `node --test` structurally
 // cannot load. The gate then enforces:
 //
@@ -218,8 +218,8 @@ async function main() {
   );
 }
 
-// Run only when invoked as the entry script, so the selector constants can be
-// imported by tests without executing the whole gate.
+// Run only when node invokes this file as the entry script. Tests can then
+// import the selector constants and not run the whole gate.
 if (
   process.argv[1] &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)

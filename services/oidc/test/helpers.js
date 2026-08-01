@@ -6,9 +6,9 @@ export const ISSUER = "https://token.actions.githubusercontent.com";
 export const AUDIENCE = "fit-ghserver";
 
 /**
- * Build a validator backed by a freshly generated RSA key, plus a `sign`
- * helper that mints tokens against that key (or, for the signature-failure
- * case, against a foreign key).
+ * Build a validator that uses a freshly generated RSA key. Also build a
+ * `sign` helper that mints tokens against that key. For the
+ * signature-failure case, the helper signs against a foreign key.
  *
  * @returns {Promise<{validator: OidcValidator, jwks: JwksCache, sign: Function, foreignKey: object}>}
  */

@@ -217,8 +217,8 @@ streaming call in a retry policy with these defaults:
 For a streaming call the retry covers the connection attempt. After the first
 chunk arrives, the stream counts as connected. Later errors then surface on the
 stream's `error` event. The stream does not reconnect. A retried unary call is
-transparent. Your `await` resolves with the eventual response. It rejects after
-the client exhausts the retries.
+transparent. Your `await` resolves with the eventual response, or it rejects
+after the client exhausts the retries.
 
 ### Make a streaming call
 

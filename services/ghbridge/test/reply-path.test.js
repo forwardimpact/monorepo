@@ -84,7 +84,7 @@ describe("ghbridge reply path", () => {
     globalThis.fetch = originalFetch;
   });
 
-  test("reply posting uses installation credential (graphqlClient), not per-user token", async () => {
+  test("the reply path posts with the installation credential (graphqlClient) instead of the per-user token", async () => {
     const baseUrl = `http://127.0.0.1:${service.address().port}`;
 
     const discussionEvent = {

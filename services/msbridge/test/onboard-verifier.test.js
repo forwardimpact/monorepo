@@ -4,8 +4,9 @@ import { expect } from "@forwardimpact/libmock/expect";
 import { createOnboardVerifier } from "../src/onboard-verifier.js";
 
 /**
- * Context stub mirroring the Hono request surface the verifier reads:
- * a case-insensitive `req.header(name)` returning the Authorization value.
+ * Context stub that mirrors the Hono request surface the verifier reads. It
+ * supplies a case-insensitive `req.header(name)` that returns the
+ * Authorization value.
  */
 function fakeContext(authHeader) {
   return {
@@ -70,7 +71,7 @@ describe("msbridge onboard verifier", () => {
     expect(await verify(fakeContext("Bearer notid.jwt"))).toBeNull();
   });
 
-  test("an absent Authorization header resolves to null without calling the SDK", async () => {
+  test("an absent Authorization header resolves to null and does not call the SDK", async () => {
     const auth = fakeAuth({ tid: "entra-acme" });
     const verify = createOnboardVerifier(auth);
     expect(await verify(fakeContext(undefined))).toBeNull();

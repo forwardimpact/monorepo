@@ -6,8 +6,8 @@ const { GhserverBase } = services;
 /**
  * Split a GitHub `channel_tenant_key` (`"{installation_id}:{owner}/{name}"`,
  * the shape `TenantStore.upsertByPair` writes) into its installation id.
- * A malformed key is a registry invariant violation, not a caller fault,
- * so the handler maps the thrown error to gRPC `INTERNAL`.
+ * A malformed key violates a registry invariant. The caller is not at
+ * fault. So the handler maps the thrown error to gRPC `INTERNAL`.
  *
  * @param {string} key
  * @returns {string} installation_id
@@ -23,15 +23,16 @@ function parseInstallationId(key) {
 }
 
 /**
- * GitHub App key custody — mints repo-scoped installation tokens.
+ * GitHub App key custody. This service mints repo-scoped installation
+ * tokens.
  *
- * Every `MintInstallationToken` call resolves the requesting repo to an
- * `active` tenant via `services/tenancy`, enforces a per-tenant
- * mint-rate ceiling, and only then mints a token through the in-process
- * App-key custody. The App private key never leaves this service; the
- * only publicly-reachable control-plane process (`services/oidc`) holds
- * no signing material and reaches this service over the internal
- * network.
+ * Every `MintInstallationToken` call resolves the repo in the request to
+ * an `active` tenant through `services/tenancy`. The call then enforces
+ * a per-tenant mint-rate ceiling. It mints a token only after those two
+ * steps. It uses the in-process App-key custody. The App private key
+ * never leaves this service. `services/oidc` is the only
+ * publicly-reachable control-plane process. It holds no signing
+ * material. It reaches this service over the internal network.
  *
  * @augments GhserverBase
  */

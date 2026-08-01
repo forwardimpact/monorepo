@@ -87,7 +87,7 @@ describe("ghuser query-reauth (SC#6)", () => {
     assert.ok(result.re_auth_required, "result contains re_auth_required");
   });
 
-  test("transient refresh error propagates as error, not re_auth_required", async () => {
+  test("transient refresh error propagates as an error and never as re_auth_required", async () => {
     const storage = createMockStorage();
     const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",

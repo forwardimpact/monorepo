@@ -44,7 +44,7 @@ function githubDetailHandler(artifact) {
   };
 }
 
-/** Activity data gateway: reads/writes over gRPC for agent consumption. */
+/** Activity data gateway: reads and writes over gRPC for agents to consume. */
 export class MapService extends MapBase {
   #supabase;
   #registry;

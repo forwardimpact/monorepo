@@ -218,7 +218,7 @@ describe("readiness command", () => {
     const text = toText(result.view);
     assert.match(
       text,
-      /Coverage below floor \(1\.0% < 30%\) — verdict suppressed\./,
+      /Coverage below floor \(1\.0% < 30%\)\. Verdict suppressed\./,
     );
     assert.match(text, /Evidence coverage: 1\/100 artifacts interpreted/);
     assert.match(text, /lift the floor/);

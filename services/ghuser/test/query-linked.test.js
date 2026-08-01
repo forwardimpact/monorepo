@@ -43,7 +43,7 @@ describe("ghuser query-linked (SC#4)", () => {
     assert.strictEqual(result.token, "ghu_stored_token");
   });
 
-  test("linked user with non-expiring token returns it", async () => {
+  test("linked user with a token that never expires returns it", async () => {
     const storage = createMockStorage();
     const config = createMockConfig("ghuser", {
       link_base_url: "http://localhost:3007",

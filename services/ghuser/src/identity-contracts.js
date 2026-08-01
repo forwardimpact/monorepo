@@ -2,9 +2,9 @@
  * @typedef {object} BeginContractArgs
  * @property {object} req - Inbound BeginRequest fields (surface, surface_user_id, client_state, …).
  * @property {object} bridgeClient - Injected bridge gRPC client.
- * @property {object} [logger] - Optional injected logger used for debug-level
- *   diagnostic crumbs on the fail-closed path; absent in unit tests, present
- *   in the server-wired path.
+ * @property {object} [logger] - Optional injected logger. The fail-closed
+ *   path uses it for debug-level diagnostic crumbs. Unit tests do not pass
+ *   it. The server-wired path passes it.
  *
  * @typedef {object} CompleteContractArgs
  * @property {object} flow - Consumed flow row from FlowStore.
@@ -21,18 +21,19 @@
 /**
  * `bridge_pending_dispatch_proof` — cross-validates the asserted
  * `(surface, surface_user_id, client_state)` against a single-use
- * pending entry held by `services/bridge`. Evaluates at `Begin`.
+ * pending entry that `services/bridge` holds. Evaluates at `Begin`.
  *
  * **Fail-closed on every thrown error.** Any `throw` from
- * `bridgeClient.VerifyPendingDispatch` — NOT_FOUND, FAILED_PRECONDITION
- * (mismatch or already-claimed), transport error, malformed-message
- * decode error — collapses to `proof_missing`. A non-throwing resolve
- * is treated as `ok`; librpc's generated client raises on every non-OK
- * gRPC status (design § Default for new surfaces), so "non-Empty response
- * shape" is bridge-side, not contract-side. Collapsing denies an
- * attacker the enumeration oracle the design rejects; it also means
- * legitimate users see `proof_missing` during a bridge outage — chosen
- * over fail-open because fail-open re-opens the original defect (design
+ * `bridgeClient.VerifyPendingDispatch` collapses to `proof_missing`. This
+ * covers NOT_FOUND, FAILED_PRECONDITION (mismatch or already-claimed), a
+ * transport error, and a malformed-message decode error. The contract
+ * treats a resolve that does not throw as `ok`. librpc's generated client
+ * raises on every non-OK gRPC status (design § Default for new surfaces).
+ * So the "non-Empty response shape" concern is bridge-side. It is not
+ * contract-side. The collapse denies an attacker the enumeration oracle
+ * that the design rejects. The collapse also means legitimate users see
+ * `proof_missing` during a bridge outage. The design chose this over
+ * fail-open because fail-open re-opens the original defect (design
  * § Bridge availability failure mode).
  *
  * @type {ContractRecord}
@@ -40,9 +41,9 @@
 export const bridgePendingDispatchProof = {
   evaluatedAt: "Begin",
   async evaluate({ req, bridgeClient, logger }) {
-    // Empty client_state means no token to verify — fail-closed without
-    // touching the bridge so a bare `/authorize` URL never reaches the
-    // RPC layer.
+    // Empty client_state means there is no token to verify. The contract
+    // fails closed and does not call the bridge. A bare `/authorize` URL
+    // then never reaches the RPC layer.
     if (!req.client_state) return { outcome: "proof_missing" };
     try {
       await bridgeClient.VerifyPendingDispatch({
@@ -53,9 +54,9 @@ export const bridgePendingDispatchProof = {
       });
       return { outcome: "ok" };
     } catch (err) {
-      // Optional debug log lets operators distinguish bridge outage
-      // (transport errors) from legitimate negative results without
-      // breaking the fail-closed outcome shape.
+      // The optional debug log lets operators distinguish a bridge outage
+      // (transport errors) from legitimate negative results. The log does
+      // not break the fail-closed outcome shape.
       logger?.debug?.("identity-contract", "proof_missing", {
         surface: req.surface,
         reason: err?.code ?? err?.message ?? "unknown",
@@ -67,8 +68,8 @@ export const bridgePendingDispatchProof = {
 
 /**
  * `github_account_equality` — preserves today's account-id check for
- * `github-discussions`. Evaluates at `Complete`; needs `flow.surface_user_id`
- * and the authorized GitHub account id.
+ * `github-discussions`. Evaluates at `Complete`. Needs
+ * `flow.surface_user_id` and the authorized GitHub account id.
  *
  * @type {ContractRecord}
  */
@@ -83,21 +84,22 @@ export const githubAccountEquality = {
 };
 
 /**
- * Surface → contract registry. Lookup miss is **not** distinguishable
- * from a failed proof — both routes collapse to `proof_missing`
- * (design § Default for new surfaces). Adding a new surface requires
- * registering one record here; there is no boot-time validation of
- * "configured surface set" because surfaces are discovered from request
- * fields, not config.
+ * Surface → contract registry. A lookup miss is **not** distinguishable
+ * from a failed proof. Both routes collapse to `proof_missing`
+ * (design § Default for new surfaces). To add a new surface, register one
+ * record here. There is no boot-time check of the "configured surface
+ * set". The service discovers surfaces from request fields. It does not
+ * read them from config.
  */
 export const IDENTITY_CONTRACTS = new Map([
   ["github-discussions", githubAccountEquality],
 ]);
 
 /**
- * Contract every non-registered surface resolves to via {@link lookupContract}.
- * Today this is `bridgePendingDispatchProof`; if it ever changes, every
- * unregistered surface adopts the new default in lockstep.
+ * The contract that every unregistered surface resolves to through
+ * {@link lookupContract}. Today this is `bridgePendingDispatchProof`. If it
+ * ever changes, every unregistered surface adopts the new default in
+ * lockstep.
  *
  * @type {ContractRecord}
  */
@@ -107,8 +109,9 @@ export const DEFAULT_CONTRACT = bridgePendingDispatchProof;
  * Resolve a surface to its identity-proof contract.
  *
  * **Lookup-miss invariant**: a surface absent from {@link IDENTITY_CONTRACTS}
- * returns {@link DEFAULT_CONTRACT} — never `undefined`, and never a distinct
- * "unknown surface" outcome (that would give an enumeration oracle).
+ * returns {@link DEFAULT_CONTRACT}. It never returns `undefined`. It never
+ * returns a distinct "unknown surface" outcome, because that would give an
+ * enumeration oracle.
  *
  * @param {string} surface
  * @returns {ContractRecord}

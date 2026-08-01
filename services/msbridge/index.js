@@ -1,4 +1,4 @@
-/* biome-ignore-all lint/nursery/noExcessiveLinesPerFile: file sits ~8 logical lines over the 530-line cap after the personal-conversation gate landed; the gate body is already extracted to `src/conversation-gate.js`, and the remaining headroom requires splitting `#stashAndPostLink` together with its `#renderDeclined` and `#handleReply` siblings — a follow-on change kept out of this scope. */
+/* biome-ignore-all lint/nursery/noExcessiveLinesPerFile: the file sits about 8 logical lines over the 530-line cap after the personal-conversation gate landed. `src/conversation-gate.js` already holds the gate body. To free the remaining lines, split `#stashAndPostLink` together with its `#renderDeclined` and `#handleReply` siblings. That is a follow-on change outside this scope. */
 import {
   Acknowledgement,
   CallbackHandlerError,
@@ -51,12 +51,12 @@ function parseRepo(githubRepo) {
 export { appendHistory, buildPrompt, validateCallbackPayload };
 
 /**
- * Microsoft Teams bridge service. Receives messages from Teams via the
- * Bot Framework, drives the libbridge dispatch dance, and delivers the
- * callback reply back into the Teams conversation. Mirrors `ghbridge`:
- * shared libbridge primitives (Dispatcher, callback handler,
- * Acknowledgement) plus a small `src/teams.js` for botbuilder-bound
- * rendering.
+ * Microsoft Teams bridge service. The service receives messages from Teams
+ * through the Bot Framework. It drives the libbridge dispatch dance. It
+ * delivers the callback reply back into the Teams conversation. It mirrors
+ * `ghbridge`. It uses the shared libbridge primitives (Dispatcher, callback
+ * handler, Acknowledgement) plus a small `src/teams.js` to render the
+ * botbuilder-bound output.
  */
 export class MsBridgeService {
   #logger;
@@ -127,18 +127,18 @@ export class MsBridgeService {
     this.#config = config;
     this.#msAppId = () => config.msAppId();
     this.#trustedOrigins = trustedOrigins;
-    // Present only in multi-tenant mode; drives consent registration and the
-    // /onboard repo mapping. Single-tenant deployments never reach tenancy.
+    // Present only in multi-tenant mode. It drives consent registration and
+    // the /onboard repo mapping. Single-tenant deployments never reach tenancy.
     this.#tenancyClient = tenancyClient;
-    // Deployment mode is config-driven — `tenancy_mode` is the single source of
-    // truth; server.js injects the tenancy client only in "multi".
+    // The config drives the deployment mode. `tenancy_mode` is the single
+    // source of truth. server.js injects the tenancy client only in "multi".
     this.#multiTenant = config.tenancy_mode === "multi";
     assertMultiTenantDeps(this.#multiTenant, tenancyClient);
 
-    // One resolver instance is shared by the store adapter (tenant_id on
-    // every gRPC) and the dispatcher (tenant_id in the callback URL). The
-    // deployment mode picks the implementation in server.js; if none is
-    // injected, default to the single-tenant `default` resolver.
+    // The store adapter (tenant_id on every gRPC) and the dispatcher
+    // (tenant_id in the callback URL) share one resolver instance. The
+    // deployment mode picks the implementation in server.js. If nobody
+    // injects one, default to the single-tenant `default` resolver.
     const tenantResolver =
       injectedTenantResolver ??
       new DefaultTenantResolver({
@@ -171,7 +171,7 @@ export class MsBridgeService {
         typingAdapter: buildTypingAdapter(this.#adapter, this.#msAppId),
         logger,
       });
-    // Dispatch identity is the dispatching user's per-user OAuth token via
+    // The dispatch identity is the requester's per-user OAuth token, through
     // services/ghuser in both tenancy modes (design § Unified dispatch
     // identity). The Bot Framework reply credential stays in-process.
     const dispatchTokenResolver = new TokenResolver(ghuserClient);
@@ -247,14 +247,15 @@ export class MsBridgeService {
   }
 
   /**
-   * Mount the multi-tenant `POST /onboard` endpoint. The caller's Microsoft
-   * Entra tenant id is verified by `authenticateTenant` (injectable for
-   * tests) and resolved to its registry row before any write. Multi-tenant
-   * mode injects a real Bot Framework JWT verifier (`server.js` builds it from
-   * the same authenticator the `/api/messages` path uses); a forged or absent
-   * proof is rejected with 401. Single-tenant deployments never reach here, so
-   * the endpoint is unrouted rather than default-denied. A missing verifier in
-   * multi mode is a wiring error and fails fast in `createOnboardHandler`.
+   * Mount the multi-tenant `POST /onboard` endpoint. `authenticateTenant`
+   * (injectable for tests) verifies the caller's Microsoft Entra tenant id.
+   * It then resolves the id to its registry row before any write.
+   * Multi-tenant mode injects a real Bot Framework JWT verifier. `server.js`
+   * builds it from the same authenticator the `/api/messages` path uses. The
+   * endpoint rejects a forged or absent proof with 401. Single-tenant
+   * deployments never reach here, so the endpoint is unrouted. It is not
+   * default-denied. A missing verifier in multi mode is a wiring error. It
+   * fails fast in `createOnboardHandler`.
    *
    * @param {(c: object) => Promise<string | null> | (string | null)} authenticateTenant
    * @param {object} logger
@@ -347,12 +348,13 @@ export class MsBridgeService {
     const requester = activity.from?.id;
     if (!requester) return;
 
-    // Multi-tenant per-request tenant extraction. Read the Entra tenant id
-    // from `activity.channelData.tenant.id`, resolve it to an active tenant,
-    // and bind `tenant_id`/`channel_tenant_key` on the context before any
-    // store write or dispatch. Activities from unknown or non-active
-    // (pending_consent) tenants are dropped. Single-tenant deployments skip
-    // this branch and rely on the DefaultTenantResolver (`tenant_id = "default"`).
+    // Extract the tenant for each request in multi-tenant mode. Read the
+    // Entra tenant id from `activity.channelData.tenant.id`. Resolve it to an
+    // active tenant. Bind `tenant_id`/`channel_tenant_key` on the context
+    // before any store write or dispatch. Drop activities from unknown or
+    // non-active (pending_consent) tenants. Single-tenant deployments skip
+    // this branch and rely on the DefaultTenantResolver
+    // (`tenant_id = "default"`).
     let tenant;
     if (this.#multiTenant) {
       tenant = await extractTenant(activity, this.#tenantResolver);
@@ -400,7 +402,7 @@ export class MsBridgeService {
       const limit = this.#rateLimiter.check(threadId, ctx.dispatches);
       if (!limit.allowed) {
         await context.sendActivity(
-          "You're sending messages too quickly. Please wait a moment before trying again.",
+          "You send messages too quickly. Please wait a moment before you try again.",
         );
         span.addEvent("rate_limited");
         span.setOk();
@@ -520,7 +522,7 @@ export class MsBridgeService {
       this.#adapter,
       this.#msAppId,
       ref,
-      "A session is in progress on this thread. Your message was not forwarded to the active run.",
+      "A session is in progress on this thread. The bridge did not forward your message to the active run.",
     );
     return { kind: "noticed" };
   }
@@ -619,7 +621,7 @@ export class MsBridgeService {
           this.#adapter,
           this.#msAppId,
           ref,
-          "Your GitHub link has expired. Please re-link your account to dispatch.",
+          "Your GitHub link expired. Please re-link your account to dispatch.",
         );
         break;
       case "transient":

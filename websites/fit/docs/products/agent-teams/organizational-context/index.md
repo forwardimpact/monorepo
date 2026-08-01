@@ -24,7 +24,7 @@ teams, the active project list, and the escalation paths. Edit
 `data/pathway/organizational-context.yaml` (sibling of `claude-settings.yaml`).
 The section then reaches every agent the next time you regenerate. The starter
 template ships a populated example. Replace the placeholder values. Delete the
-file if your installation has no per-team facts to add.
+file instead if your installation has no per-team facts to add.
 
 ```yaml
 # data/pathway/organizational-context.yaml

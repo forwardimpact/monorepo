@@ -145,7 +145,7 @@ describe("msbridge resume", () => {
     globalThis.fetch = originalFetch;
   });
 
-  test("responses trigger fires after expected comments; re-dispatch carries resume_context", async () => {
+  test("responses trigger fires after expected comments and re-dispatch carries resume_context", async () => {
     overrides.activity = makeActivity("t-r", "a-1", "open the floor");
     await postMessage(baseUrl);
     const stored1 = await service.store.loadByChannel("msteams", "t-r");

@@ -20,7 +20,7 @@ describe("graph service", () => {
     });
 
     test("GraphService constructor accepts expected parameters", () => {
-      // Test constructor signature by checking parameter count
+      // Test the constructor signature. Check the parameter count.
       assert.strictEqual(GraphService.length, 2); // config, graphIndex
     });
 

@@ -2,18 +2,19 @@ import { services } from "@forwardimpact/librpc";
 
 const { TenancyBase } = services;
 
-// Returned when no row matches a Resolve* request. The proto returns
-// `Tenant` (non-nullable), so "not found" is encoded as an empty
-// message rather than an error or null. `RegistryTenantResolver` in
-// `libraries/libbridge` reads `t?.state === "active"` and surfaces
-// `null` to its callers; any future caller of `ResolveByTenantId`
-// (used by the callback path) must treat a tenant_id-less response as
-// "no such tenant" rather than dereferencing fields blindly.
+// The service returns this when no row matches a Resolve* request. The
+// proto returns `Tenant` (non-nullable). So an empty message encodes
+// "not found" in place of an error or null. `RegistryTenantResolver`
+// in `libraries/libbridge` reads `t?.state === "active"` and surfaces
+// `null` to its callers. The callback path uses `ResolveByTenantId`.
+// Any future caller of that method must treat a response with no
+// tenant_id as "no such tenant". It must not dereference the fields
+// blindly.
 const EMPTY_TENANT = {};
 
 /**
  * Translate a `TenantStore` row to the wire `Tenant` message. The
- * store keys rows by `id`; the wire field is `tenant_id`.
+ * store keys rows by `id`. The wire field is `tenant_id`.
  *
  * @param {object} row
  * @returns {object}
@@ -31,15 +32,15 @@ function toWire(row) {
 }
 
 /**
- * Tenant registry service — thin RPC layer over `TenantStore`.
+ * Tenant registry service. A thin RPC layer over `TenantStore`.
  *
  * `ResolveByChannelKey` and `ResolveByRepo` return only rows in
- * `state = "active"`; non-matching lookups return an empty `Tenant`
- * message (the `RegistryTenantResolver` in `libraries/libbridge`
- * treats `state !== "active"` as "no active tenant" and surfaces
- * `null` to the caller). `ResolveByTenantId` returns the row
- * regardless of state so callback verification can reject mismatched
- * tenant ids without first sniffing state.
+ * `state = "active"`. A lookup that matches no row returns an empty
+ * `Tenant` message. The `RegistryTenantResolver` in
+ * `libraries/libbridge` treats `state !== "active"` as "no active
+ * tenant" and surfaces `null` to the caller. `ResolveByTenantId`
+ * returns the row for any state. Callback verification can then
+ * reject a mismatched tenant id without a state check first.
  *
  * @augments TenancyBase
  */

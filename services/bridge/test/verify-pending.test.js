@@ -270,7 +270,7 @@ describe("bridge VerifyPendingDispatch", () => {
     assert.strictEqual(rejected[0].reason.message, "already claimed");
   });
 
-  test("tenant scoping: a verify from tenant B cannot consume tenant A's pending entry", async () => {
+  test("tenant scope: a verify from tenant B cannot consume tenant A's pending entry", async () => {
     await service.PutPendingDispatch({
       pending: {
         link_token: "lt-tenant",

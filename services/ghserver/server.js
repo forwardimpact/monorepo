@@ -29,18 +29,19 @@ if (!handled) {
   });
 
   // GitHub App ids are all-digits, so libconfig coerces SERVICE_GHSERVER_APP_ID
-  // to a number; normalise to a string for the (string-only) assert and for
-  // @octokit/auth-app downstream.
+  // to a number. Normalise it to a string for the (string-only) assert and
+  // for @octokit/auth-app downstream.
   const appId = String(config.app_id ?? "");
 
   // The App private key is the only signing material in the control plane.
-  // It resolves from SERVICE_GHSERVER_PRIVATE_KEY at runtime; substrate
-  // hardening (KMS/HSM custody) is the deferred follow-on per
+  // It resolves from SERVICE_GHSERVER_PRIVATE_KEY at runtime. The deferred
+  // follow-on hardens the substrate with KMS/HSM custody, per
   // design § "What this design does not cover".
   assertNonEmpty(appId, "app_id");
   assertNonEmpty(config.private_key, "private_key");
 
-  // Refuse a public bind unless explicitly opted in (see src/bind-guard.js).
+  // Refuse a public bind unless the operator explicitly opts in
+  // (see src/bind-guard.js).
   assertBindAllowed(config.host, config.allow_public_bind);
 
   const runtime = createDefaultRuntime();

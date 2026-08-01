@@ -10,7 +10,7 @@ const VALIDATOR_STATUS = {
 
 /**
  * Map a validator `OidcError.code` to an HTTP status. Unknown codes fall
- * back to 401 (unverifiable token) rather than 500.
+ * back to 401 (unverifiable token). They do not map to 500.
  *
  * @param {{code?: string}} err
  * @returns {number}
@@ -22,10 +22,11 @@ export function statusForError(err) {
 /**
  * Mount the `POST /token` OIDC-exchange route on a Hono app.
  *
- * The handler extracts the `Authorization: bearer` OIDC token, validates
- * it, and delegates minting to the gRPC provider (`services/ghserver`).
- * The provider's typed gRPC errors surface as HTTP: `NOT_FOUND` → 404
- * (repo not provisioned), `RESOURCE_EXHAUSTED` → 429 (rate limited).
+ * The handler extracts the `Authorization: bearer` OIDC token. It validates
+ * the token. It then asks the gRPC provider (`services/ghserver`) to mint
+ * the installation token. The provider's typed gRPC errors surface as
+ * HTTP: `NOT_FOUND` → 404 (repo not provisioned), `RESOURCE_EXHAUSTED` →
+ * 429 (rate limited).
  *
  * @param {import("hono").Hono} app
  * @param {object} deps
@@ -36,8 +37,9 @@ export function statusForError(err) {
  */
 export function registerTokenRoute(app, { validator, providerClient, typed }) {
   app.post("/token", async (c) => {
-    // HTTP auth schemes are case-insensitive; GitHub's runner sends lowercase
-    // `bearer`, but accept any case so a conformant client is not rejected.
+    // HTTP auth schemes are case-insensitive. GitHub's runner sends lowercase
+    // `bearer`. Accept any case so the route does not reject a conformant
+    // client.
     const auth = c.req.header("authorization");
     const match = /^bearer\s+(.+)$/i.exec(auth ?? "");
     if (!match) {

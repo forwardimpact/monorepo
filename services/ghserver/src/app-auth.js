@@ -3,13 +3,13 @@ import { createAppAuth } from "@octokit/auth-app";
 /**
  * In-process GitHub App key custody.
  *
- * Wraps `@octokit/auth-app` so the rest of the service mints
- * installation tokens through a single `mintInstallationToken` call
- * without touching the App private key directly. `@octokit/auth-app`
- * memoizes installation tokens by `installation_id` for the duration
- * of their validity; threading the resolved `installation_id` on every
- * call keeps the memoization key per-installation, so a token minted
- * for one installation is never reused for another.
+ * This custody wraps `@octokit/auth-app`. The rest of the service mints
+ * installation tokens through a single `mintInstallationToken` call. It
+ * does not touch the App private key directly. `@octokit/auth-app`
+ * memoizes installation tokens by `installation_id` while they stay
+ * valid. This custody threads the resolved `installation_id` on every
+ * call. So the memoization key stays per-installation. The service never
+ * reuses a token from one installation for another.
  *
  * @param {object} options
  * @param {string} options.app_id - GitHub App id.

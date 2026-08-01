@@ -50,7 +50,7 @@ describe("ghuser identity-proof registry", () => {
 
     assert.strictEqual(result.outcome, "proof_missing");
     assert.strictEqual(result.state, undefined);
-    // No flow row was written.
+    // The service wrote no flow row.
     await flows.loadData();
     assert.strictEqual(flows.index.size, 0, "no flow row");
   });

@@ -81,7 +81,7 @@ describe("ghserver MintInstallationToken", () => {
     );
   });
 
-  test("rejects with RESOURCE_EXHAUSTED once the per-tenant ceiling is hit", async () => {
+  test("rejects with RESOURCE_EXHAUSTED once mints reach the per-tenant ceiling", async () => {
     const { service } = build({ limit: 2 });
     await service.MintInstallationToken({
       owner: "acme",

@@ -9,13 +9,13 @@ export { OidcValidator, OidcError } from "./src/oidc-validator.js";
 export { statusForError, registerTokenRoute } from "./src/handlers.js";
 
 /**
- * Create the GitHub Actions OIDC exchange HTTP front.
+ * Create the HTTP front for the GitHub Actions OIDC exchange.
  *
- * Transport boilerplate (security headers, error envelope, `/health`,
- * lifecycle) is owned by `@forwardimpact/libhttp`; this factory builds
- * the JWKS cache and validator, then mounts the `POST /token` route that
- * delegates minting to the configured provider backend over gRPC. The
- * service holds no signing material — it mirrors the
+ * `@forwardimpact/libhttp` owns the transport boilerplate (security headers,
+ * error envelope, `/health`, lifecycle). This factory builds the JWKS cache
+ * and the validator. It then mounts the `POST /token` route. That route asks
+ * the configured provider backend to mint the token over gRPC. The service
+ * holds no signing material. It mirrors the
  * `services/oauth` → `services/ghuser` protocol-front pattern.
  *
  * @param {object} options

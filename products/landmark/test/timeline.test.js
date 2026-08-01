@@ -108,7 +108,7 @@ describe("timeline command", () => {
     assert.ok(bannerIdx >= 0, "missing below-floor banner");
     assert.match(
       text,
-      /timeline reflects measurement floor, not absence of growth/,
+      /timeline reflects the measurement floor\. It does not reflect an absence of growth/,
     );
     assert.ok(
       firstEntryIdx > bannerIdx,

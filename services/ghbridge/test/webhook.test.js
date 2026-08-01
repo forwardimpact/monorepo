@@ -169,7 +169,7 @@ describe("ghbridge webhook intake", () => {
     expect(Object.keys(ctx.pending_callbacks)).toHaveLength(1);
   });
 
-  test("addReaction (EYES) fires once when the discussion is dispatched", async () => {
+  test("addReaction (EYES) fires once when the bridge dispatches the discussion", async () => {
     await postSigned(baseUrl, "discussion", discussionEvent());
     const reactionCalls = harness.graphqlCalls.filter((c) =>
       c.query.includes("addReaction"),

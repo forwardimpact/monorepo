@@ -101,7 +101,7 @@ describe("ghbridge resume", () => {
     ctx.restore();
   });
 
-  test("responses trigger fires after expected comments; re-dispatch carries resume_context", async () => {
+  test("responses trigger fires after expected comments and re-dispatch carries resume_context", async () => {
     await postSigned(baseUrl, "discussion", {
       action: "created",
       discussion: {
@@ -154,8 +154,8 @@ describe("ghbridge resume", () => {
     );
     expect(Object.keys(stored3.open_rfcs)).toHaveLength(0);
 
-    // Exactly two dispatches: initial + resume. No parallel fresh
-    // dispatches were spawned during the recess (per plan-a-05 Step 5.4).
+    // The bridge made exactly two dispatches: initial + resume. It spawned no
+    // parallel fresh dispatches during the recess (per plan-a-05 Step 5.4).
     expect(ctx.dispatches).toHaveLength(2);
     const initialInputs = JSON.parse(ctx.dispatches[0].init.body).inputs;
     expect(initialInputs.resume_context).toBeUndefined();
@@ -192,7 +192,7 @@ describe("ghbridge resume", () => {
       summary: "deadline set",
       run_url: "https://github.com/owner/repo/actions/runs/1",
       replies: [],
-      // 200ms — short enough that the test runs in a normal sweep.
+      // 200ms is short enough that the test runs in a normal sweep.
       trigger: { kind: "elapsed", elapsed: "PT0.2S" },
     });
 
@@ -203,8 +203,8 @@ describe("ghbridge resume", () => {
     const rfc = Object.values(stored2.open_rfcs)[0];
     expect(rfc.trigger.kind).toBe("elapsed");
     // PT0.2S is below the parser's second granularity (only PT...S whole
-    // seconds), so the elapsed contract here is at least the opened_at —
-    // we instead verify the persisted shape and the rfc-write semantics.
+    // seconds). So the elapsed contract here is at least the opened_at. This
+    // test instead verifies the persisted shape and the rfc-write semantics.
     expect(typeof rfc.opened_at).toBe("number");
     expect(rfc.opened_at).toBeGreaterThanOrEqual(before);
   });
@@ -259,7 +259,7 @@ describe("ghbridge resume", () => {
     );
     const token = Object.keys(stored1.pending_callbacks)[0];
     const meta = ctx.service.callbacks.peek(token, { tenant_id: "default" });
-    // Recess with a 3-reply trigger; one comment must not fire.
+    // Recess with a 3-reply trigger. One comment must not fire.
     await postCallback(baseUrl, token, {
       correlation_id: meta.correlationId,
       verdict: "recessed",
@@ -275,14 +275,14 @@ describe("ghbridge resume", () => {
       discussion: { node_id: "D_accum" },
       comment: { body: "one", node_id: "C_1", user: { id: 2 } },
     });
-    // No fresh dispatch should fire — there's an open RFC.
+    // No fresh dispatch should fire because an open RFC exists.
     expect(ctx.dispatches).toHaveLength(1);
     const stored = await ctx.service.store.loadByChannel(
       "github-discussions",
       "D_accum",
     );
     expect(Object.keys(stored.open_rfcs)).toHaveLength(1);
-    // History was still appended so trigger evaluation can see it.
+    // The bridge still appended history so trigger evaluation can see it.
     expect(stored.history.some((h) => h.text === "one")).toBe(true);
   });
 });
