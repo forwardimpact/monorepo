@@ -189,8 +189,7 @@ To stop the local instance:
 npx fit-map activity stop
 ```
 
-To check that the local stack is up and the activity schema is
-reachable:
+To check that the local stack is up and the activity schema is reachable:
 
 ```sh
 npx fit-map activity status
@@ -221,8 +220,8 @@ Additional evolutionary migrations under `products/map/supabase/migrations/`
 extend the schema (driver columns, RLS policies, evidence keys). All bundled
 migrations apply in lexical order on first start.
 
-This command re-applies migrations against a clean local database. It drops your
-data:
+To re-apply migrations against a clean local database, run this command. It
+drops your data:
 
 ```sh
 npx fit-map activity migrate
@@ -313,10 +312,10 @@ and preserves `auth.users.id` across decommission and rejoin. See
 [Provision Engineer Auth Users](/docs/products/provisioning-engineers/) for
 the full operator workflow.
 
-The command makes sure every engineer's email maps to an authenticable identity.
-Leaders and engineers then sign in to Landmark with `fit-landmark login`. That
-command walks Supabase's magic-link flow. It stores the session in your
-platform's config directory
+`fit-terrain substrate provision` makes sure every engineer's email maps to an
+authenticable identity. Leaders and engineers then sign in to Landmark with
+`fit-landmark login`. That command walks Supabase's magic-link flow. It stores
+the session in your platform's config directory
 (`~/.config/landmark/credentials.json` on Linux). See
 [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the
 end-to-end flow, or

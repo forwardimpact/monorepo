@@ -4,51 +4,50 @@ description: >
   Grade a single artifact (spec, design, plan, or implementation diff) against
   quality criteria and return findings by severity. Use when another skill
   spawns a fresh sub-agent for an independent review of its work. This skill
-  never spawns sub-agents — it produces findings only — which structurally
+  never spawns sub-agents. It produces findings only. That structurally
   prevents the spec/design/plan/implement review loop from recursing.
 ---
 
 # Review Artifacts
 
-Independent grading skill for artifacts produced by `kata-spec`, `kata-design`,
-`kata-plan`, and `kata-implement`. Returns severity-graded findings; takes no
-action. Never spawns sub-agents.
+This skill grades artifacts from `kata-spec`, `kata-design`, `kata-plan`, and
+`kata-implement` independently. It returns severity-graded findings. It takes
+no action. It never spawns sub-agents.
 
 ## When to Use
 
-- A `kata-spec`, `kata-design`, `kata-plan`, or `kata-implement` workflow has
-  reached its clean sub-agent review step and you have been spawned with no
-  prior context to grade the artifact.
-- Any time another agent needs an independent quality grade on a spec, design,
-  plan, or diff without changing it.
+- A `kata-spec`, `kata-design`, `kata-plan`, or `kata-implement` workflow
+  reaches its clean sub-agent review step. The caller spawns you with no prior
+  context to grade the artifact.
+- Another agent needs an independent quality grade on a spec, design, plan, or
+  diff. The grade does not change the artifact.
 
 ## Invariant: never spawn
 
-This skill's Process has **no step that launches a sub-agent**. That is the
-property that prevents the spec / design / plan / implement review loop from
-recursing —
-if you find yourself wanting to make an `Agent` tool call from inside this
-skill, stop and return findings instead.
+This skill's Process has **no step that launches a sub-agent**. That property
+prevents recursion in the spec / design / plan / implement review loop. If you
+want to make an `Agent` tool call from inside this skill, stop and return
+findings instead.
 
 ## Severity Vocabulary
 
 This is the canonical definition of review severity for the spec → design →
-plan → implement arc. Grade every finding using exactly one level:
+plan → implement arc. Grade every finding with exactly one level:
 
-- **Blocker** — The work is broken, dangerous, or materially wrong. Must fix
-  before advancing (approving the spec, advancing status, merging code).
-- **High** — A correctness or clarity problem that will cause rework, confusion,
-  or bugs downstream if shipped. Fix before advancing.
-- **Medium** — A real quality or consistency issue worth fixing now while the
-  context is fresh. Fix before advancing.
-- **Low** — Nit or preference. Optional; document if dismissed.
+- **Blocker** — The work is broken, dangerous, or materially wrong. Fix it
+  before you advance (approve the spec, advance status, merge code).
+- **High** — A correctness or clarity problem. If you ship it, it causes
+  rework, confusion, or bugs downstream. Fix it before you advance.
+- **Medium** — A real quality or consistency issue. It is worth a fix now
+  while the context is fresh. Fix it before you advance.
+- **Low** — Nit or preference. The fix is optional. Document it if you dismiss
+  it.
 
-The caller is required to **verify** every finding against the actual artifact
-before acting on it — sub-agent reviewers operate without prior conversation
-context and can misread intent, miss surrounding code, or flag false positives.
-After verification, the caller must address every confirmed **blocker**,
-**high**, and **medium** finding before advancing. **Low** findings are
-optional.
+The caller must **verify** every finding against the actual artifact before it
+acts. Sub-agent reviewers operate without prior conversation context. They can
+misread intent, miss nearby code, or flag false positives. After it verifies a
+finding, the caller must address every confirmed **blocker**, **high**, and
+**medium** finding before it advances. **Low** findings are optional.
 
 ## Process
 

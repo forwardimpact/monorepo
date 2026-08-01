@@ -44,7 +44,7 @@ describe("OneshotProcess", () => {
     });
   });
 
-  describe("up / down via subprocess.spawn", () => {
+  describe("up / down through subprocess.spawn", () => {
     test("routes the command through subprocess.spawn and resolves exit", async () => {
       const subprocess = createMockSubprocess({
         responses: { bash: { stdout: "done\n", exitCode: 0 } },

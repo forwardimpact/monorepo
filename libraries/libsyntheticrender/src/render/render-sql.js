@@ -1,10 +1,10 @@
 /**
  * Coordinated Supabase migration renderer for clinical entities.
  *
- * Emits a numbered set of SQL files containing dependency-ordered
- * `CREATE TABLE` + `INSERT` statements, junction tables for array
+ * It emits a numbered set of SQL files. The files hold dependency-ordered
+ * `CREATE TABLE` and `INSERT` statements, junction tables for array
  * cross-references, RLS policies, and an optional pgvector embeddings
- * table — loadable via `supabase db push`.
+ * table. `supabase db push` loads them.
  *
  * @module libsyntheticrender/render/render-sql
  */

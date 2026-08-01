@@ -44,9 +44,8 @@ You author these files:
 
 `run` generates the rest: `.claude/`, `apm.lock.yaml` (hashed into
 `skillSetHash`), and `apm_modules/`. These are outputs. They are not sources.
-See [references/authoring.md](references/authoring.md) for what to commit.
-Task IDs are directory names under `tasks/`. Local paths and git URLs both
-work.
+See [references/authoring.md](references/authoring.md) for what to commit. Task
+IDs are directory names under `tasks/`. Local paths and git URLs both work.
 
 **Family-level shared fixtures.** A `<family>/workdir/` or `<family>/specs/`
 is copied into every task's agent CWD as a shared base. The per-task
@@ -102,7 +101,7 @@ paths and do not rebuild them from `$0`:
 | `PORT` | Allocated free TCP port. |
 | `TASK_ID` | Task name (directory under `tasks/`). |
 | `TASK_DIR` | Task directory on the host. |
-| `HOOKS_DIR` | The task's `hooks/` dir on the host — read hidden fixtures from here. |
+| `HOOKS_DIR` | The task's `hooks/` dir on the host. Read hidden fixtures from here. |
 | `FAMILY_DIR` | Family root on the host. |
 | `RESULTS_FD` | `invariants.sh` only — fd for NDJSON check rows (`=3`). |
 

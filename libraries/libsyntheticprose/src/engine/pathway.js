@@ -1,7 +1,7 @@
 /**
  * Pathway Engine — orchestrates LLM calls to generate pathway entity data.
  *
- * Generates entities in dependency order:
+ * It generates entities in dependency order:
  * standard → levels → behaviours → capabilities →
  * drivers → disciplines → tracks → self-assessments
  *
@@ -65,7 +65,7 @@ export class PathwayGenerator {
   }
 
   /**
-   * Generate all pathway entity data via LLM calls in dependency order.
+   * Generate all pathway entity data through LLM calls in dependency order.
    * @param {object} options
    * @param {object} options.standard - Standard AST from DSL parser
    * @param {string} options.domain - Universe domain
@@ -86,7 +86,7 @@ export class PathwayGenerator {
 }
 
 /**
- * Generate all pathway entity data via LLM calls in dependency order.
+ * Generate all pathway entity data through LLM calls in dependency order.
  *
  * @param {object} options
  * @param {object} options.standard - Standard AST from DSL parser
@@ -133,7 +133,7 @@ async function generatePathwayData({
   // Build prior output context for downstream prompts
   const priorOutput = { levels };
 
-  // 4. Behaviours (parallel — receive level context)
+  // 4. Behaviours (parallel, receive level context)
   log.info("pathway", `Generating ${standard.behaviours.length} behaviours`);
   const behaviours = await Promise.all(
     standard.behaviours.map((b) =>
@@ -148,7 +148,7 @@ async function generatePathwayData({
 
   priorOutput.behaviours = behaviours;
 
-  // 5. Capabilities with skills (parallel — receive level + behaviour context)
+  // 5. Capabilities with skills (parallel, receive level + behaviour context)
   log.info(
     "pathway",
     `Generating ${standard.capabilities.length} capabilities with skills`,
@@ -172,8 +172,9 @@ async function generatePathwayData({
 
   priorOutput.capabilities = capabilities;
 
-  // Collect all skill IDs and behaviour IDs from DSL declarations
-  // (not from LLM output — these must be available even in no-prose mode)
+  // Collect all skill IDs and behaviour IDs from DSL declarations.
+  // Do not take them from the LLM output. They must stay available
+  // even in no-prose mode.
   const skillIds = standard.capabilities.flatMap((c) => c.skills || []);
   const behaviourIds = standard.behaviours.map((b) => b.id);
 
@@ -229,7 +230,7 @@ async function generatePathwayData({
     ),
   );
 
-  // 9. Self-assessments (deterministic — no LLM)
+  // 9. Self-assessments (deterministic, no LLM)
   const selfAssessments = generateSelfAssessments(
     standard,
     skillIds,
@@ -249,9 +250,9 @@ async function generatePathwayData({
 }
 
 /**
- * Generate a single entity via the prose engine.
- * Returns null (not an empty object) on cache miss so callers can
- * distinguish missing data from valid empty data.
+ * Generate a single entity through the prose engine.
+ * It returns null (not an empty object) on a cache miss. Callers can then
+ * tell absent data apart from valid empty data.
  *
  * @param {string} entityType - Entity type for cache key prefix
  * @param {string} entityId - Entity ID for cache key
@@ -279,7 +280,7 @@ async function generateEntity(
 }
 
 /**
- * Simple seeded PRNG (mulberry32). Deterministic given the same seed.
+ * Simple seeded PRNG (mulberry32). It is deterministic for the same seed.
  * @param {number} seed
  * @returns {() => number} Returns values in [0, 1)
  */
@@ -294,7 +295,8 @@ function createRng(seed) {
 }
 
 /**
- * Pick a random index near a base, weighted toward ±1 with rare ±2 outliers.
+ * Pick a random index near a base. The weights favour ±1 with rare ±2
+ * outliers.
  * @param {() => number} rng - Seeded random function
  * @param {number} base - Centre index for this level
  * @param {number} max - Maximum valid index (inclusive)
@@ -313,12 +315,13 @@ function jitter(rng, base, max) {
 }
 
 /**
- * Generate skill proficiency map for a single level, enforcing monotonicity.
+ * Generate the skill proficiency map for a single level. Enforce
+ * monotonicity.
  * @param {() => number} rng - Seeded random function
  * @param {number} levelIdx - Current level index (base for jitter)
  * @param {string[]} skillIds - All skill IDs
  * @param {string[]} proficiencies - Ordered proficiency labels
- * @param {object} prevSkillIdx - Mutable map tracking previous indices per skill
+ * @param {object} prevSkillIdx - Mutable map of the previous index per skill
  * @returns {object} Skill ID to proficiency label
  */
 function buildSkillProficiencies(
@@ -341,13 +344,13 @@ function buildSkillProficiencies(
 }
 
 /**
- * Generate behaviour maturity map for a single level, enforcing monotonicity.
- * Behaviours use tighter variance: +/-1 only (no +/-2 outliers).
+ * Generate the behaviour maturity map for a single level. Enforce
+ * monotonicity. Behaviours use tighter variance: +/-1 only (no +/-2 outliers).
  * @param {() => number} rng - Seeded random function
  * @param {number} levelIdx - Current level index
  * @param {string[]} behaviourIds - All behaviour IDs
  * @param {string[]} maturities - Ordered maturity labels
- * @param {object} prevBehIdx - Mutable map tracking previous indices per behaviour
+ * @param {object} prevBehIdx - Mutable map of the previous index per behaviour
  * @returns {object} Behaviour ID to maturity label
  */
 function buildBehaviourMaturities(
@@ -378,8 +381,8 @@ function buildBehaviourMaturities(
  * Generate self-assessments with realistic randomized distributions.
  *
  * Each assessment centres skills around the expected proficiency for
- * that level, then applies per-skill jitter so profiles look natural:
- * most skills cluster near the base, with occasional outliers.
+ * that level. It then applies per-skill jitter so profiles look natural.
+ * Most skills cluster near the base, with occasional outliers.
  * Behaviours use tighter jitter (±1 only, less variance).
  *
  * @param {object} standard - Standard AST

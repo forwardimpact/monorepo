@@ -89,11 +89,11 @@ export function generateActivity(ast, rng, people, teams, runtime) {
   );
   const projectTeams = deriveProjectTeams(ast, rng, people, teams);
 
-  // Prose-bearing outputs (criterion #1): the registration is the
-  // single source of truth for which prose-bearing outputs exist;
-  // each implementation owns its `generate` stage. Each entry attaches
-  // under entities.activity[<id>] so prose-context collection and
-  // raw rendering can dispatch through the same registration.
+  // Prose-bearing outputs (criterion #1). The registration is the single
+  // source of truth for which prose-bearing outputs exist. Each
+  // implementation owns its `generate` stage. Each entry attaches under
+  // entities.activity[<id>], so the prose-context collector and the raw
+  // document renderer dispatch through the same registration.
   const proseOutputs = {};
   const genCtx = { ast, rng, entities: { people, teams, snapshots } };
   for (const pa of PROSE_ACTIVITIES) {
@@ -193,8 +193,8 @@ function generateSnapshots(ast) {
   while (y < toY || (y === toY && m <= toM)) {
     const q = Math.ceil(m / 3);
     const id = `snap_${y}_Q${q}`;
-    // Use UTC so the resulting ISO string is the same regardless of the
-    // host machine's local timezone — this date flows into snapshot keys
+    // Use UTC so the ISO string it produces is the same regardless of the
+    // host machine's local timezone. This date flows into snapshot keys
     // and scenario-active checks downstream.
     const done = new Date(Date.UTC(y, m, 1)).toISOString();
     snaps.push({

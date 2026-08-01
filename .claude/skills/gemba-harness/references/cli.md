@@ -10,7 +10,7 @@ npx gemba-harness <command> [options]
 
 | Command      | Purpose                                                              |
 | ------------ | -------------------------------------------------------------------- |
-| `run`        | Run a single agent via the Agent SDK                                 |
+| `run`        | Run a single agent through the Agent SDK                             |
 | `supervise`  | Run a supervised agent–supervisor loop                               |
 | `facilitate` | Run a facilitated multi-agent session                                |
 | `discuss`    | Run an async, suspendable Chair-led discussion with bridge callbacks |

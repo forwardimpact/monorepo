@@ -11,7 +11,7 @@ state persistence, and output formatting. CLI entry points then only need to
 define their application-specific behaviour.
 
 `fit-guide` (conversational agent) and `fit-visualize` (trace visualizer) use
-it.
+the library.
 
 ---
 

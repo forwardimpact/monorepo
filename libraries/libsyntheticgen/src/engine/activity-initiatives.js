@@ -162,7 +162,7 @@ function buildScorecard({
 }
 
 /**
- * Process a single scenario affect, collecting scorecards and initiatives
+ * Process a single scenario affect. Collect scorecards and initiatives
  * for each of its dx_drivers.
  */
 function processAffect(params) {

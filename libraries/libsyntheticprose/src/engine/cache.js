@@ -1,12 +1,12 @@
 /**
  * ProseCache — synchronous prose cache backed by a JSON file on disk.
  *
- * Holds the cache map and exposes a sync read surface so callers can
- * decide what to do on hit/miss without paying for a microtask.
+ * It holds the cache map. It also exposes a sync read surface, so callers
+ * decide what to do on a hit or a miss with no microtask cost.
  *
- * On-disk format is a flat object keyed by entity key, with a top-level
- * `_schema` field. Bumping `_schema` invalidates the whole file; per-key
- * context drift is the caller's responsibility (re-run `generate`).
+ * The on-disk format is a flat object keyed by entity key, with a
+ * top-level `_schema` field. A new `_schema` value invalidates the whole
+ * file. The caller owns per-key context drift (re-run `generate`).
  *
  * @module libsyntheticprose/engine/cache
  */
@@ -96,7 +96,7 @@ export class ProseCache {
     for (const [key, value] of Object.entries(parsed)) {
       if (key === SCHEMA_FIELD) continue;
       // Drop legacy structured entries (8-char hex with no entity
-      // prefix) — superseded by `${entityKey}#${hash}` format.
+      // prefix). The `${entityKey}#${hash}` format supersedes them.
       if (/^[a-f0-9]{8}$/.test(key)) {
         dropped++;
         continue;
@@ -124,7 +124,7 @@ export class ProseCache {
       if (schema !== undefined && schema !== SCHEMA_VERSION) {
         this.logger.info(
           "prose-cache",
-          `Cache schema mismatch (file=${schema}, expected=${SCHEMA_VERSION}); discarding`,
+          `Cache schema mismatch (file=${schema}, expected=${SCHEMA_VERSION}). Discarded the cache`,
         );
         return new Map();
       }

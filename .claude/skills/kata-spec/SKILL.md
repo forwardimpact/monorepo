@@ -101,11 +101,11 @@ not restate what the artifact already shows.
 
 A spec is approved when `wiki/STATUS.md` shows its row at `spec approved`. The
 decision is **human-only**. Agents never autonomously originate
-`spec approved`. Write STATUS when you observe a trusted human's signal: a
-`<phase>:approved` label, an APPROVED review, an approval comment on the PR, or
-a direct message in an interactive session. `kata-dispatch` validates trust and
-propagates PR-side signals into STATUS. An in-session agent writes STATUS when
-the user explicitly approves. See
+`spec approved`. Write STATUS when you observe a trusted human's signal. The
+signal is a `<phase>:approved` label, an APPROVED review, an approval comment
+on the PR, or a direct message in an interactive session. `kata-dispatch`
+validates trust and propagates PR-side signals into STATUS. An in-session agent
+writes STATUS when the user explicitly approves. See
 [`approval-signals.md`](../../agents/x-approval-signals.md)
 and
 [`coordination-protocol.md` § Approval signal](../../agents/x-coordination-protocol.md#approval-signal).

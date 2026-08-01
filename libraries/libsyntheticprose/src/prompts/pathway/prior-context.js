@@ -1,5 +1,5 @@
 /**
- * Shared helper for building prior-context lines in pathway prompts.
+ * Shared helper that builds prior-context lines in pathway prompts.
  */
 
 /** @param {object[]} levels @returns {string[]} */
@@ -36,7 +36,7 @@ function formatCapabilities(capabilities) {
 }
 
 /**
- * Build prompt lines describing previously generated context.
+ * Build the prompt lines that describe previously generated context.
  * @param {object} [priorOutput]
  * @returns {string[]}
  */

@@ -39,8 +39,8 @@ the session with `Conclude`. The trace records every message and tool call.
 →
 [Prove Agent Changes guide](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
 
-Both modes build on `run`. `run` puts a single agent on a defined task, with no
-supervisor and no facilitator.
+Both use cases build on `run`. `run` puts a single agent on a defined task,
+with no supervisor and no facilitator.
 
 ## Modes at a Glance
 

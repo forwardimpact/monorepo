@@ -1,52 +1,52 @@
 ---
 name: kata-implement
 description: >
-  Implement a spec by studying its spec.md and plan, then executing the plan
-  step by step. Use when a spec and plan are approved and ready for
-  implementation. Triggers: "implement spec NNN", "implement the plan for
-  spec NNN", "execute plan NNN", "build spec NNN", "start implementation of
-  NNN".
+  Implement a spec. Study its spec.md and plan, then execute the plan step by
+  step. Use when a spec and plan are approved and ready for implementation.
+  Triggers: "implement spec NNN", "implement the plan for spec NNN", "execute
+  plan NNN", "build spec NNN", "start implementation of NNN".
 ---
 
 # Implement Spec
 
 Execute an approved implementation plan from the specs/ directory. Read the spec
-to understand WHAT and WHY, read the design to understand WHICH and WHERE, read
-the plan to understand HOW and WHEN, then implement the changes methodically.
+to understand WHAT and WHY. Read the design to understand WHICH and WHERE. Read
+the plan to understand HOW and WHEN. Then implement the changes methodically.
 
 ## When to Use
 
 - Spec and plan are merged on `origin/main` (see READ-DO).
 - The user says "implement spec NNN", "implement the plan for spec NNN",
   "execute the plan for NNN", "build spec NNN", or "start implementation of NNN"
-- Resuming a partially completed implementation ("continue spec NNN", "finish
+- You resume a partially completed implementation ("continue spec NNN", "finish
   implementing NNN")
 
 ## Checklists
 
-Also run CONTRIBUTING.md § READ-DO before starting — universal rules apply
-alongside the skill-specific ones below.
+Also run CONTRIBUTING.md § READ-DO before you start. The universal rules apply
+alongside the skill-specific rules below.
 
 <read_do_checklist goal="Internalize scope and constraints before coding">
 
-- [ ] Run `git fetch origin main`, then confirm `specs/NNN/plan-a.md` exists on
-      `origin/main` — wait for the plan PR to merge before implementing.
+- [ ] Run `git fetch origin main`. Confirm `specs/NNN/plan-a.md` exists on
+      `origin/main`. Wait for the plan PR to merge before you implement.
 - [ ] Enter a new worktree with `EnterWorktree` (e.g. name `impl/NNN`). All
-      implementation work happens in the worktree — never on the main working
-      tree.
-- [ ] Claim before first code write — atomic `pull` → check → `claim` →
-      `push` per
+      implementation work happens in the worktree. Never work on the main
+      working tree.
+- [ ] Claim before the first code write. Run the atomic `pull` → check →
+      `claim` → `push` per
       [memory-protocol § Active Claims](../../agents/x-memory-protocol.md#active-claims).
 - [ ] Probe the remote of record: `git ls-remote origin "refs/heads/<branch>"`
       and `list` changes by head branch and by spec number, any state
       ([work-trackers.md](../../agents/x-work-trackers.md);
       [§ Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create)).
-- [ ] Read the full spec and all plan files before writing any code.
-- [ ] Implement plan-a unless explicitly directed to a different variant.
-- [ ] Implement only what the plan describes — no unrequested refactors,
+- [ ] Read the full spec and all plan files before you write any code.
+- [ ] Implement plan-a unless someone directs you to a different variant.
+- [ ] Implement only what the plan describes. Add no unrequested refactors,
       features, or cleanup.
-- [ ] Verify current codebase matches plan assumptions before each change.
-- [ ] Follow the plan's execution order — dependencies exist for a reason.
+- [ ] Verify the current codebase matches the plan's assumptions before each
+      change.
+- [ ] Follow the plan's execution order. Dependencies exist for a reason.
 
 </read_do_checklist>
 
@@ -54,12 +54,12 @@ alongside the skill-specific ones below.
 
 - [ ] The repository's check and test commands pass.
 - [ ] Spec-specific verification commands from the plan pass.
-- [ ] Full diff reviewed against the spec's success criteria — every criterion
-      met.
-- [ ] Clean sub-agent review panel of the full diff via
-      [`kata-review`](../kata-review/SKILL.md) completed (fresh context, no
-      prior bias, panel size per caller protocol) and every **blocker**,
-      **high**, and **medium** finding addressed.
+- [ ] Review the full diff against the spec's success criteria. Confirm every
+      criterion is met.
+- [ ] Complete a clean sub-agent review panel of the full diff through
+      [`kata-review`](../kata-review/SKILL.md) (fresh context, no prior bias,
+      panel size per caller protocol). Address every **blocker**, **high**,
+      and **medium** finding.
 
 </do_confirm_checklist>
 
@@ -67,23 +67,22 @@ alongside the skill-specific ones below.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
+Read `wiki/MEMORY.md`. Then run `gemba-wiki boot --agent <self>` per
 [memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Extract
-previously implemented specs and blockers.
+Process. Extract previously implemented specs and blockers.
 
 > **Writing under `.claude/`:** If the plan targets files there, follow
 > [self-improvement.md](../../agents/x-self-improvement.md).
 
 ### Step 1: Study the spec deeply
 
-Read every file in the spec directory — `spec.md`, all `plan-*.md` files, and
-any supporting documents. Understand the **problem** (the gap and its
-evidence), the **scope** (files, APIs, entities, behaviours affected; what is
-out of scope), and the **success criteria** (what "done" looks like and how it
-is verified). Do not start coding until you can explain the problem and its
-boundaries without referring back to the spec.
+Read every file in the spec directory: `spec.md`, all `plan-*.md` files, and
+any supporting documents. Understand the **problem**, which is the gap and its
+evidence. Understand the **scope**: the files, APIs, entities, and behaviours
+affected, and what is out of scope. Understand the **success criteria**: what
+"done" looks like and how you verify it. Do not start to code until you can
+explain the problem and its boundaries from memory.
 
 ### Step 2: Select and study the plan
 
@@ -93,24 +92,24 @@ plan review explicitly selects a different variant.
 
 Read the selected plan thoroughly. Understand:
 
-- **Overall strategy.** What is the approach and why was it chosen?
+- **Overall strategy.** Identify the approach and the reason for it.
 - **Every concrete change.** File paths, functions, before/after code, new
   files.
-- **Blast radius.** What is created, modified, and deleted?
-- **Ordering and dependencies.** Which changes must happen first? What blocks
-  what?
-- **Design decisions.** Why were non-obvious choices made?
-- **Execution recommendation.** How does the plan recommend executing — single
-  agent, or parallel engineering agents for independent parts?
+- **Blast radius.** Identify what the plan creates, modifies, and deletes.
+- **Ordering and dependencies.** Identify which changes must happen first.
+  Identify what blocks what.
+- **Design decisions.** Identify the reason for each non-obvious choice.
+- **Execution recommendation.** Read how the plan recommends execution: a
+  single agent, or parallel engineering agents for independent parts.
 
-**Multi-part plans.** If the plan is decomposed into parts (`plan-a.md` +
-`plan-a-01.md`, `plan-a-02.md`, etc.), start by reading the overview in
-`plan-a.md` for strategy, the part index, and the execution recommendation. Then
-work through parts in numbered order. Each part is independently executable —
-complete and verify each part before moving to the next. When the plan
-recommends parallel execution for independent parts, the caller is responsible
-for launching concurrent engineering agents — a single agent implements one
-part at a time.
+**Multi-part plans.** If the plan splits into parts (`plan-a.md` +
+`plan-a-01.md`, `plan-a-02.md`, etc.), first read the overview in `plan-a.md`
+for the strategy, the part index, and the execution recommendation. Then work
+through the parts in numbered order. Each part is independently executable.
+Complete and verify each part before you move to the next. When the plan
+recommends parallel execution for independent parts, the caller must launch
+the concurrent engineering agents. A single agent implements one part at a
+time.
 
 ### Step 3: Research the current codebase
 

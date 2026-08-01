@@ -292,7 +292,7 @@ describe("predicates", () => {
   });
 
   describe("isInAnyCapability", () => {
-    test("returns true if entry matches any listed capability", () => {
+    test("returns true if the entry matches any listed capability", () => {
       const inDeliveryOrScale = isInAnyCapability(["delivery", "scale"]);
       assert.strictEqual(
         inDeliveryOrScale(skill({ capability: "delivery" })),
@@ -304,12 +304,12 @@ describe("predicates", () => {
       );
     });
 
-    test("returns false if entry matches none", () => {
+    test("returns false if the entry matches none", () => {
       const inDeliveryOrScale = isInAnyCapability(["delivery", "scale"]);
       assert.strictEqual(inDeliveryOrScale(skill({ capability: "ai" })), false);
     });
 
-    test("handles empty capabilities list", () => {
+    test("handles an empty capabilities list", () => {
       const inNone = isInAnyCapability([]);
       assert.strictEqual(inNone(skill({ capability: "delivery" })), false);
     });
@@ -367,7 +367,7 @@ describe("predicates", () => {
       assert.strictEqual(notCore(skill({ type: "supporting" })), true);
     });
 
-    test("double negation restores original", () => {
+    test("double negation restores the original", () => {
       const notNotCore = not(not(isCore));
       assert.strictEqual(notNotCore(skill({ type: "core" })), true);
       assert.strictEqual(notNotCore(skill({ type: "supporting" })), false);

@@ -14,7 +14,7 @@ const runtime = createDefaultRuntime();
 const definition = {
   name: "fit-visualize",
   description:
-    "Query and visualize OpenTelemetry spans using JMESPath expressions",
+    "Query and visualize OpenTelemetry spans with JMESPath expressions",
   globalOptions: {
     trace: { type: "string", description: "Filter spans by trace ID" },
     resource: {
@@ -35,7 +35,7 @@ const definition = {
       title: "Add Observability",
       url: "https://www.forwardimpact.team/docs/libraries/service-lifecycle/add-observability/index.md",
       description:
-        "Structured logs and spans with no framework setup, including querying and visualizing recorded spans with fit-visualize.",
+        "Structured logs and spans with no framework setup. It also covers how to query and visualize recorded spans with fit-visualize.",
     },
     {
       title: "Manage Service Lifecycle from One Interface",
@@ -58,8 +58,8 @@ const { values } = parsed;
 
 const usage = `**Usage:** <JMESPath expression>
 
-Query and visualize spans from the span index using JMESPath expressions.
-Apply filters to narrow the spans before querying.
+Query and visualize spans from the span index with JMESPath expressions.
+Apply filters to narrow the spans before you query.
 
 **Examples:**
 

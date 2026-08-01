@@ -199,7 +199,7 @@ export function parse(tokens) {
 
   if (peek().type === "RBRACE") advance();
 
-  // Validate distribution keys against standard levels (when both exist)
+  // Validate distribution keys against standard levels when both exist
   if (ast.people?.distribution && ast.standard?.levels?.length) {
     const levelIds = new Set(ast.standard.levels.map((l) => l.id));
     for (const key of Object.keys(ast.people.distribution)) {

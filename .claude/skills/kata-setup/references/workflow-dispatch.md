@@ -121,7 +121,7 @@ This workflow mints its own token, so the hosted delta differs from shift:
 2. Replace the `Generate token` step with the OIDC mint step from
    [`workflow-shift.md` § Template (hosted)](workflow-shift.md).
 3. Change the checkout `token:`, the bootstrap `token:`, and the `Assess and
-   Act` `GH_TOKEN:` from `${{ steps.ci-app.outputs.token }}` to
+   Act` `GH_TOKEN:`. Each moves from `${{ steps.ci-app.outputs.token }}` to
    `${{ steps.mint.outputs.token }}`.
 
 `Push wiki changes` still mints from App secrets and does not change. The

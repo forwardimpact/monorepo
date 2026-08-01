@@ -27,8 +27,8 @@ PR's trust check.
       contributor lookup.
 - [ ] Parse the PR type from the title prefix.
 - [ ] Confirm all CI checks pass, after mechanical fixes if needed.
-- [ ] Confirm the `wiki/STATUS.md` row for the spec id shows the matching phase
-      at `approved`, or at `implemented` for the terminal plan row.
+- [ ] Confirm the `wiki/STATUS.md` row for the spec id shows the phase that
+      matches at `approved`, or at `implemented` for the terminal plan row.
 - [ ] For phase PRs (spec/design/plan), confirm an approval signal of the
       required class verifiably covers the current head, per
       `references/review-transfer.md`.
@@ -79,7 +79,7 @@ PR **blocked**. Run this lookup on every classified PR.
 
 ### Step 3: Classify PR Type
 
-Parse the title using `type(scope): subject`. Each type maps to a phase:
+Parse the title with `type(scope): subject`. Each type maps to a phase:
 
 - `spec` → spec phase, gate STATUS row `{NNN}\tspec\tapproved`
 - `design` → design phase, gate STATUS row `{NNN}\tdesign\tapproved`
@@ -122,7 +122,7 @@ git checkout <pr-branch> && git rebase origin/main
 git add <files> && git rebase --continue
 ```
 
-**Substantive conflicts** (overlapping logic, renamed symbols,
+**Substantive conflicts** (overlaps in logic, renamed symbols,
 deleted-vs-modified) — run `git rebase --abort` and comment the files in
 conflict.
 

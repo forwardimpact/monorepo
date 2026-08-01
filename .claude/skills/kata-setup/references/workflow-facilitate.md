@@ -82,9 +82,9 @@ with these changes:
 ## Hosted Variant
 
 Both are `kata-agent` workflows, so the hosted delta is identical to
-[`workflow-shift.md` § Template (hosted)](workflow-shift.md): add
-`id-token: write` to `permissions`, insert the OIDC mint step as the first step,
-and replace `app-id` / `app-private-key` with
+[`workflow-shift.md` § Template (hosted)](workflow-shift.md). Add
+`id-token: write` to `permissions`. Insert the OIDC mint step as the first
+step. Replace `app-id` / `app-private-key` with
 `installation-token: ${{ steps.mint.outputs.token }}`.
 
 ## Notes

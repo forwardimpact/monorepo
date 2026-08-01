@@ -3,15 +3,16 @@
  *
  * Each yielded context includes a pre-built `messages` array so that
  * `resolveProse()` calls `generateStructured()` instead of `generatePlain()`.
- * Templates are rendered at key-generation time; the structured cache key
- * includes a hash of the rendered prompt, auto-invalidating on entity change.
+ * This module renders the templates when it generates a key. The structured
+ * cache key includes a hash of the rendered prompt. The cache invalidates
+ * itself when an entity changes.
  */
 
 /**
- * Flatten a clinical context object for Mustache rendering.
- * Mustache cannot traverse dotted paths or use {{#each}}, so nested objects
- * become `clinical_trial`, `clinical_condition`, etc. and arrays become
- * joined strings.
+ * Flatten a clinical context object so Mustache can render it.
+ * Mustache cannot traverse dotted paths or use {{#each}}. So nested objects
+ * become `clinical_trial`, `clinical_condition`, etc. Arrays become joined
+ * strings.
  */
 function flattenForTemplate(context) {
   const flat = {

@@ -24,9 +24,9 @@ function makeLogger() {
 
 /**
  * A prompt loader stub whose `render` echoes its template + locals
- * deterministically. The exact echo format does not matter — what
- * matters is that two identical (template, locals) calls produce
- * byte-equal outputs and two different ones do not.
+ * deterministically. The exact echo format does not matter. Two
+ * identical (template, locals) calls must produce byte-equal outputs.
+ * Two different calls must not.
  */
 function makeEchoPromptLoader() {
   return {
@@ -51,10 +51,10 @@ function makeFixture() {
     promptLoader: makeEchoPromptLoader(),
     logger: makeLogger(),
     llmApi: {
-      // The LLM is invoked through generatePlain — we capture the
-      // rendered user prompt off the messages array via a spy. The
-      // `captured` array is per-fixture so concurrent test runs do not
-      // race on shared module state.
+      // generatePlain invokes the LLM. A spy captures the rendered
+      // user prompt off the messages array. The `captured` array is
+      // per-fixture, so concurrent test runs do not race on shared
+      // module state.
       createCompletions: async ({ messages }) => {
         captured.push(messages.find((m) => m.role === "user").content);
         return { choices: [{ message: { content: "ok" } }] };
@@ -85,8 +85,8 @@ describe("ProseGenerator #buildPrompt", () => {
       ],
     };
     // Spread identical ctx into two distinct objects under different
-    // cache keys to prove the rendered prompt does not depend on the
-    // key — only on the context fields.
+    // cache keys. This proves the rendered prompt depends only on the
+    // context fields. The key does not change it.
     await generator.generatePlain("snapshot_comment_a", { ...ctx });
     await generator.generatePlain("snapshot_comment_b", { ...ctx });
 
