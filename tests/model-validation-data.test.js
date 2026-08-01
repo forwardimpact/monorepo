@@ -61,7 +61,7 @@ describe("Validation", () => {
       assert.ok(result.errors.some((e) => e.type === "INVALID_REFERENCE"));
     });
 
-    it("detects invalid matching weights", () => {
+    it("detects invalid match weights", () => {
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
@@ -314,7 +314,7 @@ describe("Validation", () => {
       assert.strictEqual(result.valid, true);
     });
 
-    it("validates categories when provided", () => {
+    it("validates categories when the caller provides them", () => {
       const result = validateAllData({
         skills: testSkills,
         behaviours: testBehaviours,
@@ -356,7 +356,7 @@ describe("Validation", () => {
       assert.ok(result.errors.some((e) => e.type === "DUPLICATE_ID"));
     });
 
-    it("detects invalid skill capability references when capabilities provided", () => {
+    it("detects invalid skill capability references when capabilities exist", () => {
       const skillsWithInvalidCapability = [
         { ...testSkills[0], capability: "nonexistent_capability" },
       ];
