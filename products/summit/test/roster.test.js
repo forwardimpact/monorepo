@@ -75,7 +75,7 @@ test("parseRosterYaml resolves email-only project members from reporting teams",
   assert.equal(alice.allocation, 0.6);
 });
 
-test("parseRosterYaml defaults allocation to 1.0 when omitted for project members", () => {
+test("parseRosterYaml defaults allocation to 1.0 when a project member omits it", () => {
   const yaml = `
 teams:
   a:
@@ -103,7 +103,7 @@ teams:
   assert.throws(() => parseRosterYaml(yaml), /allocation is only allowed/);
 });
 
-test("parseRosterYaml rejects project member referencing unknown email", () => {
+test("parseRosterYaml rejects a project member with an unknown email", () => {
   const yaml = `
 teams:
   a:
@@ -120,7 +120,7 @@ projects:
   );
 });
 
-test("parseRosterYaml rejects bare array (no teams wrapper)", () => {
+test("parseRosterYaml rejects a bare array (no teams wrapper)", () => {
   const yaml = `- name: X\n  email: x@example.com`;
   assert.throws(() => parseRosterYaml(yaml), /bare list/);
 });
@@ -182,7 +182,7 @@ test("loadRosterFromMap groups people by manager_email", async () => {
       track: null,
       manager_email: "other@example.com",
     },
-    // Rows without manager_email are skipped (top of the hierarchy).
+    // The loader skips rows without manager_email (top of the hierarchy).
     {
       email: "ceo@example.com",
       name: "CEO",

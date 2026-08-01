@@ -114,7 +114,7 @@ teams:
 
   const directorCoverage = withAudienceFilter(coverage, Audience.DIRECTOR);
   const task = directorCoverage.skills.get("task-completion");
-  // Director coverage has holders stripped, so a SPOF detector running
+  // Director coverage strips the holders. So a SPOF detector that runs
   // over the director coverage sees no named holder.
   assert.ok(task.holders.every((h) => !h.email && !h.name));
 });

@@ -1,12 +1,13 @@
 /**
- * Verifies the no-token-on-disk invariant: after a consume the on-disk
- * `pending_dispatches.jsonl` carries no substring match for the consumed
- * `link_token` (and no `"deleted":true` tombstone), and a fresh
- * BridgeService over the same storage path does not re-surface the
+ * These tests verify the no-token-on-disk invariant. After a consume the
+ * on-disk `pending_dispatches.jsonl` carries no substring match for the
+ * consumed `link_token`. It also carries no `"deleted":true` tombstone. A
+ * fresh BridgeService over the same storage path does not re-surface the
  * consumed entry on restart.
  *
- * Uses the real LocalStorage backend (not the mock) so the assertion goes
- * against actual disk bytes, not an in-memory hash.
+ * These tests use the real LocalStorage backend. They do not use the mock.
+ * The assertion then goes against actual disk bytes. It does not go
+ * against an in-memory hash.
  */
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
@@ -163,7 +164,7 @@ describe("bridge — pending-dispatches compaction on disk", () => {
     );
   });
 
-  test("sweep compacts the on-disk file when entries are evicted", async () => {
+  test("sweep compacts the on-disk file when it evicts entries", async () => {
     const start = Date.now();
     await service.PutPendingDispatch({
       pending: {

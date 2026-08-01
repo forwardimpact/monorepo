@@ -191,9 +191,9 @@ test("non-move scenarios match captured fixtures byte-for-byte", () => {
   }
 });
 
-test("runWhatIfCommand emits diff.teams[] for --move via JSON output", async () => {
-  // In-process: seed the roster file in a mock fs and capture stdout via the
-  // injected mock proc — no real tmpdir, no global process patching.
+test("runWhatIfCommand emits diff.teams[] for --move in JSON output", async () => {
+  // In-process: seed the roster file in a mock fs and capture stdout with
+  // the injected mock proc. No real tmpdir. No global process patch.
   const rosterPath = "/work/roster.yaml";
   const runtime = createTestRuntime({
     fs: createMockFs({ [rosterPath]: MOVE_FIXTURE_YAML }),

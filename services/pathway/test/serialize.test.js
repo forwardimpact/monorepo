@@ -74,7 +74,7 @@ describe("jobToTurtle", () => {
     });
     assert.strictEqual(matrixQuads.length, 2);
 
-    // Each matrix node should be typed and carry skill+proficiency.
+    // Each matrix node has a type and carries skill+proficiency.
     for (const m of matrixQuads) {
       const node = m.object.value;
       assert.ok(
@@ -231,7 +231,7 @@ describe("progressionToTurtle", () => {
         level: { id: "l3" },
         track: { id: "forward-deployed" },
       },
-      // Fixture uses the canonical libskill shape from progression.js:
+      // The fixture uses the canonical libskill shape from progression.js:
       // { id, currentLevel, targetLevel, change, isGained, isLost }.
       skillChanges: [
         {
@@ -305,8 +305,8 @@ describe("progressionToTurtle", () => {
       .sort();
     assert.deepStrictEqual(kinds, ["gained", "increased"]);
 
-    // Verify from/to proficiency literals map from libskill's currentLevel
-    // and targetLevel fields.
+    // Verify that the from/to proficiency literals map from libskill's
+    // currentLevel and targetLevel fields.
     const pythonChange = changeNodes.find(
       (c) =>
         findOne(quads, {
@@ -330,7 +330,8 @@ describe("progressionToTurtle", () => {
       "practitioner",
     );
 
-    // Behaviour change should emit fit:behaviourChange with matching maturity.
+    // The behaviour change must emit fit:behaviourChange with a maturity
+    // that matches.
     const bcNodes = findAll(quads, {
       subject: progNode,
       predicate: `${FIT}behaviourChange`,
@@ -354,7 +355,7 @@ describe("progressionToTurtle", () => {
 });
 
 describe("jobSoftwareToTurtle", () => {
-  test("emits fit:software predicates pointing to fit:Tool IRIs with labels", async () => {
+  test("emits fit:software predicates that point to fit:Tool IRIs with labels", async () => {
     const job = {
       title: "FDE L3",
       discipline: { id: "fde" },

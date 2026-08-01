@@ -1,6 +1,6 @@
 ---
 title: "Evaluate a Candidate Against Team Gaps"
-description: "Know whether a candidate fills the team's actual capability gap before you make an offer. Do not wait until the new hire starts to see the mismatch."
+description: "Know whether a candidate fills the team's actual capability gap before you make an offer. Do not discover the mismatch after the new hire starts."
 ---
 
 You need to check whether a specific candidate addresses the structural gaps in

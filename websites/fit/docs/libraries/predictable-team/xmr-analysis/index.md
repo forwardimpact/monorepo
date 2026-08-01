@@ -36,7 +36,7 @@ date,metric,value,unit,run,note,event_type
 | `date`       | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                   |
 | `metric`     | yes      | Metric name. One CSV may carry multiple metrics. The command groups them. |
 | `value`      | yes      | Numeric. `validate` rejects a non-numeric value.                     |
-| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). Do not leave `unit` empty.  |
+| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). `validate` rejects an empty `unit`. |
 | `run`        | no       | URL or identifier of the run that produced this observation.         |
 | `note`       | no       | Free text. Use it to record what you discovered when a signal fires. |
 | `event_type` | yes      | The workflow that recorded the row. Use its filename without `.yml`. |
@@ -127,8 +127,8 @@ The JSON report for each metric carries:
   when every participating slot was already present at the prior read. The value
   is `new-point` when at least one slot postdates the prior read. A
   `recomputation-revealed` signal surfaced because newer data shifted the
-  recomputed limits. No new point breached anything. Without an anchor, the
-  entry carries no `provenance` field.
+  recomputed limits. It did not surface because a new point breached a limit.
+  Without an anchor, the entry carries no `provenance` field.
 - **`classification`** -- `stable`, `signals`, `chaos`, `insufficient`, or
   `degenerate-zero`.
 

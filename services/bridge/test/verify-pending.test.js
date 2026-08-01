@@ -120,7 +120,7 @@ describe("bridge VerifyPendingDispatch", () => {
       tenant_id: T,
     });
     assert.deepStrictEqual(result, {});
-    // Persisted claim survives a flush: the ledger now carries the
+    // The persisted claim survives a flush. The ledger now carries the
     // tenant-scoped key.
     const claimed = await storage.get("claimed_dispatches.jsonl");
     assert.ok(Array.isArray(claimed));
@@ -221,9 +221,9 @@ describe("bridge VerifyPendingDispatch", () => {
     });
     await priorService.shutdown();
 
-    // Phase 2: fresh service, same storage. Both indices start unloaded; the
-    // concurrent verifies trigger loadData() against a non-empty
-    // claimed_dispatches.jsonl, exercising the file-exists path of the
+    // Phase 2: fresh service, same storage. Both indices start unloaded.
+    // The concurrent verifies trigger loadData() against a non-empty
+    // claimed_dispatches.jsonl. They exercise the file-exists path of the
     // concurrency invariant.
     const freshService = new BridgeService(
       createMockConfig("bridge", DEFAULTS),

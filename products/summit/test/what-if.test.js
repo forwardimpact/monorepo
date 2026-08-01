@@ -45,7 +45,7 @@ test("parseJobExpression accepts flow YAML", () => {
   assert.equal(job.level, "J060");
 });
 
-test("parseJobExpression rejects missing discipline", () => {
+test("parseJobExpression rejects an expression with no discipline", () => {
   assert.throws(
     () => parseJobExpression("{ level: J060 }"),
     UnknownJobFieldError,
@@ -89,7 +89,7 @@ test("applyScenario add: team grows by one member", () => {
   );
   const mutated = applyScenario(roster, data, scenario);
   assert.equal(mutated.teams.get("a").members.length, 3);
-  // Input is not modified.
+  // applyScenario does not modify the input.
   assert.equal(roster.teams.get("a").members.length, 2);
 });
 
@@ -117,7 +117,7 @@ test("applyScenario promote: bumps level to the next rung", () => {
 
 test("applyScenario promote: errors at top level", () => {
   const roster = parseRosterYaml(FIXTURE_YAML);
-  // Alice is already at J060 (top of starter); promote should error.
+  // Alice is already at J060 (top of starter). Promote should error.
   const scenario = parseScenario({ promote: "Alice" }, { teamId: "a" });
   assert.throws(() => applyScenario(roster, data, scenario), ScenarioError);
 });
@@ -159,7 +159,7 @@ test("diffCoverage tracks headcount direction", () => {
   assert.equal(task.direction, "up");
 });
 
-test("what-if move: source loses skill, destination gains it on the same mutation", () => {
+test("what-if move: source loses skill and destination gains it on the same mutation", () => {
   const roster = parseRosterYaml(`
 teams:
   a:
@@ -206,7 +206,7 @@ teams:
 test("diffRisks finds resolved and new risks", () => {
   const roster = parseRosterYaml(FIXTURE_YAML);
   const baseline = snapshot(roster, data, "a");
-  // Add a second J060 — task-completion SPOF goes from 1 → 2, so the
+  // Add a second J060. The task-completion SPOF goes from 1 → 2, so the
   // SPOF disappears.
   const scenario = parseScenario(
     { add: "{ discipline: software-engineering, level: J060 }" },

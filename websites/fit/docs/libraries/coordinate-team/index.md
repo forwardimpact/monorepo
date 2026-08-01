@@ -209,11 +209,11 @@ applies its own specialism. Pass the task as exactly one of
 native GitHub event payload).
 
 Participants share `--agent-cwd` by default. If two might edit the same file,
-give each one its own working directory. You can also restrict tool allowlists
-so only one can write. `--max-turns` applies uniformly to the lead and every
-participant. Always set a budget so a stuck participant cannot run the session
-forever. The CLI default is `20`. Raise it for sessions that do real
-implementation work.
+give each one its own working directory. You can instead restrict tool
+allowlists so only one can write. `--max-turns` applies uniformly to the lead
+and every participant. Always set a budget so a stuck participant cannot run
+the session forever. The CLI default is `20`. Raise it for sessions that do
+real implementation work.
 
 ## Run a supervised relay
 
@@ -240,9 +240,9 @@ returns sooner.
 `discuss` adds two flags. `--discussion-id` is the stable thread identifier
 carried through the trace. `--resume-context` holds JSON-serialized prior state
 for a resumed run. A bridge service relays the workflow callback when the
-conversation suspends on a `Recess` and re-enters later. A participant's
-`Answer` to the lead reaches the thread as a separate reply as the participant
-produces it. The harness does not batch the replies at the end.
+conversation suspends on a `Recess` and re-enters later. Each participant's
+`Answer` to the lead streams to the thread as a separate reply as the
+participant produces it. The harness does not batch the replies at the end.
 
 ```sh
 npx gemba-harness discuss \

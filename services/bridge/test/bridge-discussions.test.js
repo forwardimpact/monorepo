@@ -104,7 +104,7 @@ describe("bridge service", () => {
     assert.ok(loaded.open_rfcs["corr-1"]);
   });
 
-  test("HasOrigin returns false for unknown id; true after RecordOrigin", async () => {
+  test("HasOrigin returns false for an unknown id. RecordOrigin makes it true", async () => {
     const before = await service.HasOrigin({ id: "comment-1", tenant_id: T });
     assert.strictEqual(before.exists, false);
 
@@ -119,7 +119,7 @@ describe("bridge service", () => {
     assert.strictEqual(after.exists, true);
   });
 
-  test("LoadDiscussionByCorrelation finds record via pending_callbacks map", async () => {
+  test("LoadDiscussionByCorrelation finds the record through the pending_callbacks map", async () => {
     await service.SaveDiscussion({
       id: "github-discussions:42",
       channel: "github-discussions",
@@ -137,7 +137,7 @@ describe("bridge service", () => {
     assert.strictEqual(found.discussion_id, "42");
   });
 
-  test("LoadDiscussionByCorrelation finds record via open_rfcs map", async () => {
+  test("LoadDiscussionByCorrelation finds the record through the open_rfcs map", async () => {
     await service.SaveDiscussion({
       id: "msteams:99",
       channel: "msteams",
@@ -173,7 +173,7 @@ describe("bridge service", () => {
     );
   });
 
-  test("ListOpenRecesses emits one entry per open_rfcs with due_at; omits entries without due_at", async () => {
+  test("ListOpenRecesses emits one entry per open_rfcs with due_at. It omits entries without due_at", async () => {
     await service.SaveDiscussion({
       id: "github-discussions:42",
       channel: "github-discussions",

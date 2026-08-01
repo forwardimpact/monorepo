@@ -141,7 +141,7 @@ autonomy, and complexity the standard defines for this level:
 
 These four dimensions set the boundary for what the role should handle. The
 agent output may address problems well beyond the role's complexity level. It
-may also fall short of the expected autonomy. In both cases, the expectations
+may also fall short of the expected autonomy. In either case, the expectations
 section tells you where to calibrate.
 
 ## Extract skill IDs for scripts

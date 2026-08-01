@@ -4,7 +4,7 @@ description: "Replace staffing intuition with evidence: coverage heatmaps, struc
 ---
 
 A post-mortem surfaces the same skill gap that caused the last incident. Nobody
-saw the gap when you staffed the team. You need to make staffing decisions you
+saw the gap before you staffed the team. You need to make staffing decisions you
 can defend. To do that, see what each role requires. This guide walks through
 the full workflow. You define role requirements with Pathway. You model team
 composition with Summit. You simulate changes before you commit to them.

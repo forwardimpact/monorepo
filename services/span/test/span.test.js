@@ -29,7 +29,7 @@ describe("span service", () => {
     });
 
     test("SpanService constructor accepts expected parameters", () => {
-      // Test constructor signature by checking parameter count
+      // Check the parameter count to test the constructor signature
       assert.strictEqual(SpanService.length, 2); // config, traceIndex
     });
 
@@ -53,7 +53,7 @@ describe("span service", () => {
       // Create mock storage for TraceIndex
       mockStorage = createMockStorage();
 
-      // Use real TraceIndex with mock storage for more realistic testing
+      // Use the real TraceIndex with mock storage for a more realistic test
       mockTraceIndex = new TraceIndex(mockStorage, "test-traces.jsonl", {
         clock: _clock,
       });

@@ -63,7 +63,7 @@ less than half-time for the team.
 
 A point-in-time risk snapshot tells you what is fragile now. The `trajectory`
 command shows how coverage changed across quarters. It reveals whether gaps
-grow or close:
+form or close:
 
 ```sh
 npx fit-summit trajectory platform --roster ./summit.yaml --quarters=4
@@ -190,7 +190,7 @@ output:
 - **What are the team's structural risks right now?** You ran
   `npx fit-summit risks`. You can name the single points of failure, critical
   gaps, and concentration risks.
-- **Do gaps grow or close?** You ran
+- **Do gaps form or close?** You ran
   `npx fit-summit trajectory`. You can identify persistent gaps and coverage
   trends.
 - **Which gaps are unique to this team?** If you lead multiple teams, you ran

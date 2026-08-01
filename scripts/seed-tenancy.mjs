@@ -1,24 +1,24 @@
 #!/usr/bin/env node
-// Seed services/tenancy for hosted (multi-tenant) manual testing.
+// Seed services/tenancy for hosted (multi-tenant) manual tests.
 //
-// The hosted Teams path needs TWO active tenant rows for one repo, and the
-// order they are created matters:
+// The hosted Teams path needs TWO active tenant rows for one repo. The order
+// in which you create them matters:
 //
 //   1. A `github-discussions` row keyed `"{installation_id}:{owner}/{name}"`
-//      (via UpsertByPair). services/ghserver mints the workflow_dispatch token
-//      by splitting this key for the installation id, so this row MUST exist
-//      and MUST be the one ResolveByRepo returns. resolveByRepo returns the
-//      first active row matching the repo in index-insertion order, so we
-//      create it FIRST — before the msteams row that carries the same repo.
-//   2. An `msteams` row keyed by the Entra tenant id (via UpsertByChannelKey +
+//      (with UpsertByPair). services/ghserver splits this key for the
+//      installation id and mints the workflow_dispatch token. So this row MUST
+//      exist and MUST be the one ResolveByRepo returns. resolveByRepo returns
+//      the first active row that matches the repo in index-insertion order.
+//      So create it FIRST, before the msteams row that carries the same repo.
+//   2. An `msteams` row keyed by the Entra tenant id (with UpsertByChannelKey +
 //      SetRepo). msbridge resolves the dispatch target from this row's repo on
 //      every inbound Teams activity.
 //
-// This bypasses POST /onboard, which requires a Bot Framework-issued bearer
-// token (audience = the bot's app id) and never writes the github row anyway.
-// Run it against a running tenancy service.
+// This bypasses POST /onboard. POST /onboard requires a Bot Framework-issued
+// bearer token (audience = the bot's app id). It never writes the github row
+// anyway. Run this script against a tenancy service that is running.
 //
-// Usage (values fall back to .env, loaded by libconfig):
+// Usage (values fall back to .env, which libconfig loads):
 //   bun scripts/seed-tenancy.mjs \
 //     --repo <owner/name> \            # default: SERVICE_MSBRIDGE_GITHUB_REPO
 //     --installation-id <id> \         # default: SERVICE_GHSERVER_INSTALLATION_ID
@@ -69,8 +69,9 @@ function summarize(label, t) {
 
 const args = parseArgs(process.argv.slice(2));
 
-// createServiceConfig loads .env (non-credential keys land in process.env),
-// so the fallbacks below see SERVICE_*/MICROSOFT_* values without sourcing.
+// createServiceConfig loads .env (non-credential keys land in process.env).
+// So the fallbacks below see SERVICE_*/MICROSOFT_* values, and you do not
+// have to source the file.
 const tenancyConfig = await createServiceConfig("tenancy");
 const runtime = createDefaultRuntime();
 const logger = createLogger("seed-tenancy", runtime);
@@ -105,7 +106,8 @@ console.log(
 );
 
 if (!args.verifyOnly) {
-  // 1. github-discussions row FIRST (installation id is parseable for minting).
+  // 1. github-discussions row FIRST. The mint step can parse the installation
+  //    id from this key.
   const gh = await client.UpsertByPair(
     new tenancy.UpsertPairRequest({
       installation_id: String(installationId),
@@ -132,7 +134,7 @@ if (!args.verifyOnly) {
   summarize("msteams", ms);
 }
 
-// Read back the exact resolutions the bridges and ghserver will perform.
+// Read back the exact resolutions the bridges and ghserver perform.
 const byChannel = await client.ResolveByChannelKey(
   new tenancy.ChannelTenantKey({ channel: "msteams", key: tid }),
 );
@@ -146,11 +148,13 @@ summarize(
 );
 summarize("ResolveByRepo(repo)              [ghserver mint source]   ", byRepo);
 
-// ghserver splits channel_tenant_key as "{installation_id}:{owner}/{name}";
-// an msteams key (bare Entra tid) would throw INTERNAL at mint time.
+// ghserver splits channel_tenant_key as "{installation_id}:{owner}/{name}".
+// An msteams key (bare Entra tid) would throw INTERNAL at mint time.
 const mintable = /^[^:]+:[^/]+\/.+$/.test(byRepo?.channel_tenant_key ?? "");
 if (!byChannel?.tenant_id || byChannel.state !== "active") {
-  console.error("FAIL: msteams tenant not active — dispatch will be rejected.");
+  console.error(
+    "FAIL: msteams tenant not active. The service will reject the dispatch.",
+  );
   process.exit(1);
 }
 if (!mintable) {

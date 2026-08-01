@@ -1,9 +1,9 @@
 /**
  * Roster loader orchestration.
  *
- * Dispatches to the YAML parser when a roster file path is provided,
- * or to the Map-sourced loader otherwise. Supabase client construction
- * is injectable for tests.
+ * The loader dispatches to the YAML parser when the caller gives a roster
+ * file path. Otherwise it dispatches to the Map-sourced loader. Tests can
+ * inject the Supabase client factory.
  */
 
 import { resolve } from "node:path";
@@ -25,8 +25,9 @@ import {
  *   Optional pre-built Supabase client (tests inject fakes through this).
  * @param {(opts: object) => import("@supabase/supabase-js").SupabaseClient} [options.createClient] -
  *   Alternative Supabase factory (defaults to `createSummitClient`).
- * @param {object} [options.fs] - Injected async fs surface (`runtime.fs`); its
- *   `readFile` is used when no explicit `readFile` override is supplied.
+ * @param {object} [options.fs] - Injected async fs surface (`runtime.fs`). The
+ *   loader uses its `readFile` when the caller supplies no explicit
+ *   `readFile` override.
  * @param {(path: string) => Promise<string>} [options.readFile] - Override file reader for tests.
  * @returns {Promise<import("./yaml.js").Roster>}
  */

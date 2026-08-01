@@ -166,9 +166,9 @@ test("computeGrowthAlignment reorders within a tier by outcome weight", () => {
   ];
   // Without outcomes: planning and task-completion sort alphabetically.
   const baseline = computeGrowthAlignment({ team, mapData });
-  // With outcomes: same skills exist in the `quality` driver. When one
-  // is associated with a bad percentile and the other isn't, the weighted
-  // one should rise within its tier.
+  // With outcomes: the same skills exist in the `quality` driver. When one
+  // has a bad percentile and the other does not, the weighted one should
+  // rise within its tier.
   const driverScores = new Map();
   driverScores.set("quality", { percentile: 5, vsOrg: -20 });
   const weighted = computeGrowthAlignment({ team, mapData, driverScores });
@@ -178,9 +178,9 @@ test("computeGrowthAlignment reorders within a tier by outcome weight", () => {
   const criticalBaseline = baseline.filter((r) => r.impact === "critical");
   const criticalWeighted = weighted.filter((r) => r.impact === "critical");
   assert.equal(criticalBaseline.length, criticalWeighted.length);
-  // Both task-completion and planning have the same driver weight; the
-  // tiebreaker falls back to name. The assertion here is that the
-  // weighted path still returns both and all skills carry the driver
+  // Both task-completion and planning have the same driver weight. The
+  // tiebreaker falls back to name. This test asserts that the weighted
+  // path still returns both, and that all skills carry the driver
   // context.
   for (const rec of criticalWeighted) {
     if (rec.skill === "task-completion" || rec.skill === "planning") {

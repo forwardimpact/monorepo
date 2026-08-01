@@ -2,8 +2,8 @@
  * @forwardimpact/summit
  *
  * Team capability planning from skill data. Public API re-exports.
- * Grown across parts — downstream consumers (currently Landmark) import
- * from here.
+ * This package grew across parts. Downstream consumers (currently
+ * Landmark) import from here.
  */
 
 export {

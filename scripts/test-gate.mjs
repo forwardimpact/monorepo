@@ -1,23 +1,23 @@
 #!/usr/bin/env node
-// The release-blocking test gate. Runs `node --test` over the gate set — the
-// SAME file selector the `test` script uses, minus the bun-only paths in
-// GATE_EXEMPT_PATHS that `node --test` structurally cannot load — once per file,
-// then enforces:
+// The release-blocking test gate. It runs `node --test` over the gate set, once
+// per file. The gate set is the SAME file selector the `test` script uses,
+// minus the bun-only paths in GATE_EXEMPT_PATHS that `node --test` structurally
+// cannot load. The gate then enforces:
 //
-//   1. the file list is non-empty               (a zero-file selector fails;
+//   1. the file list is non-empty               (a zero-file selector fails.
 //      `node --test` would otherwise exit 0)
 //   2. every file's run exits 0 with `# fail 0`  (a real failure or import-time
 //      throw reddens the gate)
-//   3. every file reports `# tests >= 1`         (catches an erroring `describe`
-//      that silently drops its tests — `node --test` reports `# tests 0`,
-//      exit 0, for that case)
+//   3. every file reports `# tests >= 1`         (this catches a `describe`
+//      that errors and drops its tests silently. `node --test` reports
+//      `# tests 0` and exit 0 for that case)
 //   4. the summed `# tests` >= the committed floor in scripts/test-gate.floor.json
 //
-// `node --test` exits 0 on a zero-test or zero-file run, so THIS wrapper — not
-// node — is what fails an empty, shrunk, or dropped run. The summed count
-// includes node's per-file synthetic subtest, so the floor is a relative
-// shrink-detector, not an exact real-test count; update it (commit the printed
-// value) in the same PR that changes the test population.
+// `node --test` exits 0 on a zero-test or zero-file run. So THIS wrapper fails
+// an empty, shrunk, or dropped run. Node does not. The summed count includes
+// node's per-file synthetic subtest. The floor detects a relative shrink. It
+// does not count the real tests exactly. Update the floor in the same PR that
+// changes the test population. Commit the printed value.
 
 import { execFile, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
@@ -31,9 +31,9 @@ const execFileAsync = promisify(execFile);
 const repoRoot = resolve(new URL("..", import.meta.url).pathname);
 const floorPath = join(repoRoot, "scripts/test-gate.floor.json");
 
-// SINGLE SOURCE OF TRUTH for the gate set. These MUST stay byte-identical to the
-// `test` script's selector in package.json — if they fork, the gate set forks.
-// `tests/test-gate-selector.test.js` asserts the two are identical.
+// SINGLE SOURCE OF TRUTH for the gate set. These MUST stay byte-identical to
+// the `test` script's selector in package.json. If they fork, the gate set
+// forks. `tests/test-gate-selector.test.js` asserts the two are identical.
 export const SELECTOR_DIRS = [
   "./tests",
   "./libraries",
@@ -44,10 +44,11 @@ export const SELECTOR_DIRS = [
 // The `find` predicate, shared with the `test` script's selector.
 //
 // The co-located action homes under ./libraries and ./products are
-// byte-faithful projections of their sibling repos, not authored monorepo
-// source; no sibling ships a *.test.js today, so this prunes them defensively
-// so a future vendored test file never enters the gate set. (.github/actions/
-// bootstrap is not under any SELECTOR_DIRS root, so it needs no prune here.)
+// byte-faithful projections of their sibling repos. They are not authored
+// monorepo source. No sibling ships a *.test.js today. This prunes them
+// defensively, so a future vendored test file never enters the gate set.
+// (.github/actions/bootstrap is not under any SELECTOR_DIRS root, so it needs
+// no prune here.)
 export const SELECTOR_PREDICATE = [
   "-name",
   "*.test.js",
@@ -55,8 +56,8 @@ export const SELECTOR_PREDICATE = [
   "-path",
   "*/node_modules/*",
   // The benchmark fixture family ships hidden-suite check files that are
-  // `*.test.js` by convention (one fails by design); they are fixtures the
-  // harness stages at grade time, never suite members.
+  // `*.test.js` by convention (one fails by design). They are fixtures that
+  // the harness stages at grade time. They are never suite members.
   "-not",
   "-path",
   "./libraries/libharness/test/fixtures/*",
@@ -69,19 +70,21 @@ export const SELECTOR_PREDICATE = [
 ];
 
 // Paths the node gate must NOT run even though they match the shared selector,
-// because `node --test` structurally cannot load them. Each is bun-only by
-// design and stays fully covered by the informational bun `test` job; the shared
-// `find` selector is left byte-identical to the `test` script's (so the bun loop
-// still runs them and the single-source invariant holds), and the gate prunes
-// them here after expansion. The set is enumerated explicitly so it is reviewable
-// and a new unrunnable file is a deliberate addition, never a silent drop.
+// because `node --test` structurally cannot load them. Each one is bun-only by
+// design. The informational bun `test` job still covers each one fully. This
+// file keeps the shared `find` selector byte-identical to the `test` script's,
+// so the bun loop still runs them and the single-source invariant holds. The
+// gate prunes them here after expansion. This list names every path, so a
+// reviewer can check it. A new unrunnable file is then a deliberate addition.
+// It is never a silent drop.
 //
 //   - products/map/test/activity/hosted/*.test.js — these import the Supabase
-//     edge-function shared runtime `_shared/runtime.ts`; `node --test` on the
+//     edge-function shared runtime `_shared/runtime.ts`. `node --test` on the
 //     pinned node major has no TypeScript loader (ERR_UNKNOWN_FILE_EXTENSION
-//     ".ts"), while bun transpiles it. They already run on `node:test` structural
-//     names — they carry no `bun:test` import — but their `.ts` dependency keeps
-//     them bun-only until the edge-function runtime is node-loadable.
+//     ".ts"). Bun transpiles it. These files already run on `node:test`
+//     structural names. They carry no `bun:test` import. But their `.ts`
+//     dependency keeps them bun-only until the edge-function runtime is
+//     node-loadable.
 export const GATE_EXEMPT_PATHS = [
   "products/map/test/activity/hosted/getdx-sync.test.js",
   "products/map/test/activity/hosted/people-upload.test.js",
@@ -99,8 +102,8 @@ function parseCount(stdout, field) {
   return m ? Number(m[1]) : null;
 }
 
-// Classify one file's `node --test` run. Returns { tests } on success or
-// { error } describing the gate violation.
+// Classify one file's `node --test` run. On success it returns { tests }.
+// Otherwise it returns { error }, which describes the gate violation.
 function classifyRun(out, status) {
   const tests = parseCount(out, "tests");
   const fails = parseCount(out, "fail");
@@ -108,10 +111,10 @@ function classifyRun(out, status) {
     return { error: `unparseable test summary (exit ${status})` };
   }
   if (status !== 0 || fails > 0) {
-    return { error: `${fails} failing test(s) (exit ${status})` };
+    return { error: `${fails} failed test(s) (exit ${status})` };
   }
   if (tests < 1) {
-    return { error: "registered 0 tests (dropped/erroring describe?)" };
+    return { error: "registered 0 tests (describe dropped or errored?)" };
   }
   return { tests };
 }
@@ -132,24 +135,24 @@ async function main() {
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean)
-    // Prune the sanctioned bun-only paths; `find` prints them relative to
-    // repoRoot (e.g. ./tests/...), so resolve before comparing (see
+    // Prune the sanctioned bun-only paths. `find` prints them relative to
+    // repoRoot (e.g. ./tests/...), so resolve before you compare (see
     // GATE_EXEMPT_PATHS).
     .filter((f) => !exempt.has(resolve(repoRoot, f)));
 
   if (files.length === 0) {
     fail(
-      "the gate selector matched zero files — discovery failed or the glob is wrong",
+      "the gate selector matched zero files. Discovery failed, or the glob is wrong",
     );
   }
 
-  // Step 2/3 — run one `node --test` per file (the only path that yields a
-  // per-file count — a batched run counts a zero-registration file as 1 via a
-  // synthetic subtest). The TAP reporter is pinned (`--test-reporter=tap`) so
-  // the `# tests`/`# fail` summary the parser reads is deterministic across node
-  // versions: node 22 emitted TAP by default, but node 23+ defaults to the spec
-  // reporter (`ℹ tests N`) when piped, which this parser would not match.
-  // Bounded concurrency keeps wall-clock reasonable.
+  // Step 2/3 — run one `node --test` per file. This is the only path that
+  // yields a per-file count. A batched run counts a zero-registration file as 1
+  // through a synthetic subtest. This code pins the TAP reporter
+  // (`--test-reporter=tap`), so the `# tests`/`# fail` summary the parser reads
+  // is deterministic across node versions. Node 22 emitted TAP by default. Node
+  // 23+ defaults to the spec reporter (`ℹ tests N`) when piped, and this parser
+  // would not match it. Bounded concurrency keeps wall-clock reasonable.
   let totalTests = 0;
   const failures = [];
 

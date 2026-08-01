@@ -1,9 +1,10 @@
 /**
  * Integration test for the Pathway service.
  *
- * Loads the real starter standard data via createDataLoader, constructs the
- * service in-process, and verifies that DescribeJob and DescribeProgression
- * Turtle responses match the underlying libskill output field-by-field.
+ * The test loads the real starter standard data with createDataLoader. It
+ * constructs the service in-process. It verifies that the DescribeJob and
+ * DescribeProgression Turtle responses match the underlying libskill
+ * output, field-by-field.
  */
 
 import { test, describe, before } from "node:test";
@@ -77,8 +78,8 @@ describe("PathwayService integration (starter standard)", () => {
       "expected fit:Job triple in DescribeJob output",
     );
 
-    // Build the set of (skillId, proficiency) tuples from the Turtle and
-    // compare against deriveJob().skillMatrix.
+    // Build the set of (skillId, proficiency) tuples from the Turtle.
+    // Compare the set against deriveJob().skillMatrix.
     const matrixNodes = findAll(quads, {
       subject: jobIri,
       predicate: `${FIT}skillMatrix`,

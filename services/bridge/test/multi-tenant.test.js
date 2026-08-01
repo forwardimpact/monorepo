@@ -35,7 +35,7 @@ function discussion(tenant_id, discussion_id, extra = {}) {
   };
 }
 
-describe("bridge per-tenant scoping", () => {
+describe("bridge per-tenant scope", () => {
   let service;
 
   beforeEach(() => {
@@ -157,7 +157,7 @@ describe("bridge per-tenant scoping", () => {
     );
   });
 
-  test("DrainInbox returns only the requesting tenant's messages", async () => {
+  test("DrainInbox returns only the messages of the tenant in the request", async () => {
     await service.EnqueueInbox({
       tenant_id: A,
       message: { correlation_id: "corr", text: "from-a", author: "u1" },
@@ -206,7 +206,7 @@ describe("bridge per-tenant scoping", () => {
     assert.strictEqual(resolved.link_token, "lt");
   });
 
-  describe("empty tenant_id is rejected with INVALID_ARGUMENT", () => {
+  describe("the service rejects an empty tenant_id with INVALID_ARGUMENT", () => {
     const rejects = (fn) =>
       assert.rejects(fn, (err) => err.code === grpc.status.INVALID_ARGUMENT);
 

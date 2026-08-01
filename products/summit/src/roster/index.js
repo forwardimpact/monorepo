@@ -1,5 +1,5 @@
 /**
- * Public barrel for Summit's roster-loading surface.
+ * Public barrel for the surface that loads Summit rosters.
  */
 
 export { parseRosterYaml } from "./yaml.js";

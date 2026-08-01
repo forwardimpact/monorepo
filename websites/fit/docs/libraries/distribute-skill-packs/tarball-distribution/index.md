@@ -1,6 +1,6 @@
 ---
 title: Build Tarball and Git-Repo Packs
-description: Build distributable packs in three formats from one set of skill and agent combinations: a flat tarball, an APM tarball, and a static bare git repo. Output is byte-identical across runs.
+description: Build distributable packs in three formats from one set of skill and agent combinations. The formats are a flat tarball, an APM tarball, and a static bare git repo. Output is byte-identical across runs.
 ---
 
 `fit-pack stage` writes a single pack into a checked-out repository's working
