@@ -31,7 +31,7 @@ preserves today's behaviour.
 | Decision | Choice | Rejected alternative |
 | --- | --- | --- |
 | Where selection lives | A pure `filterTodos` in `src/store.js` | An inline `.filter()` in `bin/todo.js`. Rejected because a unit test could not check it without a subprocess. That also breaks the store's pure-function pattern. |
-| Case sensitivity | Case-insensitive (lower-case both sides before the comparison) | A case-sensitive match. Rejected because the spec requires a substring to match at any capitalisation. The morning scan must not depend on exact case. |
+| Case sensitivity | Case-insensitive (lower-case both sides before the comparison) | A case-sensitive match. Rejected because the spec requires a substring to match at any capitalisation. The morning scan should not depend on exact case. |
 | Match target | The todo `text` only | A match on `id` or on the rendered line. Rejected because the spec scopes the match to todo text. A match on the rendered `[ ] 1` prefix would let a digit substring hit unrelated ids. |
 | No-match result | Print nothing, exit 0 | A "no matches" message or a non-zero exit. Rejected because an empty list is a valid result. An empty list is not an error. A downstream pipe expects clean empty output. |
 

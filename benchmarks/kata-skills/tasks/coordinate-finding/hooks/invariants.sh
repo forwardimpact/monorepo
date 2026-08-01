@@ -3,7 +3,7 @@ set -u
 TRACKER="$AGENT_CWD/.tracker"
 check() { fit-trace assert "$@" >&"$RESULTS_FD" || true; }
 
-# Resolve the single issue and change the loop must produce. The ids are
+# Resolve the single issue and change the loop produces. The ids are
 # caller-supplied slugs, so glob the tracker store rather than assume a name.
 # Empty globs fall back to a never-present path so the gates still emit rows.
 ISSUE=$(ls "$TRACKER"/issues/*.md 2>/dev/null | head -1)
