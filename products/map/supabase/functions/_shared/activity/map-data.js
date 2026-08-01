@@ -2,14 +2,15 @@
  * Hosted standard-data loader.
  *
  * The artifact-driven evidence producer needs standard data (`mapData`). The
- * CLI loads it from the consuming project's installed standard-data directory,
- * a filesystem that does not exist in the hosted runtime. The hosted path reads
- * a JSON bundle emitted at deploy build (see `fit-map activity
- * bundle-standard-data`), resolved relative to this module.
+ * CLI loads it from the installed standard-data directory in the consuming
+ * project. That filesystem does not exist in the hosted runtime. The deploy
+ * build emits a JSON bundle instead (see `fit-map activity
+ * bundle-standard-data`). The hosted path reads that bundle and resolves its
+ * URL relative to this module.
  *
- * The reader is injected by the caller (the `.ts` wrapper passes a
- * `Deno.readTextFile`-backed reader; tests pass their own), so this module
- * carries no reference to the `Deno` global and imports cleanly under the
+ * The caller injects the reader. The `.ts` wrapper passes a
+ * `Deno.readTextFile`-backed reader. Tests pass their own. So this module
+ * carries no reference to the `Deno` global. It imports cleanly under the
  * Node-based test runner.
  *
  * @typedef {"bundle_absent" | "bundle_malformed"} SkipReason

@@ -28,7 +28,7 @@ const provisionedFs = () =>
   });
 
 describe("WikiSync", () => {
-  test("constructor rejects a missing gitClient", () => {
+  test("constructor rejects a call with no gitClient", () => {
     assert.throws(
       () => new WikiSync({ runtime: createTestRuntime(), wikiDir: WIKI }),
       /gitClient is required/,

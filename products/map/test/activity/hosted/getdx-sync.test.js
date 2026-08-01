@@ -22,7 +22,7 @@ function stubFetch(payload = {}) {
 }
 
 describe("hosted getdx-sync handler", () => {
-  test("criterion 3: extract + snapshot-comment clock paths complete without throwing", async () => {
+  test("criterion 3: extract and snapshot-comment clock paths complete with no error", async () => {
     stubFetch({ teams: [], snapshots: [] });
 
     // Seed a stored snapshot-comments file so the transform reaches its clock read.

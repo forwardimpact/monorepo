@@ -10,5 +10,5 @@ Record per KATA.md § Metrics. Append one row per run.
 | agent_only_merges   | count | Merges that agents authorized and executed alone    | Coding table |
 
 The coding table is run output. It is not memory. The wiki keeps the
-distribution summary and these counts. The next run then re-derives rows from
+distribution summary and these counts. So the next run re-derives rows from
 the tracker. It does not trust a stale table.

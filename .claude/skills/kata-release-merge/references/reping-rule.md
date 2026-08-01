@@ -47,11 +47,11 @@ silently.
 - Most-recent bot comment **within 3 calendar days** → **not due**. Skip it.
   That window covers the first-block comment Steps 2–8 just posted.
 
-When a PR is due, go to [`templates.md`](templates.md) § Re-ping Comments. Post
-the re-ping variant for the PR's block reason
-**already computed in this run's Steps 2–8**. Do not re-run the gates. Do not
-re-`read` the change's CI checks
-([work-trackers.md](../../../agents/x-work-trackers.md)). The failed checks
+When a PR is due, post the matching re-ping variant from
+[`templates.md`](templates.md) § Re-ping Comments. Match it to the PR's block
+reason **already computed in this run's Steps 2–8**. Do not re-run the gates.
+Do not re-`read` the change's CI checks
+([work-trackers.md](../../../agents/x-work-trackers.md)). The failing checks
 and the reason carry from the run's own classification.
 
 ## Owner taxonomy

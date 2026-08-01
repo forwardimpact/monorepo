@@ -2,7 +2,8 @@
  * GitHub Extract
  *
  * Receives a raw GitHub webhook payload and stores it as-is in Supabase
- * Storage. No field extraction, no artifact normalization, no email resolution.
+ * Storage. It does not extract fields. It does not normalize artifacts. It
+ * does not resolve emails.
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";

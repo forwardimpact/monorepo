@@ -3,8 +3,8 @@
  *
  * These constants consolidate the previously-duplicated MAP_DATA, TEAM,
  * SNAPSHOTS, SCORES, EVIDENCE_ROWS, COMMENTS, and PATTERNS fixtures across
- * the landmark test suite. Tests that need a variant should import the base
- * and spread with overrides, e.g.:
+ * the landmark test suite. For a variant, import the base and spread with
+ * overrides, e.g.:
  *
  *   import { MAP_DATA } from "./fixtures.js";
  *   const partial = { ...MAP_DATA, skills: [{ id: "x", name: "X" }] };
@@ -139,7 +139,7 @@ export const PATTERNS = [
 ];
 
 /**
- * Full standard MAP_DATA shared by readiness / health / practiced tests.
+ * Full standard MAP_DATA for the readiness, health, and practiced tests.
  * Contains drivers, skills (with markers for task-completion & planning),
  * levels J040 & J060, one discipline, one track, and empty capabilities.
  */

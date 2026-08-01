@@ -1,8 +1,8 @@
 /**
- * Shared People File Parsers
+ * Shared Parsers for People Files
  *
  * Deno-compatible (no fs import, receives content strings).
- * Used by both the CLI validator and the Supabase edge function.
+ * Both the CLI validator and the Supabase edge function use these parsers.
  */
 
 import { parse as parseYaml } from "yaml";
@@ -19,14 +19,14 @@ export function parseYamlPeople(content) {
   return rows.map((row) => ({
     ...row,
     github_username: row.github_username || row.github || null,
-    // Default to 'human' so legacy YAML files (no `kind` field) keep
-    // ingesting against the new check constraint on organization_people.
+    // Default to 'human' so legacy YAML files (no `kind` field) still
+    // ingest against the new check constraint on organization_people.
     kind: row.kind || "human",
   }));
 }
 
 /**
- * Parse a CSV string into an array of objects using the header row as keys.
+ * Parse a CSV string into an array of objects with the header row as keys.
  * @param {string} csv
  * @returns {Array<object>}
  */

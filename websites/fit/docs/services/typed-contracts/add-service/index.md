@@ -17,8 +17,7 @@ For the full MCP service setup and architecture, see
 
 - Completed the
   [Expose Backend Services as Agent Tools](/docs/services/typed-contracts/)
-  guide. You understand the MCP service architecture. You can connect a
-  client.
+  guide. You understand the MCP service architecture. You can connect a client.
 - A gRPC service with a proto file under `proto/` (or `services/<name>/proto/`).
 - `npx fit-codegen generate --all` available to regenerate client code.
 
@@ -155,9 +154,8 @@ console.log(result.content[0].text.substring(0, 200));
 ```
 
 The MCP service validates the parameters against the codegen-derived schema.
-It creates a typed `GetItemsRequest`. It calls
-`myserviceClient.GetItems(req)`. It returns the content or the resolved
-identifiers.
+It creates a typed `GetItemsRequest`. It calls `myserviceClient.GetItems(req)`.
+It returns the content or the resolved identifiers.
 
 ## How parameter schemas are derived
 

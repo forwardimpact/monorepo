@@ -41,7 +41,7 @@ async function runFixtureMcp(fixture) {
   const mcpUrl = config.url;
   const mcpToken = config.mcpToken();
 
-  // Call each expected tool directly via MCP JSON-RPC
+  // Call each expected tool directly through MCP JSON-RPC
   const toolResults = [];
   for (const toolName of fixture.expected_tools) {
     const res = await fetch(mcpUrl, {

@@ -57,8 +57,8 @@ event-driven responses.
 - [ ] `agent-shift.yml` lists every selected agent in the matrix. It serializes
       them with `max-parallel: 1`.
 - [ ] The dispatch workflow does no prompt assembly. It passes
-      `task-event: ${{ github.event_path }}`. The action composes the task and
-      the recursion guard.
+      `task-event: ${{ github.event_path }}`. The action composes the task,
+      including the recursion guard.
 - [ ] Every generated workflow gates on the killswitch. `kata-agent` workflows
       pass `killswitch: ${{ vars.KATA_KILLSWITCH }}`. The harness-based dispatch
       workflow keeps the inline `Kata killswitch` first step.

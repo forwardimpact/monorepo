@@ -1,12 +1,12 @@
 ---
 title: Gemba
-description: Stand up and operate an agent team — one platform whose CLIs and CI actions run the same loop of bootstrapping the environment, running sessions, inspecting traces, persisting memory, and measuring outcomes.
+description: Stand up and operate an agent team on one platform. Its CLIs and CI actions run the same loop. Bootstrap the environment, run sessions, inspect traces, persist memory, and measure outcomes.
 layout: product
 toc: false
 hero:
   image: /assets/scene-gemba.svg
   alt: An engineer, an AI robot, and a business professional work a staked trail that loops from a tent past run, see, remember, and measure markers
-  subtitle: Go to where the work happens. Gemba is the agent-runtime platform — the command family and CI actions a team uses to stand up coding agents, run sessions, read traces, keep memory, and measure outcomes.
+  subtitle: Go to where the work happens. Gemba is the agent-runtime platform. It gives a team the command family and CI actions to stand up coding agents, run sessions, read traces, keep memory, and measure outcomes.
   cta:
     - label: Get started
       href: "#getting-started"
@@ -15,18 +15,18 @@ hero:
       secondary: true
 ---
 
-Teams that want to run coding agents continuously end up rebuilding the same
-plumbing: a bootstrap script, a session harness, somewhere for traces to go,
-somewhere for memory to live, and a way to tell real improvement from noise.
-Gemba packages that loop as one platform. In Lean practice, *gemba* is the
-actual place where the work happens — this platform is where your agent team
-does.
+Teams that want to run coding agents continuously rebuild the same plumbing.
+That plumbing is a bootstrap script, a session harness, somewhere for traces
+to go, and somewhere for memory to live. It also includes a way to tell real
+improvement from noise. Gemba packages that loop as one platform. In Lean
+practice, *gemba* is the actual place where the work happens. This platform is
+where your agent team does the work.
 
 ## One loop, two surfaces
 
 The runtime loop is **stand up → run → see → remember → measure**. Gemba
-ships it twice — as commands for a terminal, and as composite actions for CI —
-so what a team rehearses locally is exactly what runs on every push.
+ships it twice. It ships commands for a terminal and composite actions for CI.
+What a team rehearses locally is exactly what runs on every push.
 
 ### The command family
 

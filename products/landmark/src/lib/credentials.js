@@ -11,12 +11,12 @@
  *     credentials.json
  *   - $HOME/.config/landmark/credentials.json                 (Linux + other)
  *
- * No dependency on libconfig: that library's "config" bucket is rooted at
- * the codebase's config/ directory, which is right for internal contributors
- * but wrong for external `npx fit-landmark` users.
+ * This module does not depend on libconfig. That library roots its "config"
+ * bucket at the codebase's config/ directory. That location is right for
+ * internal contributors. It is wrong for external `npx fit-landmark` users.
  *
  * Every function takes the injected `runtime` bag (its `fs` async surface and
- * `proc.env` / `proc.platform`) — the bin is the sole construction site
+ * `proc.env` / `proc.platform`). The bin is the sole construction site
  * (design Decision 4). The credentials path resolution and IO never reach for
  * ambient `node:fs` or `process.*`.
  */
@@ -31,13 +31,13 @@ const NAMESPACE = "landmark";
  * Resolve the credentials file path with per-platform precedence.
  *
  * @param {object} runtime - The injected collaborator bag.
- * @param {NodeJS.ProcessEnv} [env] - Env map; defaults to `runtime.proc.env`.
+ * @param {NodeJS.ProcessEnv} [env] - Env map. Defaults to `runtime.proc.env`.
  */
 export function credentialsPath(runtime, env = runtime.proc.env) {
   if (env.LANDMARK_CREDENTIALS_FILE) return env.LANDMARK_CREDENTIALS_FILE;
-  // XDG_CONFIG_HOME is honoured on every platform so a power user can
-  // override the native default. It is set on Linux by default and
-  // sometimes set on macOS by users running Homebrew-style configs.
+  // This function honours XDG_CONFIG_HOME on every platform, so a power
+  // user can override the native default. Linux sets it by default. On
+  // macOS, users who run Homebrew-style configs sometimes set it.
   const xdg = env.XDG_CONFIG_HOME;
   if (xdg) return path.join(xdg, NAMESPACE, FILE_NAME);
   const platform = runtime.proc.platform;
@@ -55,7 +55,7 @@ export function credentialsPath(runtime, env = runtime.proc.env) {
 }
 
 /**
- * Read the persisted session; returns null when no file exists.
+ * Read the persisted session. The function returns null when no file exists.
  *
  * @param {object} runtime - The injected collaborator bag.
  * @param {NodeJS.ProcessEnv} [env]
@@ -72,8 +72,8 @@ export async function readCredentials(runtime, env = runtime.proc.env) {
 }
 
 /**
- * Persist the session. Always writes with 0600 so the access/refresh
- * tokens are owner-readable only.
+ * Persist the session. The function always writes with 0600, so only the
+ * owner can read the access/refresh tokens.
  *
  * @param {object} runtime - The injected collaborator bag.
  * @param {{access_token:string, refresh_token:string, expires_at:number, email:string}} creds
@@ -84,12 +84,13 @@ export async function writeCredentials(runtime, creds, env = runtime.proc.env) {
   await runtime.fs.mkdir(path.dirname(file), { recursive: true });
   const body = JSON.stringify(creds, null, 2);
   await runtime.fs.writeFile(file, body + "\n", { mode: 0o600 });
-  // writeFile's mode only applies on creation; chmod covers the update path.
+  // writeFile's mode only applies on creation. The chmod call covers the
+  // update path.
   if (runtime.proc.platform !== "win32") await runtime.fs.chmod(file, 0o600);
 }
 
 /**
- * Delete the persisted session; no-op if it does not exist.
+ * Delete the persisted session. Do nothing if it does not exist.
  *
  * @param {object} runtime - The injected collaborator bag.
  * @param {NodeJS.ProcessEnv} [env]

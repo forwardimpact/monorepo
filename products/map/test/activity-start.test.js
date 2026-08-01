@@ -1,6 +1,7 @@
 /**
- * Unit test for activity.start()'s output. Stubs supabaseCli + stdout
- * via the DI parameters; asserts the new one-line ready confirmation.
+ * Unit test for activity.start()'s output. The test stubs supabaseCli and
+ * stdout through the DI parameters. It asserts the new one-line ready
+ * confirmation.
  */
 
 import { describe, test } from "node:test";

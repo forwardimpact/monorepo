@@ -41,7 +41,7 @@ describe("runLogoutCommand", () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  test("no-op when no session present", async () => {
+  test("is a no-op when no session exists", async () => {
     const { io, text } = makeIo();
     const result = await runLogoutCommand({ runtime, io, env });
     assert.match(text(), /Already logged out/);

@@ -109,7 +109,7 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-This workflow uses `harness` rather than `kata-agent`. `harness` can pass
+This workflow uses `harness` rather than `kata-agent`, so it can pass
 `task-event` and select `mode` per event. Keep `if:` aligned with `on:`. Pin
 the refs to SHAs at generation time (Dependabot per `SKILL.md`).
 

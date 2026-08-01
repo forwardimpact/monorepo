@@ -81,14 +81,15 @@ jobs:
         run: |
           BIN="dist/binaries/${{ matrix.cli }}"
           if [ "${{ matrix.cli }}" = "fit-codegen" ]; then
-            # fit-codegen generates code. It does not answer --help. Gate it on
-            # a real generate run against the proto set the codegen step above
-            # already resolved. --service --client --definition exercises all
-            # five mustache render paths (service, client, definition, plus the
-            # services-exports and definitions-exports runExports). A compiled
-            # binary previously failed on those paths with "Missing *.mustache".
-            # It skips --type (pbjs subprocess, a separate concern). `set -e`
-            # (the default shell) fails the gate on the binary's non-zero exit.
+            # fit-codegen generates code. A --help gate does not test that
+            # job. Gate it on a real generate run against the proto set the
+            # codegen step above already resolved. --service --client
+            # --definition exercises all five mustache render paths (service,
+            # client, definition, plus the services-exports and
+            # definitions-exports runExports). A compiled binary previously
+            # failed on those paths with "Missing *.mustache". It skips --type
+            # (pbjs subprocess, a separate concern). `set -e` (the default
+            # shell) fails the gate on the binary's non-zero exit.
             "$BIN" generate --service --client --definition
           else
             # Capture stdout+stderr. A CLI that prints --help to stderr must

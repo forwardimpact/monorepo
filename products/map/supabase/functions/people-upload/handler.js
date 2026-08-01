@@ -2,11 +2,11 @@ import { extractPeopleFile } from "../_shared/activity/extract/people.js";
 import { transformPeople } from "../_shared/activity/transform/people.js";
 
 /**
- * Store a people-file upload, then import it.
+ * Store a people-file upload. Then import it.
  *
- * Both phases read the injected clock: `extractPeopleFile` names the stored file
- * by timestamp, and `transformPeople` timestamps the imported rows. Threading
- * the runtime into both is what fixes the live failure on every upload.
+ * Both phases read the injected clock. `extractPeopleFile` names the stored
+ * file by timestamp. `transformPeople` timestamps the imported rows. The
+ * runtime reaches both phases. That fixes the live failure on every upload.
  *
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase
  * @param {{ clock: { now: () => number } }} runtime

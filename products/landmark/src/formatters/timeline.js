@@ -6,11 +6,11 @@ import { isBelowFloor, floorPercentText } from "../lib/confidence-floor.js";
 import { padRight, renderHeader } from "./shared.js";
 
 const LIFT_HINT =
-  "Add artifact-interpreted evidence, run Guide's evaluate-evidence skill, or hand-attest markers via WriteEvidence to lift the floor.";
+  "Add artifact-interpreted evidence, run Guide's evaluate-evidence skill, or hand-attest markers with WriteEvidence to lift the floor.";
 
 function belowFloorBanner(coverage) {
   const pct = (coverage.ratio * 100).toFixed(1);
-  return `Coverage below floor (${pct}% < ${floorPercentText()}) — timeline reflects measurement floor, not absence of growth.`;
+  return `Coverage below floor (${pct}% < ${floorPercentText()}). The timeline reflects the measurement floor. It does not reflect an absence of growth.`;
 }
 
 /** Render the growth timeline as plain text with quarter, skill, and highest-level columns. */

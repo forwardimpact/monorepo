@@ -114,8 +114,8 @@ function validateEntry(entry, entryPath, seenNames) {
 }
 
 /**
- * Reject the deprecated top-level `implementationReference` field with a
- * message pointing at `skill.references`.
+ * Reject the deprecated top-level `implementationReference` field. The
+ * message points at `skill.references`.
  */
 export function validateSkillDeprecatedFields(skill, path) {
   if (skill.implementationReference === undefined) return [];
@@ -129,9 +129,9 @@ export function validateSkillDeprecatedFields(skill, path) {
 }
 
 /**
- * Validate `skill.references` — an optional array of `{name, title, body}`
- * entries that the generator emits as one file per entry under
- * `references/{name}.md`.
+ * Validate `skill.references`. It is an optional array of
+ * `{name, title, body}` entries. The generator emits one file per entry
+ * under `references/{name}.md`.
  */
 export function validateSkillReferences(skill, path) {
   if (skill.references === undefined || skill.references === null) return [];

@@ -20,7 +20,7 @@ export async function getOrganization(supabase) {
 }
 
 /**
- * Get a team by walking the manager_email hierarchy.
+ * Get a team. The query walks the manager_email hierarchy.
  * Returns the manager and all direct/indirect reports.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase - Supabase client
  * @param {string} managerEmail - Email of the team manager

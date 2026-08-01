@@ -1,9 +1,9 @@
 /**
  * View builder for tool entities.
  *
- * Tool entities are derived from the `toolReferences` arrays on skills.
- * The exporter is responsible for aggregating tools across skills before
- * passing them in here. The view builder itself is a pure transform.
+ * Tool entities come from the `toolReferences` arrays on skills. The
+ * exporter aggregates tools across skills. It then passes them in here. The
+ * view builder itself is a pure transform.
  */
 
 import { toolIri, skillIri } from "../iri.js";
@@ -48,8 +48,8 @@ export function buildToolView(tool) {
 }
 
 /**
- * Aggregate tools from a list of skills, deduplicating by name. Returns the
- * raw aggregated objects (not yet transformed into views).
+ * Aggregate tools from a list of skills. Deduplicate by name. Returns the
+ * raw aggregated objects. It does not transform them into views yet.
  *
  * @param {Array} skills
  * @returns {Array<{name: string, url?: string, description?: string, usages: Array}>}

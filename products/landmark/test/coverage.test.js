@@ -52,7 +52,7 @@ describe("coverage command", () => {
     assert.equal(result.view.uncoveredByType.review, 1);
   });
 
-  it("breaks down the numerator by provenance class, zero classes shown", async () => {
+  it("breaks down the numerator by provenance class and shows zero classes", async () => {
     const result = await runCoverageCommand({
       options: { email: "alice@example.com" },
       supabase: {},
@@ -118,7 +118,7 @@ describe("coverage command", () => {
     const ratioIdx = lines.findIndex((l) =>
       l.includes("1/100 artifacts interpreted"),
     );
-    assert.ok(bannerIdx >= 0, "missing banner");
+    assert.ok(bannerIdx >= 0, "banner not found");
     assert.ok(ratioIdx > bannerIdx, "ratio should render after the banner");
     assert.match(text, /producer-skew diagnostic/);
   });
@@ -134,7 +134,7 @@ describe("coverage command", () => {
     assert.ok(result.meta.emptyState.includes("nobody@example.com"));
   });
 
-  it("returns NO_ARTIFACTS when person has no artifacts", async () => {
+  it("returns NO_ARTIFACTS when the person has no artifacts", async () => {
     const result = await runCoverageCommand({
       options: { email: "alice@example.com" },
       supabase: {},

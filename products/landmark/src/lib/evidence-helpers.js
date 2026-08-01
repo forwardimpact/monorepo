@@ -121,8 +121,8 @@ export function computeCoverageRatio(artifacts, unscoredArtifacts) {
 }
 
 /**
- * Filter evidence rows to only those belonging to a set of team emails.
- * Evidence rows carry the email via the joined github_artifacts record.
+ * Filter evidence rows to only those that belong to a set of team emails.
+ * Evidence rows carry the email through the joined github_artifacts record.
  * @param {Array<object>} evidenceRows
  * @param {Set<string>} teamEmails
  * @returns {Array<object>}
@@ -150,8 +150,8 @@ function toQuarter(dateStr) {
 
 /**
  * Count evidence rows per provenance class. Rows whose value falls outside
- * PROVENANCE_CLASSES land in an `unknown` bucket rather than being silently
- * dropped from the visible total.
+ * PROVENANCE_CLASSES land in an `unknown` bucket. The visible total does not
+ * drop them silently.
  * @param {Array<object>} evidenceRows
  * @returns {Record<string, number>}
  */

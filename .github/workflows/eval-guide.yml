@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       task-amend:
-        description: "Extra text appended to the task prompt to steer the run"
+        description: "Additional text appended to the task prompt to steer the run"
         required: false
         type: string
 

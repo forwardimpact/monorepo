@@ -12,7 +12,7 @@ function validateTrackSkillModifiers(track, path) {
       errors.push(
         createError(
           "INVALID_SKILL_MODIFIER_KEY",
-          `Track "${track.id}" has invalid skillModifier key "${key}". Only capability names are allowed: delivery, data, ai, scale, reliability, people, process, business, documentation`,
+          `Track "${track.id}" has invalid skillModifier key "${key}". Use only capability names: delivery, data, ai, scale, reliability, people, process, business, documentation`,
           `${path}.skillModifiers.${key}`,
           key,
         ),

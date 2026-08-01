@@ -1,14 +1,17 @@
 /**
  * Supabase client factory for Landmark.
  *
- * Landmark reads via the per-caller JWT minted under Supabase Auth — never
- * the service-role key (criterion 3a). The service-role client lives only
- * under products/map/src/ for ingestion.
+ * Landmark reads through the per-caller JWT minted under Supabase Auth
+ * (criterion 3a). Landmark never uses the service-role key. The
+ * service-role client lives only under products/map/src/ for ingestion.
  */
 
 import { createClient } from "@supabase/supabase-js";
 
-/** Error thrown when Supabase connection cannot be established due to missing configuration. */
+/**
+ * `createLandmarkClient` throws this when the configuration is absent and
+ * the client cannot connect to Supabase.
+ */
 export class SupabaseUnavailableError extends Error {
   /** Wrap the reason in a prefixed message ("Supabase connection unavailable: <reason>") and attach code "LANDMARK_SUPABASE_UNAVAILABLE". */
   constructor(reason) {
@@ -21,8 +24,8 @@ export class SupabaseUnavailableError extends Error {
  * Create a Supabase client bound to the caller's JWT.
  *
  * @param {object} opts
- * @param {string} opts.jwt - Supabase Auth JWT; transports as Authorization: Bearer.
- * @param {{supabaseUrl: () => string, supabaseAnonKey: () => string}} opts.config - libconfig Config providing the Supabase URL and anon key.
+ * @param {string} opts.jwt - Supabase Auth JWT. Transports as Authorization: Bearer.
+ * @param {{supabaseUrl: () => string, supabaseAnonKey: () => string}} opts.config - libconfig Config that provides the Supabase URL and anon key.
  * @param {string} [opts.schema] - Database schema (default: "activity").
  * @returns {import("@supabase/supabase-js").SupabaseClient}
  */
@@ -39,7 +42,7 @@ export function createLandmarkClient({
     );
   if (!jwt)
     throw new SupabaseUnavailableError(
-      "missing JWT — resolveIdentity must run first",
+      "missing JWT. resolveIdentity must run first",
     );
   let url, anonKey;
   try {
@@ -61,7 +64,7 @@ export function createLandmarkClient({
 
 /**
  * Check if an error is a Postgres "relation not found" error (42P01).
- * Used to detect missing tables gracefully.
+ * Callers use it to detect absent tables gracefully.
  *
  * @param {Error} err
  * @returns {boolean}

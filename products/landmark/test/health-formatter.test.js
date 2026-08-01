@@ -151,7 +151,7 @@ describe("health formatter — default mode", () => {
     );
   });
 
-  it("counts hidden anchors only — vs_org is not counted in More", () => {
+  it("counts hidden anchors only and leaves vs_org out of More", () => {
     const view = {
       teamLabel: "Team",
       drivers: [
@@ -196,7 +196,7 @@ describe("health formatter — default mode", () => {
     const out = toText(SIX_DRIVER_VIEW, { format: "text", warnings: [] });
     const occurrences = out.match(/could develop/g) ?? [];
     // Bob/planning spans Quality + Delivery (1), Alice/incident-response on
-    // Reliability (1) — total 2 unique pairs.
+    // Reliability (1). Total is 2 unique pairs.
     assert.equal(occurrences.length, 2);
   });
 

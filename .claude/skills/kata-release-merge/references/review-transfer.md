@@ -1,6 +1,6 @@
 # Review Transfer
 
-A fail-closed standard that carries an approval signal to a moved phase-PR
+A fail-closed standard to carry an approval signal to a moved phase-PR
 head. When a PR head moves after an approval signal, that signal transfers to
 the new head only when all four points below hold. Any unmet point voids the
 transfer for that signal. Fail-closed means absence of evidence blocks. The

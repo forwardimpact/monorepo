@@ -1,15 +1,15 @@
 /**
  * Dispatcher exit-code test.
  *
- * Spawns the bin/fit-landmark.js entrypoint via `node` with a controlled
- * env and asserts the documented exit codes:
+ * This test spawns the bin/fit-landmark.js entrypoint through `node` with
+ * a controlled env. It asserts the documented exit codes:
  *   - 4: IdentityUnresolvedError (no PRODUCT_LANDMARK_TOKEN)
  *   - 3: SupabaseUnavailableError (token present but no SUPABASE_*)
  *   - 0: marker (needsSupabase: false, dispatcher skips identity)
  *
- * The "no Supabase query before error" guarantee is enforced
- * structurally — resolveIdentity runs before buildContext, which is the
- * only construction site for the Supabase client.
+ * The structure enforces the "no Supabase query before error" guarantee.
+ * resolveIdentity runs before buildContext, and buildContext is the only
+ * construction site for the Supabase client.
  */
 
 import { describe, test } from "node:test";
@@ -31,8 +31,8 @@ const DATA_DIR = resolve(REPO_ROOT, "products", "map", "starter");
 function run(args, env) {
   // Spawn from a clean tmpdir so the bin's createProductConfig("landmark")
   // call doesn't pick up the repo's own .env file. Pin to `node` rather
-  // than `process.execPath` so the dispatcher's exit-code contract is
-  // tested under the same runtime external users invoke it with.
+  // than `process.execPath`. The test then checks the dispatcher's
+  // exit-code contract under the same runtime external users invoke it with.
   const cwd = mkdtempSync(resolve(tmpdir(), "landmark-dispatcher-"));
   try {
     return spawnSync("node", [BIN, ...args], {
@@ -50,7 +50,7 @@ function run(args, env) {
 }
 
 describe("fit-landmark dispatcher exit codes", () => {
-  test("exits 4 when no identity can be resolved on a Supabase-using command", () => {
+  test("exits 4 when it cannot resolve an identity on a command that needs Supabase", () => {
     const res = run(["voice", "--email", "a@b.example", "--data", DATA_DIR], {
       // Point the credentials store at a guaranteed-absent file so the
       // store fallback does not pick up a real engineer's session.
@@ -61,7 +61,7 @@ describe("fit-landmark dispatcher exit codes", () => {
     assert.match(res.stderr, /fit-landmark login/);
   });
 
-  test("exits 3 when token present but SUPABASE_URL is unset", () => {
+  test("exits 3 when the token is present but SUPABASE_URL is unset", () => {
     const token = signTestToken({
       email: "alice@example.com",
       secret: "dispatcher-test-secret",
@@ -77,10 +77,10 @@ describe("fit-landmark dispatcher exit codes", () => {
     assert.match(res.stderr, /SUPABASE_URL and SUPABASE_ANON_KEY must be set/);
   });
 
-  test("marker does not need Supabase and skips identity resolution", () => {
+  test("marker does not need Supabase and does not resolve the identity", () => {
     const res = run(["marker", "task-completion", "--data", DATA_DIR], {});
     // marker may exit 0 (found) or 1 (not found in current dataset) but
-    // must never exit 3 or 4 — those are the dispatcher-error codes the
+    // must never exit 3 or 4. Those are the dispatcher-error codes the
     // chokepoint reserves for needsSupabase: true commands.
     assert.ok(
       res.status === 0 || res.status === 1,

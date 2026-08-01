@@ -63,8 +63,8 @@ instead.
 
 - [ ] Every corpus change has exactly one coded row: attribution, evidence,
       code.
-- [ ] The distribution table gives the count and share per category. It adds
-      an author-to-merger matrix over merged changes.
+- [ ] Compute the distribution table with the count and share per category.
+      Compute an author-to-merger matrix over merged changes.
 - [ ] Every category cites at least one change by number.
 - [ ] Divergences from the stated model each pair the rule with its
       counter-evidence.
@@ -94,9 +94,8 @@ a preformed hypothesis. These disciplines are specific to this interrogation:
   or only cleared an inbox. Merge bursts contradict per-artifact approval
   semantics.
 - **Track precedent chains.** When a merge cites an earlier merge as its
-  authority, follow the chain to its root. An exemption class can trace to an
-  irregular merge instead of a written rule. That class broadens autonomy by
-  itself.
+  authority, follow the chain to its root. If an exemption class traces to an
+  irregular merge instead of a written rule, that autonomy broadens itself.
 - **Memo as you go** (3–5 sentences per surprise), while you code.
   Retrospective summaries are worth less.
 

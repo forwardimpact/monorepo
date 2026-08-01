@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * Auth subcommand dispatch — extracted from `bin/fit-map.js` so the CLI
- * entry point stays under biome's `nursery/noExcessiveLinesPerFile` cap
- * (`biome.json`: `maxLines: 530`), mirroring `dispatch-substrate.js`.
- * Extraction reclaims the headroom the `substrate stage --emit-env` option
- * needs.
+ * Auth subcommand dispatch. This module sits outside `bin/fit-map.js` so the
+ * CLI entry point stays under biome's `nursery/noExcessiveLinesPerFile` cap
+ * (`biome.json`: `maxLines: 530`). `dispatch-substrate.js` follows the same
+ * pattern. The split reclaims the headroom that the
+ * `substrate stage --emit-env` option needs.
  *
  * Callers pass `{ config, mapClient, cli, runtime }` so this module stays
- * dep-free at import time. `runtime` is the injected collaborator bag
- * threaded from `bin/fit-map.js` (the sole construction site).
+ * dep-free at import time. `runtime` is the injected collaborator bag.
+ * `bin/fit-map.js` threads it through. That file is the sole construction
+ * site.
  */
 
 /**

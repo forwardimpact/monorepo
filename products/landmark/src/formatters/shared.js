@@ -1,6 +1,6 @@
 /**
- * Shared rendering helpers used by Landmark formatters.
- * All functions are pure — take explicit parameters, return strings.
+ * Shared rendering helpers that the Landmark formatters use.
+ * All functions are pure. They take explicit parameters and return strings.
  */
 
 /**
@@ -39,7 +39,7 @@ export function formatDelta(value) {
 
 /**
  * Return the English ordinal suffix for a number (e.g. 1 -> "st", 2 -> "nd").
- * Handles the 11/12/13 special cases.
+ * The function handles the 11/12/13 special cases.
  *
  * @param {number} n
  * @returns {string}
@@ -56,8 +56,8 @@ export function ordinalSuffix(n) {
 }
 
 /**
- * Truncate a snippet to `max` chars on a word boundary, appending an
- * ellipsis. Falls through to a hard cut if no boundary exists in the last
+ * Truncate a snippet to `max` chars on a word boundary. Append an ellipsis.
+ * The function falls through to a hard cut if no boundary exists in the last
  * 40% of the slice.
  *
  * @param {string} s

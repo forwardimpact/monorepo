@@ -5,12 +5,12 @@
  */
 
 /**
- * Get evidence rows, optionally filtered by skill or person.
- * Person filtering joins through artifact_id → github_artifacts.email.
+ * Get evidence rows, with optional filters for skill or person.
+ * The person filter joins through artifact_id → github_artifacts.email.
  * @param {import('@supabase/supabase-js').SupabaseClient} supabase - Supabase client
  * @param {Object} [options]
  * @param {string} [options.skillId] - Filter by skill ID
- * @param {string} [options.email] - Filter by person email (via artifact)
+ * @param {string} [options.email] - Filter by person email (through artifact)
  * @returns {Promise<Array<Object>>} Evidence rows
  */
 export async function getEvidence(supabase, options = {}) {
@@ -44,7 +44,7 @@ export async function getEvidence(supabase, options = {}) {
  * @returns {Promise<Array<Object>>} Aggregated evidence patterns
  */
 export async function getPracticePatterns(supabase, options = {}) {
-  // First, get the team emails if filtering by manager
+  // First, get the team emails if the caller filters by manager
   let teamEmails = null;
 
   if (options.managerEmail) {

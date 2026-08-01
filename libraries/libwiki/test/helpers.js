@@ -20,9 +20,11 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
  * @param {string} [options.cwd] - The working directory `proc.cwd()` returns.
  * @param {Record<string,string>} [options.env] - The map that backs `proc.env`.
  * @param {number} [options.now] - Fixed clock time in ms (defaults to real clock).
- * @param {object} [options.fs] - Override for the async fs surface (default real `node:fs/promises`).
- * @param {object} [options.fsSync] - Override for the sync fs surface (default real `node:fs`).
- *   Pass a libmock `createMockFs()` to keep a command's reads/writes in memory.
+ * @param {object} [options.fs] - Override for the async fs surface
+ *   (default real `node:fs/promises`).
+ * @param {object} [options.fsSync] - Override for the sync fs surface
+ *   (default real `node:fs`). Pass a libmock `createMockFs()` to keep a
+ *   command's reads/writes in memory.
  * @returns {{runtime: object, stdout: string, stderr: string}}
  */
 export function makeRuntime({

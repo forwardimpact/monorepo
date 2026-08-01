@@ -1,14 +1,14 @@
 /**
  * Canonical fit-landmark command manifest. The bin imports this and
- * builds its dispatcher COMMANDS map from the same source; the
- * substrate self-smoke imports it directly so its gated-command list
+ * builds its dispatcher COMMANDS map from the same source. The
+ * substrate self-smoke imports it directly, so its gated-command list
  * cannot drift from the dispatcher.
  *
  * Each entry mirrors today's `COMMANDS` shape. `SUBCOMMAND_EXPANSIONS`
  * and `FLAT_SMOKE_OPTIONS` describe the user-visible subcommand
  * expansions and option placeholders the substrate-stage self-smoke
- * supplies; placeholders are expanded at smoke-runtime against the
- * chosen persona and discovery vector.
+ * supplies. The self-smoke expands the placeholders at smoke-runtime
+ * against the chosen persona and discovery vector.
  */
 
 import { runOrgCommand } from "../commands/org.js";
@@ -45,8 +45,9 @@ export const COMMANDS = {
 
 // User-visible subcommand expansions for top-level COMMANDS keys whose
 // libcli `commands` array entries use space-separated names. Each entry
-// names the option flags substrate-stage must supply with placeholders
-// expanded at smoke-runtime: $PERSONA_EMAIL, $SNAPSHOT_ID, $ITEM_ID.
+// names the option flags substrate-stage must supply. The self-smoke
+// expands these placeholders at smoke-runtime: $PERSONA_EMAIL,
+// $SNAPSHOT_ID, $ITEM_ID.
 export const SUBCOMMAND_EXPANSIONS = {
   org: [
     { command: "org show", smokeOptions: {} },

@@ -154,7 +154,7 @@ describe("WikiSync (real git)", () => {
     assert.equal(git(wikiDir, "diff", "origin/master"), "");
   });
 
-  test("commitAndPush lands pre-existing local commits on a clean tree (stranded-resume)", async () => {
+  test("commitAndPush lands local commits that already exist on a clean tree (stranded-resume)", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "ahead");
     git(wikiDir, "checkout", "master");
 

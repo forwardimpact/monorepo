@@ -202,8 +202,7 @@ const definition = {
       name: "commands",
       args: [],
       handler: runCommandsCommand,
-      description:
-        "One record per Bash tool_use block, with the command text",
+      description: "One record per Bash tool_use block, with the command text",
       options: {
         ...fileOption(),
         match: {

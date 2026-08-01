@@ -5,13 +5,13 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCase } from "../../../scripts/capture-cli-golden.mjs";
 
-// Byte-for-byte CLI-contract guard: the bin must keep producing the
-// snapshots captured in golden/jidoka/. Spawn-based replay (unlike the
-// gemba product's in-process render) because the jidoka definition lives
-// inline in the bin, not behind a library export. `runCase` — shared with
-// the capture script so replay and capture semantics cannot drift — applies
-// each case's `transform` regexes (normalising the version) before the
-// comparison.
+// This is the byte-for-byte guard for the CLI contract. The bin must still
+// produce the snapshots that golden/jidoka/ captured. The replay spawns the
+// bin, unlike the gemba product's in-process render, because the jidoka
+// definition lives inline in the bin. No library export holds it. `runCase`
+// applies each case's `transform` regexes, which normalise the version,
+// before the comparison. The capture script shares `runCase`, so replay and
+// capture semantics cannot drift.
 const GOLDEN_DIR = fileURLToPath(new URL("./golden/jidoka", import.meta.url));
 const BIN = fileURLToPath(new URL("../bin/jidoka.js", import.meta.url));
 

@@ -46,7 +46,7 @@ if (!Array.isArray(declared) || declared.length === 0) {
 const errors = [];
 
 if (!existsSync(lockPath)) {
-  console.log("::error::apm-verify: apm.lock.yaml is missing. Declared packs are unresolved.");
+  console.log("::error::apm-verify: apm.lock.yaml is absent. Declared packs are unresolved.");
   process.exit(1);
 }
 

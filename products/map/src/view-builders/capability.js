@@ -1,9 +1,9 @@
 /**
  * View builder for capability entities.
  *
- * Returns the flat shape consumed by `templates/capability.html`. Skills are
- * inlined as nested view models so the template can render them via the
- * `skill-inline.html` partial.
+ * Returns the flat shape that `templates/capability.html` consumes. This
+ * builder inlines skills as nested view models so the template can render
+ * them with the `skill-inline.html` partial.
  */
 
 import { capabilityIri } from "../iri.js";

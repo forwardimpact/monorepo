@@ -4,7 +4,7 @@ description: >
   `path` is a bundle directory (.app), the action submits a zip of it and
   staples the bundle itself. When `path` is a file (.pkg), the action submits
   and staples it directly. The action writes the App Store Connect API key to a
-  temp file. It removes that file on exit, and also on failure.
+  temp file. It removes that file on exit, including on failure.
 
 inputs:
   path:

@@ -26,7 +26,7 @@ shown and post it.
 
 ### CI Failing
 
-Comment with the checks that failed, from the change's CI `read`.
+Comment with the specific checks that failed, from the change's CI `read`.
 
 ### Substantive Conflict
 

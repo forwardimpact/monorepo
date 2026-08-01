@@ -24,7 +24,7 @@ runs:
         # Skip the smoke install when the package's `os` field excludes the
         # runner's platform (npm install would fail with EBADPLATFORM). Negated
         # entries (e.g. "!win32") exclude that platform. Positive entries form
-        # an allowlist. An empty or missing field installs everywhere.
+        # an allowlist. Install everywhere when the field is empty or missing.
         SKIP=$(node -e "
           const p = require('./${DIR_NAME}/package.json');
           const os = Array.isArray(p.os) ? p.os : [];

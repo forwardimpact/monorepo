@@ -101,7 +101,7 @@ in conflict → rebase (Step 5). CI failing → fix (Step 5) or block. An
 approved-and-pinned experiment PR never rebases. Skip to the Step 6 re-block
 ([`experiment-path.md`](references/experiment-path.md)). An
 approved-and-pinned `retention` PR also never rebases. A head delta re-blocks
-it. The gate's own rebase must never silently void the product-manager
+it, so the gate's own rebase never silently voids the product-manager
 approval.
 
 Mark a PR **blocked** when it pins a consumer to a not-yet-published producer.

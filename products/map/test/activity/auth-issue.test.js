@@ -1,7 +1,7 @@
 /**
- * Unit tests for `fit-map auth issue` — uses an in-memory Supabase mock so
- * the verb's branching (missing roster row, missing auth.users row, happy
- * path, --ttl propagation) is covered without a live stack.
+ * Unit tests for `fit-map auth issue`. They use an in-memory Supabase mock.
+ * The mock covers the verb's branches (missing roster row, missing
+ * auth.users row, happy path, --ttl propagation) without a live stack.
  */
 
 import { describe, test, beforeEach } from "node:test";

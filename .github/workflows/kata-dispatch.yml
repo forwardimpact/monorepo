@@ -11,9 +11,10 @@ on:
   # A review submission fires N `pull_request_review_comment.created` events
   # plus one `pull_request_review.submitted` event in the same instant. All of
   # them share the per-PR concurrency group below. With
-  # `cancel-in-progress: false`, concurrent review-comment events race. Each
-  # newly pending run cancels the previously pending one. The cascade cancels
-  # every run before any run reaches `in_progress`, so zero facilitators run.
+  # `cancel-in-progress: false`, each newly pending run cancels the previously
+  # pending one. When concurrent review-comment events race, the cascade
+  # cancels every run before any run reaches `in_progress`, so zero
+  # facilitators run.
   # The `pull_request_review.submitted` payload already carries every inline
   # diff comment in the batch, so the facilitator can read them through the
   # API. If you add the comment trigger back, the race returns and the trigger
@@ -84,9 +85,9 @@ jobs:
     # `merged: true` so abandoned PRs do not fire a run.
     #
     # Trigger surface: this `if:` must stay aligned with the `on:` block above.
-    # There is intentionally no `pull_request_review_comment` clause. The NOTE
-    # on that trigger in `on:` says why a re-added clause reintroduces the
-    # cancel-in-progress race.
+    # There is intentionally no `pull_request_review_comment` clause. See the
+    # NOTE on that trigger in `on:`. It says why a re-added clause reintroduces
+    # the cancel-in-progress race.
     if: >-
       github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && ((github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event.action == 'closed' && github.event.pull_request.merged == true))) || github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest

@@ -1,7 +1,7 @@
 /**
  * Provenance class vocabulary for evidence rows.
- * Shared between WriteEvidence (services/map) and the activity transform
- * producers (products/map/src/activity/transform/).
+ * WriteEvidence (services/map) and the activity transform producers
+ * (products/map/src/activity/transform/) share this vocabulary.
  */
 
 export const PROVENANCE_CLASSES = Object.freeze([
@@ -14,8 +14,8 @@ export const PROVENANCE_CLASSES = Object.freeze([
 const VALID = new Set(PROVENANCE_CLASSES);
 
 /**
- * Throw if `value` is not one of PROVENANCE_CLASSES. Empty / undefined is
- * allowed — callers map it to the DB default before insert.
+ * Throw if `value` is not one of PROVENANCE_CLASSES. An empty or undefined
+ * value passes. Callers map it to the DB default before insert.
  * @param {string | undefined | null} value
  */
 export function assertProvenance(value) {

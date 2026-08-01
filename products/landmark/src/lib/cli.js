@@ -1,9 +1,9 @@
 /**
  * Shared CLI helpers for Landmark command handlers.
  *
- * Resolves the Map data directory from CLI options (or the contributor
- * data finder), loads standard data, and normalizes option lookups used
- * across commands.
+ * This module resolves the Map data directory from CLI options (or from
+ * the contributor data finder). It loads standard data. It normalizes the
+ * option lookups that commands use.
  */
 
 import { homedir } from "node:os";
@@ -19,9 +19,9 @@ export const Format = Object.freeze({
 });
 
 /**
- * Resolve the Map data directory from options, falling back to the
- * contributor data finder. Uses the "pathway" subdirectory — same as
- * Summit and Pathway.
+ * Resolve the Map data directory from options. Fall back to the
+ * contributor data finder. The function uses the "pathway" subdirectory,
+ * the same as Summit and Pathway.
  *
  * @param {object} options - Parsed CLI options.
  * @param {object} runtime - The injected collaborator bag (its `finder`).
@@ -34,7 +34,7 @@ export function resolveDataDir(options, runtime) {
     return join(runtime.finder.findData("data", homedir()), "pathway");
   } catch {
     throw new Error(
-      "landmark: no data directory found. Pass --data <path> pointing at a Map data directory.",
+      "landmark: no data directory found. Pass --data <path> that points at a Map data directory.",
     );
   }
 }

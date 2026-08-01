@@ -1,12 +1,12 @@
 ---
 title: Gear
-description: Shared libraries and services for platform builders and agents — CLIs, retrieval, evaluation, and infrastructure published to npm.
+description: Shared libraries and services for platform builders and agents. Gear publishes CLIs, retrieval, evaluation, and infrastructure to npm.
 layout: product
 toc: false
 hero:
   image: /assets/scene-gear.svg
   alt: An engineer in a hoodie, an AI robot, and a business professional wave hello
-  subtitle: Carry the right gear. Shared libraries and services for platform builders and agents — CLIs, retrieval primitives, evaluation tooling, and service infrastructure published to npm and the forwardimpact/fit-skills skill pack.
+  subtitle: Carry the right gear. Shared libraries and services for platform builders and agents. Gear publishes CLIs, retrieval primitives, evaluation tools, and service infrastructure to npm and the forwardimpact/fit-skills skill pack.
   cta:
     - label: Browse the catalog
       href: https://github.com/forwardimpact/monorepo/tree/main/libraries
@@ -15,19 +15,19 @@ hero:
       secondary: true
 ---
 
-Platform builders composing agentic products need focused, interoperable
-libraries and services — not monolithic frameworks. Gear provides individual
-capabilities that work standalone or together, with humans and agents sharing
-the same interface and documentation.
+Platform builders who compose agentic products need focused, interoperable
+libraries and services. They do not need monolithic frameworks. Gear provides
+individual capabilities that work standalone or together. Humans and agents
+share the same interface and documentation.
 
 ## What becomes possible
 
 ### For Platform Builders
 
 Give humans and agents shared capabilities through the same interface, with
-tooling to prove changes improved outcomes. Every CLI prints
-grep-friendly help and JSON output; every library ships a matching skill in the
-`forwardimpact/fit-skills` pack so agents land on the same docs as humans.
+tools to prove that changes improved outcomes. Every CLI prints grep-friendly
+help and JSON output. Every library ships a matching skill in the
+`forwardimpact/fit-skills` pack. Agents then land on the same docs as humans.
 
 The pack ships these packages, all published to npm under
 `@forwardimpact/lib*` and `@forwardimpact/svc*`:
@@ -46,8 +46,8 @@ and
 
 ### Bridge Threaded Channels to the Agent Team
 
-Ship a chat or discussion adapter without rebuilding the intake skeleton,
-callback registry, and durable thread state from scratch each time.
+Ship a chat or discussion adapter. Do not rebuild the intake skeleton, the
+callback registry, and the durable thread state from scratch each time.
 
 </a>
 
@@ -64,8 +64,8 @@ structured output across web and terminal from shared handler logic.
 
 ### Ground Agents in Context
 
-Answer relationship questions, look up context fast, and give agents typed,
-retrievable knowledge with semantic search — no external database required.
+Answer relationship questions. Look up context fast. Give agents typed,
+retrievable knowledge with semantic search. You need no external database.
 
 </a>
 
@@ -73,8 +73,8 @@ retrievable knowledge with semantic search — no external database required.
 
 ### Ground Service Contracts in One Source
 
-Publish a service proto that resolves on any external install, so consumers
-never chase a shared schema living in a package they never pulled in.
+Publish a service proto that resolves on any external install. Consumers then
+never chase a shared schema that lives in a package they never pulled in.
 
 </a>
 
@@ -82,8 +82,8 @@ never chase a shared schema living in a package they never pulled in.
 
 ### Integrate with the Engineering Standard
 
-Distribute skill packs through the tools agents and engineers already use, and
-turn engineering standard definitions into queryable, derivable data.
+Distribute skill packs through the tools agents and engineers already use.
+Turn engineering standard definitions into queryable, derivable data.
 
 </a>
 
@@ -91,8 +91,8 @@ turn engineering standard definitions into queryable, derivable data.
 
 ### Keep Instruction Layers Honest
 
-Enforce instruction-layer length caps and JTBD invariants automatically, so a
-docs change cannot quietly drift the layered architecture.
+Enforce instruction-layer length caps and JTBD invariants automatically. A
+docs change then cannot quietly drift the layered architecture.
 
 </a>
 
@@ -100,8 +100,8 @@ docs change cannot quietly drift the layered architecture.
 
 ### Keep Service Contracts Typed
 
-Keep JavaScript types in sync with proto definitions and register gRPC services
-as MCP tools from config, with no hand-written glue.
+Keep JavaScript types in sync with proto definitions. Register gRPC services as
+MCP tools from config, with no hand-written glue.
 
 </a>
 
@@ -118,8 +118,8 @@ telemetry, and instruction layers that stay honest.
 
 ### Prove Agent Changes
 
-Get reproducible evidence for whether an agent change actually helped, and
-generate complete eval datasets from a single DSL file.
+Get reproducible evidence for whether an agent change actually helped.
+Generate complete eval datasets from a single DSL file.
 
 </a>
 
@@ -127,7 +127,7 @@ generate complete eval datasets from a single DSL file.
 
 ### Ship Predictable CLIs
 
-Enforce a runtime floor before any heavy import evaluates, so a CLI surfaces
+Enforce a runtime floor before any heavy import evaluates. A CLI then surfaces
 your version error instead of a confusing one from deep in a dependency.
 
 </a>
@@ -137,7 +137,7 @@ your version error instead of a confusing one from deep in a dependency.
 ### Ship Predictable Services
 
 Fail fast at startup before a service constructs partially against an unsafe
-default, turning a silent misconfiguration into a clear early error.
+default. This turns a silent misconfiguration into a clear early error.
 
 </a>
 
@@ -145,7 +145,7 @@ default, turning a silent misconfiguration into a clear early error.
 
 ### Ship Service Endpoints Without Boilerplate
 
-Stand up an HTTP or gRPC endpoint without reimplementing server lifecycle,
+Stand up an HTTP or gRPC endpoint. Do not reimplement server lifecycle,
 security headers, health checks, or transport every time.
 
 </a>
@@ -155,7 +155,7 @@ security headers, health checks, or transport every time.
 ### For Empowered Engineers
 
 Run an agent team that remembers what it learned and acts on real signal. Give
-the team memory that survives across sessions, and separate a genuine shift in a
+the team memory that survives across sessions. Separate a genuine shift in a
 metric from ordinary variation before anyone reacts to it.
 
 <div class="grid">
@@ -164,7 +164,7 @@ metric from ordinary variation before anyone reacts to it.
 
 ### Operate a Predictable Agent Team
 
-Give agent teams memory that persists across sessions, and chart a metric to see
+Give agent teams memory that persists across sessions. Chart a metric to see
 whether its latest move is a real change or just expected variation.
 
 </a>

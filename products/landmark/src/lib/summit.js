@@ -1,21 +1,21 @@
 /**
- * Summit growth alignment wrapper.
+ * Wrapper for Summit growth alignment.
  *
- * Wraps Summit's computeGrowthAlignment with dynamic import for
- * optional runtime. Node caches dynamic import() results at the module
- * level, so no manual cache is needed.
+ * This module wraps Summit's computeGrowthAlignment with a dynamic import
+ * for an optional runtime. Node caches dynamic import() results at the
+ * module level. This module needs no manual cache.
  *
  * Production code uses the `summitFn` injection point on runHealthCommand
- * for DI. This module's computeGrowth is the default wiring; summit.test.js
- * tests it in isolation via __testOverride.
+ * for DI. This module's computeGrowth is the default. summit.test.js tests
+ * it in isolation through __testOverride.
  */
 
 /** Test-only override. Set to a {fn, GrowthContractError} object to bypass import(). */
 let __testOverride = null;
 
 /**
- * Test helper — inject a stub so summit.test.js can exercise computeGrowth
- * without touching node_modules. Pass null to clear.
+ * Test helper — inject a stub for summit.test.js. The test then exercises
+ * computeGrowth and never reads node_modules. Pass null to clear.
  */
 export function __setSummitForTests(override) {
   __testOverride = override ?? null;
@@ -35,9 +35,9 @@ async function loadSummit() {
 }
 
 /**
- * Compute growth recommendations via Summit.
+ * Compute growth recommendations through Summit.
  *
- * @param {object} params - Passed through to computeGrowthAlignment.
+ * @param {object} params - This function passes it to computeGrowthAlignment.
  * @returns {Promise<{available: boolean, recommendations: Array, warnings: string[]}>}
  */
 export async function computeGrowth(params) {
