@@ -12,8 +12,8 @@ import { tmpdir } from "node:os";
 import { execFileSync, spawnSync } from "node:child_process";
 
 // The one allow-listed smoke test per binary: it spawns the real bin to
-// prove the runtime/dispatch wiring end-to-end. Every other libwiki command is
-// covered in-process against injected collaborators.
+// prove the runtime/dispatch wiring end-to-end. In-process tests cover every
+// other libwiki command against injected collaborators.
 const CLI_PATH = new URL("../bin/gemba-wiki.js", import.meta.url).pathname;
 
 describe("gemba-wiki bin smoke", () => {
@@ -57,8 +57,8 @@ describe("gemba-wiki bin smoke", () => {
     );
   });
 
-  test("warns and exits 0 when the wiki tree is missing", () => {
-    // A project root with no wiki/ — e.g. a fresh worktree where bootstrap.sh
+  test("warns and exits 0 when the wiki tree is absent", () => {
+    // A project root with no wiki/, e.g. a fresh worktree where bootstrap.sh
     // never ran. The session Stop hook (`gemba-wiki push`) must not fail loudly.
     const bare = mkdtempSync(join(tmpdir(), "gemba-wiki-nowiki-"));
     writeFileSync(join(bare, "package.json"), '{"name":"root"}');
@@ -67,7 +67,7 @@ describe("gemba-wiki bin smoke", () => {
         cwd: bare,
         encoding: "utf-8",
       });
-      assert.equal(result.status, 0, "missing wiki exits 0");
+      assert.equal(result.status, 0, "absent wiki exits 0");
       assert.match(result.stderr, /no wiki at/);
     } finally {
       rmSync(bare, { recursive: true, force: true });

@@ -52,8 +52,8 @@ synthesis manufactures patterns from noise.
       corpus. Run the method once per cluster.
 - [ ] Close each corpus before you code it. Later items then do not bias the
       codes.
-- [ ] Code in the corpus's own language. Memos and codes go to scratch until
-      you select the proposition. They do not go to the wiki.
+- [ ] Code in the corpus's own language. Memos and codes go to scratch, and
+      not to the wiki, until you select the proposition.
 - [ ] No claim enters the spec or design without an issue/PR number anchor.
 - [ ] Stop at one core category per cluster. If two compete, the cluster is
       really two. Split it and run each separately.

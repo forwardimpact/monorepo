@@ -23,7 +23,7 @@ const definition = {
       args: ["csv-path"],
       argsUsage: "<csv-path>",
       description:
-        "Full XmR control chart report — chart, limits, signals, classification",
+        "Full XmR control-chart report: chart, limits, signals, classification",
       options: {
         metric: {
           type: "string",
@@ -33,12 +33,12 @@ const definition = {
         "event-type": {
           type: "string",
           description:
-            "Filter rows by event_type machine name; use '*' for all rows",
+            "Filter rows by event_type machine name. Use '*' for all rows",
         },
         "prior-read": {
           type: "string",
           description:
-            "Prior-read anchor date (YYYY-MM-DD) — stamps each fired signal with recomputation-revealed or new-point provenance",
+            "Prior-read anchor date (YYYY-MM-DD). The report stamps each fired signal with recomputation-revealed or new-point provenance",
         },
         route: {
           type: "string",
@@ -68,7 +68,7 @@ const definition = {
         "event-type": {
           type: "string",
           description:
-            "Filter rows by event_type machine name; use '*' for all rows",
+            "Filter rows by event_type machine name. Use '*' for all rows",
         },
       },
       handler: runChartCommand,
@@ -82,7 +82,7 @@ const definition = {
         "event-type": {
           type: "string",
           description:
-            "Filter rows by event_type machine name; use '*' for all rows",
+            "Filter rows by event_type machine name. Use '*' for all rows",
         },
       },
       handler: runListCommand,
@@ -109,7 +109,7 @@ const definition = {
         "event-type": {
           type: "string",
           description:
-            "Filter rows by event_type machine name; use '*' for all rows",
+            "Filter rows by event_type machine name. Use '*' for all rows",
         },
       },
       handler: runSummarizeCommand,
@@ -157,7 +157,7 @@ const definition = {
         "event-type": {
           type: "string",
           description:
-            "Workflow machine name; falls back to $GITHUB_WORKFLOW_REF basename",
+            "Workflow machine name. Falls back to $GITHUB_WORKFLOW_REF basename",
         },
         date: {
           type: "string",

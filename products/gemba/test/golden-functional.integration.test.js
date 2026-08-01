@@ -5,13 +5,14 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
-// Real-bin functional CLI-surface guard: spawns the actual
-// `gemba-wiki` bin against a committed audit-clean fixture wiki and asserts
-// the read-only command output (which the capture harness can replay
-// idempotently) is byte-identical to the committed golden. Mutating commands
-// (claim/log/memo/rotate/release/init/push/pull) cannot be replayed
-// idempotently by the capture harness, so their behavioral contract is covered
-// by the in-process per-command tests instead. Spawns the bin → integration file.
+// Real-bin functional CLI-surface guard: it spawns the actual
+// `gemba-wiki` bin against a committed audit-clean fixture wiki. It asserts
+// that the read-only command output is byte-identical to the committed golden.
+// The capture harness can replay that read-only output idempotently. It cannot
+// replay the commands that mutate the wiki
+// (claim/log/memo/rotate/release/init/push/pull) idempotently, so the
+// in-process per-command tests cover their behavioral contract instead. This
+// file spawns the bin, so it is an integration file.
 const GEMBA_DIR = fileURLToPath(new URL("..", import.meta.url));
 const BIN = join(GEMBA_DIR, "bin", "gemba-wiki.js");
 const GOLDEN_DIR = join(GEMBA_DIR, "test", "golden", "gemba-wiki");

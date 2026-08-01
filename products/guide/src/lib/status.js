@@ -11,7 +11,7 @@ function displayUrl(url) {
 }
 
 /**
- * Checks a single gRPC service via Health/Check.
+ * Checks a single gRPC service through Health/Check.
  * @param {object} grpcMod - @grpc/grpc-js module
  * @param {object} healthDef - Health service definition
  * @param {object} config - Service config with host/port
@@ -45,7 +45,7 @@ function checkGrpcHealth(grpcMod, healthDef, config, clock, timeoutMs = 2000) {
 }
 
 /**
- * Checks an HTTP service via its /health endpoint.
+ * Checks an HTTP service through its /health endpoint.
  * @param {string} healthUrl - Full URL to the health endpoint
  * @param {object} clock - Clock collaborator (`setTimeout`/`clearTimeout`)
  * @param {Function} fetchFn - Fetch implementation
@@ -69,10 +69,10 @@ function checkHttpHealth(healthUrl, clock, fetchFn = fetch, timeoutMs = 2000) {
 }
 
 /**
- * Queries graph service for resource and triple counts.
+ * Queries the graph service for resource and triple counts.
  * @param {object} graphConfig - Graph service config
  * @param {import('@forwardimpact/libutil/runtime').Runtime} runtime - Injected
- *   runtime bag, threaded to the client so its auth reads SERVICE_SECRET.
+ *   runtime bag. The client receives it so its auth reads SERVICE_SECRET.
  * @returns {Promise<{resources: number, triples: number}>}
  */
 async function queryDataInventory(graphConfig, runtime) {
@@ -106,10 +106,10 @@ async function queryDataInventory(graphConfig, runtime) {
 }
 
 /**
- * The services `--status` reports on — the same set the starter config
- * declares for supervision (`starter/config.json` `init.services`), the
- * product contract for a working stack. A test pins the two lists
- * together; change them in the same commit.
+ * The services `--status` reports on. The starter config declares the same
+ * set for supervision (`starter/config.json` `init.services`). That set is
+ * the product contract for a working stack. A test pins the two lists
+ * together. Change them in the same commit.
  */
 export const SERVICE_NAMES = [
   "span",
@@ -135,7 +135,7 @@ const HTTP_SERVICES = {
 };
 
 /**
- * Loads configs for all services, tracking failures gracefully.
+ * Loads configs for all services. Tracks failures gracefully.
  * @param {Function} createServiceConfig - Config factory
  * @returns {Promise<{configs: object, configErrors: Set<string>}>}
  */
@@ -153,8 +153,10 @@ async function loadConfigs(createServiceConfig) {
 }
 
 /**
- * Run health checks for all gRPC and HTTP services concurrently via Promise.allSettled.
- * @returns {Promise<object>} Map of service name to {url, status}; url is "unknown" for gRPC services that have no .url field in their config
+ * Run health checks for all gRPC and HTTP services concurrently through
+ * Promise.allSettled.
+ * @returns {Promise<object>} Map of service name to {url, status}. The url is
+ *   "unknown" for gRPC services that have no .url field in their config
  */
 async function checkAllServices(
   grpcMod,
@@ -199,7 +201,8 @@ async function checkAllServices(
 }
 
 /**
- * Check whether an Anthropic API key is resolvable via the config, returning "configured" or "missing".
+ * Check whether the config resolves an Anthropic API key. Return
+ * "configured" or "missing".
  * @param {object} config - Any loaded config (has anthropicToken method)
  * @returns {Promise<string>} "configured" or "missing"
  */
@@ -220,10 +223,10 @@ async function checkAnthropicToken(config) {
  * @param {object} [deps.grpc] - @grpc/grpc-js module (default: real grpc)
  * @param {object} [deps.healthDefinition] - Health service definition (default: real def)
  * @param {Function} [deps.fetch] - Fetch function (default: global fetch)
- * @param {object} deps.clock - Clock collaborator (`now()`); supplied by the
- *   caller from `runtime.clock` (the bin is the sole construction site).
+ * @param {object} deps.clock - Clock collaborator (`now()`). The caller
+ *   supplies it from `runtime.clock` (the bin is the sole construction site).
  * @param {import('@forwardimpact/libutil/runtime').Runtime} [deps.runtime] -
- *   Injected runtime bag, threaded to the graph client so its auth reads
+ *   Injected runtime bag. The graph client receives it so its auth reads
  *   SERVICE_SECRET.
  * @param {Function} [deps.queryDataInventory] - Data inventory query (default: real query)
  * @returns {Promise<object>} Status result object

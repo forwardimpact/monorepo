@@ -18,5 +18,5 @@ Exit the current worktree session and remove it.
    Steps 1–2 are the real safety check. A squash merge always leaves the
    pre-squash commits behind on the branch. The tool may also fail to verify
    worktree state at all. So a plain remove refuses even when everything
-   landed. If step 1 or 2 fails, stop and confirm with the user. You can also
-   preserve the worktree with `action: "keep"`.
+   landed. If step 1 or 2 fails, stop and confirm with the user, or preserve
+   the worktree with `action: "keep"`.

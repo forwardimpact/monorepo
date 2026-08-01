@@ -469,10 +469,11 @@ describe("WikiSync", () => {
     });
   });
 
-  test("commitAndPush does NOT mint success on a failing push (inverted: phantom-success defect)", async () => {
+  test("commitAndPush does NOT mint success on a push that fails (inverted: phantom-success defect)", async () => {
     // This row formerly locked in the fire-and-forget phantom-success defect
-    // (returned pushed:true regardless). Inverted to the honest contract: a push that
-    // throws at transport surfaces a transport failure, never a landed success.
+    // (returned pushed:true regardless). The row now states the honest
+    // contract. A push that throws at transport surfaces a transport failure.
+    // It never surfaces a landed success.
     const { git, wikiSync } = make({
       fsSync: provisionedFs(),
       responses: {
@@ -493,7 +494,7 @@ describe("WikiSync", () => {
     );
   });
 
-  test("pull tolerates a failing fetch and still rebases", async () => {
+  test("pull tolerates a fetch that fails and still rebases", async () => {
     const { git, wikiSync } = make({
       responses: { rebase: { exitCode: 0, stderr: "" } },
     });
@@ -523,7 +524,7 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     );
   }
 
-  test("precondition: rebase-in-progress refuses before mutating", async () => {
+  test("precondition: rebase-in-progress refuses before any mutation", async () => {
     const { git, wikiSync } = make({
       responses: { ...HEALTHY_PUSH, status: DIRTY, rebase: { exitCode: 0 } },
       fsSync: createMockFs({ [`${WIKI}/.git/rebase-merge`]: "" }),
@@ -540,10 +541,10 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     );
   });
 
-  test("detached HEAD refuses before mutating (ancestry guard — D7 seam defers to 1750)", async () => {
-    // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard, which
-    // refuses with an AncestryRefusal ("unverifiable") before any mutation —
-    // the ancestry guard owns the reason naming for that fixture.
+  test("detached HEAD refuses before any mutation (ancestry guard, D7 seam defers to 1750)", async () => {
+    // The detached-HEAD D7 fixture collapses onto 1750's ancestry guard. The
+    // guard refuses with an AncestryRefusal ("unverifiable") before any
+    // mutation. The ancestry guard names the reason for that fixture.
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -565,7 +566,7 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
       responses: {
         ...HEALTHY_PUSH,
         status: DIRTY,
-        rebase: { exitCode: 0, stderr: "" }, // rebase succeeds; pop conflicts
+        rebase: { exitCode: 0, stderr: "" }, // rebase ok but pop conflicts
         statusPorcelain: { stdout: "UU foreign.md\n", stderr: "", exitCode: 0 },
         revParse: "stash5ha",
       },
@@ -584,7 +585,10 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     assert.equal(caught.stashSha, "stash5ha");
     const m = git.calls.map((c) => c.method);
     assert.ok(!m.includes("pushPorcelain"), "no push on residue-conflict");
-    assert.ok(!m.includes("stashDropBySha"), "stash is preserved, not dropped");
+    assert.ok(
+      !m.includes("stashDropBySha"),
+      "commitAndPush preserves the stash and does not drop it",
+    );
   });
 
   test("rejected after a successful fetch", async () => {
@@ -642,15 +646,15 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
   });
 
   test("occurrence-#41: success prose + zero exit but ref not updated ⇒ failure", async () => {
-    // Inadmissible channels report success (prose, exit 0) while the per-ref
-    // report says NOT updated and the remote tip does not advance.
+    // Inadmissible channels report success (prose, exit 0). The per-ref
+    // report says NOT updated, and the remote tip does not advance.
     const { wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,
         status: DIRTY,
         rebase: { exitCode: 0 },
         pushPorcelain: {
-          // exit 0 + reassuring prose, but the per-ref flag is `!` (rejected)
+          // exit 0 + success prose, but the per-ref flag is `!` (rejected)
           stdout:
             "Everything up-to-date\n!\trefs/heads/master:refs/heads/master\t[remote rejected]\n",
           stderr: "",
@@ -674,8 +678,9 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
         pushPorcelain: { stdout: "garbage\n", stderr: "", exitCode: 0 },
       },
     });
-    // First remoteRefTip = pre-push grounding (not contained); second = post-push
-    // grounding after the ambiguous report. isAncestor true on the post-push read.
+    // The first remoteRefTip grounds the pre-push check (not contained). The
+    // second grounds the post-push check after the ambiguous report.
+    // isAncestor is true on the post-push read.
     git.isAncestor = async (_a, _b) => tipCalls++ > 0;
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.equal(result.landed, true);
@@ -699,7 +704,7 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "D\tweekly-log.md",
     });
-    // Remote has content; HEAD dropped the whole file.
+    // The remote has content. HEAD dropped the whole file.
     git.showFile = async (ref) =>
       ref === REMOTE_TIP ? "foreign run record\n" : "";
     await rejectsReason(
@@ -727,9 +732,10 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     const { git, wikiSync } = conservationFixture({
       diffNameStatus: "M\tMEMORY.md",
     });
-    // The release exemption is honored only when HEAD descends from the remote
-    // tip (an authored release, not a stale-base drop). isAncestor("HEAD", tip)
-    // is false (so not nothing-to-push); isAncestor(tip, "HEAD") is true.
+    // The guard honors the release exemption only when HEAD descends from the
+    // remote tip. That means an authored release. It is not a stale-base drop.
+    // isAncestor("HEAD", tip) is false (so not nothing-to-push).
+    // isAncestor(tip, "HEAD") is true.
     git.isAncestor = async (ancestor) => ancestor === REMOTE_TIP;
     git.showFile = async (ref) =>
       ref === REMOTE_TIP ? "| me | spec-9 | b | - | d | e |\n" : "";
@@ -740,7 +746,7 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     assert.equal(result.reason, PUSH_REASONS.LANDED);
   });
 
-  test("conservation: declared removal via the intent sidecar passes (and survives retry)", async () => {
+  test("conservation: declared removal through the intent sidecar passes (and survives retry)", async () => {
     const { git, wikiSync } = make({
       responses: {
         ...HEALTHY_PUSH,
@@ -763,7 +769,7 @@ describe("WikiSync honest-outcome contract (the honest commitAndPush contract)",
     const { wikiSync } = conservationFixture({
       diffNameStatus: "M\tMEMORY.md",
     });
-    // Remote content is fully present in HEAD (HEAD only added) ⇒ no drop.
+    // The remote content is fully present in HEAD (HEAD only added) ⇒ no drop.
     // showFile default ("" both sides) ⇒ #dropsForeignContent returns false.
     const result = await wikiSync.commitAndPush("wiki: update");
     assert.equal(result.landed, true);

@@ -1,18 +1,17 @@
 ---
 title: Expose Backend Services as Agent Tools
-description: Every gRPC endpoint becomes an agent tool from a single configuration file — no per-endpoint integration code.
+description: Every gRPC endpoint becomes an agent tool from a single configuration file, with no per-endpoint integration code.
 ---
 
-You have several gRPC services (graph, vector, pathway, map) and you need
-agents to reach them as tools. Writing a separate MCP wrapper for each service
-means duplicating schema translation, session management, and authentication
-logic. The MCP service reads a single tool configuration from
-`config/config.json`, creates gRPC clients for each backend, and exposes every
-configured endpoint as a typed MCP tool through one HTTP/SSE server.
+You have several gRPC services (graph, vector, pathway, map). You need agents
+to reach them as tools. A separate MCP wrapper for each service duplicates
+schema translation, session management, and authentication logic. The MCP
+service reads a single tool configuration from `config/config.json`. It
+creates gRPC clients for each backend. It exposes every configured endpoint as
+a typed MCP tool through one HTTP/SSE server.
 
-This guide walks through understanding the configuration, starting the MCP
-service, connecting a client, and verifying that backend RPCs are reachable as
-agent tools.
+This guide shows how to understand the configuration, start the MCP service,
+connect a client, and verify that backend RPCs are reachable as agent tools.
 
 ## Prerequisites
 
@@ -22,7 +21,7 @@ agent tools.
 - The `MCP_TOKEN` environment variable set (the MCP service requires a bearer
   token for authentication)
 
-Install the MCP SDK if you are building a client:
+Install the MCP SDK if you build a client:
 
 ```sh
 npm install @modelcontextprotocol/sdk
