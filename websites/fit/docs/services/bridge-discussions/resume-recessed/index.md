@@ -106,7 +106,7 @@ Either way, re-dispatch goes through the shared `Dispatcher`:
    `adjourned` with final replies. A second `recessed` is also valid.
    `ResumeScheduler` then tracks the new RFC the same way.
 
-## Accumulate replies before the trigger fires
+## Accumulate replies when no trigger fires
 
 If an RFC is open and a comment arrives but the trigger does not yet
 fire (e.g., `replies: 3` and only one comment arrived):

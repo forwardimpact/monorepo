@@ -10,7 +10,7 @@ describe("getItemsByIds", () => {
     { id: "c", name: "Charlie" },
   ];
 
-  test("returns matching items in order of IDs", () => {
+  test("returns items that match, in order of IDs", () => {
     const result = getItemsByIds(items, ["c", "a"]);
     assert.strictEqual(result.length, 2);
     assert.strictEqual(result[0].id, "c");

@@ -42,14 +42,14 @@ Rationale for panels, sizes, and scope:
 2. **Do not share a scratchpad or cross-feed reviewer output.** Correlated
    errors collapse the ensemble back to one reviewer's signal.
 
-3. **Collect all N findings reports** before you merge. An absent report is not
-   a pass. Re-spawn that reviewer.
+3. **Collect all N findings reports** before you merge. An absent report never
+   passes. Re-spawn that reviewer.
 
 ## How to Merge Findings
 
 Merge findings **within each panel independently**. When an artifact has
 multiple panels (e.g., technical + product for specs), run the steps below once
-per panel. Then combine the results. Do not cross-vote across panels. Each
+per panel, then combine the results. Never cross-vote across panels. Each
 panel's consensus threshold applies to its own reviewers.
 
 Findings arrive under `### Blocker` / `### High` / `### Medium` / `### Low`.

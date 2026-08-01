@@ -302,13 +302,12 @@ export class GhBridgeService {
       return c.body(null, 200);
     }
 
-    // Extract the tenant per request in multi-tenant mode. The inbound
-    // delivery names one repository. Resolve it to an active tenant before any
-    // store write or dispatch, so the downstream Dispatcher and
-    // DiscussionAdapter scope every RPC by the resolved tenant. The handler
-    // drops a delivery from an unknown or non-active tenant (204).
-    // Single-tenant deployments rely on the DefaultTenantResolver
-    // (`tenant_id = "default"`) and skip this branch.
+    // Extract the tenant per request in multi-tenant mode. The inbound delivery
+    // names one repository. Resolve it to an active tenant before any store
+    // write or dispatch. The downstream Dispatcher and DiscussionAdapter then
+    // scope every RPC by the resolved tenant. The handler drops a delivery from
+    // an unknown or non-active tenant (204). Single-tenant deployments rely on
+    // the DefaultTenantResolver (`tenant_id = "default"`) and skip this branch.
     let tenant;
     if (this.#multiTenant) {
       tenant = await extractTenant(body, this.#tenantResolver);

@@ -46,7 +46,7 @@ describe("formatters/shared", () => {
       assert.strictEqual(trimRequired(null), "");
     });
 
-    test("preserves original if trim would result in empty", () => {
+    test("preserves the original if the trim would produce an empty string", () => {
       assert.strictEqual(trimRequired("\n"), "\n");
     });
   });
@@ -64,7 +64,7 @@ describe("formatters/shared", () => {
       assert.deepStrictEqual(splitLines(""), []);
     });
 
-    test("trims trailing newlines before splitting", () => {
+    test("trims trailing newlines before it splits the string", () => {
       assert.deepStrictEqual(splitLines("a\nb\n\n"), ["a", "b"]);
     });
   });
@@ -122,13 +122,13 @@ describe("formatters/shared", () => {
   });
 
   describe("objectToMarkdownList", () => {
-    test("formats key-value pairs as markdown list", () => {
+    test("formats key-value pairs as a markdown list", () => {
       const result = objectToMarkdownList({ scope: "Team", autonomy: "High" });
       assert.ok(result.includes("- **Scope**: Team"));
       assert.ok(result.includes("- **Autonomy**: High"));
     });
 
-    test("applies indentation", () => {
+    test("indents the output", () => {
       const result = objectToMarkdownList({ key: "value" }, 2);
       assert.ok(result.startsWith("    - **Key**: value"));
     });
@@ -175,7 +175,7 @@ describe("formatters/shared", () => {
   });
 
   describe("truncate", () => {
-    test("returns text unchanged if within limit", () => {
+    test("returns text unchanged if it is within the limit", () => {
       assert.strictEqual(truncate("hello", 10), "hello");
     });
 

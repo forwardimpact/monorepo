@@ -30,8 +30,8 @@ Every `MintInstallationToken` call:
    `@octokit/auth-app` custody.
 
 The service scopes the token to the resolved installation, so nobody can
-reuse a token from one customer repo on another (the `@octokit/auth-app`
-memoization key is the `installation_id`).
+reuse a token from one customer repo on another. The `@octokit/auth-app`
+memoization key is the `installation_id`.
 
 ## Credential custody and the deferred substrate
 

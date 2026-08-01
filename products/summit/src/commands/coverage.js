@@ -1,9 +1,10 @@
 /**
  * `fit-summit coverage <team>` — show a team's capability coverage.
  *
- * Loads the roster, resolves the requested team, computes coverage via
- * the aggregation primitives from Part 02, applies the audience filter,
- * then dispatches to a text / JSON / markdown formatter.
+ * The command loads the roster. It resolves the requested team. It
+ * computes coverage with the aggregation primitives from Part 02. It
+ * applies the audience filter. Then it dispatches to a text, JSON, or
+ * markdown formatter.
  */
 
 import { loadRoster } from "../roster/index.js";
@@ -83,7 +84,7 @@ function resolveTarget(args, options) {
   const teamId = args[0];
   if (!teamId) {
     throw new Error(
-      "summit: a team id is required. Usage: fit-summit coverage <team> or fit-summit coverage --project <name>.",
+      "summit: coverage requires a team id. Usage: fit-summit coverage <team> or fit-summit coverage --project <name>.",
     );
   }
   return { teamId };

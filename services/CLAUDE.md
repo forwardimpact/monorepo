@@ -61,8 +61,8 @@ See [`config/CLAUDE.md`](../config/CLAUDE.md) and
 
 Most services expose gRPC (`proto/`). HTTP services standardize on `libhttp`'s
 `createHttpService` (Hono + `@hono/node-server`). `oauth` uses it directly.
-`ghbridge`/`msbridge` use it through `libbridge`. `mcp` uses a raw req/res
-escape hatch.
+`ghbridge`/`msbridge` use it through `libbridge`. `mcp` uses it through a raw
+req/res escape hatch.
 
 Each service follows the same structure:
 

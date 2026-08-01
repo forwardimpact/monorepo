@@ -1,5 +1,5 @@
 /**
- * Tests for skill multiple references.
+ * Tests for multiple references on a skill.
  *
  * Covers:
  *  - formatReference(entry, template) byte shape
@@ -7,9 +7,9 @@
  *  - skillToMarkdown per-entry `## {title}` emission (§ 7)
  *  - prepareSkillDetail SkillDetailView.references shape (criterion 5/6 prep)
  *
- * DOM-formatter coverage relies on the build-packs.test.js integration test
- * which exercises the starter pipeline end-to-end (the DOM renderer requires
- * a real browser document, not available under bun:test).
+ * DOM-formatter coverage relies on the build-packs.test.js integration test.
+ * That test exercises the starter pipeline end-to-end. The DOM renderer needs
+ * a real browser document, which bun:test does not provide.
  */
 
 import { test, describe, beforeEach, afterEach } from "node:test";
@@ -53,7 +53,7 @@ describe("formatReference(entry, template)", () => {
     assert.strictEqual(out, "# Runbooks\n\nStep one.\nStep two.\n");
   });
 
-  test("triple-brace template avoids HTML escaping", () => {
+  test("triple-brace template does not escape HTML", () => {
     const out = formatReference(
       { name: "x", title: "T<&>", body: "Body <html>." },
       REFERENCE_TEMPLATE,
@@ -116,7 +116,7 @@ describe("writeSkillReferences", () => {
     assert.strictEqual(runbooks, "# Runbooks\n\nBody A.\n");
   });
 
-  test("wipes pre-existing references/ before writing (criterion 6)", async () => {
+  test("wipes pre-existing references/ before it writes (criterion 6)", async () => {
     const refDir = join(skillDir, "references");
     await mkdir(refDir, { recursive: true });
     await writeFile(join(refDir, "stale.md"), "leftover", "utf-8");
@@ -186,7 +186,7 @@ describe("skillToMarkdown — references loop", () => {
 });
 
 describe("prepareSkillDetail — references field", () => {
-  test("missing references defaults to empty array", () => {
+  test("defaults to an empty array when references is absent", () => {
     const view = prepareSkillDetail(baseSkill, baseContext);
     assert.deepStrictEqual(view.references, []);
   });

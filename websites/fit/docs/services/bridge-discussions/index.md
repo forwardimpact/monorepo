@@ -173,7 +173,7 @@ decides what happens next:
 | `recessed`    | `ResumeScheduler.enterRecess(...)` persists the trigger on `open_rfcs[correlation_id]`. It arms an elapsed timer if the trigger has an elapsed component. The bridge re-dispatches with `resume_context` when the trigger fires. |
 | `failed`      | `ResumeScheduler.cancelRecess(...)` clears the state. The bridge posts `payload.summary` as an additional standalone comment on the thread. No re-dispatch. |
 
-You have reached the outcome of this guide when:
+You reach the outcome of this guide when:
 
 - A new discussion in the configured repository receives an "EYES"
   reaction within seconds of the post. The reaction disappears once the

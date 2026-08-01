@@ -118,7 +118,7 @@ Live sites share the same deployment pattern. Workflows in
 The Monorepo site is built but not yet published.
 
 A push to `main` (path-filtered) triggers: build with `fit-doc`, upload
-artifact, dispatch to the pages repo through a GitHub App token. The pages repo
+artifact, dispatch to the pages repo through a GitHub App token. That repo
 deploys to GitHub Pages.
 
 The FIT workflow also copies schemas (JSON from `libraries/libskill/schema/`,

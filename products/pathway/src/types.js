@@ -3,7 +3,7 @@
  *
  * Central type definitions for component contracts.
  * Components import these types for JSDoc documentation.
- * Presenters return data matching these shapes.
+ * Presenters return data that matches these shapes.
  */
 
 // ============================================================================
@@ -11,9 +11,9 @@
 // ============================================================================
 
 /**
- * Skill matrix item for display in skill-matrix component
+ * Skill matrix item that the skill-matrix component displays
  * @typedef {Object} SkillMatrixItem
- * @property {string} skillId - Skill ID for linking
+ * @property {string} skillId - Skill ID for the link
  * @property {string} skillName - Display name
  * @property {string} capability - Skill capability (e.g., "broad", "technical")
  * @property {boolean} [humanOnly] - Whether this skill requires human presence
@@ -27,9 +27,9 @@
 // ============================================================================
 
 /**
- * Behaviour profile item for display in behaviour-profile component
+ * Behaviour profile item that the behaviour-profile component displays
  * @typedef {Object} BehaviourProfileItem
- * @property {string} behaviourId - Behaviour ID for linking
+ * @property {string} behaviourId - Behaviour ID for the link
  * @property {string} behaviourName - Display name
  * @property {'emerging'|'developing'|'practicing'|'role-modeling'|'exemplifying'} maturity - Maturity level
  * @property {string} maturityDescription - Human-readable maturity description
@@ -43,7 +43,7 @@
 /**
  * Skill change item for progression table
  * @typedef {Object} SkillChangeItem
- * @property {string} id - Skill ID for linking
+ * @property {string} id - Skill ID for the link
  * @property {string} name - Display name
  * @property {string} capability - Skill capability
  * @property {'core'|'supporting'|'broad'|'track'} type - Skill tier
@@ -53,13 +53,13 @@
  * @property {number} targetIndex - Target level as 0-5 index
  * @property {number} change - Level difference (positive = upgrade)
  * @property {boolean} isGained - True if skill is new in target role
- * @property {boolean} isLost - True if skill is removed in target role
+ * @property {boolean} isLost - True if the target role removes the skill
  */
 
 /**
  * Behaviour change item for progression table
  * @typedef {Object} BehaviourChangeItem
- * @property {string} id - Behaviour ID for linking
+ * @property {string} id - Behaviour ID for the link
  * @property {string} name - Display name
  * @property {string} currentLevel - Current maturity (or null if new)
  * @property {string} targetLevel - Target maturity (or null if removed)
@@ -67,7 +67,7 @@
  * @property {number} targetIndex - Target maturity as 0-4 index
  * @property {number} change - Maturity difference (positive = upgrade)
  * @property {boolean} isGained - True if behaviour is new in target role
- * @property {boolean} isLost - True if behaviour is removed in target role
+ * @property {boolean} isLost - True if the target role removes the behaviour
  */
 
 // ============================================================================
@@ -75,15 +75,15 @@
 // ============================================================================
 
 /**
- * Driver coverage item for driver coverage display
+ * Driver coverage item for the driver-coverage display
  * @typedef {Object} DriverCoverageItem
  * @property {string} id - Driver ID
  * @property {string} name - Display name
  * @property {number} coverage - Overall coverage percentage (0-100)
  * @property {number} skillsCovered - Number of skills covered
- * @property {number} skillsTotal - Total skills required by driver
+ * @property {number} skillsTotal - Total skills the driver requires
  * @property {number} behavioursCovered - Number of behaviours covered
- * @property {number} behavioursTotal - Total behaviours required by driver
+ * @property {number} behavioursTotal - Total behaviours the driver requires
  */
 
 // ============================================================================
@@ -106,7 +106,7 @@
 /**
  * Card list item for list/card views
  * @typedef {Object} CardListItem
- * @property {string} id - Item ID for linking
+ * @property {string} id - Item ID for the link
  * @property {string} name - Display name
  * @property {string} [description] - Optional description
  * @property {string} [href] - Link destination
@@ -119,7 +119,7 @@
 // ============================================================================
 
 /**
- * Interview question for display
+ * Interview question to display
  * @typedef {Object} InterviewQuestionItem
  * @property {string} targetId - Skill or behaviour ID
  * @property {string} targetName - Skill or behaviour name
@@ -130,7 +130,7 @@
  */
 
 /**
- * Interview section grouping questions
+ * Interview section that groups questions
  * @typedef {Object} InterviewSectionItem
  * @property {string} id - Section ID (skill or behaviour ID)
  * @property {string} name - Section name
@@ -143,5 +143,5 @@
 // Exports (for JSDoc imports)
 // ============================================================================
 
-// Types are exported via JSDoc @typedef, not runtime exports.
-// Components import types using: /** @typedef {import('../types.js').TypeName} TypeName */
+// JSDoc @typedef exports the types. The file has no runtime exports.
+// Components import types with: /** @typedef {import('../types.js').TypeName} TypeName */

@@ -1,14 +1,14 @@
 /**
  * Baseline regression tests for `fit-pathway agent`.
  *
- * Case 1 (byte-identical-absent) reads a captured baseline fixture and
- * compares the generator's output against it, with the slot file removed.
+ * Case 1 (byte-identical-absent) removes the slot file. It then reads a
+ * captured baseline fixture and compares the generator's output against it.
  * This anchors the "absent slot produces output identical to baseline"
  * invariant to an empirical snapshot.
  *
  * Case 2 (populated-starter) runs against the unmodified starter (slot
- * present) and asserts the rendered file carries the placeholder values
- * verbatim — what the starter teaches new installers.
+ * present). It asserts that the rendered file carries the placeholder
+ * values verbatim. The starter teaches those values to new installers.
  */
 
 import { test, describe } from "node:test";
@@ -118,7 +118,7 @@ describe("agent baseline regression", () => {
       // YAML key form must not leak (the renderer emits prose bullets).
       assert.ok(!rendered.includes("manager: athena"));
 
-      // Section is appended after the existing teamInstructions body.
+      // The renderer appends the section after the teamInstructions body.
       const tiAnchor = "Treat the platform as a"; // from starter's platform.yaml
       const tiIdx = rendered.indexOf(tiAnchor);
       const sectionIdx = rendered.indexOf("## Organizational Context");
