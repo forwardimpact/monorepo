@@ -25,20 +25,22 @@ import { fileURLToPath } from "node:url";
 const repoRoot = resolve(new URL("..", import.meta.url).pathname);
 const SELF = resolve(new URL(import.meta.url).pathname);
 
-// No file anywhere in the repo may import `bun:test` — the whole suite runs on
-// `node:test`. The exemption list is empty; it stays here (exported, repo-relative)
-// so a future sanctioned bun-only path can be added in one place and so
-// `tests/test-gate-selector.test.js` can assert the guard exemption stays a
-// subset of the node gate's (`scripts/test-gate.mjs` GATE_EXEMPT_PATHS).
+// No file anywhere in the repo may import `bun:test`. The whole suite runs on
+// `node:test`. The exemption list is empty. It stays here (exported,
+// repo-relative) so a maintainer can add a future sanctioned bun-only path in
+// one place. It also lets `tests/test-gate-selector.test.js` assert that the
+// guard exemption stays a subset of the node gate's (`scripts/test-gate.mjs`
+// GATE_EXEMPT_PATHS).
 export const EXEMPT_RELATIVE_PATHS = [];
 const EXEMPT_PATHS = new Set(
   EXEMPT_RELATIVE_PATHS.map((p) => resolve(repoRoot, p)),
 );
 
-// Matches a static/dynamic import, re-export, or require of the bun test
-// module, with arbitrary whitespace before the quote. A naive pattern that
-// requires the quote to abut the keyword would match none of the real imports
-// (which have a space before the quote); this one is whitespace-tolerant.
+// Matches a static import, a dynamic import, a re-export, or a require of the
+// bun test module, with arbitrary whitespace before the quote. A naive pattern
+// that requires the quote to abut the keyword would match none of the real
+// imports, because the real imports have a space before the quote. This
+// pattern tolerates the whitespace.
 const SPECIFIER =
   /(?:\bfrom\s+|\bimport\s*\(\s*|\brequire\s*\(\s*)["']bun:test["']/;
 
@@ -65,7 +67,7 @@ function walk(dir, out) {
     try {
       st = statSync(full);
     } catch {
-      continue; // broken symlink or vanished entry — skip
+      continue; // skip a broken symlink or a vanished entry
     }
     if (st.isDirectory()) {
       if (!IGNORE_DIRS.has(entry)) {
@@ -93,8 +95,8 @@ export function findOffenders() {
     }
     const lines = readFileSync(file, "utf8").split("\n");
     lines.forEach((line, i) => {
-      // Skip whole-line comments — a commented-out import is not an import and the
-      // guard's contract is to flag imports, not mentions.
+      // Skip whole-line comments. A commented-out import is not an import.
+      // The guard's contract is to flag imports. It does not flag mentions.
       if (/^\s*(\/\/|\*|\/\*)/.test(line)) {
         return;
       }
@@ -106,8 +108,9 @@ export function findOffenders() {
   return offenders;
 }
 
-// Run the scan only when invoked as the entry script, so the exports above can be
-// imported by a test without executing the walk or calling process.exit.
+// Run the scan only when this file is the entry script. A test can then import
+// the exports above. The walk does not run, and the script does not call
+// process.exit.
 if (
   process.argv[1] &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url)
@@ -115,7 +118,7 @@ if (
   const offenders = findOffenders();
   if (offenders.length > 0) {
     console.error(
-      `check-bun-test-imports: found ${offenders.length} bun:test import statement(s) — ` +
+      `check-bun-test-imports: found ${offenders.length} bun:test import statement(s). ` +
         `node --test cannot resolve 'bun:' specifiers. Convert to node:test + ` +
         `@forwardimpact/libmock/expect:\n  ${offenders.join("\n  ")}`,
     );

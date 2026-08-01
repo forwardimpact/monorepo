@@ -81,19 +81,19 @@ test("computeCoverage aggregates per-skill headcount and effective depth", () =>
 
   assert.equal(coverage.teamId, "platform");
   assert.equal(coverage.memberCount, 3);
-  // Every starter skill is represented in the coverage map.
+  // The coverage map represents every starter skill.
   assert.ok(coverage.skills.has("task-completion"));
   assert.ok(coverage.skills.has("planning"));
   assert.ok(coverage.skills.has("incident-response"));
 
-  // Bob (J060, no track) is the only trackless J060 in the team — the
-  // other two are platform-tracked so their task-completion lands at
+  // Bob (J060, no track) is the only trackless J060 in the team. The
+  // other two are platform-tracked, so their task-completion lands at
   // foundational (below working).
   const task = coverage.skills.get("task-completion");
   assert.equal(task.headcountDepth, 1);
   assert.equal(task.effectiveDepth, 1);
 
-  // incident-response: Alice (J060, platform) gets reliability +1 bump
+  // incident-response: Alice (J060, platform) gets a reliability +1 bump
   // from awareness → foundational (still below working), so depth is 0.
   const incident = coverage.skills.get("incident-response");
   assert.equal(incident.headcountDepth, 0);
@@ -150,7 +150,7 @@ test("coverageToText includes growth hint when gaps are present", () => {
   const resolved = resolveTeam(roster, data, { teamId: "platform" });
   const coverage = computeCoverage(resolved, data);
 
-  // The platform team has incident-response at depth 0 — a gap.
+  // The platform team has incident-response at depth 0. That is a gap.
   assert.equal(coverage.skills.get("incident-response").headcountDepth, 0);
 
   const text = coverageToText(coverage, data);

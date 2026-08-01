@@ -86,7 +86,7 @@ teams:
   assert.equal(planning.evidencedDepth, 0);
 });
 
-test("decorateRisksWithEvidence flips a skill into SPOF when only one practitioner", () => {
+test("decorateRisksWithEvidence flips a skill into SPOF when evidence shows one practitioner", () => {
   const roster = parseRosterYaml(`
 teams:
   a:
@@ -100,8 +100,8 @@ teams:
   const resolved = resolveTeam(roster, data, { teamId: "a" });
   const coverage = computeCoverage(resolved, data);
   const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
-  // Both Alice and Bob hold task-completion at working so it's not a SPOF
-  // by derivation.
+  // Both Alice and Bob hold task-completion at working. So it is not a
+  // SPOF by derivation.
   assert.equal(
     risks.singlePointsOfFailure.find((s) => s.skillId === "task-completion"),
     undefined,
