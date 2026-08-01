@@ -54,7 +54,13 @@ export async function runPushCommand(ctx) {
   return { ok: true };
 }
 
-/** Fetch and rebase the local wiki on origin/master; on rebase conflict, return a non-zero envelope with a message to resolve manually or push first. After a clean pull, the tier-2 lane-record sweep surfaces any previous-session content absent at the fetched tip; it never gates the boot. */
+/**
+ * Fetch and rebase the local wiki on origin/master. On a rebase conflict,
+ * return a non-zero envelope. Its message tells the caller to resolve the
+ * conflict by hand or to push first. After a clean pull, the tier-2
+ * lane-record sweep surfaces any previous-session content absent at the
+ * fetched tip. The sweep never gates the boot.
+ */
 export async function runPullCommand(ctx) {
   const { runtime, wikiSync, gitClient } = ctx.deps;
   await wikiSync.inheritIdentity();
@@ -66,19 +72,20 @@ export async function runPullCommand(ctx) {
     if (err instanceof WikiPullConflict) {
       createLogger("wiki", runtime).error(
         "pull",
-        "rebase conflict — local divergence detected; resolve manually or push first",
+        "rebase conflict from local divergence. Resolve it by hand or push first",
       );
       return { ok: false, code: 1 };
     }
     throw err;
   }
 
-  // Tier-2 sweep on the just-rebased tree. Detection-only: any failure degrades
-  // to no detections, never throws into the flow, never changes the exit code.
+  // Tier-2 sweep on the just-rebased tree. This detects only. Any failure
+  // degrades to no detections. It never throws into the flow. It never changes
+  // the exit code.
   try {
     const wikiDir = resolveWikiRoot(runtime, ctx.options);
-    // `--today` (ISO date) overrides the wall clock for deterministic tests;
-    // a malformed value falls back to the runtime clock rather than NaN.
+    // `--today` (ISO date) overrides the wall clock for deterministic tests.
+    // A malformed value falls back to the runtime clock instead of NaN.
     const today = ctx.options.today
       ? Date.parse(ctx.options.today)
       : Number.NaN;

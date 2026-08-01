@@ -150,13 +150,13 @@ judge. Control cost with:
   Five runs is a reasonable floor for pass@k.
 - **`max-turns`** — caps agent turns per run. Tasks that finish fast rarely
   need more than 25.
-- **`timeout-minutes`** — hard cancellation. Default is 60; adjust based on
-  family size.
+- **`timeout-minutes`** — hard cancellation. The default is 60. Adjust it to
+  the family size.
 - **PR path filters** — only run when relevant files change.
 
 ## Matrix Workflows
 
-When running benchmarks across multiple families in a matrix, use
+When you run benchmarks across multiple families in a matrix, use
 `artifact-name` to avoid upload collisions:
 
 ```yaml
@@ -174,10 +174,10 @@ steps:
 
 ## Scale One Family Across Machines
 
-A single machine has a CPU and a per-job time ceiling. When one family is too
-large to finish in one job — the run hits the timeout — fan it across machines
-with the bundled reusable workflow. A single `shard-total` input runs a
-deterministic, balanced subset of the cells on each machine and merges the
+A single machine has a CPU and a per-job time ceiling. One family can be too
+large to finish in one job. The run then hits the timeout. Fan it across
+machines with the bundled reusable workflow. A single `shard-total` input runs
+a deterministic, balanced subset of the cells on each machine. It merges the
 partial ledgers into one pass@k:
 
 ```yaml
@@ -192,17 +192,17 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-The workflow runs three stages: a `prepare` job emits the shard list, four
-parallel `shard` jobs each run their slice (with in-process concurrency) and
-upload a `benchmark-shard-<i>` partial ledger, and a dependent `merge` job
-aggregates the combined report. The merge job carries **no agent scaffold** —
-it provisions only the report CLI, since `report --input` discovers and unions
-every shard's `results.jsonl` recursively. Effective parallelism is
-`shard-total` × the per-machine concurrency. Leaving `shard-total` unset runs
-the whole family in one shard job — the identity case.
+The workflow runs three stages. A `prepare` job emits the shard list. Four
+parallel `shard` jobs each run their slice with in-process concurrency and
+upload a `benchmark-shard-<i>` partial ledger. A dependent `merge` job
+aggregates the combined report. The merge job carries **no agent scaffold**.
+It provisions only the report CLI, because `report --input` discovers and
+unions every shard's `results.jsonl` recursively. Effective parallelism is
+`shard-total` × the per-machine concurrency. If you leave `shard-total` unset,
+the whole family runs in one shard job. That is the identity case.
 
-Each shard job emits a compact summary (status + pass@k), so a many-shard run
-stays quick to scan; the merge job emits the single full report over the
+Each shard job emits a compact summary (status + pass@k). So a many-shard run
+stays quick to scan. The merge job emits the single full report over the
 combined ledger.
 
 ## Verify
@@ -210,9 +210,9 @@ combined ledger.
 After the workflow runs, confirm:
 
 1. The step summary shows a pass@k table.
-2. The `benchmark-results` artifact is downloadable from the workflow run.
-3. The exit code reflects the aggregate verdict — `0` when all tasks pass,
-   `1` otherwise.
+2. You can download the `benchmark-results` artifact from the workflow run.
+3. The exit code reflects the aggregate verdict. It is `0` when all tasks
+   pass and `1` otherwise.
 
 ## What's Next
 

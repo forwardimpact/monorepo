@@ -1,17 +1,16 @@
 ---
 title: Ship a Service Endpoint
-description: Ship a gRPC service with typed contracts, authentication, retries, and health checks — without reimplementing transport.
+description: Ship a gRPC service with typed contracts, authentication, retries, and health checks. You do not reimplement the transport.
 ---
 
 You need to expose business logic over gRPC or consume an existing gRPC service.
-The transport layer -- connection management, authentication, retries, health
-checks -- is the same every time, and copying it from the last project means
-copying its bugs too. `@forwardimpact/librpc` gives you a typed server and
-client that handle transport so you write only the business logic.
+The transport layer is the same every time. It holds the connections, the
+authentication, the retries, and the health checks. If you copy it from the last
+project, you copy its bugs too. `@forwardimpact/librpc` gives you a typed server
+and a typed client that handle transport. You write only the business logic.
 
-For the full workflow of defining proto contracts and generating typed base
-classes and clients, see
-[Typed Contracts](/docs/libraries/typed-contracts/).
+To define proto contracts and generate typed base classes and clients, see
+[Typed Contracts](/docs/libraries/typed-contracts/) for the full workflow.
 
 ## Prerequisites
 
@@ -22,11 +21,11 @@ classes and clients, see
 npm install @forwardimpact/librpc
 ```
 
-- Generated service definitions produced by `npx fit-codegen generate --all`
-  (this creates the typed base classes and client classes that
+- Service definitions that `npx fit-codegen generate --all` produces (the
+  command creates the typed base classes and client classes that
   `@forwardimpact/librpc` re-exports)
 - The `SERVICE_SECRET` environment variable set (a string of at least 32
-  characters, shared between server and client for HMAC authentication)
+  characters that the server and the client share for HMAC authentication)
 
 ## Create a service
 
@@ -66,8 +65,8 @@ export class GraphService extends GraphBase {
 ```
 
 Each method receives a typed request object and returns a plain response object.
-The generated `getHandlers()` method on the base class takes care of validating
-inbound requests and converting them from wire format.
+The generated `getHandlers()` method on the base class validates inbound
+requests. It also converts them from wire format.
 
 ### Step 2 -- Bootstrap the server
 
@@ -97,14 +96,14 @@ await server.start();
 ```
 
 `Server` takes the service, its config, and an options bag. The `runtime` is
-required -- it carries the process collaborators the server reads, including the
-`SERVICE_SECRET` used for authentication. The `logger` and `tracer` are
-optional. Build the runtime once at the entry point with `createDefaultRuntime`
-and thread it through.
+required. It carries the process collaborators the server reads. These include
+the `SERVICE_SECRET` for authentication. The `logger` and `tracer` are optional.
+Build the runtime once at the entry point with `createDefaultRuntime`. Thread it
+through.
 
 `Server` wraps every handler with HMAC authentication, distributed tracing, and
 error handling. It also registers the standard gRPC health check at
-`grpc.health.v1.Health/Check` automatically -- no extra code needed.
+`grpc.health.v1.Health/Check` automatically. You write no extra code.
 
 ### What you get for free
 

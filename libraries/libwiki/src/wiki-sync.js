@@ -661,16 +661,16 @@ export class WikiSync {
       "gemba-wiki: refusing to push — it would introduce or deepen a budget " +
         `breach in ${files} (${lead.ruleId}: ${lead.value} vs baseline ` +
         `${lead.baseline}). Trim your own content or surface the carried ` +
-        "content to its owner, then re-push; your work is committed locally.",
+        "content to its owner, then re-push. Your work is committed locally.",
       { refusals: gate.refusals, surfaced: gate.surfaced },
     );
   }
 
   /**
-   * Run the budget gate over the outgoing tree, measuring the committed `HEAD`
-   * against the pre-fetch session base and the landed origin tip. Delegates the
-   * measurement, the unreadable-ref fail-visible posture, and the delta to
-   * {@link runBudgetGate}; this method binds only the clone's git/fs/clock.
+   * Run the budget gate over the outgoing tree. Measure the committed `HEAD`
+   * against the pre-fetch session base and the landed origin tip. Delegates
+   * the measurement, the unreadable-ref fail-visible posture, and the delta to
+   * {@link runBudgetGate}. This method binds only the clone's git/fs/clock.
    * @param {string} sessionBaseSha - origin/master before fetch, or "" when unborn.
    * @param {{exemptSummaryFiles: string[]}} options
    * @returns {Promise<{refusals: Array<object>, surfaced: Array<object>}>}
@@ -690,9 +690,10 @@ export class WikiSync {
   }
 
   /**
-   * Refuse (`residue-conflict`) when the reconcile left unmerged paths — the
-   * autostash pop conflicted under an exit-0 rebase (D9). The stash is left
-   * intact (git already kept it) and named by SHA for recovery.
+   * Refuse (`residue-conflict`) when the reconcile left unmerged paths. The
+   * autostash pop conflicted under an exit-0 rebase (D9). The stash stays
+   * intact (git already kept it), and the message names it by SHA for
+   * recovery.
    * @throws {WikiPushFailure} `residue-conflict` when the tree carries UU paths.
    */
   async #assertNoResidue() {
@@ -703,7 +704,7 @@ export class WikiSync {
     throw new WikiPushFailure(
       PUSH_REASONS.RESIDUE_CONFLICT,
       "gemba-wiki: refusing to push — a foreign writer's residue conflicted " +
-        "on the autostash pop; your stash is preserved at " +
+        "on the autostash pop. Your stash is preserved at " +
         `${stashSha || "refs/stash"} (git stash list). Resolve or pop it ` +
         "from the true tip.",
       { stashSha: stashSha || undefined },
@@ -712,9 +713,9 @@ export class WikiSync {
 
   /**
    * Capture the `origin/master..HEAD` delta for the post-push tier-1 probe. A
-   * two-tree range diff (not a single-commit show) is correct even when HEAD is
-   * a merge commit. Detection-only: a capture failure degrades to `null` so the
-   * probe never gates the push it follows.
+   * two-tree range diff is correct even when HEAD is a merge commit. A
+   * single-commit show is not. This capture is detection-only. A capture
+   * failure degrades to `null`, so the probe never gates the push it follows.
    * @returns {Promise<string|null>}
    */
   async #capturePushedDelta() {
@@ -728,14 +729,14 @@ export class WikiSync {
   }
 
   /**
-   * Resolve a failed rebase against the fresh tip. Aborts the rebase, then for a
-   * registered singleton with a `reapply` op re-derives the row against the tip
-   * via the bounded re-apply loop (the singleton merge discipline). Without a
-   * registered `reapply` the conflict fails loud: the `-X ours` clobber fallback
-   * is **removed** (the merge-discipline fail-loud floor), so the remote side is
-   * never mechanically discarded. The rebase is already aborted, leaving the working
-   * tree at `orig_head` with the autostash re-applied, so a `conflict` throw
-   * loses no uncommitted work.
+   * Resolve a failed rebase against the fresh tip. Aborts the rebase. Then,
+   * for a registered singleton with a `reapply` op, re-derives the row against
+   * the tip through the bounded re-apply loop (the singleton merge
+   * discipline). Without a registered `reapply` the conflict fails loud. The
+   * `-X ours` clobber fallback is **removed** (the merge-discipline fail-loud
+   * floor), so the method never mechanically discards the remote side. The
+   * rebase is already aborted, and the working tree stays at `orig_head` with
+   * the autostash re-applied. So a `conflict` throw loses no uncommitted work.
    * @param {string} message - The commit message.
    * @param {string[]} [paths] - Pathspecs committed.
    * @param {{reapply?: (freshText: string) => string | null, maxReapply: number}} options

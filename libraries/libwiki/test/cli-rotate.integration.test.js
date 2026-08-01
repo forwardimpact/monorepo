@@ -72,8 +72,8 @@ describe("gemba-wiki rotate CLI (in-process)", () => {
   });
 
   test("a missing target exits 2 and names the absent file", () => {
-    // A typo'd agent (or a target that was already rotated away) must fail
-    // closed rather than report a silent success.
+    // A typo'd agent (or a target an earlier run already rotated away) must
+    // fail closed rather than report a silent success.
     const { result } = run();
     assert.equal(result.ok, false);
     assert.equal(result.code, 2);
@@ -130,11 +130,11 @@ describe("gemba-wiki rotate CLI (in-process)", () => {
   });
 
   test("#1581 repro: never touches a sibling's log, and a repeat --force run mints nothing", () => {
-    // The incident shape: the audit flags product-manager's log, but rotate is
-    // invoked as staff-engineer. The PM file must be left byte-identical. The
-    // deliberate early seal now needs --force; the second invocation — against
-    // the freshly-reset header-only staff-engineer main — is a floor noop, so
-    // no empty part is minted.
+    // The incident shape: the audit flags product-manager's log, but the caller
+    // invokes rotate as staff-engineer. Rotate must leave the PM file
+    // byte-identical. The deliberate early seal now needs --force. The second
+    // invocation runs against the freshly-reset header-only main for
+    // staff-engineer. That is a floor noop, so it mints no empty part.
     const pmSource = multiDayLog("Product Manager");
     const pmLog = weeklyLogPath(wikiRoot, "product-manager", "2026-05-24");
     writeFileSync(pmLog, pmSource);
@@ -178,8 +178,8 @@ describe("gemba-wiki rotate CLI (in-process)", () => {
   });
 
   test("force-rotate splits a lone over-cap day at its ### block seams (force path)", () => {
-    // One dated entry over the line cap, built from 4 `### ` blocks none of
-    // which alone exceeds the cap. `gemba-wiki rotate` must sub-split the day.
+    // One dated entry sits over the line cap. It has 4 `### ` blocks, and none
+    // alone exceeds the cap. `gemba-wiki rotate` must sub-split the day.
     let text = "# Staff Engineer — 2026-W21\n## 2026-05-19\n";
     for (let b = 1; b <= 4; b++) {
       text += `### Block ${b}\n`;
@@ -190,9 +190,9 @@ describe("gemba-wiki rotate CLI (in-process)", () => {
       text,
     );
     const { result, harness } = run();
-    assert.deepEqual(result, { ok: true }, "the day is split, not irreducible");
+    assert.deepEqual(result, { ok: true }, "the rotation splits the day");
     assert.match(harness.stdout, /sealed → /);
-    // ≥2 conforming parts exist; none over the line budget.
+    // ≥2 conforming parts exist. None is over the line budget.
     assert.ok(existsSync(join(wikiRoot, "staff-engineer-2026-W21-part2.md")));
     for (const n of [1, 2]) {
       const part = readFileSync(

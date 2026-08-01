@@ -20,10 +20,10 @@ const MEMORY_WITH_EMPTY_CLAIMS = `${EMPTY_MEMORY}\n${ACTIVE_CLAIMS_HEADING}\n\n$
 const MEMORY_WITH_CLAIM = `${EMPTY_MEMORY}\n${ACTIVE_CLAIMS_HEADING}\n\n${ACTIVE_CLAIMS_TABLE_HEADER}\n${ACTIVE_CLAIMS_TABLE_SEPARATOR}\n| staff-engineer | spec-NNNN | feat/x | — | 2026-05-19 | 2026-05-26 |\n`;
 
 describe("parseClaims", () => {
-  test("returns [] when section missing", () => {
+  test("returns [] when the section is missing", () => {
     assert.deepEqual(parseClaims(EMPTY_MEMORY), []);
   });
-  test("returns [] for empty-state row", () => {
+  test("returns [] for the empty-state row", () => {
     assert.deepEqual(parseClaims(MEMORY_WITH_EMPTY_CLAIMS), []);
   });
   test("parses a real row", () => {
@@ -62,7 +62,7 @@ describe("appendClaim", () => {
     assert.equal(result.inserted, false);
     assert.equal(result.reason, "duplicate");
   });
-  test("appends second row alongside first", () => {
+  test("appends a second row alongside the first", () => {
     const result = appendClaim(MEMORY_WITH_CLAIM, {
       agent: "release-engineer",
       target: "PR-#NNNN",
@@ -123,7 +123,7 @@ describe("sub-row suffix targets (per-unit migration)", () => {
 });
 
 describe("filterExpired", () => {
-  test("splits on ISO date comparison", () => {
+  test("splits the claims by ISO date", () => {
     const claims = [
       { agent: "a", target: "t1", expires_at: "2026-05-10" },
       { agent: "a", target: "t2", expires_at: "2026-05-26" },
