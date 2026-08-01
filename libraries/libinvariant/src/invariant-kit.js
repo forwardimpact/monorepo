@@ -7,10 +7,10 @@
 // monorepo threads the `runtime` bag the same way and does not import ambient
 // collaborators.
 //
-// Filesystem and subprocess access route through the injected `runtime`
-// (`runtime.fsSync`, `runtime.subprocess`). This module lives under
-// libraries/<pkg>/src, so it stays clean under the repo's own ambient-deps
-// invariant.
+// This module lives under libraries/<pkg>/src. Filesystem and subprocess
+// access route through the injected `runtime` (`runtime.fsSync`,
+// `runtime.subprocess`), so the module stays clean under the repo's own
+// ambient-deps invariant.
 
 import { isAbsolute, join, relative, resolve } from "node:path";
 

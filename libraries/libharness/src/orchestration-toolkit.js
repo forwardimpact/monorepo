@@ -23,7 +23,7 @@
  *
  * **Answer's `askId` is optional.** With a matching askId, the reply
  * routes to that specific asker. Without one, the handler auto-picks when
- * exactly one ask is owed to the caller. If not, the handler routes the
+ * exactly one ask is owed to the caller. Otherwise the handler routes the
  * message as an Announce so it still reaches everyone.
  */
 

@@ -2,9 +2,9 @@
  * `gemba-benchmark grade` — run both check-row producers (the hidden test
  * suite and the invariants script) against a post-run workdir directory.
  * Grade the merged rows with the same derivation the benchmark runner uses.
- * No agent runs and no judge runs. So an author validates the material that
- * grades a task against fixtures, and pays for no agent session. The process
- * exit mirrors the graded verdict.
+ * No agent runs and no judge runs. So an author validates a task's grading
+ * material against fixtures, and pays for no agent session. The process exit
+ * mirrors the graded verdict.
  */
 
 import { join, resolve } from "node:path";

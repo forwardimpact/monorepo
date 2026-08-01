@@ -161,7 +161,7 @@ export class IndexBase {
 
   /**
    * Loads data from storage with common logic for all index types
-   * Subclasses can override this method to process a specific type
+   * Subclasses can override this method to add steps for a specific type
    * @returns {Promise<void>}
    */
   async loadData() {
@@ -196,7 +196,7 @@ export class IndexBase {
   /**
    * Adds an item to the index with generic storage operations
    * Subclasses should override this to create their specific item structure.
-   * They then call super.add(item) to handle storage
+   * They should then call super.add(item) to handle storage
    * @param {object} item - The item object with required and optional properties
    * @param {string} item.id - Unique string identifier for the item (the Map key)
    * @param {import("@forwardimpact/libtype").resource.Identifier} item.identifier - Resource identifier object

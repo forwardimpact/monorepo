@@ -237,8 +237,8 @@ export class OrchestrationLoop {
    * If `name` left a pending Ask unanswered, inject one synthetic reminder
    * and resume once more. If it is still unanswered after the reminder, emit
    * a `protocol_violation` event per outstanding ask and cancel them. The
-   * asker's queue then gets a synthetic `[no answer: …]`. The asker does not
-   * deadlock on a participant that silently ignores its inbox.
+   * asker's queue then gets a synthetic `[no answer: …]`, so the asker does
+   * not deadlock on a participant that silently ignores its inbox.
    */
   async #settleOwedAsks(name, runner) {
     if (pendingAsksOwedBy(this.ctx, name).length === 0) return;

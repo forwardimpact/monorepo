@@ -4,9 +4,9 @@
  * Accepts one NDJSON line at a time through addLine(). Then produces either
  * a structured JSON trace (toJSON) or human-readable text (toText).
  *
- * The pure modules under `./render/` render the human text, so the live
- * `TeeWriter` stream and the offline `toText()` replay format the text the
- * same way.
+ * The pure modules under `./render/` render the human text. So the live
+ * `TeeWriter` stream and the offline `toText()` replay use one shared path
+ * to format the text.
  */
 
 import { isoTimestamp } from "@forwardimpact/libutil";

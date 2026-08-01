@@ -36,9 +36,9 @@ export function runOver(files, query, load) {
 
 /**
  * Merge per-file record arrays by `key(record)`. Sum the `count` field that
- * each record already carries. Do not count occurrences. Frequency-sort by
- * `count desc`. Merged records carry `sources: string[]` only when the caller
- * supplies more than one file.
+ * each record already carries. The merge does not count occurrences.
+ * Frequency-sort by `count desc`. Merged records carry `sources: string[]`
+ * only when the caller supplies more than one file.
  * @param {string[]} files
  * @param {(tq: object) => Array<{count: number}>} query
  * @param {(record: object) => string} key

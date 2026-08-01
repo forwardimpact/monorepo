@@ -452,8 +452,8 @@ export async function detectRepoSlug(runtime) {
 
 /**
  * Create a TraceGitHub instance. The caller must resolve the GitHub token,
- * typically with `Config.ghToken()`. So the CLI entry point stays the only
- * place that loads credentials.
+ * typically with `Config.ghToken()`. So the CLI entry point loads the
+ * credentials.
  *
  * Breaking change from the prior signature: `token` is now a required
  * caller input. Construct a `Config` with `@forwardimpact/libconfig`. Then

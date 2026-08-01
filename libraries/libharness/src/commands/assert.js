@@ -77,7 +77,7 @@ export function evaluateAssertion(values, args, fsSync) {
 function applyGradingFlags(values, output) {
   const hasWeight = values.weight !== undefined;
   if (values.gate && hasWeight) {
-    throw new Error("assert: do not combine --gate with --weight");
+    throw new Error("assert: --gate cannot be combined with --weight");
   }
   if (values.gate) output.gate = true;
   if (hasWeight) {
