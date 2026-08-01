@@ -1,5 +1,12 @@
 # Forward Impact Engineering
 
+## Critical: Writing Style
+
+**All output and artifacts must follow ASD-STE100 Simplified Technical
+English.** Use the active voice and one idea per sentence. Avoid AI tells:
+em-dash asides, antithesis pairs, rhetorical questions, and stacked noun
+chains.
+
 ## Goal
 
 > "The aim of leadership should be to improve the performance of [engineers] and
@@ -135,12 +142,6 @@ rg '<do_confirm_checklist'  # Exit gates — do from memory, then confirm
 
 When `.claude/**` writes are blocked, use `echo … | bunx gemba-selfedit <path>`
 — gated to `.claude/settings.json` Edit() rules + non-`main` branch.
-
-## Writing Style
-
-All prose, from marketing copy to commit messages, is simple and direct.
-Avoid the tells of AI-generated text: em-dash asides, antithesis pairs,
-rhetorical questions, and stacked noun chains. One idea per sentence.
 
 ## Memory and Coordination
 
