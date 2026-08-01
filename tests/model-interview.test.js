@@ -105,7 +105,7 @@ describe("Interview", () => {
       );
     });
 
-    it("includes below-level questions when requested", () => {
+    it("includes below-level questions when the caller requests them", () => {
       const interview = deriveInterviewQuestions({
         job,
         questionBank,
@@ -193,7 +193,7 @@ describe("Interview", () => {
       assert.ok(behaviourQuestions.length > 0);
     });
 
-    it("returns empty questions when no focus specified", () => {
+    it("returns empty questions when the caller sets no focus", () => {
       const interview = deriveFocusedInterview({
         job,
         questionBank,
