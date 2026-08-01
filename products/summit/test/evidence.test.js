@@ -148,7 +148,7 @@ teams:
   const risks = detectRisks({ resolvedTeam: resolved, coverage, data });
 
   // Evidence says task-completion has TWO practitioners, but only one
-  // is on the team — the other is from another team. The team-intersect
+  // is on the team. The other belongs to another team. The team-intersect
   // must drop the outsider and leave decoratedRisks with a SPOF for
   // task-completion.
   const evidence = new Map();
@@ -172,7 +172,7 @@ teams:
   );
 });
 
-test("loadEvidence filters by team emails when team is provided", async () => {
+test("loadEvidence filters by team emails when the caller passes a team", async () => {
   const fakeRows = [
     {
       skill_id: "task-completion",

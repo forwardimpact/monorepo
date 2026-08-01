@@ -2,8 +2,8 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Personal operations center — context from email, calendar, and knowledge
-assembled so preparation is continuous, not a morning scramble.
+Personal operations center — context assembled from email, calendar, and
+knowledge so preparation is continuous instead of a morning scramble.
 
 <!-- END:description -->
 

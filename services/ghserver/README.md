@@ -2,8 +2,8 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-GitHub App key custody and short-lived installation-token minting surface for
-the hosted control plane.
+GitHub App key custody and a surface that mints short-lived installation tokens
+for the hosted control plane.
 
 <!-- END:description -->
 

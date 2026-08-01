@@ -13,9 +13,9 @@ const FIXTURE_DATA = join(import.meta.dirname, "fixtures", "map-data");
 const runtime = createDefaultRuntime();
 
 /**
- * Loads the shared starter standard fixture (map data + agent data) once per
- * process via `memoizeAsync`. Hoisting it here keeps Summit test files from
- * re-parsing this directory from YAML on every `test(...)` case.
+ * Loads the shared fixture for the starter standard (map data + agent data)
+ * once per process with `memoizeAsync`. It sits here so Summit test files do
+ * not re-parse this directory from YAML on every `test(...)` case.
  *
  * @returns {Promise<{ data: object, agentData: object }>}
  */
@@ -31,7 +31,7 @@ export function loadStarterData() {
 }
 
 /**
- * Shared roster fixture used across summit aggregation tests. Shape:
+ * Shared roster fixture for the summit aggregation tests. Shape:
  * - reporting team `platform` — Alice (J060+platform), Bob (J060), Carol
  *   (J040+platform)
  * - project `migration-q2` — Bob @ 0.6, External (J060) @ 1.0
@@ -45,15 +45,15 @@ export function loadStarterData() {
  *   broad=awareness.
  * - platform track modifies reliability: +1 and delivery: -1. Because
  *   task-completion/planning live in delivery, a platform member loses one
- *   step in those; reliability (incident-response) gains one capped by the
- *   level's max.
+ *   step in those. Reliability (incident-response) gains one step, and the
+ *   level's max caps that gain.
  *
  * So at J060 without a track, task-completion = working (working+).
  * At J060 with platform, task-completion = foundational (below working).
  *
- * Fixture below lets the reporting team have one working+ holder (Bob) and
- * the project team have two working+ holders (Bob + External) via J060
- * without the platform track.
+ * The fixture below gives the reporting team one working+ holder (Bob).
+ * It gives the project team two working+ holders (Bob + External). Both
+ * counts come from J060 without the platform track.
  */
 export const FIXTURE_ROSTER = `
 teams:
@@ -88,11 +88,11 @@ projects:
 `;
 
 /**
- * Resolves a team, computes coverage, and detects risks in one shot — the
- * "snapshot" pattern repeated across compare/what-if tests.
+ * Resolves a team, computes coverage, and detects risks in one shot. The
+ * compare and what-if tests repeat this "snapshot" pattern.
  *
  * @param {object} roster - Parsed roster.
- * @param {object} data - Starter standard map data.
+ * @param {object} data - Map data for the starter standard.
  * @param {string} teamId - Reporting team id to resolve.
  * @returns {{ resolved: object, coverage: object, risks: object }}
  */

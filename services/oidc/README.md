@@ -3,7 +3,7 @@
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
 GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a
-repo-scoped installation token without holding signing material.
+repo-scoped installation token without signing material.
 
 <!-- END:description -->
 

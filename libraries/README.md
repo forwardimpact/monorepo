@@ -10,48 +10,48 @@ service infrastructure with knobs agents can read and tune through JSON.
 
 <!-- BEGIN:catalog — Do not edit. Generated from each library's package.json. -->
 
-| Library                | Description                                                                                                                                                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **libbridge**          | Channel-to-agent-team bridge — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the agent team, with thread state, multi-tenant routing, rate limits, and resume scheduling handled once. |
-| **libcli**             | Agent-friendly CLIs — self-documenting entry points that humans and agents reach through the same interface.                                                                                                             |
-| **libcodegen**         | Protobuf code generation — keep types in sync with proto definitions without hand-writing.                                                                                                                               |
-| **libconfig**          | Environment-aware application settings — services and CLIs load configuration without custom plumbing.                                                                                                                   |
-| **libdoc**             | Static documentation sites from markdown — publish docs without a framework.                                                                                                                                             |
-| **libformat**          | Render markdown to ANSI or HTML — formatted output in any surface without losing structure.                                                                                                                              |
-| **libgraph**           | RDF triple store with named ontologies — answer relationship questions without writing join logic.                                                                                                                       |
-| **libharness**         | Autonomous agent team harness — coordinate a lead and participant agents in one async session, with eval, benchmark, and trace tooling to prove the changes worked.                                                      |
-| **libhttp**            | HTTP service framework — ship a Hono service endpoint without reimplementing lifecycle, security headers, or health checks.                                                                                              |
-| **libindex**           | JSONL-backed indexes with filtering and buffered writes — fast context lookup without an external search engine.                                                                                                         |
-| **libinvariant**       | Repository invariant checks — instruction-layer length caps, JTBD block validation, and a declarative rule-module runner over a caller-supplied rules directory.                                                         |
-| **libmacos**           | macOS bundle assembly, code signing, and OS permission helpers — desktop delivery without platform ceremony.                                                                                                             |
-| **libmcp**             | Config-driven gRPC-to-MCP tool registration — expose protobuf services as agent tools without glue code.                                                                                                                 |
-| **libmock**            | Shared mocks and test fixtures so every library and service tests the same way.                                                                                                                                          |
-| **libpack**            | Pack distribution — tarballs, bare git repos, and skill discovery indices                                                                                                                                                |
-| **libpolicy**          | Access-control policy evaluation — scoped context access without per-service authorization logic.                                                                                                                        |
-| **libpreflight**       | Fail fast at process start with product-authored errors — runtime-floor checks and required-config assertions before heavy imports resolve.                                                                              |
-| **libprompt**          | Prompt templates from .prompt.md files — structured prompts without string concatenation.                                                                                                                                |
-| **libproto**           | Shared protobuf schemas — one editable source for the service contracts every product imports.                                                                                                                           |
-| **librag**             | Consolidated retrieval CLIs — build the knowledge indexes, then query them by meaning or relationship.                                                                                                                   |
-| **librc**              | Service lifecycle management — start, stop, and check services without manual oversight.                                                                                                                                 |
-| **librepl**            | Agent-friendly interactive REPL — exploratory interfaces that humans and agents navigate the same way.                                                                                                                   |
-| **libresource**        | Typed resources with identifiers and rich context chunks — trustworthy, retrievable knowledge for agent grounding.                                                                                                       |
-| **librpc**             | gRPC server and client framework — ship service endpoints without reimplementing transport.                                                                                                                              |
-| **libsecret**          | Secret generation, JWT signing, and .env file management for services and CLIs.                                                                                                                                          |
-| **libskill**           | The engineering standard made queryable — derive skill matrices, job definitions, agent profiles, career paths, and interview plans from standard data.                                                                  |
-| **libstorage**         | Pluggable file storage — local, S3, or Supabase behind a single interface.                                                                                                                                               |
-| **libsupervise**       | Process supervision driven by JSON daemon manifests — services stay running and recoverable without manual intervention.                                                                                                 |
-| **libsyntheticgen**    | DSL parser and deterministic entity graph generator — repeatable eval fixtures so results are reproducible.                                                                                                              |
-| **libsyntheticprose**  | LLM-generated prose and YAML — realistic evaluation content so agent improvements are tested against lifelike data.                                                                                                      |
-| **libsyntheticrender** | Multi-format rendering of synthetic evaluation data — validate fixtures before they enter the eval pipeline.                                                                                                             |
-| **libtelemetry**       | Structured logging and trace spans — observable operations so problems surface before they escalate.                                                                                                                     |
-| **libtemplate**        | Mustache template loader with project-level overrides — consistent rendered output across surfaces.                                                                                                                      |
-| **libterrain**         | Full synthetic data pipeline — generate, render, and validate evaluation datasets end to end.                                                                                                                            |
-| **libtype**            | Generated protobuf types and namespaces — one source of truth for service contracts.                                                                                                                                     |
-| **libui**              | Agent-friendly web surfaces — share handler logic across web and terminal so capabilities ship once, not twice.                                                                                                          |
-| **libutil**            | Cross-cutting utilities: retry, hashing, token counting, and project discovery.                                                                                                                                          |
-| **libvector**          | Vector dot-product scoring — find semantically related content without a dedicated database.                                                                                                                             |
-| **libwiki**            | Wiki lifecycle for agent teams — persistent memory, declarative integrity audits, and a collision ledger so coordination survives across sessions and parallel work.                                                     |
-| **libxmr**             | Wheeler/Vacanti XmR control charts — distinguish signal from noise so agent teams act on real changes, not fluctuations.                                                                                                 |
+| Library                | Description                                                                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **libbridge**          | Channel-to-agent-team bridge — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the agent team. The bridge handles thread state, multi-tenant routing, rate limits, and resume scheduling once. |
+| **libcli**             | Agent-friendly CLIs — self-documenting entry points that humans and agents reach through the same interface.                                                                                                                   |
+| **libcodegen**         | Protobuf code generation — keep types in sync with proto definitions without hand-writing.                                                                                                                                     |
+| **libconfig**          | Environment-aware application settings — services and CLIs load configuration without custom plumbing.                                                                                                                         |
+| **libdoc**             | Static documentation sites from markdown — publish docs without a framework.                                                                                                                                                   |
+| **libformat**          | Render markdown to ANSI or HTML — formatted output in any surface without losing structure.                                                                                                                                    |
+| **libgraph**           | RDF triple store with named ontologies — answer relationship questions without writing join logic.                                                                                                                             |
+| **libharness**         | Autonomous agent team harness — coordinate a lead and participant agents in one async session, with eval, benchmark, and trace tooling to prove the changes worked.                                                            |
+| **libhttp**            | HTTP service framework — ship a Hono service endpoint without reimplementing lifecycle, security headers, or health checks.                                                                                                    |
+| **libindex**           | JSONL-backed indexes with filtering and buffered writes — fast context lookup without an external search engine.                                                                                                               |
+| **libinvariant**       | Repository invariant checks — instruction-layer length caps, JTBD block validation, and a declarative rule-module runner over a caller-supplied rules directory.                                                               |
+| **libmacos**           | macOS bundle assembly, code signing, and OS permission helpers — desktop delivery without platform ceremony.                                                                                                                   |
+| **libmcp**             | Config-driven gRPC-to-MCP tool registration — expose protobuf services as agent tools without glue code.                                                                                                                       |
+| **libmock**            | Shared mocks and test fixtures so every library and service tests the same way.                                                                                                                                                |
+| **libpack**            | Pack distribution — tarballs, bare git repos, and skill discovery indices                                                                                                                                                      |
+| **libpolicy**          | Access-control policy evaluation — scoped context access without per-service authorization logic.                                                                                                                              |
+| **libpreflight**       | Fail fast at process start with product-authored errors — runtime-floor checks and required-config assertions before heavy imports resolve.                                                                                    |
+| **libprompt**          | Prompt templates from .prompt.md files — structured prompts without string concatenation.                                                                                                                                      |
+| **libproto**           | Shared protobuf schemas — one editable source for the service contracts every product imports.                                                                                                                                 |
+| **librag**             | Consolidated retrieval CLIs — build the knowledge indexes, then query them by meaning or relationship.                                                                                                                         |
+| **librc**              | Service lifecycle management — start, stop, and check services without manual oversight.                                                                                                                                       |
+| **librepl**            | Agent-friendly interactive REPL — exploratory interfaces that humans and agents navigate the same way.                                                                                                                         |
+| **libresource**        | Typed resources with identifiers and rich context chunks — trustworthy, retrievable knowledge that grounds agents.                                                                                                             |
+| **librpc**             | gRPC server and client framework — ship service endpoints without reimplementing transport.                                                                                                                                    |
+| **libsecret**          | Secret generation, JWT signing, and .env file management for services and CLIs.                                                                                                                                                |
+| **libskill**           | The engineering standard made queryable — derive skill matrices, job definitions, agent profiles, career paths, and interview plans from standard data.                                                                        |
+| **libstorage**         | Pluggable file storage — local, S3, or Supabase behind a single interface.                                                                                                                                                     |
+| **libsupervise**       | Process supervision driven by JSON daemon manifests — services stay running and recoverable without manual intervention.                                                                                                       |
+| **libsyntheticgen**    | DSL parser and deterministic entity graph generator — repeatable eval fixtures so results are reproducible.                                                                                                                    |
+| **libsyntheticprose**  | LLM-generated prose and YAML — realistic evaluation content so agent improvements are tested against lifelike data.                                                                                                            |
+| **libsyntheticrender** | Multi-format rendering of synthetic evaluation data — validate fixtures before they enter the eval pipeline.                                                                                                                   |
+| **libtelemetry**       | Structured logging and trace spans — observable operations so problems surface before they escalate.                                                                                                                           |
+| **libtemplate**        | Mustache template loader with project-level overrides — consistent rendered output across surfaces.                                                                                                                            |
+| **libterrain**         | Full synthetic data pipeline — generate, render, and validate evaluation datasets end to end.                                                                                                                                  |
+| **libtype**            | Generated protobuf types and namespaces — one source of truth for service contracts.                                                                                                                                           |
+| **libui**              | Agent-friendly web surfaces — share handler logic across web and terminal so capabilities ship only once.                                                                                                                      |
+| **libutil**            | Cross-cutting utilities: retry, hashing, token counting, and project discovery.                                                                                                                                                |
+| **libvector**          | Vector dot-product scoring — find semantically related content without a dedicated database.                                                                                                                                   |
+| **libwiki**            | Wiki lifecycle for agent teams — persistent memory, declarative integrity audits, and a collision ledger so coordination survives across sessions and parallel work.                                                           |
+| **libxmr**             | Wheeler/Vacanti XmR control charts — distinguish signal from noise so agent teams act on real changes instead of fluctuations.                                                                                                 |
 
 <!-- END:catalog -->
 
@@ -68,8 +68,8 @@ is no shared memory to write them to; a metric changes and the team debates
 whether it is a real shift or just noise.
 
 **Big Hire:** Help me give agent teams stable memory that persists across
-sessions; distinguish signal from noise so the team acts on real changes, not
-fluctuations. → **libwiki, libxmr**
+sessions; distinguish signal from noise so the team acts on real changes instead
+of fluctuations. → **libwiki, libxmr**
 
 **Little Hire:** Help me send a memo, run an integrity audit, or refresh a
 storyboard without managing the wiki infrastructure; chart a metric and see
@@ -85,11 +85,11 @@ thresholds; ignoring metrics because no one trusts them.
 
 ## Platform Builders: Coordinate an Agent Team
 
-**Trigger:** Engineers discuss work in chat and GitHub Discussions while the
-agent team is reachable only from GitHub, and every new channel adapter
-re-solves intake, thread state, and tenant routing; coordinating several agents
-in one session means hand-rolling message passing, turn-taking, and termination,
-and every orchestration script re-solves it.
+**Trigger:** Engineers discuss work in chat and GitHub Discussions. The agent
+team is reachable only from GitHub. Every new channel adapter re-solves intake,
+thread state, and tenant routing; coordinating several agents in one session
+means hand-rolling message passing, turn-taking, and termination, and every
+orchestration script re-solves it.
 
 **Big Hire:** Help me relay conversations between the channels engineers already
 use and the agent team, with thread state, multi-tenant routing, and resume
@@ -121,8 +121,9 @@ locked to the terminal.
 
 **Big Hire:** Help me give agents and humans the same interface so capabilities
 don't need separate paths; render structured, consistent output across surfaces
-without per-target formatting code; ship a web surface reusing the same handler
-logic as the terminal. → **libcli, libformat, librepl, libtemplate, libui**
+without per-target formatting code; ship a web surface that reuses the same
+handler logic as the terminal. → **libcli, libformat, librepl, libtemplate,
+libui**
 
 **Little Hire:** Help me add a capability and know both humans and agents can
 reach it without a separate integration; add a rendering target or override
@@ -148,9 +149,9 @@ installing the knowledge stack and meeting six separately-named CLIs for what is
 really two operations: build the indexes, then query them; passing context to an
 agent and realizing the payload is an untyped blob with no provenance or access
 control; realizing the knowledge an agent reads has to live somewhere, and that
-hard-coding local file paths means a move to S3 or Supabase rewrites every
-reader; adding semantic search to a tool and realizing it needs a vector
-database just to score a few hundred embeddings.
+hard-coded local file paths mean a move to S3 or Supabase rewrites every reader;
+adding semantic search to a tool and realizing it needs a vector database just
+to score a few hundred embeddings.
 
 **Big Hire:** Help me answer relationship questions without writing join logic;
 look up context fast without an external search engine; run the whole retrieval
@@ -163,10 +164,10 @@ libvector**
 **Little Hire:** Help me query a named ontology and trust the triples are
 consistent; filter and scan a JSONL index without loading it all into memory;
 process resources into indexes, then search, query, or list subjects over them;
-resolve a resource by identifier and get a rich context chunk, not a raw file;
-swap local, S3, or Supabase storage without changing a line of consumer code;
-score a query against an index and get ranked results in memory. → **libgraph,
-libindex, librag, libresource, libstorage, libvector**
+resolve a resource by identifier and get a rich context chunk instead of a raw
+file; swap local, S3, or Supabase storage without changing a line of consumer
+code; score a query against an index and get ranked results in memory. →
+**libgraph, libindex, librag, libresource, libstorage, libvector**
 
 **Competes With:** ad-hoc file joins; embedding relationship data in each
 consumer; skipping the relationship question; full-text search engines; raw file
@@ -185,8 +186,8 @@ databases; keyword search instead of semantic.
 
 **Trigger:** Needing engineers to install skill packs and realizing each
 ecosystem expects a different artifact format; building a product feature that
-needs skill matrices or job definitions and realizing the YAML is raw data, not
-queryable structure.
+needs skill matrices or job definitions and realizing the YAML is raw data
+instead of queryable structure.
 
 **Big Hire:** Help me distribute skill packs so agents and engineers can install
 them through their preferred tool; turn engineering standard definitions into

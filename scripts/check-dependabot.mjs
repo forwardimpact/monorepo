@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 // Assert the Dependabot ↔ .github/actions/ coverage invariant.
 //
-// Computes the filesystem set (every .github/actions/<D>/ that contains an
-// action.yml or action.yaml) and the scan set (the directories: list in the
-// github-actions ecosystem block of .github/dependabot.yml, with <prefix>/*
-// globs expanded against the tree). Asserts every action directory is scanned,
-// no scan-set entry under .github/actions/ points at a non-existent directory,
-// and the workflow root literal `/` is preserved.
+// The script computes the filesystem set. That set holds every
+// .github/actions/<D>/ directory with an action.yml or an action.yaml. The
+// script also computes the scan set. That set holds the directories: list in
+// the github-actions ecosystem block of .github/dependabot.yml, and it expands
+// each <prefix>/* glob against the tree. The script then asserts three
+// conditions. Dependabot scans every action directory. No scan-set entry under
+// .github/actions/ points at a directory that does not exist. The workflow
+// root literal `/` is preserved.
 //
-// Exits 0 when the invariant holds, 1 with a printed diff when it breaks.
+// Exits 0 when the invariant holds. Exits 1 and prints a diff when it breaks.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -67,7 +69,7 @@ for (const entry of directories) {
   unsupportedPatterns.push(entry);
 }
 
-// Helpers for converting YAML-form paths (e.g., "/.github/actions") to real
+// Helpers that convert YAML-form paths (e.g., "/.github/actions") to real
 // filesystem paths under repoRoot.
 function toRealPath(yamlPath) {
   return join(repoRoot, yamlPath.replace(/^\//, ""));
@@ -92,7 +94,7 @@ for (const { prefix } of globs) {
     entries = readdirSync(realPrefix, { withFileTypes: true });
   } catch (err) {
     if (err.code === "ENOENT") {
-      // Empty expansion — Check A surfaces the resulting coverage gap.
+      // The expansion is empty. Check A surfaces the coverage gap.
       continue;
     }
     throw err;
@@ -130,7 +132,7 @@ if (uncovered.length > 0) {
 }
 
 // B. literal-entries-not-stale — every literal under /.github/actions/ must
-// reference an existing action directory.
+// reference an action directory that exists.
 const dangling = [];
 for (const literal of literals) {
   if (!literal.startsWith("/.github/actions/")) continue;

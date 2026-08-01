@@ -56,7 +56,7 @@ test("computeGrowthAlignment ranks candidates by proximity", () => {
   const recs = computeGrowthAlignment({ team, mapData });
   const planning = recs.find((r) => r.skill === "planning");
   assert.ok(planning);
-  // Senior has planning=foundational (closer), Junior has planning=awareness
+  // Senior has planning=foundational (closer). Junior has planning=awareness,
   // so senior should rank first.
   assert.equal(planning.candidates[0].email, "senior@example.com");
 });
@@ -89,10 +89,10 @@ test("computeGrowthAlignment attaches null driverContext for every rec in Part 0
   }
 });
 
-test("computeGrowthAlignment signature — accepts a single destructured param", () => {
-  // Function accepts team / mapData / evidence / driverScores as
-  // destructured options; with a default of `{}`, Function.length is 0.
-  // Just exercise the full signature to ensure it doesn't throw.
+test("computeGrowthAlignment signature accepts a single destructured param", () => {
+  // The function accepts team / mapData / evidence / driverScores as
+  // destructured options. With a default of `{}`, Function.length is 0.
+  // Just exercise the full signature to make sure it does not throw.
   const recs = computeGrowthAlignment({
     team: [],
     mapData,
@@ -127,7 +127,7 @@ test("computeGrowthAlignment recommendations expose `skill` per spec.md:583", ()
   }
 });
 
-test("computeGrowthAlignment attaches driverContext when driverScores passed", () => {
+test("computeGrowthAlignment attaches driverContext when the caller passes driverScores", () => {
   const team = [
     {
       email: "a@example.com",
@@ -156,7 +156,7 @@ test("computeGrowthAlignment attaches driverContext when driverScores passed", (
   );
 });
 
-test("computeGrowthAlignment outcome weighting reorders within a tier", () => {
+test("computeGrowthAlignment reorders within a tier by outcome weight", () => {
   const team = [
     {
       email: "a@example.com",
@@ -173,8 +173,8 @@ test("computeGrowthAlignment outcome weighting reorders within a tier", () => {
   driverScores.set("quality", { percentile: 5, vsOrg: -20 });
   const weighted = computeGrowthAlignment({ team, mapData, driverScores });
 
-  // Critical tier ordering is preserved — critical stays above spof/
-  // coverage regardless of weighting.
+  // The critical tier keeps its order. Critical stays above spof/
+  // coverage whatever the weight.
   const criticalBaseline = baseline.filter((r) => r.impact === "critical");
   const criticalWeighted = weighted.filter((r) => r.impact === "critical");
   assert.equal(criticalBaseline.length, criticalWeighted.length);

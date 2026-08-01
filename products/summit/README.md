@@ -2,8 +2,8 @@
 
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
-Model team capability as a system — staffing decisions backed by evidence, not
-intuition.
+Model team capability as a system — base staffing decisions on evidence instead
+of intuition.
 
 <!-- END:description -->
 

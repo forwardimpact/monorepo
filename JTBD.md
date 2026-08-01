@@ -6,13 +6,13 @@
 
 ## Engineering Leaders: Define the Engineering Standard
 
-**Trigger:** Two managers disagree on what 'senior' means — neither can point to
+**Trigger:** Two managers disagree on what 'senior' means. Neither can point to
 a written definition.
 
 **Big Hire:** Help me define what good engineering means so roles have clear,
 defensible expectations. → **Map**
 
-**Little Hire:** Help me define or update a role's expectations knowing
+**Little Hire:** Help me define or update a role's expectations and know that
 structural mistakes get caught. → **Map**
 
 **Competes With:** tribal knowledge; borrowed frameworks; per-manager intuition;
@@ -32,14 +32,14 @@ tolerating the ambiguity.
 
 ## Engineering Leaders: Measure Engineering Outcomes
 
-**Trigger:** Quarterly review is due and the only data is ticket counts —
-singling out individuals, not illuminating the system.
+**Trigger:** Quarterly review is due and the only data is ticket counts. The
+counts single out individuals. They do not illuminate the system.
 
 **Big Hire:** Help me demonstrate engineering progress without making
 individuals feel surveilled. → **Landmark**
 
-**Little Hire:** Help me tell whether culture investments are working before the
-next budget cycle. → **Landmark**
+**Little Hire:** Help me tell whether culture investments work before the next
+budget cycle. → **Landmark**
 
 **Competes With:** sprint velocity; ticket counts; annual reviews; asking
 managers 'how's the team doing?'; not measuring.
@@ -60,7 +60,7 @@ deprioritizes measurement.
 ## Engineering Leaders: Staff Teams to Succeed
 
 **Trigger:** A post-mortem surfaces the same skill gap that caused the last
-incident — nobody saw it before staffing.
+incident. Nobody saw it before staffing.
 
 **Big Hire:** Help me make staffing decisions I can defend by seeing what each
 role requires. → **Summit**
@@ -72,7 +72,7 @@ fills them. → **Summit**
 work; accepting gaps as inevitable.
 
 **Forces:**
-- **Push:** Capability gaps appear as incidents, never in advance.
+- **Push:** Capability gaps appear as incidents. They never appear in advance.
 - **Pull:** Confidence that a staffing change strengthens the team as a system.
 - **Habit:** Hiring on résumés and gut rather than team composition analysis.
 - **Anxiety:** Modeling human capability feels reductive.
@@ -86,8 +86,8 @@ removes staffing pressure.
 
 ## Empowered Engineers: Be Prepared and Productive
 
-**Trigger:** Walking into a meeting cold because context was scattered across
-email, Slack, and last week's notes.
+**Trigger:** The engineer walks into a meeting cold because context is scattered
+across email, Slack, and last week's notes.
 
 **Big Hire:** Help me keep track of people, projects, and threads without
 depending on memory. → **Outpost**
@@ -98,7 +98,7 @@ depending on memory. → **Outpost**
 notes; asking colleagues for context.
 
 **Forces:**
-- **Push:** Context-switching compounds; starting cold wastes everyone's time.
+- **Push:** Context-switching compounds. Starting cold wastes everyone's time.
 - **Pull:** Continuous awareness without continuous effort — context assembled.
 - **Habit:** Morning routines and tracking systems that feel 'good enough.'
 - **Anxiety:** Delegating awareness to a system feels like losing control.
@@ -112,12 +112,12 @@ preparation.
 
 ## Empowered Engineers: Get Judgment Grounded in the Standard
 
-**Trigger:** The promotion conversation ended with 'not yet' but no specifics,
-and agent output gets reviewed line by line because nobody can tell whether it
-meets the bar.
+**Trigger:** The promotion conversation ended with 'not yet' but no specifics.
+Agent output gets reviewed line by line because nobody can tell whether it meets
+the bar.
 
 **Big Hire:** Help me get career guidance and output review grounded in my
-organization's standard, not impressions or generic advice. → **Guide**
+organization's standard instead of impressions or generic advice. → **Guide**
 
 **Little Hire:** Help me ask a growth question or get a second opinion on a
 deliverable before approving it. → **Guide**
@@ -131,8 +131,8 @@ trusting uncritically; hoping the next project makes readiness obvious.
 - **Pull:** A second opinion grounded in the standard, whether on a career or a
   deliverable.
 - **Habit:** Waiting for annual feedback and reviewing every line by hand.
-- **Anxiety:** Structured assessment might confirm being further behind than
-  assumed.
+- **Anxiety:** Structured assessment might confirm the engineer is further
+  behind than assumed.
 
 **Fired When:** assessments disconnect from promotion and approval decisions; or
 a reorg makes the standard feel irrelevant.
@@ -144,8 +144,8 @@ a reorg makes the standard feel irrelevant.
 ## Empowered Engineers: See What's Expected of Humans and Agents
 
 **Trigger:** 'Meets expectations' on the review form has no definition anyone
-can point to, and an agent's work was just rejected for following generic
-practices instead of the organization's.
+can point to. An agent's work was just rejected for following generic practices
+instead of the organization's.
 
 **Big Hire:** Help me see what's expected of me at my level and of the agents I
 configure, from one shared standard. → **Pathway**
@@ -204,9 +204,9 @@ overhead exceeds the value of knowing.
 
 ## Teams Using Agents: Build Quality Into Agent Instructions
 
-**Trigger:** The team's layered instructions exist, but nothing enforces them —
-layers drift and restate each other, and stale jobs blocks ship unnoticed until
-an agent misbehaves.
+**Trigger:** The team's layered instructions exist, but nothing enforces them.
+Layers drift and restate each other. Stale jobs blocks ship unnoticed until an
+agent misbehaves.
 
 **Big Hire:** Help me keep humans and agents on one layered instruction
 architecture, with checks that stop the line the moment a layer drifts. →
@@ -225,7 +225,7 @@ lint scripts; letting drift accumulate until a rewrite.
 - **Pull:** One command family and CI action that stop the line at the first
   drifted layer.
 - **Habit:** Trusting contributors to keep instructions tidy by hand.
-- **Anxiety:** Another gate slowing every commit.
+- **Anxiety:** Another gate that slows every commit.
 
 **Fired When:** the checks block more work than the drift they catch, or the
 team stops layering its instructions.
@@ -236,8 +236,8 @@ team stops layering its instructions.
 
 ## Teams Using Agents: Run a Continuously Improving Agent Team
 
-**Trigger:** Agents are shipping work but nobody can tell whether the team is
-getting better — the only feedback loop is reading every diff.
+**Trigger:** Agents ship work, but nobody can tell whether the team improves.
+The only feedback loop is to read every diff.
 
 **Big Hire:** Help me run an autonomous, continuously improving development team
 that plans, ships, studies its own traces, and acts on findings. → **Kata**
@@ -266,9 +266,9 @@ prompting; or organizational policy bans autonomous agent execution.
 
 ## Teams Using Agents: Stand Up and Operate an Agent Team
 
-**Trigger:** The team wants to run coding agents continuously, but the runtime —
-bootstrap, session harness, traces, memory, metrics — has no product to hire and
-must be reverse-engineered from CI plumbing.
+**Trigger:** The team wants to run coding agents continuously. The runtime
+covers bootstrap, session harness, traces, memory, and metrics. No product
+exists to hire for it. The team must reverse-engineer it from CI plumbing.
 
 **Big Hire:** Help me stand up and operate an agent team on one platform:
 bootstrap the environment, run sessions, inspect traces, persist memory, and
@@ -285,7 +285,7 @@ or measurement.
 - **Push:** Every team that wants to run agents rebuilds the same
   bootstrap-run-remember-measure loop from CI plumbing.
 - **Pull:** One installable platform whose CLIs and CI actions are the same
-  loop, proven daily by a reference tenant.
+  loop. A reference tenant proves it daily.
 - **Habit:** Wiring raw agent CLIs into bespoke pipelines and losing the session
   evidence.
 - **Anxiety:** Adopting a platform might couple the team to one vendor's agent

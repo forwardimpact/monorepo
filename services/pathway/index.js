@@ -22,10 +22,10 @@ import {
 const { PathwayBase } = services;
 
 /**
- * Pathway derivation service: thin gRPC transport over libskill.
+ * Pathway derivation service. It is a thin gRPC transport over libskill.
  *
- * Each RPC delegates to libskill, hands the result to the matching Turtle
- * serializer, and returns `{ content: <turtle-string> }`. No new derivation
+ * Each RPC delegates to libskill. It hands the result to the correct Turtle
+ * serializer. It returns `{ content: <turtle-string> }`. No new derivation
  * logic lives here.
  */
 export class PathwayService extends PathwayBase {

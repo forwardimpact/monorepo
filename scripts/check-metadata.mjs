@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Enforce a canonical key order, author, and license across every package.json
-// in the monorepo (skipping node_modules, generated, and tmp). Default mode
-// reports out-of-date files; --fix rewrites them in place.
+// in the monorepo. The script skips node_modules, generated, and tmp. The
+// default mode reports out-of-date files. --fix rewrites them in place.
 //
 // Usage: check-metadata.mjs [--fix]
 
@@ -25,8 +25,8 @@ const REPOSITORY_URL = "git+https://github.com/forwardimpact/monorepo.git";
 const ENGINES = { bun: ">=1.2.0", node: ">=22.0.0" };
 const PUBLISH_CONFIG = { access: "public" };
 
-// Well-known keys in canonical order, grouped by concern. Anything outside
-// this list is sorted alphabetically and appended at the end.
+// Well-known keys in canonical order, grouped by concern. The script sorts
+// anything outside this list alphabetically and appends it at the end.
 const KEY_ORDER = [
   // Identity
   "name",
@@ -65,7 +65,7 @@ const KEY_ORDER = [
 
 function findPackageJsons(dir, out = []) {
   // withFileTypes returns a Dirent whose isDirectory()/isSymbolicLink() do not
-  // dereference the symlink, so we naturally skip broken symlinks like
+  // dereference the symlink. So the walk skips broken symlinks like
   // .claude/memory → ../wiki when wiki is not checked out (e.g. on CI).
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (SKIP_DIRS.has(entry.name)) continue;

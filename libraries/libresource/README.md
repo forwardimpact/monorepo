@@ -3,7 +3,7 @@
 <!-- BEGIN:description — Do not edit. Generated from package.json. -->
 
 Typed resources with identifiers and rich context chunks — trustworthy,
-retrievable knowledge for agent grounding.
+retrievable knowledge that grounds agents.
 
 <!-- END:description -->
 
