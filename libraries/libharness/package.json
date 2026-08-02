@@ -69,7 +69,7 @@
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libutil": "^0.1.0",
     "jmespath": "^0.16.0",
-    "minimatch": "^10.0.0",
+    "minimatch": "^10.2.6",
     "zod": "^4.4.3"
   },
   "devDependencies": {

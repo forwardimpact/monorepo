@@ -136,6 +136,8 @@ Excluded:
 
 ## Success criteria
 
+<!-- rumdl-disable MD042 -->
+
 | # | Claim | Verification |
 | --- | --- | --- |
 | 1 | A benchmark run against a family fixture leaves, per cell, a raw combined trace and per-participant split traces, all named per the shared convention, with no post-run deletion | Runner integration test over a fixture family; inspect the run output tree |
@@ -150,6 +152,8 @@ Excluded:
 | 10 | The benchmark action exposes a trace-directory output locating every trace file of the run | Action contract test or workflow-level assertion reading the output and listing convention-named files beneath it |
 | 11 | Old bare per-cell filenames appear nowhere in code or docs | `rg --hidden --pcre2 '(?<![.\w-])(agent|supervisor|judge)\.ndjson'` — the lookbehind excludes the convention's `.<role>.ndjson` suffixes, `--hidden` so the skills tree is searched — returns nothing outside `specs/` history |
 | 12 | Docs state the eval trace contract on every surface that documents benchmark output | Sections exist in both skills, the Prove Agent Changes guides, and the action README |
+
+<!-- rumdl-enable MD042 -->
 
 Criteria 5–7 exercise the published action and reusable workflow, so they
 verify in the post-release window — after the sibling publish and the

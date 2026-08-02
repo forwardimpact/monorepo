@@ -89,8 +89,8 @@ scope) into `AgentRunner` from `outpost.js`'s single construction site
 compute `posture = effectivePosture(await readPosture(...))`. When
 `posture === "brief"`, append to `spawnArgs`:
 
-- `"--disallowedTools", draftSkills(manifest).map(s => \`Skill(${s})\`).join(" ")`
-  (one space-joined token list per the CLI's documented format).
+- `"--disallowedTools", draftSkills(manifest).map(s => \`Skill(${s})\`).join("
+  ")` (one space-joined token list per the CLI's documented format).
 - `"--append-system-prompt", BRIEF_DIRECTIVE` where `BRIEF_DIRECTIVE` is a
   fixed string: run only read-and-brief work; do not draft or send content on
   the user's behalf, move files outside the knowledge base, or write the posture
