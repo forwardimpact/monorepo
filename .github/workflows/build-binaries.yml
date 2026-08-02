@@ -35,7 +35,7 @@ jobs:
     outputs:
       cells: ${{ steps.gen.outputs.cells }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: gen
         env:
           TARGETS: ${{ inputs.targets }}
@@ -71,7 +71,7 @@ jobs:
     # burn the default job budget.
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
       - name: Make sure codegen is current
         run: just codegen

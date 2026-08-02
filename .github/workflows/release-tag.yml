@@ -58,7 +58,7 @@ jobs:
           repositories: ${{ steps.t.outputs.repo }}
 
       # Check out this repo so the local composite action resolves.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Push release tags
         uses: ./.github/actions/release-tagger
