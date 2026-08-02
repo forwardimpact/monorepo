@@ -193,14 +193,14 @@ function buildEnrichMessages(ctx, placeholder, domain) {
 
   const system = `You are a technical writer. You produce HTML content with Schema.org microdata for the knowledge base of a pharmaceutical company.
 Output only the inner HTML content. Do not add wrapper tags. Do not add markdown fences.
-Write 300-500 words of detailed, rich prose across multiple paragraphs. Mention entities with inline Schema.org microdata spans.
-Only use the exact IRIs provided. Do not invent new IRIs. All itemid values must start with "https://${domain}/id/".`;
+Write 300-500 words of detailed prose in 3-5 paragraphs. Mention entities with inline Schema.org microdata spans.
+Use only the exact IRIs from the list. Do not invent new IRIs. All itemid values must start with "https://${domain}/id/".`;
 
   const user = `Rewrite this text block for a ${ctx.entityType} document about "${ctx.entityName}".
 
 Current text: "${placeholder}"
 
-Write 300-500 words of detailed prose across 3-5 paragraphs. Naturally mention these entities with Schema.org microdata:
+Write 300-500 words of detailed prose in 3-5 paragraphs. Mention these entities in a natural way with Schema.org microdata:
 
 ${mentionList}
 
