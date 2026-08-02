@@ -1,4 +1,4 @@
-/* biome-ignore-all lint/nursery/noExcessiveLinesPerFile: the file sits about 8 logical lines over the 530-line cap after the personal-conversation gate landed. `src/conversation-gate.js` already holds the gate body. To free the remaining lines, split `#stashAndPostLink` together with its `#renderDeclined` and `#handleReply` siblings. That is a follow-on change outside this scope. */
+/* biome-ignore-all lint/style/noExcessiveLinesPerFile: the file sits about 8 logical lines over the 530-line cap after the personal-conversation gate landed. `src/conversation-gate.js` already holds the gate body. To free the remaining lines, split `#stashAndPostLink` together with its `#renderDeclined` and `#handleReply` siblings. That is a follow-on change outside this scope. */
 import {
   Acknowledgement,
   CallbackHandlerError,
