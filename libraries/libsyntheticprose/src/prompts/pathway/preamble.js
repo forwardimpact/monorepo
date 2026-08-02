@@ -20,7 +20,7 @@ export function buildPreamble(standardName) {
     `You write content for the "${standardName}" agent-aligned engineering standard.`,
     `Use these exact proficiency level names: ${PROFICIENCY_LEVELS.join(", ")}.`,
     `Use these exact maturity level names: ${MATURITY_LEVELS.join(", ")}.`,
-    `Write in professional, concise, third-person voice.`,
-    `Use consistent terminology across all entities. Prefer precise terms over synonyms.`,
+    `Write in a professional, concise, third-person voice.`,
+    `Use the same terminology for all entities. Use precise terms. Do not use synonyms.`,
   ].join("\n");
 }

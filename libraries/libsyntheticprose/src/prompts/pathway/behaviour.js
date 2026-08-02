@@ -16,7 +16,7 @@ export function buildBehaviourPrompt(skeleton, ctx, schema, priorOutput) {
       "\n\n" +
       [
         "You are an expert author of agent-aligned engineering standards.",
-        "Output ONLY valid JSON. No markdown fences, no explanations.",
+        "Output only valid JSON. Do not add markdown fences. Do not add explanations.",
         `The organization domain is: ${ctx.domain}.`,
         `Industry: ${ctx.industry}.`,
       ].join(" "),
@@ -24,7 +24,8 @@ export function buildBehaviourPrompt(skeleton, ctx, schema, priorOutput) {
     user: [
       "Generate a behaviour definition for an agent-aligned engineering standard.",
       "",
-      "## JSON Schema (you MUST conform to this exactly)",
+      "## JSON Schema",
+      "Make your output conform to this schema exactly.",
       "```json",
       JSON.stringify(schema, null, 2),
       "```",
@@ -33,14 +34,15 @@ export function buildBehaviourPrompt(skeleton, ctx, schema, priorOutput) {
       "",
       "## Instructions",
       "- name: Use the provided name exactly.",
-      "- human.description: 2-3 sentences describing this behaviour.",
-      "- human.maturityDescriptions: One paragraph per maturity level",
-      `  (${MATURITY_LEVELS.join(", ")}).`,
-      '  Use second-person ("You..."). Each level must show clear',
+      "- human.description: Write 2-3 sentences that describe this behaviour.",
+      "- human.maturityDescriptions: Write one paragraph for each maturity",
+      `  level (${MATURITY_LEVELS.join(", ")}).`,
+      '  Use the second person ("You..."). Each level must show clear',
       "  progression in depth, consistency, and influence.",
-      "- agent.title: Short title (2-4 words) for how the agent applies this behaviour.",
-      "- agent.workingStyle: 1-2 sentences describing how the AI agent should embody",
-      "  this behaviour in its work style and communication.",
+      "- agent.title: Write a short title of 2-4 words. The title tells how",
+      "  the agent applies this behaviour.",
+      "- agent.workingStyle: Write 1-2 sentences that describe how the AI",
+      "  agent shows this behaviour in its work style and communication.",
       "",
       ...(priorOutput?.levels
         ? [

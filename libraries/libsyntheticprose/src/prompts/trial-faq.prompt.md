@@ -16,7 +16,7 @@ Eligibility overview:
 {{/clinical_criteria}}
 
 Write a FAQ document with common patient questions about participation in
-this trial. Cover: eligibility, what to expect, time commitment, costs,
-risks, and how to enroll. Make each answer 2-3 sentences.
+this trial. Include questions about eligibility, expectations, time
+commitment, costs, risks, and enrollment. Make each answer 2-3 sentences.
 
 {{#orgName}}Company: {{orgName}}.{{/orgName}}
