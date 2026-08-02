@@ -16,12 +16,12 @@ describe("buildLevelPrompt", () => {
   const { user } = buildLevelPrompt(levels, ctx, schema);
 
   test("instructs single capitalised rank for professionalTitle", () => {
-    assert.match(user, /single capitalised rank word/);
-    assert.match(user, /NEVER emit a multi-word role-complete title/);
+    assert.match(user, /single capitalized\n?\s*rank word/);
+    assert.match(user, /Do not write a multi-word role-complete title/);
   });
 
   test("instructs base-form verb opener for autonomyExpectation", () => {
-    assert.match(user, /open with a base-form verb/);
-    assert.match(user, /Never start with a third-person form/);
+    assert.match(user, /start with a base-form verb/);
+    assert.match(user, /Do not start with a third-person\n?\s*form/);
   });
 });
