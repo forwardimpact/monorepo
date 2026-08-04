@@ -50,7 +50,26 @@ Names may include parenthetical annotations:
 
 - `(Prior Worker)` → Internal/External = `External (Prior Worker)`.
 - `(Internal)` → Internal/External = `Internal`.
+- `(External)` → Internal/External = `External`.
 - No annotation, source contains "Internal" → `Internal`.
 - Otherwise → `External`.
 
 Strip the annotation from the directory name and the brief heading.
+
+## Latin-name normalisation
+
+The canonical `cleanName` (the directory name and the brief heading) is always
+the candidate's **Latin name**. Workday frequently appends a native-alphabet
+transliteration to the name cell, in ASCII or full-width parentheses, e.g.:
+
+- `Nikos Papadopoulos (ΝΙΚΟΣ ΠΑΠΑΔΟΠΟΥΛΟΣ)` → `Nikos Papadopoulos`
+- `Elena Petrova (Елена Петрова) (Internal)` → `Elena Petrova` (Internal)
+- `Wei Zhang （张伟）` → `Wei Zhang`
+
+The parser drops these transliterations (Greek, Cyrillic, CJK, Arabic, Hebrew,
+and any other non-Latin script), so `cleanName` never contains local-alphabet
+text. Accented Latin (é, ñ, ø, ç, Vietnamese diacritics, …) stays — only
+non-Latin scripts are stripped. Employment annotations peel off first, so a
+name that carries both a transliteration and `(Internal)`/`(Prior Worker)`
+still resolves both the Latin name and the Internal/External value. Never
+create a candidate directory whose name contains non-Latin characters.

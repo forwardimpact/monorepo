@@ -23,12 +23,12 @@ around the screening question — is this worth an interview?}
 
 ## Estimated Profile
 
-| Dimension      | Assessment                             |
-| -------------- | -------------------------------------- |
-| **Level**      | {estimated level and confidence}       |
-| **Track fit**  | {forward-deployed / platform / either} |
-| **Discipline** | {best discipline match}                |
-| **Gender**     | {Woman / Man / —}                      |
+| Dimension      | Assessment                                                |
+| -------------- | --------------------------------------------------------- |
+| **Level**      | {estimated range and confidence, e.g. "J090 ± 1, medium"} |
+| **Track fit**  | {forward-deployed / platform / dx / sre / either}         |
+| **Discipline** | {best discipline match}                                   |
+| **Gender**     | {Woman / Man / —}                                         |
 
 ## Skill Alignment
 
@@ -36,15 +36,26 @@ Standard reference: `{discipline} {level} --track={track}`
 
 | Skill | Expected | Estimated | Status |
 | --- | --- | --- | --- |
-| {skill} | {standard level} | {CV-based estimate} | {✅ Strong / 🟡 Adequate / ❌ Gap / ⬜ Not evidenced} |
+| {skill} | {standard level} | {CV-based estimate} | {✅ Strong / 🟡 Adequate / ❌ Gap / ⬜ Unknown — probe at interview} |
+
+### Score Calculation
+
+S = {n} Strong · A = {n} Adequate · G = {n} Gap · U = {n} Unknown
+E = S + A + G = {n} · **Match = (S + 0.5·A) / E = {nn} %**
+Core set ({n} skills, `type: core|track`): core signals = {n}, core gaps = {n}
+Tier gates: {which Interview / Interview-with-focus-areas conditions pass or fail}
 
 ### Key Strengths
 - {Strength 1 — with CV evidence}
 - {Strength 2 — with CV evidence}
 
 ### Key Gaps
-- {Gap 1 — what's missing and why it matters}
-- {Gap 2 — what's missing and why it matters}
+- {Gap 1 — affirmative below-bar evidence and why it matters}
+- {Gap 2 — affirmative below-bar evidence and why it matters}
+
+### Unknowns to Probe
+- {Core-set skills with no project-context evidence — each becomes an
+  interview focus area, not a gap}
 
 ## Behaviour Indicators
 
@@ -55,7 +66,7 @@ Standard reference: `{discipline} {level} --track={track}`
 ## Track Fit Analysis
 
 {Paragraph explaining why the candidate fits forward-deployed,
-platform, or either. Reference specific CV evidence.}
+platform, dx, sre, or either. Reference specific CV evidence.}
 
 ## Screening Recommendation
 
@@ -63,8 +74,9 @@ platform, or either. Reference specific CV evidence.}
 
 **Recommendation:** {Interview / Interview with focus areas / Pass}
 
-**Rationale:** {3–5 sentences grounded in standard data. Cite specific
-gaps or strengths, the skill match percentage, and the gap count.}
+**Rationale:** {3–5 sentences grounded in standard data. Cite the Match %,
+core signals/gaps, and the strongest concrete evidence. The score is built
+from positive signals, so lead with what the CV demonstrates.}
 
 ## Interview Focus Areas
 

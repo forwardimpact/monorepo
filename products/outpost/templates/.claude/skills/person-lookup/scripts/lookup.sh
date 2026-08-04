@@ -53,7 +53,7 @@ fi
 
 # Global Catalog: forest-wide, base "" spans every domain.
 GC="ldap://$dc:3268"
-ATTRS="displayName givenName sn company title department employeeID mail telephoneNumber physicalDeliveryOfficeName objectClass manager"
+ATTRS="displayName givenName sn company title department employeeID mail telephoneNumber physicalDeliveryOfficeName objectClass manager directReports"
 MAX_SHOW=12   # cap detailed output for very broad name matches
 
 # Pull one attribute out of an LDIF record (passed as $2). Decode base64 (::).
@@ -88,6 +88,23 @@ fetch() { # $1=dn
 name_of_dn() { # $1=dn
   [ -z "$1" ] && return 0
   field displayName "$(fetch "$1")"
+}
+
+# List a person's direct reports — the multi-valued `directReports` back-link
+# on their record — as one resolved name per line, sorted. $1 = the person's
+# fetched LDIF record. field() keeps only the first value, so pull EVERY value
+# here, decoding the base64 `directReports:: <b64>` form. Kept in a function
+# because a `case` inside $(...) trips the bash 3.2 parser that macOS ships.
+reports_of() { # $1=record
+  printf '%s\n' "$1" | while IFS= read -r line; do
+    case "$line" in
+      "directReports:: "*) printf '%s' "${line#directReports:: }" | base64 -D 2>/dev/null; echo ;;
+      "directReports: "*)  printf '%s\n' "${line#directReports: }" ;;
+    esac
+  done | while IFS= read -r dn; do
+    [ -n "$dn" ] || continue
+    n=$(name_of_dn "$dn"); [ -n "$n" ] && printf '%s\n' "$n"
+  done | sort
 }
 
 # Classify an entry: internal employee, external contact, or vendor account.
@@ -136,6 +153,15 @@ if [ "${#DNS[@]}" -eq 1 ]; then
   echo "- **Phone:** $(field telephoneNumber "$rec")"
   echo "- **Office:** $(field physicalDeliveryOfficeName "$rec")"
   [ -n "$mgr" ] && echo "- **Manager:** $mgr"
+  # Direct reports — the down-edge, symmetric to person-identify. Lets a
+  # caller resolve a team from any person: an IC's peers are their manager's
+  # other reports (look up the manager, read this list). Printed only when
+  # non-empty.
+  reports=$(reports_of "$rec")
+  if [ -n "$reports" ]; then
+    echo "- **Direct reports:**"
+    printf '%s\n' "$reports" | while IFS= read -r r; do echo "    - $r"; done
+  fi
   echo "- **DN:** ${DNS[0]}"
   exit 0
 fi

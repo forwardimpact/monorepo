@@ -54,6 +54,59 @@ The conversion script accepts optional arguments:
 Defaults: input = `/tmp/outpost-presentation.html`, output =
 `~/Desktop/presentation.pdf`
 
+## Source Annotations — REQUIRED
+
+Decks are condensed views of source documents (knowledge-base notes, drafts
+under `Drafts/`, project docs). As a deck is iterated on, improvements get
+**back-ported** to those sources. So every deck must record what maps where.
+Embed the mapping as HTML comments (invisible in the browser and in the PDF).
+A deck with untraceable content is incomplete.
+
+### Comment syntax
+
+    <!-- src: <relative-path>#<heading> -->
+    <!-- src-note: <free text> -->
+
+- `src:` maps the **next element** (and everything inside it) to a source file
+  or section. A nested `src:` overrides its parent for that subtree.
+- The path is **relative to the deck file itself**. The heading is the exact
+  markdown heading text without the leading `#`-marks, as in an Obsidian
+  `[[file#heading]]` link. Omit `#<heading>` to map to the whole file.
+- `src: #<heading>` (path omitted) inherits the path from the nearest
+  **enclosing** `src:`. Use this for repeated sections within one annotated
+  slide, so the doc path is stated once per slide.
+- `src-note:` records exceptions and nuances in prose: content synthesized
+  from multiple sources, deliberately omitted source fields, or deviations
+  from the field conventions.
+
+### Placement rules
+
+1. **Legend first.** Put one legend comment right after `<body>`. It explains
+   the syntax and the deck's field conventions (see below). Never nest a
+   literal `<!--` inside it — write the syntax without comment delimiters.
+2. **One `src:` per slide**, mapping it to its primary source document, placed
+   immediately before the `<section class="slide">`.
+3. **One `src:` per repeated content block** (a goal, a priority, a feature
+   card…), mapping it to the source section heading, placed immediately
+   before the block's opening tag.
+4. **Field conventions instead of per-paragraph comments.** When a block's
+   inner elements map 1:1 to labelled source fields (e.g. `.card.why p` ↔
+   `**Why it matters:**`), declare that mapping **once in the legend**.
+   Annotate individual elements only when they deviate — then use `src-note:`.
+5. **Synthesized content** (title pages, summary slides that condense several
+   sources) gets a `src-note:` saying what it draws on.
+
+### Authoring for back-portability
+
+- Keep deck headings **verbatim from the source headings** where possible.
+  The anchor then doubles as an integrity check.
+- Keep stable IDs from the sources (A1, B2, goal numbers) visible in the deck
+  content, so items self-identify even if comments are stripped.
+- When back-porting: treat the deck text as the edited version of the mapped
+  source field. Apply the change to the source file at the given heading.
+  Carry the substance back, not the deck's condensed formatting. Find all
+  annotations with `rg '<!-- src' <deck>.html`.
+
 ## PDF Rendering Rules
 
 **These rules prevent problems when the PDF renders:**
@@ -109,6 +162,8 @@ See that skill for the install steps and the sidecar JSON schema.
 ## Constraints
 
 - Always use the knowledge base for context when available
+- Always embed source annotations (`src:` / `src-note:` comments + legend)
+  that map deck sections to their source documents — see Source Annotations
 - Output to `~/Desktop/presentation.pdf` unless the user specifies otherwise
 - Keep slides clean and readable (max 5-6 bullet points per slide)
 - Use the same styles throughout

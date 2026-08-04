@@ -18,18 +18,24 @@ summaries. This skill reads that output and feeds it into `Knowledge/`.
 
 ## Prerequisites
 
-- Anarlog installed. Sessions live at
-  `~/Library/Application Support/anarlog/sessions/`.
+- Anarlog installed. Meetings live in its local SQLite database (`app.db`).
+  Read them only through Anarlog's typed, read-only interfaces (per its own
+  `AGENTS.md`): prefer the **Anarlog MCP tools** (`get_meeting`,
+  `get_meeting_transcript`) when connected, else the **bundled `anarlog-cli`**
+  with `--json`. Never `grep`, crawl `sessions/`, or query SQLite directly.
 - The user identity. The `person-identify` skill writes it to
   `~/.cache/fit/outpost/state/identity.md`.
 
 ## Inputs
 
-- `~/Library/Application Support/anarlog/sessions/{uuid}/` — see
-  [references/sessions.md](references/sessions.md) for the file shape and skip
-  rules.
-- `~/.cache/fit/outpost/state/graph_processed` — processed-file index (TSV,
-  shared with `extract-entities`).
+- Meetings, read through `anarlog-cli` (`meetings list` / `get` /
+  `transcript`) — see [references/sessions.md](references/sessions.md) for the
+  CLI contract, content shapes, and skip rules. Older installs without the CLI
+  fall back to flat files under
+  `~/Library/Application Support/anarlog/sessions/{uuid}/`.
+- `~/.cache/fit/outpost/state/graph_processed` — processed index (TSV, shared
+  with `extract-entities`). New meetings key as `anarlog://{id}`. Legacy
+  flat-file sessions keep their file-path keys and are never reprocessed.
 - `~/.cache/fit/outpost/state/identity.md` — user identity for self-exclusion
   (the `person-identify` skill writes it).
 
@@ -39,22 +45,26 @@ summaries. This skill reads that output and feeds it into `Knowledge/`.
   `Knowledge/Topics/` — created or updated.
 - `Knowledge/Priorities/` — **updated only**, never
   auto-created.
+- `Knowledge/Candidates/{Name}/transcript-{date}.md` — created for interview
+  sessions (verbatim transcript; the input `req-assess` waits on).
 - `~/.cache/fit/outpost/state/graph_processed` — updated.
 
 <do_confirm_checklist goal="Verify each session was processed correctly">
 
 - [ ] Skip the empty, test, and onboarding sessions (per the skip rules).
-- [ ] Read both `_memo.md` and `_summary.md` (when present). Consult the
+- [ ] Read both the note and the summary (when present). Consult the
       transcript only for disambiguation.
 - [ ] Apply the "Would I prep?" test to each person. Exclude the user.
 - [ ] Write interview sessions to `Knowledge/Candidates/`. Never write them
       to `Knowledge/People/`.
+- [ ] Write a verbatim `transcript-{date}.md` for each interview session
+      (skip when that date's file already exists).
 - [ ] Use an absolute path in every link (`[[Folder/Name]]`).
 - [ ] Describe the relationship in each activity entry. Leave out the
       communication method.
 - [ ] Auto-create no new `Priorities/` note (the user sets these). Update the
       progress on every priority the content references.
-- [ ] Update `graph_processed` for every processed file (memo + summary).
+- [ ] Update `graph_processed` for every processed meeting (`scan.mjs mark`).
 
 </do_confirm_checklist>
 
@@ -64,23 +74,28 @@ summaries. This skill reads that output and feeds it into `Knowledge/`.
 
 Read the user's identity from `~/.cache/fit/outpost/state/identity.md` (run the
 `person-identify` skill first if it is missing or stale). Scan unprocessed
-sessions:
+meetings:
 
 ```bash
 node .claude/skills/anarlog-process/scripts/scan.mjs
 ```
 
-Flags: `--changed` (also detect changed memo/summary hashes), `--json`
-(programmatic output), `--count` (count only), `--limit N` (default 20).
+The scan reads meetings through `anarlog-cli` (bulk enumerate-and-hash has no
+MCP equivalent), so it finds every meeting — even ones not yet exported to
+flat files. Each row prints the meeting `id` for Steps 2 and 6.
 
-Process a session when its `_memo.md` is not in `graph_processed`. Also process
-it when the memo hash changed (`--changed`). Also process it when its
-`_summary.md` exists and is not in `graph_processed`, or when the summary
-changed.
+Flags: `--changed` (re-check changed note/summary content), `--json`,
+`--count`, `--limit N` (default 20), `--legacy` (force the flat-file
+fallback); `cli-path` prints the resolved `anarlog-cli` binary.
 
-Process all unprocessed sessions in one run. **Don't write bespoke scan
-scripts.** This script handles the edge cases (empty memos, missing summaries,
-metadata fallback).
+A meeting needs processing when it has a substantive note or summary and
+`graph_processed` has no `anarlog://{id}` record for it (or, with `--changed`,
+its content hash differs). Already-processed flat-file sessions stay frozen.
+Without `anarlog-cli`, the scan falls back to flat files automatically.
+
+Process all unprocessed meetings in one run. **Don't write bespoke scan
+scripts or query the database directly.** This script drives the supported
+CLI and handles the edge cases.
 
 ### 1. Build the knowledge index
 
@@ -93,12 +108,33 @@ ls Knowledge/People/ Knowledge/Organizations/ Knowledge/Projects/ \
 Read each note's header to build a mental index of known entities (same approach
 as `extract-entities` Step 0).
 
-### 2. Read each session
+### 2. Read each meeting
 
-For each unprocessed session, read in this order: `_meta.json`, `_memo.md`,
-`_summary.md` (if present), `transcript.json` (only when disambiguation requires
-it). See [references/sessions.md](references/sessions.md) for the file shapes
-and the skip rules.
+For each unprocessed meeting, prefer the MCP tool:
+`get_meeting({ meeting_id: id })`. Fall back to the CLI (already resolved by
+`scan.mjs`) when the MCP server is not connected:
+
+```bash
+CLI="$(node .claude/skills/anarlog-process/scripts/scan.mjs cli-path)"
+"$CLI" --json meetings get {id}
+```
+
+This returns `note.markdown` (the user's own notes — high signal),
+`summaries[].markdown` (the AI summary — usually the richest source),
+`participants`, and `action_items`. Read the note and the summary. Pull the
+transcript only when disambiguation requires it — MCP
+`get_meeting_transcript({ meeting_id: id, offset: 0, limit: 200 })`, or CLI
+`"$CLI" --json meetings transcript {id} --limit 200 --offset 0`.
+
+**Exception — interview sessions:** once Step 3 classifies a meeting as an
+interview, fetch the transcript **in full**: page with `offset`/`next_offset`
+until a short page and concatenate `data.text`. This is persistence, not
+extraction — Step 4 stays note/summary-only; Step 5 writes it verbatim.
+
+MCP/CLI contract, content shapes, and skip rules:
+[references/sessions.md](references/sessions.md). In `--legacy` mode, read the
+`memoPath` / `summaryPath` files the scan reported instead (legacy
+`transcript.json` is already complete — no pagination needed).
 
 ### 3. Classify the source
 
@@ -136,18 +172,25 @@ For **existing** entities, never rewrite the file. Apply targeted edits:
 - Update open items (mark completed, add new).
 - Apply state changes.
 
+For interview sessions, also write the full transcript from Step 2 to
+`Knowledge/Candidates/{Name}/transcript-{date}.md`: verbatim, no frontmatter,
+speaker turns labeled by channel (`0` = user, `1` = other — cross-check
+against `participants` when ambiguous). `{date}` is the meeting's
+`started_at` (fall back to `created_at`), `YYYY-MM-DD`. Skip the write when
+that date's file already exists. The file is pure persistence for
+`req-assess`; never mine it for entities.
+
 Verify bidirectional links per `extract-entities` Step 10 (Project ↔ Priority).
 
 ### 6. Update graph state
 
-For each processed session:
+Mark each processed meeting so the scan does not pick it up again. This
+records its `anarlog://{id}` content hash in `graph_processed`:
 
 ```bash
-node .claude/skills/extract-entities/scripts/state.mjs update \
-  "$HOME/Library/Application Support/anarlog/sessions/{uuid}/_memo.md"
-
-node .claude/skills/extract-entities/scripts/state.mjs update \
-  "$HOME/Library/Application Support/anarlog/sessions/{uuid}/_summary.md"
+node .claude/skills/anarlog-process/scripts/scan.mjs mark {id} [{id}…]
 ```
 
-(Skip the summary call if `_summary.md` doesn't exist.)
+Pass every meeting you processed in one call. If the scan ran in `--legacy`
+mode, instead mark the flat files it reported:
+`extract-entities/scripts/state.mjs update <memoPath> <summaryPath>`.
