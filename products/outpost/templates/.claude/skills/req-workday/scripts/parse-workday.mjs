@@ -54,20 +54,56 @@ try {
 const filePath = process.argv[2];
 const summaryMode = process.argv.includes("--summary");
 
+/**
+ * Read a workbook. Tolerate Workday's ZIP container.
+ *
+ * Workday exports .xlsx via Apache POI's streaming writer. That writer sets
+ * the ZIP "data descriptor" flag (bit 0x08) on every entry, so the sizes live
+ * in a trailer after each entry, not in the local header. read-excel-file's
+ * streaming unzipper trusts the (zeroed) local-header sizes, loses alignment,
+ * and throws `invalid signature: 0x…`. fflate reads the authoritative ZIP
+ * central directory, so on failure we re-pack into a clean container (sizes
+ * in the local headers, no data descriptors) and retry. Files that already
+ * parse take the original path unchanged.
+ */
+async function readWorkbook(path) {
+  try {
+    return await readXlsxFile(path);
+  } catch (err) {
+    let fflate;
+    try {
+      fflate = await import("fflate");
+    } catch {
+      throw err; // fflate unavailable — surface the original parse error
+    }
+    const { readFileSync } = await import("node:fs");
+    const raw = readFileSync(path);
+    const normalized = Buffer.from(
+      fflate.zipSync(fflate.unzipSync(new Uint8Array(raw))),
+    );
+    return await readXlsxFile(normalized);
+  }
+}
+
+// read-excel-file v9 returns the whole workbook as [{ sheet, data }] —
+// read it once and index sheets from that.
+const workbook = await readWorkbook(filePath);
+const sheetNames = workbook.map((s) => s.sheet);
+
 /** Read a sheet by number (1-indexed) or name. Rows are arrays of strings. */
-async function readSheet(file, sheet) {
-  const rows = await readXlsxFile(file, { sheet });
+function readSheet(_file, sheet) {
+  const entry =
+    typeof sheet === "number"
+      ? workbook[sheet - 1]
+      : workbook.find((s) => s.sheet === sheet);
+  const rows = entry ? entry.data : [];
   // Normalise null cells to empty strings to match previous behaviour
   return rows.map((row) => row.map((cell) => (cell == null ? "" : cell)));
 }
 
-// Get sheet names to find the candidates sheet
-const sheets = await readXlsxFile(filePath, { getSheets: true });
-const sheetNames = sheets.map((s) => s.name);
-
 // --- Sheet 1: Requisition metadata ---
 
-const sheet1Rows = await readSheet(filePath, 1);
+const sheet1Rows = readSheet(filePath, 1);
 
 /** Extract the requisition ID and title from the header row. */
 function parseReqHeader(headerText) {
@@ -120,7 +156,7 @@ const requisition = {
 const candSheetName =
   sheetNames.find((n) => n.toLowerCase() === "candidates") ||
   sheetNames[Math.min(2, sheetNames.length - 1)];
-const candRows = await readSheet(filePath, candSheetName);
+const candRows = readSheet(filePath, candSheetName);
 
 // Find the header row dynamically. Look for a row that contains "Stage".
 // Old format: row 3 (index 2). New format: row 8 (index 7).
@@ -194,24 +230,64 @@ function col(row, field) {
   return row[idx] ?? "";
 }
 
+// Any character outside the Latin script blocks (Basic Latin + Latin-1
+// Supplement + Latin Extended-A/B + Latin Extended Additional). Accented Latin
+// (é, ñ, ø, ç, Vietnamese, …) stays; Greek, Cyrillic, CJK, Arabic, Hebrew,
+// etc. count as native-alphabet text to drop.
+const NON_LATIN = /[^\u0020-\u024F\u1E00-\u1EFF]/;
+const HAS_LATIN_LETTER = /[A-Za-z\u00C0-\u024F\u1E00-\u1EFF]/;
+
 /**
- * Clean a candidate name. Strip annotations like (Prior Worker), (Internal),
- * etc. Returns { cleanName, internalExternal }.
+ * Clean a candidate name into the canonical Latin name.
+ *
+ * Workday encodes several things in the name cell as parentheticals:
+ *   - Employment annotations: `(Internal)`, `(Prior Worker)`, `(External)`.
+ *   - A native-alphabet transliteration of the name, e.g.
+ *     `Nikos Papadopoulos (ΝΙΚΟΣ ΠΑΠΑΔΟΠΟΥΛΟΣ)` or `Wei Zhang （张伟）`.
+ * A name may carry both, in either paren style. Normalise on the Latin name:
+ * strip every trailing parenthetical (classify employment ones into
+ * `internalExternal`, discard native-alphabet ones), then drop any residual
+ * non-Latin-script tokens. Returns { cleanName, internalExternal }.
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: annotation peel loop classifies employment vs transliteration cases
 function parseName(raw) {
-  const name = String(raw).trim();
+  // Normalise full-width parens （） to ASCII so both styles strip uniformly.
+  let name = String(raw).replace(/（/g, "(").replace(/）/g, ")").trim();
   if (!name) return { cleanName: "", internalExternal: "" };
 
-  const match = name.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
-  if (match) {
-    const annotation = match[2].trim();
-    let ie;
-    if (/prior\s*worker/i.test(annotation)) ie = "External (Prior Worker)";
-    else if (/internal/i.test(annotation)) ie = "Internal";
-    else ie = annotation;
-    return { cleanName: match[1].trim(), internalExternal: ie };
+  let internalExternal = "";
+  // Repeatedly peel a trailing parenthetical group (allowing one level of
+  // nesting so `(External (Prior Worker))` is captured whole).
+  const trailing = /\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)\s*$/;
+  let m;
+  while ((m = name.match(trailing)) !== null) {
+    const annotation = m[1].trim();
+    if (/prior\s*worker/i.test(annotation)) {
+      if (!internalExternal) internalExternal = "External (Prior Worker)";
+    } else if (/internal/i.test(annotation)) {
+      if (!internalExternal) internalExternal = "Internal";
+    } else if (/external/i.test(annotation)) {
+      if (!internalExternal) internalExternal = "External";
+    } else if (NON_LATIN.test(annotation)) {
+      // Native-alphabet transliteration of the name — drop, no IE signal.
+    } else if (!internalExternal && annotation) {
+      // Unknown Latin annotation — preserve prior behaviour (first one wins).
+      internalExternal = annotation;
+    }
+    name = name.slice(0, name.length - m[0].length).trim();
   }
-  return { cleanName: name, internalExternal: "" };
+
+  // Drop any residual whole-word tokens that are purely non-Latin script
+  // (e.g. a native name appended without parentheses). Keep Latin tokens
+  // and pure punctuation/digits.
+  name = name
+    .split(/\s+/)
+    .filter((tok) => HAS_LATIN_LETTER.test(tok) || !NON_LATIN.test(tok))
+    .join(" ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+
+  return { cleanName: name, internalExternal };
 }
 
 /** Detect source-based internal/external when the name annotation is absent. */
