@@ -1,6 +1,6 @@
 ---
 name: person-lookup
-description: Look up ANY person in the corporate directory from free-text input (an email address, or a first / last / full name) and return their record: real name, title, department, company, email, employee ID, office, and manager. Searches the Global Catalog forest-wide through LDAP. The bind uses the existing Kerberos ticket. Use when the user asks "who is X", needs someone's title / department / manager / email, or wants to disambiguate a name. For the *current* user's own identity, use the sibling `person-identify` skill instead.
+description: Look up ANY person in the corporate directory from free-text input (an email address, or a first / last / full name) and return their record: real name, title, department, company, email, employee ID, office, manager, and direct reports. Searches the Global Catalog forest-wide through LDAP. The bind uses the existing Kerberos ticket. Use when the user asks "who is X", needs someone's title / department / manager / reports / email, wants to disambiguate a name, or needs to resolve a team around a person (a person's peers = their manager's other reports). For the *current* user's own identity, use the sibling `person-identify` skill instead.
 ---
 
 # Person Lookup
@@ -56,8 +56,9 @@ The argument is free text: an email, a full name, or just a surname.
    nothing, fall back to a substring search on `mail` / `displayName` /
    `proxyAddresses`.
 4. **Resolve per match.** For a single hit, print the full record and resolve
-   the `manager` DN to a name. For several hits, print a compact
-   disambiguation list and suggest a narrower search by email.
+   both org edges — the `manager` DN and each `directReports` DN — to names.
+   For several hits, print a compact disambiguation list and suggest a
+   narrower search by email (org edges resolve only for an exact, single hit).
 
 ## Output
 
@@ -72,6 +73,7 @@ The argument is free text: an email, a full name, or just a surname.
 | Employee ID | `employeeID` |
 | Phone / Office | `telephoneNumber` / `physicalDeliveryOfficeName` |
 | Manager | `manager` (DN → resolved to a name) |
+| Direct reports | `directReports` (multi-valued DN back-link → each resolved to a name; single hit only, shown when non-empty) |
 | DN | distinguished name (region + OU, useful for disambiguation) |
 
 ## Notes
