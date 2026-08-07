@@ -56,11 +56,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.6",
-    "@playwright/test": "^1.62.0",
+    "@playwright/test": "^1.62.1",
     "acorn": "^8.18.0",
     "eslint": "^10.8.0",
-    "eslint-plugin-jsdoc": "^63.3.2",
-    "rumdl": "^0.2.45",
+    "eslint-plugin-jsdoc": "^63.3.3",
+    "rumdl": "^0.2.49",
     "semver": "^7.8.5",
     "serve": "^14.2.6",
     "yaml": "^2.9.0"
