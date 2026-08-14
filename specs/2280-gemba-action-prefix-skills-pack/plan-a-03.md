@@ -171,9 +171,10 @@ each is a workflow input name (`wiki:`, `token:`), a step title
 a composite action.
 
 `workflow-dispatch.md` and `workflow-shift.md` both sit at exactly 128 lines
-against the L6 skill-reference cap. These edits lengthen lines but add none.
-The third command confirms the format pass in part 04 step 6 did not reflow
-either file over the cap. If it did, shorten the wording in place.
+against the L6 skill-reference cap. These edits lengthen lines but add none, so
+the third command should report both files clean here. The reflow risk lands
+later: part 04 step 6 runs the format pass and re-runs this same command. If
+either file breaches the cap there, shorten the wording in place.
 
 ## Step 4: Add the pack to the kata-setup prerequisites
 

@@ -45,12 +45,14 @@ Files modified:
 Line 151 carries the name twice. Change both occurrences. Every SHA and tag
 keeps its value.
 
-Verify: run the sweep below and confirm no hit names a composite action. It
-returns roughly 19 lines, nearly all legitimate: input defaults
+Verify: run the sweep below and confirm no hit names an action by its **old
+bare** name. It returns 18 lines. Most are the action's own published
+interface, which this change must not rename: input defaults
 (`benchmark-runs`, `benchmark-merge`, `benchmark-results`), the artifact
 pattern `benchmark-shard-*`, the `benchmark:` job key, and the
-`- name: Run benchmark` step title. Those are the action's own published
-interface. Renaming them would be a breaking change and is out of scope.
+`- name: Run benchmark` step title. One hit, `README.md:86`, names the
+renamed action in full (`forwardimpact/gemba-benchmark/.github/workflows/…`);
+that is the corrected form, so it passes.
 
 ```sh
 rg -n --hidden '(^|[^-])\b(benchmark|bootstrap)\b' \
