@@ -58,10 +58,18 @@ node -e 'const t=require("fs").readFileSync(".github/CLAUDE.md","utf8");
   console.log((t.match(/\S+/g)||[]).length)'
 ```
 
-The sweep must return exactly three lines, all of which use "bootstrap" as an
-ordinary word rather than an action name: the `## Environment bootstrap`
-heading, `the single bootstrap path` with `bootstrap.sh`, and
-`` `curl | bash` bootstrap ``. The count must still print 768.
+The sweep must return exactly these five lines, none of which names an action:
+
+| Line | Why it stays |
+| ---- | ------------ |
+| 15 | The `gemba-bootstrap` row's description says `wiki checkout` and `` `bootstrap.sh` ``. Both are the ordinary word and the script name. |
+| 25 | `out** the wiki (given a `token`)` describes the memory checkout, not the action. |
+| 62 | The `## Environment bootstrap` heading. |
+| 64 | `is the single bootstrap path` describes the path, not the action. |
+| 68 | `` `curl | bash` bootstrap `` describes the operation. |
+
+The count must still print 768. Both results are simulated and confirmed
+against the current file.
 
 ## Step 2: Reseed the enum fences
 
@@ -74,10 +82,11 @@ bunx jidoka invariants --seed enumeration-drift
 ```
 
 `--seed` renders text to stdout and writes no file
-(`libraries/libinvariant/src/enum-drift.js:215`), so the seed output is a
-reference set and the edit is by hand. plan-a.md § Approach records this
-divergence from design-a.md:71 and leaves the design correction to the
-approver.
+(`libraries/libinvariant/src/enum-drift.js:215`). It emits `- name` bullets,
+which do not paste into either consumer fence, so use the output as the
+canonical set and reconcile each fence against it. This is the documented
+refresh path (`.jidoka/invariants/enumeration-drift.topics.yml:15-16`). See
+plan-a.md § Approach.
 
 `CLAUDE.md:102-104` becomes:
 
@@ -113,15 +122,15 @@ File modified: `CLAUDE.md`.
 | 74 | ``- **Gemba — `fit-skills`** — The agent-runtime platform …`` | ``- **Gemba — `gemba-skills`** — The agent-runtime platform …`` |
 | 95 | ``forwardimpact/{fit-skills,kata-skills,jidoka-skills}`` | ``forwardimpact/{fit-skills,gemba-skills,kata-skills,jidoka-skills}`` |
 
-Root `CLAUDE.md` sits at exactly 896 words against its 896-word L0 cap
+Root `CLAUDE.md` sits at exactly 896 words against its 896-word L1 cap
 (`libraries/libinvariant/src/instructions.js:155-156`). Both replacements above
 and the fences in step 2 are one token for one token, so the count does not
 move. Add no word.
 
 The line-95 replacement makes that list item 87 characters, over the
 `[MD013] line-length = 80` limit. Do not hand-wrap it. Step 6 runs the single
-scoped format pass that reflows it, which takes the file to 190 lines against
-its 192-line cap.
+scoped format pass. Confirm with `bunx jidoka instructions` afterwards that the
+file is still inside its 192-line cap.
 
 Verify: `rg -n 'Gemba — |forwardimpact/\{' CLAUDE.md` shows `gemba-skills` in
 both lines, and the word count still prints 896.
@@ -178,38 +187,66 @@ websites/fit/gear/index.md` and confirm no hit names a composite action.
 
 File modified: `products/gemba/test/golden/gemba-benchmark/help.stdout.txt`.
 
-The golden snapshot is generated, so regenerate it rather than hand-editing.
-`resolveGoldenDir` (`scripts/capture-cli-golden.mjs:40-43`) resolves
-`<cwd>/test/golden/<bin>`, and the `report-empty` case's fixture path is
-relative to `products/gemba`, so the capture must run with that package as the
-working directory:
+**Do not run the capture script in capture mode.** Two traps make it unsafe
+here, both confirmed by running it:
+
+1. Without `--exec`, `capture()` falls back to the bare bin name
+   (`scripts/capture-cli-golden.mjs:88`). `gemba-benchmark` is not on PATH in a
+   working checkout, so `spawnSync` fails, every captured stream becomes `""`,
+   and the script still exits 0. It overwrites the goldens with empty files and
+   reports success.
+2. Even with `--exec`, the `report-empty` case reads
+   `test/golden/gemba-benchmark/empty-runs`, an **empty directory**. Git cannot
+   track empty directories, so the fixture is absent in any fresh checkout, and
+   a capture rewrites `report-empty.stderr.txt` with an un-normalised local
+   path. That is a pre-existing repository condition, not something this change
+   introduces.
+
+Edit line 31 by hand to match the new `benchmark-definition.js:177` string. This
+is byte-equivalent to a correct capture: `libraries/libcli/src/help.js:103`
+emits descriptions unwrapped, and `--help` output reproduces the committed
+snapshot exactly (verified with
+`diff <(node products/gemba/bin/gemba-benchmark.js --help) products/gemba/test/golden/gemba-benchmark/help.stdout.txt`).
+
+Verify with that same diff, which must print nothing:
 
 ```sh
-cd products/gemba && node ../../scripts/capture-cli-golden.mjs --bin gemba-benchmark
+diff <(node products/gemba/bin/gemba-benchmark.js --help) \
+  products/gemba/test/golden/gemba-benchmark/help.stdout.txt
 ```
 
-Verify with the same script in verify mode. Do **not** rely on
-`products/gemba/test/golden.test.js`: it pins `GOLDEN_DIR` to
-`./golden/gemba-wiki` (line 18), and no suite in `bun run test` reads the
+Do **not** rely on `products/gemba/test/golden.test.js`. It pins `GOLDEN_DIR`
+to `./golden/gemba-wiki` (line 17), and no suite in `bun run test` reads the
 `gemba-benchmark` golden, so that test passes with a stale snapshot.
-
-```sh
-cd products/gemba && node ../../scripts/capture-cli-golden.mjs \
-  --bin gemba-benchmark --verify
-```
 
 ## Step 6: Run the whole-change verification
 
-Run this step after parts 01 to 04 are complete. It is the only step that runs
-a formatter, because `bun run check` starts with `format:md`
-(`rumdl fmt --check .`) and edits across parts 02, 03, and 04 push lines past
-80 columns. Scope the format pass to the files this change touched, so it does
-not write files other parts own:
+Run this step after parts 01 to 04 are complete.
+
+**First, make the last two edits.** Two authored references sit outside every
+sweep below and outside every other part's file list:
+
+| File:line | Old | New |
+| --------- | --- | --- |
+| `libraries/libharness/src/claude-code-executable.js:12` | `` The bootstrap action's `fit-install.sh` installs it beside gemba-harness. `` | `` The gemba-bootstrap action's `fit-install.sh` … `` |
+| `MONOREPO.md:103` | `The CI bootstrap action invokes it by path` | `The CI gemba-bootstrap action invokes it by path` |
+
+`MONOREPO.md:103` is 79 characters today and becomes 85, over the MD013 limit.
+The format pass below reflows it. Make both edits before that pass, not after.
+
+**Then format.** This is the only step that runs a formatter. `bun run check`
+reaches `format:md` (`rumdl fmt --check .`) third in its chain, and edits
+across parts 02, 03, and 04 push lines past 80 columns. Scope the pass to the
+files this change touched, so it does not write files other parts own:
 
 ```sh
-bunx rumdl fmt $(git diff --name-only origin/main...HEAD -- '*.md')
+bunx rumdl fmt $(git diff --name-only --diff-filter=d origin/main...HEAD -- '*.md')
 bunx jidoka instructions
 ```
+
+`--diff-filter=d` drops deleted paths. `rumdl fmt` exits 2 and formats nothing
+if any argument is missing, so a single deletion would otherwise disable the
+only format pass in the change.
 
 The second command confirms the reflow did not push any capped instruction file
 over its line budget. `.rumdl.toml` excludes `products/{gemba,kata}/actions/**`,
@@ -236,19 +273,12 @@ bun run test
 `.rgignore` already excludes `benchmarks/` repo-wide, so no sweep needs a
 `benchmarks` glob.
 
-Verify: sweeps one to four return nothing. Sweep five returns only three
-sanctioned hits: the `specs/1580-fit-bootstrap-…` link in
-`products/gemba/actions/gemba-bootstrap/README.md`, the grammar fixture strings
-in `libraries/libinvariant/test/enumeration-drift-grammar.test.js`, and the
-`./benchmarks/fit-wiki` family path in `.github/workflows/eval-wiki.yml`. The
-alternation deliberately omits `fit-harness`: the two hits in
-`products/kata/actions/*/README.md` name the `@forwardimpact/libharness` npm
-package, not an action. Both commands pass.
-
-Two authored references sit outside every sweep above. Fix them here and
-confirm by name:
-
-| File:line | Old | New |
-| --------- | --- | --- |
-| `libraries/libharness/src/claude-code-executable.js:12` | `` The bootstrap action's `fit-install.sh` installs it beside gemba-harness. `` | `` The gemba-bootstrap action's `fit-install.sh` … `` |
-| `MONOREPO.md:103` | `The CI bootstrap action invokes it by path` | `The CI gemba-bootstrap action invokes it by path` |
+Verify: sweeps one to four return nothing. Sweep five returns six lines across
+three sanctioned sources: the `specs/1580-fit-bootstrap-…` link in
+`products/gemba/actions/gemba-bootstrap/README.md` (one line), the grammar
+fixture strings in
+`libraries/libinvariant/test/enumeration-drift-grammar.test.js` (four lines,
+150, 152, 203, and 219), and the `./benchmarks/fit-wiki` family path in
+`.github/workflows/eval-wiki.yml` (one line). The alternation deliberately
+omits `fit-harness`: the two hits in `products/kata/actions/*/README.md` name
+the `@forwardimpact/libharness` npm package, not an action. Both commands pass.

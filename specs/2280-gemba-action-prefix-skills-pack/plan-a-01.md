@@ -45,11 +45,20 @@ Files modified:
 Line 151 carries the name twice. Change both occurrences. Every SHA and tag
 keeps its value.
 
-Verify: `rg -n --hidden '(^|[^-])\b(benchmark|bootstrap)\b'
-products/gemba/actions/gemba-benchmark/` returns nothing. `--hidden` is
-required. Without it ripgrep skips the home's own `.github/workflows/`
-directory, which is exactly what this step edits. The `[^-]` guard stops `\b`
-from matching inside `gemba-benchmark`.
+Verify: run the sweep below and confirm no hit names a composite action. It
+returns roughly 19 lines, nearly all legitimate: input defaults
+(`benchmark-runs`, `benchmark-merge`, `benchmark-results`), the artifact
+pattern `benchmark-shard-*`, the `benchmark:` job key, and the
+`- name: Run benchmark` step title. Those are the action's own published
+interface. Renaming them would be a breaking change and is out of scope.
+
+```sh
+rg -n --hidden '(^|[^-])\b(benchmark|bootstrap)\b' \
+  products/gemba/actions/gemba-benchmark/
+```
+
+`--hidden` is required. Without it ripgrep skips the home's own
+`.github/workflows/` directory, which is exactly what this step edits.
 
 ## Step 3: Repoint the bootstrap, harness, and wiki homes
 
@@ -93,9 +102,13 @@ Files modified:
 
 - `products/gemba/actions/gemba-bootstrap/fit-install.sh`
 - `products/gemba/actions/gemba-wiki/action.yml`
+- `products/gemba/actions/gemba-benchmark/action.yml`
+- `products/gemba/actions/gemba-benchmark/.github/workflows/benchmark.yml`
 
 | File:line | Old | New |
 | --------- | --- | --- |
+| `gemba-benchmark/action.yml:107` | `# this action carries no duplicate pin. bootstrap usually provides apm` | `… gemba-bootstrap usually provides apm` |
+| `gemba-benchmark/.github/workflows/benchmark.yml:121` | `# action has no bunx/npx fallback. It needs a bootstrap pin whose` | `… It needs a gemba-bootstrap pin whose` |
 | `gemba-bootstrap/fit-install.sh:3` | `CI (fit-bootstrap), Claude …` | `CI (gemba-bootstrap), Claude …` |
 | `gemba-bootstrap/fit-install.sh:31` | `The benchmark action …` | `The gemba-benchmark action …` |
 | `gemba-bootstrap/fit-install.sh:48` | `fit-bootstrap consumes this …` | `gemba-bootstrap consumes this …` |

@@ -17,21 +17,34 @@ only pass when all four are present.
 Libraries used: libpack (skill-pack prefix staging, unchanged), libinvariant
 (`enumeration-drift` seed and check).
 
-**One recorded divergence from the design.** design-a.md:71 chooses "reseed the
-fences with the invariant tooling" and rejects "hand-edit each fence". The
-tooling has no write mode: `seedBodies`
-(`libraries/libinvariant/src/enum-drift.js:215`) returns a string and
-`--seed` prints it. The rejected alternative is therefore the only available
-path, so part 04 step 2 hand-edits the fences and `bun run invariants` gates
-the result. The design's Key Decisions row needs a one-line correction. The
-approver should make that call. This plan does not silently overwrite it.
+**One note on the enum reseed.** design-a.md:71 chooses "reseed the fences with
+the invariant tooling" over unaided hand edits. That is what part 04 step 2
+does, and it matches the repository's own documented refresh path
+(`.jidoka/invariants/enumeration-drift.topics.yml:15-16`). The mechanics are
+worth stating once, because `--seed` has no write mode: `seedBodies`
+(`libraries/libinvariant/src/enum-drift.js:215`) returns a string of `- name`
+bullets. Those bullets do not paste into `CLAUDE.md:103`'s inline backticked
+list or `KATA.md:51-59`'s described items, so the step prints the canonical
+set, reconciles each fence against it, and lets `bun run invariants` gate the
+result. No design change is needed.
 
-**One boundary held.** `websites/monorepo/`, `websites/kata/`, and
-`websites/fit/gear/index.md:180` publish `apm install` commands that omit the
-new pack. spec.md § Included names the `kata-setup` and `monorepo-setup`
-skills, not those pages, so this plan does not edit them. The commands stay
-valid; they are incomplete, not broken. Widening the spec is the approver's
-call.
+**Three boundaries held.** Each is a deliberate omission, not an oversight.
+
+1. `websites/monorepo/`, `websites/kata/`, and `websites/fit/gear/index.md:180`
+   publish `apm install` commands that omit the new pack. spec.md § Included
+   names the `kata-setup` and `monorepo-setup` skills, not those pages. The
+   commands stay valid; they are incomplete, not broken.
+2. The four `action.yml` `name:` fields keep their `FIT Benchmark`,
+   `FIT Bootstrap`, `FIT Harness`, and `FIT Wiki` display titles, while the
+   Kata and Jidoka actions use `Kata Agent` and `Jidoka`. These are Marketplace
+   display names. The spec scopes this change to repository names, publish
+   targets, and references, and it names no display title.
+3. The published action inputs and artifact names inside the benchmark home
+   (`benchmark-runs`, `benchmark-shard-*`, and the rest) keep their bare
+   prefixes. They are the action's public interface, and renaming them would
+   break consumers.
+
+Widening the spec on any of the three is the approver's call.
 
 ## Parts
 
@@ -67,11 +80,11 @@ call.
   Parts 02, 03, and 04 steps 1 to 5 then run in any order. With the ownership
   rule above they touch disjoint files, so they can run in parallel when the
   runner supports it.
-- **Format last, once.** No part runs a formatter. `bun run check` starts with
-  `format:md` (`rumdl fmt --check .`), and edits in parts 02, 03, and 04 push
-  several lines past the 80-column MD013 limit. A mid-part `rumdl fmt .` would
-  also write files other parts own. Part 04 step 6 runs the one scoped format
-  pass after every part completes.
+- **Format last, once.** No part runs a formatter. `bun run check` reaches
+  `format:md` (`rumdl fmt --check .`) third in its chain, and edits in parts 02,
+  03, and 04 push several lines past the 80-column MD013 limit. A mid-part
+  `rumdl fmt .` would also write files other parts own. Part 04 step 6 runs the
+  one scoped format pass after every part completes.
 - **Whole-change verification.** After parts 01 to 04, run the sweeps and the
   repository checks in [plan-a-04.md § Step 6](plan-a-04.md).
 

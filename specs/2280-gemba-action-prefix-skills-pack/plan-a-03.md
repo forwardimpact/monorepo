@@ -93,6 +93,11 @@ make it count-free rather than re-counting it.
 
 Verify: `rg -n 'fit gemba|three packs' .github/` returns nothing.
 
+`.jidoka/invariants/skill-template.rules.mjs:11` also says "all three packs",
+but that count names the `kata-*`, `jidoka-*`, and `monorepo-*` skill sets the
+template rule scans, not the publish legs. The `gemba-*` skills are outside
+that rule today, exactly as the `fit-*` skills are. Leave it.
+
 ## Step 3: Rename the placeholder tokens and the template refs
 
 Do this step **before** step 4. Step 4 inserts a line into
@@ -131,9 +136,17 @@ flags `owner/repo@{{UPPER_SNAKE}}` refs **outside** kata-setup
 (`globs: ["**/*.md", "!**/kata-setup/**"]`), so it never sees these files and
 needs no rule change.
 
-Leave the bare words that name workflow inputs or concepts rather than actions:
-`wiki: "false"`, `Push wiki changes`, `harness-based dispatch`,
-`workflow-shift.md:18,63` (`wiki:` input).
+One more line names the action and is easy to miss:
+
+| File:line | Old | New |
+| --------- | --- | --- |
+| `SKILL.md:185` | `(profiles committed, or bootstrap-installed from the pinned packs)` | `(profiles committed, or gemba-bootstrap-installed from the pinned packs)` |
+
+Leave the bare words that name workflow inputs, steps, or concepts rather than
+actions. The sweep below returns all of them: `wiki: "false"` and
+`wiki: "{{WIKI}}"` (`workflow-facilitate.md:64`), `Push wiki changes`
+(`workflow-dispatch.md:102`), `harness-based dispatch`, `curate wiki`
+(`SKILL.md:89`), and the `wiki:` input at `workflow-shift.md:18,63`.
 
 Verify with two decidable checks. Ripgrep uses the Rust regex engine, which has
 no lookaround, so the second check is a fixed allow-list rather than a clever

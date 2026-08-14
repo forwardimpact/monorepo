@@ -103,8 +103,14 @@ Files created / modified / deleted: none in the monorepo.
 
 1. Run `publish-skills.yml` on `main`. The `gemba-skills` leg stages the six
    platform skills and tags the pack at the Gemba package version (`0.1.0`).
-2. Confirm the next `fit-skills` sync drops the six gemba skills and that its
-   README carries the moved-skills note.
+2. Confirm the next `fit-skills` sync drops the six gemba skills from the
+   repo's **default branch**, and that its README carries the moved-skills
+   note. The **tag** does not move: the fit leg versions by
+   `products/gear/package.json`, nothing in this change bumps Gear, and the
+   pack action skips a tag that already exists upstream. A consumer pinned to
+   the current `fit-skills` tag keeps the six gemba skills until the next Gear
+   release cut retags the pack. Cut a Gear patch release if the drop needs to
+   reach tag-pinned consumers sooner.
 3. Confirm `apm install forwardimpact/gemba-skills` installs the six skills.
 
 Later publishes run non-force. The next release cut lays new version tags on
