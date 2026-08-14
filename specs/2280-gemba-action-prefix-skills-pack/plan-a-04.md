@@ -249,13 +249,16 @@ across parts 02, 03, and 04 push lines past 80 columns. Scope the pass to the
 files this change touched, so it does not write files other parts own:
 
 ```sh
-bunx rumdl fmt $(git diff --name-only --diff-filter=d origin/main...HEAD -- '*.md')
+bunx rumdl fmt $(git diff --name-only --diff-filter=d origin/main -- '*.md')
 bunx jidoka instructions
 ```
 
-`--diff-filter=d` drops deleted paths. `rumdl fmt` exits 2 and formats nothing
-if any argument is missing, so a single deletion would otherwise disable the
-only format pass in the change.
+Two details in that range matter. Use two-dot `origin/main`, not three-dot
+`origin/main...HEAD`: the three-dot form lists committed changes only, so the
+two edits made at the top of this step are still in the working tree and never
+reach the formatter, which leaves `MONOREPO.md` at 85 columns and fails
+`format:md` in this same step. `--diff-filter=d` drops deleted paths, because
+`rumdl fmt` exits 2 and formats nothing if any argument is missing.
 
 The second command confirms the reflow did not push any capped instruction file
 over its line budget. `.rumdl.toml` excludes `products/{gemba,kata}/actions/**`,

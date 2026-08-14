@@ -117,7 +117,11 @@ Files created / modified / deleted: none in the monorepo.
 Later publishes run non-force. The next release cut lays new version tags on
 the new lineage and moves only `v1`. The existing version tags stay on the old
 lineage as its anchors. Dependabot then carries the new-lineage SHAs to
-consumers.
+consumers, but only for the pins it scans: `.github/dependabot.yml` scopes the
+`github-actions` ecosystem to `/` and `/.github/actions/*`. The pins part 02
+repoints inside `products/kata/actions/*/action.yml` and the benchmark home's
+reusable workflow sit outside that scope and need a manual bump at the next
+release cut.
 
 Verify: both publish workflows are green on every leg, and the
 `forwardimpact/gemba-skills` repo carries `.apm/skills/gemba`,

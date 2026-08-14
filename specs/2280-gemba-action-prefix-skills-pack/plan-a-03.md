@@ -143,10 +143,12 @@ One more line names the action and is easy to miss:
 | `SKILL.md:185` | `(profiles committed, or bootstrap-installed from the pinned packs)` | `(profiles committed, or gemba-bootstrap-installed from the pinned packs)` |
 
 Leave the bare words that name workflow inputs, steps, or concepts rather than
-actions. The sweep below returns all of them: `wiki: "false"` and
-`wiki: "{{WIKI}}"` (`workflow-facilitate.md:64`), `Push wiki changes`
-(`workflow-dispatch.md:102`), `harness-based dispatch`, `curate wiki`
-(`SKILL.md:89`), and the `wiki:` input at `workflow-shift.md:18,63`.
+actions. The sweep below returns more hits than any list here should try to
+enumerate, so judge each by that rule rather than by matching a census. Known
+examples: the `wiki:` input (`SKILL.md:98`, `workflow-shift.md:18,63`),
+`wiki: "{{WIKI}}"` (`workflow-facilitate.md:64`), the `Push wiki changes` step
+title (`workflow-dispatch.md:103`), `curate wiki` (`SKILL.md:89`), and
+`harness-based dispatch`.
 
 Verify with two decidable checks. Ripgrep uses the Rust regex engine, which has
 no lookaround, so the second check is a fixed allow-list rather than a clever
