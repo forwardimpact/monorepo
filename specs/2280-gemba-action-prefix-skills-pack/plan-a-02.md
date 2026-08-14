@@ -84,24 +84,22 @@ Files modified:
 | `publish-binaries.yml:139` | `sparse-checkout: products/gemba/actions/bootstrap/fit-install.sh` | `sparse-checkout: products/gemba/actions/gemba-bootstrap/fit-install.sh` |
 | `publish-binaries.yml:148` | `src/products/gemba/actions/bootstrap/fit-install.sh` | `src/products/gemba/actions/gemba-bootstrap/fit-install.sh` |
 | `scripts/bootstrap.sh:6` | comment `fit-bootstrap action rebases before …` | `gemba-bootstrap action rebases before …` |
-| `.gitignore:54-56` | comment `a co-located `wiki` action home under products/gemba/actions/` | `a co-located `gemba-wiki` action home under products/gemba/actions/` |
+| `.gitignore:54-56` | comment `Anchored to the repo root so it does not also swallow a co-located `wiki` action home under products/gemba/actions/.` | `Anchored to the repo root so it matches only the top-level memory checkout.` |
 | `.claude/settings.json:23` | `bash products/gemba/actions/bootstrap/fit-install.sh --soft` | `bash products/gemba/actions/gemba-bootstrap/fit-install.sh --soft` |
 
 **Do not use `gemba-selfedit` for `.claude/settings.json`.** The command
 validates the target against the `permissions.allow[]` `Edit()` rules in that
 same file (`libraries/libharness/src/commands/selfedit.js:82-90`). None of the
 six rules matches `.claude/settings.json`, so it exits with `SelfeditError`.
-Edit the file with the ordinary edit path instead. The repository runs
-`defaultMode: acceptEdits`. If the harness still blocks the write, rewrite the
-one line from the shell:
 
-```sh
-sed -i 's|actions/bootstrap/fit-install\.sh|actions/gemba-bootstrap/fit-install.sh|' \
-  .claude/settings.json
-```
+Edit the file with the ordinary edit path. The repository runs
+`defaultMode: acceptEdits`. If the harness declines the write, stop and hand
+the one-line change to the operator. Do not rewrite the file from the shell to
+get around the refusal. That safeguard exists to keep a sandboxed agent out of
+the permission file, and a `sed` bypass defeats it.
 
-Confirm the command changed exactly one line, and that the JSON still parses
-(`node -e 'require("./.claude/settings.json")'`).
+After the edit, confirm the JSON still parses:
+`node -e 'require("./.claude/settings.json")'`.
 
 Verify: `rg -n --hidden -g '!.git/**' -g '!specs/**'
 'products/gemba/actions/(benchmark|bootstrap|harness|wiki)\b'` returns only

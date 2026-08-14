@@ -42,13 +42,14 @@ Files modified:
 | `.github/workflows/benchmark.yml:151` | comment `it from forwardimpact/bootstrap, but bootstrap needs a repo checkout` | `it from forwardimpact/gemba-bootstrap, but gemba-bootstrap needs a repo checkout` |
 | `.github/workflows/benchmark.yml:162` | `forwardimpact/benchmark@v1.0.8` | `forwardimpact/gemba-benchmark@v1.0.8` |
 
-Line 151 carries the name twice. Change both occurrences.
+Line 151 carries the name twice. Change both occurrences. Every SHA and tag
+keeps its value.
 
-Every SHA and tag keeps its value. Only the owner path changes.
-
-Verify: `rg -n '\b(benchmark|bootstrap)\b'
-products/gemba/actions/gemba-benchmark/` returns no reference to the action by
-its old bare name.
+Verify: `rg -n --hidden '(^|[^-])\b(benchmark|bootstrap)\b'
+products/gemba/actions/gemba-benchmark/` returns nothing. `--hidden` is
+required. Without it ripgrep skips the home's own `.github/workflows/`
+directory, which is exactly what this step edits. The `[^-]` guard stops `\b`
+from matching inside `gemba-benchmark`.
 
 ## Step 3: Repoint the bootstrap, harness, and wiki homes
 
@@ -63,7 +64,7 @@ Files modified:
 
 | File:line | Old | New |
 | --------- | --- | --- |
-| `gemba-bootstrap/README.md:9` | `` The monorepo's local `bootstrap` action and every FIT sibling action `` | `` the local `gemba-bootstrap` action and every FIT sibling action `` |
+| `gemba-bootstrap/README.md:9` | `` `bootstrap` action and every FIT sibling action `` | `` `gemba-bootstrap` action and every FIT sibling action `` |
 | `gemba-bootstrap/README.md:16` | `uses: forwardimpact/bootstrap@v1` | `uses: forwardimpact/gemba-bootstrap@v1` |
 | `gemba-bootstrap/README.md:64` | `` [`forwardimpact/wiki@v1`](https://github.com/forwardimpact/wiki) `` | `` [`forwardimpact/gemba-wiki@v1`](https://github.com/forwardimpact/gemba-wiki) `` |
 | `gemba-bootstrap/README.md:124` | same link form as line 64 | same replacement |
@@ -75,17 +76,18 @@ Files modified:
 | `gemba-wiki/action.yml:7` | prose `forwardimpact/bootstrap@v1 with clis: gemba-wiki` | `forwardimpact/gemba-bootstrap@v1 with clis: gemba-wiki` |
 | `gemba-wiki/action.yml:71` | comment `forwardimpact/bootstrap installs it …` | `forwardimpact/gemba-bootstrap installs it …` |
 
-Each home stays the byte-faithful mirror of its sibling repo root. Change no
-other content.
+Rename the code span only. Do not reword the surrounding prose. `.rumdl.toml`
+excludes `products/gemba/actions/**`, so a longer line is not reflowed and the
+mirror stays byte-faithful.
 
-Verify: `rg -n 'forwardimpact/(benchmark|bootstrap|harness|wiki)\b'
+Verify: `rg -n --hidden 'forwardimpact/(benchmark|bootstrap|harness|wiki)\b'
 products/gemba/actions/` returns nothing.
 
-## Step 4: Retire the `fit-*` names inside the homes
+## Step 4: Retire the superseded action names inside the homes
 
-Seven comments still name the actions by the `fit-` names that spec 2140
-retired. They are the third naming generation the spec's problem statement
-names. They sit inside the homes this part renames, so they move now.
+Seven comments name the actions by a superseded name. Four use the `fit-`
+names that spec 2140 retired. Three use the bare names this spec retires.
+They sit inside the homes this part renames, so they move now.
 
 Files modified:
 
@@ -130,11 +132,11 @@ this change moves no row.
 Leave lines 48-51 (`kata-agent`, `kata-interview`) and 54-55 (`jidoka`)
 untouched.
 
-## Step 6: Correct the one-time-seed comments
+Verify:
+`rg -n 'prefix: products/gemba/actions/' .github/workflows/publish-actions.yml`
+lists four `gemba-*` prefixes, and `git diff --stat` shows no line moved.
 
-Part 05 step 3 adds one sanctioned force push per renamed sibling, so two
-authored comments become false. Correct them in the same part that renames the
-prefixes.
+## Step 6: Correct the one-time-seed comments
 
 Files modified:
 
@@ -143,10 +145,13 @@ Files modified:
 
 | File:line | Old | New |
 | --------- | --- | --- |
-| `publish-actions.yml:12-13` | `The lineage was seeded once, and that force push is the only sanctioned one.` | `Each lineage was seeded once, and spec 2280's prefix rename re-seeded the four Gemba lineages once more. Those are the only sanctioned force pushes.` |
+| `publish-actions.yml:12-13` | `The lineage was seeded once, and that force push is the only sanctioned one.` | `Each lineage is seeded once. A prefix rename re-seeds it once more. Those are the only sanctioned force pushes.` |
 | `split-and-push/action.yml:14` | docstring example `products/gemba/actions/wiki.` | `products/gemba/actions/gemba-wiki.` |
 | `split-and-push/action.yml:18` | docstring example `e.g. wiki.` | `e.g. gemba-wiki.` |
-| `split-and-push/action.yml:31` | `the one-time seed` | `each sanctioned seed` |
+| `split-and-push/action.yml:32` | `the one-time seed` | `each sanctioned seed` |
+
+The `publish-actions.yml` wording is tense-neutral on purpose. It lands at
+merge, while part 05 step 3 performs the re-seed after the merge.
 
 Verify: `rg -n 'products/gemba/actions/(benchmark|bootstrap|harness|wiki)\b'
 .github/workflows/publish-actions.yml .github/actions/split-and-push/action.yml`

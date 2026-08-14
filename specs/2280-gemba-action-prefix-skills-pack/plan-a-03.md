@@ -48,8 +48,9 @@ following the `jidoka-skills` rename-note precedent on lines 56-62:
 ```
 
 Add the new pack leg after the fit leg. The `gemba` prefix selects the exact
-`gemba` skill plus every `gemba-*` skill (`libpack/src/skill-pack.js:33-35`),
-so all six platform skills stage from one prefix:
+`gemba` skill plus every `gemba-*` skill (documented at
+`libraries/libpack/src/skill-pack.js:34-36`, implemented at `:86-87`), so all
+six platform skills stage from one prefix:
 
 ```yaml
           - prefix: gemba
@@ -84,9 +85,13 @@ what design-a.md § Clean break removes, so the example must not survive it.
 
 | Line | Old | New |
 | ---- | --- | --- |
+| 7 | `inputs, so the three packs share one implementation.` | `inputs, so every pack shares one implementation.` |
 | 21 | `(e.g. "fit", "kata", "fit gemba"). Each prefix selects the <prefix> and` | `(e.g. "fit", "kata"). Each prefix selects the <prefix> and` |
 
-Verify: `rg -n 'fit gemba' .github/` returns nothing.
+Line 7's count is already stale at five legs and this part adds a sixth, so
+make it count-free rather than re-counting it.
+
+Verify: `rg -n 'fit gemba|three packs' .github/` returns nothing.
 
 ## Step 3: Rename the placeholder tokens and the template refs
 
@@ -105,13 +110,21 @@ Files modified:
 | `SKILL.md:123-124` | `{{FIT_BOOTSTRAP_REF}}` / `{{FIT_HARNESS_REF}}` / `{{FIT_WIKI_REF}}` | `{{GEMBA_BOOTSTRAP_REF}}` / `{{GEMBA_HARNESS_REF}}` / `{{GEMBA_WIKI_REF}}` |
 | `workflow-dispatch.md:6-7` | same three tokens | same three tokens renamed |
 | `workflow-dispatch.md:78` | `# harness runs gemba-harness off PATH and installs nothing; bootstrap` | `# gemba-harness runs the CLI off PATH and installs nothing; gemba-bootstrap` |
-| `workflow-dispatch.md:79` | `# installs the CLIs the harness, cost, and wiki-push steps invoke directly.` | `# installs the CLIs the run, cost, and wiki-push steps invoke directly.` |
+| `workflow-dispatch.md:79` | `# installs the CLIs the harness, cost, and wiki-push steps invoke directly.` | `# installs the CLIs the assess, cost, and wiki-push steps invoke directly.` |
 | `workflow-dispatch.md:80` | `uses: forwardimpact/bootstrap@{{FIT_BOOTSTRAP_REF}}` | `uses: forwardimpact/gemba-bootstrap@{{GEMBA_BOOTSTRAP_REF}}` |
 | `workflow-dispatch.md:87` | `uses: forwardimpact/harness@{{FIT_HARNESS_REF}}` | `uses: forwardimpact/gemba-harness@{{GEMBA_HARNESS_REF}}` |
 | `workflow-dispatch.md:105` | `uses: forwardimpact/wiki@{{FIT_WIKI_REF}}` | `uses: forwardimpact/gemba-wiki@{{GEMBA_WIKI_REF}}` |
 | `workflow-dispatch.md:112` | `` This workflow uses `harness` rather than `kata-agent` `` | `` This workflow uses `gemba-harness` rather than `kata-agent` `` |
-| `workflow-dispatch.md:123` | `` the checkout `token:`, the bootstrap `token:`, and the `Assess and `` | `` … the `gemba-bootstrap` `token:` … `` |
+| `workflow-dispatch.md:123` | see below | see below |
 | `workflow-shift.md:125-126` | ``List tags with `gh api repos/forwardimpact/kata-agent/tags` (also `bootstrap`, `harness`, and `wiki` for `workflow-dispatch.md`).`` | ``… (also `gemba-bootstrap`, `gemba-harness`, and `gemba-wiki` for `workflow-dispatch.md`).`` |
+
+Line 123 carries nested code spans, so it does not fit a table cell. Replace
+the second code span only, leaving the rest of the sentence intact:
+
+```text
+old:  3. Change the checkout `token:`, the bootstrap `token:`, and the `Assess and
+new:  3. Change the checkout `token:`, the `gemba-bootstrap` `token:`, and the `Assess and
+```
 
 The `{{KATA_AGENT_REF}}` token stays. The `skill-ref-placeholder` invariant
 flags `owner/repo@{{UPPER_SNAKE}}` refs **outside** kata-setup
@@ -128,13 +141,20 @@ pattern:
 
 ```sh
 rg -n 'FIT_(BOOTSTRAP|HARNESS|WIKI)_REF' .claude/skills/kata-setup/
-rg -c '\b(bootstrap|harness|wiki)\b' .claude/skills/kata-setup/ | sort
+rg -n '(^|[^-])\b(bootstrap|harness|wiki)\b' .claude/skills/kata-setup/
+bunx jidoka instructions
 ```
 
-The first returns nothing. For the second, read every remaining hit once and
-confirm each is a workflow input name (`wiki:`, `token:`), a step title
+The first returns nothing. The `[^-]` guard in the second stops `\b` from
+matching inside `gemba-bootstrap`. Read every remaining hit once and confirm
+each is a workflow input name (`wiki:`, `token:`), a step title
 (`Push wiki changes`), or a concept (`harness-based dispatch`). No hit may name
 a composite action.
+
+`workflow-dispatch.md` and `workflow-shift.md` both sit at exactly 128 lines
+against the L6 skill-reference cap. These edits lengthen lines but add none.
+The third command confirms the format pass in part 04 step 6 did not reflow
+either file over the cap. If it did, shorten the wording in place.
 
 ## Step 4: Add the pack to the kata-setup prerequisites
 
@@ -170,19 +190,13 @@ Files modified:
 | `SKILL.md:86` | `apm install forwardimpact/jidoka-skills forwardimpact/kata-skills --target claude` | `apm install forwardimpact/jidoka-skills forwardimpact/kata-skills forwardimpact/gemba-skills --target claude` |
 | `repo-skeleton.md:60` | `` the `bootstrap` composite action in every Kata workflow `` | `` the `gemba-bootstrap` composite action in every Kata workflow `` |
 
-## Step 6: Propagate the install line to the monorepo website
+Verify: `rg -n 'apm install forwardimpact' .claude/skills/monorepo-setup/`
+lists all three packs, and
+`rg -n '(^|[^-])\b(bootstrap|harness|wiki)\b' .claude/skills/monorepo-setup/`
+returns no hit that names a composite action.
 
-The same two-pack command ships on the public site, so it moves with the skill.
-
-Files modified:
-
-- `websites/monorepo/index.md`
-- `websites/monorepo/llms.txt`
-
-| File:line | Change |
-| --------- | ------ |
-| `index.md:185` | The terminal line's `apm install forwardimpact/jidoka-skills forwardimpact/kata-skills` gains `forwardimpact/gemba-skills`. |
-| `llms.txt:26` | The same command in prose gains `forwardimpact/gemba-skills`. |
-
-Verify: `rg -n 'apm install forwardimpact' .claude/skills/monorepo-setup/
-websites/monorepo/` lists all three packs on every line.
+The identical `apm install` command also ships at
+`websites/monorepo/index.md:185`, `websites/monorepo/llms.txt:26`,
+`websites/kata/index.md:244`, and `websites/kata/llms.txt:21`. spec.md §
+Included names the two setup skills and not those pages, so this plan leaves
+them. See plan-a.md § Approach.
