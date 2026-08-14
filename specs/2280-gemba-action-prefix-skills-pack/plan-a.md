@@ -17,58 +17,23 @@ only pass when all four are present.
 Libraries used: libpack (skill-pack prefix staging, unchanged), libinvariant
 (`enumeration-drift` seed and check).
 
-## Recorded decisions
+## Scope notes for the approver
 
-**One note on the enum reseed.** design-a.md:71 chooses "reseed the fences with
-the invariant tooling" over unaided hand edits. That is what part 04 step 2
-does, and it matches the repository's own documented refresh path
-(`.jidoka/invariants/enumeration-drift.topics.yml:15-16`). The mechanics are
-worth stating once, because `--seed` has no write mode: `seedBodies`
-(`libraries/libinvariant/src/enum-drift.js:215`) returns a string of `- name`
-bullets. Those bullets do not paste into `CLAUDE.md:103`'s inline backticked
-list or `KATA.md:51-59`'s described items, so the step prints the canonical
-set, reconciles each fence against it, and lets `bun run invariants` gate the
-result. No design change is needed.
+Four decisions this plan makes that the spec and design do not settle. Each is
+deliberate, and each is the approver's to overturn.
 
-**Three boundaries held.** Each is a deliberate omission, not an oversight.
+| Decision | Detail |
+| -------- | ------ |
+| Pages left alone | `websites/monorepo/{index.md:185,llms.txt:26}`, `websites/kata/{index.md:244,llms.txt:21}`, and `websites/fit/index.md:178` publish `apm install` commands that omit the new pack. spec.md § Included names the two setup skills, not those pages. The commands stay valid, just incomplete. `websites/fit/gear/index.md` is not on this list: part 04 step 4 already owns that file. |
+| Names left alone | The four `action.yml` `name:` fields keep `FIT Benchmark`, `FIT Bootstrap`, `FIT Harness`, and `FIT Wiki`. So do the benchmark home's published inputs and artifact names (`benchmark-runs`, `benchmark-shard-*`). The first are Marketplace display titles the spec never mentions; the second are a public interface, and renaming them breaks consumers. |
+| Files added | design-a.md:47's repo-local-paths row lists five files. The plan also edits `scripts/bootstrap.sh`, `.gitignore`, `libraries/libharness/src/claude-code-executable.js`, and `MONOREPO.md`. All four carry the same class of reference, no sweep reaches them, and leaving them ships a stale name. |
+| Defect found, not fixed | The `report-empty` golden case fails `capture-cli-golden --verify` on unmodified `main`, because the live CLI emits an `Error: ENOENT <normalized>` line the snapshot lacks, and its `empty-runs` fixture is an untracked empty directory. Both predate this change. Part 04 step 5 works around them. The directory has no safe regeneration path until someone commits a tracked fixture. That needs its own issue. |
 
-1. `websites/monorepo/index.md:185`, `websites/monorepo/llms.txt:26`,
-   `websites/kata/index.md:244`, `websites/kata/llms.txt:21`, and
-   `websites/fit/index.md:178` publish `apm install` commands that omit the new
-   pack. spec.md § Included names the `kata-setup` and `monorepo-setup` skills,
-   not those pages. The commands stay valid; they are incomplete, not broken.
-   `websites/fit/gear/index.md` is **not** on this list. Part 04 step 4 already
-   owns that file, so its install block moves with the sentence above it.
-2. The four `action.yml` `name:` fields keep their `FIT Benchmark`,
-   `FIT Bootstrap`, `FIT Harness`, and `FIT Wiki` display titles, while the
-   Kata and Jidoka actions use `Kata Agent`, `Kata Interview`, and `Jidoka`.
-   These are Marketplace display names. The spec scopes this change to
-   repository names, publish targets, and references, and it names no display
-   title.
-3. The published action inputs and artifact names inside the benchmark home
-   (`benchmark-runs`, `benchmark-shard-*`, and the rest) keep their bare
-   prefixes. They are the action's public interface, and renaming them would
-   break consumers.
-
-Widening the spec on any of the three is the approver's call.
-
-**Two additions beyond the design's file list.** design-a.md:47's "Repo-local
-paths" row names the session hook, the justfile, the binaries publish workflow,
-the split-and-push docstring, and `.github/CLAUDE.md`. The plan also edits
-`scripts/bootstrap.sh`, `.gitignore`,
-`libraries/libharness/src/claude-code-executable.js`, and `MONOREPO.md`. All
-four carry the same class of authored reference the design's row describes, and
-the design's list reads as examples rather than a closed set. Leaving them
-would ship a stale action name that no sweep can reach.
-
-**One repository defect found, not fixed here.** The `report-empty` golden case
-fails `capture-cli-golden --verify` on unmodified `main`: the live CLI emits an
-`Error: ENOENT <normalized>` line the committed snapshot lacks. Its fixture
-directory `products/gemba/test/golden/gemba-benchmark/empty-runs` is also
-empty, so git does not track it. Both predate this change. Part 04 step 5 works
-around them by hand-editing one line and says why. The golden directory has no
-safe regeneration path until someone commits a tracked fixture and refreshes
-the snapshot. That is separate work and needs its own issue.
+On the enum reseed, the plan follows design-a.md:71. `--seed` has no write mode
+(`libraries/libinvariant/src/enum-drift.js:215`), so part 04 step 2 prints the
+canonical set, reconciles each fence against it, and lets `bun run invariants`
+gate the result. That is the documented refresh path. No design change is
+needed.
 
 ## Parts
 

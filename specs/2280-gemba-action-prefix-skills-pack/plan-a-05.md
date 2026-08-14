@@ -75,6 +75,7 @@ curl -sSfL -o splitsh.tar.gz \
   "https://github.com/splitsh/lite/releases/download/v${SPLITSH_VERSION}/lite_linux_amd64.tar.gz"
 echo "${SPLITSH_SHA256}  splitsh.tar.gz" | sha256sum -c -
 tar -xzf splitsh.tar.gz
+chmod +x splitsh-lite
 
 git clone --no-single-branch \
   "https://x-access-token:${TOKEN}@github.com/forwardimpact/monorepo.git"
