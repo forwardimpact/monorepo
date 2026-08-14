@@ -41,7 +41,7 @@ standalone or to debug supervision behavior.
 ## Documentation
 
 - [Start, Stop, or Check a Service](https://www.forwardimpact.team/docs/libraries/service-lifecycle/manage-service/index.md)
-  — Manage services through one interface; `fit-svscan` is the supervision daemon
-  `fit-rc` drives.
+  — Manage services through one interface; `fit-svscan` is the supervision
+  daemon `fit-rc` drives.
 - [Manage Service Lifecycle from One Interface](https://www.forwardimpact.team/docs/libraries/service-lifecycle/index.md)
   — The full lifecycle setup, including supervision and observability.
