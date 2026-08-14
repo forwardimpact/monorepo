@@ -199,6 +199,7 @@ Files modified:
 | File:line | Old | New |
 | --------- | --- | --- |
 | `SKILL.md:45` | `` (the `bootstrap` `` | `` (the `gemba-bootstrap` `` |
+| `SKILL.md:47` | `- [ ] Confirm both skill packs and the kata agent profiles are under` | `- [ ] Confirm the three skill packs and the kata agent profiles are under` |
 | `SKILL.md:71` | `` `bootstrap` action runs `scripts/bootstrap.sh` in every Kata workflow `` | `` `gemba-bootstrap` action runs `scripts/bootstrap.sh` in every Kata workflow `` |
 | `SKILL.md:86` | `apm install forwardimpact/jidoka-skills forwardimpact/kata-skills --target claude` | `apm install forwardimpact/jidoka-skills forwardimpact/kata-skills forwardimpact/gemba-skills --target claude` |
 | `repo-skeleton.md:60` | `` the `bootstrap` composite action in every Kata workflow `` | `` the `gemba-bootstrap` composite action in every Kata workflow `` |

@@ -17,6 +17,8 @@ only pass when all four are present.
 Libraries used: libpack (skill-pack prefix staging, unchanged), libinvariant
 (`enumeration-drift` seed and check).
 
+## Recorded decisions
+
 **One note on the enum reseed.** design-a.md:71 chooses "reseed the fences with
 the invariant tooling" over unaided hand edits. That is what part 04 step 2
 does, and it matches the repository's own documented refresh path
@@ -30,10 +32,13 @@ result. No design change is needed.
 
 **Three boundaries held.** Each is a deliberate omission, not an oversight.
 
-1. `websites/monorepo/`, `websites/kata/`, and `websites/fit/gear/index.md:180`
-   publish `apm install` commands that omit the new pack. spec.md § Included
-   names the `kata-setup` and `monorepo-setup` skills, not those pages. The
-   commands stay valid; they are incomplete, not broken.
+1. `websites/monorepo/index.md:185`, `websites/monorepo/llms.txt:26`,
+   `websites/kata/index.md:244`, `websites/kata/llms.txt:21`, and
+   `websites/fit/index.md:178` publish `apm install` commands that omit the new
+   pack. spec.md § Included names the `kata-setup` and `monorepo-setup` skills,
+   not those pages. The commands stay valid; they are incomplete, not broken.
+   `websites/fit/gear/index.md` is **not** on this list. Part 04 step 4 already
+   owns that file, so its install block moves with the sentence above it.
 2. The four `action.yml` `name:` fields keep their `FIT Benchmark`,
    `FIT Bootstrap`, `FIT Harness`, and `FIT Wiki` display titles, while the
    Kata and Jidoka actions use `Kata Agent` and `Jidoka`. These are Marketplace

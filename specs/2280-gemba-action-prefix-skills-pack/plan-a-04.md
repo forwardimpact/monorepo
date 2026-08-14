@@ -96,8 +96,12 @@ plan-a.md § Approach.
   <!-- /enum -->
 ```
 
+`KATA.md:23` sits outside the fence and reads
+`bootstrap/harness/wiki/benchmark CI actions are the substrate every shift`.
+Rename all four names there. It is one slash-joined token, so the count holds.
+
 `KATA.md:51-59` keeps its per-item descriptions. Rename the four Gemba items,
-and rename the three bare names inside the `kata-agent` item on line 56:
+and rename the two bare names inside the `kata-agent` item on line 56:
 
 ```markdown
 - `gemba-benchmark` — coding-agent benchmarks
@@ -165,6 +169,8 @@ it.
 | `websites/fit/gemba/index.md:119` | `` The bootstrap action also runs that script in CI `` → `` The gemba-bootstrap action … ``. |
 | `websites/fit/gemba/index.md` § Getting Started | Add a pack install block above the CI block: `apm install forwardimpact/gemba-skills`, with one sentence saying it installs the six platform skills. |
 | `websites/fit/gear/index.md:29-30` | The sentence `Every library ships a matching skill in the `forwardimpact/fit-skills` pack` stops being true when the runtime skills move. Replace it with: `Every library ships a matching skill. Most ship in the `forwardimpact/fit-skills` pack. The runtime platform's skills ship in `forwardimpact/gemba-skills`.` Do not enumerate libraries. The catalog is larger than the skill set and any list drifts. |
+| `websites/fit/gear/index.md:9` | The front-matter subtitle names `the forwardimpact/fit-skills skill pack`. Leave the pack name. It is Gear's own pack and stays correct. |
+| `websites/fit/gear/index.md:180` | The § Getting Started block installs `forwardimpact/fit-skills` alone, directly under the sentence above. Add a second line: `apm install forwardimpact/gemba-skills`, so the page does not name a pack it never installs. |
 | `ci-workflow/index.md:3,8,40,119,169` | `forwardimpact/benchmark` → `forwardimpact/gemba-benchmark`. |
 | `ci-workflow/index.md:186` | `forwardimpact/gemba-benchmark/.github/workflows/benchmark.yml@v1`. |
 | `benchmark-definition.js:177` | Description string: `"Run benchmarks in CI with the forwardimpact/gemba-benchmark action."` |
@@ -222,6 +228,9 @@ to `./golden/gemba-wiki` (line 17), and no suite in `bun run test` reads the
 ## Step 6: Run the whole-change verification
 
 Run this step after parts 01 to 04 are complete.
+
+Files modified: `libraries/libharness/src/claude-code-executable.js` and
+`MONOREPO.md`. Part 04 owns both. No other part touches them.
 
 **First, make the last two edits.** Two authored references sit outside every
 sweep below and outside every other part's file list:
