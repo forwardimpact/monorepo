@@ -61,14 +61,14 @@ four carry the same class of authored reference the design's row describes, and
 the design's list reads as examples rather than a closed set. Leaving them
 would ship a stale action name that no sweep can reach.
 
-**One repository defect found, not fixed here.**
-`products/gemba/test/golden/gemba-benchmark/empty-runs` is an empty directory,
-so git does not track it. The `report-empty` case therefore fails
-`capture-cli-golden --verify` on unmodified `main`, and a capture rewrites the
-committed snapshot with an un-normalised local path. That predates this change.
-Part 04 step 5 works around it by hand-editing one line and says why. The
-golden directory has no working regeneration path until someone commits a
-tracked fixture. That is separate work and needs its own issue.
+**One repository defect found, not fixed here.** The `report-empty` golden case
+fails `capture-cli-golden --verify` on unmodified `main`: the live CLI emits an
+`Error: ENOENT <normalized>` line the committed snapshot lacks. Its fixture
+directory `products/gemba/test/golden/gemba-benchmark/empty-runs` is also
+empty, so git does not track it. Both predate this change. Part 04 step 5 works
+around them by hand-editing one line and says why. The golden directory has no
+safe regeneration path until someone commits a tracked fixture and refreshes
+the snapshot. That is separate work and needs its own issue.
 
 ## Parts
 
@@ -116,11 +116,7 @@ tracked fixture. That is separate work and needs its own issue.
 
 | Risk | Effect | Mitigation |
 | ---- | ----- | ---------- |
-| The implementer pushes part 02 before the operator renames the sibling repos. | The branch's `on: pull_request` checks fail at action resolution, because `forwardimpact/gemba-bootstrap` does not exist yet. The failure looks like a broken change. | Part 05 step 1 gates the first push, not the merge. |
-| The operator skips the one-time re-seed. | Every renamed action leg fails as a non-fast-forward on each later push to `main`. Publishing stalls for the four actions. | Part 05 step 3 is a required post-merge action, not an optional cleanup. |
 | The re-seed uses a different `splitsh-lite` build. | The split emits different SHAs, so the new lineage diverges permanently and no later publish can fast-forward. The runbook cannot detect this after the fact. | Part 05 step 3 names the pinned version and digest and verifies the digest before it runs. |
-| The App installation does not cover `forwardimpact/gemba-skills`. | The pack leg fails at the token mint, and the pack never publishes. | Part 05 step 1 verifies the installation covers all five repos. |
-| The `gemba-skills` repo has no initial commit. | The pack action's plain `git push` has no branch to land on, so the first run fails. | Part 05 step 1 creates the repo with an initial commit. |
 | `.github/CLAUDE.md` sits at exactly 768 words against its 768-word cap. Root `CLAUDE.md` sits at exactly 896 words against its 896-word cap (`libraries/libinvariant/src/instructions.js:155-163`). | One added word fails `instructions.word-budget` in `bun run check`. Part 04 edits both files. | Part 04 steps 1 to 3 state the constraint and keep every replacement one token for one token. |
 | Four instruction files sit at or near their caps: `.claude/skills/kata-setup/SKILL.md` and `.claude/skills/gemba-benchmark/SKILL.md` (L5), and `kata-setup/references/workflow-{dispatch,shift}.md` at exactly 128 of 128 lines (L6, `instructions.js:242-243`). | Part 03 adds one line to the first and lengthens lines in the two references. A reflow that wraps one line breaches the L6 cap. | Part 03 steps 3 and 4 cap their additions and say so. Run `bunx jidoka instructions` after the format pass, and tighten wording in place if a file breaches. Treat the invariant's own output as the authority. It does not count raw lines. |
 | An old-name reference hides behind a regex the spec sweeps do not match. Ripgrep's `\b` matches inside `gemba-bootstrap`, so a naive sweep is undecidable. | The absence sweeps pass, but a stale name ships. | Part 04 step 6 runs five sweeps, wider than the spec's three, uses `(^\|[^-])\b` to skip the renamed forms, and names every sanctioned remaining hit. |

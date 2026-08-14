@@ -10,6 +10,10 @@ This part owns every line of `.github/workflows/publish-skills.yml`.
 
 File modified: `.github/workflows/publish-skills.yml`.
 
+Every line number below is the pre-edit number. The first edit inserts one
+line, so lines 26, 37-50, and 135 become 27, 38-51, and 136 once it lands. Each
+edit quotes its target verbatim, so match on the text rather than the number.
+
 Add `products/gemba/package.json` to the `paths:` trigger (after line 15), so a
 Gemba version bump alone republishes and retags the pack:
 

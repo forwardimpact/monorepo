@@ -201,12 +201,12 @@ here, both confirmed by running it:
    working checkout, so `spawnSync` fails, every captured stream becomes `""`,
    and the script still exits 0. It overwrites the goldens with empty files and
    reports success.
-2. Even with `--exec`, the `report-empty` case reads
-   `test/golden/gemba-benchmark/empty-runs`, an **empty directory**. Git cannot
-   track empty directories, so the fixture is absent in any fresh checkout, and
-   a capture rewrites `report-empty.stderr.txt` with an un-normalised local
-   path. That is a pre-existing repository condition, not something this change
-   introduces.
+2. Even with `--exec`, the `report-empty` case fails `--verify` on unmodified
+   `main`. The case's `ENOENT[^\n]*` transform does normalise the path, so the
+   divergence is not a leaked local path: the live CLI emits one **extra line**
+   (`Error: ENOENT <normalized>`) that the committed snapshot lacks. A capture
+   would fold that behavioural drift record into a rename-only PR. The drift is
+   pre-existing and unrelated to this change.
 
 Edit line 31 by hand to match the new `benchmark-definition.js:177` string. This
 is byte-equivalent to a correct capture: `libraries/libcli/src/help.js:103`
