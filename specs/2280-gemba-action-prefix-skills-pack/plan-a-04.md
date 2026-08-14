@@ -132,9 +132,10 @@ and the fences in step 2 are one token for one token, so the count does not
 move. Add no word.
 
 The line-95 replacement makes that list item 87 characters, over the
-`[MD013] line-length = 80` limit. Do not hand-wrap it. Step 6 runs the single
-scoped format pass. Confirm with `bunx jidoka instructions` afterwards that the
-file is still inside its 192-line cap.
+`[MD013] line-length = 80` convention. Do not hand-wrap it. Step 6 runs the
+single scoped format pass. Confirm with `bunx jidoka instructions` afterwards
+that the file is still inside its 192-line cap. That cap **is** gated by
+`bun run check`, unlike line length.
 
 Verify: `rg -n 'Gemba — |forwardimpact/\{' CLAUDE.md` shows `gemba-skills` in
 both lines, and the word count still prints 896.
@@ -247,12 +248,15 @@ sweep below and outside every other part's file list:
 `MONOREPO.md:103` is 79 characters today and becomes 85, over the MD013 limit.
 The format pass below reflows it. Make both edits before that pass, not after.
 
-**Then format.** This is the only step that runs a formatter. `bun run check`
-reaches `format:md` (`rumdl fmt --check .`) third in its chain, and edits
-across parts 02, 03, and 04 push lines past 80 columns. The pass runs after
-every part completes, so it writes files parts 02 and 03 own by design. Scope
-it to the files this change touched, so it does not rewrite unrelated markdown
-across the repository:
+**Then format.** This is the only step that runs a formatter. Edits across
+parts 02, 03, and 04 push lines past 80 columns, and the repository's
+convention is to keep them wrapped. This is convention, not a gate:
+`bun run check` does not fail on MD013, because `format:md`
+(`rumdl fmt --check .`) exits 0 even when it reports pending fixes and
+`lint:md` runs with `--disable MD013`. The pass runs after every part
+completes, so it writes files parts 02 and 03 own by design. Scope it to the
+files this change touched, so it does not rewrite unrelated markdown across
+the repository:
 
 ```sh
 bunx rumdl fmt $(git diff --name-only --diff-filter=d origin/main -- '*.md')

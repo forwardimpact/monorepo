@@ -69,11 +69,14 @@ needed.
   Parts 02, 03, and 04 steps 1 to 5 then run in any order. With the ownership
   rule above they touch disjoint files, so they can run in parallel when the
   runner supports it.
-- **Format last, once.** No part runs a formatter. `bun run check` reaches
-  `format:md` (`rumdl fmt --check .`) third in its chain, and edits in parts 02,
-  03, and 04 push several lines past the 80-column MD013 limit. A mid-part
-  `rumdl fmt .` would also write files other parts own. Part 04 step 6 runs the
-  one scoped format pass after every part completes.
+- **Format last, once.** No part runs a formatter. Part 04 step 6 runs one
+  scoped pass after every part completes. Two reasons, and neither is a green
+  build: `bun run check` does **not** gate line length, because
+  `format:md` (`rumdl fmt --check .`) exits 0 even when it reports pending
+  fixes, and `lint:md` runs `rumdl check . --disable MD013`. The reasons are
+  that edits in parts 02, 03, and 04 push lines past 80 columns and the
+  repository's convention is to keep them wrapped, and that a mid-part
+  repo-wide `rumdl fmt .` would rewrite files other parts own.
 - **Whole-change verification.** After parts 01 to 04, run the sweeps and the
   repository checks in [plan-a-04.md § Step 6](plan-a-04.md).
 
