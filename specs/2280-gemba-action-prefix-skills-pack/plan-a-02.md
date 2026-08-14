@@ -93,10 +93,15 @@ same file (`libraries/libharness/src/commands/selfedit.js:82-90`). None of the
 six rules matches `.claude/settings.json`, so it exits with `SelfeditError`.
 
 Edit the file with the ordinary edit path. The repository runs
-`defaultMode: acceptEdits`. If the harness declines the write, stop and hand
-the one-line change to the operator. Do not rewrite the file from the shell to
-get around the refusal. That safeguard exists to keep a sandboxed agent out of
-the permission file, and a `sed` bypass defeats it.
+`defaultMode: acceptEdits`. Do not rewrite the file from the shell to get
+around a refusal. That safeguard exists to keep a sandboxed agent out of the
+permission file, and a `sed` bypass defeats it.
+
+If the harness declines the write, leave the line unchanged, say so in the PR
+body, and record that the SessionStart hook still points at the old installer
+path. A human with write access to `.claude/settings.json` then makes the
+one-line change. The change is not complete until they do: an unfixed hook
+fails spec success criterion 4.
 
 After the edit, confirm the JSON still parses:
 `node -e 'require("./.claude/settings.json")'`.
