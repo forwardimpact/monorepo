@@ -41,15 +41,34 @@ result. No design change is needed.
    owns that file, so its install block moves with the sentence above it.
 2. The four `action.yml` `name:` fields keep their `FIT Benchmark`,
    `FIT Bootstrap`, `FIT Harness`, and `FIT Wiki` display titles, while the
-   Kata and Jidoka actions use `Kata Agent` and `Jidoka`. These are Marketplace
-   display names. The spec scopes this change to repository names, publish
-   targets, and references, and it names no display title.
+   Kata and Jidoka actions use `Kata Agent`, `Kata Interview`, and `Jidoka`.
+   These are Marketplace display names. The spec scopes this change to
+   repository names, publish targets, and references, and it names no display
+   title.
 3. The published action inputs and artifact names inside the benchmark home
    (`benchmark-runs`, `benchmark-shard-*`, and the rest) keep their bare
    prefixes. They are the action's public interface, and renaming them would
    break consumers.
 
 Widening the spec on any of the three is the approver's call.
+
+**Two additions beyond the design's file list.** design-a.md:47's "Repo-local
+paths" row names the session hook, the justfile, the binaries publish workflow,
+the split-and-push docstring, and `.github/CLAUDE.md`. The plan also edits
+`scripts/bootstrap.sh`, `.gitignore`,
+`libraries/libharness/src/claude-code-executable.js`, and `MONOREPO.md`. All
+four carry the same class of authored reference the design's row describes, and
+the design's list reads as examples rather than a closed set. Leaving them
+would ship a stale action name that no sweep can reach.
+
+**One repository defect found, not fixed here.**
+`products/gemba/test/golden/gemba-benchmark/empty-runs` is an empty directory,
+so git does not track it. The `report-empty` case therefore fails
+`capture-cli-golden --verify` on unmodified `main`, and a capture rewrites the
+committed snapshot with an un-normalised local path. That predates this change.
+Part 04 step 5 works around it by hand-editing one line and says why. The
+golden directory has no working regeneration path until someone commits a
+tracked fixture. That is separate work and needs its own issue.
 
 ## Parts
 

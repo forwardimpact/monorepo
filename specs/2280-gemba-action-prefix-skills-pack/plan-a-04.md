@@ -197,7 +197,7 @@ File modified: `products/gemba/test/golden/gemba-benchmark/help.stdout.txt`.
 here, both confirmed by running it:
 
 1. Without `--exec`, `capture()` falls back to the bare bin name
-   (`scripts/capture-cli-golden.mjs:88`). `gemba-benchmark` is not on PATH in a
+   (`scripts/capture-cli-golden.mjs:90`). `gemba-benchmark` is not on PATH in a
    working checkout, so `spawnSync` fails, every captured stream becomes `""`,
    and the script still exits 0. It overwrites the goldens with empty files and
    reports success.
@@ -280,7 +280,9 @@ bun run test
 ```
 
 `.rgignore` already excludes `benchmarks/` repo-wide, so no sweep needs a
-`benchmarks` glob.
+`benchmarks` glob. It also hides `data/` and `JIDOKA.md`. Neither carries an
+old-name reference today, but a sweep run with `--no-ignore` is the way to
+confirm that if the tree changes.
 
 Verify: sweeps one to four return nothing. Sweep five returns six lines across
 three sanctioned sources: the `specs/1580-fit-bootstrap-…` link in

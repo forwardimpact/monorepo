@@ -87,8 +87,9 @@ for name in benchmark bootstrap harness wiki; do
 done
 ```
 
-`TOKEN` is an App installation token scoped to the five repos. The monorepo is
-internal-only, so the clone needs it too.
+`TOKEN` is an App installation token. It must cover the four renamed siblings
+for the pushes **and** `forwardimpact/monorepo` for the clone, because the
+monorepo is internal-only. That is a wider scope than step 1's five repos.
 
 This is the only sanctioned force push per renamed sibling. Pre-rename tags
 keep the old commits reachable, so existing SHA pins resolve before, during,

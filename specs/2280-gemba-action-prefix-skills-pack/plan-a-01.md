@@ -94,9 +94,11 @@ products/gemba/actions/` returns nothing.
 
 ## Step 4: Retire the superseded action names inside the homes
 
-Seven comments name the actions by a superseded name. Four use the `fit-`
-names that spec 2140 retired. Three use the bare names this spec retires.
-They sit inside the homes this part renames, so they move now.
+Nine comments name the actions by a superseded name. Four use the `fit-` names
+that spec 2140 retired. Five use the bare names this spec retires. They sit
+inside the homes this part renames, so they move now. None of the sweeps in
+part 04 step 6 can reach them, so the table below is the only census. Work
+every row.
 
 Files modified:
 
