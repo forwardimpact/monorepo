@@ -9,18 +9,19 @@ name: "Publish: Actions"
 # retire an action.
 #
 # This workflow fires on every push to main that touches an action source
-# (paths-filtered), plus manual dispatch. The lineage was seeded once, and that
-# force push is the only sanctioned one. Every run here is a non-force
-# fast-forward. A non-fast-forward means a sibling main diverged from the
-# projection. The workflow rejects it and the run fails.
+# (paths-filtered), plus manual dispatch. Each lineage is seeded once. A prefix
+# rename re-seeds it once more. Those are the only sanctioned force pushes.
+# Every run here is a non-force fast-forward. A non-fast-forward means a
+# sibling main diverged from the projection. The workflow rejects it and the
+# run fails.
 on:
   push:
     branches: [main]
     paths:
-      - "products/gemba/actions/harness/**"
-      - "products/gemba/actions/benchmark/**"
-      - "products/gemba/actions/wiki/**"
-      - "products/gemba/actions/bootstrap/**"
+      - "products/gemba/actions/gemba-harness/**"
+      - "products/gemba/actions/gemba-benchmark/**"
+      - "products/gemba/actions/gemba-wiki/**"
+      - "products/gemba/actions/gemba-bootstrap/**"
       - "products/kata/actions/kata-agent/**"
       - "products/kata/actions/kata-interview/**"
       - "products/jidoka/actions/jidoka/**"
@@ -39,18 +40,18 @@ jobs:
       fail-fast: false
       matrix:
         action:
-          - prefix: products/gemba/actions/harness
-            repo: harness
-          - prefix: products/gemba/actions/benchmark
-            repo: benchmark
-          - prefix: products/gemba/actions/wiki
-            repo: wiki
+          - prefix: products/gemba/actions/gemba-harness
+            repo: gemba-harness
+          - prefix: products/gemba/actions/gemba-benchmark
+            repo: gemba-benchmark
+          - prefix: products/gemba/actions/gemba-wiki
+            repo: gemba-wiki
           - prefix: products/kata/actions/kata-agent
             repo: kata-agent
           - prefix: products/kata/actions/kata-interview
             repo: kata-interview
-          - prefix: products/gemba/actions/bootstrap
-            repo: bootstrap
+          - prefix: products/gemba/actions/gemba-bootstrap
+            repo: gemba-bootstrap
           - prefix: products/jidoka/actions/jidoka
             repo: jidoka
     steps:
