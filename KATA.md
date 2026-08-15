@@ -20,7 +20,7 @@ Kata implements two upstream standards: the repository structure in
 
 Kata runs on [Gemba](https://www.forwardimpact.team/gemba/), the
 agent-runtime platform. The `gemba-*` command family and the
-bootstrap/harness/wiki/benchmark CI actions are the substrate every shift
+gemba-bootstrap/gemba-harness/gemba-wiki/gemba-benchmark CI actions are the substrate every shift
 executes on. Kata is the platform's reference tenant. Kata is the daily proof
 that the substrate is generic and that another team could run on it.
 
@@ -49,11 +49,11 @@ Seven composite actions are co-located in the monorepo (under
 <!-- /enum -->
 
 <!-- enum:sibling-composite-actions:list -->
-- `benchmark` — coding-agent benchmarks
-- `bootstrap` — the FIT CI environment
-- `harness` — agent task execution
-- `wiki` — agent-memory commands with fresh App token
-- `kata-agent` — full Kata workflow (auth, checkout, bootstrap, eval, wiki push)
+- `gemba-benchmark` — coding-agent benchmarks
+- `gemba-bootstrap` — the FIT CI environment
+- `gemba-harness` — agent task execution
+- `gemba-wiki` — agent-memory commands with fresh App token
+- `kata-agent` — full Kata workflow (auth, checkout, gemba-bootstrap, eval, gemba-wiki push)
 - `jidoka` — Jidoka checks: stop the line on instruction drift
 - `kata-interview` — JTBD switching interview run
 <!-- /enum -->

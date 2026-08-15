@@ -26,7 +26,7 @@ share the same interface and documentation.
 
 Give humans and agents shared capabilities through the same interface, with
 tools to prove that changes improved outcomes. Every CLI prints grep-friendly
-help and JSON output. Every library ships a matching skill in the
+help and JSON output. Most libraries ship a matching skill in the
 `forwardimpact/fit-skills` pack. Agents then land on the same docs as humans.
 
 The pack ships these packages, all published to npm under

@@ -174,7 +174,7 @@ export const definition = {
       title: "Automate with GitHub Actions",
       url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md",
       description:
-        "Run benchmarks in CI with the forwardimpact/benchmark action.",
+        "Run benchmarks in CI with the forwardimpact/gemba-benchmark action.",
     },
   ],
 };

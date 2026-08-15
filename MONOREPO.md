@@ -100,7 +100,7 @@ whether it runs in CI or a local session. **A step that must hold in both
 places belongs in one of these two scripts, never in the CI-only composite
 action.** Native sessions never invoke that action.
 
-`scripts/bootstrap.sh` is mandatory. The CI bootstrap action invokes it by path
+`scripts/bootstrap.sh` is mandatory. The CI gemba-bootstrap action invokes it by path
 with no fallback. A repo without it fails every agent and check workflow at
 that step with `exit 127`. Keep it to environment setup. Other tasks are
 separate concerns: keep the branch current with the default branch, provision

@@ -58,10 +58,10 @@ actions. Workflows pin each action by SHA:
 
 | Step | Action | What it does |
 | --- | --- | --- |
-| Stand up | [`forwardimpact/bootstrap`](https://github.com/forwardimpact/bootstrap) | The FIT environment: Bun, cached workspace, wiki checkout, pinned CLI binaries |
-| Run | [`forwardimpact/harness`](https://github.com/forwardimpact/harness) | Execute an agent task with `gemba-harness` and upload the trace |
-| Remember | [`forwardimpact/wiki`](https://github.com/forwardimpact/wiki) | Run a `gemba-wiki` memory command with a freshly minted token |
-| Measure | [`forwardimpact/benchmark`](https://github.com/forwardimpact/benchmark) | Run `gemba-benchmark` families across machines and merge reports |
+| Stand up | [`forwardimpact/gemba-bootstrap`](https://github.com/forwardimpact/gemba-bootstrap) | The FIT environment: Bun, cached workspace, wiki checkout, pinned CLI binaries |
+| Run | [`forwardimpact/gemba-harness`](https://github.com/forwardimpact/gemba-harness) | Execute an agent task with `gemba-harness` and upload the trace |
+| Remember | [`forwardimpact/gemba-wiki`](https://github.com/forwardimpact/gemba-wiki) | Run a `gemba-wiki` memory command with a freshly minted token |
+| Measure | [`forwardimpact/gemba-benchmark`](https://github.com/forwardimpact/gemba-benchmark) | Run `gemba-benchmark` families across machines and merge reports |
 
 ## What becomes possible
 
@@ -92,10 +92,17 @@ any other team would pin. Nothing in the platform knows Kata exists.
 
 ## Getting Started
 
-The bring-up layer is the `bootstrap` action and its installer. In CI:
+Install the skill pack. It carries the six platform skills that teach the
+command family and the actions:
+
+```sh
+apm install forwardimpact/gemba-skills
+```
+
+The bring-up layer is the `gemba-bootstrap` action and its installer. In CI:
 
 ```yaml
-- uses: forwardimpact/bootstrap@v1
+- uses: forwardimpact/gemba-bootstrap@v1
   with:
     clis: gemba-harness gemba-trace gemba-wiki
 ```
@@ -116,5 +123,5 @@ gemba-harness --help
 ```
 
 Contributors who work inside a Forward Impact-style monorepo get the same
-environment from `scripts/bootstrap.sh`. The bootstrap action also runs that
-script in CI.
+environment from `scripts/bootstrap.sh`. The gemba-bootstrap action also runs
+that script in CI.

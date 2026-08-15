@@ -9,7 +9,7 @@
  * CLI binary for <platform> not found".
  *
  * In a compiled binary we point the SDK at the standalone `claude` on PATH.
- * The bootstrap action's `fit-install.sh` installs it beside gemba-harness. A
+ * The gemba-bootstrap action's `fit-install.sh` installs it beside gemba-harness. A
  * run from source keeps `node_modules`, where the SDK resolves its own
  * version-matched binary. There we return undefined and defer to the SDK.
  */

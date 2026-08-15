@@ -20,22 +20,24 @@ rehearses locally is exactly what runs on every push. In Lean practice,
 
 **Stand up an agent team:**
 
-- Bootstrap the runtime in CI — the `forwardimpact/bootstrap` action installs
+- Bootstrap the runtime in CI — the `forwardimpact/gemba-bootstrap` action installs
   the toolchain and the pinned platform binaries. Its `fit-install.sh`
   installer runs the same way in any shell
 - Install the command family — `@forwardimpact/gemba` on npm carries all
   six `gemba-*` commands
+- Install the skills — `apm install forwardimpact/gemba-skills` gives agents
+  the six platform skills
 
 **Operate the loop** (each step has its own skill with full command
 documentation):
 
 - **Run** — `gemba-harness` runs agents and captures NDJSON traces. The
-  `forwardimpact/harness` action is the same run step in CI
+  `forwardimpact/gemba-harness` action is the same run step in CI
 - **See** — `gemba-trace` downloads, queries, and analyzes those traces
 - **Remember** — `gemba-wiki` keeps team memory across sessions. The
-  `forwardimpact/wiki` action pushes it from CI
+  `forwardimpact/gemba-wiki` action pushes it from CI
 - **Measure** — `gemba-xmr` charts metrics as XmR control charts.
-  `gemba-benchmark` and the `forwardimpact/benchmark` action prove changes
+  `gemba-benchmark` and the `forwardimpact/gemba-benchmark` action prove changes
   with pass@k evidence
 
 **Guard the loop:**

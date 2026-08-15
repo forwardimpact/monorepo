@@ -71,7 +71,7 @@ agent-capable systems. See [JTBD.md](JTBD.md) for their jobs.
   [Overview](websites/fit/gear/index.md) ·
   [Libraries](libraries/README.md#catalog) ·
   [Services](services/README.md#catalog)
-- **Gemba — `fit-skills`** — The agent-runtime platform Kata runs on:
+- **Gemba — `gemba-skills`** — The agent-runtime platform Kata runs on:
   `gemba-*` CLIs and agent-run actions.
   [Overview](websites/fit/gemba/index.md)
 - **Kata — `kata-skills`** — An agent team that improves itself on a daily
@@ -92,7 +92,7 @@ through npm. It is the source of truth for `forwardimpact/*` sibling repos:
   CLIs use `#!/usr/bin/env node`, no Bun. gRPC products need
   `npx fit-codegen generate --all`
   ([Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md)).
-- **Skill packs** — `forwardimpact/{fit-skills,kata-skills,jidoka-skills}`
+- **Skill packs** — `forwardimpact/{fit-skills,gemba-skills,kata-skills,jidoka-skills}`
   sync on push to `main`. Install with `apm install forwardimpact/<pack>`.
   Internal skills (`libs-*`, product internals) never publish.
 - **Composite actions** — co-located with their owner unit
@@ -100,7 +100,7 @@ through npm. It is the source of truth for `forwardimpact/*` sibling repos:
   Edit in-repo ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 
   <!-- enum:sibling-composite-actions:list -->
-  `benchmark`, `bootstrap`, `harness`, `jidoka`, `kata-agent`, `kata-interview`, `wiki`
+  `gemba-benchmark`, `gemba-bootstrap`, `gemba-harness`, `gemba-wiki`, `jidoka`, `kata-agent`, `kata-interview`
   <!-- /enum -->
 
 Published skills teach how products **work** and **use**. They never teach
