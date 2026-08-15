@@ -10,7 +10,8 @@ shown and post it.
 
 ### Untrusted Author
 
-> Release merge: skipped. Author `<login>` is not in the top 7 contributors.
+> Release merge: skipped. Author `<login>` is not in the trusted set (trust
+> source: `<trustSource>`).
 > This PR requires human review.
 
 ### Unsupported PR Type
@@ -62,7 +63,7 @@ Post it as a `comment` on the change
 
 | Block reason | `<state>` | `<owner>` | `<next-action>` |
 | --- | --- | --- | --- |
-| Untrusted Author | author `<login>` not in the top 7 contributors | a trusted top-7 contributor | review and merge, or close the PR |
+| Untrusted Author | author `<login>` not in the trusted set (trust source: `<trustSource>`) | a trusted contributor per the configured trust source | review and merge, or close the PR |
 | Unsupported PR Type | PR type `<type>` unsupported | a trusted human | re-title to a supported `type(scope): subject`, or close |
 | CI Failing | checks `<failing-checks>` still red | the PR author | push a fix. The next sweep re-checks |
 | Substantive Conflict | conflicts in `<files>`, so it is not mergeable | the PR author | rebase on `main` and resolve the files |
@@ -88,7 +89,7 @@ the summary. Do not report it as merged.
 | #fix-a | fix(parser): schema validation | fix  | alice  | green | n/a            | merged  | All gates pass                  |
 | #spec-b| spec(security): SSRF hardening | spec | bob    | green | spec draft     | blocked | STATUS row not at spec approved |
 | #feat-c| feat(export): export feature   | feat | carol  | red   | plan approved  | blocked | CI failing: format check        |
-| #fix-d | fix(ui): color contrast        | fix  | eve    | green | n/a            | blocked | Author not in top contributors  |
+| #fix-d | fix(ui): color contrast        | fix  | eve    | green | n/a            | blocked | Author not in trusted set       |
 | #dsgn-e| design(map): ingest pipeline   | design| dan   | green | design draft   | re-pinged | Awaiting approval signal; silent >3 days |
 ```
 

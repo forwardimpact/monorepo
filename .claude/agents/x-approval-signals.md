@@ -58,8 +58,9 @@ does not originate. `staff-engineer` may approve plans after a clean
 approval once every target is terminal and its durable signal preserved. The
 human-only rule stays scoped to `spec approved` and `design approved`.
 
-The release engineer's trust gate (top-7 contributor or `kata-agent-team`) is
-canonical. `kata-dispatch` runs the same check before it writes STATUS on a
+The release engineer's trust gate (the kata-release-merge settings
+reference's configured trust source, or the CI app identity) is canonical.
+`kata-dispatch` runs the same check before it writes STATUS on a
 PR-side signal.
 
 ## Signal invalidation
