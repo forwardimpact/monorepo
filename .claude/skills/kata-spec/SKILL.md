@@ -172,8 +172,8 @@ protocol](../kata-review/references/caller-protocol.md). Invoke it on the local
 `kata-spec`. Address every confirmed finding at or above the configured
 blocking severity floor
 ([caller protocol](../kata-review/references/caller-protocol.md))
-before you open the PR. The PR should not become visible to `kata-dispatch` until the
-panel is clean.
+before you open the PR. The PR should not become visible to `kata-dispatch`
+until the panel is clean.
 
 ### Step 6: Open a spec PR
 

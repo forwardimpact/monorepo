@@ -167,12 +167,12 @@ verifiable. Decompose into parts if large (see § Large plan decomposition).
 
 ### Step 5: Clean sub-agent review panel
 
-Follow the [`kata-review` caller
-protocol](../kata-review/references/caller-protocol.md). Invoke it on the
-local `plan-a.md` (and any parts) before you push. Tell each reviewer not to
-invoke `kata-plan`. Address every confirmed finding at or above the
-configured blocking severity floor (caller protocol) before you open the PR. The PR should not become visible to `kata-dispatch`
-until the panel is clean.
+Follow the
+[`kata-review` caller protocol](../kata-review/references/caller-protocol.md).
+Invoke it on the local `plan-a.md` (and any parts) before you push. Tell each
+reviewer not to invoke `kata-plan`. Address every confirmed finding at or above
+the configured blocking severity floor (caller protocol) before you open the PR.
+The PR should not become visible to `kata-dispatch` until the panel is clean.
 
 ### Step 6: Open a plan PR
 

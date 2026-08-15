@@ -190,6 +190,10 @@ Setup is verified when the repository is green. Files on disk do not verify it:
 Summarize what you created and the next steps:
 
 - Customize agent profiles if you use the defaults
+- An optional `.kata/settings.json` selects trust policy and review rigor.
+  The options tables live in the `kata-release-merge` and `kata-review`
+  settings references, the read mechanic in the shared kata-settings agent
+  reference
 - Adjust schedules after you observe the first runs
 - Emergency stop: set `KATA_KILLSWITCH` to a truthy value. Unset it to resume
 - Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm
