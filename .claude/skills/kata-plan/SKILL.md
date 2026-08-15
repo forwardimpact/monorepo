@@ -47,10 +47,11 @@ there is no architectural direction to translate into implementation steps.
 <do_confirm_checklist goal="Verify plan quality before recommending approval">
 
 - [ ] Plan meets the criteria in § Writing a Plan.
-- [ ] Complete a clean sub-agent review panel of `plan-a.md` (and any
-      parts) through [`kata-review`](../kata-review/SKILL.md), with fresh
-      context, no prior bias, and panel size per caller protocol. Address
-      every **blocker**, **high**, and **medium** finding.
+- [ ] Complete a clean sub-agent review panel of `plan-a.md` and parts
+      through [`kata-review`](../kata-review/SKILL.md) (fresh context, panel
+      size per caller protocol). Address every confirmed finding at or above
+      the configured severity floor
+      ([caller protocol](../kata-review/references/caller-protocol.md)).
 
 </do_confirm_checklist>
 
@@ -169,8 +170,8 @@ verifiable. Decompose into parts if large (see § Large plan decomposition).
 Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md). Invoke it on the
 local `plan-a.md` (and any parts) before you push. Tell each reviewer not to
-invoke `kata-plan`. Address every confirmed blocker/high/medium finding
-before you open the PR. The PR should not become visible to `kata-dispatch`
+invoke `kata-plan`. Address every confirmed finding at or above the
+configured blocking severity floor (caller protocol) before you open the PR. The PR should not become visible to `kata-dispatch`
 until the panel is clean.
 
 ### Step 6: Open a plan PR
