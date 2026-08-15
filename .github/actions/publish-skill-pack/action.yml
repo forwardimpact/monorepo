@@ -4,7 +4,7 @@ description: >
   sync always includes the pack's agent references. For kata it also includes
   the agent profiles. Regenerate apm.yml and README.md. Then commit, push,
   and tag at the pack's package version. All pack-specific values arrive through
-  inputs, so the three packs share one implementation. Prose and repo names
+  inputs, so every pack shares one implementation. Prose and repo names
   reach the scripts through the environment, never by interpolation into source
   text.
 
@@ -18,7 +18,7 @@ inputs:
   pack-prefix:
     description: >
       Space-separated skill directory prefixes under the source dir's skills/
-      (e.g. "fit", "kata", "fit gemba"). Each prefix selects the <prefix> and
+      (e.g. "fit", "kata"). Each prefix selects the <prefix> and
       <prefix>-* dirs. Leave empty and set `all` when the source dir is itself
       the pack boundary and its skills share no common prefix.
     required: false

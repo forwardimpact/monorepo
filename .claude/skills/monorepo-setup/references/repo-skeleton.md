@@ -57,7 +57,7 @@ package. There is no bare npm launcher.
 This is the **workspace** half of the two-layer bootstrap. The installer that
 puts the toolchain on `PATH` is the other half. See
 [wiki-init.md](wiki-init.md). Both entry points run the installer, then this
-script: the `bootstrap` composite action in every Kata workflow, and the
+script: the `gemba-bootstrap` composite action in every Kata workflow, and the
 `SessionStart` hook in a Claude session. So every environment-setup step that
 must hold in both places lives here. It does not live in the CI-only action. The
 action requires this file with no guard. A repo that lacks it fails every
