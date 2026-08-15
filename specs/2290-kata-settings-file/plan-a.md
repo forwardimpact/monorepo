@@ -107,7 +107,7 @@ trust policy, and the read mechanic lives in the shared reference
   6. All CI checks pass, after mechanical fixes if needed.
   7. The `wiki/STATUS.md` row shows the classified phase at `approved`, or
      `implemented` for the terminal plan row. For phase PRs, a signal of the
-     required class covers the head.
+     required class covers the head per `references/review-transfer.md`.
   8. For implementation PRs, the parent spec's `plan-a.md` exists on `main`.
   9. No unresolved trusted-human concern in the PR thread. Self-heal the
      coordinating-issue link when it is missing.
@@ -127,11 +127,14 @@ trust policy, and the read mechanic lives in the shared reference
   signal on that change, pinned to the approved head, per the existing
   approval-signal classes. No agent-originated approval qualifies, whatever
   the PR's type or phase.
+- Edit Step 7 (Open Comment Gate): "A top-7 contributor's most-recent PR
+  comment" becomes "A trusted human contributor's most-recent PR comment"
+  (the Step 2 trusted set).
 
 Verification:
 `rg -n 'top.?7|top seven' .claude/skills/kata-release-merge/SKILL.md` returns
-nothing, and `bunx jidoka instructions` passes (bounded carve-out: 320 lines,
-2304 words).
+no matches, and `bunx jidoka instructions` passes (bounded carve-out: 320
+lines, 2304 words).
 
 ### Step 3: Trust pointer conversions
 
@@ -156,7 +159,9 @@ The `<trustSource>` placeholder fills from the gate's Step 2 read, like the
 other template placeholders.
 
 Verification: `rg -n 'top.?7|top seven' .claude/skills .claude/agents`
-matches only the trust table's default row and its rationale.
+returns no matches. The trust table spells out `trustContributorCount`, so
+the empty set satisfies spec criterion 7, which permits (and here has no)
+default-row matches.
 
 ### Step 4: Rigor options tables and caller protocol
 
@@ -195,8 +200,8 @@ two-sentence opener as Step 2's reference:
 The floor means: address every confirmed consensus finding at the floor
 severity or above.
 
-**caller-protocol.md** changes (this file has one word of headroom under its
-768-word cap; the removals below fund the additions):
+**caller-protocol.md** changes (this file measures 762 of its 768-word cap
+by the invariant's token counter; the removals below fund the additions):
 
 - § Panel Composition: keep the caller → artifact → panel → `subagent_type`
   mapping table. Delete the `Reviewers` column and the three fixed-size
@@ -214,8 +219,12 @@ severity or above.
 **panel-rationale.md**: rewrite § Why These Sizes as profile intent with no
 size literals. `standard` reproduces the sizes the arc used before the
 settings file. `light` serves solo maintainers and metered-token teams.
-`thorough` serves risk-averse organizations. Implementation panels stay the
-largest within every profile because code lands irreversibly on `main`.
+`thorough` serves risk-averse organizations. Implementation panels are never
+smaller than the other panels in the same profile because code lands
+irreversibly on `main`. Also rewrite § Why the DevEx Panel: drop the "size 3
+across all three phases" and "size of 5" literals, and state that devex
+panel sizes come from the same profile table and that debt findings are
+lower-variance than the implementation bug and security surface.
 
 Verification: `bunx jidoka instructions` passes; both files stay under
 128 lines / 768 words.
@@ -308,6 +317,10 @@ Rules, one concern each:
 | `kata-settings.default-drift` | a block's `default` attribute differs from the vocabulary default |
 | `kata-settings.table-drift` | a selector block's option column differs from the vocabulary options, or the `(default)` marks differ from exactly one, or the marked row differs from the `default` attribute |
 
+The `default-drift` comparison serializes non-string vocabulary defaults
+with `JSON.stringify`, so `trustAllowlist`'s `[]` compares equal to the
+attribute string `"[]"` and `trustContributorCount`'s `7` to `"7"`.
+
 Verification: `bun run invariants` passes on the live repository.
 
 ### Step 7: Invariant tests
@@ -318,13 +331,16 @@ runs.
 - Created: `tests/kata-settings-invariant.test.js`
 
 Import the module and `runRuleModules` from `@forwardimpact/libinvariant`.
-Build scratch repositories with a local `withRepo` helper (mirror
-`libraries/libinvariant/test/helpers.js`) and a real-fs runtime
+Build scratch repositories with the existing `withRepo` helper (relative
+import from `libraries/libinvariant/test/helpers.js`, the same reuse the
+enumeration-drift tests practice) and a real-fs runtime
 (`createTestRuntime` from `@forwardimpact/libmock` with `node:fs`
 functions). Each case writes a minimal tree (`.kata/settings.json` plus one
 reference file carrying `<setting>` blocks), runs
 `runRuleModules([mod], { root, runtime, dir })`, and asserts the finding
-ids:
+ids. This exercises the same engine `bun run invariants` runs, which is how
+spec criterion 6's "fails on each" reads: a failing settings file can never
+sit committed on `main`, so the fixture runs are the demonstration.
 
 | Case | Expected findings |
 | --- | --- |
@@ -355,7 +371,8 @@ reference.
 
 KATA.md § Trust Boundary: replace "Top-7 contributors pass the trust gate."
 with "The trust gate resolves its trusted set from the configured trust
-source. The default is the top-7 contributor ranking." Then add one
+source. The owning table in the kata-release-merge settings reference marks
+the default." The orientation text restates no vocabulary value. Then add one
 orientation paragraph: the optional `.kata/settings.json` file selects among
 policy options the skills define (phase 1: trust source and review rigor);
 each vocabulary lives in the owning skill's settings reference; an absent
@@ -379,20 +396,30 @@ bun run check                                            # criteria 5, 6, 10, 11
 bun run test                                             # criteria 6, 11
 ```
 
-Confirm criterion 4 by reading the matches: the mechanic's rules appear only
-in `x-kata-settings.md`; every other match is a one-line pointer, an options
-table, or a gate rule in the merge-gate skill.
+Three criteria need a read, not a command. Criterion 4: the mechanic's rules
+appear only in `x-kata-settings.md`; every other match is a one-line
+pointer, an options table, or a gate rule in the merge-gate skill.
+Criterion 5: the merge-gate DO-CONFIRM checklist carries the default-branch
+read, the fail-closed rule, and the `.kata/`-diff rule as items 2–4.
+Criterion 8: the floor vocabulary lives in the kata-review settings
+reference per design-a § Key decisions (block placement); read the
+criterion's "caller protocol" as the protocol plus the settings reference it
+points at, and note this once in the PR body.
 
 Verification: every command returns the expected match set and every check
 passes.
 
 ## Risks
 
-- **caller-protocol.md sits one word under its 768-word cap.** The Step 4
-  deletions (fixed sizes, N=3/N=5 literals) must land before or with the
-  additions. Re-measure with `jidoka instructions` before commit. If the
-  file still breaches, move the § How to Merge Findings examples into
-  `panel-rationale.md` (242 words, ample headroom).
+- **caller-protocol.md sits six words under its 768-word cap (762).** The
+  Step 4 deletions (fixed sizes, N=3/N=5 literals) must land before or with
+  the additions. Re-measure with `jidoka instructions` before commit. If the
+  file still breaches, move the § How to Handle Findings same-run-revision
+  paragraph into `panel-rationale.md` (242 words, ample headroom).
+- **x-approval-signals.md is also near its cap (about 20 words under the
+  1280-word L4 budget).** The Step 3 rewording adds about ten words.
+  Re-measure; on a breach, tighten the same sentence rather than another
+  section.
 - **The merge-gate checklist caps at 9 items and 32 words per item.** The
   Step 2 merge of nine items into six is load-bearing. Do not re-split; a
   tenth item fails `jidoka instructions`.
