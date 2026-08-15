@@ -41,9 +41,9 @@ by the read mechanic's degradation rules alone.
 | --------- | ----- | ---- |
 | Settings file | `.kata/settings.json` at the consumer repository root | One flat JSON object. Holds only selectors: identifiers from the owning tables, integers, or string lists. Optional. |
 | Shared settings reference | New shared agent reference, shipped with the pack beside the other agent references | The single home for the read mechanic (§ Read mechanic). It points at the merge-gate skill for the gate-side rules; it does not restate them. |
-| Trust options table and gate rules | `kata-release-merge` (its trust step is already the canonical trust home per the approval-signals reference) | Defines the `trustSource` rows and the companion parameters. The trust checklist item, the trust step, and the comment-gate step resolve the trusted set through the selected row. New checklist items carry the default-branch read, the fail-closed rule, and the `.kata/`-diff rule. |
+| Trust options table and gate rules | `kata-release-merge`, in a settings reference its trust step points at (the skill is the canonical trust home per the approval-signals reference) | Defines the `trustSource` rows and the companion parameters. The trust checklist item, the trust step, and the comment-gate step resolve the trusted set through the selected row. New checklist items carry the default-branch read, the fail-closed rule, and the `.kata/`-diff rule. |
 | Trust pointer conversions | `kata-release-merge` references (comment gate, re-ping owner table, comment templates) and the approval-signals agent reference | Each restated trust-count literal becomes a pointer to the trust table. Templates name the configured trust source. The dispatch-side trust check inherits the configured source through the approval-signals pointer. |
-| Rigor options tables | `kata-review` caller protocol (already owns panel composition) | Defines the `reviewPanel` profile rows and the `reviewBlockingSeverity` vocabulary. The panel-rationale reference explains profile intent instead of restating fixed sizes. |
+| Rigor options tables | `kata-review`, in a dedicated settings reference the caller protocol points at | Defines the `reviewPanel` profile rows and the `reviewBlockingSeverity` vocabulary. The `reviewPanel` block's body is the profile table itself. The panel-rationale reference explains profile intent instead of restating fixed sizes. |
 | Floor pointers | `kata-review` severity-vocabulary caller obligation; both floor restatements (exit checklist and panel step) in `kata-spec`, `kata-design`, `kata-plan`, `kata-implement` | Each points at the caller protocol's configured floor. |
 | Settings invariant | `.jidoka/invariants/` rule module in this repository | Holds the machine-readable key vocabulary, validates the settings file when present, and checks each options table against the vocabulary. The table-agreement check reuses the enumeration-drift pattern. |
 | Setup and orientation | `kata-setup` output note; one KATA.md paragraph | Name the optional file and point at the owning tables. Neither restates a vocabulary. |
@@ -77,6 +77,47 @@ Panel profile rows (owned by the caller protocol; sizes per panel):
 The consensus threshold stays ≥⌈N/2⌉ for any panel size. The severity floor
 means: address every confirmed consensus finding at the floor severity or
 above. `medium` reproduces today's blocker/high/medium rule.
+
+## Options-block format
+
+Every key lives in one `<setting>` block, the same semantic-tag play as
+`<job>` and the checklist tags. `rg '<setting '` enumerates every knob
+repo-wide.
+
+```markdown
+<setting key="trustSource" default="top-contributors">
+
+| Option | Meaning |
+| --- | --- |
+| `top-contributors` (default) | Trust the top `trustContributorCount` humans by contributor ranking. |
+| `allowlist` | Trust exactly the logins in `trustAllowlist`. Empty list: no human. |
+
+</setting>
+
+<setting key="trustContributorCount" default="7">
+
+Integer, minimum 1. Applies under `trustSource: top-contributors`; ignored
+otherwise. Counts humans only; the CI app identity stays trusted.
+
+</setting>
+```
+
+- The opening tag carries exactly `key` and `default`, on one line within 74
+  characters (worst phase-1 tag: 55).
+- A selector block's body is one table with the option identifiers in column
+  one and exactly one cell suffixed `(default)`. Extra columns are free: the
+  `reviewPanel` block's body is the profile table in § Key vocabulary.
+- A parameter block's body is prose: type, constraints, and applicability in
+  one sentence. The body never restates the default literal; the attribute
+  is that class's one home.
+- The shared settings reference documents this grammar once, beside the
+  read mechanic.
+- The settings invariant anchors on the tags (outside fenced code) and
+  asserts: one-line opening tag, paired closing tag, exactly one block per
+  machine-vocabulary key in both directions, option column equal to the
+  machine vocabulary, exactly one `(default)` mark, and the mark equal to
+  the `default` attribute. Types and ranges live in the machine vocabulary,
+  not the tag.
 
 ## Read mechanic
 
@@ -114,6 +155,9 @@ them:
 | Invalid explicit configuration at the gate | Fail closed | Degrade to defaults. An unreadable allowlist that silently widens trust back to the contributor ranking is a trust escalation, the reverse of the file's intent. |
 | Enforcement | Invariant holds the machine vocabulary and checks the tables against it | A standalone JSON Schema shipped in the pack. Nothing runs it in a consumer repo; the invariant reuses the repository's existing stop-the-line channel. |
 | Gate read source | Default branch | Working tree. A PR that edits `.kata/settings.json` could weaken the trust gate that judges the same PR. |
+| Tag attributes | `key` and `default` only | Adding `type` and `applies` attributes. The worst phase-1 tag then measures 73 and 103 characters against the one-line-within-74 tag rule; the machine vocabulary already owns types, and applicability is reader documentation, not machine surface. |
+| Selector default marking | `default` attribute plus one mandatory `(default)` row suffix, reconciled by the invariant | Attribute only (rendered views strip unknown tags, so the table loses its default) or row only (no anchored machine surface). Checked duplication is the house's source-plus-consumer pattern. |
+| Block placement | A references file of the owning skill, pointed at by the procedure step | SKILL.md and caller-protocol placement. The trust home's line carve-out is documented as bounded, the caller protocol has six words of headroom under the reference word cap, and the L6 charter owns lookup data. |
 
 ## Clean break
 
