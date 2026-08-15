@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash products/gemba/actions/bootstrap/fit-install.sh --soft"
+            "command": "bash products/gemba/actions/gemba-bootstrap/fit-install.sh --soft"
           },
           {
             "type": "command",

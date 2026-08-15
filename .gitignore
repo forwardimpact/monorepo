@@ -52,8 +52,7 @@ id_ecdsa
 .claude/worktrees/
 
 # Wiki (cloned on demand by `gemba-wiki init`, not tracked). Anchored to the repo
-# root so it does not also swallow a co-located `wiki` action home under
-# products/gemba/actions/.
+# root so it matches only the top-level memory checkout.
 /wiki/
 
 # Development files

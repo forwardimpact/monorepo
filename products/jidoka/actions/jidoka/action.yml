@@ -8,7 +8,7 @@ description: |
   set `command` to "instructions", "jtbd", or "invariants", only that
   subcommand runs.
 
-  This action assumes forwardimpact/bootstrap already bootstrapped the
+  This action assumes forwardimpact/gemba-bootstrap already bootstrapped the
   workspace. That action installs `jidoka` as a pinned gear binary on PATH
   (it is one of the default tools). The binary is required. There is no
   bunx/npx fallback.

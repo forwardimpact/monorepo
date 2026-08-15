@@ -137,7 +137,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
+      - uses: forwardimpact/gemba-bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
@@ -163,7 +163,7 @@ jobs:
       # template-injection-safe contract.
       - name: Assess and Act
         id: assess
-        uses: forwardimpact/harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
+        uses: forwardimpact/gemba-harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -198,7 +198,7 @@ jobs:
       # job start expires after an hour, and this run can take up to five.
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/wiki@ad0042953508240d061ecfb288ce6990247cbd9d # v1.0.2
+        uses: forwardimpact/gemba-wiki@ad0042953508240d061ecfb288ce6990247cbd9d # v1.0.2
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}
