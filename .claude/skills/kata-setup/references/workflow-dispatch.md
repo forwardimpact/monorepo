@@ -120,9 +120,9 @@ This workflow mints its own token, so the hosted delta differs from shift:
 1. Add `id-token: write` to `permissions` (keep `contents: write`).
 2. Replace the `Generate token` step with the OIDC mint step from
    [`workflow-shift.md` § Template (hosted)](workflow-shift.md).
-3. Change the checkout `token:`, the `gemba-bootstrap` `token:`, and the `Assess and
-   Act` `GH_TOKEN:`. Each moves from `${{ steps.ci-app.outputs.token }}` to
-   `${{ steps.mint.outputs.token }}`.
+3. Change the checkout `token:`, the `gemba-bootstrap` `token:`, and the
+   `Assess and Act` `GH_TOKEN:`. Each moves from
+   `${{ steps.ci-app.outputs.token }}` to `${{ steps.mint.outputs.token }}`.
 
 `Push wiki changes` still mints from App secrets and does not change. The
 hosted variant needs the `FIT_OIDC_URL` repository variable.

@@ -92,9 +92,10 @@ through npm. It is the source of truth for `forwardimpact/*` sibling repos:
   CLIs use `#!/usr/bin/env node`, no Bun. gRPC products need
   `npx fit-codegen generate --all`
   ([Typed Contracts](websites/fit/docs/libraries/typed-contracts/index.md)).
-- **Skill packs** — `forwardimpact/{fit-skills,gemba-skills,kata-skills,jidoka-skills}`
-  sync on push to `main`. Install with `apm install forwardimpact/<pack>`.
-  Internal skills (`libs-*`, product internals) never publish.
+- **Skill packs** —
+  `forwardimpact/{fit-skills,gemba-skills,kata-skills,jidoka-skills}` sync on
+  push to `main`. Install with `apm install forwardimpact/<pack>`. Internal
+  skills (`libs-*`, product internals) never publish.
 - **Composite actions** — co-located with their owner unit
   (`products/*/actions/`, `.github/actions/`). A subtree split publishes them.
   Edit in-repo ([`.github/CLAUDE.md`](.github/CLAUDE.md)):

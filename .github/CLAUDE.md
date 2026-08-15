@@ -21,10 +21,10 @@ published to `forwardimpact/` siblings, SHA-pinned (`# v1`) on `uses:` lines:
 | [jidoka](https://github.com/forwardimpact/jidoka) | Jidoka checks (instructions, jtbd, invariants). Stops the line on drift |
 
 Every workflow calls `gemba-bootstrap@v1` for the environment. `kata-agent`
-delegates to gemba-bootstrap/gemba-harness/gemba-wiki internally. `gemba-bootstrap` only **checks
-out** the wiki (given a `token`). Its App token expires after an hour, so
-agent runs push memory with `gemba-wiki@v1` as an `always()` step. Change and tag a
-sibling's interface before the consumer.
+delegates to gemba-bootstrap/gemba-harness/gemba-wiki internally.
+`gemba-bootstrap` only **checks out** the wiki (given a `token`). Its App token
+expires after an hour, so agent runs push memory with `gemba-wiki@v1` as an
+`always()` step. Change and tag a sibling's interface before the consumer.
 
 ### Edit a published action
 
@@ -54,10 +54,11 @@ off-`main`.
 
 The SDK refuses bypass-permissions mode (every Agent-SDK action) under `uid 0`
 unless `IS_SANDBOX` marks the process sandboxed. Runners may be root. So
-`gemba-harness`, `gemba-benchmark`, `gemba-wiki`, and `kata-agent` set `IS_SANDBOX=1` on their
-agent-spawn step (`gemba-bootstrap` spawns no agent). The SDK forwards the parent
-env, so the action environment is enough. Keep it out of `libharness` so it
-stays an environment decision. Without it the agent exits 1 with no output.
+`gemba-harness`, `gemba-benchmark`, `gemba-wiki`, and `kata-agent` set
+`IS_SANDBOX=1` on their agent-spawn step (`gemba-bootstrap` spawns no agent).
+The SDK forwards the parent env, so the action environment is enough. Keep it
+out of `libharness` so it stays an environment decision. Without it the agent
+exits 1 with no output.
 
 ## Environment bootstrap
 

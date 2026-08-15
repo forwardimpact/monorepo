@@ -20,8 +20,8 @@ rehearses locally is exactly what runs on every push. In Lean practice,
 
 **Stand up an agent team:**
 
-- Bootstrap the runtime in CI — the `forwardimpact/gemba-bootstrap` action installs
-  the toolchain and the pinned platform binaries. Its `fit-install.sh`
+- Bootstrap the runtime in CI — the `forwardimpact/gemba-bootstrap` action
+  installs the toolchain and the pinned platform binaries. Its `fit-install.sh`
   installer runs the same way in any shell
 - Install the command family — `@forwardimpact/gemba` on npm carries all
   six `gemba-*` commands
