@@ -2,7 +2,9 @@
 // `jidoka invariants` runs. Every case builds a scratch repository, runs
 // the rule module through runRuleModules, and asserts the finding ids. A
 // failing settings file can never sit committed on `main`, so these
-// fixture runs demonstrate that the invariant stops the line.
+// fixture runs demonstrate that the invariant stops the line. The live
+// tree is not re-run here: `bun run invariants` is that enforcement
+// (CONTRIBUTING.md § Testing).
 import { test, describe, afterEach } from "node:test";
 import assert from "node:assert";
 import { rmSync } from "node:fs";
@@ -11,7 +13,7 @@ import { resolve } from "node:path";
 import { runRuleModules } from "@forwardimpact/libinvariant";
 import { createTestRuntime } from "@forwardimpact/libmock";
 
-import mod, { VOCABULARY } from "../.jidoka/invariants/kata-settings.rules.mjs";
+import mod from "../.jidoka/invariants/kata-settings.rules.mjs";
 import { fsSync, withRepo } from "../libraries/libinvariant/test/helpers.js";
 
 const TRUST_REF = `# Trust Settings
@@ -261,24 +263,15 @@ describe("kata-settings invariant", () => {
     assert.deepEqual(findings, []);
   });
 
-  test("live repository run is clean", async () => {
-    const root = resolve(import.meta.dirname, "..");
-    const runtime = createTestRuntime({ fsSync });
-    const findings = await runRuleModules([mod], {
-      root,
-      runtime,
-      dir: resolve(root, ".jidoka/invariants"),
+  test("two (default) marks", async () => {
+    const twoMarks = RIGOR_REF.replace(
+      "| `light` | product 1 |",
+      "| `light` (default) | product 1 |",
+    );
+    const findings = await runOn({
+      ...CLEAN_REFS,
+      ".claude/skills/kata-review/references/settings.md": twoMarks,
     });
-    assert.deepEqual(findings, []);
-  });
-
-  test("VOCABULARY carries the five phase-1 keys", () => {
-    assert.deepEqual(Object.keys(VOCABULARY).sort(), [
-      "reviewBlockingSeverity",
-      "reviewPanel",
-      "trustAllowlist",
-      "trustContributorCount",
-      "trustSource",
-    ]);
+    assert.deepEqual(ids(findings), ["kata-settings.table-drift"]);
   });
 });

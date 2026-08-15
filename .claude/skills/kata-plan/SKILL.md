@@ -48,9 +48,9 @@ there is no architectural direction to translate into implementation steps.
 
 - [ ] Plan meets the criteria in § Writing a Plan.
 - [ ] Complete a clean sub-agent review panel of `plan-a.md` and parts
-      through [`kata-review`](../kata-review/SKILL.md) (fresh context, panel
-      size per caller protocol). Address every confirmed finding at or above
-      the configured severity floor
+      through [`kata-review`](../kata-review/SKILL.md) (panel size per
+      caller protocol). Address every confirmed finding at or above the
+      configured blocking severity floor
       ([caller protocol](../kata-review/references/caller-protocol.md)).
 
 </do_confirm_checklist>

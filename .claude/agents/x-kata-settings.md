@@ -46,8 +46,8 @@ skill's settings reference:
   characters.
 - A selector block's body is one table with the option identifiers in column
   one and exactly one cell suffixed `(default)`. Extra columns are free.
-- A parameter block's body is prose: type, constraints, and applicability in
-  one sentence. The body never restates the default literal. The attribute
+- A parameter block's body is short prose: type, constraints, and
+  applicability. The body never restates the default literal. The attribute
   is that class's one home.
 
 Example of a selector block:

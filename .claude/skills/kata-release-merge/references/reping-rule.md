@@ -62,6 +62,7 @@ the PR. Role → login resolution reuses existing mechanisms, with no new logic:
 | Gate (attribute)     | Gate (block reason)                | `owner` role on the re-ping                        |
 | -------------------- | ---------------------------------- | -------------------------------------------------- |
 | trust                | Untrusted Author                   | A trusted human (configured trust source) who can review |
+| trust                | Settings Unreadable                | A trusted human who can fix `.kata/settings.json`  |
 | type                 | Unsupported PR Type                | A trusted human who can re-title or close the PR   |
 | CI                   | CI Failing                         | The PR author (agent or human)                     |
 | mechanical readiness | Substantive Conflict               | The PR author                                      |
@@ -71,5 +72,6 @@ the PR. Role → login resolution reuses existing mechanisms, with no new logic:
 The **CI** and **mechanical readiness** rows resolve to the PR author. The
 **open comments** row resolves to the unresolved-concern author through
 [`comment-gate.md`](comment-gate.md). The **trust**, **type**, and **approval**
-rows name a role drawn from the Step 2 trusted set. Those rows stay role-level
-and name no single login.
+rows name a role drawn from the Step 2 trusted set; the Settings Unreadable
+row names a trusted human directly, because the configured set itself is
+unreadable. Those rows stay role-level and name no single login.

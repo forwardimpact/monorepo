@@ -66,7 +66,8 @@ diffs, a commit hash replaces `file:line`.
      above the configured blocking severity floor (`reviewBlockingSeverity`)
      in the same turn.
    - **Minority (>1, <⌈N/2⌉):** verify with extra care.
-   - **Singleton (1):** verify each. Address or record a dismissal rationale.
+   - **Singleton (1, below the consensus threshold):** verify each. Address
+     or record a dismissal rationale.
 5. **Scope-creep guard.** Dismiss findings that raise concerns outside the
    artifact's declared scope (spec scope for design/plan, plan scope for diffs;
    user intent for specs). Exception: consensus "scope-creep in the diff"

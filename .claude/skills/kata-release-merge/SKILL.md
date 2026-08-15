@@ -31,7 +31,7 @@ PR's trust check.
       merges with reason `settings unreadable`. Never widen back to the
       default ranking.
 - [ ] A diff that touches `.kata/` merges only on a trusted human's explicit
-      signal pinned to the current head. No agent approval qualifies.
+      signal pinned to the approved head. No agent approval qualifies.
 - [ ] PR type parsed from the title prefix, and the classification label
       (`product` / `internal`) present.
 - [ ] All CI checks pass, after mechanical fixes if needed.
@@ -89,10 +89,10 @@ Under `allowlist`, the trusted set is exactly `trustAllowlist`. An empty list
 trusts no human.
 
 The PR author must appear in the trusted set. If the author does not appear,
-mark the PR **blocked**. Run this resolution on every classified PR. On a
-parse failure or an out-of-vocabulary trust value, fail closed: block every
-trust-gated merge with reason `settings unreadable`, owned by a trusted
-human. Never fall back to the ranking.
+mark the PR **blocked**. Run this resolution on every classified PR. On a parse
+failure, or an out-of-vocabulary or out-of-range trust value, fail closed:
+block every trust-gated merge with reason `settings unreadable`, owned by a
+trusted human. Never fall back to the ranking.
 
 ### Step 3: Classify PR Type
 

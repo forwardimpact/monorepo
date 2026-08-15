@@ -73,7 +73,7 @@ function parseOpenTag(line) {
 function collectBody(lines, from) {
   const options = [];
   for (let j = from; j < lines.length; j++) {
-    const body = lines[j].trimEnd();
+    const body = lines[j].trim();
     if (OPEN_TAG.test(body)) return { options, closedAt: -1 };
     if (CLOSE_TAG.test(body)) return { options, closedAt: j };
     const row = body.match(/^\|\s*`([^`]+)`\s*(\(default\))?\s*\|/);
@@ -83,11 +83,12 @@ function collectBody(lines, from) {
 }
 
 // Extract every `<setting>` block from one stripped file. A malformed block
-// carries `tagError` instead of a parsed key.
+// carries `tagError` instead of a parsed key. Lines are fully trimmed before
+// the tag match, so an indented block cannot slip past extraction.
 function extractBlocks(lines) {
   const blocks = [];
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trimEnd();
+    const line = lines[i].trim();
     if (!OPEN_TAG.test(line)) continue;
     const block = { lineNo: i + 1, ...parseOpenTag(line) };
     const { options, closedAt } = collectBody(lines, i + 1);
@@ -156,10 +157,16 @@ export default {
         parseError = err.message;
       }
       fileSubjects.push({ kind: "file", path, raw, parsed, parseError });
-      if (!parseError && parsed && typeof parsed === "object") {
+      const flat =
+        !parseError &&
+        parsed &&
+        typeof parsed === "object" &&
+        !Array.isArray(parsed);
+      if (flat) {
+        const lines = raw.split("\n");
         for (const [key, value] of Object.entries(parsed)) {
-          const lineNo =
-            raw.split("\n").findIndex((l) => l.includes(`"${key}"`)) + 1;
+          const keyLine = new RegExp(`^\\s*"${key}"\\s*:`);
+          const lineNo = lines.findIndex((l) => keyLine.test(l)) + 1;
           fileSubjects.push({ kind: "key", path, key, value, lineNo });
         }
       }
@@ -177,6 +184,10 @@ export default {
       })),
     );
 
+    // The inventory subject carries the cross-subject view for the
+    // key-drift rule. A ctx-side map alone cannot report a missing block
+    // when zero blocks exist, because rules fire per subject; the
+    // inventory subject is always present, so the rule always can.
     return {
       subjects: {
         "settings-file": fileSubjects,
