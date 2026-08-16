@@ -23,22 +23,24 @@ PR's trust check.
 
 <do_confirm_checklist goal="Verify all gates pass before merging a PR">
 
-- [ ] Confirm the author is trusted by CI app identity or by the top-7
-      contributor lookup.
-- [ ] Parse the PR type from the title prefix.
-- [ ] Confirm all CI checks pass, after mechanical fixes if needed.
-- [ ] Confirm the `wiki/STATUS.md` row for the spec id shows the classified
-      phase at `approved`, or at `implemented` for the terminal plan row.
-- [ ] For phase PRs (spec/design/plan), confirm an approval signal of the
-      required class verifiably covers the current head, per
-      `references/review-transfer.md`.
-- [ ] For implementation PRs, confirm the parent spec's `plan-a.md` exists on
-      `main`.
-- [ ] Confirm no unresolved trusted-human concern remains in the PR comment
-      thread.
-- [ ] Confirm the PR carries a classification label (`product` / `internal`).
-- [ ] Confirm the coordinating issue, if there is one, names the PR. Self-heal
-      the link when it is missing.
+- [ ] Author trusted: CI app identity, or the trusted set resolved from the
+      configured trust source (`references/settings.md`).
+- [ ] Settings read from the default branch, never from a PR head or a
+      worktree that contains PR content.
+- [ ] On unreadable trust configuration, fail closed: block trust-gated
+      merges with reason `settings unreadable`. Never widen back to the
+      default ranking.
+- [ ] A diff that touches `.kata/` merges only on a trusted human's explicit
+      signal pinned to the approved head. No agent approval qualifies.
+- [ ] PR type parsed from the title prefix, and the classification label
+      (`product` / `internal`) present.
+- [ ] All CI checks pass, after mechanical fixes if needed.
+- [ ] The `wiki/STATUS.md` row shows the classified phase at `approved`, or
+      `implemented` for the terminal plan row. For phase PRs, a signal of the
+      required class covers the head per `references/review-transfer.md`.
+- [ ] For implementation PRs, the parent spec's `plan-a.md` exists on `main`.
+- [ ] No unresolved trusted-human concern in the PR thread. Self-heal the
+      coordinating-issue link when it is missing.
 
 </do_confirm_checklist>
 
@@ -66,16 +68,31 @@ Skip PRs authored by `app/dependabot`. `kata-security-update` handles them.
 
 `read` the change's author
 ([work-trackers.md](../../agents/x-work-trackers.md)). If the author is
-`app/kata-agent-team`, the PR is **trusted by definition**. Otherwise, look up
-the top 7 human contributors:
+`app/kata-agent-team`, the PR is **trusted by definition**. Otherwise,
+resolve the trusted set from the configured trust source
+([`references/settings.md`](references/settings.md)). Read the settings from
+the default branch, never from a PR head:
+
+```sh
+git show origin/<default-branch>:.kata/settings.json
+```
+
+Under `top-contributors`, look up the top `trustContributorCount` human
+contributors:
 
 ```sh
 gh api repos/{owner}/{repo}/contributors \
-  --jq '[.[] | select(.type == "User")] | .[0:7] | .[].login'
+  --jq '[.[] | select(.type == "User")] | .[0:<trustContributorCount>] | .[].login'
 ```
 
-The PR author must appear in that list. If the author does not appear, mark the
-PR **blocked**. Run this lookup on every classified PR.
+Under `allowlist`, the trusted set is exactly `trustAllowlist`. An empty list
+trusts no human.
+
+The PR author must appear in the trusted set. If the author does not appear,
+mark the PR **blocked**. Run this resolution on every classified PR. On a parse
+failure, or an out-of-vocabulary or out-of-range trust value, fail closed:
+block every trust-gated merge with reason `settings unreadable`, owned by a
+trusted human. Never fall back to the ranking.
 
 ### Step 3: Classify PR Type
 
@@ -179,12 +196,18 @@ outside [`references/review-transfer.md`](references/review-transfer.md), whose
 this rule directly. See
 [`approval-signals.md`](../../agents/x-approval-signals.md).
 
+**Settings diffs.** A diff that touches `.kata/` is a trust-policy change. It
+merges only on a trusted human's explicit signal on that change, pinned to
+the approved head, per the existing approval-signal classes
+([`approval-signals.md`](../../agents/x-approval-signals.md)). No
+agent-originated approval qualifies, whatever the PR's type or phase.
+
 ### Step 7: Open Comment Gate
 
-A top-7 contributor's most-recent PR comment may be an unresolved concern. If
-no **later** comment from the same human accepts it, mark the PR **blocked**
-(`awaiting trusted-contributor reply`). See
-[`comment-gate.md`](references/comment-gate.md).
+A trusted human contributor's most-recent PR comment (the Step 2 trusted set)
+may be an unresolved concern. If no **later** comment from the same human
+accepts it, mark the PR **blocked** (`awaiting trusted-contributor reply`).
+See [`comment-gate.md`](references/comment-gate.md).
 
 ### Step 8: Coordinating Issue Announcement (self-heal)
 

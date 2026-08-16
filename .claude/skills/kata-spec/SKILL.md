@@ -53,9 +53,10 @@ asked for. If they ask for a spec, write the spec and stop.
 
 - [ ] Spec meets the criteria in § Writing a Spec.
 - [ ] The clean sub-agent review panel of `spec.md` through
-      [`kata-review`](../kata-review/SKILL.md) is complete (fresh context, no
-      prior bias, panel size per caller protocol). Every **blocker**,
-      **high**, and **medium** finding is addressed.
+      [`kata-review`](../kata-review/SKILL.md) is complete (fresh context,
+      panel size per caller protocol). Address every confirmed finding at or
+      above the configured blocking severity floor
+      ([caller protocol](../kata-review/references/caller-protocol.md)).
 
 </do_confirm_checklist>
 
@@ -168,9 +169,11 @@ claimed in Step 1. Do not push yet.
 Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md). Invoke it on the local
 `specs/NNN/spec.md` before you push. Tell each reviewer not to invoke
-`kata-spec`. Address every confirmed blocker/high/medium finding before you
-open the PR. The PR should not become visible to `kata-dispatch` until the
-panel is clean.
+`kata-spec`. Address every confirmed finding at or above the configured
+blocking severity floor
+([caller protocol](../kata-review/references/caller-protocol.md))
+before you open the PR. The PR should not become visible to `kata-dispatch`
+until the panel is clean.
 
 ### Step 6: Open a spec PR
 

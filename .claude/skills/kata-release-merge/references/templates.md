@@ -3,19 +3,25 @@
 Comment templates and report formats for the merge gate.
 
 Each template is a `comment` on a change or issue
-([work-trackers.md](../../../agents/x-work-trackers.md)). Fill the body
-shown and post it.
+([work-trackers.md](../../../agents/x-work-trackers.md)). Fill and post the
+body.
 
 ## Skip Comments
 
 ### Untrusted Author
 
-> Release merge: skipped. Author `<login>` is not in the top 7 contributors.
+> Release merge: skipped. Author `<login>` is not in the trusted set (trust
+> source: `<trustSource>`).
 > This PR requires human review.
 
 ### Unsupported PR Type
 
 > Release merge: skipped. PR type `<type>` requires human review.
+
+### Settings Unreadable
+
+> Release merge: blocked. `.kata/settings.json` on the default branch is
+> unreadable. The gate fails closed until a trusted human fixes it.
 
 ### Awaiting Approval Signal
 
@@ -41,9 +47,9 @@ comment that names the PR
 verb to the PR's state at gate time:
 
 > Release merge (announcement backstop): PR #<pr-number>, `<title>`, is in
-> flight for this issue and reached the merge gate. The gate posted this
-> cross-link because no prior comment here named the PR. The gate recorded an
-> adherence miss per coordination-protocol.md fix-in-flight markers.
+> flight for this issue and reached the merge gate. No prior comment here
+> named the PR. The gate recorded an adherence miss per
+> coordination-protocol.md fix-in-flight markers.
 
 ## Re-ping Comments
 
@@ -62,7 +68,8 @@ Post it as a `comment` on the change
 
 | Block reason | `<state>` | `<owner>` | `<next-action>` |
 | --- | --- | --- | --- |
-| Untrusted Author | author `<login>` not in the top 7 contributors | a trusted top-7 contributor | review and merge, or close the PR |
+| Untrusted Author | author `<login>` not in the trusted set (trust source: `<trustSource>`) | a trusted contributor per the configured trust source | review and merge, or close the PR |
+| Settings Unreadable | trust configuration unreadable | a trusted human | fix `.kata/settings.json` on the default branch |
 | Unsupported PR Type | PR type `<type>` unsupported | a trusted human | re-title to a supported `type(scope): subject`, or close |
 | CI Failing | checks `<failing-checks>` still red | the PR author | push a fix. The next sweep re-checks |
 | Substantive Conflict | conflicts in `<files>`, so it is not mergeable | the PR author | rebase on `main` and resolve the files |
@@ -88,7 +95,6 @@ the summary. Do not report it as merged.
 | #fix-a | fix(parser): schema validation | fix  | alice  | green | n/a            | merged  | All gates pass                  |
 | #spec-b| spec(security): SSRF hardening | spec | bob    | green | spec draft     | blocked | STATUS row not at spec approved |
 | #feat-c| feat(export): export feature   | feat | carol  | red   | plan approved  | blocked | CI failing: format check        |
-| #fix-d | fix(ui): color contrast        | fix  | eve    | green | n/a            | blocked | Author not in top contributors  |
 | #dsgn-e| design(map): ingest pipeline   | design| dan   | green | design draft   | re-pinged | Awaiting approval signal; silent >3 days |
 ```
 
@@ -97,5 +103,5 @@ the summary. Do not report it as merged.
 row per re-pinged PR. That value is distinct from `blocked`. A blocked PR still
 inside its 3-day silence window stays `blocked`.
 
-**Flag PRs blocked across 3+ consecutive runs** prominently above the table.
-These may need human escalation.
+**Flag PRs blocked across 3+ consecutive runs** above the table for human
+escalation.

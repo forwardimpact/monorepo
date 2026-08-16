@@ -57,10 +57,11 @@ alongside the skill-specific rules below.
 - [ ] Spec-specific verification commands from the plan pass.
 - [ ] Review the full diff against the spec's success criteria. Confirm every
       criterion is met.
-- [ ] Complete a clean sub-agent review panel of the full diff through
-      [`kata-review`](../kata-review/SKILL.md) (fresh context, no prior bias,
-      panel size per caller protocol). Address every **blocker**, **high**,
-      and **medium** finding.
+- [ ] Complete a clean sub-agent review panel of the diff through
+      [`kata-review`](../kata-review/SKILL.md) (fresh context, panel size per
+      caller protocol). Address every confirmed finding at or above the
+      configured blocking severity floor
+      ([caller protocol](../kata-review/references/caller-protocol.md)).
 
 </do_confirm_checklist>
 
@@ -156,7 +157,9 @@ After all tasks are complete, run the DO-CONFIRM checklist above.
 
 Follow the [`kata-review` caller
 protocol](../kata-review/references/caller-protocol.md). Tell each reviewer not
-to invoke `kata-implement`. Address every confirmed blocker/high/medium finding
+to invoke `kata-implement`. Address every confirmed finding at or above the
+configured blocking severity floor
+([caller protocol](../kata-review/references/caller-protocol.md))
 before you advance.
 
 ### Step 8: Open an implementation PR
