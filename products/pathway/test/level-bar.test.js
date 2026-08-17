@@ -100,3 +100,132 @@ describe("createLevelCell", () => {
     assert.strictEqual(label.textContent, "Role Modeling");
   });
 });
+
+describe("interviewToDOM", () => {
+  // The section shape matches groupQuestionsIntoSections in
+  // formatters/interview/shared.js. Capability sections target a skill
+  // proficiency, so they read off the skill scale.
+  const view = {
+    title: "Data Engineer Level II - Platform",
+    totalQuestions: 3,
+    expectedDurationMinutes: 45,
+    typeInfo: { name: "Mission Fit", description: "Assess technical skills." },
+    sections: [
+      {
+        id: "sql",
+        name: "SQL",
+        type: "skill",
+        level: "working",
+        questions: [{ question: "Walk me through a slow query." }],
+      },
+      {
+        id: "delivery",
+        name: "delivery",
+        type: "capability",
+        level: "practitioner",
+        questions: [{ question: "Break down this ambiguous request." }],
+      },
+      {
+        id: "collaboration",
+        name: "Collaboration",
+        type: "behaviour",
+        level: "role-modeling",
+        questions: [{ question: "Describe a disagreement you resolved." }],
+      },
+    ],
+  };
+
+  test("renders the title, every section, and every question", async () => {
+    const { interviewToDOM } = await import(
+      "../src/formatters/interview/dom.js"
+    );
+    const el = interviewToDOM(view, view.typeInfo, { showBackLink: false });
+
+    assert.match(el.querySelector(".page-title").textContent, /Data Engineer/);
+    assert.strictEqual(el.querySelectorAll(".question-group").length, 3);
+    assert.strictEqual(el.querySelectorAll(".question-text").length, 3);
+    assert.match(
+      el.querySelectorAll(".question-text")[0].textContent,
+      /slow query/,
+    );
+  });
+
+  test("fills each group's level bar on the scale for its target type", async () => {
+    const { interviewToDOM } = await import(
+      "../src/formatters/interview/dom.js"
+    );
+    const el = interviewToDOM(view, view.typeInfo, { showBackLink: false });
+    const bars = [...el.querySelectorAll(".question-group .level-bar")];
+
+    // working (skill) = 3, practitioner (skill scale) = 4,
+    // role-modeling (behaviour) = 4
+    assert.deepStrictEqual(bars.map(filledCount), [3, 4, 4]);
+  });
+});
+
+describe("progressToDOM", () => {
+  const view = {
+    fromTitle: "Level I Engineer",
+    toTitle: "Level II Engineer",
+    skillChanges: [
+      {
+        id: "s1",
+        name: "SQL",
+        type: "core",
+        fromLevel: "awareness",
+        toLevel: "foundational",
+        proficiencyChange: 1,
+      },
+      {
+        id: "s2",
+        name: "New skill",
+        type: "broad",
+        fromLevel: null,
+        toLevel: "awareness",
+        proficiencyChange: 1,
+      },
+      {
+        id: "s3",
+        name: "Unchanged",
+        type: "supporting",
+        fromLevel: "working",
+        toLevel: "working",
+        proficiencyChange: 0,
+      },
+    ],
+    behaviourChanges: [
+      {
+        id: "b1",
+        name: "Collaboration",
+        fromMaturity: "emerging",
+        toMaturity: "developing",
+        maturityChange: 1,
+      },
+    ],
+    summary: {},
+  };
+
+  test("lists only the changed skills and behaviours", async () => {
+    const { progressToDOM } = await import("../src/formatters/progress/dom.js");
+    const el = progressToDOM(view, { showBackLink: false });
+
+    assert.match(
+      el.querySelector(".page-description").textContent,
+      /Level I Engineer → Level II Engineer/,
+    );
+    // Two changed skills plus one changed behaviour. 'Unchanged' drops out.
+    assert.strictEqual(el.querySelectorAll("tbody tr").length, 3);
+  });
+
+  test("fills the from and to bars, and leaves gained skills without a from bar", async () => {
+    const { progressToDOM } = await import("../src/formatters/progress/dom.js");
+    const el = progressToDOM(view, { showBackLink: false });
+    const rows = [...el.querySelectorAll("tbody tr")];
+
+    const bars = (row) => [...row.querySelectorAll(".level-bar")];
+    assert.deepStrictEqual(bars(rows[0]).map(filledCount), [1, 2]);
+    // The gained skill has no current level, so it draws one bar only.
+    assert.deepStrictEqual(bars(rows[1]).map(filledCount), [1]);
+    assert.deepStrictEqual(bars(rows[2]).map(filledCount), [1, 2]);
+  });
+});
