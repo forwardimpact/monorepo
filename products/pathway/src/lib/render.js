@@ -57,19 +57,25 @@ import {
 } from "@forwardimpact/libskill/levels";
 
 /**
- * Get the index for a skill proficiency (1-5)
+ * Rank a skill proficiency on its scale
+ *
+ * The rank counts levels, so 'awareness' ranks 1 and 'expert' ranks 5.
+ * `getSkillProficiencyIndex` in libskill returns the 0-based index instead.
  * @param {string} level
- * @returns {number}
+ * @returns {number} 1-5, or 0 when the level is unknown
  */
-export function getSkillProficiencyIndex(level) {
+export function rankSkillProficiency(level) {
   return SKILL_PROFICIENCY_ORDER.indexOf(level) + 1;
 }
 
 /**
- * Get the index for a behaviour maturity (1-5)
+ * Rank a behaviour maturity on its scale
+ *
+ * The rank counts levels, so 'emerging' ranks 1 and 'exemplifying' ranks 5.
+ * `getBehaviourMaturityIndex` in libskill returns the 0-based index instead.
  * @param {string} maturity
- * @returns {number}
+ * @returns {number} 1-5, or 0 when the maturity is unknown
  */
-export function getBehaviourMaturityIndex(maturity) {
+export function rankBehaviourMaturity(maturity) {
   return BEHAVIOUR_MATURITY_ORDER.indexOf(maturity) + 1;
 }

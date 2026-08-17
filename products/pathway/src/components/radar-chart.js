@@ -8,8 +8,8 @@
 import { RadarChart } from "../lib/radar.js";
 import { div, h3 } from "../lib/render.js";
 import {
-  getSkillProficiencyIndex,
-  getBehaviourMaturityIndex,
+  rankSkillProficiency,
+  rankBehaviourMaturity,
   formatLevel,
 } from "../lib/render.js";
 
@@ -33,7 +33,7 @@ export function createSkillRadar(skillMatrix, options = {}) {
 
     const data = skillMatrix.map((skill) => ({
       label: skill.skillName,
-      value: getSkillProficiencyIndex(skill.proficiency),
+      value: rankSkillProficiency(skill.proficiency),
       maxValue: 5,
       description: `${formatLevel(skill.type)} skill - ${formatLevel(skill.proficiency)}`,
     }));
@@ -77,7 +77,7 @@ export function createBehaviourRadar(behaviourProfile, options = {}) {
 
     const data = behaviourProfile.map((behaviour) => ({
       label: behaviour.behaviourName,
-      value: getBehaviourMaturityIndex(behaviour.maturity),
+      value: rankBehaviourMaturity(behaviour.maturity),
       maxValue: 5,
       description: `${formatLevel(behaviour.maturity)}`,
     }));
