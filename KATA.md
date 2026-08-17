@@ -297,8 +297,14 @@ graph TD
 | `spec`           | Specification document only     | Trusted agents, never the contributor |
 | Everything else  | Nothing — requires human review | N/A                                   |
 
-Top-7 contributors pass the trust gate. The gate trusts `kata-agent-team` PRs
-by identity.
+The trust gate resolves its trusted set from the configured trust source. The
+owning table in the kata-release-merge settings reference marks the default.
+The gate trusts `kata-agent-team` PRs by identity.
+
+The optional `.kata/settings.json` file selects among policy options the
+skills define (phase 1: trust source and review rigor). Each vocabulary lives
+in the owning skill's settings reference. An absent file selects the marked
+defaults, which reproduce current behavior.
 
 **Retention PRs** preserve this boundary. The archivist opens a
 `retention(specs)` PR to remove terminal spec directories. The archivist never

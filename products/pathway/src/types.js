@@ -49,8 +49,8 @@
  * @property {'core'|'supporting'|'broad'|'track'} type - Skill tier
  * @property {string} currentLevel - Current level ID (or null if new)
  * @property {string} targetLevel - Target level ID (or null if removed)
- * @property {number} currentIndex - Current level as 0-5 index
- * @property {number} targetIndex - Target level as 0-5 index
+ * @property {number} currentIndex - Current level as 0-4 index (-1 if new)
+ * @property {number} targetIndex - Target level as 0-4 index (-1 if removed)
  * @property {number} change - Level difference (positive = upgrade)
  * @property {boolean} isGained - True if skill is new in target role
  * @property {boolean} isLost - True if the target role removes the skill
@@ -63,8 +63,8 @@
  * @property {string} name - Display name
  * @property {string} currentLevel - Current maturity (or null if new)
  * @property {string} targetLevel - Target maturity (or null if removed)
- * @property {number} currentIndex - Current maturity as 0-4 index
- * @property {number} targetIndex - Target maturity as 0-4 index
+ * @property {number} currentIndex - Current maturity as 0-4 index (-1 if new)
+ * @property {number} targetIndex - Target maturity as 0-4 index (-1 if removed)
  * @property {number} change - Maturity difference (positive = upgrade)
  * @property {boolean} isGained - True if behaviour is new in target role
  * @property {boolean} isLost - True if the target role removes the behaviour

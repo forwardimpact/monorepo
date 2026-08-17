@@ -34,20 +34,20 @@ findings instead.
 This is the canonical definition of review severity for the spec → design →
 plan → implement arc. Grade every finding with exactly one level:
 
-- **Blocker** — The work is broken, dangerous, or materially wrong. You must
-  fix it before you advance (approve the spec, advance status, merge code).
+- **Blocker** — The work is broken, dangerous, or materially wrong.
 - **High** — A correctness or clarity problem. If you ship it, it causes
-  rework, confusion, or bugs downstream. Fix it before you advance.
+  rework, confusion, or bugs downstream.
 - **Medium** — A real quality or consistency issue. It is worth a fix now
-  while the context is fresh. Fix it before you advance.
-- **Low** — Nit or preference. The fix is optional. Document it if you dismiss
-  it.
+  while the context is fresh.
+- **Low** — Nit or preference.
 
 The caller must **verify** every finding against the actual artifact before it
 acts. Sub-agent reviewers operate without prior conversation context. They can
 misread intent, miss nearby code, or flag false positives. After it verifies a
-finding, the caller must address every confirmed **blocker**, **high**, and
-**medium** finding before it advances. **Low** findings are optional.
+finding, the caller addresses every confirmed finding at or above the
+configured blocking severity floor
+([caller protocol](references/caller-protocol.md)) before it advances.
+Findings below the floor are optional, and a dismissal is documented.
 
 ## Process
 

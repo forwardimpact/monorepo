@@ -8,7 +8,7 @@ a thread on behalf of a human who did not react yet.
 
 `read` the change's discussion thread
 ([work-trackers.md](../../../agents/x-work-trackers.md)).
-For each top-7 human contributor (kata-release-merge Step 2 lookup) who
+For each trusted human contributor (kata-release-merge Step 2 resolution) who
 commented on the PR, read their **most recent** comment. If it raises a
 concern, question, or objection, look for a **later** comment from the **same**
 human that acknowledges or accepts the response. If no such comment exists,

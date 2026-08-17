@@ -1,25 +1,24 @@
 # Sub-Agent Review Protocol
 
-Callers of `kata-review` share this protocol:
-
-- `kata-spec` Step 5 — product + technical panels, 3 each
-- `kata-design` / `kata-plan` Step 5 — technical + devex panels, 3 each
-- `kata-implement` Step 7 — technical panel of 5 + devex panel of 3
+Callers of `kata-review` share this protocol.
 
 ## Panel Composition
 
-Each panel has a role (`subagent_type`) and a size.
+Each panel has a role (`subagent_type`) and a size. Panel sizes come from the
+`reviewPanel` profile selected in [settings.md](settings.md) (read mechanic:
+shared kata-settings reference). The consensus threshold stays ≥⌈N/2⌉ for any
+panel size.
 
-| Caller           | Artifact                    | Panel     | `subagent_type`   | Reviewers |
-| ---------------- | --------------------------- | --------- | ----------------- | --------- |
-| `kata-spec`      | `spec.md`                   | product   | `product-manager` | 3         |
-| `kata-spec`      | `spec.md`                   | technical | engineering agent  | 3         |
-| `kata-design`    | `design-a.md`               | technical | engineering agent  | 3         |
-| `kata-design`    | `design-a.md`               | devex     | `devex-engineer`  | 3         |
-| `kata-plan`      | `plan-a.md` (+ parts)       | technical | engineering agent  | 3         |
-| `kata-plan`      | `plan-a.md` (+ parts)       | devex     | `devex-engineer`  | 3         |
-| `kata-implement` | diff (`origin/main...HEAD`) | technical | engineering agent  | 5         |
-| `kata-implement` | diff (`origin/main...HEAD`) | devex     | `devex-engineer`  | 3         |
+| Caller           | Artifact                    | Panel     | `subagent_type`   |
+| ---------------- | --------------------------- | --------- | ----------------- |
+| `kata-spec`      | `spec.md`                   | product   | `product-manager` |
+| `kata-spec`      | `spec.md`                   | technical | engineering agent  |
+| `kata-design`    | `design-a.md`               | technical | engineering agent  |
+| `kata-design`    | `design-a.md`               | devex     | `devex-engineer`  |
+| `kata-plan`      | `plan-a.md` (+ parts)       | technical | engineering agent  |
+| `kata-plan`      | `plan-a.md` (+ parts)       | devex     | `devex-engineer`  |
+| `kata-implement` | diff (`origin/main...HEAD`) | technical | engineering agent  |
+| `kata-implement` | diff (`origin/main...HEAD`) | devex     | `devex-engineer`  |
 
 Rationale for panels, sizes, and scope:
 [panel-rationale.md](panel-rationale.md).
@@ -63,10 +62,12 @@ diffs, a commit hash replaces `file:line`.
 3. **Pick severity by mode. Tie-break high.** Vote count reflects reach.
    Severity reflects seriousness.
 4. **Partition by vote count:**
-   - **Consensus (≥⌈N/2⌉):** verify and address all confirmed blocker/high/
-     medium findings in the same turn.
-   - **Minority (>1, <⌈N/2⌉):** empty for N=3. For N=5, verify with extra care.
-   - **Singleton (1):** verify each. Address or record a dismissal rationale.
+   - **Consensus (≥⌈N/2⌉):** verify and address all confirmed findings at or
+     above the configured blocking severity floor (`reviewBlockingSeverity`)
+     in the same turn.
+   - **Minority (>1, <⌈N/2⌉):** verify with extra care.
+   - **Singleton (1, below the consensus threshold):** verify each. Address
+     or record a dismissal rationale.
 5. **Scope-creep guard.** Dismiss findings that raise concerns outside the
    artifact's declared scope (spec scope for design/plan, plan scope for diffs;
    user intent for specs). Exception: consensus "scope-creep in the diff"
@@ -76,10 +77,10 @@ diffs, a commit hash replaces `file:line`.
 
 - **Verify** every unique finding against the actual artifact before you act.
   The caller is accountable. The panel is not.
-- **Proceed. Do not pause.** Address every confirmed consensus
-  **blocker**/**high**/**medium** finding in the same turn. Do not stop for
-  user permission. Re-run the panel if the fix is substantial. Then advance.
-- **Low** findings are optional. Document it if you dismiss one.
+- **Proceed. Do not pause.** Address every confirmed consensus finding at or
+  above the configured floor in the same turn. Do not stop for user
+  permission. Re-run the panel if the fix is substantial. Then advance.
+- Findings below the floor are optional. Document it if you dismiss one.
 - **False positives.** Record a one-line rationale in the commit message or
   artifact, then continue. Never dismiss one silently.
 - **Disagreement with a consensus blocker.** Revise the artifact to address the

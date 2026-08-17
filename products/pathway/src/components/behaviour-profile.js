@@ -5,8 +5,8 @@
 /** @typedef {import('../types.js').BehaviourProfileItem} BehaviourProfileItem */
 
 import { div, table, thead, tbody, tr, th, td, a } from "../lib/render.js";
-import { getBehaviourMaturityIndex } from "../lib/render.js";
 import { createLevelCell } from "./detail.js";
+import { BEHAVIOUR_MATURITY_ORDER } from "@forwardimpact/libskill/levels";
 import { truncate } from "../formatters/shared.js";
 
 /**
@@ -19,10 +19,8 @@ export function createBehaviourProfile(behaviourProfile) {
     return div({ className: "empty-state" }, "No behaviours in profile");
   }
 
-  const rows = behaviourProfile.map((behaviour) => {
-    const maturityIndex = getBehaviourMaturityIndex(behaviour.maturity);
-
-    return tr(
+  const rows = behaviourProfile.map((behaviour) =>
+    tr(
       {},
       td(
         {},
@@ -31,13 +29,13 @@ export function createBehaviourProfile(behaviourProfile) {
           behaviour.behaviourName,
         ),
       ),
-      createLevelCell(maturityIndex, 5, behaviour.maturity),
+      createLevelCell(behaviour.maturity, BEHAVIOUR_MATURITY_ORDER),
       td(
         { className: "behaviour-description" },
         truncate(behaviour.maturityDescription, 80),
       ),
-    );
-  });
+    ),
+  );
 
   return div(
     { className: "table-container" },

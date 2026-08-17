@@ -19,12 +19,16 @@ import {
 } from "../lib/render.js";
 import { formatLevel } from "../lib/render.js";
 import { createLevelCell, createEmptyLevelCell } from "./detail.js";
+import {
+  SKILL_PROFICIENCY_ORDER,
+  BEHAVIOUR_MATURITY_ORDER,
+} from "@forwardimpact/libskill/levels";
 import { createBadge } from "./card.js";
 
 /**
  * Create a row for a gained (new) item
  */
-function createGainedRow(item, isSkill, maxLevels) {
+function createGainedRow(item, isSkill, order) {
   const nameCell = td(
     {},
     a({ href: `#/${isSkill ? "skill" : "behaviour"}/${item.id}` }, item.name),
@@ -41,7 +45,7 @@ function createGainedRow(item, isSkill, maxLevels) {
       td({}, createBadge(item.capability, item.capability)),
       td({}, createBadge(formatLevel(item.type), item.type)),
       createEmptyLevelCell(),
-      createLevelCell(item.targetIndex, maxLevels, item.targetLevel),
+      createLevelCell(item.targetLevel, order),
       changeCell,
     );
   }
@@ -49,7 +53,7 @@ function createGainedRow(item, isSkill, maxLevels) {
     { className: "change-gained" },
     nameCell,
     createEmptyLevelCell(),
-    createLevelCell(item.targetIndex, maxLevels, item.targetLevel),
+    createLevelCell(item.targetLevel, order),
     changeCell,
   );
 }
@@ -57,7 +61,7 @@ function createGainedRow(item, isSkill, maxLevels) {
 /**
  * Create a row for a lost (removed) item
  */
-function createLostRow(item, isSkill, maxLevels) {
+function createLostRow(item, isSkill, order) {
   const nameCell = td(
     {},
     a({ href: `#/${isSkill ? "skill" : "behaviour"}/${item.id}` }, item.name),
@@ -73,7 +77,7 @@ function createLostRow(item, isSkill, maxLevels) {
       nameCell,
       td({}, createBadge(item.capability, item.capability)),
       td({}, createBadge(formatLevel(item.type), item.type)),
-      createLevelCell(item.currentIndex, maxLevels, item.currentLevel),
+      createLevelCell(item.currentLevel, order),
       createEmptyLevelCell(),
       changeCell,
     );
@@ -81,7 +85,7 @@ function createLostRow(item, isSkill, maxLevels) {
   return tr(
     { className: "change-lost" },
     nameCell,
-    createLevelCell(item.currentIndex, maxLevels, item.currentLevel),
+    createLevelCell(item.currentLevel, order),
     createEmptyLevelCell(),
     changeCell,
   );
@@ -90,7 +94,7 @@ function createLostRow(item, isSkill, maxLevels) {
 /**
  * Create a row for a normal change item
  */
-function createChangeRow(item, isSkill, maxLevels) {
+function createChangeRow(item, isSkill, order) {
   const changeClass =
     item.change > 0
       ? "change-up"
@@ -107,8 +111,8 @@ function createChangeRow(item, isSkill, maxLevels) {
       td({}, a({ href: `#/skill/${item.id}` }, item.name)),
       td({}, createBadge(item.capability, item.capability)),
       td({}, createBadge(formatLevel(item.type), item.type)),
-      createLevelCell(item.currentIndex, maxLevels, item.currentLevel),
-      createLevelCell(item.targetIndex, maxLevels, item.targetLevel),
+      createLevelCell(item.currentLevel, order),
+      createLevelCell(item.targetLevel, order),
       td(
         { className: `change-cell ${changeClass}` },
         span({ className: "change-indicator" }, changeText),
@@ -118,8 +122,8 @@ function createChangeRow(item, isSkill, maxLevels) {
   return tr(
     { className: changeClass },
     td({}, a({ href: `#/behaviour/${item.id}` }, item.name)),
-    createLevelCell(item.currentIndex, maxLevels, item.currentLevel),
-    createLevelCell(item.targetIndex, maxLevels, item.targetLevel),
+    createLevelCell(item.currentLevel, order),
+    createLevelCell(item.targetLevel, order),
     td(
       { className: `change-cell ${changeClass}` },
       span({ className: "change-indicator" }, changeText),
@@ -240,7 +244,7 @@ export function createProgressionTable(changes, type = "skill") {
   }
 
   const isSkill = type === "skill";
-  const maxLevels = 5;
+  const order = isSkill ? SKILL_PROFICIENCY_ORDER : BEHAVIOUR_MATURITY_ORDER;
 
   // Separate into changes, gained, lost, and no-changes
   const gained = changes.filter((c) => c.isGained);
@@ -252,12 +256,12 @@ export function createProgressionTable(changes, type = "skill") {
 
   const createRow = (item) => {
     if (item.isGained) {
-      return createGainedRow(item, isSkill, maxLevels);
+      return createGainedRow(item, isSkill, order);
     }
     if (item.isLost) {
-      return createLostRow(item, isSkill, maxLevels);
+      return createLostRow(item, isSkill, order);
     }
-    return createChangeRow(item, isSkill, maxLevels);
+    return createChangeRow(item, isSkill, order);
   };
 
   const skillHeaders = tr(
