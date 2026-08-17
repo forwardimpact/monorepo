@@ -17,7 +17,7 @@ import {
   formatLevel,
 } from "../../lib/render.js";
 import { createBackLink } from "../../components/nav.js";
-import { createLevelDots } from "../../components/detail.js";
+import { createLevelBar } from "../../components/detail.js";
 import {
   SKILL_PROFICIENCY_ORDER,
   BEHAVIOUR_MATURITY_ORDER,
@@ -49,10 +49,7 @@ function createProficiencyRow(label, badgeClass, proficiency) {
     td(
       {},
       proficiency
-        ? createLevelDots(
-            SKILL_PROFICIENCY_ORDER.indexOf(proficiency),
-            SKILL_PROFICIENCY_ORDER.length,
-          )
+        ? createLevelBar(proficiency, SKILL_PROFICIENCY_ORDER)
         : span({ className: "text-muted" }, "—"),
     ),
   );
@@ -98,18 +95,12 @@ function createBaseProfileSection(view) {
                 {},
                 tr(
                   {},
+                  td({}, formatLevel(view.baseBehaviourMaturity)),
                   td(
                     {},
-                    view.baseBehaviourMaturity.charAt(0).toUpperCase() +
-                      view.baseBehaviourMaturity.slice(1),
-                  ),
-                  td(
-                    {},
-                    createLevelDots(
-                      BEHAVIOUR_MATURITY_ORDER.indexOf(
-                        view.baseBehaviourMaturity,
-                      ),
-                      BEHAVIOUR_MATURITY_ORDER.length,
+                    createLevelBar(
+                      view.baseBehaviourMaturity,
+                      BEHAVIOUR_MATURITY_ORDER,
                     ),
                   ),
                 ),

@@ -63,18 +63,13 @@ export function behaviourToDOM(
         thead({}, tr({}, th({}, "Level"), th({}, "Description"))),
         tbody(
           {},
-          ...BEHAVIOUR_MATURITY_ORDER.map((maturity, index) => {
-            const description = view.maturityDescriptions[maturity] || "—";
-            return tr(
+          ...BEHAVIOUR_MATURITY_ORDER.map((maturity) =>
+            tr(
               {},
-              createLevelCell(
-                index + 1,
-                BEHAVIOUR_MATURITY_ORDER.length,
-                maturity,
-              ),
-              td({}, description),
-            );
-          }),
+              createLevelCell(maturity, BEHAVIOUR_MATURITY_ORDER),
+              td({}, view.maturityDescriptions[maturity] || "—"),
+            ),
+          ),
         ),
       ),
     ),

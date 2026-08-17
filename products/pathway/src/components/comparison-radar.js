@@ -9,8 +9,8 @@
 import { ComparisonRadarChart } from "../lib/radar.js";
 import { div, h3 } from "../lib/render.js";
 import {
-  getSkillProficiencyIndex,
-  getBehaviourMaturityIndex,
+  rankSkillProficiency,
+  rankBehaviourMaturity,
   formatLevel,
 } from "../lib/render.js";
 import { compareByCapability } from "@forwardimpact/libskill/policies";
@@ -28,7 +28,7 @@ function skillRadarPoint(label, skill) {
   }
   return {
     label,
-    value: getSkillProficiencyIndex(skill.proficiency),
+    value: rankSkillProficiency(skill.proficiency),
     maxValue: 5,
     description: `${formatLevel(skill.type)} - ${formatLevel(skill.proficiency)}`,
   };
@@ -104,7 +104,7 @@ function buildBehaviourComparisonData(currentProfile, targetProfile) {
     currentData.push({
       label: behaviourName,
       value: currentBehaviour
-        ? getBehaviourMaturityIndex(currentBehaviour.maturity)
+        ? rankBehaviourMaturity(currentBehaviour.maturity)
         : 0,
       maxValue: 5,
       description: currentBehaviour
@@ -114,7 +114,7 @@ function buildBehaviourComparisonData(currentProfile, targetProfile) {
     targetData.push({
       label: behaviourName,
       value: targetBehaviour
-        ? getBehaviourMaturityIndex(targetBehaviour.maturity)
+        ? rankBehaviourMaturity(targetBehaviour.maturity)
         : 0,
       maxValue: 5,
       description: targetBehaviour

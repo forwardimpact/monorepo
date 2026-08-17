@@ -197,14 +197,13 @@ export function skillToDOM(
         thead({}, tr({}, th({}, "Level"), th({}, "Description"))),
         tbody(
           {},
-          ...SKILL_PROFICIENCY_ORDER.map((level, index) => {
-            const description = view.proficiencyDescriptions[level] || "—";
-            return tr(
+          ...SKILL_PROFICIENCY_ORDER.map((level) =>
+            tr(
               {},
-              createLevelCell(index + 1, SKILL_PROFICIENCY_ORDER.length, level),
-              td({}, description),
-            );
-          }),
+              createLevelCell(level, SKILL_PROFICIENCY_ORDER),
+              td({}, view.proficiencyDescriptions[level] || "—"),
+            ),
+          ),
         ),
       ),
     ),

@@ -15,7 +15,6 @@ import {
   td,
   a,
 } from "../lib/render.js";
-import { getSkillProficiencyIndex } from "../lib/render.js";
 import { createLevelCell } from "./detail.js";
 import { createBadge } from "./card.js";
 import { SKILL_PROFICIENCY_ORDER } from "@forwardimpact/libskill/levels";
@@ -61,10 +60,8 @@ export function createSkillMatrix(skillMatrix, options = {}) {
     ? sortByCapabilityThenLevel(skillMatrix, capabilityOrder)
     : [...skillMatrix];
 
-  const rows = sortedSkills.map((skill) => {
-    const levelIndex = getSkillProficiencyIndex(skill.proficiency);
-
-    return tr(
+  const rows = sortedSkills.map((skill) =>
+    tr(
       { className: skill.isHumanOnly ? "human-only-row" : "" },
       td(
         {},
@@ -81,13 +78,13 @@ export function createSkillMatrix(skillMatrix, options = {}) {
           : null,
       ),
       td({}, createBadge(skill.capability, skill.capability)),
-      createLevelCell(levelIndex, 5, skill.proficiency),
+      createLevelCell(skill.proficiency, SKILL_PROFICIENCY_ORDER),
       td(
         { className: "skill-description" },
         truncate(skill.proficiencyDescription, 80),
       ),
-    );
-  });
+    ),
+  );
 
   return div(
     { className: "table-container" },
