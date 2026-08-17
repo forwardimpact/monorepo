@@ -121,8 +121,8 @@ to `kata-agent`. Copy the killswitch below as its first step. Add a final
 
 ## Resolving Action Refs
 
-Pin published actions to an immutable SHA. Never use the mutable `v1` tag.
-List tags with `gh api repos/forwardimpact/kata-agent/tags` (also `bootstrap`,
-`harness`, and `wiki` for `workflow-dispatch.md`). Pick the highest `vX.Y.Z`.
-Emit `<full-40-char-sha> # <tag>`. If resolution fails, stop and ask. Pair the
-pins with the `github-actions` Dependabot config (`SKILL.md` Step 2).
+Pin published actions to an immutable SHA. Never use the mutable `v1` tag. List
+tags with `gh api repos/forwardimpact/kata-agent/tags` (also `gemba-bootstrap`,
+`gemba-harness`, and `gemba-wiki` for `workflow-dispatch.md`). Pick the highest
+`vX.Y.Z`. Emit `<full-40-char-sha> # <tag>`. If resolution fails, stop and ask.
+Pair the pins with the `github-actions` Dependabot config (`SKILL.md` Step 2).

@@ -5,7 +5,7 @@ description: >
   It installs anything missing. It optionally checks out the GitHub wiki. It
   provisions the packs a root apm.yml declares (pinned by apm.lock.yaml) when
   one is present. It then runs ./scripts/bootstrap.sh. To push the wiki back,
-  run forwardimpact/wiki@v1 after the agent step.
+  run forwardimpact/gemba-wiki@v1 after the agent step.
 
 inputs:
   token:
@@ -13,7 +13,7 @@ inputs:
       GitHub token with read access to the wiki. When you provide it, the
       action checks out the wiki into ./wiki. Leave blank to skip the wiki
       checkout entirely. The caller must push the wiki back. See
-      forwardimpact/wiki@v1.
+      forwardimpact/gemba-wiki@v1.
     required: false
     default: ""
   app-slug:

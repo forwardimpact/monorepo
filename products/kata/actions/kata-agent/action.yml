@@ -158,11 +158,11 @@ runs:
         fetch-depth: 0
         token: ${{ steps.ci-app.outputs.token }}
 
-    # fit-bootstrap handles Bun + cached deps + cached workspace +
+    # gemba-bootstrap handles Bun + cached deps + cached workspace +
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout. Leave it
-    # empty to skip wiki sync. forwardimpact/wiki below pushes the wiki back
+    # empty to skip wiki sync. forwardimpact/gemba-wiki below pushes the wiki back
     # after the agent run.
-    - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
+    - uses: forwardimpact/gemba-bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
         app-slug: ${{ inputs.app-slug }}
@@ -179,7 +179,7 @@ runs:
     # calls refresh makes.
     - name: Refresh wiki (pre-run)
       if: inputs.wiki == 'true'
-      uses: forwardimpact/wiki@v1
+      uses: forwardimpact/gemba-wiki@v1
       with:
         command: refresh
         app-id: ${{ inputs.app-id }}
@@ -187,7 +187,7 @@ runs:
 
     - name: Assess and Act
       id: assess
-      uses: forwardimpact/harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
+      uses: forwardimpact/gemba-harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -226,7 +226,7 @@ runs:
     # timed out. This matches the push below.
     - name: Refresh wiki (post-run)
       if: always() && inputs.wiki == 'true'
-      uses: forwardimpact/wiki@v1
+      uses: forwardimpact/gemba-wiki@v1
       with:
         command: refresh
         app-id: ${{ inputs.app-id }}
@@ -238,7 +238,7 @@ runs:
     # memory is durable whether the agent step succeeded, failed, or timed out.
     - name: Push wiki changes
       if: always() && inputs.wiki == 'true'
-      uses: forwardimpact/wiki@v1
+      uses: forwardimpact/gemba-wiki@v1
       with:
         command: push
         app-id: ${{ inputs.app-id }}

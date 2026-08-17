@@ -11,11 +11,11 @@ inputs:
   prefix:
     description: >-
       Monorepo path to split. This is the co-located action home, e.g.
-      products/gemba/actions/wiki.
+      products/gemba/actions/gemba-wiki.
     required: true
   sibling-repo:
     description: >-
-      Sibling repo name under forwardimpact/ to publish to, e.g. wiki.
+      Sibling repo name under forwardimpact/ to publish to, e.g. gemba-wiki.
     required: true
   token:
     description: >-
@@ -29,7 +29,7 @@ runs:
       shell: bash
       run: |
         # v1.0.x ships a prebuilt lite_linux_amd64 asset (v2 is source-only).
-        # The same version+digest must back the one-time seed (the seed and
+        # The same version+digest must back each sanctioned seed (the seed and
         # every CI push must emit identical SHAs, or the first push is a
         # non-fast-forward). A bump is a deliberate re-seed that goes through
         # security review.

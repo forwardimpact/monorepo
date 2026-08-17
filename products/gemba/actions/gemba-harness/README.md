@@ -8,7 +8,7 @@ the artifact.
 ## Usage
 
 ```yaml
-- uses: forwardimpact/harness@v1
+- uses: forwardimpact/gemba-harness@v1
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -75,7 +75,7 @@ the conversation. N participants respond through a bridge callback. Use
 to restore prior state when the caller resumes a suspended discussion.
 
 ```yaml
-- uses: forwardimpact/harness@v1
+- uses: forwardimpact/gemba-harness@v1
   with:
     mode: discuss
     task-text: "…"
@@ -97,7 +97,7 @@ the orchestrator summary and POST it to an external caller:
 
 ```yaml
 - id: assess
-  uses: forwardimpact/harness@v1
+  uses: forwardimpact/gemba-harness@v1
   with:
     mode: facilitate
     task-text: "…"

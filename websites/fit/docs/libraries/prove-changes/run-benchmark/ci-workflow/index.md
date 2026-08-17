@@ -1,11 +1,11 @@
 ---
 title: Automate with GitHub Actions
-description: Run gemba-benchmark in CI with the forwardimpact/benchmark composite action. You get step summaries, artifact upload, and PR-triggered benchmarks.
+description: Run gemba-benchmark in CI with the forwardimpact/gemba-benchmark composite action. You get step summaries, artifact upload, and PR-triggered benchmarks.
 ---
 
 You have a task family that works locally. Now you want benchmarks to run
 automatically. They can run on pull requests that touch your skills, on a
-weekly schedule, or on demand. The `forwardimpact/benchmark` GitHub Action
+weekly schedule, or on demand. The `forwardimpact/gemba-benchmark` GitHub Action
 wraps the CLI. It adds step summaries and artifact upload. It also handles
 timeout control.
 
@@ -37,7 +37,7 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: forwardimpact/benchmark@v1
+      - uses: forwardimpact/gemba-benchmark@v1
         with:
           family: ./benchmarks/my-family
           runs: "5"
@@ -116,7 +116,7 @@ jobs:
       LLMHUB_PROD_API_KEY: ${{ secrets.LLMHUB_PROD_API_KEY }}
     steps:
       - uses: actions/checkout@v4
-      - uses: forwardimpact/benchmark@v1
+      - uses: forwardimpact/gemba-benchmark@v1
         with:
           family: ./benchmarks/my-family
           runs: "5"
@@ -166,7 +166,7 @@ strategy:
       - { path: "./benchmarks/kata-skills", name: "kata" }
       - { path: "./benchmarks/fit-skills", name: "fit" }
 steps:
-  - uses: forwardimpact/benchmark@v1
+  - uses: forwardimpact/gemba-benchmark@v1
     with:
       family: ${{ matrix.family.path }}
       artifact-name: benchmark-${{ matrix.family.name }}
@@ -183,7 +183,7 @@ partial ledgers into one pass@k:
 ```yaml
 jobs:
   benchmark:
-    uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@v1
+    uses: forwardimpact/gemba-benchmark/.github/workflows/benchmark.yml@v1
     with:
       family: ./benchmarks/my-family
       runs: "5"

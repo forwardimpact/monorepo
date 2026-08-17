@@ -42,9 +42,9 @@ Run it once per repository.
 
 - [ ] Confirm git, the root `package.json`, and the Monorepo directory tree
       exist.
-- [ ] Confirm `scripts/bootstrap.sh` exists and is executable (the `bootstrap`
-      action runs it).
-- [ ] Confirm both skill packs and the kata agent profiles are under
+- [ ] Confirm `scripts/bootstrap.sh` exists and is executable (the
+      `gemba-bootstrap` action runs it).
+- [ ] Confirm the three skill packs and the kata agent profiles are under
       `.claude/`.
 - [ ] Confirm you invoked `jidoka-setup` and `kata-setup` as skills and ran
       each to completion. `CLAUDE.md`, `CONTRIBUTING.md`, `JTBD.md`,
@@ -68,9 +68,10 @@ Run `git init` with default branch `main`. Then add the seam files from
 [references/repo-skeleton.md](references/repo-skeleton.md): `.gitignore`,
 `scripts/bootstrap.sh`, and the [Monorepo standard][monorepo] top-level
 directories. Give each directory a `README.md` that names its jobs. The
-`bootstrap` action runs `scripts/bootstrap.sh` in every Kata workflow. Without
-it the workflows fail with `exit 127`. See [the Monorepo standard][monorepo]
-for what each directory is for. Do not invent structure. Commit.
+`gemba-bootstrap` action runs `scripts/bootstrap.sh` in every Kata workflow.
+Without it the workflows fail with `exit 127`. See
+[the Monorepo standard][monorepo] for what each directory is for. Do not invent
+structure. Commit.
 
 ### Step 2: Add the root package.json
 
@@ -83,7 +84,7 @@ manifest. The `jidoka` bin ships in the product package `@forwardimpact/jidoka`
 ### Step 3: Install the skill packs
 
 ```sh
-apm install forwardimpact/jidoka-skills forwardimpact/kata-skills --target claude
+apm install forwardimpact/jidoka-skills forwardimpact/kata-skills forwardimpact/gemba-skills --target claude
 ```
 
 Both sub-skills assume their packs sit in `.claude/skills/`. APM integrates

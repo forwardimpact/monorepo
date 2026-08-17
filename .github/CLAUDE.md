@@ -12,19 +12,19 @@ published to `forwardimpact/` siblings, SHA-pinned (`# v1`) on `uses:` lines:
 
 | Action (`@v1`) | Purpose |
 |---|---|
-| [bootstrap](https://github.com/forwardimpact/bootstrap) | FIT CI environment: Bun, cached deps/workspace, wiki checkout, `bootstrap.sh` |
-| [wiki](https://github.com/forwardimpact/wiki) | Runs a `gemba-wiki` agent-memory command (push/pull/audit). Mints a fresh App token first |
-| [benchmark](https://github.com/forwardimpact/benchmark) | Coding-agent benchmarks |
-| [harness](https://github.com/forwardimpact/harness) | Runs agent tasks |
-| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, bootstrap, harness, wiki) |
+| [gemba-bootstrap](https://github.com/forwardimpact/gemba-bootstrap) | FIT CI environment: Bun, cached deps/workspace, wiki checkout, `bootstrap.sh` |
+| [gemba-wiki](https://github.com/forwardimpact/gemba-wiki) | Runs a `gemba-wiki` agent-memory command (push/pull/audit). Mints a fresh App token first |
+| [gemba-benchmark](https://github.com/forwardimpact/gemba-benchmark) | Coding-agent benchmarks |
+| [gemba-harness](https://github.com/forwardimpact/gemba-harness) | Runs agent tasks |
+| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, gemba-bootstrap, gemba-harness, gemba-wiki) |
 | [kata-interview](https://github.com/forwardimpact/kata-interview) | Runs JTBD switching interviews |
 | [jidoka](https://github.com/forwardimpact/jidoka) | Jidoka checks (instructions, jtbd, invariants). Stops the line on drift |
 
-Every workflow calls `bootstrap@v1` for the environment. `kata-agent`
-delegates to bootstrap/harness/wiki internally. `bootstrap` only **checks
-out** the wiki (given a `token`). Its App token expires after an hour, so
-agent runs push memory with `wiki@v1` as an `always()` step. Change and tag a
-sibling's interface before the consumer.
+Every workflow calls `gemba-bootstrap@v1` for the environment. `kata-agent`
+delegates to gemba-bootstrap/gemba-harness/gemba-wiki internally.
+`gemba-bootstrap` only **checks out** the wiki (given a `token`). Its App token
+expires after an hour, so agent runs push memory with `gemba-wiki@v1` as an
+`always()` step. Change and tag a sibling's interface before the consumer.
 
 ### Edit a published action
 
@@ -40,7 +40,7 @@ Consumption is unchanged. A weekly Dependabot SHA-bump PR
 move does not. A wider standing token scope needs security-engineer review.
 
 This SHA-pin policy governs workflow `uses:` only. The sibling governs its own
-internal `uses:` (e.g. `kata-agent`'s call to `bootstrap@v1`).
+internal `uses:` (e.g. `kata-agent`'s call to `gemba-bootstrap@v1`).
 
 ### Move a sibling's `v1` tag
 
@@ -54,16 +54,17 @@ off-`main`.
 
 The SDK refuses bypass-permissions mode (every Agent-SDK action) under `uid 0`
 unless `IS_SANDBOX` marks the process sandboxed. Runners may be root. So
-`harness`, `benchmark`, `wiki`, and `kata-agent` set `IS_SANDBOX=1` on their
-agent-spawn step (`bootstrap` spawns no agent). The SDK forwards the parent
-env, so the action environment is enough. Keep it out of `libharness` so it
-stays an environment decision. Without it the agent exits 1 with no output.
+`gemba-harness`, `gemba-benchmark`, `gemba-wiki`, and `kata-agent` set
+`IS_SANDBOX=1` on their agent-spawn step (`gemba-bootstrap` spawns no agent).
+The SDK forwards the parent env, so the action environment is enough. Keep it
+out of `libharness` so it stays an environment decision. Without it the agent
+exits 1 with no output.
 
 ## Environment bootstrap
 
-`products/gemba/actions/bootstrap/fit-install.sh` is the single bootstrap
+`products/gemba/actions/gemba-bootstrap/fit-install.sh` is the single bootstrap
 path. It installs external tools and pinned, SHA-verified `fit-*`/`gemba-*`
-binaries into `$HOME/.local`. It sits beside the `bootstrap` action and
+binaries into `$HOME/.local`. It sits beside the `gemba-bootstrap` action and
 travels with the subtree split. `publish-binaries.yml` publishes it on
 `gear@v*` for `curl | bash` bootstrap. A blocked download falls back to
 `apt`/`npm` registries.
@@ -95,7 +96,7 @@ Reference them as `./.github/actions/<name>`:
 action's own dir. So workflows use `./.github/actions/<name>`. A published
 composite action that reaches its own subdir must use the full
 `{owner}/{repo}/{path}@{ref}` form (e.g.
-`forwardimpact/bootstrap/sub-action@v1`), never `./sub`.
+`forwardimpact/gemba-bootstrap/sub-action@v1`), never `./sub`.
 
 ## macOS code signing & notarization
 

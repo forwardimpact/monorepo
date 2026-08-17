@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Environment setup only. Install the workspace. Sync the wiki. Whoever needs
 # the branch current with origin/main owns that separate concern. The
-# fit-bootstrap action rebases before it computes its cache key. CI is the only
+# gemba-bootstrap action rebases before it computes its cache key. CI is the only
 # context that requires it. Local runs and resumed sessions operate on the
 # branch as-is. Rebase yourself when you want to.
 

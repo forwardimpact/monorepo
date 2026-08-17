@@ -104,7 +104,7 @@ runs:
         GEAR_RELEASE: gear@v0.3.2
       run: |
         # The released installer owns the pinned, SHA-verified apm version, so
-        # this action carries no duplicate pin. bootstrap usually provides apm
+        # this action carries no duplicate pin. gemba-bootstrap usually provides apm
         # already. The guard then skips the download.
         if command -v apm &>/dev/null; then
           echo "apm already available: $(apm --version)"
@@ -159,7 +159,7 @@ runs:
         SHARD_TOTAL: ${{ inputs.shard-total }}
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
-        # forwardimpact/bootstrap installs gemba-benchmark as a pinned gear
+        # forwardimpact/gemba-bootstrap installs gemba-benchmark as a pinned gear
         # binary on PATH (clis: gemba-benchmark). Assume it is present.
         args=()
         args+=("--family=$FAMILY")

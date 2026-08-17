@@ -18,9 +18,9 @@ See the
 
 ## Prerequisites
 
-[forwardimpact/bootstrap](https://github.com/forwardimpact/bootstrap) must
-bootstrap the workspace first. It installs `jidoka` as a pinned gear binary on
-PATH (it is one of the default tools). The binary is required. There is no
+[forwardimpact/gemba-bootstrap](https://github.com/forwardimpact/gemba-bootstrap)
+must bootstrap the workspace first. It installs `jidoka` as a pinned gear binary
+on PATH (it is one of the default tools). The binary is required. There is no
 bunx/npx fallback.
 
 ## Inputs

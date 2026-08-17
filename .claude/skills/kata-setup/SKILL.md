@@ -26,6 +26,7 @@ event-driven responses.
 - GitHub repository with Actions enabled
 - Anthropic API key
 - `apm install forwardimpact/kata-skills`
+- `apm install forwardimpact/gemba-skills`
 
 ## Checklists
 
@@ -101,7 +102,7 @@ Ask these questions. Skip any question the task prompt already answers.
 
 7. **Agent profiles** — "Do you have custom agent profiles, or should I use the
    defaults from kata-skills?" If you use the defaults, confirm that
-   `apm install forwardimpact/kata-skills` is installed.
+   the `kata-skills` and `gemba-skills` packs are installed.
 
 8. **Control plane** — "Do you use the Forward Impact-hosted control plane, or
    do you self-host your own GitHub App?" Default: self-hosted. See
@@ -120,8 +121,8 @@ with `references/workflow-shift.md`. The matrix holds all selected agents. It
 runs them in declaration order, one at a time. Write the storyboard and
 coaching workflows from `references/workflow-facilitate.md` only when you
 select `improvement-coach`. Use `forwardimpact/kata-agent` as the action and
-pin it to a SHA. Resolve the `{{KATA_AGENT_REF}}` / `{{FIT_BOOTSTRAP_REF}}` /
-`{{FIT_HARNESS_REF}}` / `{{FIT_WIKI_REF}}` placeholders per
+pin it to a SHA. Resolve the `{{KATA_AGENT_REF}}` / `{{GEMBA_BOOTSTRAP_REF}}` /
+`{{GEMBA_HARNESS_REF}}` / `{{GEMBA_WIKI_REF}}` placeholders per
 [`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs).
 List the sibling's release tags with `gh api`. Pick the highest `vX.Y.Z` tag.
 Emit `@<full-40-char-sha> # <tag>`. Never emit the mutable `v1` tag. If
@@ -182,7 +183,8 @@ Setup is verified when the repository is green. Files on disk do not verify it:
 - Validate every generated workflow parses as YAML.
 - Run the repository's checks on a clean checkout. Never leave or ignore red CI.
 - `gh secret list` — confirm the secrets and the named agent profiles resolve at
-  run time (profiles committed, or bootstrap-installed from the pinned packs).
+  run time (profiles committed, or gemba-bootstrap-installed from the pinned
+  packs).
 - Suggest a first run: `gh workflow run "Agent: Shift"`.
 
 ### Step 5: Report

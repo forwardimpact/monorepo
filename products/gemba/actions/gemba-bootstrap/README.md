@@ -6,14 +6,14 @@ Bun. It restores a single environment cache (CLI tools in `~/.local` plus
 checks out the wiki. It then runs `./scripts/bootstrap.sh`.
 
 Single source of truth for the FIT CI environment. The monorepo's local
-`bootstrap` action and every FIT sibling action (e.g. `kata-agent`) call
+`gemba-bootstrap` action and every FIT sibling action (e.g. `kata-agent`) call
 this one. They pin the version at `@v1`, so they never drift.
 
 ## Usage
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: forwardimpact/bootstrap@v1
+- uses: forwardimpact/gemba-bootstrap@v1
   with:
     token: ${{ steps.ci-app.outputs.token }}   # optional, enables wiki checkout
     app-slug: kata-agent-team                   # optional, sets git identity
@@ -61,7 +61,7 @@ monorepo) takes this branch.
 
 | Input         | Required | Default    | Description                                                                              |
 | ------------- | -------- | ---------- | ---------------------------------------------------------------------------------------- |
-| `token`       | No       | `""`       | GitHub token with read access to the wiki. When you provide it, the action checks the wiki out into `./wiki`. The caller must push it back. See [`forwardimpact/wiki@v1`](https://github.com/forwardimpact/wiki). |
+| `token`       | No       | `""`       | GitHub token with read access to the wiki. When you provide it, the action checks the wiki out into `./wiki`. The caller must push it back. See [`forwardimpact/gemba-wiki@v1`](https://github.com/forwardimpact/gemba-wiki). |
 | `app-slug`    | No       | `""`       | GitHub App slug for the git identity (e.g. `kata-agent-team`).                          |
 | `app-id`      | No       | `""`       | GitHub App ID for the git identity email.                                                |
 | `bun-version` | No       | `"1.3.11"` | Bun version to install.                                                                  |
@@ -121,5 +121,5 @@ checkout. The action is then safe to use in jobs that don't need the wiki
 
 This action does **not** push the wiki back. The token minted at job start
 expires after one hour, so a cleanup-time push fails on long agent runs.
-Push with [`forwardimpact/wiki@v1`](https://github.com/forwardimpact/wiki)
+Push with [`forwardimpact/gemba-wiki@v1`](https://github.com/forwardimpact/gemba-wiki)
 as an `always()` step after the agent. That action mints a fresh token first.

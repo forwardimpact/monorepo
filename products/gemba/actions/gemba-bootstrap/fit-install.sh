@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install the FIT environment: external CLI tools and/or pre-compiled fit-*/gemba-*
-# binaries. One code path serves every environment. CI (fit-bootstrap), Claude
+# binaries. One code path serves every environment. CI (gemba-bootstrap), Claude
 # session hooks, and `just install` all run this.
 #
 # The platform chooses between two install channels. The choice prefers
@@ -28,7 +28,7 @@
 # Two tools stay on the pinned download path on BOTH platforms (no brew).
 # `claude` is the SDK-embedded Claude Code CLI. Its version must track
 # @anthropic-ai/claude-agent-sdk in libraries/libharness/package.json. This
-# file pins `apm` as the single source of its version. The benchmark action
+# file pins `apm` as the single source of its version. The gemba-benchmark action
 # installs it with `--only apm`. To move either onto brew later, edit one
 # line of TOOL_TABLE.
 #
@@ -45,7 +45,7 @@
 #          gemba-harness, gemba-wiki, …) or jidoka. With no NAME, the script
 #          installs the default dev/CI tool set.
 #   --paths  Print the cache paths the requested names manage, one per line,
-#            and exit. fit-bootstrap consumes this to scope its actions/cache.
+#            and exit. gemba-bootstrap consumes this to scope its actions/cache.
 #            On Darwin, brew-managed tools emit nothing (brew installs globally
 #            and is idempotent). The cache holds only the $HOME/.local
 #            download tools.
@@ -178,7 +178,7 @@ if [ "$PRINT_PATHS" = "1" ]; then
   #           are single files in BIN_DIR.
   #   Darwin — brew-managed tools (formulae + the gear cask) emit NOTHING.
   #           brew installs globally into its own prefix and is idempotent, so
-  #           the bootstrap action re-runs `brew install` each time. It does
+  #           the gemba-bootstrap action re-runs `brew install` each time. It does
   #           not cache brittle Cellar/Caskroom symlinks. Only the download
   #           tools (apm, claude) live in $HOME/.local and are worth the
   #           cache.
@@ -315,7 +315,7 @@ require_brew() {
 
 # brew_install_formula TOKEN NAME — install a homebrew-core formula if its
 # command isn't already present. `brew list` short-circuits reinstalls so this
-# is cheap to re-run (the bootstrap action always runs the install step on macOS).
+# is cheap to re-run (the gemba-bootstrap action always runs the install step on macOS).
 # Returns non-zero on any failure so the dispatcher can try the next channel.
 brew_install_formula() {
   local token="$1" name="$2"

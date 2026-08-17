@@ -136,7 +136,7 @@ jobs:
         if: needs.meta.outputs.bundle == 'gear'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          sparse-checkout: products/gemba/actions/bootstrap/fit-install.sh
+          sparse-checkout: products/gemba/actions/gemba-bootstrap/fit-install.sh
           sparse-checkout-cone-mode: false
           path: src
 
@@ -145,7 +145,7 @@ jobs:
         run: |
           set -euo pipefail
           sed "s|^FIT_GEAR_RELEASE=.*|FIT_GEAR_RELEASE=\"\${FIT_GEAR_RELEASE:-${GITHUB_REF_NAME}}\"|" \
-            src/products/gemba/actions/bootstrap/fit-install.sh > dist/release/fit-install.sh
+            src/products/gemba/actions/gemba-bootstrap/fit-install.sh > dist/release/fit-install.sh
           chmod +x dist/release/fit-install.sh
           echo "Stamped fit-install.sh: gear=${GITHUB_REF_NAME}"
 

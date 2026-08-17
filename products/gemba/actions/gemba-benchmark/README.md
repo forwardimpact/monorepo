@@ -7,7 +7,7 @@ action runs a task family, reports pass@k, and uploads the result artifact.
 ## Usage
 
 ```yaml
-- uses: forwardimpact/benchmark@v1
+- uses: forwardimpact/gemba-benchmark@v1
   env:
     ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   with:
@@ -83,7 +83,7 @@ ledgers into one pass@k. A single input gives you cross-machine parallelism:
 ```yaml
 jobs:
   benchmark:
-    uses: forwardimpact/benchmark/.github/workflows/benchmark.yml@v1
+    uses: forwardimpact/gemba-benchmark/.github/workflows/benchmark.yml@v1
     with:
       family: ./benchmarks/my-family
       shard-total: 4

@@ -4,7 +4,7 @@ description: >
   supply app credentials, the action mints a fresh GitHub App installation
   token for the command. Long agent jobs outlive the one-hour token minted at
   job start, so push/pull need a freshly minted one. Run this action after
-  forwardimpact/bootstrap@v1 with `clis: gemba-wiki`. That action provides
+  forwardimpact/gemba-bootstrap@v1 with `clis: gemba-wiki`. That action provides
   Bun, the workspace, the checked-out ./wiki working copy, and the gemba-wiki
   gear binary on PATH. The binary is required. There is no bunx/npx fallback.
 
@@ -13,7 +13,7 @@ inputs:
     description: >
       gemba-wiki subcommand and any arguments, e.g. "push", "pull", "audit".
       The action appends them to the gemba-wiki gear binary. The binary must be
-      on PATH. fit-bootstrap installs it with `clis: gemba-wiki`.
+      on PATH. gemba-bootstrap installs it with `clis: gemba-wiki`.
     required: true
   app-id:
     description: >
@@ -57,7 +57,7 @@ runs:
         # (push/pull/audit).
         IS_SANDBOX: "1"
       run: |
-        # actions/checkout (in fit-bootstrap) persists the start-of-job token
+        # actions/checkout (in gemba-bootstrap) persists the start-of-job token
         # as an http extraheader on the wiki working copy. On long jobs that
         # token is expired, and it would shadow the fresh GH_TOKEN minted
         # above. Drop it so gemba-wiki's own credential helper authenticates
@@ -68,6 +68,6 @@ runs:
           git -C "$WIKI_PATH" config --unset-all 'http.https://github.com/.extraheader' 2>/dev/null || true
         fi
         # gemba-wiki is a pinned gear binary on PATH.
-        # forwardimpact/bootstrap installs it (clis: gemba-wiki).
+        # forwardimpact/gemba-bootstrap installs it (clis: gemba-wiki).
         # Assume it is present.
         gemba-wiki $COMMAND

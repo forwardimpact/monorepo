@@ -3,8 +3,8 @@
 This workflow responds to issue and PR events. The product-manager facilitates
 and routes to the best-suited agent. File name: `agent-dispatch.yml`. Replace
 `{{AGENT_LIST}}` (all agents except product-manager and improvement-coach),
-`{{MODEL}}`, and the `{{FIT_BOOTSTRAP_REF}}` / `{{FIT_HARNESS_REF}}` /
-`{{FIT_WIKI_REF}}` action refs. Resolve the refs at generation time. See
+`{{MODEL}}`, and the `{{GEMBA_BOOTSTRAP_REF}}` / `{{GEMBA_HARNESS_REF}}` /
+`{{GEMBA_WIKI_REF}}` action refs. Resolve the refs at generation time. See
 [`workflow-shift.md` § Resolving action refs](workflow-shift.md#resolving-action-refs).
 
 The workflow does **no prompt assembly**. It hands the runner's native event
@@ -75,16 +75,16 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
-      # harness runs gemba-harness off PATH and installs nothing; bootstrap
-      # installs the CLIs the harness, cost, and wiki-push steps invoke directly.
-      - uses: forwardimpact/bootstrap@{{FIT_BOOTSTRAP_REF}}
+      # gemba-harness runs the CLI off PATH and installs nothing; gemba-bootstrap
+      # installs the CLIs the assess, cost, and wiki-push steps invoke directly.
+      - uses: forwardimpact/gemba-bootstrap@{{GEMBA_BOOTSTRAP_REF}}
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-id: ${{ secrets.KATA_APP_ID }}
           clis: gemba-harness gemba-trace gemba-wiki
       - name: Assess and Act
         id: assess
-        uses: forwardimpact/harness@{{FIT_HARNESS_REF}}
+        uses: forwardimpact/gemba-harness@{{GEMBA_HARNESS_REF}}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -102,14 +102,14 @@ jobs:
       # from steps.assess.outputs.trace-file). Drop the wiki push when wiki off.
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/wiki@{{FIT_WIKI_REF}}
+        uses: forwardimpact/gemba-wiki@{{GEMBA_WIKI_REF}}
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-This workflow uses `harness` rather than `kata-agent`, so it can pass
+This workflow uses `gemba-harness` rather than `kata-agent`, so it can pass
 `task-event` and select `mode` per event. Keep `if:` aligned with `on:`. Pin
 the refs to SHAs at generation time (Dependabot per `SKILL.md`).
 
@@ -120,9 +120,9 @@ This workflow mints its own token, so the hosted delta differs from shift:
 1. Add `id-token: write` to `permissions` (keep `contents: write`).
 2. Replace the `Generate token` step with the OIDC mint step from
    [`workflow-shift.md` § Template (hosted)](workflow-shift.md).
-3. Change the checkout `token:`, the bootstrap `token:`, and the `Assess and
-   Act` `GH_TOKEN:`. Each moves from `${{ steps.ci-app.outputs.token }}` to
-   `${{ steps.mint.outputs.token }}`.
+3. Change the checkout `token:`, the `gemba-bootstrap` `token:`, and the
+   `Assess and Act` `GH_TOKEN:`. Each moves from
+   `${{ steps.ci-app.outputs.token }}` to `${{ steps.mint.outputs.token }}`.
 
 `Push wiki changes` still mints from App secrets and does not change. The
 hosted variant needs the `FIT_OIDC_URL` repository variable.

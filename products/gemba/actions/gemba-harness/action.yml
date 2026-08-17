@@ -163,7 +163,7 @@ runs:
         TIMEOUT_MINUTES: ${{ inputs.timeout-minutes }}
       run: |
         # gemba-harness + gemba-trace are pinned gear binaries on PATH.
-        # forwardimpact/bootstrap installs them (clis: gemba-harness
+        # forwardimpact/gemba-bootstrap installs them (clis: gemba-harness
         # gemba-trace). Assume they are present.
         #
         # Every mode accepts these flags. The workflow forwards empty values

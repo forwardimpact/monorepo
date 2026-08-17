@@ -13,6 +13,7 @@ on:
       - "products/outpost/templates/.claude/skills/**"
       - "products/outpost/templates/.claude/agents/*.md"
       - "products/gear/package.json"
+      - "products/gemba/package.json"
       - "products/outpost/package.json"
       - "products/jidoka/package.json"
       - ".github/actions/publish-skill-pack/**"
@@ -23,7 +24,7 @@ permissions:
   contents: read
 
 jobs:
-  # One job body, three packs. Each pack syncs its skills (kata also its
+  # One job body, one leg per pack. Each pack syncs its skills (kata also its
   # agents) into its sibling repo, regenerates apm.yml + README.md, and tags at
   # the pack's package version. Edit one matrix entry to add or retire a pack.
   # The shared mechanics live in ./.github/actions/publish-skill-pack.
@@ -34,20 +35,31 @@ jobs:
       fail-fast: false
       matrix:
         pack:
-          # The fit leg carries two prefixes: the fit-* skills plus the gemba
-          # product and gemba-* capability skills ship in the same fit-skills
-          # pack. This leg needs a bootstrap pin whose fit-pack accepts
-          # repeated --prefix flags (gear@v0.2.0+).
-          - prefix: fit gemba
+          - prefix: fit
             repo: fit-skills
             version-file: products/gear/package.json
             sync-agents: "false"
             readme-title: Forward Impact Skills
             readme-intro: >-
               Agent skills for the [Forward Impact](https://forwardimpact.team)
-              engineering standard.
+              engineering standard. The `gemba` platform skills moved to
+              [`forwardimpact/gemba-skills`](https://github.com/forwardimpact/gemba-skills).
+              Install that pack to keep them.
             apm-description: >-
               Agent skills for the Forward Impact engineering standard.
+          - prefix: gemba
+            repo: gemba-skills
+            version-file: products/gemba/package.json
+            sync-agents: "false"
+            readme-title: Gemba Skills
+            readme-intro: >-
+              Skills for [Gemba](https://forwardimpact.team), the agent-runtime
+              platform. They teach the `gemba-*` command family and the
+              published composite actions that run the same loop in CI.
+            apm-description: >-
+              Gemba platform skills: stand up and operate an agent team with
+              the harness, trace, benchmark, wiki, and xmr commands and their
+              CI actions.
           - prefix: jidoka
             repo: jidoka-skills
             version-file: products/jidoka/package.json
@@ -132,7 +144,7 @@ jobs:
           vulnerability-scanning: "false"
           secret-scanning: "true"
 
-      - uses: forwardimpact/bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
+      - uses: forwardimpact/gemba-bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
         with:
           clis: fit-pack
 
