@@ -115,13 +115,13 @@ jobs:
       LIBHARNESS_WORK_TRACKER: filesystem
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/gemba-bootstrap@71bd75533e5bc5f3046004839ab1b1c36261b033 # v1.0.17
+      - uses: forwardimpact/gemba-bootstrap@3e7b7c78737414a54143882375bc543e4b4f2c36 # v1.0.19
         with:
           # gemba-benchmark runs the benchmark binary straight off PATH. The
           # action has no bunx/npx fallback. It needs a gemba-bootstrap pin whose
           # gear release publishes the gemba-* binaries.
           clis: gemba-benchmark
-      - uses: forwardimpact/gemba-benchmark@v1.0.8
+      - uses: forwardimpact/gemba-benchmark@v1.0.9
         with:
           mode: run
           family: ${{ inputs.family }}
@@ -159,7 +159,7 @@ jobs:
           curl -fsSL "https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}/fit-install.sh" \
             | bash -s -- --only gemba-benchmark
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-      - uses: forwardimpact/gemba-benchmark@v1.0.8
+      - uses: forwardimpact/gemba-benchmark@v1.0.9
         with:
           mode: merge
           # family is a required action input but unused in merge mode.
