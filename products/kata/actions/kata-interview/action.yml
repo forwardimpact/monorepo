@@ -126,7 +126,7 @@ runs:
     # fit-terrain now also provides the generic substrate bring-up, so this
     # step does NOT install fit-map. A consumer's FI substrate command runs it
     # with bunx as its own documented exception.
-    - uses: forwardimpact/gemba-bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
+    - uses: forwardimpact/gemba-bootstrap@3e7b7c78737414a54143882375bc543e4b4f2c36 # v1.0.19
       with:
         token: ${{ steps.ci-app.outputs.token }}
         app-slug: ${{ inputs.app-slug }}
@@ -181,7 +181,7 @@ runs:
 
     - name: Run interview
       id: interview
-      uses: forwardimpact/gemba-harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
+      uses: forwardimpact/gemba-harness@8570a09c2eab3a82879535c039bdf89bfab76c9e # v1.0.5
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
