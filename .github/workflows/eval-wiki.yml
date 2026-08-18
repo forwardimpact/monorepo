@@ -21,7 +21,7 @@ jobs:
         with:
           # gemba-benchmark runs the benchmark binary straight off PATH.
           clis: gemba-benchmark
-      - uses: forwardimpact/gemba-benchmark@027b1a5947f5e1bf6752fba7b68a753d8957fde9 # v1.0.8
+      - uses: forwardimpact/gemba-benchmark@957c1160820c3ee33e0d9a5be82bb7ff3df5e4b9 # v1.0.10
         with:
           family: ./benchmarks/fit-wiki
           runs: "5"
