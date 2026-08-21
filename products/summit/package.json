@@ -65,7 +65,7 @@
     "@forwardimpact/libmock": "^0.1.0"
   },
   "optionalDependencies": {
-    "@supabase/supabase-js": "^2.112.2"
+    "@supabase/supabase-js": "^2.112.3"
   },
   "engines": {
     "bun": ">=1.2.0",
