@@ -50,15 +50,16 @@ note is about will read its changelog entry. Describe
 
 - [ ] Keep exactly one `Knowledge/CHANGELOG.md`. Leave no stray per-folder
       changelog.
-- [ ] Name the **Scope** in every entry, with the full path of each note or
-      folder touched.
-- [ ] Give each entry a **Who** (the author, from identity), a **What**, and a
-      **Why**.
-- [ ] Make each description specific enough to be useful (never "updated some
-      notes").
+- [ ] Write every entry as **one line**: type, **Scope** (full paths),
+      **Who**, and a short pointer. No `What:`/`Why:` blocks. No
+      field-by-field detail.
+- [ ] Make the pointer specific enough to locate the change (never "updated
+      some notes").
 - [ ] Use the real date of each change. Never guess a date.
 - [ ] Add no duplicate entry for a change already in the changelog.
 - [ ] Keep every entry factual and fit for the subject to read.
+- [ ] Keep the file short (see Step 5). Compact or drop old entries when it
+      grows.
 
 </do_confirm_checklist>
 
@@ -115,22 +116,50 @@ one heading per day. Write one bullet per logical change:
 ```markdown
 # Knowledge Changelog
 
-Changes to the shared knowledge graph, newest first. Maintained by hand at the
-end of editing sessions via the `changelog` skill. The KB is not
-version-controlled, so this is the record of what changed and why.
+Terse, newest-first pointers to changes in the shared knowledge graph. This
+is a hint for teammates who sync the same files, not a precious record. The
+`changelog` skill maintains it, and compacts and drops old entries as the
+file grows.
 
 ## <YYYY-MM-DD>
 
-- **<added | modified | removed | renamed>** — _<Scope: full path(s)>_ · <Who>
-  **What:** <one-line summary of the change.>
-  **Why:** <the reason — the email, meeting, or request that prompted it.>
+- **<added | modified | removed | renamed>** — _<Scope: full path(s)>_ · <Who> — <short pointer: what changed, and why only if it isn't obvious.>
 ```
+
+**Keep entries brief — a pointer, not a summary.** One line each. State the
+type, the scope (full paths), the author, and a short clause that lets a
+teammate find the change and grasp its gist. Do **not** reproduce the content
+of the edit: no field-by-field detail, no quotes, no rationale essays. If
+someone needs the detail, they open the note. When in doubt, cut.
 
 Use the real date of the change (today's date is in context). Use the **Name**
 from `identity.md` as `<Who>`. The team shares the file, so the author travels
-on each entry. The day's heading alone is not enough. A day with edits from more
-than one teammate then stays unambiguous. Keep each entry to its What and Why.
-Write a ledger. Do not write a diff.
+on each entry. The day's heading alone is not enough. A day with edits from
+more than one teammate then stays unambiguous.
+
+Collapse related edits into one line. Several notes touched for one purpose,
+or the same note created-then-reworked in a session, is a single entry.
+Combine the types (e.g. `**added / renamed**`) and name the notes in the
+scope.
+
+### 5. Compact the file when it grows
+
+The changelog is a **disposable hint file, not an archive**. The notes
+themselves are the record. Keep it short. After you add this session's
+entries, compact the file in the same pass when it has grown large (rough
+guide: **more than ~150 lines, or older than ~2 months of daily headings**):
+
+- **Roll up old days.** Fold each day older than ~2 weeks into one or two
+  thematic lines per author (e.g. "Offsite prep · Jane — promoted the note to
+  a Project, added roster/agenda, created the attendee notes").
+- **Merge iterative churn.** Collapse a run of edits to the same file or
+  topic into a single line that describes the net result.
+- **Drop the stale tail.** Delete day headings older than ~2–3 months
+  outright. The change already lives in the notes.
+
+Be aggressive: losing granularity here costs nothing. Never rewrite an entry
+to say something the edit did not do. Do not drop a *recent* change just to
+save space.
 
 ## Notes
 

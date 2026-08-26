@@ -1,6 +1,8 @@
 # Screening Rubric
 
-Reference data for `req-screen` Steps 1, 3, 4, 5, and 6 (recommendation).
+Reference data for `req-screen` Steps 1–5: what to extract, level and track
+estimation, and proficiency/behaviour mapping. Classification, scoring, and
+the recommendation tiers live in [scoring.md](scoring.md).
 
 ## What to extract from the CV
 
@@ -18,13 +20,30 @@ Reference data for `req-screen` Steps 1, 3, 4, 5, and 6 (recommendation).
 
 ## Level estimation heuristics
 
-| CV signal                                    | Likely level     |
-| -------------------------------------------- | ---------------- |
-| 0–2 years, junior titles, learning signals   | J040 (Level I)   |
-| 2–5 years, mid-level titles, independent     | J060 (Level II)  |
-| 5–8 years, senior titles, mentoring signals  | J070 (Level III) |
-| 8–12 years, staff/lead titles, area scope    | J090 (Staff)     |
-| 12+ years, principal titles, org-wide impact | J100 (Principal) |
+Estimate level from **scope and impact evidence in role descriptions**, not
+from title vocabulary. Title ladders vary by company, country, and era.
+Career-switchers: rate the scope they carried, wherever they carried it.
+
+Pick the level where **at least two rows** match the candidate's strongest
+sustained evidence:
+
+| Signal | J040 (Level I) | J060 (Level II) | J070 (Level III) | J090 (Staff) | J100 (Principal) |
+| --- | --- | --- | --- | --- | --- |
+| **Autonomy** | executed assigned tasks | owned features independently | owned whole systems | set direction for an area | set direction across an org/BU |
+| **Ownership breadth** | components | a service | several systems, mentoring | cross-team initiatives | programs, org-wide practices |
+| **Scale served** | one team | one team's users | department / large user base | multiple departments, high-scale systems | enterprise scale, external visibility |
+
+Corroboration rules:
+
+- **Years** are a plausibility check only (J100 is implausible under ~10
+  years), never the driver.
+- **Titles** may confirm an estimate. They may never lower one that scope
+  evidence supports.
+- **Advisory/consulting scope** counts at the level the candidate *personally
+  owned* inside the engagement — "designed and delivered" scores full;
+  "advised on / supported" scores one level lower.
+- State the estimate as a range with confidence (e.g. "J090 ± one level,
+  medium confidence") and name the rows that drove it.
 
 ## Track-fit signals
 
@@ -38,6 +57,15 @@ Reference data for `req-screen` Steps 1, 3, 4, 5, and 6 (recommendation).
 | Cross-functional work                | Scalability, performance engineering    |
 | Multiple industries / domain breadth | Deep platform ownership                 |
 
+## Track modifiers
+
+Tracks shift the *expected* proficiency of skills up or down one level per
+capability bucket relative to the discipline base. **Never hand-apply
+modifiers.** Always fetch the adjusted matrix with `--track={track} --json`;
+the `"type": "track"` skills it returns are track-defining and belong to the
+core set. Track ids are hyphenated: `forward-deployed`, `platform`, `dx`,
+`sre`.
+
 ## Proficiency mapping
 
 | Proficiency    | CV evidence                                               |
@@ -48,13 +76,8 @@ Reference data for `req-screen` Steps 1, 3, 4, 5, and 6 (recommendation).
 | `practitioner` | Led teams that use this skill, mentored others, deep work |
 | `expert`       | Published, shaped org practice, industry recognition      |
 
-### Scepticism rule
-
-CVs inflate. Default **two levels below** what the CV implies. Make an
-exception when the candidate provides concrete, quantified evidence (metrics,
-named systems, team sizes, user/revenue scale). Vague phrases like "improved
-performance" or "led initiatives" do not count. A skill that appears only in a
-"Skills" section with no project context is `awareness` at most.
+Rate each skill with the evidence rule (descriptions over titles) in
+[scoring.md](scoring.md#evidence-rule--descriptions-over-titles).
 
 ## Behaviour signals
 
@@ -65,30 +88,3 @@ performance" or "led initiatives" do not count. A skill that appears only in a
 | Communicate with Precision | Technical writing, documentation, talks            |
 | Be Polymath Oriented       | Cross-domain work, diverse tech stack              |
 | Don't Lose Your Curiosity  | Side projects, continuous learning, certifications |
-
-## Skill alignment classification
-
-- **Strong match** — meets or exceeds expected proficiency **and** evidence is
-  concrete (metrics, project specifics, scope indicators).
-- **Adequate** — exactly one level below expected with clear project evidence,
-  **or** at level but evidence thin.
-- **Gap** — two or more levels below expected.
-- **Not evidenced** — the CV does not mention this skill area. **Treat it as a
-  gap.** Absence of evidence is not evidence of skill.
-
-## Recommendation decision rules
-
-| Recommendation                 | Criteria                                                                 |
-| ------------------------------ | ------------------------------------------------------------------------ |
-| **Interview**                  | ≥ 70 % Strong match, no core-skill gaps, strong behaviour signals        |
-| **Interview with focus areas** | ≥ 50 % Strong match, ≤ 2 gaps in non-core skills, no behaviour red flags |
-| **Pass**                       | Everything else, including thin evidence                                 |
-
-**Threshold rule:** if more than **one third** of the target job's skills are
-Gap or Not evidenced, the candidate cannot receive "Interview." If more than
-**half** are Gap or Not evidenced, the candidate cannot receive "Interview with
-focus areas."
-
-When in doubt, choose the stricter recommendation. "Interview with focus areas"
-should be rare. Use it for a strong candidate with a specific, named concern.
-Do not use it for a marginal candidate.

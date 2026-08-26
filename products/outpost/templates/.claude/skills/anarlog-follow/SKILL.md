@@ -23,14 +23,21 @@ appears.
 
 ## Prerequisites
 
-- Anarlog installed. Sessions live at
-  `~/Library/Application Support/anarlog/sessions/`.
+- Anarlog installed. Meetings live in its local SQLite database (`app.db`).
+  Read them only through Anarlog's typed, read-only interfaces. Prefer the
+  **Anarlog MCP tools** (`list_meetings`, `get_meeting`,
+  `get_meeting_transcript`) when the MCP server is connected. Fall back to the
+  **`anarlog` CLI with `--json`** otherwise. Never `grep`, crawl `sessions/`,
+  or query SQLite directly. See Anarlog's own `AGENTS.md`
+  (`~/Library/Application Support/anarlog/AGENTS.md`).
 - An active or about-to-start session.
 - A populated knowledge base (attendee / candidate context).
 
 ## Inputs
 
-- Live `transcript.json` (it grows during the session).
+- The live meeting transcript, via `get_meeting_transcript` (MCP) or
+  `anarlog --json meetings transcript <id>` (CLI). See
+  [references/sessions.md](references/sessions.md) for both interfaces.
 - `Knowledge/People/`, `Knowledge/Candidates/{Name}/{brief,screening,panel}.md`,
   `Knowledge/Roles/`, `Knowledge/Organizations/`, `Knowledge/Projects/`.
 - `~/.cache/fit/outpost/apple_calendar/*.json` for context.
@@ -62,22 +69,30 @@ appears.
 
 #### 1. Find the active session
 
-```bash
-node .claude/skills/anarlog-follow/scripts/follow.mjs --detect
-```
-
-The script returns the most recently modified session, whether it is live, and
-its title. If nothing changed in the last 5 minutes, warn the user. Ask whether
-to follow a specific session. If more than one session could be active, confirm
-with the user.
-
-#### 2. Read session metadata
+No interface exposes a "recording now" signal. The only liveness signal is the
+most recently written `audio.mp3` on disk. This is the one deliberate
+filesystem read in this skill. All content reads go through Anarlog's
+interfaces. The session directory name **is** the meeting ID:
 
 ```bash
-node .claude/skills/anarlog-follow/scripts/follow.mjs <session-id> --meta
+find "$HOME/Library/Application Support/anarlog/sessions" -maxdepth 2 \
+  -name "audio.mp3" -exec stat -f "%m %N" {} \; | sort -rn | head -5
 ```
 
-Capture **title**, **created_at**, **participants**.
+Take the top result's parent directory name as the candidate meeting ID. If
+its mtime is more than 5 minutes old, warn the user. Ask whether to follow a
+specific meeting. If more than one session could be active, confirm with the
+user.
+
+#### 2. Read meeting metadata
+
+MCP: `get_meeting({ meeting_id })`. CLI fallback:
+
+```bash
+anarlog --json meetings get <meeting-id>
+```
+
+Capture **title**, **created_at**, **participants** from `data`.
 
 #### 3. Classify the meeting type
 
@@ -122,20 +137,24 @@ it to the user.
 
 #### 7. Read new transcript content
 
-First read (no `--after`):
+MCP: `get_meeting_transcript({ meeting_id, offset, limit: 500 })`. CLI
+fallback:
 
 ```bash
-node .claude/skills/anarlog-follow/scripts/follow.mjs <session-id>
+anarlog --json meetings transcript <meeting-id> --offset <offset> --limit 500
 ```
 
-Subsequent reads (pass the last word ID):
+First read: `offset` = 0. Each later read: `offset` = the `pagination.total`
+from the previous read. That fetches only the words added since then. When a
+page comes back full and `next_offset < pagination.total`, keep paging with
+`next_offset` until you catch up. Track `total` across reads. It is your next
+offset.
 
-```bash
-node .claude/skills/anarlog-follow/scripts/follow.mjs <session-id> --after <last-word-id>
-```
-
-The script returns JSON with grouped text segments, channel labels, and the next
-last-word ID.
+`data.words` is a flat array of `{ channel, text, start_ms, end_ms }`. Group
+consecutive words into segments yourself. Start a new segment on a channel
+change or a >3s gap between one word's `end_ms` and the next word's
+`start_ms`. Channel `0` = user. Channel `1`+ = guest(s) (a heuristic, per
+Anarlog's own docs).
 
 #### 8. Analyze new content
 

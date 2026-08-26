@@ -1,16 +1,17 @@
 # Entity Extraction Signals
 
-Reference for `anarlog-process` Steps 3 and 4. Combine `_memo.md` and
-`_summary.md` (prefer the summary when both exist).
+Reference for `anarlog-process` Steps 3 and 4. Combine the meeting's note and
+summary (prefer the summary when both exist).
 
 ## People
 
 Look for names in:
 
-- Memo text ("chat with Sarah Chen", "interview with David Kim").
+- Note text ("chat with Sarah Chen", "interview with David Kim").
 - Summary bullets ("the user will serve as the senior engineer", "Alex from the
   platform team").
-- `_meta.json` participants.
+- The meeting's `participants` (from `meetings get`) — a hint only. Confirm
+  each person from the note or summary text.
 
 For each name, resolve it against the knowledge index (Step 0). Extract the
 role, the organization, and the relationship to the user. Note what they
@@ -40,10 +41,16 @@ or the `@domain` from `~/.cache/fit/outpost/state/identity.md`.
 
 ## Interview sessions (special case)
 
-If the title or the memo says "interview with {Name}", the interviewee is a
+If the title or the note says "interview with {Name}", the interviewee is a
 **candidate**. Create or update their note in `Knowledge/Candidates/` with the
 candidate brief template from `req-track`. **Never** write it in
 `Knowledge/People/`.
+
+Also write the full transcript to
+`Knowledge/Candidates/{Name}/transcript-{date}.md` (SKILL.md Steps 2 and 5).
+This is the input `req-assess` waits on to move the candidate to Stage 2. It
+is separate from the extraction above: persist the transcript file verbatim
+and never mine it for entities.
 
 ## Content signals
 
