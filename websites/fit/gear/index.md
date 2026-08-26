@@ -42,9 +42,9 @@ and
 
 <div class="grid">
 
-<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-bridge-threaded-channels-to-the-agent-team">
+<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-coordinate-an-agent-team">
 
-### Bridge Threaded Channels to the Agent Team
+### Coordinate an Agent Team
 
 Ship a chat or discussion adapter. Do not rebuild the intake skeleton, the
 callback registry, and the durable thread state from scratch each time.
@@ -69,15 +69,6 @@ retrievable knowledge with semantic search. You need no external database.
 
 </a>
 
-<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-ground-service-contracts-in-one-source">
-
-### Ground Service Contracts in One Source
-
-Publish a service proto that resolves on any external install. Consumers then
-never chase a shared schema that lives in a package they never pulled in.
-
-</a>
-
 <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-integrate-with-the-engineering-standard">
 
 ### Integrate with the Engineering Standard
@@ -87,30 +78,13 @@ Turn engineering standard definitions into queryable, derivable data.
 
 </a>
 
-<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-keep-instruction-layers-honest">
-
-### Keep Instruction Layers Honest
-
-Enforce instruction-layer length caps and JTBD invariants automatically. A
-docs change then cannot quietly drift the layered architecture.
-
-</a>
-
 <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-keep-service-contracts-typed">
 
 ### Keep Service Contracts Typed
 
-Keep JavaScript types in sync with proto definitions. Register gRPC services as
-MCP tools from config, with no hand-written glue.
-
-</a>
-
-<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-keep-services-running-and-visible">
-
-### Run a Predictable Platform
-
-Preflight checks before anything heavy runs, supervised processes, structured
-telemetry, and instruction layers that stay honest.
+Generate types, clients, endpoints, and MCP tools from one proto source. A
+published proto resolves on any external install, so no consumer chases a
+schema it never pulled in.
 
 </a>
 
@@ -118,35 +92,19 @@ telemetry, and instruction layers that stay honest.
 
 ### Prove Agent Changes
 
-Get reproducible evidence for whether an agent change actually helped.
-Generate complete eval datasets from a single DSL file.
+Build a deterministic entity graph from one DSL file. Render it to every
+format an eval consumes and validate it before the run.
 
 </a>
 
-<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-ship-predictable-clis">
+<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-run-a-predictable-platform">
 
-### Ship Predictable CLIs
+### Run a Predictable Platform
 
-Enforce a runtime floor before any heavy import evaluates. A CLI then surfaces
-your version error instead of a confusing one from deep in a dependency.
-
-</a>
-
-<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-ship-predictable-services">
-
-### Ship Predictable Services
-
-Fail fast at startup before a service constructs partially against an unsafe
-default. This turns a silent misconfiguration into a clear early error.
-
-</a>
-
-<a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#platform-builders-ship-service-endpoints-without-boilerplate">
-
-### Ship Service Endpoints Without Boilerplate
-
-Stand up an HTTP or gRPC endpoint. Do not reimplement server lifecycle,
-security headers, health checks, or transport every time.
+Check preconditions before anything heavy runs, supervise long-running
+processes, emit structured telemetry, and keep instruction files honest. A CLI
+then prints your own version error instead of a confusing one from deep in a
+dependency.
 
 </a>
 
@@ -154,9 +112,9 @@ security headers, health checks, or transport every time.
 
 ### For Empowered Engineers
 
-Run an agent team that remembers what it learned and acts on real signal. Give
-the team memory that survives across sessions. Separate a genuine shift in a
-metric from ordinary variation before anyone reacts to it.
+Two libraries cover memory and measurement. `libwiki` keeps state that
+survives across sessions. `libxmr` separates a real shift in a metric from
+ordinary variation.
 
 <div class="grid">
 
@@ -164,8 +122,8 @@ metric from ordinary variation before anyone reacts to it.
 
 ### Operate a Predictable Agent Team
 
-Give agent teams memory that persists across sessions. Chart a metric to see
-whether its latest move is a real change or just expected variation.
+Keep state that survives across sessions. Chart a metric and see whether its
+latest point sits inside expected variation.
 
 </a>
 

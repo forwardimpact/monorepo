@@ -164,6 +164,39 @@ anchor instead. Because the path is relative, `../sibling` reaches across the
 tree. The build fails if the target page does not exist. That keeps internal
 navigation honest.
 
+## Keep a moved page alive
+
+A published URL outlives the page behind it. Installed agent skills and shipped
+CLI help print it. Readers keep fetching the old address for months after you
+move the content. So give the old page a `redirect` value in front matter and
+leave a forwarding address behind:
+
+```markdown
+---
+title: Prove Agent Changes
+redirect: https://www.example.com/docs/prove-changes/
+---
+```
+
+The value must be an absolute `http` or `https` URL. The build fails and names
+the file when it is not. A redirect page still needs `title`. It does not need
+`description`.
+
+`fit-doc` then writes a stub at the old path in place of a page. The
+`index.html` carries a zero-second `meta` refresh to the new address, a
+canonical link, the title, one sentence, and one link. The stub skips your
+template, so it renders no site navigation. The companion `index.md` holds the
+title and one sentence that names the new URL. An agent that fetches the
+markdown then reads where the page went.
+
+`fit-doc` treats a stub as a forwarding address. So it leaves the stub out of
+`sitemap.xml` and out of the augmented `llms.txt`. A `card` or `link` partial
+may not point at a stub either. The build stops and asks you to point the
+marker at a page that stays, or to write the external link by hand.
+
+A stub keeps its place in the page tree. Breadcrumbs on the pages below it
+still resolve its title.
+
 ## Verify
 
 - [ ] `npx fit-doc build --src=docs --out=dist` exits zero and reports each
@@ -173,6 +206,8 @@ navigation honest.
 - [ ] The `--base-url` flag produces `dist/sitemap.xml` with absolute page URLs.
 - [ ] A `card` partial marker renders a card with the target page's title and
       description.
+- [ ] A page with `redirect` produces an `index.html` that holds a `meta`
+      refresh, and its URL is absent from `dist/sitemap.xml`.
 
 ## What's next
 

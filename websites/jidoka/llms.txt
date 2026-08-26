@@ -35,8 +35,17 @@ Install via `apm install forwardimpact/jidoka-skills`, then ask Claude to set
 it up. Wire the installed `jidoka` binary (or `npx @forwardimpact/jidoka`)
 into your checks to stop the line at the first drifted layer.
 
-## Optional
+The documentation tree covers adoption, the layer architecture, and the checks.
+Getting Started takes a repository of unlayered prompt files to a check that
+stops the line on a deliberate breach. Put Your Instructions on One Layered
+Architecture covers what each layer owns, when it loads, and what budget holds
+it, then splits into authoring one layer, writing a checklist gate, and writing
+a jobs entry. Stop the Line on Instruction Drift covers the check wiring in a
+local script and in CI, how to read a finding, how to route each finding to the
+fix that owns it, and how to enforce a repository's own invariant rules. The
+layers sit inside a repository structure standard at https://www.monorepo.team/,
+and the Kata Agent Team at https://www.kata.team/ runs on them every day.
 
-- [The full standard (JIDOKA.md)](https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md)
-- [Monorepo structure standard](https://www.monorepo.team/)
-- [Kata Agent Team](https://www.kata.team/)
+## Documentation
+
+## Optional

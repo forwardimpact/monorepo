@@ -5,3 +5,4 @@ build:
     mkdir -p assets
     cp {{brand_assets}}/*.svg assets/
     cp {{shared_assets}}/*.css assets/
+    cp {{shared_assets}}/main.js assets/

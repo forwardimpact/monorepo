@@ -370,25 +370,25 @@ export function createDefinition() {
     documentation: [
       {
         title: "Operate a Predictable Agent Team",
-        url: "https://www.forwardimpact.team/docs/libraries/predictable-team/index.md",
+        url: "https://www.gemba.team/docs/predictable-team/index.md",
         description:
           "End-to-end guide to wiki memory, XmR charts, and team coordination.",
       },
       {
         title: "Send a Memo or Update a Storyboard",
-        url: "https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md",
+        url: "https://www.gemba.team/docs/predictable-team/wiki-operations/index.md",
         description:
           "Send cross-team memos, refresh storyboard charts, sync the wiki, and record the product-mix metric.",
       },
       {
         title: "Audit and Auto-Fix the Wiki",
-        url: "https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-integrity/index.md",
+        url: "https://www.gemba.team/docs/predictable-team/wiki-integrity/index.md",
         description:
           "Check the wiki against the rule catalogue, auto-fix what is safe, and flag the rest for a human.",
       },
       {
         title: "Allocate Collision-Ledger Entries for Parallel Work",
-        url: "https://www.forwardimpact.team/docs/libraries/predictable-team/collision-ledger/index.md",
+        url: "https://www.gemba.team/docs/predictable-team/collision-ledger/index.md",
         description:
           "Assign stable, collision-free ids to parallel work and rebuild the ledger projections.",
       },

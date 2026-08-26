@@ -206,13 +206,13 @@ const definition = {
   documentation: [
     {
       title: "Operate a Predictable Agent Team",
-      url: "https://www.forwardimpact.team/docs/libraries/predictable-team/index.md",
+      url: "https://www.gemba.team/docs/predictable-team/index.md",
       description:
         "End-to-end guide to wiki memory, XmR charts, and team coordination.",
     },
     {
       title: "Chart a Metric and Check Variation",
-      url: "https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md",
+      url: "https://www.gemba.team/docs/predictable-team/xmr-analysis/index.md",
       description:
         "CSV schema, the three detection rules, the 14-line chart, and how to read the report.",
     },

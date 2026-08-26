@@ -25,7 +25,8 @@
     "./server": "./src/server.js",
     "./frontmatter": "./src/frontmatter.js",
     "./page-tree": "./src/page-tree.js",
-    "./partials": "./src/partials.js"
+    "./partials": "./src/partials.js",
+    "./redirect": "./src/redirect.js"
   },
   "bin": {
     "fit-doc": "./bin/fit-doc.js"

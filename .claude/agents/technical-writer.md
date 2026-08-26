@@ -67,8 +67,9 @@ Each work-type lands on its own branch:
 - Never weaken documentation accuracy or audience separation
 - Never remove documentation until you confirm the content is truly obsolete
 - Verify against source code before you claim a doc is wrong
-- Run `bunx fit-doc build --src=websites/fit --out=dist` (or the matching
-  `websites/<site>` path) before you commit doc changes
+- Build the site that owns the page before you commit doc changes. Run
+  `bunx fit-doc build --src=websites/<site> --out=dist`. The sites are `fit`,
+  `gemba`, `kata`, `jidoka`, and `monorepo`
 - **Memory**: [memory-protocol](.claude/agents/x-memory-protocol.md)
 - **Coordination**:
   [coordination-protocol](.claude/agents/x-coordination-protocol.md).

@@ -1,6 +1,6 @@
 ---
 title: Service Guides
-description: Workflow guides for the shared gRPC services — conversation bridges, knowledge and search, standard queries, agent tools, and trace collection.
+description: Workflow guides for the shared gRPC services. They cover conversation bridges, knowledge and search, standard queries, agent tools, and span collection.
 layout: product
 toc: false
 ---
@@ -55,13 +55,13 @@ toc: false
 
 </div>
 
-## Prove Agent Changes (Builders)
+## Collect Telemetry from Every Product (Builders)
 
 <div class="grid">
 
-<!-- part:card:prove-changes -->
+<!-- part:card:collect-spans -->
 
-<!-- part:card:prove-changes/send-spans -->
+<!-- part:card:collect-spans/send-spans -->
 
 </div>
 

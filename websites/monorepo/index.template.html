@@ -58,62 +58,6 @@
       </div>
     </footer>
 
-    <script>
-      // Scroll reveal
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("visible");
-            }
-          });
-        },
-        { threshold: 0.15 }
-      );
-      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
-
-      // Header scroll state
-      const header = document.querySelector(".site-header");
-      window.addEventListener("scroll", () => {
-        header.classList.toggle("scrolled", window.scrollY > 10);
-      }, { passive: true });
-
-      // Terminal reveals its lines as if typed
-      const terminal = document.querySelector(".terminal-lines");
-      if (terminal) {
-        const termObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                terminal.classList.add("typing");
-                termObserver.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.5 }
-        );
-        termObserver.observe(terminal);
-      }
-
-      // Stagger the reveal of the children
-      document.querySelectorAll(".stagger").forEach((container) => {
-        const children = container.querySelectorAll(".stagger-item");
-        const staggerObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                children.forEach((child, i) => {
-                  child.style.transitionDelay = `${i * 80}ms`;
-                  child.classList.add("visible");
-                });
-                staggerObserver.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.15 }
-        );
-        staggerObserver.observe(container);
-      });
-    </script>
+    <script type="module" src="/assets/main.js"></script>
   </body>
 </html>

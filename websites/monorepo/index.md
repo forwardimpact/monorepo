@@ -1,6 +1,6 @@
 ---
 title: Monorepo Structure Standard
-description: The structure of a repository shared by humans and coding agents: six directories, three root files, and a Jobs To Be Done catalogue. Every directory and file traces back to a job.
+description: "The structure of a repository shared by humans and coding agents: six directories, three root files, and a Jobs To Be Done catalogue. Every directory and file traces back to a job."
 toc: false
 layout: home
 ---

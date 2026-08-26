@@ -16,10 +16,9 @@ on:
         required: false
         type: string
       website-url:
-        description: "Public entry point handed to the persona agent"
+        description: "Public entry point handed to the persona agent (leave empty to derive it from the product)"
         required: false
         type: string
-        default: "https://www.forwardimpact.team"
       empty-corpus-test:
         description: "Force substrate-stage to see an empty corpus (CI assertion)"
         required: false
@@ -41,6 +40,27 @@ jobs:
     # cannot outlive its 1-hour App token.
     timeout-minutes: 50
     steps:
+      # Each product publishes on the site that documents it. Gemba, Kata, and
+      # Jidoka have their own sites. Every other product stays on Forward
+      # Impact. An explicit website-url input wins. An empty product means the
+      # supervisor picks the product, so the persona starts on Forward Impact.
+      - name: Resolve the public entry point
+        id: entry
+        env:
+          OVERRIDE: ${{ inputs.website-url }}
+          PRODUCT: ${{ inputs.product }}
+        run: |
+          url="$OVERRIDE"
+          if [ -z "$url" ]; then
+            case "$PRODUCT" in
+              gemba) url="https://www.gemba.team" ;;
+              kata) url="https://www.kata.team" ;;
+              jidoka) url="https://www.jidoka.team" ;;
+              *) url="https://www.forwardimpact.team" ;;
+            esac
+          fi
+          echo "url=$url" >>"$GITHUB_OUTPUT"
+
       # Thin wrapper over the reusable action. The only monorepo-specific
       # knowledge lives here: which products are substrate-backed, and the FI
       # substrate + persona commands. The action gates all substrate steps on
@@ -56,7 +76,7 @@ jobs:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
-          website-url: ${{ inputs.website-url }}
+          website-url: ${{ steps.entry.outputs.url }}
           product: ${{ inputs.product }}
           job: ${{ inputs.job }}
           task-amend: ${{ inputs.task-amend }}

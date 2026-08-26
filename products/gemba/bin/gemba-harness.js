@@ -346,25 +346,25 @@ const definition = {
   documentation: [
     {
       title: "Coordinate an Agent Team",
-      url: "https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md",
+      url: "https://www.gemba.team/docs/coordinate-team/index.md",
       description:
         "Run a lead and N participant agents in one async session (supervise, facilitate, or discuss) with Ask/Answer/Announce and a single NDJSON trace.",
     },
     {
       title: "Run an Eval",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/run-eval/index.md",
       description:
         "Author a judge profile. Run an eval locally. Wire it into CI. Inspect the trace it produces.",
     },
     {
       title: "Prove Agent Changes",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/index.md",
       description:
         "End-to-end workflow from dataset generation through evaluation to trace analysis. It covers multi-agent collaboration sessions.",
     },
     {
       title: "Analyze Traces",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/trace-analysis/index.md",
       description:
         "Use `gemba-trace` to read the NDJSON traces that `gemba-harness` produces. It covers the grounded-theory method and worked examples.",
     },

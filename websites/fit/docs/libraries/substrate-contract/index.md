@@ -3,7 +3,7 @@ title: The Substrate Contract
 description: Provision identities, pick personas, and issue credentials on any Supabase-backed stack. To do this, implement three views in a substrate schema. You need no Forward Impact data model.
 ---
 
-You want agent interviews or persona-driven sessions against your own
+You want agent-run interview or evaluation sessions against your own
 application. The identity plumbing is generic work you should not rebuild.
 That plumbing reconciles auth users against a roster, picks a persona that
 qualifies, mints a scoped JWT, and hands it to an agent. The
@@ -136,3 +136,11 @@ token's name belongs to your application. It does not belong to this library.
 `npx fit-terrain substrate roster` lists every persona that satisfies the
 applicable invariants. It runs the same query as `pick`, as an operator
 surface. Use it to see who qualifies before you wire the pick into automation.
+
+## What's next
+
+<div class="grid">
+
+<!-- part:card:../generate-dataset -->
+
+</div>

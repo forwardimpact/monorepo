@@ -52,9 +52,9 @@ Anthropic credentials works out of the box.
 `config/config.json` controls service startup and runtime behaviour:
 
 - `init.services` — Ordered list of service objects (`name`, `command`,
-  optional `optional: true`) for `fit-rc` to supervise (trace, vector, graph,
-  map, pathway). Add optional services such as `mcp` to the list when you work
-  on those features
+  optional `optional: true`) for `fit-rc` to supervise (span, embedding,
+  vector, graph, pathway, map). Add optional services such as `mcp` to the
+  list when you work on those features
 - `init.log_dir` / `init.shutdown_timeout` — Logs and shutdown
 - `service.*` — Per-service settings (e.g. how MCP routes tools)
 
@@ -165,56 +165,6 @@ just config-reset             # Reset agent config files from examples
 ```
 
 See each product's skill file for full CLI reference.
-
----
-
-## Kata Agent Team Authentication
-
-The **Kata Agent Team** (defined in
-[`KATA.md`](https://github.com/forwardimpact/monorepo/blob/main/KATA.md))
-authenticates to GitHub with a **GitHub App**. The App generates short-lived
-installation tokens for each workflow run. You have two setup options:
-
-### Option 1: Kata Agent Team App (recommended)
-
-The Forward Impact organization publishes a public GitHub App. Repositories
-within the org (or trusted forks where the org manages secrets centrally)
-install the App and use the org-managed credentials.
-
-1. Install the **Kata Agent Team** App on your repository from its public
-   listing.
-2. Store the following as repository secrets:
-   - `KATA_APP_ID` — the App's numeric ID (the App owner provides it)
-   - `KATA_APP_PRIVATE_KEY` — the PEM-encoded private key (the App owner
-     provides it)
-3. Store `ANTHROPIC_API_KEY` as a repository secret.
-4. The agent workflows then generate installation tokens automatically.
-
-### Option 2: Create your own GitHub App
-
-Organizations that want full control create their own GitHub App.
-
-1. Create a GitHub App with these repository permissions:
-
-   | Permission        | Access     | Used by                                       |
-   | ----------------- | ---------- | --------------------------------------------- |
-   | **Contents**      | Read/Write | All agent workflows (push commits, read code) |
-   | **Pull requests** | Read/Write | Triage, backlog, release workflows            |
-   | **Issues**        | Read/Write | Improvement coach (open issues for findings)  |
-   | **Actions**       | Read       | Improvement coach (download trace artifacts)  |
-   | **Metadata**      | Read       | All (granted by default)                      |
-
-2. Disable webhooks. The setup uses tokens only, so it does not need them.
-3. Install the App on your repository.
-4. Generate a private key. Store these values as repository secrets:
-   - `KATA_APP_ID` — your App's numeric ID
-   - `KATA_APP_PRIVATE_KEY` — your App's PEM-encoded private key
-5. Override the `app-slug` input in the composite action to match your App's
-   slug. Each workflow passes `app-id` to the composite action. The `app-slug`
-   input defaults to `kata-agent-team`. You must change it to your App's slug.
-
-Private keys are per-App. They are not per-installation. Only the App owner can
-generate and distribute them.
 
 ---
 

@@ -3,7 +3,7 @@ title: Manage Service Lifecycle from One Interface
 description: Services that stay running and problems that surface before they escalate — supervision and observability from one interface.
 ---
 
-You run several services, such as a gRPC server, a vector store, and a trace
+You run several services, such as a gRPC server, a vector store, and a span
 collector. To manage them, you must remember which command starts each one.
 You must watch for crashes by hand. You must wade through unstructured console
 output when something goes wrong. Three libraries remove that overhead.
@@ -82,16 +82,16 @@ command that runs once during startup or shutdown):
         "down": "echo codegen teardown"
       },
       {
-        "name": "trace",
-        "command": "npx gemba-trace serve"
+        "name": "span",
+        "command": "npx @forwardimpact/svcspan"
       },
       {
         "name": "vector",
-        "command": "npx fit-vector serve"
+        "command": "npx @forwardimpact/svcvector"
       },
       {
         "name": "graph",
-        "command": "npx fit-graph serve",
+        "command": "npx @forwardimpact/svcgraph",
         "optional": true
       }
     ]
@@ -131,7 +131,7 @@ Expected output (timestamps and process IDs will differ):
 ```text
 INFO 2026-05-04T10:00:01.123Z rc codegen 42001 MSG001 - Running oneshot direction="up" cmd="npx fit-codegen generate --all"
 INFO 2026-05-04T10:00:03.456Z rc codegen 42001 MSG002 - Oneshot completed direction="up"
-INFO 2026-05-04T10:00:03.789Z rc trace 42001 MSG003 - Service started
+INFO 2026-05-04T10:00:03.789Z rc span 42001 MSG003 - Service started
 INFO 2026-05-04T10:00:04.012Z rc vector 42001 MSG004 - Service started
 INFO 2026-05-04T10:00:04.234Z rc graph 42001 MSG005 - Service started
 ```
@@ -140,10 +140,10 @@ To start only up to a specific service (useful when you need only part of the
 stack):
 
 ```sh
-npx fit-rc start trace
+npx fit-rc start span
 ```
 
-This starts every service from the beginning of the array through `trace`. It
+This starts every service from the beginning of the array through `span`. It
 skips later entries.
 
 ## Check service status
@@ -156,7 +156,7 @@ Expected output when services are running:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Running
-INFO 2026-05-04T10:05:00.234Z rc trace 42001 MSG002 - up pid="42010"
+INFO 2026-05-04T10:05:00.234Z rc span 42001 MSG002 - up pid="42010"
 INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
 INFO 2026-05-04T10:05:00.456Z rc graph 42001 MSG004 - up pid="42012"
 ```
@@ -170,7 +170,7 @@ INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Not running
 Check a single service by name:
 
 ```sh
-npx fit-rc status trace
+npx fit-rc status span
 ```
 
 ## Stop services
@@ -197,7 +197,7 @@ reverse order.
 ## Restart a service
 
 ```sh
-npx fit-rc restart trace
+npx fit-rc restart span
 ```
 
 This stops the named service and everything after it in the array. It then
@@ -211,7 +211,7 @@ Each longrun service writes output to a rotated log directory under the path
 you configure in `log_dir`. View a service's current log:
 
 ```sh
-npx fit-rc logs trace
+npx fit-rc logs span
 ```
 
 The log writer (from `libsupervise`) rotates files automatically at 1 MB and
@@ -345,8 +345,8 @@ const config = {
   init: {
     log_dir: "data/logs",
     services: [
-      { name: "trace", command: "npx gemba-trace serve" },
-      { name: "vector", command: "npx fit-vector serve" },
+      { name: "span", command: "npx @forwardimpact/svcspan" },
+      { name: "vector", command: "npx @forwardimpact/svcvector" },
     ],
   },
 };
@@ -364,8 +364,8 @@ const manager = new ServiceManager(config, logger, {
 
 await manager.start();         // Start all services
 await manager.status();        // Print status of all services
-await manager.status("trace"); // Print status of one service
-await manager.logs("trace");   // Print logs to stdout
+await manager.status("span");  // Print status of one service
+await manager.logs("span");    // Print logs to stdout
 await manager.stop("vector");  // Stop one service
 await manager.stop();          // Stop all services and daemon
 ```
@@ -379,10 +379,6 @@ await manager.stop();          // Stop all services and daemon
 | libsupervise     | `@forwardimpact/libsupervise`        | Supervision daemon (`fit-svscan`), log writer (`fit-logger`), log rotation, process state. |
 | libtelemetry     | `@forwardimpact/libtelemetry`        | Structured logging (`Logger`), trace spans (`Tracer`), unified observer (`Observer`), trace query and rendering (`fit-visualize`). |
 
-The fifth concern in this job is to keep instruction files and architecture
-honest. That check is `jidoka`. The [Jidoka standard](https://www.jidoka.team/)
-documents it, and this page does not, because `jidoka` runs at authoring time
-against the repository. It does not run at service runtime against a process.
 See [Distribute Skill Packs](/docs/libraries/distribute-skill-packs/) for the
 publishing side. That page shows how you keep shared instructions current.
 

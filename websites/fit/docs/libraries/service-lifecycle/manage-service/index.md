@@ -29,7 +29,7 @@ Expected output (timestamps and process IDs will differ):
 
 ```text
 INFO 2026-05-04T10:00:01.123Z rc svscan 42001 MSG001 - Socket ready socket="data/svscan.sock"
-INFO 2026-05-04T10:00:01.456Z rc trace 42001 MSG002 - Service started
+INFO 2026-05-04T10:00:01.456Z rc span 42001 MSG002 - Service started
 INFO 2026-05-04T10:00:01.789Z rc vector 42001 MSG003 - Service started
 ```
 
@@ -37,11 +37,11 @@ Start up to a specific service. This helps when you need only part of the
 stack:
 
 ```sh
-npx fit-rc start trace
+npx fit-rc start span
 ```
 
 This starts every service from the beginning of the configuration array through
-the named service. `fit-rc` does not start the services after `trace`.
+the named service. `fit-rc` does not start the services after `span`.
 
 ## Check status
 
@@ -53,7 +53,7 @@ Expected output when the services run:
 
 ```text
 INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Running
-INFO 2026-05-04T10:05:00.234Z rc trace 42001 MSG002 - up pid="42010"
+INFO 2026-05-04T10:05:00.234Z rc span 42001 MSG002 - up pid="42010"
 INFO 2026-05-04T10:05:00.345Z rc vector 42001 MSG003 - up pid="42011"
 ```
 
@@ -66,7 +66,7 @@ INFO 2026-05-04T10:05:00.123Z rc svscan 42001 MSG001 - Not running
 Check a single service:
 
 ```sh
-npx fit-rc status trace
+npx fit-rc status span
 ```
 
 If the named service is not in the configuration, `fit-rc` exits with an error:
@@ -100,7 +100,7 @@ defines one.
 ## Restart a service
 
 ```sh
-npx fit-rc restart trace
+npx fit-rc restart span
 ```
 
 This stops the named service and everything after it in the configuration
@@ -113,7 +113,7 @@ all services restart.
 View the current log for a named service:
 
 ```sh
-npx fit-rc logs trace
+npx fit-rc logs span
 ```
 
 The service name is required. Each longrun service writes output to a dedicated
@@ -218,7 +218,7 @@ const config = {
   init: {
     log_dir: "data/logs",
     services: [
-      { name: "trace", command: "npx gemba-trace serve" },
+      { name: "span", command: "npx @forwardimpact/svcspan" },
     ],
   },
 };
@@ -234,10 +234,10 @@ const manager = new ServiceManager(config, logger, {
   waitForSocket,
 });
 
-await manager.start("trace");  // Start up to and including "trace"
-await manager.status("trace"); // Check one service
-await manager.logs("trace");   // Print log to stdout
-await manager.stop("trace");   // Stop from "trace" onward
+await manager.start("span");  // Start up to and including "span"
+await manager.status("span"); // Check one service
+await manager.logs("span");   // Print log to stdout
+await manager.stop("span");   // Stop from "span" onward
 ```
 
 Each method maps directly to the CLI command. `start` and `stop` accept an

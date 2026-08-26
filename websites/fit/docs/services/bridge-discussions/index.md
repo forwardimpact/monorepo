@@ -1,13 +1,13 @@
 ---
 title: Bridge GitHub Discussions to the Agent Team
-description: Stand up the ghbridge service so a new discussion or comment dispatches a Kata session and the lead's replies post back to the same thread.
+description: Stand up the ghbridge service so a new discussion or comment dispatches an agent session and the lead's replies post back to the same thread.
 ---
 
-Engineers open RFCs in GitHub Discussions. The Kata agent team can engage,
-deliberate over the 14-day coordination horizon, and post structured replies
-back. It needs a bridge between the Discussion webhook and the
-`kata-dispatch` workflow to do so. The `ghbridge` service is that bridge. A
-new discussion or a follow-up comment in the configured repository fires a
+Engineers open RFCs in GitHub Discussions. An agent team can engage there,
+deliberate over a coordination window that spans days, and post structured
+replies back. It needs a bridge between the Discussion webhook and its
+dispatch workflow to do so. The `ghbridge` service is that bridge. A new
+discussion or a follow-up comment in the configured repository fires a
 webhook. The bridge verifies the signature. It dispatches the workflow with
 the prior thread history. It posts the lead's structured replies back to the
 same thread when the workflow finishes.
@@ -24,9 +24,11 @@ For the suspend/resume contract unique to ghbridge, see
 
 ## Prerequisites
 
-- The Kata Agent Team **GitHub App** with `discussions: write` permission
+- A **GitHub App** for your agent team with `discussions: write` permission
   and webhook subscriptions for `discussion` and `discussion_comment`
-  events (kata-setup creates the App the first time).
+  events. The agent team's own installer creates the App the first time.
+  The [Kata agent team](https://www.kata.team/) ships the reference
+  installer and dispatch workflow.
 - An installation of that App on the target repository.
 - A GitHub token with `actions:write` on the target repository.
   `libconfig` falls back to `gh auth token` when `GH_TOKEN` is not set in
@@ -42,7 +44,7 @@ discussion thread for the replies it posts back through the GraphQL
 `addDiscussionComment` mutation:
 
 ```text
-Discussion ──webhook── ghtunnel ── ghbridge ──dispatch──> kata-dispatch
+Discussion ──webhook── ghtunnel ── ghbridge ──dispatch──> agent-dispatch
      ▲                              │
      └────────── GraphQL ───────────┘
 ```
@@ -68,7 +70,7 @@ Set the credentials and service parameters in `.env`.
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SERVICE_GHBRIDGE_GITHUB_REPO`                   | `owner/repo` target for workflow dispatch and GraphQL replies                                                                                                 |
 | `SERVICE_GHBRIDGE_CALLBACK_BASE_URL`             | Public URL the workflow POSTs callbacks back to                                                                                                               |
-| `SERVICE_GHBRIDGE_APP_ID`                        | Kata App numeric ID                                                                                                                                           |
+| `SERVICE_GHBRIDGE_APP_ID`                        | GitHub App numeric ID                                                                                                                                         |
 | `SERVICE_GHBRIDGE_APP_PRIVATE_KEY`               | PEM contents (see § Private key format below)                                                                                                                 |
 | `SERVICE_GHBRIDGE_APP_INSTALLATION_ID`           | Installation ID for the target repo                                                                                                                           |
 | `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET`            | Shared secret used to verify `X-Hub-Signature-256`                                                                                                            |
@@ -153,7 +155,7 @@ Open a new GitHub Discussion in the configured repository. The bridge:
    `data/bridges/discussions.jsonl` through the shared `services/bridge`
    gRPC service.
 3. Hands the dispatch to `libbridge`'s `Dispatcher`. That component
-   registers a callback token, fires `kata-dispatch.yml` through
+   registers a callback token, fires the dispatch workflow through
    `workflow_dispatch`, appends the user text to history, and flushes the
    store.
 4. Adds an "EYES" reaction to the message that prompted the dispatch
@@ -178,8 +180,8 @@ You reach the outcome of this guide when:
 - A new discussion in the configured repository receives an "EYES"
   reaction within seconds of the post. The reaction disappears once the
   workflow callback arrives.
-- The Actions tab on the repository shows a fresh `kata-dispatch.yml`
-  run triggered by the bridge dispatch.
+- The Actions tab on the repository shows a fresh dispatch-workflow run
+  triggered by the bridge dispatch.
 - When the workflow returns an `adjourned` verdict, every `reply` in
   the callback payload appears as a threaded comment on the discussion.
 - A follow-up comment on the same thread fires a trigger if an RFC is in

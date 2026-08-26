@@ -197,6 +197,6 @@ layout: home
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Set up Jidoka"</span><span class="terminal-cmd"> | claude</span></div>
       </div>
     </div>
-    <p class="closing-note reveal">Then wire the <code>jidoka</code> binary (or <code>npx @forwardimpact/jidoka</code>) into your checks, so the line stops at the first drifted layer. Read the full standard in <a href="https://github.com/forwardimpact/monorepo/blob/main/JIDOKA.md">JIDOKA.md</a>.</p>
+    <p class="closing-note reveal">Then wire the <code>jidoka</code> binary (or <code>npx @forwardimpact/jidoka</code>) into your checks, so the line stops at the first drifted layer. Read the full standard in the <a href="/docs/layered-instructions/">layered instruction architecture guide</a>.</p>
   </div>
 </div>

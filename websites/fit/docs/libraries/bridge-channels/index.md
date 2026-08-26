@@ -3,11 +3,11 @@ title: Bridge a Threaded Channel to the Agent Team
 description: Threaded-channel adapters share an intake skeleton, callback registry, durable thread state, and resume-trigger contract. One library serves every channel.
 ---
 
-You build an adapter that relays messages between a human channel and the Kata
-agent team's `kata-dispatch` workflow. The channel can be GitHub Discussions,
-Microsoft Teams, or the next chat platform someone asks for. The first time you
-do this, you reach for last project's callback registry, rate limiter, and
-history-bound prompt builder. `@forwardimpact/libbridge` gives you those
+You build an adapter that relays messages between a human channel and an agent
+team's dispatch workflow. The channel can be GitHub Discussions, Microsoft
+Teams, or the next chat platform someone asks for. The first time you do this,
+you reach for last project's callback registry, rate limiter, and history-bound
+prompt builder. `@forwardimpact/libbridge` gives you those
 primitives. The host service can then focus on the channel-specific SDK glue.
 It leaves thread state, callback verification, prompt construction, and
 workflow dispatch to a shared library.
@@ -22,8 +22,8 @@ npm install @forwardimpact/libbridge @forwardimpact/libstorage @forwardimpact/li
 ```
 
 - A workflow on the target repository that accepts the channel-bridge payload
-  through `workflow_dispatch` (the Kata Agent Team's `kata-dispatch.yml` is the
-  reference implementation).
+  through `workflow_dispatch`. The [Kata agent team](https://www.kata.team/)
+  ships the reference implementation of that workflow.
 - A GitHub token with `actions:write` on that repository.
 
 ## What libbridge owns
@@ -223,14 +223,13 @@ await store.add(ctx);
 await store.flush();
 ```
 
-For multi-process bridges, point the adapter at a shared backend such as
-Redis, Postgres, or a dedicated persistence service. Every bridge replica then
-sees the same `(channel, discussion_id)` records. The `pending_callbacks`
-tokens also survive restarts. The Kata Agent Team's monorepo runs the canonical
-implementation, a small gRPC service that owns the JSONL files and the TTL
-sweep. `services/ghbridge` and `services/msbridge` wrap a generated client in a
-`DiscussionAdapter` to talk to it. Implementations swap freely. libbridge only
-sees the contract.
+For multi-process bridges, point the adapter at a shared backend such as Redis,
+Postgres, or a dedicated persistence service. Every bridge replica then sees the
+same `(channel, discussion_id)` records. The `pending_callbacks` tokens also
+survive restarts. The reference deployment runs a small gRPC service that owns
+the JSONL files and the TTL sweep. `services/ghbridge` and `services/msbridge`
+wrap a generated client in a `DiscussionAdapter` to talk to it. Implementations
+swap freely. libbridge only sees the contract.
 
 ## Issue and verify callback tokens
 
@@ -260,7 +259,7 @@ registry.startSweepTimer();
 const correlationId = randomUUID();
 const token = registry.register(correlationId, { tenant_id: tenantId, discussionId });
 await dispatchWorkflow({
-  workflowFile: "kata-dispatch.yml",
+  workflowFile: "agent-dispatch.yml",
   ref: "main",
   repo: "owner/repo",
   token: ghInstallationToken,
@@ -321,7 +320,7 @@ const observed = { opened_at: Date.now() - 25 * 60 * 60 * 1000 };
 const result = evaluateTrigger(trigger, observed, Date.now());
 if (result.fired) {
   await dispatchWorkflow({
-    workflowFile: "kata-dispatch.yml",
+    workflowFile: "agent-dispatch.yml",
     ref: "main",
     repo: "owner/repo",
     token: ghInstallationToken,
@@ -368,8 +367,14 @@ You have reached the outcome of this guide when:
 
 ## What's next
 
+The agent team that receives a bridged message keeps its own memory and its own
+control charts. Gemba documents that side in
+[Operate a Predictable Agent Team](https://www.gemba.team/docs/predictable-team/).
+
 <div class="grid">
 
-<!-- part:card:../predictable-team -->
+<!-- part:card:../../services/bridge-conversations -->
+
+<!-- part:card:../../services/bridge-discussions -->
 
 </div>

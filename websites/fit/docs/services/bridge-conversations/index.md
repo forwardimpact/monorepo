@@ -1,16 +1,16 @@
 ---
 title: Bridge Microsoft Teams to the Agent Team
-description: Stand up the msbridge service so a Teams mention dispatches a Kata session and the verdict posts back to the same thread.
+description: Stand up the msbridge service so a Teams mention dispatches an agent session and the verdict posts back to the same thread.
 ---
 
-Engineers discuss work in Microsoft Teams. The Kata agent team listens on
+Engineers discuss work in Microsoft Teams. Their agent team listens on
 GitHub. Without a bridge, every interaction forces a context switch. You
 open a new tab, file an issue, hand-craft a workflow_dispatch, and paste the
 verdict back into Teams when it is done. The `msbridge` service closes that
 gap. A user mentions the bot in a Teams thread. The bridge then dispatches
-the channel-agnostic `kata-dispatch.yml` workflow with the conversation
-history. It posts the lead's reply back into the same thread when the
-workflow finishes.
+the channel-agnostic agent-dispatch workflow with the conversation history.
+It posts the lead's reply back into the same thread when the workflow
+finishes.
 
 This guide walks through the operational steps to stand up `msbridge` for a
 target GitHub repository. Provision the Azure Bot resource. Configure the
@@ -25,7 +25,9 @@ For the library primitives `msbridge` is built on, see
 - A **Microsoft 365 developer tenant** with an Azure Bot resource registered
   for the Teams channel. You must enable the Teams channel on the bot
   (Settings → Channels → add Microsoft Teams).
-- The Kata Agent Team workflows installed in a GitHub repository.
+- An agent-team dispatch workflow installed in a GitHub repository. The
+  [Kata agent team](https://www.kata.team/) ships the reference
+  implementation.
 - A GitHub token with `actions:write` on that repository. `libconfig` falls
   back to `gh auth token` when `GH_TOKEN` is not set in `.env`, so
   `gh auth login` is sufficient.
@@ -40,7 +42,7 @@ the Teams channel through the Bot Framework, the GitHub Actions workflow
 through `workflow_dispatch`, and the same Teams thread for the reply:
 
 ```text
-Teams thread ──webhook── mstunnel ── msbridge ──dispatch──> kata-dispatch
+Teams thread ──webhook── mstunnel ── msbridge ──dispatch──> agent-dispatch
      ▲                                  │
      └────────── callback ──────────────┘
 ```
@@ -136,11 +138,13 @@ just msbridge-package
 ```
 
 The recipe reads `MICROSOFT_APP_ID` and the tunnel domain from `.env` with
-`libconfig` and produces `dist/kata-agent-bridge.zip` (git-ignored).
-Override the tunnel domain with `--tunnel-domain=<host>` when needed. The
-manifest uses Teams schema v1.17. You can rebuild the package, re-upload
-it, and keep the app in Teams. Azure Bot routes on the messaging endpoint.
-It does not route on the manifest contents.
+`libconfig`. It writes the archive to the `--output` path, which defaults
+to a git-ignored file under `dist/`. Override the tunnel domain with
+`--tunnel-domain=<host>` when needed. The manifest uses Teams schema v1.17.
+It also carries the bot's display name, which becomes the mention your
+users type in Teams. You can rebuild the package, re-upload it, and keep
+the app in Teams. Azure Bot routes on the messaging endpoint. It does not
+route on the manifest contents.
 
 Sideload through Teams Admin Center:
 
@@ -148,21 +152,21 @@ Sideload through Teams Admin Center:
    *Org-wide app settings*, allow interaction with custom apps.
 2. Under *Setup policies → Global*, enable *Upload custom apps*.
 3. Open Teams → Apps → Manage your apps → **Upload an app** →
-   **Upload a custom app** → select `kata-agent-bridge.zip`.
+   **Upload a custom app** → select the archive you built.
 4. Add the app to a team or group chat.
 
 ## Verify
 
 You have reached the outcome of this guide when:
 
-- The bridge acknowledges a `@Kata Agent hello` mention in the configured
+- The bridge acknowledges a mention of the configured bot in the configured
   team or chat. It adds a `like` reaction on the user's message. It also
   posts a randomized typing verb into the thread (`"Moonwalking..."`,
   `"Unravelling..."`, `"Tempering..."`, `"Crafting..."`, `"Simmering..."`,
   `"Percolating..."`, `"Decoding..."`) and refreshes it every ~25 seconds.
-- The bridge dispatches `kata-dispatch.yml` to the configured GitHub
-  repository (visible under the repo's Actions tab).
-- When the workflow finishes, the bridge posts the facilitator's `replies`
+- The bridge dispatches its configured dispatch workflow to the configured
+  GitHub repository (visible under the repo's Actions tab).
+- When the workflow finishes, the bridge posts the agent team's `replies`
   back into the same Teams thread, one message per reply. It also removes
   the `like` reaction.
 - `data/bridges/discussions.jsonl` contains a JSONL record per

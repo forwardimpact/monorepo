@@ -53,7 +53,7 @@ jobs:
             sync-agents: "false"
             readme-title: Gemba Skills
             readme-intro: >-
-              Skills for [Gemba](https://forwardimpact.team), the agent-runtime
+              Skills for [Gemba](https://www.gemba.team), the agent-runtime
               platform. They teach the `gemba-*` command family and the
               published composite actions that run the same loop in CI.
             apm-description: >-
@@ -82,8 +82,8 @@ jobs:
             sync-agents: "true"
             readme-title: Kata Skills
             readme-intro: >-
-              Agents and skills for the [Forward Impact](https://forwardimpact.team)
-              Kata Agent Team.
+              Agents and skills for the [Kata](https://www.kata.team) Agent
+              Team.
             apm-description: >-
               Forward Impact Kata Agent Team: domain agents and skills for the
               spec → design → plan → implement workflow, releases, security, and
@@ -94,8 +94,8 @@ jobs:
             sync-agents: "false"
             readme-title: Monorepo Skills
             readme-intro: >-
-              Skills that stand up and maintain a
-              [Forward Impact](https://forwardimpact.team)-style monorepo. They
+              Skills that stand up and maintain a repository that follows the
+              [Monorepo Structure Standard](https://www.monorepo.team). They
               are the cross-cutting setup that composes the Jidoka and Kata
               packs.
             apm-description: >-

@@ -1,0 +1,1116 @@
+/* ══════════════════════════════════════════════════════════════════
+   Gemba — Brand Layer
+   This file holds the design tokens, the fonts, the trace mark, the
+   home-page brand sections, and the docs-tree brand rules. The page
+   loads it after the shared base, layout, and components stylesheets,
+   so every rule here wins the cascade.
+
+   Metaphor: the instrumented bay. A lamp says the cell is live. A
+   gauge shows what the cell does. A chart recorder keeps the record
+   after the run ends. The warm signal is an amber running lamp.
+   Specification: design/gemba/index.md
+   ══════════════════════════════════════════════════════════════════ */
+
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Spectral:wght@400;500;600&display=swap");
+
+/* ── Design Tokens ─────────────────────────────────────────────── */
+
+:root {
+  /* Surfaces */
+  --bg-page: #ffffff;
+  --bg-warm: #fbf8f2;
+  --bg-elevated: #f4f0e8;
+  --bg-hover: #e7e2d6;
+  --bg-inverted: #1a1611;
+
+  /* Amber (warm signal, the running lamp) */
+  --amber-50: #fdf7ee;
+  --amber-100: #f7e8cd;
+  --amber-200: #eccf9b;
+  --amber-400: #c1832a;
+  --amber-600: #8c5a12;
+
+  /* Family alias (cross-brand component contract) */
+  --accent-warm-50: var(--amber-50);
+  --accent-warm-100: var(--amber-100);
+  --accent-warm-200: var(--amber-200);
+  --accent-warm-400: var(--amber-400);
+  --accent-warm-600: var(--amber-600);
+
+  /* Text */
+  --text-primary: #0b0906;
+  --text-heading: #1a1611;
+  --text-body: #625c50;
+  --text-secondary: #7a7364;
+  --text-tertiary: #b0a999;
+  --text-on-dark: #f0e9dc;
+
+  /* Grays, warm-shifted toward umber */
+  --gray-50: #f4f0e8;
+  --gray-100: #e7e2d6;
+  --gray-200: #d2ccbd;
+  --gray-300: #b0a999;
+  --gray-400: #7a7364;
+  --gray-500: #625c50;
+  --gray-700: #38332b;
+  --gray-900: #1a1611;
+  --black: #0b0906;
+
+  /* Borders */
+  --border-default: #e7e2d6;
+  --border-strong: #d2ccbd;
+
+  /* Radii. The tightest of the three brands. A machined panel edge. */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* Typography */
+  --font-display:
+    "Spectral", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-sans:
+    "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  --text-hero-size: 4rem;
+  --text-hero-weight: 500;
+  --text-display-size: 2.75rem;
+  --text-h1-size: 2rem;
+  --text-h2-size: 1.5rem;
+  --text-h3-size: 1.25rem;
+  --text-body-size: 1rem;
+  --text-small-size: 0.875rem;
+  --text-badge-size: 0.75rem;
+
+  /* Transitions */
+  --ease-default: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 400ms;
+}
+
+/* Contrast on every text-on-surface pair this file introduces.
+   All values are WCAG 2.1 ratios and all meet AA for normal text.
+     gray-500 on bg-page 6.6, on bg-warm 6.3, on amber-50 6.2
+     gray-400 on bg-page 4.7 (used on white card fills only)
+     gray-700 on bg-page 12.5, on gray-50 11.0, on amber-100 10.4
+     gray-900 on bg-page 18.0, on bg-warm 17.0, on amber-50 16.9
+     black on bg-page 19.9
+     amber-600 on bg-page 5.9, on bg-warm 5.5, on amber-50 5.5
+     amber-400 on bg-inverted 5.6 (terminal prompt)
+     text-on-dark on bg-inverted 14.9
+     gray-300 on bg-inverted 7.7 (terminal comment, footer tagline)
+     white on gray-900 18.0, on gray-700 12.5 (filled buttons)
+   Three colors stay off text. gray-300 on white reaches 2.3, gray-200
+   is a border value, and amber-400 on white reaches 3.2. This file
+   uses them for rules, borders, and line art only. */
+
+/* ── Header ────────────────────────────────────────────────────── */
+
+/* The scroll home page starts with a transparent header over the
+   hero. Every docs page keeps the solid shared header, so a long
+   guide stays legible under it. */
+body:has(main.layout-home) .site-header:not(.menu-open) {
+  background: transparent;
+  border-bottom: none;
+  transition:
+    background var(--duration-normal) var(--ease-default),
+    border-color var(--duration-normal) var(--ease-default);
+}
+
+body:has(main.layout-home) .site-header.scrolled {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.site-header.scrolled {
+  box-shadow: 0 1px 3px rgba(26, 22, 17, 0.06);
+}
+
+.brand-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.125rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.nav-github {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  opacity: 0.5;
+  transition: opacity var(--duration-fast) var(--ease-default);
+}
+
+.nav-github:hover {
+  opacity: 1;
+}
+
+/* The header GitHub link carries .btn-ghost, which appends an arrow.
+   An icon link takes no arrow. */
+.nav-github::after {
+  content: none;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+
+/* The shared shadow is near-neutral. Gemba wants the umber cast. */
+.btn-primary:hover {
+  box-shadow: 0 2px 8px rgba(26, 22, 17, 0.12);
+}
+
+/* ── Shared Card Grid ──────────────────────────────────────────── */
+
+/* components.css owns .grid and its card treatment. Only the shadow
+   changes. */
+.grid > a:hover {
+  box-shadow: 0 2px 8px rgba(26, 22, 17, 0.05);
+}
+
+/* ── Docs: Breadcrumbs ─────────────────────────────────────────── */
+
+/* libdoc renders "<a>…</a> / <a>…</a> / <span>current</span>". The
+   separator glyph takes the tertiary gray. The current page needs a
+   readable value, so it takes gray-400. */
+.breadcrumbs {
+  color: var(--gray-300);
+}
+
+.breadcrumbs span {
+  color: var(--gray-400);
+}
+
+/* ── Docs: TOC Rail ────────────────────────────────────────────── */
+
+/* The lit-tread idea applies to the rail. The edge marks position and
+   the label keeps its gray, so amber never becomes text. Every entry
+   carries the same transparent edge, so nothing shifts on hover. */
+.toc-nav a {
+  border-left: 2px solid transparent;
+  padding-left: var(--space-2);
+  transition:
+    color var(--duration-fast) var(--ease-default),
+    border-color var(--duration-fast) var(--ease-default);
+}
+
+.toc-nav a:hover,
+.toc-nav a:focus-visible,
+.toc-nav a.active {
+  border-left-color: var(--accent-warm-400);
+  color: var(--gray-700);
+}
+
+/* ── Docs: Hub Plate ───────────────────────────────────────────── */
+
+/* A hub page sets `toc: false`, so its wrapper div carries no class.
+   A hairline above each job heading makes the jobs read as panels on
+   one plate. */
+main:not(.layout-home) > div:not(.with-toc) > .page-content > h2 {
+  border-top: 1px solid var(--border-default);
+  padding-top: var(--space-12);
+}
+
+/* ── Layout: Home ──────────────────────────────────────────────── */
+
+.layout-home .page-content {
+  max-width: none;
+  padding: 0;
+}
+
+.layout-home .page-title {
+  display: none;
+}
+
+body:has(main.layout-home) .site-footer {
+  margin-top: 0;
+}
+
+/* ── Sections ──────────────────────────────────────────────────── */
+
+/* .layout-home zeroes the page-content padding, so each section owns
+   its own vertical rhythm and its own inner container. */
+.gemba-section {
+  padding: var(--space-24) var(--space-6);
+}
+
+.section-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* The tick scale is the time axis of a trace. Minor ticks repeat
+   every 24px and a major tick lands every fifth line at 120px. It
+   never appears on pure white. */
+.gemba-section-warm,
+.gemba-section-amber {
+  background-image:
+    repeating-linear-gradient(
+      to right,
+      rgba(210, 204, 189, 0.35) 0,
+      rgba(210, 204, 189, 0.35) 1px,
+      transparent 1px,
+      transparent 120px
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(231, 226, 214, 0.35) 0,
+      rgba(231, 226, 214, 0.35) 1px,
+      transparent 1px,
+      transparent 24px
+    );
+}
+
+.gemba-section-warm {
+  background-color: var(--bg-warm);
+}
+
+.gemba-section-amber {
+  background-color: var(--amber-50);
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+  font-weight: 500;
+  color: var(--amber-600);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-4);
+}
+
+.section-headline {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-display-size);
+  line-height: 1.12;
+  color: var(--gray-900);
+  letter-spacing: -0.01em;
+  max-width: 660px;
+  margin-bottom: var(--space-6);
+}
+
+.section-body {
+  font-size: 1.125rem;
+  line-height: 1.65;
+  color: var(--gray-500);
+  max-width: 560px;
+  margin-bottom: var(--space-12);
+}
+
+.section-body code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--gray-700);
+  background: var(--gray-50);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Hero ──────────────────────────────────────────────────────── */
+
+.layout-home .page-content > .gemba-hero {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 56px var(--space-6) var(--space-16);
+  position: relative;
+}
+
+/* The wordmark sets GEMBA in the display serif over the flat trace
+   mark. Five letters carry five steps, and the treads align one to a
+   letter. */
+.hero-wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-8);
+  animation: fadeUp 600ms var(--ease-default) 0ms backwards;
+}
+
+.hero-wordmark .wordmark-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1em;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-indent: 0.14em;
+  text-transform: uppercase;
+  color: var(--gray-700);
+}
+
+/* The flat mark spans the tracked wordmark, so it takes the column
+   width and the specified 0.3em height. */
+.hero-wordmark .trace-mark-flat {
+  width: 100%;
+  height: 0.3em;
+}
+
+.gemba-hero .trace-mark-hero {
+  width: 160px;
+  height: 60px;
+  margin-bottom: var(--space-8);
+  animation: fadeUp 600ms var(--ease-default) 100ms backwards;
+}
+
+.gemba-hero .hero-title {
+  font-family: var(--font-display);
+  font-weight: var(--text-hero-weight);
+  font-size: var(--text-hero-size);
+  line-height: 1.06;
+  color: var(--black);
+  letter-spacing: -0.01em;
+  max-width: 800px;
+  margin: 0 auto var(--space-6);
+  animation: fadeUp 600ms var(--ease-default) 200ms backwards;
+}
+
+.gemba-hero .hero-subtitle {
+  font-family: var(--font-sans);
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--gray-500);
+  max-width: 560px;
+  margin: 0 auto;
+  animation: fadeUp 600ms var(--ease-default) 300ms backwards;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: var(--space-8);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  animation: fadeUp 600ms var(--ease-default) 500ms backwards;
+}
+
+.scroll-hint span {
+  font-family: var(--font-mono);
+  font-size: var(--text-badge-size);
+  color: var(--gray-400);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scroll-line {
+  width: 1px;
+  height: 32px;
+  background: var(--gray-200);
+  animation: scrollPulse 2s var(--ease-default) infinite;
+}
+
+@keyframes scrollPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleY(0.6);
+    transform-origin: top;
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Stats ─────────────────────────────────────────────────────── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.stat-card {
+  background: var(--bg-page);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 3.5rem;
+  line-height: 1;
+  color: var(--gray-900);
+  margin-bottom: var(--space-2);
+}
+
+.stat-label {
+  font-family: var(--font-sans);
+  font-size: var(--text-small-size);
+  font-weight: 500;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-detail {
+  font-family: var(--font-sans);
+  font-size: var(--text-small-size);
+  color: var(--gray-400);
+  margin-top: var(--space-2);
+}
+
+/* ── The Five Steps ───────────────────────────────────────────── */
+
+/* Each step card reads as one tread of the trace. A 3px top border
+   stands in for the tread and hover lights it. */
+.step-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-6);
+}
+
+.step-card {
+  padding: var(--space-6) 0 0;
+  border-top: 3px solid var(--gray-200);
+  transition: border-color var(--duration-normal) var(--ease-default);
+}
+
+.step-card:hover {
+  border-top-color: var(--accent-warm-400);
+}
+
+.step-card .step-motif {
+  font-family: var(--font-mono);
+  font-size: var(--text-badge-size);
+  font-weight: 500;
+  color: var(--amber-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.step-card .step-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-h3-size);
+  line-height: 1.2;
+  color: var(--gray-900);
+  margin-bottom: var(--space-3);
+}
+
+.step-card .step-question {
+  font-size: var(--text-small-size);
+  line-height: 1.55;
+  color: var(--gray-500);
+  margin-bottom: var(--space-3);
+}
+
+.step-card .step-command {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--gray-700);
+  background: var(--bg-page);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+}
+
+/* The Stand up step ships as a composite action, not a command. The
+   badge says so, or a reader tries to install a name that has no bin. */
+.step-card .step-kind {
+  margin-left: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gray-400);
+}
+
+/* ── The Command Family ────────────────────────────────────────── */
+
+.command-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.command-card {
+  background: var(--bg-warm);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  transition:
+    border-color var(--duration-normal) var(--ease-default),
+    transform var(--duration-normal) var(--ease-default),
+    box-shadow var(--duration-normal) var(--ease-default);
+}
+
+.command-card:hover {
+  border-color: var(--accent-warm-200);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(26, 22, 17, 0.05);
+}
+
+.gemba-section-warm .command-card,
+.gemba-section-amber .command-card {
+  background: var(--bg-page);
+}
+
+.command-card .command-name {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--text-body-size);
+  color: var(--gray-900);
+  margin-bottom: var(--space-1);
+}
+
+.command-card .command-step {
+  font-family: var(--font-mono);
+  font-size: var(--text-badge-size);
+  color: var(--amber-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-3);
+}
+
+.command-card .command-desc {
+  font-size: var(--text-small-size);
+  line-height: 1.55;
+  color: var(--gray-500);
+}
+
+/* ── The Two Surfaces ──────────────────────────────────────────── */
+
+/* Every step ships twice. One card holds the terminal and one holds
+   the CI action. */
+.surface-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+.surface-card {
+  background: var(--bg-warm);
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  transition:
+    border-color var(--duration-normal) var(--ease-default),
+    transform var(--duration-normal) var(--ease-default);
+}
+
+.surface-card:hover {
+  border-color: var(--accent-warm-200);
+  transform: translateY(-2px);
+}
+
+.gemba-section-warm .surface-card,
+.gemba-section-amber .surface-card {
+  background: var(--bg-page);
+}
+
+.surface-card .surface-kind {
+  font-family: var(--font-mono);
+  font-size: var(--text-badge-size);
+  color: var(--amber-600);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2);
+}
+
+.surface-card .surface-name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-h3-size);
+  color: var(--gray-900);
+  margin-bottom: var(--space-3);
+}
+
+.surface-card .surface-desc {
+  font-size: var(--text-body-size);
+  line-height: 1.6;
+  color: var(--gray-500);
+}
+
+/* ── Getting Started and Terminal ──────────────────────────────── */
+
+.getting-started-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-display-size);
+  line-height: 1.12;
+  color: var(--gray-900);
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.getting-started-sub {
+  font-size: 1.125rem;
+  color: var(--gray-500);
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.terminal {
+  background: var(--bg-inverted);
+  border-radius: var(--radius-md);
+  padding: 0;
+  max-width: 680px;
+  margin: 0 auto;
+  overflow: hidden;
+  box-shadow:
+    0 24px 80px rgba(26, 22, 17, 0.15),
+    0 8px 24px rgba(26, 22, 17, 0.1);
+}
+
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-badge-size);
+  color: var(--gray-300);
+}
+
+.terminal-lines {
+  padding: var(--space-6);
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+  line-height: 2;
+}
+
+.terminal-line {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 300ms var(--ease-default),
+    transform 300ms var(--ease-default);
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+/* main.js adds .typing to .terminal-lines on first entry. */
+.terminal-lines.typing .terminal-line:nth-child(1) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0ms;
+}
+
+.terminal-lines.typing .terminal-line:nth-child(2) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 400ms;
+}
+
+.terminal-lines.typing .terminal-line:nth-child(3) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 800ms;
+}
+
+.terminal-lines.typing .terminal-line:nth-child(4) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 1200ms;
+}
+
+.terminal-prompt {
+  color: var(--amber-400);
+  user-select: none;
+}
+
+.terminal-cmd {
+  color: var(--text-on-dark);
+}
+
+/* gray-400 reaches only 3.8 on the inverted surface. The palette
+   names gray-300 as the secondary value on dark, and it reaches
+   7.7. */
+.terminal-comment {
+  color: var(--gray-300);
+}
+
+.terminal-string {
+  color: var(--amber-200);
+}
+
+.closing-note {
+  text-align: center;
+  font-size: var(--text-small-size);
+  color: var(--gray-500);
+  max-width: 560px;
+  margin: var(--space-12) auto 0;
+}
+
+.closing-note code {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--gray-700);
+  background: var(--gray-50);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Stagger Reveal ────────────────────────────────────────────── */
+
+/* main.js adds .visible to each .stagger-item inside a .stagger
+   container and sets an 80ms step through transition-delay. */
+.stagger-item {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 400ms var(--ease-default),
+    transform 400ms var(--ease-default);
+}
+
+.stagger-item.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── The Trace Mark ────────────────────────────────────────────── */
+
+/* A rising staircase of five treads over a dashed return sweep. One
+   tread stands for one step. Every element carries
+   vector-effect: non-scaling-stroke, so each named weight renders at
+   its pixel value at any size. */
+.trace-mark .trace-tread,
+.trace-mark .trace-riser,
+.trace-mark .trace-return {
+  stroke: var(--gray-300);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.trace-mark .trace-tread {
+  stroke-width: 1.5;
+}
+
+.trace-mark .trace-riser {
+  stroke-width: 1;
+}
+
+.trace-mark .trace-return {
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+/* Hero size. 160 by 60 pixels. */
+.trace-mark-hero .trace-tread {
+  stroke-width: 2;
+}
+
+.trace-mark-hero .trace-riser {
+  stroke-width: 1.5;
+}
+
+.trace-mark-hero .trace-return {
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+}
+
+/* Wordmark size. The five treads sit flat on one baseline. The
+   variant carries no risers and no sweep. */
+.trace-mark-flat .trace-tread {
+  stroke-width: 1;
+}
+
+.trace-mark-flat .trace-riser,
+.trace-mark-flat .trace-return {
+  display: none;
+}
+
+/* The dark footer draws the mark in the light text value. */
+.site-footer .trace-mark .trace-tread,
+.site-footer .trace-mark .trace-riser,
+.site-footer .trace-mark .trace-return {
+  stroke: var(--text-on-dark);
+}
+
+/* Step coverage. A page about one step lights that tread. Amber on a
+   tread is a line-art stroke, so the palette rule holds. */
+.trace-mark .trace-tread.lit {
+  stroke: var(--accent-warm-400);
+  stroke-width: 2;
+}
+
+.trace-mark-hero .trace-tread.lit {
+  stroke-width: 2.5;
+}
+
+.trace-mark:has(.lit) .trace-tread:not(.lit) {
+  stroke-width: 0.75;
+}
+
+/* ── Trace Mark: Section Divider ───────────────────────────────── */
+
+.trace-divider {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-24) 0;
+}
+
+.trace-divider .trace-mark {
+  width: 64px;
+  height: 24px;
+}
+
+/* ── Trace Mark: Advance ───────────────────────────────────────── */
+
+/* Add .reveal to the mark to arm the sequence. main.js adds .visible
+   on first entry into the viewport, and the sequence then runs once.
+   Each tread draws over 240ms and starts 120ms after the one before
+   it. The sweep arrives last over 400ms. The total is about 1120ms.
+   A mark with no .reveal renders complete and static. */
+.trace-mark.reveal .trace-tread {
+  stroke-dasharray: 12;
+  stroke-dashoffset: 12;
+}
+
+.trace-mark.reveal .trace-return {
+  opacity: 0;
+}
+
+.trace-mark.reveal.visible .trace-tread {
+  animation: traceDraw 240ms var(--ease-default) forwards;
+}
+
+.trace-mark.reveal.visible .trace-tread:nth-of-type(1) {
+  animation-delay: 0ms;
+}
+
+.trace-mark.reveal.visible .trace-tread:nth-of-type(2) {
+  animation-delay: 120ms;
+}
+
+.trace-mark.reveal.visible .trace-tread:nth-of-type(3) {
+  animation-delay: 240ms;
+}
+
+.trace-mark.reveal.visible .trace-tread:nth-of-type(4) {
+  animation-delay: 360ms;
+}
+
+.trace-mark.reveal.visible .trace-tread:nth-of-type(5) {
+  animation-delay: 480ms;
+}
+
+.trace-mark.reveal.visible .trace-return {
+  animation: traceSweep var(--duration-slow) var(--ease-default) 720ms forwards;
+}
+
+@keyframes traceDraw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes traceSweep {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── Trace Mark: Running ───────────────────────────────────────── */
+
+/* The loading state steps the lamp one station per 600ms and loops
+   from measure back to stand up. */
+.trace-mark.running .trace-tread {
+  animation: traceLamp 3s steps(1, end) infinite;
+}
+
+.trace-mark.running .trace-tread:nth-of-type(1) {
+  animation-delay: 0ms;
+}
+
+.trace-mark.running .trace-tread:nth-of-type(2) {
+  animation-delay: 600ms;
+}
+
+.trace-mark.running .trace-tread:nth-of-type(3) {
+  animation-delay: 1200ms;
+}
+
+.trace-mark.running .trace-tread:nth-of-type(4) {
+  animation-delay: 1800ms;
+}
+
+.trace-mark.running .trace-tread:nth-of-type(5) {
+  animation-delay: 2400ms;
+}
+
+@keyframes traceLamp {
+  0%,
+  20% {
+    stroke: var(--accent-warm-400);
+  }
+  20.01%,
+  100% {
+    stroke: var(--gray-300);
+  }
+}
+
+/* ── Trace Mark: Reduced Motion ────────────────────────────────── */
+
+/* base.css clamps animation duration. This rule is explicit, so the
+   mark never depends on that clamp for a correct first paint. Under
+   reduced motion the mark renders complete and static, and the lamp
+   stops cycling. */
+/* The armed and running selectors carry three and four classes, so
+   each one is repeated here. A media query adds no specificity, and
+   the shorter selector alone would lose to them. */
+@media (prefers-reduced-motion: reduce) {
+  .trace-mark .trace-tread,
+  .trace-mark .trace-riser,
+  .trace-mark .trace-return,
+  .trace-mark.reveal .trace-tread,
+  .trace-mark.reveal .trace-return,
+  .trace-mark.running .trace-tread,
+  .trace-mark.reveal.visible .trace-tread,
+  .trace-mark.reveal.visible .trace-return {
+    stroke: var(--gray-300);
+    stroke-dashoffset: 0;
+    opacity: 1;
+    animation: none;
+  }
+
+  .trace-mark .trace-tread.lit,
+  .trace-mark.reveal .trace-tread.lit,
+  .trace-mark.reveal.visible .trace-tread.lit {
+    stroke: var(--accent-warm-400);
+  }
+
+  .scroll-line {
+    animation: none;
+  }
+}
+
+/* ── Footer ────────────────────────────────────────────────────── */
+
+/* The template puts .footer-brand and .footer-tagline in the dark
+   footer, and no shared layer styles them. */
+.footer-brand {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-on-dark);
+}
+
+.footer-tagline {
+  font-family: var(--font-sans);
+  font-size: var(--text-small-size);
+  color: var(--gray-300);
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
+
+@media (max-width: 960px) {
+  .step-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --text-hero-size: 2.75rem;
+    --text-display-size: 2rem;
+    --space-24: 64px;
+    --space-16: 48px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .command-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .surface-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-number {
+    font-size: 2.5rem;
+  }
+
+  .trace-divider {
+    padding: var(--space-16) 0;
+  }
+
+  .gemba-hero .trace-mark-hero {
+    width: 120px;
+    height: 45px;
+  }
+
+  .terminal {
+    margin: 0 calc(-1 * var(--space-4));
+    border-radius: var(--radius-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .step-grid {
+    grid-template-columns: 1fr;
+  }
+}

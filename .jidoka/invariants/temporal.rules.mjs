@@ -111,7 +111,7 @@ const BASE_GLOBS = [
   // The collision-ledger guide shows example CLI output whose anchor ids
   // (` #97`, ` #44`) are runtime identifiers. They are not issue references.
   // They trip the space-prefixed numeric pattern.
-  "!websites/fit/docs/libraries/predictable-team/collision-ledger/index.md",
+  "!websites/gemba/docs/predictable-team/collision-ledger/index.md",
   // Co-located action sources are byte-faithful projections of their sibling
   // repos, mirrored here verbatim. Their READMEs cross-reference the
   // siblings' own history. A reword would diverge the projection. So they are

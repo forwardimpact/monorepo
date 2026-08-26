@@ -166,13 +166,13 @@ export const definition = {
   documentation: [
     {
       title: "Run a Benchmark",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/run-benchmark/index.md",
       description:
         "Author a coding-task family, run a benchmark across multiple runs, and read the pass@k report.",
     },
     {
       title: "Automate with GitHub Actions",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/run-benchmark/ci-workflow/index.md",
       description:
         "Run benchmarks in CI with the forwardimpact/gemba-benchmark action.",
     },

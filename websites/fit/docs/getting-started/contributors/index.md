@@ -56,9 +56,9 @@ bun run check
 bun run test
 ```
 
-`bun run check` runs `format`, `lint`, `jsdoc`, `invariants`, `context`, and
-`wiki` sequentially so you can spot failures easily. `bun run test` runs unit
-tests (`bun test`) separately so test output does not bury check failures.
+`bun run check` runs `format`, `lint`, `jsdoc`, `invariants`, and `context`
+sequentially so you can spot failures easily. `bun run test` runs unit tests
+(`bun test`) separately so test output does not bury check failures.
 
 To fix format and lint issues automatically:
 
@@ -75,7 +75,7 @@ services/       gRPC microservices supervised by fit-rc
 data/           Generated and standard data
 config/         Service and tool configuration
 specs/          Feature specifications and plans
-websites/       Public site sources (websites/fit/, websites/kata/, …)
+websites/       Site sources: fit, gemba, kata, jidoka, monorepo
 ```
 
 The products tree holds these
@@ -125,9 +125,11 @@ The services tree holds these gRPC microservices:
 engineering looks like. Pathway renders agent-aligned engineering standards.
 Outpost manages personal knowledge. Guide interprets artifacts. Summit models
 team capability. Landmark surfaces engineering-system signals from Map's
-activity layer. Kata orchestrates an autonomous agent team that ships and
-improves itself. Gear is a meta-package that re-exports all service and library
-CLIs as dependencies.
+activity layer. Gear is a meta-package that re-exports all service and library
+CLIs as dependencies. Kata, Gemba, and Jidoka are repository neighbours that
+publish their own sites at [kata.team](https://www.kata.team/),
+[gemba.team](https://www.gemba.team/), and
+[jidoka.team](https://www.jidoka.team/).
 
 **Libraries** provide shared logic that follows OO+DI patterns. Classes accept
 dependencies through constructors. Factory functions wire real implementations.

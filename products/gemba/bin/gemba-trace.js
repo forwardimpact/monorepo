@@ -457,19 +457,19 @@ const definition = {
   documentation: [
     {
       title: "Analyze Traces",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/trace-analysis/index.md",
       description:
         "The full method walkthrough with worked examples (an eval that failed, a multi-agent session that stalled).",
     },
     {
       title: "Run an Eval",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/run-eval/index.md",
       description:
         "How `gemba-harness supervise` produces the traces this skill analyzes.",
     },
     {
       title: "Prove Agent Changes",
-      url: "https://www.forwardimpact.team/docs/libraries/prove-changes/index.md",
+      url: "https://www.gemba.team/docs/prove-changes/index.md",
       description:
         "End-to-end workflow that covers multi-agent collaboration. `split` is the bridge into per-source trace files.",
     },

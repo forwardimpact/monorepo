@@ -80,6 +80,7 @@ websites/**/*.svg
 websites/**/assets/base.css
 websites/**/assets/layout.css
 websites/**/assets/components.css
+websites/**/assets/main.js
 
 # Outpost build output
 products/outpost/dist/

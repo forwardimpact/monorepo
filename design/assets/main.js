@@ -91,3 +91,44 @@ if (reveals.length > 0) {
 
   reveals.forEach((el) => observer.observe(el));
 }
+
+/* ── Terminal Type-Out ─────────────────────────────────────────── */
+
+const terminal = document.querySelector(".terminal-lines");
+if (terminal) {
+  const terminalObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          terminal.classList.add("typing");
+          terminalObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.5 },
+  );
+
+  terminalObserver.observe(terminal);
+}
+
+/* ── Stagger Reveal ────────────────────────────────────────────── */
+
+document.querySelectorAll(".stagger").forEach((container) => {
+  const children = container.querySelectorAll(".stagger-item");
+  const staggerObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          children.forEach((child, index) => {
+            child.style.transitionDelay = `${index * 80}ms`;
+            child.classList.add("visible");
+          });
+          staggerObserver.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.15 },
+  );
+
+  staggerObserver.observe(container);
+});

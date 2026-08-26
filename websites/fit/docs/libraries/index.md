@@ -1,31 +1,13 @@
 ---
 title: Library Guides
-description: Workflow guides for the shared libraries that give humans and agents the same capabilities. They cover memory, coordination, interfaces, knowledge, contracts, lifecycle, and evals.
+description: Workflow guides for the shared libraries that give humans and agents the same capabilities. They cover coordination, interfaces, knowledge, contracts, lifecycle, skill packs, and synthetic environments.
 layout: product
 toc: false
 ---
 
-## Operate a Predictable Agent Team (Engineers)
-
-<div class="grid">
-
-<!-- part:card:predictable-team -->
-
-<!-- part:card:predictable-team/wiki-operations -->
-
-<!-- part:card:predictable-team/wiki-integrity -->
-
-<!-- part:card:predictable-team/collision-ledger -->
-
-<!-- part:card:predictable-team/xmr-analysis -->
-
-</div>
-
 ## Coordinate an Agent Team (Builders)
 
 <div class="grid">
-
-<!-- part:card:coordinate-team -->
 
 <!-- part:card:bridge-channels -->
 
@@ -99,24 +81,6 @@ toc: false
 
 </div>
 
-## Prove Agent Changes (Builders)
-
-<div class="grid">
-
-<!-- part:card:prove-changes -->
-
-<!-- part:card:prove-changes/run-eval -->
-
-<!-- part:card:prove-changes/run-benchmark -->
-
-<!-- part:card:prove-changes/run-benchmark/ci-workflow -->
-
-<!-- part:card:prove-changes/trace-analysis -->
-
-<!-- part:card:prove-changes/generate-dataset -->
-
-</div>
-
 ## Distribute Skill Packs (Builders)
 
 <div class="grid">
@@ -129,9 +93,11 @@ toc: false
 
 </div>
 
-## Provision Substrate Identities (Builders)
+## Generate Synthetic Environments (Builders)
 
 <div class="grid">
+
+<!-- part:card:generate-dataset -->
 
 <!-- part:card:substrate-contract -->
 

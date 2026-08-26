@@ -42,6 +42,17 @@ export function resolvePartials(
       );
     }
 
+    // A redirect page may not be a partial target. A card or a link built from
+    // a stub would carry the stub's own title and would bounce the reader to
+    // another address. The build stops instead. The author then points the
+    // marker at a page that stays on this site, or writes the external link
+    // by hand.
+    if (meta.redirect) {
+      throw new Error(
+        `Partial target "${partialPath}" is a redirect stub (referenced from ${src}). Point the marker at a page on this site, or write the link by hand.`,
+      );
+    }
+
     const currentUrlPath = urlPathFromMdFile(
       currentPageDir === "." ? "index.md" : currentPageDir + "/index.md",
     );

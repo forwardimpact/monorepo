@@ -214,17 +214,39 @@ also lists the `Edit()` rules it tried.
 
 ## Documentation
 
-- [Coordinate an Agent Team](https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md)
+- [Coordinate an Agent Team](https://www.gemba.team/docs/coordinate-team/index.md)
   — run a lead and N participant agents in one async session (supervise /
   facilitate / discuss) with Ask/Answer/Announce and a single NDJSON trace.
-- [Run an Eval](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md)
+- [Run an Eval](https://www.gemba.team/docs/prove-changes/run-eval/index.md)
   — author a judge profile, run an eval locally, wire it into CI, and inspect
   the trace it produces.
-- [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
+- [Prove Agent Changes](https://www.gemba.team/docs/prove-changes/index.md)
   — the end-to-end workflow from dataset generation through evaluation to
   trace analysis, with multi-agent collaboration sessions.
-- [Analyze Traces](https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md)
+- [Analyze Traces](https://www.gemba.team/docs/prove-changes/trace-analysis/index.md)
   — read the NDJSON traces produced by `gemba-harness` with `gemba-trace`.
 - [Agent Teams](https://www.forwardimpact.team/docs/products/agent-teams/index.md)
   — author the profiles consumed by `--agent-profile`, `--lead-profile`, and
   `--agent-profiles`.
+
+## Documentation home
+
+libharness is an import-only library. It declares no `bin`. The
+`gemba-harness`, `gemba-trace`, `gemba-benchmark`, and `gemba-selfedit`
+commands ship with the Gemba product, which imports these modules. Run them
+with `npx gemba-harness`, `npx gemba-trace`, or `npx gemba-benchmark`, or use
+the installed `gemba-*` binaries. `gemba-selfedit` publishes no bare launcher.
+Install `@forwardimpact/gemba` to get it.
+
+The package publishes as `@forwardimpact/libharness` on the Forward Impact npm
+scope. Install it with `npm install @forwardimpact/libharness`. Its task guides
+live on the Gemba site at <https://www.gemba.team/>. The Forward Impact library
+guide tree at <https://www.forwardimpact.team/docs/libraries/index.md> is not
+this library's guide home.
+
+**Decision (2026-08-26):** the split package scope and guide host are
+deliberate. libharness stays a Gear npm package, so `package.json .homepage`
+keeps <https://www.forwardimpact.team>. The agent-runtime guides moved to
+gemba.team with the rest of the Gemba product. The `## Documentation` list
+above carries the current URLs. Old `forwardimpact.team/docs/libraries/`
+addresses forward to gemba.team.

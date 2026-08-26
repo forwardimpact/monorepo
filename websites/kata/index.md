@@ -190,27 +190,27 @@ layout: home
       <div class="surface-item stagger-item">
         <span class="surface-icon">&#x23f0;</span>
         <div class="surface-name">Scheduled Shifts</div>
-        <div class="surface-mechanism">Cron &rarr; kata-shift</div>
+        <div class="surface-mechanism">Cron &rarr; agent-shift</div>
       </div>
       <div class="surface-item stagger-item">
         <span class="surface-icon">&#x1f4a1;</span>
         <div class="surface-name">GitHub Issues</div>
-        <div class="surface-mechanism">Event &rarr; kata-dispatch</div>
+        <div class="surface-mechanism">Event &rarr; agent-dispatch</div>
       </div>
       <div class="surface-item stagger-item">
         <span class="surface-icon">&#x1f500;</span>
         <div class="surface-name">GitHub PRs</div>
-        <div class="surface-mechanism">Event &rarr; kata-dispatch</div>
+        <div class="surface-mechanism">Event &rarr; agent-dispatch</div>
       </div>
       <div class="surface-item stagger-item">
         <span class="surface-icon">&#x1f4ac;</span>
         <div class="surface-name">GitHub Discussions</div>
-        <div class="surface-mechanism">Bridge &rarr; kata-dispatch</div>
+        <div class="surface-mechanism">Bridge &rarr; agent-dispatch</div>
       </div>
       <div class="surface-item stagger-item">
         <span class="surface-icon">&#x1f4e8;</span>
         <div class="surface-name">Microsoft Teams</div>
-        <div class="surface-mechanism">Bridge &rarr; kata-dispatch</div>
+        <div class="surface-mechanism">Bridge &rarr; agent-dispatch</div>
       </div>
     </div>
   </div>
@@ -245,5 +245,6 @@ layout: home
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Setup the Kata Team"</span><span class="terminal-cmd"> | claude</span></div>
       </div>
     </div>
+    <p class="closing-note reveal">Take the full path in <a href="/docs/getting-started/">Get started</a>, then read the <a href="/docs/">documentation</a>.</p>
   </div>
 </div>

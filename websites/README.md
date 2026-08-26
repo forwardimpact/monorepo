@@ -1,5 +1,11 @@
 # Documentation Map
 
+This map covers `websites/fit/` only. Gemba, Kata and Jidoka each publish their
+own guide map on their own site:
+[www.gemba.team](https://www.gemba.team/),
+[www.kata.team](https://www.kata.team/), and
+[www.jidoka.team](https://www.jidoka.team/).
+
 ## Getting Started Map
 
 | Persona             | Hub path                        | Product pages                     |
@@ -16,6 +22,9 @@ Every guide maps to a Big Hire or Little Hire from [JTBD.md](/JTBD.md),
 Little Hire guides are nested children. When earlier jobs merge into one job,
 that job keeps multiple Big Hire trees. Slugs are published URLs and do not
 move (see [CLAUDE.md § Guide Pages](CLAUDE.md)).
+
+A redirect stub does not appear in this map. A stub is a forwarding address for
+a slug that moved to another site.
 
 ### Product Guides
 
@@ -75,21 +84,10 @@ move (see [CLAUDE.md § Guide Pages](CLAUDE.md)).
 
 ### Library Guides
 
-**Operate a Predictable Agent Team** (Engineers → libwiki, libxmr)
+**Coordinate an Agent Team** (Builders → libbridge)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
-| Big | `predictable-team/` | Set Up Persistent Memory and Metrics |
-| Little | `predictable-team/wiki-operations/` | Send a Memo or Update a Storyboard |
-| Little | `predictable-team/wiki-integrity/` | Audit and Auto-Fix the Wiki |
-| Little | `predictable-team/collision-ledger/` | Allocate Collision-Ledger Entries for Parallel Work |
-| Little | `predictable-team/xmr-analysis/` | Chart a Metric and Check Variation |
-
-**Coordinate an Agent Team** (Builders → libbridge, libharness)
-
-| Hire | Path | Title |
-| ---- | ---- | ----- |
-| Big | `coordinate-team/` | Coordinate an Agent Team |
 | Big | `bridge-channels/` | Bridge a Threaded Channel to the Agent Team |
 
 **Enable Agents on Every Surface** (Builders → libcli, libdoc, libformat,
@@ -141,17 +139,6 @@ libtelemetry, libinvariant)
 | Little | `service-lifecycle/manage-service/` | Start, Stop, or Check a Service |
 | Little | `service-lifecycle/add-observability/` | Add Observability |
 
-**Prove Agent Changes** (Builders → libharness, libterrain)
-
-| Hire | Path | Title |
-| ---- | ---- | ----- |
-| Big | `prove-changes/` | Prove Agent Changes |
-| Little | `prove-changes/run-eval/` | Run an Eval |
-| Little | `prove-changes/run-benchmark/` | Run a Benchmark |
-| Little | `prove-changes/run-benchmark/ci-workflow/` | Automate with GitHub Actions |
-| Little | `prove-changes/trace-analysis/` | Analyze Traces |
-| Little | `prove-changes/generate-dataset/` | Generate an Eval Dataset |
-
 **Distribute Skill Packs** (Builders → libpack)
 
 | Hire | Path | Title |
@@ -159,6 +146,14 @@ libtelemetry, libinvariant)
 | Big | `distribute-skill-packs/` | Distribute Skill Packs |
 | Little | `distribute-skill-packs/tarball-distribution/` | Build Tarball and Git-Repo Packs |
 | Little | `distribute-skill-packs/discovery-index/` | Publish a Skill Discovery Index |
+
+**Generate Synthetic Environments** (Builders → libterrain, libsyntheticgen,
+libsyntheticprose, libsyntheticrender)
+
+| Hire | Path | Title |
+| ---- | ---- | ----- |
+| Big | `generate-dataset/` | Generate a Synthetic Dataset |
+| Big | `substrate-contract/` | The Substrate Contract |
 
 ### Service Guides
 
@@ -168,7 +163,7 @@ tenancy)
 | Hire | Path | Title |
 | ---- | ---- | ----- |
 | Big | `bridge-conversations/` | Bridge Microsoft Teams to the Agent Team |
-| Little | `bridge-conversations/dispatch-from-chat/` | Dispatch a Kata Session From a Teams Mention |
+| Little | `bridge-conversations/dispatch-from-chat/` | Dispatch an Agent Session From a Teams Mention |
 | Big | `bridge-discussions/` | Bridge GitHub Discussions to the Agent Team |
 | Little | `bridge-discussions/resume-recessed/` | Resume a Recessed RFC When a Trigger Fires |
 
@@ -196,9 +191,9 @@ tenancy)
 | Big | `typed-contracts/` | Expose Backend Services as Agent Tools |
 | Little | `typed-contracts/add-service/` | Add a Service to the MCP Surface |
 
-**Prove Agent Changes** (Builders → trace)
+**Collect Telemetry from Every Product** (Builders → trace)
 
 | Hire | Path | Title |
 | ---- | ---- | ----- |
-| Big | `prove-changes/` | Collect Spans from Any Product |
-| Little | `prove-changes/send-spans/` | Send Spans from a Product |
+| Big | `collect-spans/` | Collect Spans from Any Product |
+| Little | `collect-spans/send-spans/` | Send Spans from a Product |

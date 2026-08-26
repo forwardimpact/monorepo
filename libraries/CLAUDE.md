@@ -13,7 +13,7 @@ reach it when they load the matching skill. They never clone the repo.
 Write `--help` output, skill instructions, and published guides for that
 reader. Keep each one self-contained. Do not reference insider tooling. Do not
 use relative paths into `libraries/` or `websites/`. Make every doc link a
-fully-qualified public URL.
+fully-qualified public URL on the library's own guide host (§ Linking rule).
 
 ### Mandate
 
@@ -60,8 +60,8 @@ must exist together. They give an external reader the same docs from any entry
 point:
 
 - **User guides** under `websites/fit/docs/libraries/<task-slug>/index.md`.
-  A CLI may carry multiple task guides (e.g. `gemba-harness` links to
-  `agent-evaluations`, `agent-collaboration`, `trace-analysis`).
+  A CLI may carry multiple task guides (e.g. `fit-terrain` links to
+  `generate-dataset` and `substrate-contract`).
 - **Skill** at `.claude/skills/fit-<name>/SKILL.md`.
 - **CLI `--help`** — `documentation` entries on the libcli definition, one
   per linked guide.
@@ -70,24 +70,32 @@ The six runtime commands (`gemba-harness`, `gemba-trace`, `gemba-benchmark`,
 `gemba-selfedit`, `gemba-wiki`, `gemba-xmr`) are the exception. Their bins and
 skills belong to the Gemba product (`products/gemba/bin/`,
 `.claude/skills/gemba-*/`). `libharness`, `libwiki`, and `libxmr` remain
-import-only libraries. Their guides still live under `/docs/libraries/`.
+import-only libraries. Their guides live on `www.gemba.team`, at
+`websites/gemba/docs/<task-slug>/index.md`, with no `libraries/` tier. The
+`libbridge` and `libterrain` guides stay on `www.forwardimpact.team`.
 
 ### Linking rule
 
 The skill `## Documentation` list and the CLI `documentation` array carry the
-same entries, in the same order, with the same titles and URLs:
+same entries, in the same order, with the same titles and URLs. Each library
+cites the host that publishes its guide:
 
 ```text
 https://www.forwardimpact.team/docs/libraries/<task-slug>/index.md
+https://www.gemba.team/docs/<task-slug>/index.md
 ```
 
-Slugs are task-shaped (`trace-analysis`). Do not shape a slug after a library
+The `libharness`, `libwiki`, and `libxmr` guides cite `www.gemba.team`. Every
+other library, `libbridge` and `libterrain` included, cites
+`www.forwardimpact.team`.
+
+Slugs are task-shaped (`every-surface`). Do not shape a slug after a library
 name. The `.md` extension is deliberate. Agents fetch markdown more reliably
 than rendered HTML. The URL also maps one-to-one to the source file.
-Product-task guides (engineer/leadership audience) live under `/docs/products/`
-instead. See [products/CLAUDE.md](../products/CLAUDE.md). A library CLI may
-cross-link to a product guide when the task naturally cuts across both
-audiences.
+Product-task guides (engineer/leadership audience) live under
+`www.forwardimpact.team/docs/products/` instead. See
+[products/CLAUDE.md](../products/CLAUDE.md). A library CLI may cross-link to a
+product guide when the task naturally cuts across both audiences.
 
 ## Add a library
 

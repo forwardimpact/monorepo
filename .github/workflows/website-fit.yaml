@@ -6,6 +6,7 @@ on:
     paths:
       - "websites/fit/**"
       - "design/fit/**"
+      - "design/assets/**"
       - "libraries/libdoc/**"
       - ".github/workflows/website-fit.yaml"
       - ".github/workflows/website.yml"

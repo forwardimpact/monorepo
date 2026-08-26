@@ -614,6 +614,14 @@
   color: var(--ink-200);
 }
 
+.closing-note {
+  text-align: center;
+  font-size: var(--text-small-size);
+  color: var(--gray-500);
+  max-width: 560px;
+  margin: var(--space-12) auto 0;
+}
+
 /* ── Stagger Reveal ────────────────────────────────────────────── */
 
 .stagger-item {

@@ -39,13 +39,13 @@ const runtime = withEmbeddedAssets(createDefaultRuntime());
 const documentation = [
   {
     title: "Prove Agent Changes",
-    url: "https://www.forwardimpact.team/docs/libraries/prove-changes/index.md",
+    url: "https://www.gemba.team/docs/prove-changes/index.md",
     description:
       "End-to-end workflow from dataset generation through evaluation to trace analysis.",
   },
   {
-    title: "Generate an Eval Dataset",
-    url: "https://www.forwardimpact.team/docs/libraries/prove-changes/generate-dataset/index.md",
+    title: "Generate a Synthetic Dataset",
+    url: "https://www.forwardimpact.team/docs/libraries/generate-dataset/index.md",
     description:
       "Use the Terrain DSL to define and generate synthetic datasets.",
   },

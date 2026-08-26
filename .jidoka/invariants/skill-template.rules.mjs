@@ -11,6 +11,11 @@
 // three packs. It also owns the bare-CLI rule for the jidoka-* and monorepo-*
 // packs genericity does not scan. fit-* skills are out of scope for both
 // modules. They do not follow the template yet.
+//
+// Deliberate gap: gemba-* skills stay out of PACK_SKILL, so no template gate
+// covers them. They name their own published CLI in the H1 on purpose, and
+// skills.h1-descriptive reads that as the skill id. Adding them needs an H1
+// pass on the pack first.
 
 const PACK_SKILL =
   /^\.claude\/skills\/(kata|jidoka|monorepo)-[^/]+\/SKILL\.md$/;

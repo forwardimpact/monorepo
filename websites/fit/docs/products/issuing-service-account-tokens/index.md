@@ -31,13 +31,13 @@ project. Engineers do not run it.
 ## Mint a token
 
 ```sh
-fit-map auth issue --email kata-agent-team@example.com
+fit-map auth issue --email reporting-agent@example.com
 ```
 
 The verb prints the JWT followed by an export hint:
 
 ```text
-Issued JWT for kata-agent-team@example.com (service_account, ttl=8760h)
+Issued JWT for reporting-agent@example.com (service_account, ttl=8760h)
 
 eyJhbGciOi...
 
@@ -62,9 +62,9 @@ Terrain fixtures declare service-account rows alongside humans:
 people {
   count 50
   ...
-  service_account "kata-agent-team" {
-    name "Kata Agent Team"
-    email "kata-agent-team@example.com"
+  service_account "reporting-agent" {
+    name "Reporting Agent"
+    email "reporting-agent@example.com"
   }
 }
 ```

@@ -25,8 +25,9 @@
 // skills plus the agent references, which now live flat at
 // .claude/agents/x-*.md. See the globs in build().
 // This rule deliberately does NOT scan the six agent profiles. They carry
-// internal contributor tooling (bun run check:fix, bunx fit-doc, websites/fit).
-// A change to make them pack-generic is out of this rule's scope.
+// internal contributor tooling (bun run check:fix, bunx fit-doc, and
+// hardcoded websites/<site> paths). A change to make them pack-generic is
+// out of this rule's scope.
 //
 // A second, separate guard ("agent-naming") scans every .claude/agents/*.md
 // file, profiles and references alike. It asserts that the x- naming
@@ -86,7 +87,7 @@ const PATTERNS = [
     reason: "workspace scope — use @<scope>/<pkg>",
   },
   {
-    pattern: "websites/(fit|kata|jidoka|monorepo)\\b",
+    pattern: "websites/(fit|gemba|kata|jidoka|monorepo)\\b",
     reason: "internal site name — use websites/<site>",
   },
   {

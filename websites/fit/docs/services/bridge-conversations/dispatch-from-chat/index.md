@@ -1,11 +1,11 @@
 ---
-title: Dispatch a Kata Session From a Teams Mention
-description: Trace what happens between an `@Kata Agent` mention in Teams and the verdict reply posted back to the same thread.
+title: Dispatch an Agent Session From a Teams Mention
+description: Trace what happens between a bot mention in Teams and the verdict reply posted back to the same thread.
 ---
 
-A user mentions `@Kata Agent` in a Teams thread. The bridge must take that
-message and build a prompt that carries the conversation history. It must
-dispatch the Kata agent team. It must acknowledge the user while the team
+A user mentions the configured bot in a Teams thread. The bridge must take
+that message and build a prompt that carries the conversation history. It
+must dispatch the agent team. It must acknowledge the user while the team
 runs. It must post the reply back into the same thread when the workflow
 finishes. It must not lose the correlation between the dispatch and the
 callback. This page traces the bounded flow for one dispatch. Use the page
@@ -13,14 +13,16 @@ to read logs, debug mismatches, and predict the bridge's behaviour.
 
 For the full setup with credentials and the tunnel, see
 [Bridge Microsoft Teams to the Agent Team](/docs/services/bridge-conversations/).
+The [Kata agent team](https://www.kata.team/) ships the reference dispatch
+workflow.
 
 ## Prerequisites
 
 - Complete the
   [Bridge Microsoft Teams to the Agent Team](/docs/services/bridge-conversations/)
   guide. `msbridge` runs. The tunnel is published. The Teams app is
-  sideloaded. The bridge acknowledges `@Kata Agent hello` in your test
-  thread.
+  sideloaded. The bridge acknowledges a mention of the configured bot in
+  your test thread.
 
 ## The dispatch sequence
 
@@ -91,8 +93,9 @@ sequence:
      then posts a randomized typing verb every ~25 seconds (`Moonwalking`,
      `Unravelling`, `Tempering`, `Crafting`, `Simmering`, `Percolating`,
      `Decoding`);
-   - calls `dispatchWorkflow` with the workflow file `kata-dispatch.yml`, the
-     prompt from `buildPrompt(text, ctx.history)`, the callback URL
+   - calls `dispatchWorkflow` with the bridge's configured dispatch
+     workflow file, the prompt from `buildPrompt(text, ctx.history)`, the
+     callback URL
      `${SERVICE_MSBRIDGE_CALLBACK_BASE_URL}/api/callback/<tenant_id>/<token>`
      (`default` tenant when self-hosted), an inbox URL the workflow can poll for
      mid-run messages, and the correlation ID;
@@ -108,7 +111,7 @@ webhook then returns 200 and the bridge waits for the callback.
 
 ## The callback sequence
 
-`kata-dispatch.yml` finishes, or it streams an interim reply mid-run. The
+The dispatch workflow finishes, or it streams an interim reply mid-run. The
 workflow then POSTs to `/api/callback/<tenant_id>/<token>` on the bridge.
 The shared `createCallbackHandler` skeleton from libbridge runs, in
 order:
@@ -200,11 +203,11 @@ hostname.
 
 You have reached the outcome of this guide when:
 
-- A new `@Kata Agent <prompt>` mention shows a `like` reaction on the
+- A new mention of the configured bot shows a `like` reaction on the
   user's message. A typing verb also cycles in the thread within ~25
   seconds of the mention.
 - The Actions tab on the configured repository shows a fresh
-  `kata-dispatch.yml` run triggered by the bridge dispatch.
+  dispatch-workflow run triggered by the bridge dispatch.
 - When the run finishes, the typing ticker stops. The bridge removes the
   reaction. It posts each entry in `payload.replies` as its own message
   in the same thread.

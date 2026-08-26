@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/svcspan",
   "version": "0.1.51",
-  "description": "OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.",
+  "description": "OpenTelemetry span ingestion and storage over gRPC. Collect spans from every product in one place.",
   "keywords": [
     "opentelemetry",
     "spans",
@@ -19,7 +19,7 @@
   "jobs": [
     {
       "user": "Platform Builders",
-      "goal": "Prove Agent Changes",
+      "goal": "Collect Spans from Every Product",
       "trigger": "An engineer finishes an agent improvement. No centralized place exists to store and compare spans.",
       "bigHire": "collect spans from any product without separate storage in each one.",
       "littleHire": "send spans from a product. Trust they are queryable later.",

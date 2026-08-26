@@ -11,7 +11,9 @@ hero:
 
 > "The aim of leadership should be to improve the performance of man and
 > machine, to improve quality, to increase output, and simultaneously to bring
-> pride of workmanship to people." **— W. Edwards Deming**
+> pride of workmanship to people."
+>
+> — W. Edwards Deming
 
 This quote guides how we think about engineering organizations. Too often, the
 conversation about engineering productivity focuses on output measures: story
@@ -96,6 +98,10 @@ what-if scenarios before someone gets set up to fail.
 **Outpost** gives engineers a personal operations center. Scheduled AI tasks
 sync information, prepare briefings, and organize knowledge. Engineers can then
 focus on the work that matters.
+
+**Gear** publishes the libraries and services the suite is built from. Platform
+builders install any subset from npm. Humans and agents then share one
+interface and one set of documentation.
 
 Together, these products equip engineers. They do not monitor or measure them.
 Clear expectations, visible career paths, intelligent assistance, and organized

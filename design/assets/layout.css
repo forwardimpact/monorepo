@@ -220,6 +220,12 @@
   padding-top: 0;
 }
 
+/* A home page writes its own hero heading in the body. The template's
+   fallback page title would then be a second H1. */
+.layout-home .page-title {
+  display: none;
+}
+
 .layout-product .page-content {
   max-width: 720px;
 }
@@ -393,6 +399,25 @@
 
 .toc-nav a:hover {
   color: var(--gray-700);
+}
+
+/* ── Breadcrumbs ───────────────────────────────────────────────── */
+
+.breadcrumbs {
+  margin-bottom: var(--space-4);
+  font-size: var(--text-small-size);
+  color: var(--text-tertiary);
+}
+
+.breadcrumbs a {
+  color: var(--gray-400);
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* ── Footer (Dark) ─────────────────────────────────────────────── */
