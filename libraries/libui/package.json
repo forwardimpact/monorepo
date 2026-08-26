@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libui",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Agent-friendly web surfaces — share handler logic across web and terminal so capabilities ship only once.",
   "keywords": [
     "ui",

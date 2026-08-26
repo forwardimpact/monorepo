@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libbridge",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "description": "Channel-to-agent-team bridge — relay messages between human channels (GitHub Discussions, Microsoft Teams) and the agent team. The bridge handles thread state, multi-tenant routing, rate limits, and resume scheduling once.",
   "keywords": [
     "bridge",

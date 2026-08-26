@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/gemba",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Stand up and operate an agent team — the runtime platform's command family (harness, trace, benchmark, selfedit, wiki, xmr) and CI actions. They consume the runtime libraries.",
   "keywords": [
     "agent",
