@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libharness",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Autonomous agent team harness — coordinate a lead and participant agents in one async session, with eval, benchmark, and trace tooling to prove the changes worked.",
   "keywords": [
     "orchestration",
