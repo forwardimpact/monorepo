@@ -137,11 +137,11 @@ uploads `results.jsonl`.
 ```
 
 All CLI `run` flags are action inputs, plus CI extras (`summary`,
-`upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and a
-`results-path` output. See the action README. For parallelism it takes
-`concurrency` and `shard-index`/`shard-total` with `mode` (`run` a shard, or
-`merge` every shard's partial ledger). A `benchmark.yml` reusable workflow
-fans shards out from one `shard-total` input. See the CI guide below.
+`upload-results`, `artifact-name`, `timeout-minutes`, `k`, `format`) and the
+`results-path` and `trace-dir` outputs. See the action README. For parallelism
+it takes `concurrency` and `shard-index`/`shard-total` with `mode` (`run` a
+shard, or `merge` every shard's partial ledger). A `benchmark.yml` reusable
+workflow fans shards out from one `shard-total` input. See the CI guide below.
 
 | Command | Purpose |
 | --- | --- |
@@ -162,7 +162,7 @@ npx gemba-benchmark report --format=text   # aggregate into pass@k + score@k
 | --- | --- |
 | `{{AGENT_INSTRUCTIONS}}` | Contents of `agent.task.md` |
 | `{{AGENT_PROFILE}}` | Agent profile body (empty string if none) |
-| `{{AGENT_TRACE_PATH}}` | Path to `agent.ndjson` |
+| `{{AGENT_TRACE_PATH}}` | Path to `trace--<case>--agent.agent.ndjson` |
 | `{{GRADE_RESULT}}` | JSON grade object (verdict, gatesPass, score) plus the merged check rows |
 | `{{SKILL_SET_HASH}}` | SHA-256 fingerprint from `apm.lock.yaml` |
 | `{{TASK_ID}}` | Task name (directory under `tasks/`) |
@@ -184,8 +184,8 @@ Records carry the `grade`, the effective `score` (a failed gate, judge, or
 grader zeroes it), skill-set hash, family revision, judge verdict, trace
 paths, cost, turn count, and (on pre-flight failure) a `preflightError`.
 
-Each run produces agent and judge NDJSON traces.
-`gemba-trace overview --file <trace>` reads both.
+Each cell writes convention-named `trace--*` lanes. The action uploads
+them all, failed cells included.
 
 ---
 

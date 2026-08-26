@@ -9,17 +9,19 @@
  *
  *   {{AGENT_INSTRUCTIONS}}  — contents of agent.task.md
  *   {{AGENT_PROFILE}}       — agent profile body (empty string if none)
- *   {{AGENT_TRACE_PATH}}    — path to agent.ndjson
+ *   {{AGENT_TRACE_PATH}}    — absolute path to the cell's agent lane,
+ *                             trace--<case>--agent.agent.ndjson (materialized
+ *                             before any session runs)
  *   {{GRADE_RESULT}}        — JSON grade object plus the merged check rows
  *   {{SKILL_SET_HASH}}      — SHA-256 from apm.lock.yaml
  *   {{TASK_ID}}             — task name (directory under tasks/)
  *   {{TASK_DIR}}            — path to the agent working directory
  *
- * The adapter reads the judge verdict directly from the orchestration
- * context's `concluded` flag. It does not parse the trace on the happy path.
- * `parseConcludeFromTrace` stays for offline analysis. It is also a fallback
- * when the runtime ctx is not available, for example when you re-grade a
- * historical run from its judge.ndjson file.
+ * The judge verdict is captured from the orchestration context's
+ * `concluded` flag directly — no trace parsing on the happy path.
+ * `parseConcludeFromTrace` is preserved for offline analysis and as a
+ * fallback when the runtime ctx isn't available (e.g. re-grading a
+ * historical run from its preserved judge lane file).
  */
 
 import { createJudge } from "../judge.js";

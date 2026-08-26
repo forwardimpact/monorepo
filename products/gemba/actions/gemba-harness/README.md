@@ -45,7 +45,7 @@ the artifact.
 | `agent-cwd`                | No       | `.`                   | Agent working directory (supervise / facilitate / discuss modes)             |
 | `discussion-id`            | No       | —                     | Stable id for the threaded discussion (discuss mode). Enables resume         |
 | `resume-context`           | No       | —                     | JSON-serialized prior state for a resumed discuss run (discuss mode)         |
-| `trace`                    | No       | `true`                | Enable trace capture                                                         |
+| `trace`                    | No       | `true`                | Enable trace capture. Note the asymmetry with the benchmark action's same-named input: here `trace: "false"` disables capture entirely, while the benchmark action always captures and only gates artifact upload and outputs |
 | `timeout-minutes`          | No       | `45`                  | Max runtime in minutes                                                       |
 | `case`                     | No       | `default`             | Case id embedded in trace filenames                                          |
 

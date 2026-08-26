@@ -652,6 +652,7 @@
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.15",
+        "yaml": "^2.9.0",
       },
     },
     "products/guide": {

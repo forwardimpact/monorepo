@@ -38,9 +38,6 @@ function preflightRecord(overrides) {
     skillSetHash: "sha256:a",
     familyRevision: "sha256:b",
     durationMs: 50,
-    agentTracePath: "/tmp/a.ndjson",
-    supervisorTracePath: "/tmp/s.ndjson",
-    judgeTracePath: "/tmp/j.ndjson",
     ...overrides,
   };
 }
