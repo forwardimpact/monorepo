@@ -81,19 +81,23 @@ elsewhere or nowhere.
 
 ## `## Documentation` section
 
-Every `fit-*` or `gemba-*` skill that has a matching CLI must end with a
-`## Documentation` section. That section lists guides as markdown links:
+Every `fit-*` or `gemba-*` skill with a matching CLI ends with a
+`## Documentation` section:
 
 ```markdown
 ## Documentation
 
-- [Guide Title](https://www.forwardimpact.team/docs/<area>/<slug>/index.md) —
+- [Guide Title](https://www.<site>/docs/<area>/<slug>/index.md) —
   One-sentence description
 ```
 
-URLs are fully-qualified paths to the markdown source on
-`www.forwardimpact.team`. Use the `.md` extension. Agents fetch markdown more
-reliably than rendered HTML.
+`fit-*` skills link `www.forwardimpact.team`. `gemba` and `gemba-*` link
+`www.gemba.team`. `kata-*` links `www.kata.team`. `jidoka-*` links
+`www.jidoka.team`. A skill MAY carry more than one host when its task cuts
+across products. `fit-terrain` and `gemba-harness` do.
+
+Use fully-qualified paths to the markdown source with the `.md` extension.
+Agents fetch markdown more reliably than HTML.
 
 ## Parity with CLIs
 

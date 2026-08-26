@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// Enforce a canonical key order, author, and license across every package.json
-// in the monorepo. The script skips node_modules, generated, and tmp. The
-// default mode reports out-of-date files. --fix rewrites them in place.
+// Enforce a canonical key order, author, license, and site homepage across
+// every package.json in the monorepo. The script skips node_modules,
+// generated, and tmp. The default mode reports out-of-date files. --fix
+// rewrites them in place.
 //
 // Usage: check-metadata.mjs [--fix]
 
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
-import { resolve, join, relative, dirname } from "node:path";
+import { resolve, join, relative, dirname, sep } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const SKIP_DIRS = new Set([
@@ -20,8 +21,21 @@ const SKIP_DIRS = new Set([
 
 const AUTHOR = "D. Olsson <hi@senzilla.io>";
 const LICENSE = "Apache-2.0";
-const HOMEPAGE = "https://www.forwardimpact.team";
+const DEFAULT_HOMEPAGE = "https://www.forwardimpact.team";
 const REPOSITORY_URL = "git+https://github.com/forwardimpact/monorepo.git";
+
+// Each package points at the site that documents it. The list holds path
+// prefixes, most specific first. A prefix that ends in `/` matches one
+// directory and everything below it. `launchers/gemba-` matches the whole
+// launcher family. Everything else falls through to DEFAULT_HOMEPAGE, which
+// keeps the Gear npm packages (libharness, libwiki, libxmr) on the Forward
+// Impact homepage. Their README names the host of their guides.
+const HOMEPAGE_PREFIXES = [
+  ["products/gemba/", "https://www.gemba.team"],
+  ["launchers/gemba-", "https://www.gemba.team"],
+  ["products/kata/", "https://www.kata.team"],
+  ["products/jidoka/", "https://www.jidoka.team"],
+];
 const ENGINES = { bun: ">=1.2.0", node: ">=22.0.0" };
 const PUBLISH_CONFIG = { access: "public" };
 
@@ -101,10 +115,18 @@ function buildRepository(file) {
   return repo;
 }
 
+function homepageFor(file) {
+  const path = relative(ROOT, file).split(sep).join("/");
+  for (const [prefix, homepage] of HOMEPAGE_PREFIXES) {
+    if (path.startsWith(prefix)) return homepage;
+  }
+  return DEFAULT_HOMEPAGE;
+}
+
 function canonicalize(pkg, file) {
   const next = {
     ...pkg,
-    homepage: HOMEPAGE,
+    homepage: homepageFor(file),
     repository: buildRepository(file),
     license: LICENSE,
     author: AUTHOR,

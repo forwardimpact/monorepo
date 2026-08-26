@@ -189,11 +189,11 @@ The strongest findings are **grounded** (traceable to specific turns),
 
 ## Documentation
 
-- [Analyze Traces](https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md)
+- [Analyze Traces](https://www.gemba.team/docs/prove-changes/trace-analysis/index.md)
   — The full method walkthrough with worked examples (an eval that failed, a
   multi-agent session that stalled).
-- [Run an Eval](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md)
+- [Run an Eval](https://www.gemba.team/docs/prove-changes/run-eval/index.md)
   — How `gemba-harness supervise` produces the traces this skill analyzes.
-- [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
+- [Prove Agent Changes](https://www.gemba.team/docs/prove-changes/index.md)
   — End-to-end workflow that also covers multi-agent collaboration. `split` is
   the bridge into per-source trace files.

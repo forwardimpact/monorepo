@@ -16,7 +16,7 @@ find out.
 
 - A Supabase Auth session bound to your engineer email. Engineers run
   `fit-landmark login` (magic-link or `--otp`) to get one. See
-  [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md).
+  [Sign In to Landmark](/docs/products/signing-in-to-landmark/).
   Unattended agents and CI fixtures instead export an operator-minted JWT
   as `PRODUCT_LANDMARK_TOKEN`. Test harnesses mint short-lived JWTs against
   `JWT_SECRET` with the `signTestToken` helper.

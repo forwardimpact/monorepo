@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "websites/monorepo/**"
+      - "design/assets/**"
       - "libraries/libdoc/**"
       - ".github/workflows/website-monorepo.yaml"
       - ".github/workflows/website.yml"

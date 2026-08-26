@@ -87,7 +87,7 @@ import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
 const disc = new DiscEmitter({ runtime: createDefaultRuntime() });
 
 // skillsSrcDir holds one directory per skill, each with a SKILL.md.
-const entries = await disc.emit(skillsSrcDir, "./dist/packs/skills/kata");
+const entries = await disc.emit(skillsSrcDir, "./dist/packs/skills/fit");
 ```
 
 `emit()` returns the entries it wrote. That array is the same one that appears

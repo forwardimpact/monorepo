@@ -1,20 +1,29 @@
-fit-terrain 0.1.32 — Synthetic data generation pipeline
+fit-terrain 0.1.41 — Synthetic data generation pipeline
 
 Usage: fit-terrain <command> [options]
 
 Commands:
-  check            Verify cache completeness; prints hit-rate
-  validate         Run entity and cross-content checks (no writes)
-  build            Render and write all content
-  generate         Fill the prose cache via LLM, then build
-  inspect <stage>  Dump a pipeline stage's output. Stages: parse, entities, prose-keys, cache-lookup, skeleton, enriched, raw, markdown, pathway, datasets, validate, write.
+  check                Verify cache completeness and print the hit-rate
+  validate             Run entity and cross-content checks (no writes)
+  build                Render and write all content
+  generate             Fill the prose cache with an LLM, then build
+  inspect <stage>      Dump a pipeline stage's output. Stages: parse, entities, prose-keys, cache-lookup, skeleton, enriched, raw, markdown, pathway, datasets, validate, write.
+  substrate up         Bring up a local Supabase stack generically (start + discover). Emit its URL/anon key. It runs no migrations and no seed. Those stay with the consumer.
+  substrate init       Scaffold a starter Substrate Contract migration (schema + commented example views) into <cwd>/supabase/migrations/ so you can edit it. It runs offline and needs no stack or env.
+  substrate check      Validate a live stack against the Substrate Contract. Reports one diagnostic per missing or malformed relation. Exits non-zero only when a required relation fails. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
+  substrate provision  Reconcile auth.users against substrate.people: create missing, restore banned, decommission removed. Needs SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.
+  substrate pick       Return one invariant-satisfying persona, diversified against --memory when supplied. With --memory the verb appends the pick on success. Without it the verb is stateless. The output's parent/parent_email is the persona's upward manager. Manager-scoped views (e.g. fit-landmark health --manager) take the persona's own email instead.
+  substrate roster     List every invariant-satisfying persona (operator surface over the same query as pick).
+  substrate issue      Mint a persona JWT and atomically write the .env / .substrate.json / stash set. The caller supplies the .env variable name with --token-env (required, no default). Needs SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and JWT_SECRET.
 
 Options:
-  --story=<string>  Path to a custom story DSL file
-  --cache=<string>  Path to prose cache file
-  --help, -h        Show this help
-  --version         Show version
-  --json            Output help as JSON
+  --story=<string>        Path to a custom story DSL file
+  --cache=<string>        Path to the prose cache file
+  --output-root=<string>  Directory to write generated output into (default: project root)
+  --schema-dir=<string>   Directory of standard JSON schemas the pathway stage reads (default: resolved from @forwardimpact/libskill)
+  --help, -h              Show this help
+  --version               Show version
+  --json                  Output help as JSON
 
 Examples:
   bunx fit-terrain check
@@ -24,10 +33,16 @@ Examples:
 
 Documentation:
   Prove Agent Changes
-    https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
+    https://www.gemba.team/docs/prove-changes/index.md
     End-to-end workflow from dataset generation through evaluation to trace analysis.
-  Generate an Eval Dataset
-    https://www.forwardimpact.team/docs/libraries/prove-changes/generate-dataset/index.md
-    Using the Terrain DSL to define and generate synthetic datasets.
+  Generate a Synthetic Dataset
+    https://www.forwardimpact.team/docs/libraries/generate-dataset/index.md
+    Use the Terrain DSL to define and generate synthetic datasets.
+  The Substrate Contract
+    https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md
+    The consumer-implemented relations, auth model, env vars, and degradation semantics behind the substrate identity verbs.
+  Provision Engineer Auth Users
+    https://www.forwardimpact.team/docs/products/provisioning-engineers/index.md
+    Reconcile auth.users against the roster so identity-derived RLS works.
 
 Use fit-terrain <command> --help for command-specific options.

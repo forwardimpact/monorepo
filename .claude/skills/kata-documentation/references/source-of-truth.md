@@ -13,5 +13,5 @@ documentation. Never trust documentation alone. Read the code.
 | Templates            | `products/{product}/templates/`                  |
 | JSON Schema          | `products/{product}/schema/json/`                |
 | RDF/SHACL Schema     | `products/{product}/schema/rdf/`                 |
-| LLM / SEO outputs    | `websites/llms.txt`, `websites/robots.txt`       |
+| LLM / SEO outputs    | `websites/<site>/llms.txt`, `websites/<site>/robots.txt` |
 | Kata Agent Team      | `KATA.md`                                        |

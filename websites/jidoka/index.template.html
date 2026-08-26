@@ -6,7 +6,7 @@
     {{#description}}
     <meta name="description" content="{{description}}" />
     {{/description}}
-    <title>Jidoka – {{title}}</title>
+    <title>{{title}} – Jidoka</title>
     <link rel="stylesheet" href="/assets/base.css" />
     <link rel="stylesheet" href="/assets/layout.css" />
     <link rel="stylesheet" href="/assets/components.css" />
@@ -22,19 +22,59 @@
         <a class="brand" href="/">
           <span class="brand-text">Jidoka</span>
         </a>
-        <div class="nav-spacer"></div>
+        <div class="nav-divider"></div>
+        <ul class="nav-products">
+          <li><a href="/docs/getting-started/">Get started</a></li>
+          <li class="nav-spacer"></li>
+          <li class="nav-secondary"><a href="/docs/">Docs</a></li>
+        </ul>
         <a href="https://github.com/forwardimpact/jidoka-skills" class="btn-ghost nav-github" target="_blank" aria-label="GitHub">
           <img src="https://cdn.simpleicons.org/github/aeaba2" alt="" width="20" height="20" />
         </a>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
       </div>
     </header>
 
     <main{{#layout}} class="layout-{{layout}}"{{/layout}}>
-      <div class="page-content">
-        {{^hasHero}}
-        <h1 class="page-title">{{{title}}}</h1>
-        {{/hasHero}}
-        {{{content}}}
+      {{#hasHero}}
+      <div class="hero">
+        <div class="page-container">
+          <h1 class="text-hero">{{{heroTitle}}}</h1>
+          {{#heroSubtitle}}
+          <p class="text-subtitle">{{heroSubtitle}}</p>
+          {{/heroSubtitle}}
+          {{#hasHeroCta}}
+          <div class="hero-cta">
+            {{#heroCta}}
+            <a href="{{href}}" class="btn {{btnClass}}">{{label}}</a>
+            {{/heroCta}}
+          </div>
+          {{/hasHeroCta}}
+        </div>
+      </div>
+      {{/hasHero}}
+      <div{{#hasToc}} class="with-toc"{{/hasToc}}>
+        {{#hasToc}}
+        <nav class="toc-nav" aria-label="Table of contents">
+          <h5>Contents</h5>
+          {{{toc}}}
+        </nav>
+        {{/hasToc}}
+        <div class="page-content">
+          {{#hasBreadcrumbs}}
+          <nav class="breadcrumbs" aria-label="Breadcrumb">{{{breadcrumbs}}}</nav>
+          {{/hasBreadcrumbs}}
+          {{^hasHero}}
+          <h1 class="page-title">{{{title}}}</h1>
+          {{/hasHero}}
+          {{{content}}}
+        </div>
       </div>
     </main>
 
@@ -43,6 +83,7 @@
         <div class="footer-column footer-column-left">
           <span class="footer-brand">Jidoka</span>
           <span class="footer-tagline">Stop the line at the first drifted layer.</span>
+          <a href="/docs/">Docs</a>
         </div>
         <div class="footer-social">
           <a href="https://github.com/forwardimpact/jidoka-skills" target="_blank" aria-label="GitHub">
@@ -51,69 +92,15 @@
         </div>
         <div class="footer-column footer-column-right">
           <span class="footer-heading">Copyright 2026</span>
-          <a href="https://www.monorepo.team/">monorepo.team</a>
+          <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Code: Apache 2.0</a>
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Docs: CC BY 4.0</a>
+          <a href="https://www.gemba.team/">gemba.team</a>
           <a href="https://www.kata.team/">kata.team</a>
           <a href="https://www.forwardimpact.team/">forwardimpact.team</a>
         </div>
       </div>
     </footer>
 
-    <script>
-      // Scroll reveal
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add("visible");
-            }
-          });
-        },
-        { threshold: 0.15 }
-      );
-      document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
-
-      // Header scroll state
-      const header = document.querySelector(".site-header");
-      window.addEventListener("scroll", () => {
-        header.classList.toggle("scrolled", window.scrollY > 10);
-      }, { passive: true });
-
-      // Terminal typing effect
-      const terminal = document.querySelector(".terminal-lines");
-      if (terminal) {
-        const termObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                terminal.classList.add("typing");
-                termObserver.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.5 }
-        );
-        termObserver.observe(terminal);
-      }
-
-      // Stagger reveal children
-      document.querySelectorAll(".stagger").forEach((container) => {
-        const children = container.querySelectorAll(".stagger-item");
-        const staggerObserver = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                children.forEach((child, i) => {
-                  child.style.transitionDelay = `${i * 80}ms`;
-                  child.classList.add("visible");
-                });
-                staggerObserver.unobserve(entry.target);
-              }
-            });
-          },
-          { threshold: 0.15 }
-        );
-        staggerObserver.observe(container);
-      });
-    </script>
+    <script type="module" src="/assets/main.js"></script>
   </body>
 </html>

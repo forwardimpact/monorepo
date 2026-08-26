@@ -8,11 +8,14 @@ A six-tier hierarchy under `websites/<site>/docs/` serves four user groups
 | Tier              | Intent                              | Subsections                                                                                                                                                                            |
 | ----------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `getting-started` | "Get me going fast"                 | `leaders/`, `engineers/`, `contributors/`                                                                                                                                              |
-| `products`        | "Help me accomplish a product task" | One per product job (e.g. `agent-teams/`, `authoring-standards/`, `career-paths/`, `engineering-data-sources/`, `engineering-outcomes/`, `growth-areas/`, `knowledge-systems/`, `provisioning-engineers/`, `signing-in-to-landmark/`, `team-capability/`, `trust-output/`, `issuing-service-account-tokens/`) |
-| `libraries`       | "Help me accomplish a library task" | One per library job (e.g. `bridge-channels/`, `every-surface/`, `ground-agents/`, `integrate-standard/`, `predictable-team/`, `prove-changes/`, `service-lifecycle/`, `typed-contracts/`) |
-| `services`        | "Help me integrate with a service"  | One per service job (e.g. `bridge-conversations/`, `bridge-discussions/`, `embed-text/`, `ground-agents/`, `integrate-standard/`, `prove-changes/`, `typed-contracts/`)                |
+| `products`        | "Help me accomplish a product task" | One per product job                    |
+| `libraries`       | "Help me accomplish a library task" | One per library job                    |
+| `services`        | "Help me integrate with a service"  | One per service job                    |
 | `reference`       | "Let me look something up"          | `lifecycle/`, `model/`, `yaml-schema/`                                                                                                                                                 |
 | `internals`       | "Show me how this is built"         | One per product or shared substrate (e.g. `kata/`, `librepl/`, `operations/`, `release/`, `vectors/`)                                                                                  |
+
+Do not cite a snapshot of the subsection names. Derive the live list from the
+tree with `ls websites/<site>/docs/<tier>/`.
 
 ## Audience Rules
 
@@ -45,9 +48,9 @@ RDF/SHACL live under the product's schema directory. Link to them. Do not
 reproduce them. Published SKILL.md files link to Product Guides, Library Guides,
 and Reference markdown companions for progressive disclosure.
 
-**Published skills use absolute URLs.** Published skills (`fit-*`) run on
-external systems. Use the full domain. Internal skills (`libs-*`, `kata-*`) may
-use repo-relative paths.
+**Published skills use absolute URLs.** Published skills (`fit-*`, `gemba-*`,
+`kata-*`, `jidoka-*`) run on external systems. Use the full domain of the site
+that owns the page. Internal skills may use repo-relative paths.
 
 **All tiers produce stable agent-fetchable URLs.** `libdoc` gives every page a
 markdown companion at a predictable URL.

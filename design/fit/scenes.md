@@ -193,34 +193,6 @@ Engineer's weight-forward posture is the hacker impulse. Engineer is ready to
 ship. Stakeholder's folded arms are strategic patience. They are not
 resistance. This scene owns the mountain peak. Pathway owns the trail.
 
-## Scene: Gemba — Walking the Loop
-
-**Context:** Gemba product pages, agent-runtime platform documentation.
-
-```text
-    🐰         🤖          👔
-     \         |          /
-    ▲ · · ▶ · · ◉ · · ▤ · · ▥
-   tent   (staked trail looping back to the tent)
-```
-
-The trio is at a small base camp where the daily loop runs. A pitched tent
-(stand up) anchors the left. From its door a dotted trail loops across the
-ground. It passes four staked trail markers for run, see, remember, and
-measure. Then it curves back to the tent. Engineer (left) crouches beside the
-first marker. One hand steadies the stake. The head is down. Engineer checks
-that it holds. AI Agent (center) walks the trail mid-loop with one foot
-forward mid-step. An open notebook is in hand. Agent reads while they move.
-Stakeholder (right, no backpack) stands at the last marker. Stakeholder holds
-a small chart card up at eye level. The mouth is set in a small satisfied
-smile. The loop measures out.
-
-**Key details:** The trail is one continuous dotted loop. It leaves the tent
-and returns to it. Nobody stands outside it. Markers are simple stakes with
-one small plaque each. Draw them at the same 2px black stroke weight as the
-characters. Use light gray only on shadowed sides. The mood is a camp at work
-mid-rhythm. Nothing is ceremonial. Everyone is mid-task.
-
 ## Scene: Gear — Choosing the Kit
 
 **Context:** Gear product pages, library catalog, skill-pack documentation.

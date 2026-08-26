@@ -191,8 +191,8 @@ them all, failed cells included.
 
 ## Documentation
 
-- [Run a Benchmark](https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/index.md)
+- [Run a Benchmark](https://www.gemba.team/docs/prove-changes/run-benchmark/index.md)
   — Author a coding-task family, run a benchmark across multiple runs,
   and read the pass@k report.
-- [Automate with GitHub Actions](https://www.forwardimpact.team/docs/libraries/prove-changes/run-benchmark/ci-workflow/index.md)
+- [Automate with GitHub Actions](https://www.gemba.team/docs/prove-changes/run-benchmark/ci-workflow/index.md)
   — Run benchmarks in CI with the forwardimpact/gemba-benchmark action.

@@ -111,19 +111,19 @@ an mR chart (6 rows, with a single shared time axis at the bottom that serves
 both charts).
 
 ```text
- UPL 12.5 ──────────────────────────────●───────────────
+ UPL 10.9 ┬                       ●
           │
-+1.5σ 9.4 │        ·           ·  ·              ·
-    μ 6.4 ┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
--1.5σ 3.4 │  ·  ·     ·  ·  ·        ·     ·  ·     ·  ·
++1.5σ 8.2 │                    ·           ·
+    μ 5.5 ┼
+-1.5σ 2.8 │  ·  ·  ·  ·  ·  ·        ·  ·     ·  ·  ·  ·
           │
-  LPL 0.3 ──────────────────────────────────────────────
+  LPL 0.2 ┴
 
-  URL 7.5 ─────────────────────────────────●────────────
-          │                    ·        ·
-    R 2.3 ┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
-          │     ·  ·  ·  ·  ·     ·  ·        ·  ·  ·  ·
-      0.0 ──────────────────────────────────────────────
+  URL 6.6 ┬                       ●  ●
+          │
+    R 2.0 ┼
+          │     ·  ·  ·  ·  ·  ·        ·  ·  ·  ·  ·  ·
+      0.0 ┴
              1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 ```
 
@@ -186,8 +186,8 @@ npx gemba-xmr summarize observations.csv               # paste into a status pag
 
 ## Documentation
 
-- [Operate a Predictable Agent Team](https://www.forwardimpact.team/docs/libraries/predictable-team/index.md)
+- [Operate a Predictable Agent Team](https://www.gemba.team/docs/predictable-team/index.md)
   — End-to-end guide to wiki memory, XmR charts, and team coordination
-- [Chart a Metric and Check Variation](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md)
+- [Chart a Metric and Check Variation](https://www.gemba.team/docs/predictable-team/xmr-analysis/index.md)
   — CSV schema, the three detection rules, the 14-line chart, and interpretation
   guidance

@@ -100,7 +100,7 @@ Capabilities also define:
 
 Per-skill checklists (`readChecklist` and `confirmChecklist`) live on each
 skill's `agent` section. They do not live on the capability. See
-[Lifecycle](../lifecycle/).
+[Lifecycle](/docs/reference/lifecycle/).
 
 ---
 

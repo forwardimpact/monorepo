@@ -97,27 +97,22 @@ into every meeting already oriented.
 
 <a href="/outpost/" class="btn btn-ghost">Learn more</a>
 
-### Kata
-
-An autonomous agent team that runs a daily Plan-Do-Study-Act cycle. It plans
-specs, ships features, studies its own traces, and acts on what it finds.
-
-<a href="https://www.kata.team" class="btn btn-ghost">Visit kata.team</a>
-
-### Gemba
-
-For teams using agents: the runtime platform. Stand up the environment, run
-sessions, inspect traces, persist memory, and measure outcomes. One command
-family runs the same loop as the CI actions.
-
-<a href="/gemba/" class="btn btn-ghost">Learn more</a>
-
 ### Gear
 
 For platform builders: the libraries and services that compose the suite,
 published to npm. Humans and agents share the same interface and docs.
 
 <a href="/gear/" class="btn btn-ghost">Learn more</a>
+
+### Sibling projects
+
+Four standards and products grew out of this work. Each one is independent and
+has its own site. Monorepo is the repository structure standard. Jidoka is the
+instruction architecture standard that builds on it. Gemba is the agent-runtime
+platform. Kata is an agent team that runs on Gemba and follows both standards.
+Read them at [monorepo.team](https://www.monorepo.team/),
+[jidoka.team](https://www.jidoka.team/), [gemba.team](https://www.gemba.team/),
+and [kata.team](https://www.kata.team/).
 
   </div>
 </div>

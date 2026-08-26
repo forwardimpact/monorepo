@@ -19,7 +19,7 @@ machines.
 
 This guide is for **engineers** who sign in to read Landmark from the CLI.
 Operators who issue tokens for unattended agents follow a different path. See
-[Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md).
+[Issue Service-Account Tokens](/docs/products/issuing-service-account-tokens/).
 
 ## Prerequisites
 

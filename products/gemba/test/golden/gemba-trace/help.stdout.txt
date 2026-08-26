@@ -66,13 +66,13 @@ Examples:
 
 Documentation:
   Analyze Traces
-    https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md
+    https://www.gemba.team/docs/prove-changes/trace-analysis/index.md
     The full method walkthrough with worked examples (an eval that failed, a multi-agent session that stalled).
   Run an Eval
-    https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md
+    https://www.gemba.team/docs/prove-changes/run-eval/index.md
     How `gemba-harness supervise` produces the traces this skill analyzes.
   Prove Agent Changes
-    https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
+    https://www.gemba.team/docs/prove-changes/index.md
     End-to-end workflow that covers multi-agent collaboration. `split` is the bridge into per-source trace files.
 
 Use gemba-trace <command> --help for command-specific options.

@@ -258,7 +258,13 @@ export function checkPublicCliSet({ invokedNames, packages, launchers }) {
 
 function collectInvokedNames({ listDir, scan }) {
   const names = new Set([...SIBLING_ACTION_CLIS, ...PUBLISHED_NON_FIT_CLIS]);
-  const dirs = ["websites/fit/docs"];
+  // Every published site's doc tree, discovered from `websites/`. Each site
+  // teaches its own CLIs, so a new site lands under the scan with no edit
+  // here. `scan` skips a root that does not exist, so a site with no docs
+  // tree costs nothing.
+  const dirs = listDir("websites", { dirsOnly: true }).map(
+    (site) => `websites/${site}/docs`,
+  );
   for (const entry of listDir(".claude/skills")) {
     if (/^(fit|kata|gemba)(-|$)/.test(entry))
       dirs.push(`.claude/skills/${entry}`);

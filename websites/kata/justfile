@@ -3,3 +3,4 @@ shared_assets := "../../design/assets"
 build:
     mkdir -p assets
     cp {{shared_assets}}/*.css assets/
+    cp {{shared_assets}}/main.js assets/

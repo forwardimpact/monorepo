@@ -61,13 +61,13 @@ libraries directly. The platform never wraps them.
 
 ## Documentation
 
-- [Stand Up and Operate an Agent Team](https://www.forwardimpact.team/gemba/index.md)
+- [Stand Up and Operate an Agent Team](https://www.gemba.team/)
   — The platform overview. It covers both surfaces of the loop and the
   bring-up layer.
-- [Coordinate an Agent Team](https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md)
+- [Coordinate an Agent Team](https://www.gemba.team/docs/coordinate-team/index.md)
   — Run a lead and N participant agents in one async session.
-- [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
+- [Prove Agent Changes](https://www.gemba.team/docs/prove-changes/index.md)
   — End-to-end workflow from dataset generation through evaluation to trace
   analysis.
-- [Operate a Predictable Agent Team](https://www.forwardimpact.team/docs/libraries/predictable-team/index.md)
+- [Operate a Predictable Agent Team](https://www.gemba.team/docs/predictable-team/index.md)
   — Wiki memory, XmR charts, and team coordination.

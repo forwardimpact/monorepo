@@ -24,7 +24,7 @@ repo.
 Write `--help` output, skill instructions, and published guides for that
 reader. Keep each one self-contained. Do not reference insider tooling. Do
 not use relative paths into `products/` or `websites/`. Make every doc link
-a fully-qualified public URL.
+a fully-qualified public URL on the product's own site (§ Linking rule).
 
 ## Configuration
 
@@ -63,29 +63,36 @@ Every product ships a CLI (a `bin/` entry in `package.json`). Three
 artifacts must exist together. They give an external reader the same docs
 from any entry point:
 
-- **User guides** under `websites/fit/docs/products/<task-slug>/index.md`.
-  A product may carry multiple task guides (e.g. `fit-pathway` links to
-  `authoring-standards`, `agent-teams`, `career-paths`).
+- **User guides** on the product's own site. FIT products publish at
+  `websites/fit/docs/products/<task-slug>/index.md`. Gemba publishes at
+  `websites/gemba/docs/<task-slug>/index.md`. A product may carry multiple
+  task guides (e.g. `fit-pathway` links to `authoring-standards`,
+  `agent-teams`, `career-paths`).
 - **Skill** at `.claude/skills/fit-<product>/SKILL.md` (Gemba's command
-  family: `.claude/skills/gemba-<name>/SKILL.md`, whose guides live under
-  `/docs/libraries/` with the libraries that implement them).
+  family: `.claude/skills/gemba-<name>/SKILL.md`).
 - **CLI `--help`** — `documentation` entries on the libcli definition, one
   per linked guide.
 
 ### Linking rule
 
 The skill `## Documentation` list and the CLI `documentation` array carry
-the same entries, in the same order, with the same titles and URLs:
+the same entries, in the same order, with the same titles and URLs. Each
+product family cites its own host:
 
 ```text
 https://www.forwardimpact.team/docs/products/<task-slug>/index.md
+https://www.gemba.team/docs/<task-slug>/index.md
 ```
+
+`fit-*` products cite `www.forwardimpact.team`. The `gemba-*` family cites
+`www.gemba.team`. Kata cites `www.kata.team`. Jidoka cites
+`www.jidoka.team`.
 
 Slugs are task-shaped (`authoring-standards`). Do not shape a slug after a
 product name. One product may host multiple slugs. One slug may cut across
 multiple products. The `.md` extension is deliberate. Agents fetch markdown
 more reliably than rendered HTML. Library-task guides (builder/agent
-audience) live under `/docs/libraries/` instead. See
+audience) live under `www.forwardimpact.team/docs/libraries/` instead. See
 [libraries/CLAUDE.md](../libraries/CLAUDE.md). A product CLI may cross-link
 to a library guide when the task cuts across both audiences.
 

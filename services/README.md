@@ -23,7 +23,7 @@ protocol bridges that let agents use backend functionality natively.
 | **oauth**     | OAuth 2.1 authorization server adapter — protocol-only HTTP front that delegates to a configured provider backend over gRPC.              |
 | **oidc**      | GitHub Actions OIDC exchange front — validates a workflow OIDC token and mints a repo-scoped installation token without signing material. |
 | **pathway**   | Engineering standard queries over gRPC — career paths and agent profiles as derivable data for products.                                  |
-| **span**      | OpenTelemetry span ingestion and storage over gRPC — prove whether agent changes improved outcomes.                                       |
+| **span**      | OpenTelemetry span ingestion and storage over gRPC. Collect spans from every product in one place.                                        |
 | **tenancy**   | Tenant registry — `(channel, channel_tenant_key) → Tenant` lookup for the hosted control plane.                                           |
 | **vector**    | Vector similarity search over gRPC — semantic retrieval without a dedicated database per product.                                         |
 
@@ -95,6 +95,24 @@ protocol and the exchange logic together.
 
 </job>
 
+<job user="Platform Builders" goal="Collect Spans from Every Product">
+
+## Platform Builders: Collect Spans from Every Product
+
+**Trigger:** An engineer finishes an agent improvement. No centralized place
+exists to store and compare spans.
+
+**Big Hire:** Help me collect spans from any product without separate storage in
+each one. → **span**
+
+**Little Hire:** Help me send spans from a product. Trust they are queryable
+later. → **span**
+
+**Competes With:** per-product span files; manual log comparison; no
+observability at all.
+
+</job>
+
 <job user="Platform Builders" goal="Enable Agents on Every Surface">
 
 ## Platform Builders: Enable Agents on Every Surface
@@ -153,24 +171,6 @@ implementation of the derivation. → **pathway**
 
 **Competes With:** libskill embedded in each product; duplicate derivation
 logic; hardcoded role definitions.
-
-</job>
-
-<job user="Platform Builders" goal="Prove Agent Changes">
-
-## Platform Builders: Prove Agent Changes
-
-**Trigger:** An engineer finishes an agent improvement. No centralized place
-exists to store and compare spans.
-
-**Big Hire:** Help me collect spans from any product without separate storage in
-each one. → **span**
-
-**Little Hire:** Help me send spans from a product. Trust they are queryable
-later. → **span**
-
-**Competes With:** per-product span files; manual log comparison; no
-observability at all.
 
 </job>
 

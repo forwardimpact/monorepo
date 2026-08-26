@@ -110,7 +110,8 @@ graph TD
 
 Each cask exposes only the executables bundled in its own `.app`.
 `build/cli-manifest.json` is the source of truth. This table mirrors the CLIs
-each cask places on `PATH`. Regenerate the `fit-gear` row with
+each cask places on `PATH`. The shared `fit-gear` bundle also carries the
+`gemba-*` CLIs and `jidoka`. Regenerate the `fit-gear` row with
 `jq -r '.clis[] | select(.bundle == "gear") | .name' build/cli-manifest.json`
 when the bundle set changes.
 
@@ -127,12 +128,12 @@ when the bundle set changes.
 Both the `.app` assembly and the cask `binary` block derive from
 `build/cli-manifest.json` for **every** bundle. There is one code path and no
 gear special-case. `build/build-app.sh <bundle>` reads `.bundles[<bundle>]` for
-the plist, entitlements, version source, and any launcher or resources. It
-reads `.clis[]` for the executables. The `tap` job runs
-`render-cask-binaries.sh` for every cask, so the linked binaries can never
-drift from the shipped set. A single-CLI product yields its one stanza. Gear
-yields about 30. So when you add or remove a library or service CLI, an update
-to `build/cli-manifest.json` is enough. The cask block regenerates on the next
+the plist, entitlements, version source, and any launcher or resources. It reads
+`.clis[]` for the executables. The `tap` job runs `render-cask-binaries.sh` for
+every cask, so the linked binaries can never drift from the shipped set. A
+single-CLI product yields its one stanza. Gear yields 24, one per CLI in the
+bundle. So when you add or remove a library or service CLI, an update to
+`build/cli-manifest.json` is enough. The cask block regenerates on the next
 release. Mark a long-running service CLI with `"server": true`. A long-running
 service CLI is one whose `bin` starts a server. Its `bin` does not print
 `--help` and then exit. With that mark, the native build still compiles,

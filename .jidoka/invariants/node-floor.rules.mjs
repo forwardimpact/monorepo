@@ -3,7 +3,7 @@
 //   - every file a published package.json#bin references includes
 //     `import "@forwardimpact/libpreflight/nodeNN"` as its first import,
 //     with NN equal to the owning manifest's engines.node lower-bound major
-//   - every getting-started/{leaders,engineers}/**/index.md that names
+//   - every websites/<site>/docs/getting-started/**/index.md that names
 //     "Node.js" names "Node.js 22+" and no other major
 //   - the floor literal at one doc page, one manifest, and the libpreflight
 //     node22.js body all agree on the same integer
@@ -23,9 +23,14 @@ const SKIP_DIRS = [
   "worktrees",
 ];
 const REQUIRED_FLOOR = 22;
-const DOC_ROOT = "websites/fit/docs/getting-started";
-const DOC_AUDIENCES = ["leaders", "engineers"];
-const CANONICAL_DOC = `${DOC_ROOT}/leaders/landmark/index.md`;
+const SITES_DIR = "websites";
+// Every site publishes its own getting-started tree at this subpath. FIT
+// splits the tree by audience. Gemba, Kata, and Jidoka each hold one page.
+// So the scan takes the whole tree per site.
+const DOC_SUBPATH = "docs/getting-started";
+// The one page the floor literal must agree on. It stays on the FIT site,
+// which publishes the products that state the floor.
+const CANONICAL_DOC = `${SITES_DIR}/fit/${DOC_SUBPATH}/leaders/landmark/index.md`;
 const PREFLIGHT_ENTRY = "libraries/libpreflight/src/node22.js";
 
 const PREFLIGHT_IMPORT_RE =
@@ -87,20 +92,24 @@ function binSubjects(root, kit) {
   return subjects;
 }
 
-function docSubjects({ scan, lineAt }) {
+// Every site's getting-started tree, discovered from `websites/`. A new site
+// lands under the check with no edit here. `scan` skips a root that does not
+// exist, so a site with no getting-started tree costs nothing.
+function docSubjects({ scan, lineAt, listDir }) {
+  const dirs = listDir(SITES_DIR, { dirsOnly: true }).map(
+    (site) => `${SITES_DIR}/${site}/${DOC_SUBPATH}`,
+  );
   const subjects = [];
-  for (const audience of DOC_AUDIENCES) {
-    for (const { path, text } of scan({
-      dirs: [`${DOC_ROOT}/${audience}`],
-      skip: SKIP_DIRS,
-      match: (name) => name === "index.md",
-    })) {
-      const mentions = [...text.matchAll(NODEJS_VERSION_RE)].map((m) => ({
-        lineNo: lineAt(text, m.index),
-        major: Number.parseInt(m[1], 10),
-      }));
-      if (mentions.length > 0) subjects.push({ path, mentions });
-    }
+  for (const { path, text } of scan({
+    dirs,
+    skip: SKIP_DIRS,
+    match: (name) => name === "index.md",
+  })) {
+    const mentions = [...text.matchAll(NODEJS_VERSION_RE)].map((m) => ({
+      lineNo: lineAt(text, m.index),
+      major: Number.parseInt(m[1], 10),
+    }));
+    if (mentions.length > 0) subjects.push({ path, mentions });
   }
   return subjects;
 }

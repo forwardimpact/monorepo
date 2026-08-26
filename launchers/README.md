@@ -32,9 +32,13 @@ computed. No contributor maintains it by hand. The list is empty today.
 
 The root `invariants` check auto-discovers
 `.jidoka/invariants/public-cli-set.rules.mjs`. That module recomputes the public
-set from the rule. The set is the invoked names in `websites/fit/docs`,
-published skills, and sibling actions, intersected with non-private workspace
-bins. The check fails CI when `launchers/` drifts from the set. It also fails
-when a launcher's bin file or `package.json` strays from the canonical shape. It
-fails when someone overwrites a placeholder. It fails when a source package
-stops exporting the bin subpath its launcher imports.
+set from the rule. The set is the invoked names in every published site's docs
+tree, in published skills, and in sibling actions, intersected with non-private
+workspace bins. The rule lists `websites/` and scans `websites/<site>/docs` for
+each entry. So a new site joins the scan with no edit to the rule. A site with
+no docs tree costs nothing.
+
+The check fails CI when `launchers/` drifts from the set. It also fails when a
+launcher's bin file or `package.json` strays from the canonical shape. It fails
+when someone overwrites a placeholder. It fails when a source package stops
+exporting the bin subpath its launcher imports.

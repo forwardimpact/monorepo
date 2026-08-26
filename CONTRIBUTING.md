@@ -17,9 +17,10 @@ Architectural non-negotiables define the shape of the codebase.
   create dependencies inline. Exempt (pure stateless): libskill, libui
   (functional DOM), libsecret (crypto), libtype (generated protobuf).
 - **No frontend frameworks** — Vanilla JS, ESM modules only, no CommonJS.
-- **FIT upstream of Kata** — FIT skills and docs (`fit-*`, `websites/fit/`,
-  shared `libraries/`) must not reference the Kata Agent Team. Kata may
-  reference FIT. The dependency is one-way.
+- **Layered products** — Monorepo and Jidoka are upstream standards. Gemba is
+  the runtime platform. Kata runs on Gemba. FIT sits downstream of all three.
+  Each site teaches one product. FIT surfaces (`fit-*`, `websites/fit/`,
+  shared `libraries/`) name Gemba, Kata, or Jidoka only as a link.
 - **Explain WHY. Never WHEN.** — Comments, logs, and durable docs state the
   present contract: no spec/design/plan numbers, issue/PR references, or
   experiment/obstacle labels. Provenance lives in PR bodies and git history.
@@ -83,7 +84,7 @@ The mechanically checkable subset lives in `.jidoka/invariants/*.rules.mjs`.
 ### Monorepo layout
 
     .claude/       # agents and skills, edited via `bunx gemba-selfedit`
-    products/      # one directory per product — see the products list below
+    products/      # one directory per product
     libraries/
       lib*/        # shared libraries
     services/
@@ -96,7 +97,8 @@ The mechanically checkable subset lives in `.jidoka/invariants/*.rules.mjs`.
       {feature}/   # specifications and plans
     wiki/          # GitHub wiki — shared agent memory
     design/        # design language and brand implementations
-    websites/      # public sites — fit/ → forwardimpact.team, kata/ → kata.team
+    websites/      # public sites — fit/ → forwardimpact.team; gemba/, kata/,
+                   #   jidoka/, monorepo/ → <site>.team
 
 The `products/` directory holds one directory per product:
 
@@ -146,11 +148,6 @@ No build step or root-level proxy file.
 Services keep `index.js` and `server.js` at the package root (loaded by fixed
 path from `config/config.example.json`), plus `proto/`, `src/`, `test/`,
 `package.json`. No `bin/`, no `src/index.js`.
-
-### `.claude/` — agent configuration
-
-Settings deny `Edit` and `Write` on `.claude/**`. Use
-[`bunx gemba-selfedit`](.claude/agents/x-self-improvement.md) instead.
 
 ## Pull Request Workflow
 
@@ -253,8 +250,7 @@ Security policies apply to all contributors, human and agent.
   reviewer reads the result prose in full. Sensitive prose forces documented
   redaction or synthesis. To widen fixture exclusions in
   `.jidoka/invariants/` or any security scan, get security review.
-- **Vulnerability reports** — See [SECURITY.md](SECURITY.md). Contact
-  `hi.security@senzilla.io`.
+- **Vulnerability reports** — See [SECURITY.md](SECURITY.md).
 
 ## Dependency Policy
 

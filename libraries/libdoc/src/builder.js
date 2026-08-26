@@ -13,6 +13,11 @@ import {
 } from "./transforms.js";
 import { scanPages } from "./page-tree.js";
 import { resolvePartials, defaultRegistry } from "./partials.js";
+import {
+  isValidRedirect,
+  renderRedirectHtml,
+  renderRedirectMarkdown,
+} from "./redirect.js";
 
 /**
  * Converts Markdown files to HTML pages
@@ -237,8 +242,9 @@ export class PagesBuilder {
    * @param {string} distDir - Destination distribution directory
    * @param {string} finalHtml - Formatted HTML content
    * @param {string} companionContent - Companion Markdown content
+   * @param {string} [note] - Suffix for the log line
    */
-  #writePageFiles(mdFile, distDir, finalHtml, companionContent) {
+  #writePageFiles(mdFile, distDir, finalHtml, companionContent, note = "") {
     const baseName = mdFile.replace(".md", "");
     const isIndex = baseName === "index" || baseName.endsWith("/index");
     const outputPath = isIndex ? baseName : this.#path.join(baseName, "index");
@@ -250,12 +256,38 @@ export class PagesBuilder {
       finalHtml,
       "utf-8",
     );
-    this.#logger.info(`  ✓ ${outputPath}.html`);
+    this.#logger.info(`  ✓ ${outputPath}.html${note}`);
 
     this.#fs.writeFileSync(
       this.#path.join(distDir, outputPath + ".md"),
       companionContent,
       "utf-8",
+    );
+  }
+
+  /**
+   * Write a redirect stub for a page that moved to another address
+   * @param {string} mdFile - Relative path to the markdown file
+   * @param {string} pagesDir - Source pages directory
+   * @param {string} distDir - Destination distribution directory
+   * @param {object} frontMatter - Parsed front matter
+   */
+  #writeRedirectStub(mdFile, pagesDir, distDir, frontMatter) {
+    const raw = frontMatter.redirect;
+    if (!isValidRedirect(raw)) {
+      throw new Error(
+        `Invalid redirect in ${this.#path.join(pagesDir, mdFile)}: ` +
+          `"${raw}" is not an absolute http or https URL`,
+      );
+    }
+
+    const target = raw.trim();
+    this.#writePageFiles(
+      mdFile,
+      distDir,
+      renderRedirectHtml(frontMatter.title, target),
+      renderRedirectMarkdown(frontMatter.title, target),
+      " (redirect)",
     );
   }
 
@@ -273,6 +305,13 @@ export class PagesBuilder {
     const { data: frontMatter, content: markdown } = this.#matter(
       this.#fs.readFileSync(this.#path.join(pagesDir, mdFile), "utf-8"),
     );
+
+    // A redirect never reaches the template, the partial registry, or the
+    // table of contents. It is a forwarding address, not a page of the site.
+    if (frontMatter.redirect !== undefined) {
+      this.#writeRedirectStub(mdFile, pagesDir, distDir, frontMatter);
+      return;
+    }
 
     const pageDir = this.#path.dirname(mdFile);
     const resolved = resolvePartials(
@@ -376,15 +415,17 @@ export class PagesBuilder {
       );
     }
 
-    const sortedPages = [...pageTree.values()].sort((a, b) =>
-      a.urlPath.localeCompare(b.urlPath),
-    );
+    // Redirect stubs stay out of the site inventory. A forwarding address
+    // does not belong in sitemap.xml or in the augmented llms.txt.
+    const publishedPages = [...pageTree.values()]
+      .filter((entry) => !entry.redirect)
+      .sort((a, b) => a.urlPath.localeCompare(b.urlPath));
 
     this.#copyStaticAssets(pagesDir, distDir);
 
     if (baseUrl) {
-      this.#generateSitemap(sortedPages, baseUrl, distDir);
-      this.#augmentLlmsTxt(sortedPages, baseUrl, distDir);
+      this.#generateSitemap(publishedPages, baseUrl, distDir);
+      this.#augmentLlmsTxt(publishedPages, baseUrl, distDir);
     }
 
     this.#logger.info("Documentation build complete!");

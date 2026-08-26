@@ -189,10 +189,10 @@ pathway data separately with `npx fit-map validate`.
 
 ## Documentation
 
-- [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
+- [Prove Agent Changes](https://www.gemba.team/docs/prove-changes/index.md)
   — End-to-end workflow from dataset generation through evaluation to trace
   analysis
-- [Generate an Eval Dataset](https://www.forwardimpact.team/docs/libraries/prove-changes/generate-dataset/index.md)
+- [Generate a Synthetic Dataset](https://www.forwardimpact.team/docs/libraries/generate-dataset/index.md)
   — Use the Terrain DSL to define and generate synthetic datasets
 - [The Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)
   — The consumer-implemented relations, auth model, env vars, and

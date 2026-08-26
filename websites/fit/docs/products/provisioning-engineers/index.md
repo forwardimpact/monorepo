@@ -12,7 +12,7 @@ their roster entry needs a paired `auth.users` row.
 `substrate.people` roster. It creates rows for new engineers. It restores
 rows that were previously decommissioned. It bans rows whose roster entry
 no longer exists. The verb reads the roster through the
-[Substrate Contract](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md).
+[Substrate Contract](/docs/libraries/substrate-contract/).
 The contract is a `substrate.people` view your stack implements. Map
 installations already ship the view over `activity.organization_people`.
 Any other Supabase-backed stack implements the contract once and gets the
@@ -89,9 +89,9 @@ that referenced the original `id`.
   get a JWT when they run `fit-landmark login` themselves (magic-link or
   OTP). Operators who issue long-lived tokens for unattended agents use
   `fit-map auth issue`. See
-  [Sign In to Landmark](https://www.forwardimpact.team/docs/products/signing-in-to-landmark/index.md)
+  [Sign In to Landmark](/docs/products/signing-in-to-landmark/)
   and
-  [Issue Service-Account Tokens](https://www.forwardimpact.team/docs/products/issuing-service-account-tokens/index.md).
+  [Issue Service-Account Tokens](/docs/products/issuing-service-account-tokens/).
 - **Delete user data.** The decommission bans the row. It does not remove
   the engineer's history from `activity.*`. The retention windows govern
   that history. The migration metadata declares them, and

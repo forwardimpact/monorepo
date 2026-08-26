@@ -35,9 +35,10 @@ captures the jobs the directory exists to serve:
 
 Three directories support the shippable code and never ship themselves:
 
-- **`websites/`** — Documentation hubs. The top-level `README.md` maps every
-  guide to a Big Hire or Little Hire so documentation traces back to the jobs
-  it serves.
+- **`websites/`** — Documentation hubs, one directory per published site. Each
+  site owns its own guide map. A map ties every guide to a Big Hire or Little
+  Hire, so documentation traces back to the jobs it serves. The top-level
+  `README.md` maps the FIT tree.
 - **`wiki/`** — Shared working memory. Humans and agents record what they learn
   as they work. The wiki holds observations, decisions, and context that help
   the team get better over time.

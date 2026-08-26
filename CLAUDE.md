@@ -73,7 +73,7 @@ agent-capable systems. See [JTBD.md](JTBD.md) for their jobs.
   [Services](services/README.md#catalog)
 - **Gemba — `gemba-skills`** — The agent-runtime platform Kata runs on:
   `gemba-*` CLIs and agent-run actions.
-  [Overview](websites/fit/gemba/index.md)
+  [Overview](websites/gemba/index.md)
 - **Kata — `kata-skills`** — An agent team that improves itself on a daily
   Plan-Do-Study-Act cycle: write specs, ship features, study traces, act on
   findings. [KATA.md](KATA.md)
@@ -87,7 +87,7 @@ agent-capable systems. See [JTBD.md](JTBD.md) for their jobs.
 The monorepo is open source but internal-only. External users consume
 through npm. It is the source of truth for `forwardimpact/*` sibling repos:
 
-- **npm packages** — `fit-*`/`gemba-*`/`kata-*` CLIs and libraries through
+- **npm packages** — `fit-*`/`gemba-*` CLIs and libraries through
   `npx`. Bare names are launchers ([launchers/README.md](launchers/README.md)).
   CLIs use `#!/usr/bin/env node`, no Bun. gRPC products need
   `npx fit-codegen generate --all`
@@ -105,8 +105,9 @@ through npm. It is the source of truth for `forwardimpact/*` sibling repos:
   <!-- /enum -->
 
 Published skills teach how products **work** and **use**. They never teach
-implementation. Use fully qualified URLs, e.g.
-`https://www.forwardimpact.team/docs/products/authoring-standards/index.md`.
+implementation. Use fully qualified URLs. Cite each pack's own host:
+`www.forwardimpact.team` (`fit-*`), `www.gemba.team` (`gemba*`),
+`www.kata.team` (`kata-*`), `www.jidoka.team` (`jidoka-*`).
 
 External users run Node.js + `npx`. Internal contributors run Bun 1.2+ +
 `bunx` + `just`. `just codegen` (in `just quickstart`) runs `fit-codegen`.
@@ -183,8 +184,6 @@ One home per policy.
 
 **External:**
 
-- **Getting started** — [Getting Started](websites/fit/docs/getting-started/)
-- **Product guides** — [products/](websites/fit/docs/products/)
-- **Library guides** — [libraries/](websites/fit/docs/libraries/)
-- **Service guides** — [services/](websites/fit/docs/services/)
-- **Published skills** — [fit-\*](.claude/skills/) · [kata-\*](.claude/skills/)
+- **FIT guides** — [getting-started/, products/, libraries/,
+  services/](websites/fit/docs/)
+- **Published skills** — [`.claude/skills/`](.claude/skills/)

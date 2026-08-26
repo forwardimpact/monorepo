@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {{#description}}
+    <meta name="description" content="{{description}}" />
+    {{/description}}
+    <title>{{title}} – Gemba</title>
+    <link rel="stylesheet" href="/assets/base.css" />
+    <link rel="stylesheet" href="/assets/layout.css" />
+    <link rel="stylesheet" href="/assets/components.css" />
+    <link rel="stylesheet" href="/assets/main.css" />
+    <link rel="alternate" type="text/markdown" href="{{markdownUrl}}" />
+    {{#canonicalUrl}}
+    <link rel="canonical" href="{{canonicalUrl}}" />
+    {{/canonicalUrl}}
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="brand" href="/">
+          <span class="brand-text">Gemba</span>
+        </a>
+        <div class="nav-divider"></div>
+        <ul class="nav-products">
+          <li><a href="/docs/getting-started/">Get started</a></li>
+          <li class="nav-spacer"></li>
+          <li class="nav-secondary"><a href="/docs/">Docs</a></li>
+        </ul>
+        <a href="https://github.com/forwardimpact/gemba-skills" class="btn-ghost nav-github" target="_blank" aria-label="GitHub">
+          <img src="https://cdn.simpleicons.org/github/aeaba2" alt="" width="20" height="20" />
+        </a>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main{{#layout}} class="layout-{{layout}}"{{/layout}}>
+      {{#hasHero}}
+      <div class="hero">
+        <div class="page-container">
+          <h1 class="text-hero">{{{heroTitle}}}</h1>
+          {{#heroSubtitle}}
+          <p class="text-subtitle">{{heroSubtitle}}</p>
+          {{/heroSubtitle}}
+          {{#hasHeroCta}}
+          <div class="hero-cta">
+            {{#heroCta}}
+            <a href="{{href}}" class="btn {{btnClass}}">{{label}}</a>
+            {{/heroCta}}
+          </div>
+          {{/hasHeroCta}}
+        </div>
+      </div>
+      {{/hasHero}}
+      <div{{#hasToc}} class="with-toc"{{/hasToc}}>
+        {{#hasToc}}
+        <nav class="toc-nav" aria-label="Table of contents">
+          <h5>Contents</h5>
+          {{{toc}}}
+        </nav>
+        {{/hasToc}}
+        <div class="page-content">
+          {{#hasBreadcrumbs}}
+          <nav class="breadcrumbs" aria-label="Breadcrumb">{{{breadcrumbs}}}</nav>
+          {{/hasBreadcrumbs}}
+          {{^hasHero}}
+          <h1 class="page-title">{{{title}}}</h1>
+          {{/hasHero}}
+          {{{content}}}
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-column footer-column-left">
+          <span class="footer-brand">Gemba</span>
+          <span class="footer-tagline">Go to where the work happens.</span>
+          <a href="/docs/">Docs</a>
+        </div>
+        <div class="footer-social">
+          <a href="https://github.com/forwardimpact/gemba-skills" target="_blank" aria-label="GitHub">
+            <img src="https://cdn.simpleicons.org/github/9ca3af" alt="" width="24" height="24" />
+          </a>
+          <a href="https://www.npmjs.com/package/@forwardimpact/gemba" target="_blank" aria-label="npm">
+            <img src="https://cdn.simpleicons.org/npm/9ca3af" alt="" width="24" height="24" />
+          </a>
+        </div>
+        <div class="footer-column footer-column-right">
+          <span class="footer-heading">Copyright 2026</span>
+          <a href="https://www.apache.org/licenses/LICENSE-2.0" target="_blank">Code: Apache 2.0</a>
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Docs: CC BY 4.0</a>
+          <a href="https://www.kata.team/">kata.team</a>
+          <a href="https://www.jidoka.team/">jidoka.team</a>
+          <a href="https://www.forwardimpact.team/">forwardimpact.team</a>
+        </div>
+      </div>
+    </footer>
+
+    <script type="module" src="/assets/main.js"></script>
+  </body>
+</html>

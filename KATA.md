@@ -18,7 +18,7 @@ Kata implements two upstream standards: the repository structure in
 [MONOREPO.md](MONOREPO.md) and the instruction architecture in
 [JIDOKA.md](JIDOKA.md). Everything below assumes both.
 
-Kata runs on [Gemba](https://www.forwardimpact.team/gemba/), the agent-runtime
+Kata runs on [Gemba](https://www.gemba.team/), the agent-runtime
 platform. The `gemba-*` command family and the
 gemba-bootstrap/gemba-harness/gemba-wiki/gemba-benchmark CI actions are the
 substrate every shift executes on. Kata is the platform's reference tenant. Kata

@@ -1,7 +1,7 @@
 import { urlPathFromMdFile } from "./transforms.js";
 
 /**
- * @typedef {{ filePath: string, urlPath: string, title: string, description: string }} PageMeta
+ * @typedef {{ filePath: string, urlPath: string, title: string, description: string, redirect: string }} PageMeta
  * @typedef {Map<string, PageMeta>} PageTree
  */
 
@@ -18,9 +18,8 @@ export function scanPages(pagesDir, { fs, path, matter }) {
   return pageTree;
 }
 
-function collectPage(fullPath, baseDir, pageTree, { fs, matter }) {
+function collectPage(fullPath, baseDir, pageTree, { matter, content }) {
   const filePath = fullPath.slice(baseDir.length + 1);
-  const content = fs.readFileSync(fullPath, "utf-8");
   const { data } = matter(content);
   if (!data.title) return;
   const urlPath = urlPathFromMdFile(filePath);
@@ -29,6 +28,9 @@ function collectPage(fullPath, baseDir, pageTree, { fs, matter }) {
     urlPath,
     title: data.title,
     description: data.description || "",
+    // A page with a `redirect` value stays in the tree. Breadcrumbs on its
+    // descendants and the build's own lookups then keep resolving its title.
+    redirect: data.redirect || "",
   });
 }
 
@@ -55,10 +57,22 @@ function walk(dir, baseDir, pageTree, deps) {
     if (isDirectory(fs, fullPath)) {
       walk(fullPath, baseDir, pageTree, deps);
     } else if (entryName.endsWith(".md")) {
+      let content;
       try {
-        collectPage(fullPath, baseDir, pageTree, deps);
+        content = fs.readFileSync(fullPath, "utf-8");
       } catch {
-        // Skip files that can't be read
+        // Skip files that cannot be read.
+        continue;
+      }
+      // A front-matter parse error must stop the build. Swallowing it drops
+      // the page from the tree, and the site then publishes without it and
+      // with no warning. One unquoted colon in a description is enough.
+      try {
+        collectPage(fullPath, baseDir, pageTree, { ...deps, content });
+      } catch (err) {
+        throw new Error(
+          `Cannot parse front matter in ${fullPath}: ${err.message}`,
+        );
       }
     }
   }

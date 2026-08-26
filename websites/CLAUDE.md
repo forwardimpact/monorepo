@@ -1,23 +1,18 @@
 # Websites
 
-`fit-doc` builds four sites ([internals](fit/docs/internals/fit-doc/index.md)).
-Three are live. One is built and waits for a publish workflow.
+`fit-doc` builds five sites
+([internals](fit/docs/libraries/every-surface/publish-docs/index.md)). Each
+owns one domain, one brand stylesheet, and one publish workflow.
 
-| Site                       | Source                | Domain                   | Status |
-| -------------------------- | --------------------- | ------------------------ | ------ |
-| Forward Impact Engineering | `websites/fit/`       | `www.forwardimpact.team` | Live   |
-| Kata Agent Team            | `websites/kata/`      | `www.kata.team`          | Live   |
-| Jidoka                     | `websites/jidoka/`    | `www.jidoka.team`        | Live   |
-| Monorepo Structure         | `websites/monorepo/`  | `www.monorepo.team`      | Built  |
+| Site                       | Source               | Domain                   |
+| -------------------------- | -------------------- | ------------------------ |
+| Forward Impact Engineering | `websites/fit/`      | `www.forwardimpact.team` |
+| Gemba                      | `websites/gemba/`    | `www.gemba.team`         |
+| Kata Agent Team            | `websites/kata/`     | `www.kata.team`          |
+| Jidoka                     | `websites/jidoka/`   | `www.jidoka.team`        |
+| Monorepo Structure         | `websites/monorepo/` | `www.monorepo.team`      |
 
-Preview locally:
-
-```sh
-bunx fit-doc serve --src=websites/fit --watch
-bunx fit-doc serve --src=websites/kata --watch
-bunx fit-doc serve --src=websites/jidoka --watch
-bunx fit-doc serve --src=websites/monorepo --watch
-```
+Preview: `bunx fit-doc serve --src=websites/<site> --watch`.
 
 ## Page Conventions
 
@@ -25,102 +20,96 @@ Every page is a directory containing `index.md`. No other `.md` filenames.
 
 - **Frontmatter** — `title` (rendered as H1) and `description` (meta) are
   required. Optional: `toc: false`, `layout: product|home`, `hero: {…}`.
+  `redirect: <absolute URL>` makes the page a forwarding stub, kept out of
+  `sitemap.xml`, `llms.txt`, and every partial target. Quote any value that
+  holds a colon, or the front matter fails to parse and the build stops.
 - **Headings** — body headings start at `##`. The build renders H1 from
   `title`. A manual `# Title` produces a duplicate.
 - **Links** — absolute directory paths (`/docs/products/agent-teams/`),
   never relative, never `index.md`. External links use full URLs.
 - **Code blocks** — always specify a language tag (`sh`, `yaml`, `mermaid`).
 - **Card grids use content partials.** `<!-- part:card:relative-path -->`
-  markers resolve to the target page's `title` and `description` at build
-  time. The build fails if the target is missing. Hand-written `<a>` cards
-  are only for external links or same-page anchors.
-- **Nothing checks hand-written markdown links.** Only partials validate
-  their targets.
-- **Cross-links** — every non-hub page ends with `## What's next` and uses
-  partials only (max six cards). When a page has `## Verify`,
-  `## What's next` follows it. Card targets follow JTBD structure. Big Hire
-  guides link to Little Hire children and sibling Big Hire trees. Little Hire
-  guides link back to the parent Big Hire and siblings. Getting Started pages
-  link to the product page and primary guide.
+  resolves the target's `title` and `description` at build time. A missing
+  target fails the build. A partial resolves inside one site tree only, so
+  point at another site with a hand-written link and a full URL. A
+  hand-written `<a>` card is only for an external link or a same-page anchor.
+- **Nothing checks hand-written markdown links.** Only partials validate.
+- **Some pages are enumeration consumers.** `enumeration-drift.topics.yml`
+  names them. Moving one breaks `jidoka invariants` until the same commit
+  edits that registry. Re-seed a fence with
+  `bunx jidoka invariants --seed enumeration-drift`.
+- **Cross-links** — every non-hub page ends with `## What's next`, partials
+  only, max six cards, after `## Verify` where one exists. A Big Hire links
+  to its children and sibling Big Hire trees. A Little Hire links back to its
+  parent and siblings. A Getting Started page links to the primary guide.
 
 ## Page Types
 
+The docs tier differs per site. FIT splits `docs/` into `products/`,
+`libraries/`, `services/`, `reference/`, `internals/`, and
+`getting-started/`. Gemba, Kata, and Jidoka are single-product sites and use
+a flat `docs/<task-slug>/` tree plus `docs/getting-started/`.
+
 ### Product Pages
 
-Product pages (`/map/`, `/pathway/`, etc.) follow a consistent structure:
-
-1. Frontmatter with `layout: product` and hero section (light metaphor
-   reference in subtitle, then the progress frame)
-2. Situation paragraph — 2-3 sentences that describe the moment someone
-   realizes they need this product (no blockquote)
-3. **What becomes possible** — organized by persona, each with a progress
-   statement and concrete outputs. Canonical persona names from
-   [JTBD.md](/JTBD.md): Engineering Leaders, Empowered Engineers, Platform
-   Builders. Only personas with a relevant outcome for that product appear.
-4. Product-specific detail sections
-5. **Getting Started** — install commands and persona-labeled guide links
+Only FIT has them. Frontmatter carries `layout: product` and a hero. The body
+runs a situation paragraph, then **What becomes possible** grouped by the
+[JTBD.md](/JTBD.md) persona names, then product sections, then
+**Getting Started**. See `map/index.md`. A single-product site carries this
+job on its `layout: home` page instead.
 
 ### Hub Pages
 
-Collection pages use `toc: false` and a grid of content partials to link to
-children. Cards sit under `##` job headings with a persona label. Partial
-paths are relative to the page's directory: `agent-teams` for a sibling,
-`../docs/libraries` for a cross-tree reference. See `gear/index.md` for an
-example.
+Use `toc: false` and a grid of partials under `##` job headings with a
+persona label. See `gear/index.md`.
 
 ### Getting Started Pages
 
-Per-persona entry points. The minimal path runs from zero to a first
-meaningful result with a single product: install, configure, see output. No
-exploration, no alternatives, no background theory. The page links forward to
-the relevant guide for depth. 50–150 lines.
-
-See [README.md § Getting Started Map](README.md#getting-started-map).
+The minimal path from zero to a first result: install, configure, see output.
+No alternatives and no theory. 50-150 lines. See
+[README.md § Getting Started Map](README.md#getting-started-map).
 
 ### Guide Pages
 
-Guides under `docs/products/`, `docs/libraries/`, and `docs/services/` sit
-under job headings on their hub page. Each job contains two guide types:
+Every guide sits under a job heading on its hub page. Each job holds two
+guide types, and this nesting is the same on all five sites:
 
-- **Big Hire** — end-to-end workflow from situation to outcome (150–400 lines).
+- **Big Hire** — end-to-end workflow, situation to outcome, 150-400 lines.
   Directory root.
-- **Little Hire** — bounded task that assumes the Big Hire is done (80–200
-  lines). Nested under the Big Hire directory.
+- **Little Hire** — bounded task that assumes the Big Hire is done, 80-200
+  lines. Nested under the Big Hire directory.
 
-A job may own several Big Hire trees. When jobs merge, the trees stay put.
-Slugs are published URLs in shipped CLI `documentation` arrays and skill packs
-(products/CLAUDE.md § Linking rule). You can retitle pages. Never move them
-without redirects.
+A job may own several Big Hire trees. Slugs are published URLs in shipped CLI
+`documentation` arrays and skill packs (products/CLAUDE.md § Linking rule).
+Retitling is safe. Never move a page without leaving a `redirect` stub.
 
-Frame every guide around the reader's progress. Do not frame it around product
-features. See [README.md § Guide Map](README.md#guide-map).
+Frame every guide around the reader's progress, never around features. See
+[README.md § Guide Map](README.md#guide-map).
 
 ## Design Assets
 
-A pre-build hook copies sources from `design/fit/` into `websites/fit/assets/`.
-Asset paths in pages are absolute (`/assets/scene-guide.svg`).
+`fit-doc` runs the site `justfile` as a pre-build hook. Its `build` recipe
+copies `base.css`, `layout.css`, `components.css`, and `main.js` from
+`design/assets/` into `websites/<site>/assets/`. FIT also copies its
+illustrations from `design/fit/assets/`. `.gitignore` excludes those four
+filenames and every `websites/**/*.svg`. Asset paths in pages are absolute.
 
-- `design/fit/index.md` — palette, typography, CSS tokens
-- `design/fit/scenes.md` — product scene illustrations
-- `design/fit/icons.md` — product icon system
+`websites/<site>/assets/main.css` is the one tracked asset per site and the
+only one you edit in a site tree. It holds that brand's tokens, fonts, and
+surfaces. `design/index.md` holds the shared language and lists every brand.
+FIT alone ships illustrations. The others inline their SVG.
 
 ## Publishing Pipeline
 
-Live sites share the same deployment pattern. Workflows in
-`.github/workflows/`:
+`.github/workflows/website.yml` is one reusable publisher. A caller passes
+`site` and everything else derives from it. Each caller is
+`website-<site>.yaml`, uploads `<site>-pages`, and dispatches to
+`forwardimpact/<site>-pages`, which deploys to GitHub Pages.
 
-| Workflow              | Artifact       | Pages repo                   |
-| --------------------- | -------------- | ---------------------------- |
-| `website-fit.yaml`    | `fit-pages`    | `forwardimpact/fit-pages`    |
-| `website-kata.yaml`   | `kata-pages`   | `forwardimpact/kata-pages`   |
-| `website-jidoka.yaml` | `jidoka-pages` | `forwardimpact/jidoka-pages` |
+Every caller filters on `websites/<site>/**`, `design/assets/**`, and
+`libraries/libdoc/**`. A site with a brand directory adds
+`design/<brand>/**`. Add that line with the directory, or a brand change
+rebuilds nothing.
 
-The Monorepo site is built but not yet published.
-
-A push to `main` (path-filtered) triggers: build with `fit-doc`, upload
-artifact, dispatch to the pages repo through a GitHub App token. That repo
-deploys to GitHub Pages.
-
-The FIT workflow also copies schemas (JSON from `libraries/libskill/schema/`,
-RDF from `products/map/schema/`) into `dist/schema/` and publishes them at
-`/schema/json/` and `/schema/rdf/`.
+FIT also passes `copy-schema: true`, which puts the libskill JSON and map RDF
+schemas at `/schema/json/` and `/schema/rdf/`.

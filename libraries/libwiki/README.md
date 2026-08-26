@@ -157,7 +157,26 @@ import {
 
 ## Documentation
 
-- [Operate a Predictable Agent Team](https://www.forwardimpact.team/docs/libraries/predictable-team/index.md)
-- [Send a Memo or Update a Storyboard](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-operations/index.md)
-- [Audit and Auto-Fix the Wiki](https://www.forwardimpact.team/docs/libraries/predictable-team/wiki-integrity/index.md)
-- [Allocate Collision-Ledger Entries for Parallel Work](https://www.forwardimpact.team/docs/libraries/predictable-team/collision-ledger/index.md)
+- [Operate a Predictable Agent Team](https://www.gemba.team/docs/predictable-team/index.md)
+- [Send a Memo or Update a Storyboard](https://www.gemba.team/docs/predictable-team/wiki-operations/index.md)
+- [Audit and Auto-Fix the Wiki](https://www.gemba.team/docs/predictable-team/wiki-integrity/index.md)
+- [Allocate Collision-Ledger Entries for Parallel Work](https://www.gemba.team/docs/predictable-team/collision-ledger/index.md)
+
+## Documentation home
+
+libwiki is an import-only library. It declares no `bin`. The `gemba-wiki`
+command ships with the Gemba product, which imports these modules. Run it
+with `npx gemba-wiki`.
+
+The package publishes as `@forwardimpact/libwiki` on the Forward Impact npm
+scope. Install it with `npm install @forwardimpact/libwiki`. Its task guides
+live on the Gemba site at <https://www.gemba.team/>. The Forward Impact library
+guide tree at <https://www.forwardimpact.team/docs/libraries/index.md> is not
+this library's guide home.
+
+**Decision (2026-08-26):** the split package scope and guide host are
+deliberate. libwiki stays a Gear npm package, so `package.json .homepage`
+keeps <https://www.forwardimpact.team>. The agent-memory guides moved to
+gemba.team with the rest of the Gemba product. The `## Documentation` list
+above carries the current URLs. Old `forwardimpact.team/docs/libraries/`
+addresses forward to gemba.team.

@@ -6,6 +6,7 @@ on:
     paths:
       - "websites/kata/**"
       - "design/kata/**"
+      - "design/assets/**"
       - "libraries/libdoc/**"
       - ".github/workflows/website-kata.yaml"
       - ".github/workflows/website.yml"

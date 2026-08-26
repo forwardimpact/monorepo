@@ -27,7 +27,7 @@ session for inspection. (In CLI flag names, _supervisor_ = judge, _agent_ =
 target.)
 
 →
-[Run an Eval guide](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md)
+[Run an Eval guide](https://www.gemba.team/docs/prove-changes/run-eval/index.md)
 
 ### 2. Agent collaboration
 
@@ -37,7 +37,7 @@ messages with `Ask`/`Answer` and broadcast with `Announce`. The facilitator ends
 the session with `Conclude`. The trace records every message and tool call.
 
 →
-[Prove Agent Changes guide](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
+[Prove Agent Changes guide](https://www.gemba.team/docs/prove-changes/index.md)
 
 Both use cases build on `run`. `run` puts a single agent on a defined task,
 with no supervisor and no facilitator.
@@ -136,16 +136,16 @@ up from there.
 
 ## Documentation
 
-- [Coordinate an Agent Team](https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md)
+- [Coordinate an Agent Team](https://www.gemba.team/docs/coordinate-team/index.md)
   — Run a lead and N participant agents in one async session (supervise,
   facilitate, or discuss) with Ask/Answer/Announce and a single NDJSON trace.
-- [Run an Eval](https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md)
+- [Run an Eval](https://www.gemba.team/docs/prove-changes/run-eval/index.md)
   — Author a judge profile, run an eval locally, wire it into CI, and inspect
   the trace it produces.
-- [Prove Agent Changes](https://www.forwardimpact.team/docs/libraries/prove-changes/index.md)
+- [Prove Agent Changes](https://www.gemba.team/docs/prove-changes/index.md)
   — End-to-end workflow from dataset generation through evaluation to trace
   analysis. It also covers multi-agent collaboration sessions.
-- [Analyze Traces](https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md)
+- [Analyze Traces](https://www.gemba.team/docs/prove-changes/trace-analysis/index.md)
   — Read the NDJSON traces from `gemba-harness` with `gemba-trace`. The guide
   covers the grounded-theory method and worked examples.
 - [Agent Teams](https://www.forwardimpact.team/docs/products/agent-teams/index.md)

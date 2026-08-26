@@ -28,16 +28,16 @@ Examples:
 
 Documentation:
   Coordinate an Agent Team
-    https://www.forwardimpact.team/docs/libraries/coordinate-team/index.md
+    https://www.gemba.team/docs/coordinate-team/index.md
     Run a lead and N participant agents in one async session (supervise, facilitate, or discuss) with Ask/Answer/Announce and a single NDJSON trace.
   Run an Eval
-    https://www.forwardimpact.team/docs/libraries/prove-changes/run-eval/index.md
+    https://www.gemba.team/docs/prove-changes/run-eval/index.md
     Author a judge profile. Run an eval locally. Wire it into CI. Inspect the trace it produces.
   Prove Agent Changes
-    https://www.forwardimpact.team/docs/libraries/prove-changes/index.md
+    https://www.gemba.team/docs/prove-changes/index.md
     End-to-end workflow from dataset generation through evaluation to trace analysis. It covers multi-agent collaboration sessions.
   Analyze Traces
-    https://www.forwardimpact.team/docs/libraries/prove-changes/trace-analysis/index.md
+    https://www.gemba.team/docs/prove-changes/trace-analysis/index.md
     Use `gemba-trace` to read the NDJSON traces that `gemba-harness` produces. It covers the grounded-theory method and worked examples.
   Agent Teams
     https://www.forwardimpact.team/docs/products/agent-teams/index.md

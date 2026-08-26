@@ -63,46 +63,55 @@ Run `fit-pack stage` against your checked-out target repository:
 ```sh
 npx fit-pack stage \
   --from .claude \
-  --prefix kata \
+  --prefix fit \
   --into ./skills-repo \
-  --name kata-skills \
+  --name fit-skills \
   --pack-version 1.2.3 \
   --with-agents \
-  --description "Agents and skills for the Kata workflow" \
-  --readme-title "Kata Skills" \
-  --readme-intro "Agents and skills for the Kata workflow."
+  --description "Agents and skills for the Forward Impact engineering standard" \
+  --readme-title "Forward Impact Skills" \
+  --readme-intro "Agents and skills for the Forward Impact engineering standard."
 ```
 
 The options:
 
-| Option           | Meaning                                                     |
-| ---------------- | ----------------------------------------------------------- |
-| `--from`         | Source dir with `skills/` and `agents/` (default `.claude`) |
-| `--prefix`       | Select which skills ship (`kata` selects `skills/kata-*`)   |
-| `--into`         | Working tree of the target repository to write into         |
-| `--name`         | APM package name (the installed repository's short name)    |
-| `--pack-version` | Version stamped into `apm.yml` and each `SKILL.md`          |
-| `--with-agents`  | Also stage agent profiles into `.apm/agents/`               |
-| `--description`  | One-line description written into `apm.yml`                 |
-| `--readme-title` | README H1                                                   |
-| `--readme-intro` | README intro paragraph                                      |
+| Option           | Meaning                                                                             |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `--from`         | Source dir with `skills/` and `agents/` (default `.claude`)                         |
+| `--prefix`       | Select which skills ship. Repeatable. `fit` selects `skills/fit` and `skills/fit-*` |
+| `--all`          | Stage every skill under `--from`. It ignores `--prefix`                             |
+| `--into`         | Working tree of the target repository to write into                                 |
+| `--name`         | APM package name (the installed repository's short name)                            |
+| `--pack-version` | Version stamped into `apm.yml` and each `SKILL.md`                                  |
+| `--with-agents`  | Also stage agent profiles into `.apm/agents/`                                       |
+| `--description`  | One-line description written into `apm.yml`                                         |
+| `--readme-title` | README H1 (default: the `--name` value)                                             |
+| `--readme-intro` | README intro paragraph                                                              |
+
+`--into`, `--name`, and `--pack-version` are always required. You must also
+select the skills. Pass `--prefix` one or more times, or pass `--all`. The
+command exits with a usage error when you pass neither.
 
 On success it reports what it staged. The count is the number of skills and
 agents from your source tree that matched. It reflects the `--prefix` you chose
 and whether you passed `--with-agents`:
 
 ```text
-✓ Staged 12 skill(s) and 6 agent(s) into ./skills-repo
+✓ Staged 17 skill(s) and 8 agent(s) into ./skills-repo
 ```
 
-That line is an example. A `--prefix kata` source with twelve `skills/kata-*`
-directories and six agent profiles reports those twelve and six. Your numbers
-will differ. The count is your check that `fit-pack` selected the right set.
+That line is an example. A `--prefix fit` source with seventeen `skills/fit-*`
+directories and eight agent profiles reports those seventeen and eight. Your
+numbers will differ. The count is your check that `fit-pack` selected the right
+set.
 
-`--prefix` is how one source tree feeds several packs. With
-`--prefix kata`, only `skills/kata-*` directories ship. A `skills/fit-map`
-directory in the same source stays out. Omit `--with-agents` for a skills-only
-pack. The shared `x-*.md` references still ship, because skills cite them too.
+`--prefix` is how one source tree feeds several packs. With `--prefix fit`, only
+`skills/fit` and `skills/fit-*` directories ship. A `skills/other-tool`
+directory in the same source stays out. Pass `--prefix` again to add a second
+family to the same pack. Pass `--all` instead to ship every skill under
+`--from`. Use `--all` when the source directory is itself the pack boundary.
+Omit `--with-agents` for a skills-only pack. The shared `x-*.md` references
+still ship, because skills cite them too.
 
 ## Review what `fit-pack` wrote
 
@@ -111,13 +120,13 @@ staged `SKILL.md`. The installed skill then records the version it came from,
 and you edit no source files:
 
 ```sh
-head -8 ./skills-repo/.apm/skills/kata-review/SKILL.md
+head -8 ./skills-repo/.apm/skills/fit-map/SKILL.md
 ```
 
 ```text
 ---
-name: kata-review
-description: Grade a single artifact against quality criteria
+name: fit-map
+description: Define what good engineering means for every role
 license: Apache-2.0
 metadata:
   version: "1.2.3"
@@ -128,10 +137,10 @@ metadata:
 The generated `apm.yml` is a minimal, valid package manifest:
 
 ```yaml
-name: kata-skills
+name: fit-skills
 version: 1.2.3
 description: >-
-  Agents and skills for the Kata workflow
+  Agents and skills for the Forward Impact engineering standard
 author: forwardimpact
 license: Apache-2.0
 includes: auto
@@ -195,6 +204,6 @@ You have reached the outcome of this guide when:
 
 <!-- part:card:../integrate-standard -->
 
-<!-- part:card:../prove-changes -->
+<!-- part:card:../typed-contracts -->
 
 </div>

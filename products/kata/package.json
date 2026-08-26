@@ -2,7 +2,7 @@
   "name": "@forwardimpact/kata",
   "private": true,
   "description": "Run an autonomous, continuously improving development team through a daily Plan-Do-Study-Act loop. Kata ships as a skill pack under `.claude/skills/kata-*/`.",
-  "homepage": "https://www.forwardimpact.team",
+  "homepage": "https://www.kata.team",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",

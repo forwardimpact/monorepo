@@ -22,7 +22,7 @@ event-driven responses.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 22+
 - GitHub repository with Actions enabled
 - Anthropic API key
 - `apm install forwardimpact/kata-skills`

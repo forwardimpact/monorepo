@@ -75,19 +75,19 @@ rejects unknown path ids. Both filters compose with `--metric` and
 ## Example output
 
 ```text
- UPL 12.5 ──────────────────────────────●───────────────
+ UPL 10.9 ┬                       ●
           │
-+1.5σ 9.4 │        ·           ·  ·              ·
-    μ 6.4 ┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
--1.5σ 3.4 │  ·  ·     ·  ·  ·        ·     ·  ·     ·  ·
++1.5σ 8.2 │                    ·           ·
+    μ 5.5 ┼
+-1.5σ 2.8 │  ·  ·  ·  ·  ·  ·        ·  ·     ·  ·  ·  ·
           │
-  LPL 0.3 ──────────────────────────────────────────────
+  LPL 0.2 ┴
 
-  URL 7.5 ─────────────────────────────────●────────────
-          │                    ·        ·
-    R 2.3 ┼╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌
-          │     ·  ·  ·  ·  ·     ·  ·        ·  ·  ·  ·
-      0.0 ──────────────────────────────────────────────
+  URL 6.6 ┬                       ●  ●
+          │
+    R 2.0 ┼
+          │     ·  ·  ·  ·  ·  ·        ·  ·  ·  ·  ·  ·
+      0.0 ┴
              1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 ```
 
@@ -133,6 +133,26 @@ disclaimers.
 
 ## Documentation
 
-- [Chart a Metric and Check Variation](https://www.forwardimpact.team/docs/libraries/predictable-team/xmr-analysis/index.md)
+- [Chart a Metric and Check Variation](https://www.gemba.team/docs/predictable-team/xmr-analysis/index.md)
   — full guide: CSV schema, commands, the three rules, the chart layout, a
   worked example from a security backlog, and interpretation guidance.
+
+## Documentation home
+
+libxmr is an import-only library. It declares no `bin`. The `gemba-xmr`
+command ships with the Gemba product, which imports these modules. Run it
+with `npx gemba-xmr`.
+
+The package publishes as `@forwardimpact/libxmr` on the Forward Impact npm
+scope. Install it with `npm install @forwardimpact/libxmr`. Its task guide
+lives on the Gemba site at <https://www.gemba.team/>. The Forward Impact
+library guide tree at
+<https://www.forwardimpact.team/docs/libraries/index.md> is not this
+library's guide home.
+
+**Decision (2026-08-26):** the split package scope and guide host are
+deliberate. libxmr stays a Gear npm package, so `package.json .homepage`
+keeps <https://www.forwardimpact.team>. The XmR guide moved to gemba.team
+with the rest of the Gemba product. The `## Documentation` list above carries
+the current URL. Old `forwardimpact.team/docs/libraries/` addresses forward to
+gemba.team.

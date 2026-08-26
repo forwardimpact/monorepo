@@ -69,6 +69,19 @@ Guide needs a service stack that runs. See the
 [getting started guide](websites/fit/docs/getting-started/engineers/index.md)
 for setup.
 
+## Public Sites
+
+Five sites publish the products and the standards:
+
+- [www.forwardimpact.team](https://www.forwardimpact.team) — Map, Pathway,
+  Guide, Landmark, Summit, Outpost, and Gear
+- [www.gemba.team](https://www.gemba.team) — Gemba, the agent-runtime platform
+- [www.kata.team](https://www.kata.team) — Kata, the agent-team practice
+- [www.jidoka.team](https://www.jidoka.team) — Jidoka, the
+  instruction-architecture standard
+- [www.monorepo.team](https://www.monorepo.team) — the Monorepo structure
+  standard
+
 ## Learn More
 
 - [Jobs To Be Done](JTBD.md) – The jobs users hire our products for

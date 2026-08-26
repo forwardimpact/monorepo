@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "websites/jidoka/**"
+      - "design/assets/**"
       - "libraries/libdoc/**"
       - ".github/workflows/website-jidoka.yaml"
       - ".github/workflows/website.yml"

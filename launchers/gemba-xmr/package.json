@@ -2,7 +2,7 @@
   "name": "gemba-xmr",
   "version": "0.0.0",
   "description": "Run gemba-xmr from the npm registry — launcher for @forwardimpact/gemba",
-  "homepage": "https://www.forwardimpact.team",
+  "homepage": "https://www.gemba.team",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",

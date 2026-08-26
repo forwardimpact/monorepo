@@ -21,4 +21,16 @@ shared state lives as markdown in a Git repository.
 Install via `apm install forwardimpact/kata-skills`, then ask Claude to set
 up the team.
 
+The documentation tree covers three jobs. Getting Started takes a repository
+with no automation to one completed shift. Run a Continuously Improving Agent
+Team covers the daily loop: the agent roster, the memory and coordination line,
+the storyboard and coaching session, and the routing of every Study finding.
+Take a Change from Spec to Shipped covers the spec, design, plan, implement,
+review, merge, and release arc, together with the approval gates and the trust
+boundary. Kata runs on the Gemba platform at https://www.gemba.team/, follows
+the Jidoka instruction architecture at https://www.jidoka.team/, and adopts the
+repository structure at https://www.monorepo.team/.
+
+## Documentation
+
 ## Optional
