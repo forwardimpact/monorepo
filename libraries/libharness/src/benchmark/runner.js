@@ -81,7 +81,7 @@ export class BenchmarkRunner {
    *   to `workdir.rawTracePath`, and return `{agentError?}` — cost, turns,
    *   and submission are always derived from the raw file by the shared
    *   split/summary pipeline, so the seam exercises the real path. Internal
-   *   testing only — not part of the public API.
+   *   testing only. It is not part of the public API.
    * @param {import("@forwardimpact/libutil/runtime").Runtime} opts.runtime -
    *   The host injects these ambient collaborators (`fs`, `subprocess`,
    *   `clock`, `proc`). The runner threads them into the installers, the

@@ -82,7 +82,7 @@ const definition = {
       argsUsage: "<run-id> <key>",
       handler: runFindCommand,
       description:
-        "Resolve a trace lane for a known run id by key — exact filename, case, or participant; ambiguous keys error with the candidates",
+        "Resolve a trace lane for a known run id by key. The key is an exact filename, a case, or a participant. An ambiguous key gives an error that lists the candidates",
       options: {
         dir: {
           type: "string",
@@ -101,7 +101,7 @@ const definition = {
       argsUsage: "<run-id>",
       handler: runDownloadCommand,
       description:
-        "Download a trace artifact and extract its .ndjson members (structured.json is produced only for single-member artifacts); pass --artifact to pick one when a workflow emits multiple `trace--*` artifacts",
+        "Download a trace artifact and extract its .ndjson members. Only a single-member artifact also gets a structured.json. Pass --artifact to pick one when a workflow emits multiple `trace--*` artifacts",
       options: {
         dir: { type: "string", description: "Output directory" },
         artifact: { type: "string", description: "Artifact name override" },

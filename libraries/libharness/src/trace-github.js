@@ -161,16 +161,16 @@ export class TraceGitHub {
   }
 
   /**
-   * Resolve a trace lane path for a known run in one keyed lookup — no run
-   * enumeration, no trace-content inspection. The key may be an exact member
-   * filename, a case id, or a participant name.
+   * Resolve a trace lane path for a known run in one keyed lookup. The method
+   * does not enumerate runs. It does not inspect trace content. The key is an
+   * exact member filename, a case id, or a participant name.
    *
-   * Matrix host: the artifact name carries the key (no download). Dispatch
-   * host: download every `trace--*` artifact and match member basenames
-   * against the key. Exactly one match resolves; several matches throw an
-   * error listing the candidates so the caller narrows the key — this
-   * deliberately replaces silent first-match, which returned an arbitrary
-   * cell's lane on eval runs (every cell emits the same participants).
+   * Matrix host: the artifact name carries the key, so no download happens.
+   * Dispatch host: download every `trace--*` artifact and match member
+   * basenames against the key. Exactly one match resolves. Several matches
+   * throw an error that lists the candidates, so the caller narrows the key.
+   * This replaces a silent first-match, which returned an arbitrary cell's
+   * lane on eval runs, because every cell emits the same participants.
    *
    * @param {number|string} runId
    * @param {string} key - Exact member filename, case id, or participant name.

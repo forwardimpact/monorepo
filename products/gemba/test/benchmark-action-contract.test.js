@@ -10,7 +10,13 @@ import { describe, test, before } from "node:test";
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import { globSync, readFileSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  realpath,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +24,7 @@ import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 
 const ACTION_PATH = fileURLToPath(
-  new URL("../actions/benchmark/action.yml", import.meta.url),
+  new URL("../actions/gemba-benchmark/action.yml", import.meta.url),
 );
 
 let action;
@@ -38,7 +44,9 @@ function step(name) {
  * @returns {Promise<{outputs: Record<string, string>, outputDir: string}>}
  */
 async function runResolvePaths(env) {
-  const dir = await mkdtemp(join(tmpdir(), "benchmark-action-"));
+  const dir = await realpath(
+    await mkdtemp(join(tmpdir(), "benchmark-action-")),
+  );
   const outputDir = join(dir, "out");
   const githubOutput = join(dir, "github-output");
   await writeFile(githubOutput, "");

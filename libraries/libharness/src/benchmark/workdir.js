@@ -32,7 +32,7 @@ const DEFAULT_TERM_GRACE_MS = 5_000;
  * @property {string} runDir - Parent of `cwd`; holds trace/log siblings.
  * @property {number} port - Allocated TCP port for the agent.
  * @property {number} pgid - Process-group id captured from the preflight child.
- * @property {*} scaffold - Reserved per design § Components; v1 sets null.
+ * @property {*} scaffold - Reserved per design § Components. v1 sets null.
  * @property {string} caseId - Grid-unique case identity `<taskId>-r<runIndex>`.
  * @property {string} rawTracePath - Combined raw envelope trace (kept).
  * @property {string} agentTracePath

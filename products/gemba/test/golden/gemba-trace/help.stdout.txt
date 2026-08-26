@@ -4,8 +4,8 @@ Usage: gemba-trace <command> [options]
 
 Commands:
   runs [pattern]                             List recent GitHub Actions workflow runs (default pattern: kata|agent|eval|benchmark)
-  find <run-id> <key>                        Resolve a trace lane for a known run id by key — exact filename, case, or participant; ambiguous keys error with the candidates
-  download <run-id>                          Download a trace artifact and extract its .ndjson members (structured.json is produced only for single-member artifacts); pass --artifact to pick one when a workflow emits multiple `trace--*` artifacts
+  find <run-id> <key>                        Resolve a trace lane for a known run id by key. The key is an exact filename, a case, or a participant. An ambiguous key gives an error that lists the candidates
+  download <run-id>                          Download a trace artifact and extract its .ndjson members. Only a single-member artifact also gets a structured.json. Pass --artifact to pick one when a workflow emits multiple `trace--*` artifacts
   overview                                   Metadata, summary, turn count, tool frequency
   count                                      Number of turns
   batch <file> <from> <to>                   Turns in range [from, to) (zero-indexed)

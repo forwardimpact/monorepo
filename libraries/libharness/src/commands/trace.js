@@ -518,9 +518,9 @@ export async function runCompareCommand(ctx) {
  * Split a combined NDJSON trace into per-source files. The output names
  * follow the `trace--<case>--<participant>.<role>.ndjson` convention.
  *
- * CLI concerns only — input and `--mode` validation, defaults, and output-dir
- * creation; the split itself (including source-to-role classification) is the
- * shared `splitTrace` implementation.
+ * The command owns the CLI concerns only: input and `--mode` validation,
+ * defaults, and output-dir creation. The shared `splitTrace` implementation
+ * owns the split itself, including source-to-role classification.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
  */
@@ -531,7 +531,7 @@ export async function runSplitCommand(ctx) {
 
   // `discuss` has the same lead + N-participants shape as `facilitate`, and the
   // splitter buckets purely by envelope `source` (mode-independent), so it is
-  // accepted alongside the structural modes — the CLI owns this, not callers.
+  // accepted alongside the structural modes. The CLI owns this, not callers.
   // `--mode` stays required-but-inert: the harness action passes it and that
   // surface is out of scope for the shared-split extraction.
   const mode = ctx.options.mode;
