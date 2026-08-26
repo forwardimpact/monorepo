@@ -109,7 +109,7 @@ paths and do not rebuild them from `$0`:
 
 A task opts in with a `tests/` directory beside `hooks/`, an overlay mirror
 of the agent CWD. The harness stages each file at its `tests/` path. Every
-`*.test.js` file is one check run with `node --test` (`*.gate.test.js` = a
+`*.test.js` file is one check run with `bun test` (`*.gate.test.js` = a
 gate, others scored at weight 1, named by filename stem). Other files are
 support, staged but never graded. The harness restores the workdir
 afterward, so the judge grades the agent's work. An invalid tree fails the

@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 // Tiny HTTP service. preflight starts it in the background; the invariants
 // script HTTP-probes it on $PORT.
 const http = require("node:http");

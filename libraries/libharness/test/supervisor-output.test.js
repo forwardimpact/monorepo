@@ -11,7 +11,7 @@ import {
 import { createNoopRedactor } from "../src/redaction.js";
 import { MessageBus } from "../src/message-bus.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg } from "@forwardimpact/libmock";
+import { collectStream, createToolUseMsg } from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
 
@@ -55,7 +55,7 @@ describe("Supervisor - output and events", () => {
 
     await supervisor.run("Task");
 
-    const data = output.read()?.toString() ?? "";
+    const data = collectStream(output);
     const lines = data
       .trim()
       .split("\n")
@@ -109,7 +109,7 @@ describe("Supervisor - output and events", () => {
 
     await supervisor.run("Task");
 
-    const data = output.read()?.toString() ?? "";
+    const data = collectStream(output);
     const lines = data
       .trim()
       .split("\n")
@@ -181,7 +181,7 @@ describe("Supervisor - output and events", () => {
 
     await supervisor.run("Task");
 
-    const data = output.read()?.toString() ?? "";
+    const data = collectStream(output);
     const lines = data
       .trim()
       .split("\n")

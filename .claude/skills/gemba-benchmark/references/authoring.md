@@ -42,7 +42,7 @@ exists. The layout is the contract:
 - `tests/` is an **overlay mirror** of the agent CWD. The harness stages
   each file at its `tests/` path (`tests/app/test/filter.test.js` stages
   at `app/test/filter.test.js`).
-- Every `*.test.js` file is one check, run with `node --test` from the
+- Every `*.test.js` file is one check, run with `bun test` from the
   agent CWD. The exit status is the row. `*.gate.test.js` marks a gate.
   Any other `*.test.js` is scored at weight 1, named by its filename stem.
 - Every other file is support material, staged for the whole pass and

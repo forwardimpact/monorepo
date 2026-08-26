@@ -3,6 +3,7 @@ import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
 import { Facilitator, Supervisor } from "@forwardimpact/libharness";
+import { collectLines } from "@forwardimpact/libmock";
 import {
   createOrchestrationContext,
   createAskHandler,
@@ -45,11 +46,7 @@ function seedSupervise() {
 }
 
 function parseLines(output) {
-  return (output.read()?.toString() ?? "")
-    .trim()
-    .split("\n")
-    .filter((l) => l.length > 0)
-    .map((l) => JSON.parse(l));
+  return collectLines(output).map((l) => JSON.parse(l));
 }
 
 /**

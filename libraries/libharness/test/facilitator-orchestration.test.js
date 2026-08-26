@@ -3,6 +3,7 @@ import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
 import { Facilitator } from "@forwardimpact/libharness";
+import { collectLines } from "@forwardimpact/libmock";
 import {
   createAnnounceHandler,
   createAskHandler,
@@ -162,11 +163,7 @@ describe("Facilitator - core orchestration", () => {
 
     await facilitator.run("Do the work");
 
-    const lines = (output.read()?.toString() ?? "")
-      .trim()
-      .split("\n")
-      .filter((l) => l.length > 0)
-      .map((l) => JSON.parse(l));
+    const lines = collectLines(output).map((l) => JSON.parse(l));
 
     const seqs = lines
       .filter((l) => typeof l.seq === "number")

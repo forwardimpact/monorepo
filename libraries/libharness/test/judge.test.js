@@ -13,7 +13,11 @@ import {
 } from "../src/orchestration-toolkit.js";
 import { createNoopRedactor } from "../src/redaction.js";
 import { createMockRunner } from "./mock-runner.js";
-import { createToolUseMsg, createTestRuntime } from "@forwardimpact/libmock";
+import {
+  collectLines,
+  createToolUseMsg,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
 
 const noop = () => createNoopRedactor();
 const RT = () => createTestRuntime();
@@ -118,7 +122,7 @@ describe("Judge.run", () => {
     const judge = new Judge({ runner, output, ctx, redactor: noop() });
     runner.onLine = (line) => judge.emitLine(line);
     await judge.run("Grade this.");
-    const lines = (output.read()?.toString() ?? "").split("\n").filter(Boolean);
+    const lines = collectLines(output);
     // Every assistant line that onLine emits should have source: "judge".
     const judgeLines = lines.filter((l) => l.includes('"source":"judge"'));
     assert.ok(

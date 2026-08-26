@@ -1,7 +1,7 @@
 /**
  * Hidden-test engine — runs a task's `tests/` overlay against the post-run
  * agent CWD. The engine stages each file at its mirrored path. It runs each
- * check with `node --test`. It converts the exit status into one check row.
+ * check with `bun test`. It converts the exit status into one check row.
  * It restores the tree, so the judge sees the workdir exactly as the agent
  * left it.
  *
@@ -69,7 +69,25 @@ async function runOneCheck(task, ctx, runtime, timeoutMs, check) {
 }
 
 /**
- * Spawn `node --test <staged path>` from the agent CWD under the hook env
+ * Reads a child pipe to a string. Returns what it read when the stream tears
+ * down mid-read, because a pipe that closes as the child exits is a race, not
+ * a check failure. The caller reads the exit code for the verdict.
+ *
+ * @param {import("node:stream").Readable} stream - Child stdout or stderr.
+ * @returns {Promise<string>} Everything read before the stream ended.
+ */
+async function drainQuietly(stream) {
+  let out = "";
+  try {
+    for await (const chunk of stream) out += chunk.toString();
+  } catch {
+    // The stream closed under us. Keep what arrived.
+  }
+  return out;
+}
+
+/**
+ * Spawn `bun test <staged path>` from the agent CWD under the hook env
  * and map the exit status onto one row. The clock timer SIGKILLs a child
  * that outlives the per-check budget. The row then fails with a timeout
  * message.
@@ -83,27 +101,40 @@ async function spawnCheck(task, ctx, runtime, timeoutMs, check) {
     hooksDir: task.paths.hooks,
     familyDir: ctx.familyDir,
   });
-  // An inherited test-runner context makes the child `node --test` report
-  // exit 0 even when its tests fail. A check that fails would then mint a row
-  // that passes whenever the harness itself runs under `node --test`.
-  delete env.NODE_TEST_CONTEXT;
-  const child = runtime.subprocess.spawn("node", ["--test", check.stagePath], {
-    cwd: ctx.cwd,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  // `bun test` sets no test-context variable that a nested run inherits, so
+  // a child reports its own exit status even when the harness itself runs
+  // under a test runner. That removes the `NODE_TEST_CONTEXT` scrub the
+  // `node --test` engine needed to stop a failing check minting a passing
+  // row. The "fractional score" grade test is the standing guard: it fails
+  // if a failing check ever reports success again.
+  //
+  // Pass the ABSOLUTE staged path. `bun test` reads its argument as a
+  // substring filter over discovered paths, not as one file, so the relative
+  // `app/test/x.test.js` also matches an agent-authored `sub/app/test/
+  // x.test.js` and folds that file's result into this check's row. An
+  // absolute path cannot be a substring of a deeper path, so it selects
+  // exactly the staged file. One `*.test.js` stays one check.
+  const child = runtime.subprocess.spawn(
+    "bun",
+    ["test", join(ctx.cwd, check.stagePath)],
+    {
+      cwd: ctx.cwd,
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   let timedOut = false;
   const timer = runtime.clock.setTimeout(() => {
     timedOut = true;
     child.kill("SIGKILL");
   }, timeoutMs);
-  const drainStdout = (async () => {
-    for await (const _chunk of child.stdout) {
-      // discard
-    }
-  })();
-  let stderr = "";
-  for await (const chunk of child.stderr) stderr += chunk.toString();
+  // Both pipes drain only so a chatty child never blocks on a full pipe.
+  // A child that exits while its pipe is still open makes the async iterator
+  // reject with ERR_STREAM_PREMATURE_CLOSE on some runtimes. That teardown
+  // race is not a check result, so it must not throw out of the check. The
+  // exit code below is the verdict.
+  const drainStdout = drainQuietly(child.stdout);
+  const stderr = await drainQuietly(child.stderr);
   await drainStdout;
   const exit = await child.exitCode;
   runtime.clock.clearTimeout(timer);

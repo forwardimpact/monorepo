@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 
 import { runHiddenTests } from "../src/benchmark/hidden-tests.js";
 import { realRuntimeWithSubprocess } from "./real-runtime.js";
@@ -122,15 +122,31 @@ describe("runHiddenTests", () => {
       gate: true,
     });
     for (const call of sub.calls) {
-      assert.strictEqual(call.cmd, "node");
-      assert.strictEqual(call.args[0], "--test");
+      assert.strictEqual(call.cmd, "bun");
+      assert.strictEqual(call.args[0], "test");
       assert.strictEqual(call.opts.cwd, cwd);
       assert.strictEqual(call.opts.env.AGENT_CWD, cwd);
       assert.strictEqual(call.opts.env.TASK_ID, "t1");
-      // An inherited NODE_TEST_CONTEXT would make a child `node --test`
-      // exit 0 even when it fails. The engine must never pass it through.
-      assert.ok(!("NODE_TEST_CONTEXT" in call.opts.env));
+      // `bun test` reads its argument as a substring filter over discovered
+      // paths. A relative `app/test/x.test.js` would also match an
+      // agent-authored `sub/app/test/x.test.js` and fold it into this row.
+      // An absolute path cannot be a substring of a deeper path.
+      assert.ok(
+        isAbsolute(call.args[1]),
+        `staged path must be absolute so the filter selects one file: ${call.args[1]}`,
+      );
+      assert.ok(
+        call.args[1].startsWith(`${cwd}/`),
+        `staged path must resolve under the agent CWD: ${call.args[1]}`,
+      );
     }
+    assert.deepStrictEqual(
+      sub.calls.map((c) => c.args[1]),
+      [
+        join(cwd, "app/test/filter.test.js"),
+        join(cwd, "app/test/todo.gate.test.js"),
+      ],
+    );
   });
 
   test("a check that fails carries the stderr tail in its message", async () => {
@@ -188,8 +204,9 @@ describe("runHiddenTests", () => {
       { name: "extra", gate: false, ...fresh },
     ]);
     const staged = [];
-    const sub = scriptedSubprocess((_cmd, args, opts) => {
-      staged.push(readFileSync(join(opts.cwd, args[1]), "utf8"));
+    const sub = scriptedSubprocess((_cmd, args) => {
+      // args[1] is the absolute staged path.
+      staged.push(readFileSync(args[1], "utf8"));
       return childOf();
     });
     const runtime = realRuntimeWithSubprocess(sub);
