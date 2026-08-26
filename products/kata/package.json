@@ -1,7 +1,7 @@
 {
   "name": "@forwardimpact/kata",
   "private": true,
-  "description": "Run an autonomous, continuously improving development team through a daily Plan-Do-Study-Act loop. Kata ships as a skill pack under .claude/skills/kata-*/.",
+  "description": "Run an autonomous, continuously improving development team through a daily Plan-Do-Study-Act loop. Kata ships as a skill pack under `.claude/skills/kata-*/`.",
   "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",

@@ -45,7 +45,7 @@ describe("WorkdirManager.teardown", () => {
     await mkdir(join(taskRoot, "hooks"), { recursive: true });
     await mkdir(join(taskRoot, "workdir"), { recursive: true });
     await mkdir(join(taskRoot, "specs"), { recursive: true });
-    const listener = `#!/usr/bin/env node
+    const listener = `#!/usr/bin/env bun
 const http = require("node:http");
 const server = http.createServer((_, res) => {
   res.writeHead(200, { "content-type": "application/json" });
@@ -57,7 +57,7 @@ setInterval(() => {}, 1000);
 `;
     await writeFile(join(taskRoot, "workdir", "listener.js"), listener);
     const preflight = `#!/bin/sh
-node "$AGENT_CWD/listener.js" >/dev/null 2>&1 &
+bun "$AGENT_CWD/listener.js" >/dev/null 2>&1 &
 # Give the listener a moment to bind before we exit.
 sleep 0.2
 exit 0

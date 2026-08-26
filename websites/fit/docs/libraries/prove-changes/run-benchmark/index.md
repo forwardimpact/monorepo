@@ -171,7 +171,7 @@ manifest. The layout is the contract:
 - `tests/` is an **overlay mirror** of the agent CWD. A file's path under
   `tests/` is the path where it stages (`tests/test/filter.test.js` stages at
   `test/filter.test.js`).
-- Every `*.test.js` file is one check. The harness runs it with `node --test`
+- Every `*.test.js` file is one check. The harness runs it with `bun test`
   from the agent CWD. The exit status becomes one row. `*.gate.test.js` marks
   a gate (e.g. a baseline regression suite). Any other `*.test.js` scores at
   weight 1. The check name is the filename stem.

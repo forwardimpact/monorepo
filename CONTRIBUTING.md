@@ -230,11 +230,11 @@ Test behavior. Never test structure guarded elsewhere.
   Never re-run its rule over the same tree in a unit test. A test of a complex
   pure helper inside a rule is fine.
 
-Runner strategy, per surface:
+Runner strategy. Bun is the default runtime:
 
-- **Gate on `node --test`** (`bun run test:gate`) — reference-correct where bun
-  throws ([bun#5090](https://github.com/oven-sh/bun/issues/5090)).
-- **Iterate on `bun test`** (`bun run test`) — fast, non-required loop.
+- **Gate on `node --test`** (`bun run test:gate`) — the last node surface
+  ([bun#5090](https://github.com/oven-sh/bun/issues/5090)).
+- **Everything else on `bun test`**, benchmark hidden checks included.
 - **Import from `node:test` and `@forwardimpact/libmock/expect`**, never
   `bun:test`. `scripts/check-bun-test-imports.mjs` reddens on any.
 

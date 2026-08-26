@@ -49,12 +49,20 @@ export function createTextBlockMsg(text) {
 
 /**
  * Reads a PassThrough / Readable stream to a single string.
+ *
+ * Drains every buffered chunk. A single `read()` returns only what the
+ * runtime happens to hold in one chunk, so it truncates a multi-write
+ * stream under bun while it looks complete under node.
+ *
  * @param {import("node:stream").Readable} stream
  * @returns {string}
  */
 export function collectStream(stream) {
-  const data = stream.read();
-  return data ? data.toString() : "";
+  let out = "";
+  for (let chunk = stream.read(); chunk !== null; chunk = stream.read()) {
+    out += chunk.toString();
+  }
+  return out;
 }
 
 /**

@@ -4,25 +4,13 @@ import { PassThrough } from "node:stream";
 
 import { AgentRunner, createAgentRunner } from "@forwardimpact/libharness";
 import { createNoopRedactor } from "../src/redaction.js";
-import { createMockAgentQuery as mockQuery } from "@forwardimpact/libmock";
+import {
+  collectLines,
+  createMockAgentQuery as mockQuery,
+} from "@forwardimpact/libmock";
 import { AGENT_MODEL } from "@forwardimpact/libutil/models";
 
 const noop = () => createNoopRedactor();
-
-/**
- * Collect all NDJSON lines written to a PassThrough stream.
- * @param {PassThrough} stream
- * @returns {string[]}
- */
-function collectLines(stream) {
-  const data = stream.read();
-  if (!data) return [];
-  return data
-    .toString()
-    .trim()
-    .split("\n")
-    .filter((l) => l.length > 0);
-}
 
 describe("AgentRunner", () => {
   test("constructor throws on missing cwd", () => {
@@ -472,10 +460,7 @@ describe("AgentRunner", () => {
     assert.match(result.error.message, /exited with code 1/);
     assert.strictEqual(result.sessionId, "sess-err");
 
-    const lines = (output.read()?.toString() ?? "")
-      .trim()
-      .split("\n")
-      .filter((l) => l.length > 0);
+    const lines = collectLines(output);
     assert.strictEqual(lines.length, 2);
   });
 

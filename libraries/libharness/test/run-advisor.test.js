@@ -3,6 +3,7 @@ import assert from "node:assert";
 import { PassThrough } from "node:stream";
 
 import {
+  collectLines,
   createMockAgentQuery,
   createMockFs,
   createTestRuntime,
@@ -54,12 +55,7 @@ async function wire({ values = {}, query } = {}) {
   return { ...wired, output, runtime };
 }
 
-const outputLines = (output) =>
-  (output.read()?.toString() ?? "")
-    .trim()
-    .split("\n")
-    .filter(Boolean)
-    .map(JSON.parse);
+const outputLines = (output) => collectLines(output).map(JSON.parse);
 
 describe("parseRunOptions - advisor flags", () => {
   test("defaults: no advisor model, max-uses 3", () => {

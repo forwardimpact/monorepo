@@ -155,7 +155,10 @@ Files: modify `specs/0650-bun-test-runner/spec.md`.
 - The target bullet wraps across two source lines (0650 spec.md lines 131–132):
   `- Adding \`bun:test\`-specific features (snapshot testing, etc.) — out of
   scope;` / ` this spec is purely about the runner
-  switch.` Match the wrapped form (or edit by line range), not a single-line string. Replace it with the Replacement bullet text from spec 1410 § Supersession, followed by `*[amended by spec 1410](../1410-bun-test-allowlist-outside-libpack/spec.md)*`
+  switch.` Match the wrapped form (or edit by line range), not a
+  single-line string. Replace it with the Replacement bullet text from
+  spec 1410 § Supersession, followed by
+  `*[amended by spec 1410](../1410-bun-test-allowlist-outside-libpack/spec.md)*`
   (no date).
 - The replacement bullet links to spec 1410 § Scope (SC7b).
 
