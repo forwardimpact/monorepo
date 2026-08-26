@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/librag",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Consolidated retrieval CLIs — build the knowledge indexes, then query them by meaning or relationship.",
   "keywords": [
     "rag",

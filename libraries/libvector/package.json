@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libvector",
-  "version": "0.1.99",
+  "version": "0.1.100",
   "description": "Vector dot-product scoring — find semantically related content without a dedicated database.",
   "keywords": [
     "vector",

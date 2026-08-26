@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libinvariant",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Repository invariant checks — instruction-layer length caps, JTBD block validation, and a declarative rule-module runner over a caller-supplied rules directory.",
   "keywords": [
     "invariants",

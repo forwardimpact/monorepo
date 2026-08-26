@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcghserver",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "GitHub App key custody and a surface that mints short-lived installation tokens for the hosted control plane.",
   "keywords": [
     "github",
