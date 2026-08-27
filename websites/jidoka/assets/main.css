@@ -174,8 +174,8 @@
 }
 
 .jidoka-hero .layer-stack-hero {
-  width: 72px;
-  height: 72px;
+  width: 110px;
+  height: 165px;
   margin-bottom: var(--space-8);
   animation: fadeUp 600ms var(--ease-default) 100ms backwards;
 }
@@ -586,17 +586,235 @@
 
 /* ── Layer-stack SVG ───────────────────────────────────────────── */
 
-.layer-stack-hero .layer-bar,
-.layer-divider .layer-bar {
-  stroke: var(--gray-300);
-  stroke-width: 1.5;
-  fill: none;
+/* Shared across hero, divider, and footer. Gradients live once in a
+   hidden sprite in index.template.html and every instance references
+   them by id. */
+.layer-bar {
+  stroke: var(--gray-900);
+  stroke-width: 0.5;
 }
 
-.layer-stack-hero .layer-bar-top,
-.layer-divider .layer-bar-top {
-  stroke: var(--ink-400);
-  fill: var(--ink-50);
+.layer-bar-top {
+  stroke: var(--ink-600);
+  stroke-width: 0.5;
+}
+
+.layer-cord {
+  stroke: var(--gray-700);
+  stroke-width: 0.5;
+}
+
+.layer-pedestal {
+  fill: var(--gray-900);
+  opacity: 0.12;
+}
+
+.layer-lamp {
+  stroke: var(--ink-600);
+  stroke-width: 1;
+}
+
+/* The lamp's glow: three concentric rings behind it, same low
+   opacity, decreasing radius. Radius alone builds the falloff — the
+   circles overlap and stack toward the center, so no per-ring
+   opacity tier is needed. No blur filter, so the edge stays crisp
+   and predictable across browsers. */
+.layer-glow {
+  fill: var(--ink-400);
+  stroke: none;
+  opacity: 0.15;
+}
+
+/* ── Layer Stack: Reveal ───────────────────────────────────────── */
+
+/* Armed by .reveal on the svg; main.js adds .visible on first entry
+   into the viewport. The pedestal lands first, the cord rises from
+   it, the plates stack bottom to top, and the andon lamp switches
+   on last. The cord is rect 1 among the svg's rects, so the eight
+   plates are rects 2 through 9. */
+.layer-stack-hero.reveal .layer-pedestal,
+.layer-divider svg.reveal .layer-pedestal {
+  opacity: 0;
+}
+
+.layer-stack-hero.reveal .layer-cord {
+  opacity: 0;
+  transform: scaleY(0);
+  transform-box: fill-box;
+  transform-origin: center bottom;
+}
+
+.layer-stack-hero.reveal .layer-bar,
+.layer-divider svg.reveal .layer-bar {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.layer-stack-hero.reveal .layer-glow,
+.layer-stack-hero.reveal .layer-lamp,
+.layer-divider svg.reveal .layer-glow,
+.layer-divider svg.reveal .layer-lamp {
+  opacity: 0;
+  transform: scale(0.4);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* The pedestal rests at 0.12 opacity, so its keyframe stops there
+   rather than at 1. */
+.layer-stack-hero.reveal.visible .layer-pedestal,
+.layer-divider svg.reveal.visible .layer-pedestal {
+  animation: jidokaPedestalIn 240ms var(--ease-default) forwards;
+}
+
+.layer-stack-hero.reveal.visible .layer-cord {
+  animation: jidokaCordRise 500ms var(--ease-default) 100ms forwards;
+}
+
+.layer-stack-hero.reveal.visible .layer-bar,
+.layer-divider svg.reveal.visible .layer-bar {
+  animation: jidokaBarIn 240ms var(--ease-default) forwards;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(2) {
+  animation-delay: 150ms;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(3) {
+  animation-delay: 220ms;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(4) {
+  animation-delay: 290ms;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(5) {
+  animation-delay: 360ms;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(6) {
+  animation-delay: 430ms;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(7) {
+  animation-delay: 500ms;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(8) {
+  animation-delay: 570ms;
+}
+
+.layer-stack-hero.reveal.visible rect:nth-of-type(9) {
+  animation-delay: 640ms;
+}
+
+.layer-divider svg.reveal.visible rect:nth-of-type(1) {
+  animation-delay: 100ms;
+}
+
+.layer-divider svg.reveal.visible rect:nth-of-type(2) {
+  animation-delay: 170ms;
+}
+
+.layer-divider svg.reveal.visible rect:nth-of-type(3) {
+  animation-delay: 240ms;
+}
+
+.layer-stack-hero.reveal.visible .layer-glow,
+.layer-stack-hero.reveal.visible .layer-lamp {
+  animation: jidokaLampOn 260ms var(--ease-default) 780ms forwards;
+}
+
+.layer-divider svg.reveal.visible .layer-glow,
+.layer-divider svg.reveal.visible .layer-lamp {
+  animation: jidokaLampOn 260ms var(--ease-default) 380ms forwards;
+}
+
+/* The glow rings stop short of full opacity, so a second keyframe
+   carries their 0.15 resting value. */
+.layer-stack-hero.reveal.visible .layer-glow,
+.layer-divider svg.reveal.visible .layer-glow {
+  animation-name: jidokaGlowOn;
+}
+
+@keyframes jidokaPedestalIn {
+  to {
+    opacity: 0.12;
+  }
+}
+
+@keyframes jidokaCordRise {
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes jidokaBarIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes jidokaLampOn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes jidokaGlowOn {
+  to {
+    opacity: 0.15;
+    transform: scale(1);
+  }
+}
+
+/* Under reduced motion the mark renders complete and static. The
+   armed selectors above carry two and three classes, so each one is
+   repeated here — a media query adds no specificity of its own. */
+@media (prefers-reduced-motion: reduce) {
+  .layer-stack-hero.reveal .layer-cord,
+  .layer-stack-hero.reveal .layer-bar,
+  .layer-stack-hero.reveal .layer-lamp,
+  .layer-divider svg.reveal .layer-bar,
+  .layer-divider svg.reveal .layer-lamp,
+  .layer-stack-hero.reveal.visible .layer-cord,
+  .layer-stack-hero.reveal.visible .layer-bar,
+  .layer-stack-hero.reveal.visible .layer-lamp,
+  .layer-divider svg.reveal.visible .layer-bar,
+  .layer-divider svg.reveal.visible .layer-lamp {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .layer-stack-hero.reveal .layer-pedestal,
+  .layer-divider svg.reveal .layer-pedestal,
+  .layer-stack-hero.reveal.visible .layer-pedestal,
+  .layer-divider svg.reveal.visible .layer-pedestal {
+    opacity: 0.12;
+    transform: none;
+    animation: none;
+  }
+
+  .layer-stack-hero.reveal .layer-glow,
+  .layer-divider svg.reveal .layer-glow,
+  .layer-stack-hero.reveal.visible .layer-glow,
+  .layer-divider svg.reveal.visible .layer-glow {
+    opacity: 0.15;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* ── Footer Tower ──────────────────────────────────────────────── */
+
+.footer-tower {
+  width: 48px;
+  height: 75px;
+  margin-bottom: var(--space-2);
 }
 
 /* ── Footer Brand ──────────────────────────────────────────────── */
@@ -627,8 +845,8 @@
 }
 
 .layer-divider svg {
-  width: 20px;
-  height: 20px;
+  width: 48px;
+  height: 75px;
 }
 
 /* ── Responsive ────────────────────────────────────────────────── */

@@ -81,51 +81,91 @@ the outcome. They are the CI face of one loop, never a second product.
 Above the five steps sits the **trace mark**. It is the brand's one repeatable
 motif, and it makes the loop visible the way Kata's PDSA wheel makes four phases
 visible. The geometry is deliberately not a wheel, because a five-spoke circle
-would read as a variant of Kata's mark. The trace mark is a rising staircase of
-five treads over a dashed return sweep. One tread stands for one step. The
-staircase reads left to right, the way a trace is written, and the sweep carries
-the loop back to the first step. The mark is inline SVG in every use.
+would read as a variant of Kata's mark. The trace mark is one continuous ink
+trace, the kind a chart recorder draws, rising left to right through five
+sampled points, one per step. The fifth point — **measure** — is the **live
+dot**: the trace ends on it, it fills amber, and it glows. An earlier draft
+appended a sixth amber "nib" beyond the five points, but five steps deserve
+exactly five marks, so the live treatment moved onto the fifth dot and the
+sixth is gone. A dashed return sweep carries the reading from the live dot
+back to the first point, the way a recorder resets its pen for the next pass.
+Earlier drafts also drew the trace as a right-angle staircase of separate
+segments. That geometry read as a bar chart, not an instrument, so the mark
+now reads as a single smooth trace instead: it is what the "instrumented bay"
+premise actually promised. The mark is inline SVG in every use.
 
 ```html
-<svg class="trace-mark" viewBox="0 0 64 24" width="64" height="24"
+<svg class="trace-mark" viewBox="0 0 64 30" width="64" height="30"
      role="img" aria-label="The Gemba loop: stand up, run, see, remember, measure">
-  <path class="trace-riser" d="M15 20 V17 M26 17 V14 M37 14 V11 M48 11 V8" />
-  <line class="trace-tread" data-step="stand-up" x1="4" y1="20" x2="15" y2="20" />
-  <line class="trace-tread" data-step="run" x1="15" y1="17" x2="26" y2="17" />
-  <line class="trace-tread" data-step="see" x1="26" y1="14" x2="37" y2="14" />
-  <line class="trace-tread" data-step="remember" x1="37" y1="11" x2="48" y2="11" />
-  <line class="trace-tread" data-step="measure" x1="48" y1="8" x2="59" y2="8" />
-  <path class="trace-return" d="M59 8 Q32 28 4 20" />
+  <path class="trace-return" d="M53 8 Q29 22 4 21" />
+  <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8" stroke="url(#gemba-trace-line)" />
+  <circle class="trace-dot" data-step="stand-up" cx="9" cy="20" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-dot" data-step="run" cx="20" cy="17" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-dot" data-step="see" cx="31" cy="14" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-dot" data-step="remember" cx="42" cy="11" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-glow" cx="53" cy="8" r="8" />
+  <circle class="trace-glow" cx="53" cy="8" r="6" />
+  <circle class="trace-glow" cx="53" cy="8" r="4.2" />
+  <circle class="trace-dot trace-dot-live" data-step="measure" cx="53" cy="8" r="3" fill="url(#gemba-nib)" />
 </svg>
 ```
 
-### Named sizes and stroke weights
+The return sweep sits first in source order, so the line and the dots paint
+over it. The line sits second, filling from a gradient stroke
+(`gemba-trace-line`, `userSpaceOnUse` from `x = 4` to `x = 53`) that runs
+`--gray-300` at the start through `--gray-400` to `--amber-400` at the line's
+end — the trace visibly warms as it approaches the live dot. The four resting
+dots paint over the line's stroke, filled with a glassy radial gradient
+(`gemba-dot`) biased upper-left for a highlight. Three low-opacity rings fake
+a soft glow behind the live dot, which sits last in source order, always the
+topmost element, filled with `gemba-nib` (`--amber-100` through `--amber-400`
+to `--amber-600`). The live dot keeps the `trace-dot` class, so every dot
+rule reaches it; `trace-dot-live` adds only its size and timing. Because it
+sits after the glow rings, sibling `nth-of-type` selectors cannot reach it —
+its reveal delay and running-state delay key off the class instead.
 
-| Use             | Rendered size | Treads  | Risers  | Return sweep        |
-| --------------- | ------------- | ------- | ------- | ------------------- |
-| Hero            | `160 × 60 px` | `2px`   | `1.5px` | `1.5px`, `3 4` dash |
-| Section divider | `64 × 24 px`  | `1.5px` | `1px`   | `1px`, `2 3` dash   |
-| Wordmark        | `1em × 0.3em` | `1px`   | none    | none                |
+**A brand-level divergence, noted per
+[../usage.md](../usage.md#specified-per-brand):** the mark moved from a thin
+stroked line to a filled, gradient ribbon with a glowing live dot. The family
+default stays "no fill except where the brand explicitly notes." Gemba now
+explicitly notes it — an instrument's live reading should look lit, not merely
+outlined.
 
-All three use `stroke: var(--gray-300)`, `fill: none`, `stroke-linecap: round`,
-and `stroke-linejoin: round`. Every element also carries
-`vector-effect: non-scaling-stroke`, so the rendered weight holds at the named
-pixel value at any size. The wordmark variant drops the risers and the sweep.
-Its five treads sit flat on one baseline, one under each letter of **GEMBA**.
-Below an 8px wordmark height, omit the mark entirely.
+### Named sizes and fills
+
+| Use               | Rendered size  | Line               | Resting dots | Live dot                | Return sweep         |
+| ------------------ | -------------- | -------------------- | ------------ | -------------------------- | -------------------- |
+| Hero                | `280 × 131 px` | `1.2` units (≈ 5px), `gemba-trace-line` gradient | `r = 2.2`, `gemba-dot` gradient | `r = 3`, `gemba-nib` gradient, 3-ring glow | `1.5px`, `3 4` dash |
+| Section divider     | `110 × 52 px`  | `1.8` units (≈ 3px), same gradient  | `r = 2.2`, same gradient | `r = 2.2`, same gradient, 3-ring glow | `1px`, `2 3` dash |
+| Wordmark / footer   | `1em × 0.45em` | none                  | `r = 1.8`, same gradient | none                        | none                 |
+
+The return sweep alone carries `vector-effect: non-scaling-stroke`, so its
+decorative dash holds one screen size at any scale. The trace line must not
+carry it: with non-scaling-stroke, browsers compute dash patterns in screen
+space, and the reveal's 70-unit draw dash then rendered the line as dashes at
+hero scale — the trace never fully connected its dots. The line's widths are
+therefore user units (sized per rendered scale in the table above), and the
+whole ~52-unit path fits inside one 70-unit dash, so the drawn line is always
+continuous. Every gradient is defined once, in a hidden sprite `<svg>`
+at the top of `index.template.html`, and every instance of the mark — hero,
+three dividers, the wordmark, and the footer — references it by id. The
+wordmark and footer variant drops the line, the glow, and the live treatment.
+Its five dots sit flat on one baseline, one under each letter of **GEMBA**, a
+resting signature rather than a live reading. Below an 8px mark height, omit
+it entirely.
 
 ### Step coverage
 
-A page about one step lights that tread. A lit tread takes
-`stroke: var(--accent-warm-400)` and one extra half-pixel of weight. Unlit
-treads drop to `0.75px` in `--gray-300`, and the risers and the sweep stay
-unlit. This mirrors Kata's lit and unlit quadrant convention, so the two marks
-read as siblings that record different things. Amber on a tread is a line-art
-stroke, so the palette rule in [§ 4](#4-color-palette) holds.
+A page about one step lights that dot. A lit dot takes
+`fill: var(--accent-warm-400)` (overriding its inline gradient fill, since a
+CSS class outranks a presentation attribute) and grows from `r = 2.2` to
+`r = 2.4` (hero: `r = 3`). Unlit dots drop to `r = 1` at `0.6` opacity, and the
+line and the sweep stay unlit. This mirrors Kata's lit and unlit tick
+convention, so the two marks read as siblings that record different things.
 
 ### Section-divider use
 
-`.trace-divider` centres the `64 × 24 px` mark in a flex row and takes
+`.trace-divider` centres the `110 × 52 px` mark in a flex row and takes
 `padding: var(--space-24) 0`, which leaves 96px of vertical space above and
 below. It carries no caption and no rule. On the scroll home page it separates
 the step section from the command section, and the tenant section from the
@@ -135,27 +175,41 @@ shares the cadence, and the shape identifies the brand.
 ### Motion and reduced motion
 
 The mark has two states, both specified here because the shared layers do not
-know it. **Advance:** on first entry into the viewport, the treads draw left to
-right through `stroke-dashoffset`, each over 240ms and each starting 120ms after
-the one before it. The return sweep draws last, over 400ms. That sequence runs
-once and totals about 1120ms. **Running:** as a loading state, the lit tread
-steps one station per 600ms and loops from **measure** back to **stand up**.
+know it. **Advance:** on first entry into the viewport, the line draws left to
+right through `stroke-dashoffset` over 600ms. Each dot pops in as the line
+reaches it, 120ms apart, over 240ms each. The live dot and its glow arrive
+together on the line's final beat (560ms), and the return sweep fades in
+last, over 400ms. That sequence runs once and totals about 1180ms.
+**Running:** as a loading state, the lit dot steps one station per 600ms and
+loops from **measure** back to **stand up**.
 
-Under reduced motion the mark renders complete and static. Every tread holds its
-base weight in `--gray-300`, and the lit tread stops cycling. `base.css` clamps
-animation duration already. This rule is explicit, so the mark never depends on
-that clamp for a correct first paint.
+Under reduced motion the mark renders complete and static. The resting dots
+hold their glassy gray fill, the live dot holds its amber gradient with the
+glow at rest, and the lit dot stops cycling. `base.css` clamps animation
+duration already. This rule is explicit, so the mark never depends on that
+clamp for a correct first paint.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .trace-mark .trace-tread,
-  .trace-mark .trace-riser,
-  .trace-mark .trace-return {
+  .trace-mark .trace-line,
+  .trace-mark .trace-return,
+  .trace-mark .trace-dot {
     stroke-dashoffset: 0;
+    opacity: 1;
+    transform: none;
     animation: none;
   }
 }
 ```
+
+### A correction from the first draft
+
+The original return sweep's control point sat outside the `0 0 64 24`
+viewBox, at `y = 28`. No brand-layer rule set `overflow: visible` on the mark,
+so the sweep's lower bulge clipped flat against the viewBox edge in every
+browser — a quiet defect in a mark meant to represent instrumentation
+accuracy. The current curve keeps its control point at `y = 23`, inside the
+viewBox, so the sweep renders exactly as drawn.
 
 ---
 
@@ -199,7 +253,7 @@ warm light on enamel, and it is the visible sign that the bay is running.
 | `--amber-50`  | `#fdf7ee` | Warm section backgrounds, blockquote fills  |
 | `--amber-100` | `#f7e8cd` | Highlighted cards, selected states          |
 | `--amber-200` | `#eccf9b` | Warm borders, card hover, active indicators |
-| `--amber-400` | `#c1832a` | The lit tread, the terminal prompt, labels  |
+| `--amber-400` | `#c1832a` | The live dot, a lit dot, the terminal prompt, labels |
 | `--amber-600` | `#8c5a12` | Warm accent text (used very sparingly)      |
 
 Amber holds the same hue family as sandstone at roughly three times the
@@ -260,17 +314,19 @@ Spectral, 500:                 Archivo, 20px, 400, gray-400:
   Go to where                    Gemba is the agent-runtime platform. It
   the work happens.              gives a team one command family and one
    G   E   M   B   A             set of CI actions to stand agents up, run
-   ▁   ▁   ▁   ▁   ▁             sessions, read traces, keep memory, and
+   •   •   •   •   •             sessions, read traces, keep memory, and
                                  measure outcomes.
 ```
 
 The wordmark sets the five letters **GEMBA** in Spectral 500 with generous
 letter-spacing (`0.14em`). Beneath them sits the flat variant of the trace mark
-from [§ 3](#3-the-trace-mark), with its five treads aligned one to each letter.
+from [§ 3](#3-the-trace-mark), with its five dots aligned one to each letter.
 Five letters carry five steps, and that alignment is the brand's signature.
-Under a 16px wordmark height, drop the treads to one unbroken baseline rule in
+Under a 16px wordmark height, drop the dots to one unbroken baseline rule in
 `--gray-300`. Below 8px, omit the mark. The header wordmark uses the plain
-`.brand-text` treatment with no mark, so it stays a hero and footer element.
+`.brand-text` treatment with no mark, so it stays a hero and footer element —
+the footer places the flat mark beneath `.footer-brand` directly, the same
+composition as the hero.
 
 ---
 
@@ -288,7 +344,7 @@ own inner container.
 
 ```text
 │               G E M B A                      │  ← Spectral 500, tracked
-│               ▁ ▁ ▁ ▁ ▁                      │  ← trace mark, hero size
+│               • • • • •                      │  ← trace mark, hero size
 │          Go to where the work happens.       │  ← Spectral 500, 64px
 │     One command family. Two surfaces.        │  ← Archivo, gray-400
 ├──────────────────────────────────────────────┤
@@ -333,7 +389,7 @@ loses its sticky position.
   radius `--radius-md` (8px), padding `--space-4`. The `CONTENTS` heading is
   `12px` Archivo 600, uppercase, `0.08em` tracked, in `--gray-700`. The active
   entry takes a `2px` left border in `--accent-warm-400` with `--space-2` of
-  inset, which applies the lit-tread idea to the rail. Its label stays
+  inset, which applies the lit-dot idea to the rail. Its label stays
   `--gray-700`, so amber never becomes text.
 - **Prose width.** A page with no rail holds a `680px` measure. A page with a
   rail holds the grid's `1fr` column.
@@ -364,7 +420,7 @@ section restates every affected size in pixels.
   `--space-8` (32px). Hover warms the border to `--accent-warm-200` and lifts
   the card 2px. The five home-page step cards instead take a `3px` top border in
   `--gray-200` and no other border, and hover moves that border to
-  `--accent-warm-400`. Each one reads as one tread of the trace.
+  `--accent-warm-400`. Each one reads as one sampled point of the trace.
 - **Terminal and code blocks.** `--bg-inverted` behind `--text-on-dark`, prompt
   `❯` in `--amber-400`, comments in `--gray-400`, radius `--radius-md` (8px),
   padding `--space-6` (24px). Inline code takes `--gray-50` behind `--gray-700`

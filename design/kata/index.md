@@ -80,31 +80,92 @@ structural UI.
 
 ### The PDSA Wheel
 
-Above the six personas sits the **PDSA wheel**. The wheel is a four-quadrant
-chalk circle marked **P · D · S · A** clockwise. It makes the spine of
-[KATA.md](../../KATA.md) visible. The brand repeats this motif. Use it as:
+Above the six personas sits the **PDSA wheel**, drawn as a filled medallion
+inside a rotating loop: a rim, a face, a raised hanko hub at the centre, and
+four arc-shaped arrows that chase each other clockwise around the medallion,
+marked **P · D · S · A** at the quadrant they carry. The arrows are the
+point: an earlier draft placed static ticks at the cardinal points, and the
+mark read as a compass — a direction, not a cycle. Arrows that visibly chase
+each other read as the Deming wheel in motion, which is what PDSA is. The hub
+stays the hanko stamp: the mark carries both of Kata's motifs — the turning
+improvement cycle and the ink mark of an approved decision — in one glyph. It
+makes the spine of [KATA.md](../../KATA.md) visible. The brand repeats this
+motif. Use it as:
 
 - The optional accent above the second `A` in the **KATA** wordmark.
-- A section divider on long pages. Draw it at 16px with a `--gray-300` stroke,
-  centred. Leave 96px of vertical space either side.
+- A section divider on long pages. The small version is the four loop
+  arrows alone — no medallion, no hub — at 40px, centred, so even the
+  reduced mark says "cycle", not "dot". Leave 96px of vertical space either
+  side.
+- The footer mark, the same four arrows at 56px, filled `--text-on-dark` on
+  the dark footer (the CSS fill outranks the inline gradient attribute).
 - A loading state. The wheel rotates one quadrant per 800ms. It loops P → D → S
   → A → P. It respects `prefers-reduced-motion` (static wheel).
 
 Each agent's "phase coverage" in [KATA.md § Skills](../../KATA.md#skills) maps
-to wheel quadrants. So the wheel is also functional. A Staff Engineer profile
-page may show the wheel with **P** and **D** lit. An Improvement Coach profile
-may show **S** lit. Lit quadrants use a 1.5px stroke. Unlit quadrants use a
-0.5px stroke. No fills.
+to the arrows. So the wheel is also functional. A Staff Engineer profile page
+may show the wheel with **P** and **D** lit. An Improvement Coach profile may
+show **S** lit. A lit arrow takes the flat `--ink-400` hanko color and its
+label takes `--ink-600`. An unlit arrow holds the `kata-arrow` gradient
+(`--gray-400` to `--gray-800`) and an unlit label holds `--gray-700`. The hub
+is always the `kata-hub` gradient — it is the constant signature, not a
+coverage state.
 
 ```text
-       P
-   ╱─ ─ ─╲
-  ╱       ╲
- │ A     D │
-  ╲       ╱
-   ╲─ ─ ─╱
-       S
+        ↻ P
+     A ╭───╮
+       │ ◉ │ D
+       ╰───╯
+        S ↻
 ```
+
+**A brand-level divergence, noted per
+[../usage.md](../usage.md#specified-per-brand):** this second draft of the mark
+moves from stroke-only line art to filled, gradient-shaded surfaces — a
+medallion with a rim, a lit face, and a raised hub, not a wire outline. The
+family default stays "no fill except where the brand explicitly notes." Kata now
+explicitly notes it, on the strength that a stamped medallion is a physical,
+dimensional object in the metaphor, and a flat outline undersold that.
+Structural UI stays exactly as monochrome and flat as
+[../index.md § 2](../index.md#2-color-philosophy) requires — the gradient
+treatment is scoped to this one mark, not adopted by cards, buttons, or any
+other surface.
+
+Construction: on a 124-unit viewBox centred at (62, 62), the rim is a
+radius-34 filled circle (`kata-medallion-rim`, a radial gradient from
+`--gray-100` to `--gray-400` — an earlier draft ran `--gray-300` to
+`--gray-700`, and the dark arrows disappeared against that dark ring), and
+the face is a radius-25 filled circle on top (`kata-medallion-face`,
+`--white-warm` through `--gray-50` to `--gray-200`). Both gradients bias
+their center to 35%/30%, so the highlight sits upper-left, as if lit from one
+corner. Each arrow is an annular segment
+sweeping 55 degrees between radius 37 and 47, closed by a chevron arrowhead
+whose barbs span radius 33 to 51 and whose tip leads 16 degrees clockwise, so
+every arrow visibly points at the next. All four fill `kata-arrow`
+(`--gray-400` to `--gray-800` diagonal). Their rotations are baked into the
+path coordinates rather than `transform` attributes, because the reveal
+animates a CSS scale on each arrow, and a CSS transform would override an
+attribute transform and collapse all four onto one quadrant. Labels ride the
+face at the quadrant diagonals (radius 17.5, at 45/135/225/315 degrees), set
+in `--font-display` (Roboto Slab) 700 at 11px, so each letter sits inside the
+quadrant its arrow carries. The hub is a radius-10 filled circle in
+`kata-hub` (`--ink-200` through `--ink-400` to `--ink-600`). All four
+gradients are defined once, in a hidden sprite `<svg>` at the top of
+`index.template.html`, and every instance of the mark references them by id
+rather than redefining them, so the mark reads identically wherever it
+appears. The hero renders the full mark at 168×168px. The dividers (40×40px)
+and the footer (56×56px) render the four loop arrows alone on the same
+124-unit viewBox.
+
+**Reveal.** The hero and dividers carry `.reveal`, and the shared observer in
+`main.js` adds `.visible` on first entry into the viewport, the same
+mechanism the Gemba trace mark uses. In the hero, the medallion lands first
+(rim and face scale and fade in over 300ms), the four arrows arrive clockwise
+P → D → S → A (240ms each, 120ms apart, from 250ms), each label follows its
+arrow one beat behind, and the hanko hub stamps down last — it scales from
+1.7 to 1 at 850ms, the way a stamp lands on paper. In a divider the four
+arrows alone arrive clockwise, 120ms apart, from 0ms. Under reduced motion
+every part renders complete and static.
 
 ---
 
@@ -219,17 +280,19 @@ IBM Plex Sans, 18px, weight 400, gray-400:
 The Kata wordmark sets the four letters **KATA** in Roboto Slab 700 with
 generous letter-spacing (`0.18em`). Above the second `A` sits a small **PDSA
 wheel**, sized at 0.5em. [§ 2 The PDSA Wheel](#the-pdsa-wheel) defines that
-four-quadrant chalk circle. The wheel acts as the brand's signature. It is a
-quiet visible reminder that every Kata page is a turn of the cycle.
+ringed chalk circle with its hanko hub. The wheel acts as the brand's
+signature. It is a quiet visible reminder that every Kata page is a turn of
+the cycle.
 
 ```text
    K A T A
         ⊕     ← PDSA wheel (P · D · S · A clockwise)
 ```
 
-At very small sizes (under 16px wordmark height), the PDSA wheel reduces to a
-simple **stroke-only** circle in `--gray-700`. Drop the quadrant marks. Keep
-the no-fill rule. Below 8px wordmark height, omit the wheel entirely.
+At very small sizes (under 16px wordmark height), the PDSA wheel reduces to
+the four loop arrows only, with no medallion and no labels — the same
+reduction the dividers and the footer use. Below 8px wordmark height, omit
+the wheel entirely.
 
 ---
 

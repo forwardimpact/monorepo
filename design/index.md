@@ -18,6 +18,7 @@ follow to derive a brand.
 - [Forward Impact Engineering](fit/index.md) · [scenes](fit/scenes.md) ·
   [icons](fit/icons.md)
 - [Kata](kata/index.md)
+- [Jidoka](jidoka/index.md)
 - [Gemba](gemba/index.md)
 
 ---
