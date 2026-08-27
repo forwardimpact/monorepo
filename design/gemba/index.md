@@ -83,50 +83,57 @@ motif, and it makes the loop visible the way Kata's PDSA wheel makes four phases
 visible. The geometry is deliberately not a wheel, because a five-spoke circle
 would read as a variant of Kata's mark. The trace mark is one continuous ink
 trace, the kind a chart recorder draws, rising left to right through five
-sampled points, one per step, and ending at the **nib**, the live edge of the
-recording. A dashed return sweep carries the reading back to the first point,
-the way a recorder resets its pen for the next pass. Earlier drafts drew this
-as a right-angle staircase of separate segments. That geometry read as a bar
-chart, not an instrument, so the mark now reads as a single smooth trace
-instead: it is what the "instrumented bay" premise actually promised. The mark
-is inline SVG in every use.
+sampled points, one per step. The fifth point — **measure** — is the **live
+dot**: the trace ends on it, it fills amber, and it glows. An earlier draft
+appended a sixth amber "nib" beyond the five points, but five steps deserve
+exactly five marks, so the live treatment moved onto the fifth dot and the
+sixth is gone. A dashed return sweep carries the reading from the live dot
+back to the first point, the way a recorder resets its pen for the next pass.
+Earlier drafts also drew the trace as a right-angle staircase of separate
+segments. That geometry read as a bar chart, not an instrument, so the mark
+now reads as a single smooth trace instead: it is what the "instrumented bay"
+premise actually promised. The mark is inline SVG in every use.
 
 ```html
 <svg class="trace-mark" viewBox="0 0 64 30" width="64" height="30"
      role="img" aria-label="The Gemba loop: stand up, run, see, remember, measure">
-  <path class="trace-return" d="M59 7 Q32 23 4 21" />
-  <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8 C56 8 56 7 59 7" stroke="url(#gemba-trace-line)" />
+  <path class="trace-return" d="M53 8 Q29 22 4 21" />
+  <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8" stroke="url(#gemba-trace-line)" />
   <circle class="trace-dot" data-step="stand-up" cx="9" cy="20" r="2.2" fill="url(#gemba-dot)" />
   <circle class="trace-dot" data-step="run" cx="20" cy="17" r="2.2" fill="url(#gemba-dot)" />
   <circle class="trace-dot" data-step="see" cx="31" cy="14" r="2.2" fill="url(#gemba-dot)" />
   <circle class="trace-dot" data-step="remember" cx="42" cy="11" r="2.2" fill="url(#gemba-dot)" />
-  <circle class="trace-dot" data-step="measure" cx="53" cy="8" r="2.2" fill="url(#gemba-dot)" />
-  <circle class="trace-glow" cx="59" cy="7" r="8" />
-  <circle class="trace-glow" cx="59" cy="7" r="6" />
-  <circle class="trace-glow" cx="59" cy="7" r="4.2" />
-  <circle class="trace-nib" cx="59" cy="7" r="3" fill="url(#gemba-nib)" />
+  <circle class="trace-glow" cx="53" cy="8" r="8" />
+  <circle class="trace-glow" cx="53" cy="8" r="6" />
+  <circle class="trace-glow" cx="53" cy="8" r="4.2" />
+  <circle class="trace-dot trace-dot-live" data-step="measure" cx="53" cy="8" r="3" fill="url(#gemba-nib)" />
 </svg>
 ```
 
 The return sweep sits first in source order, so the line and the dots paint
 over it. The line sits second, filling from a gradient stroke
-(`gemba-trace-line`) that runs `--gray-300` at the start through `--gray-400`
-to `--amber-400` at the 100% mark — the trace visibly warms as it approaches
-the live edge. The dots paint over the line's stroke, filled with a glassy
-radial gradient (`gemba-dot`) biased upper-left for a highlight. Three
-low-opacity rings fake a soft glow behind the **nib**, the live pen tip,
-which sits last, always the topmost element, filled with `gemba-nib`
-(`--amber-100` through `--amber-400` to `--amber-600`).
+(`gemba-trace-line`, `userSpaceOnUse` from `x = 4` to `x = 53`) that runs
+`--gray-300` at the start through `--gray-400` to `--amber-400` at the line's
+end — the trace visibly warms as it approaches the live dot. The four resting
+dots paint over the line's stroke, filled with a glassy radial gradient
+(`gemba-dot`) biased upper-left for a highlight. Three low-opacity rings fake
+a soft glow behind the live dot, which sits last in source order, always the
+topmost element, filled with `gemba-nib` (`--amber-100` through `--amber-400`
+to `--amber-600`). The live dot keeps the `trace-dot` class, so every dot
+rule reaches it; `trace-dot-live` adds only its size and timing. Because it
+sits after the glow rings, sibling `nth-of-type` selectors cannot reach it —
+its reveal delay and running-state delay key off the class instead.
 
 **A brand-level divergence, noted per
 [../usage.md](../usage.md#specified-per-brand):** the mark moved from a thin
-stroked line to a filled, gradient ribbon with a glowing nib. The family default
-stays "no fill except where the brand explicitly notes." Gemba now explicitly
-notes it — an instrument's live reading should look lit, not merely outlined.
+stroked line to a filled, gradient ribbon with a glowing live dot. The family
+default stays "no fill except where the brand explicitly notes." Gemba now
+explicitly notes it — an instrument's live reading should look lit, not merely
+outlined.
 
 ### Named sizes and fills
 
-| Use               | Rendered size  | Line               | Dots        | Nib                     | Return sweep         |
+| Use               | Rendered size  | Line               | Resting dots | Live dot                | Return sweep         |
 | ------------------ | -------------- | -------------------- | ------------ | -------------------------- | -------------------- |
 | Hero                | `280 × 131 px` | `1.2` units (≈ 5px), `gemba-trace-line` gradient | `r = 2.2`, `gemba-dot` gradient | `r = 3`, `gemba-nib` gradient, 3-ring glow | `1.5px`, `3 4` dash |
 | Section divider     | `110 × 52 px`  | `1.8` units (≈ 3px), same gradient  | `r = 2.2`, same gradient | `r = 2.2`, same gradient, 3-ring glow | `1px`, `2 3` dash |
@@ -138,14 +145,14 @@ carry it: with non-scaling-stroke, browsers compute dash patterns in screen
 space, and the reveal's 70-unit draw dash then rendered the line as dashes at
 hero scale — the trace never fully connected its dots. The line's widths are
 therefore user units (sized per rendered scale in the table above), and the
-whole ~58-unit path fits inside one 70-unit dash, so the drawn line is always
+whole ~52-unit path fits inside one 70-unit dash, so the drawn line is always
 continuous. Every gradient is defined once, in a hidden sprite `<svg>`
 at the top of `index.template.html`, and every instance of the mark — hero,
 three dividers, the wordmark, and the footer — references it by id. The
-wordmark and footer variant drops the line, the glow, and the nib. Its five
-dots sit flat on one baseline, one under each letter of **GEMBA**, a resting
-signature rather than a live reading. Below an 8px mark height, omit it
-entirely.
+wordmark and footer variant drops the line, the glow, and the live treatment.
+Its five dots sit flat on one baseline, one under each letter of **GEMBA**, a
+resting signature rather than a live reading. Below an 8px mark height, omit
+it entirely.
 
 ### Step coverage
 
@@ -170,24 +177,23 @@ shares the cadence, and the shape identifies the brand.
 The mark has two states, both specified here because the shared layers do not
 know it. **Advance:** on first entry into the viewport, the line draws left to
 right through `stroke-dashoffset` over 600ms. Each dot pops in as the line
-reaches it, 120ms apart, over 240ms each. The nib arrives with the line's
-final beat, and the return sweep fades in last, over 400ms. That sequence runs
-once and totals about 1180ms. **Running:** as a loading state, the lit dot
-steps one station per 600ms and loops from **measure** back to **stand up**.
-The nib stays lit throughout — it is the constant live edge, not a coverage
-state.
+reaches it, 120ms apart, over 240ms each. The live dot and its glow arrive
+together on the line's final beat (560ms), and the return sweep fades in
+last, over 400ms. That sequence runs once and totals about 1180ms.
+**Running:** as a loading state, the lit dot steps one station per 600ms and
+loops from **measure** back to **stand up**.
 
-Under reduced motion the mark renders complete and static. Every dot holds its
-base fill in `--gray-300`, the nib holds `--accent-warm-400`, and the lit dot
-stops cycling. `base.css` clamps animation duration already. This rule is
-explicit, so the mark never depends on that clamp for a correct first paint.
+Under reduced motion the mark renders complete and static. The resting dots
+hold their glassy gray fill, the live dot holds its amber gradient with the
+glow at rest, and the lit dot stops cycling. `base.css` clamps animation
+duration already. This rule is explicit, so the mark never depends on that
+clamp for a correct first paint.
 
 ```css
 @media (prefers-reduced-motion: reduce) {
   .trace-mark .trace-line,
   .trace-mark .trace-return,
-  .trace-mark .trace-dot,
-  .trace-mark .trace-nib {
+  .trace-mark .trace-dot {
     stroke-dashoffset: 0;
     opacity: 1;
     transform: none;
@@ -247,7 +253,7 @@ warm light on enamel, and it is the visible sign that the bay is running.
 | `--amber-50`  | `#fdf7ee` | Warm section backgrounds, blockquote fills  |
 | `--amber-100` | `#f7e8cd` | Highlighted cards, selected states          |
 | `--amber-200` | `#eccf9b` | Warm borders, card hover, active indicators |
-| `--amber-400` | `#c1832a` | The trace nib, a lit dot, the terminal prompt, labels |
+| `--amber-400` | `#c1832a` | The live dot, a lit dot, the terminal prompt, labels |
 | `--amber-600` | `#8c5a12` | Warm accent text (used very sparingly)      |
 
 Amber holds the same hue family as sandstone at roughly three times the

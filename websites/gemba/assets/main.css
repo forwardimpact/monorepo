@@ -863,11 +863,15 @@ body:has(main.layout-home) .site-footer {
   r: 1.6;
 }
 
-.trace-mark .trace-nib {
+/* The fifth dot, measure, is the live one: the trace ends on it, it
+   fills amber, and it sits after the glow rings in source order so
+   it paints on top of them. It stays a .trace-dot, so every dot
+   rule reaches it, and these overrides size and time it. */
+.trace-mark .trace-dot-live {
   r: 2.2;
 }
 
-/* The nib's glow: three concentric rings behind it, same low
+/* The live dot's glow: three concentric rings behind it, same low
    opacity, decreasing radius. Radius alone builds the falloff — the
    circles overlap and stack toward the center, so no per-ring
    opacity tier is needed. No blur filter, so the edge stays crisp
@@ -892,17 +896,16 @@ body:has(main.layout-home) .site-footer {
   r: 2.2;
 }
 
-.trace-mark-hero .trace-nib {
+.trace-mark-hero .trace-dot-live {
   r: 3;
 }
 
 /* Wordmark and footer size. Five dots sit flat on one baseline, a
    resting signature rather than a live reading. The variant carries
-   no line, no return sweep, no glow, and no nib. */
+   no line, no return sweep, and no glow. */
 .trace-mark-flat .trace-line,
 .trace-mark-flat .trace-return,
-.trace-mark-flat .trace-glow,
-.trace-mark-flat .trace-nib {
+.trace-mark-flat .trace-glow {
   display: none;
 }
 
@@ -921,7 +924,7 @@ body:has(main.layout-home) .site-footer {
   r: 3;
 }
 
-.trace-mark:has(.lit) .trace-dot:not(.lit) {
+.trace-mark:has(.lit) .trace-dot:not(.lit):not(.trace-dot-live) {
   r: 1;
   opacity: 0.6;
 }
@@ -956,8 +959,7 @@ body:has(main.layout-home) .site-footer {
   opacity: 0;
 }
 
-.trace-mark.reveal .trace-dot,
-.trace-mark.reveal .trace-nib {
+.trace-mark.reveal .trace-dot {
   opacity: 0;
   transform: scale(0.4);
   transform-box: fill-box;
@@ -975,11 +977,13 @@ body:has(main.layout-home) .site-footer {
   animation: traceDraw 600ms var(--ease-default) forwards;
 }
 
-.trace-mark.reveal.visible .trace-dot,
-.trace-mark.reveal.visible .trace-nib {
+.trace-mark.reveal.visible .trace-dot {
   animation: traceDotIn 240ms var(--ease-default) forwards;
 }
 
+/* The first four dots stagger by sibling position. The live dot
+   sits after the glow rings in source order, out of nth-of-type
+   reach among the circles, so its delay keys off its class. */
 .trace-mark.reveal.visible .trace-dot:nth-of-type(1) {
   animation-delay: 80ms;
 }
@@ -996,16 +1000,12 @@ body:has(main.layout-home) .site-footer {
   animation-delay: 440ms;
 }
 
-.trace-mark.reveal.visible .trace-dot:nth-of-type(5) {
+.trace-mark.reveal.visible .trace-dot-live {
   animation-delay: 560ms;
 }
 
-.trace-mark.reveal.visible .trace-nib {
-  animation-delay: 620ms;
-}
-
 .trace-mark.reveal.visible .trace-glow {
-  animation: traceGlowIn 240ms var(--ease-default) 620ms forwards;
+  animation: traceGlowIn 240ms var(--ease-default) 560ms forwards;
 }
 
 .trace-mark.reveal.visible .trace-return {
@@ -1066,7 +1066,7 @@ body:has(main.layout-home) .site-footer {
   animation-delay: 1800ms;
 }
 
-.trace-mark.running .trace-dot:nth-of-type(5) {
+.trace-mark.running .trace-dot-live {
   animation-delay: 2400ms;
 }
 
@@ -1094,16 +1094,13 @@ body:has(main.layout-home) .site-footer {
   .trace-mark .trace-line,
   .trace-mark .trace-return,
   .trace-mark .trace-dot,
-  .trace-mark .trace-nib,
   .trace-mark.reveal .trace-line,
   .trace-mark.reveal .trace-return,
   .trace-mark.reveal .trace-dot,
-  .trace-mark.reveal .trace-nib,
   .trace-mark.running .trace-dot,
   .trace-mark.reveal.visible .trace-line,
   .trace-mark.reveal.visible .trace-return,
-  .trace-mark.reveal.visible .trace-dot,
-  .trace-mark.reveal.visible .trace-nib {
+  .trace-mark.reveal.visible .trace-dot {
     stroke-dashoffset: 0;
     opacity: 1;
     transform: none;

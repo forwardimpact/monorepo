@@ -93,9 +93,12 @@ makes the spine of [KATA.md](../../KATA.md) visible. The brand repeats this
 motif. Use it as:
 
 - The optional accent above the second `A` in the **KATA** wordmark.
-- A section divider on long pages. Draw the rim, face, and hub only, at
-  40px, centred. Drop the arrows and labels at this size. Leave 96px of
-  vertical space either side.
+- A section divider on long pages. The small version is the four loop
+  arrows alone — no medallion, no hub — at 40px, centred, so even the
+  reduced mark says "cycle", not "dot". Leave 96px of vertical space either
+  side.
+- The footer mark, the same four arrows at 56px, filled `--text-on-dark` on
+  the dark footer (the CSS fill outranks the inline gradient attribute).
 - A loading state. The wheel rotates one quadrant per 800ms. It loops P → D → S
   → A → P. It respects `prefers-reduced-motion` (static wheel).
 
@@ -130,10 +133,12 @@ other surface.
 
 Construction: on a 124-unit viewBox centred at (62, 62), the rim is a
 radius-34 filled circle (`kata-medallion-rim`, a radial gradient from
-`--gray-300` to `--gray-700`), and the face is a radius-25 filled circle on
-top (`kata-medallion-face`, `--white-warm` through `--gray-50` to
-`--gray-200`). Both gradients bias their center to 35%/30%, so the highlight
-sits upper-left, as if lit from one corner. Each arrow is an annular segment
+`--gray-100` to `--gray-400` — an earlier draft ran `--gray-300` to
+`--gray-700`, and the dark arrows disappeared against that dark ring), and
+the face is a radius-25 filled circle on top (`kata-medallion-face`,
+`--white-warm` through `--gray-50` to `--gray-200`). Both gradients bias
+their center to 35%/30%, so the highlight sits upper-left, as if lit from one
+corner. Each arrow is an annular segment
 sweeping 55 degrees between radius 37 and 47, closed by a chevron arrowhead
 whose barbs span radius 33 to 51 and whose tip leads 16 degrees clockwise, so
 every arrow visibly points at the next. All four fill `kata-arrow`
@@ -146,19 +151,21 @@ in `--font-display` (Roboto Slab) 700 at 11px, so each letter sits inside the
 quadrant its arrow carries. The hub is a radius-10 filled circle in
 `kata-hub` (`--ink-200` through `--ink-400` to `--ink-600`). All four
 gradients are defined once, in a hidden sprite `<svg>` at the top of
-`index.template.html`, and every instance of the mark — hero, three dividers,
-and the footer — references them by id rather than redefining them, so the
-medallion reads identically wherever it appears. Hero renders at 168×168px,
-the divider at 40×40px, and the footer mark at 56×56px.
+`index.template.html`, and every instance of the mark references them by id
+rather than redefining them, so the mark reads identically wherever it
+appears. The hero renders the full mark at 168×168px. The dividers (40×40px)
+and the footer (56×56px) render the four loop arrows alone on the same
+124-unit viewBox.
 
 **Reveal.** The hero and dividers carry `.reveal`, and the shared observer in
 `main.js` adds `.visible` on first entry into the viewport, the same
-mechanism the Gemba trace mark uses. The medallion lands first (rim and face
-scale and fade in over 300ms), the four arrows arrive clockwise P → D → S → A
-(240ms each, 120ms apart, from 250ms), each label follows its arrow one beat
-behind, and the hanko hub stamps down last — it scales from 1.7 to 1 at
-850ms, the way a stamp lands on paper. Dividers run a shorter cut: medallion,
-then stamp. Under reduced motion every part renders complete and static.
+mechanism the Gemba trace mark uses. In the hero, the medallion lands first
+(rim and face scale and fade in over 300ms), the four arrows arrive clockwise
+P → D → S → A (240ms each, 120ms apart, from 250ms), each label follows its
+arrow one beat behind, and the hanko hub stamps down last — it scales from
+1.7 to 1 at 850ms, the way a stamp lands on paper. In a divider the four
+arrows alone arrive clockwise, 120ms apart, from 0ms. Under reduced motion
+every part renders complete and static.
 
 ---
 
@@ -283,8 +290,9 @@ the cycle.
 ```
 
 At very small sizes (under 16px wordmark height), the PDSA wheel reduces to
-the rim and face only, with no flags and no labels. Below 8px wordmark
-height, omit the wheel entirely.
+the four loop arrows only, with no medallion and no labels — the same
+reduction the dividers and the footer use. Below 8px wordmark height, omit
+the wheel entirely.
 
 ---
 

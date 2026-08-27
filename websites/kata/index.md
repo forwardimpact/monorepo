@@ -60,9 +60,10 @@ layout: home
 
 <div class="pdsa-divider">
   <svg class="reveal" viewBox="0 0 124 124" aria-hidden="true">
-    <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
-    <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
-    <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
+    <path class="wheel-arrow" d="M65.2 25.1 A37 37 0 0 1 94 43.5 L90.6 45.5 L102.8 51.8 L106.2 36.5 L102.7 38.5 A47 47 0 0 0 66.1 15.2 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M98.9 65.2 A37 37 0 0 1 80.5 94 L78.5 90.6 L72.2 102.8 L87.5 106.2 L85.5 102.7 A47 47 0 0 0 108.8 66.1 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M58.8 98.9 A37 37 0 0 1 30 80.5 L33.4 78.5 L21.2 72.2 L17.8 87.5 L21.3 85.5 A47 47 0 0 0 57.9 108.8 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M25.1 58.8 A37 37 0 0 1 43.5 30 L45.5 33.4 L51.8 21.2 L36.5 17.8 L38.5 21.3 A47 47 0 0 0 15.2 57.9 Z" fill="url(#kata-arrow)" />
   </svg>
 </div>
 
@@ -100,9 +101,10 @@ layout: home
 
 <div class="pdsa-divider">
   <svg class="reveal" viewBox="0 0 124 124" aria-hidden="true">
-    <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
-    <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
-    <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
+    <path class="wheel-arrow" d="M65.2 25.1 A37 37 0 0 1 94 43.5 L90.6 45.5 L102.8 51.8 L106.2 36.5 L102.7 38.5 A47 47 0 0 0 66.1 15.2 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M98.9 65.2 A37 37 0 0 1 80.5 94 L78.5 90.6 L72.2 102.8 L87.5 106.2 L85.5 102.7 A47 47 0 0 0 108.8 66.1 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M58.8 98.9 A37 37 0 0 1 30 80.5 L33.4 78.5 L21.2 72.2 L17.8 87.5 L21.3 85.5 A47 47 0 0 0 57.9 108.8 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M25.1 58.8 A37 37 0 0 1 43.5 30 L45.5 33.4 L51.8 21.2 L36.5 17.8 L38.5 21.3 A47 47 0 0 0 15.2 57.9 Z" fill="url(#kata-arrow)" />
   </svg>
 </div>
 
@@ -168,9 +170,10 @@ layout: home
 
 <div class="pdsa-divider">
   <svg class="reveal" viewBox="0 0 124 124" aria-hidden="true">
-    <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
-    <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
-    <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
+    <path class="wheel-arrow" d="M65.2 25.1 A37 37 0 0 1 94 43.5 L90.6 45.5 L102.8 51.8 L106.2 36.5 L102.7 38.5 A47 47 0 0 0 66.1 15.2 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M98.9 65.2 A37 37 0 0 1 80.5 94 L78.5 90.6 L72.2 102.8 L87.5 106.2 L85.5 102.7 A47 47 0 0 0 108.8 66.1 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M58.8 98.9 A37 37 0 0 1 30 80.5 L33.4 78.5 L21.2 72.2 L17.8 87.5 L21.3 85.5 A47 47 0 0 0 57.9 108.8 Z" fill="url(#kata-arrow)" />
+    <path class="wheel-arrow" d="M25.1 58.8 A37 37 0 0 1 43.5 30 L45.5 33.4 L51.8 21.2 L36.5 17.8 L38.5 21.3 A47 47 0 0 0 15.2 57.9 Z" fill="url(#kata-arrow)" />
   </svg>
 </div>
 

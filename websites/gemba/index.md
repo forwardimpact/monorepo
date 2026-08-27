@@ -17,17 +17,16 @@ layout: home
     </svg>
   </div>
   <svg class="trace-mark trace-mark-hero reveal" viewBox="0 0 64 30" role="img" aria-label="The Gemba loop: stand up, run, see, remember, measure">
-    <path class="trace-return" d="M59 7 Q32 23 4 21" />
-    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8 C56 8 56 7 59 7" stroke="url(#gemba-trace-line)" />
+    <path class="trace-return" d="M53 8 Q29 22 4 21" />
+    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8" stroke="url(#gemba-trace-line)" />
     <circle class="trace-dot" data-step="stand-up" cx="9" cy="20" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" data-step="run" cx="20" cy="17" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" data-step="see" cx="31" cy="14" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" data-step="remember" cx="42" cy="11" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-dot" data-step="measure" cx="53" cy="8" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-glow" cx="59" cy="7" r="8" />
-    <circle class="trace-glow" cx="59" cy="7" r="6" />
-    <circle class="trace-glow" cx="59" cy="7" r="4.2" />
-    <circle class="trace-nib" cx="59" cy="7" r="3" fill="url(#gemba-nib)" />
+    <circle class="trace-glow" cx="53" cy="8" r="8" />
+    <circle class="trace-glow" cx="53" cy="8" r="6" />
+    <circle class="trace-glow" cx="53" cy="8" r="4.2" />
+    <circle class="trace-dot trace-dot-live" data-step="measure" cx="53" cy="8" r="3" fill="url(#gemba-nib)" />
   </svg>
   <h1 class="hero-title">Go to where the work happens</h1>
   <p class="hero-subtitle">The agent-runtime platform. One command family for a terminal. One set of CI actions for every push. Both run the same loop.</p>
@@ -67,17 +66,16 @@ layout: home
 
 <div class="trace-divider">
   <svg class="trace-mark reveal" viewBox="0 0 64 30" aria-hidden="true">
-    <path class="trace-return" d="M59 7 Q32 23 4 21" />
-    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8 C56 8 56 7 59 7" stroke="url(#gemba-trace-line)" />
+    <path class="trace-return" d="M53 8 Q29 22 4 21" />
+    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8" stroke="url(#gemba-trace-line)" />
     <circle class="trace-dot" cx="9" cy="20" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="20" cy="17" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="31" cy="14" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="42" cy="11" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-dot" cx="53" cy="8" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-glow" cx="59" cy="7" r="8" />
-    <circle class="trace-glow" cx="59" cy="7" r="6" />
-    <circle class="trace-glow" cx="59" cy="7" r="4.2" />
-    <circle class="trace-nib" cx="59" cy="7" r="3" fill="url(#gemba-nib)" />
+    <circle class="trace-glow" cx="53" cy="8" r="8" />
+    <circle class="trace-glow" cx="53" cy="8" r="6" />
+    <circle class="trace-glow" cx="53" cy="8" r="4.2" />
+    <circle class="trace-dot trace-dot-live" cx="53" cy="8" r="3" fill="url(#gemba-nib)" />
   </svg>
 </div>
 
@@ -190,17 +188,16 @@ layout: home
 
 <div class="trace-divider">
   <svg class="trace-mark reveal" viewBox="0 0 64 30" aria-hidden="true">
-    <path class="trace-return" d="M59 7 Q32 23 4 21" />
-    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8 C56 8 56 7 59 7" stroke="url(#gemba-trace-line)" />
+    <path class="trace-return" d="M53 8 Q29 22 4 21" />
+    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8" stroke="url(#gemba-trace-line)" />
     <circle class="trace-dot" cx="9" cy="20" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="20" cy="17" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="31" cy="14" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="42" cy="11" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-dot" cx="53" cy="8" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-glow" cx="59" cy="7" r="8" />
-    <circle class="trace-glow" cx="59" cy="7" r="6" />
-    <circle class="trace-glow" cx="59" cy="7" r="4.2" />
-    <circle class="trace-nib" cx="59" cy="7" r="3" fill="url(#gemba-nib)" />
+    <circle class="trace-glow" cx="53" cy="8" r="8" />
+    <circle class="trace-glow" cx="53" cy="8" r="6" />
+    <circle class="trace-glow" cx="53" cy="8" r="4.2" />
+    <circle class="trace-dot trace-dot-live" cx="53" cy="8" r="3" fill="url(#gemba-nib)" />
   </svg>
 </div>
 
@@ -217,17 +214,16 @@ layout: home
 
 <div class="trace-divider">
   <svg class="trace-mark reveal" viewBox="0 0 64 30" aria-hidden="true">
-    <path class="trace-return" d="M59 7 Q32 23 4 21" />
-    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8 C56 8 56 7 59 7" stroke="url(#gemba-trace-line)" />
+    <path class="trace-return" d="M53 8 Q29 22 4 21" />
+    <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8" stroke="url(#gemba-trace-line)" />
     <circle class="trace-dot" cx="9" cy="20" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="20" cy="17" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="31" cy="14" r="2.2" fill="url(#gemba-dot)" />
     <circle class="trace-dot" cx="42" cy="11" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-dot" cx="53" cy="8" r="2.2" fill="url(#gemba-dot)" />
-    <circle class="trace-glow" cx="59" cy="7" r="8" />
-    <circle class="trace-glow" cx="59" cy="7" r="6" />
-    <circle class="trace-glow" cx="59" cy="7" r="4.2" />
-    <circle class="trace-nib" cx="59" cy="7" r="3" fill="url(#gemba-nib)" />
+    <circle class="trace-glow" cx="53" cy="8" r="8" />
+    <circle class="trace-glow" cx="53" cy="8" r="6" />
+    <circle class="trace-glow" cx="53" cy="8" r="4.2" />
+    <circle class="trace-dot trace-dot-live" cx="53" cy="8" r="3" fill="url(#gemba-nib)" />
   </svg>
 </div>
 

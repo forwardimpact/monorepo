@@ -639,13 +639,13 @@
 
 /* ── PDSA Wheel SVG ────────────────────────────────────────────── */
 
-/* Shared across hero, divider, and footer: the medallion rim, face,
-   and hub. Gradients live once in a hidden sprite in
-   index.template.html and every instance references them by id, so
-   the mark reads the same lit, filled object on light or dark
-   surfaces. */
+/* The hero shows the full mark: medallion rim, face, labels, hub,
+   and the four arc-arrows. The small versions — dividers and the
+   footer — show the four loop arrows alone. Gradients live once in
+   a hidden sprite in index.template.html and every instance
+   references them by id. */
 .wheel-rim {
-  stroke: var(--gray-800);
+  stroke: var(--gray-500);
   stroke-width: 0.75;
 }
 
@@ -664,11 +664,18 @@
    coordinates, not transform attributes, because the reveal below
    animates a CSS scale — and a CSS transform would override an
    attribute transform and collapse all four onto one quadrant. */
-.pdsa-wheel-hero .wheel-arrow {
+.wheel-arrow {
   stroke: var(--gray-900);
   stroke-width: 0.75;
   stroke-linejoin: round;
   transition: fill var(--duration-normal) var(--ease-default);
+}
+
+/* The dark footer draws the loop in the light text value. The CSS
+   fill outranks the arrows' inline gradient fill attribute. */
+.footer-wheel .wheel-arrow {
+  fill: var(--text-on-dark);
+  stroke: none;
 }
 
 .pdsa-wheel-hero .wheel-label {
@@ -694,9 +701,7 @@
    arrive clockwise (P → D → S → A) with their labels one beat
    behind, and the hanko hub stamps down last. */
 .pdsa-wheel-hero.reveal .wheel-rim,
-.pdsa-wheel-hero.reveal .wheel-face,
-.pdsa-divider svg.reveal .wheel-rim,
-.pdsa-divider svg.reveal .wheel-face {
+.pdsa-wheel-hero.reveal .wheel-face {
   opacity: 0;
   transform: scale(0.6);
   transform-box: fill-box;
@@ -704,15 +709,15 @@
 }
 
 .pdsa-wheel-hero.reveal .wheel-arrow,
-.pdsa-wheel-hero.reveal .wheel-label {
+.pdsa-wheel-hero.reveal .wheel-label,
+.pdsa-divider svg.reveal .wheel-arrow {
   opacity: 0;
   transform: scale(0.6);
   transform-box: fill-box;
   transform-origin: center;
 }
 
-.pdsa-wheel-hero.reveal .wheel-hub,
-.pdsa-divider svg.reveal .wheel-hub {
+.pdsa-wheel-hero.reveal .wheel-hub {
   opacity: 0;
   transform: scale(1.7);
   transform-box: fill-box;
@@ -720,14 +725,13 @@
 }
 
 .pdsa-wheel-hero.reveal.visible .wheel-rim,
-.pdsa-wheel-hero.reveal.visible .wheel-face,
-.pdsa-divider svg.reveal.visible .wheel-rim,
-.pdsa-divider svg.reveal.visible .wheel-face {
+.pdsa-wheel-hero.reveal.visible .wheel-face {
   animation: wheelPartIn 300ms var(--ease-default) forwards;
 }
 
 .pdsa-wheel-hero.reveal.visible .wheel-arrow,
-.pdsa-wheel-hero.reveal.visible .wheel-label {
+.pdsa-wheel-hero.reveal.visible .wheel-label,
+.pdsa-divider svg.reveal.visible .wheel-arrow {
   animation: wheelPartIn 240ms var(--ease-default) forwards;
 }
 
@@ -745,6 +749,22 @@
 
 .pdsa-wheel-hero.reveal.visible .wheel-arrow:nth-of-type(4) {
   animation-delay: 610ms;
+}
+
+.pdsa-divider svg.reveal.visible .wheel-arrow:nth-of-type(1) {
+  animation-delay: 0ms;
+}
+
+.pdsa-divider svg.reveal.visible .wheel-arrow:nth-of-type(2) {
+  animation-delay: 120ms;
+}
+
+.pdsa-divider svg.reveal.visible .wheel-arrow:nth-of-type(3) {
+  animation-delay: 240ms;
+}
+
+.pdsa-divider svg.reveal.visible .wheel-arrow:nth-of-type(4) {
+  animation-delay: 360ms;
 }
 
 .pdsa-wheel-hero.reveal.visible .wheel-label:nth-of-type(1) {
@@ -765,10 +785,6 @@
 
 .pdsa-wheel-hero.reveal.visible .wheel-hub {
   animation: wheelStamp 260ms var(--ease-default) 850ms forwards;
-}
-
-.pdsa-divider svg.reveal.visible .wheel-hub {
-  animation: wheelStamp 260ms var(--ease-default) 300ms forwards;
 }
 
 @keyframes wheelPartIn {
@@ -794,17 +810,13 @@
   .pdsa-wheel-hero.reveal .wheel-arrow,
   .pdsa-wheel-hero.reveal .wheel-label,
   .pdsa-wheel-hero.reveal .wheel-hub,
-  .pdsa-divider svg.reveal .wheel-rim,
-  .pdsa-divider svg.reveal .wheel-face,
-  .pdsa-divider svg.reveal .wheel-hub,
+  .pdsa-divider svg.reveal .wheel-arrow,
   .pdsa-wheel-hero.reveal.visible .wheel-rim,
   .pdsa-wheel-hero.reveal.visible .wheel-face,
   .pdsa-wheel-hero.reveal.visible .wheel-arrow,
   .pdsa-wheel-hero.reveal.visible .wheel-label,
   .pdsa-wheel-hero.reveal.visible .wheel-hub,
-  .pdsa-divider svg.reveal.visible .wheel-rim,
-  .pdsa-divider svg.reveal.visible .wheel-face,
-  .pdsa-divider svg.reveal.visible .wheel-hub {
+  .pdsa-divider svg.reveal.visible .wheel-arrow {
     opacity: 1;
     transform: none;
     animation: none;
