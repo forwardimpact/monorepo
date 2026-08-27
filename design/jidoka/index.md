@@ -150,10 +150,15 @@ them by id.
 
 ### Motion
 
-**Advance:** on first entry into the viewport, the mark fades and lifts with
-the hero (`fadeUp`, 600ms, 100ms delay), matching the sibling hero marks. No
-per-bar stagger — the stack reads as one structure, not a sequence.
-**Reduced motion:** the mark renders complete and static, per
+**Reveal:** the hero and dividers carry `.reveal`, and the shared observer in
+`main.js` adds `.visible` on first entry into the viewport — the same
+mechanism the Gemba trace mark uses. The sequence builds the tower the way a
+floor would assemble it: the pedestal shadow lands first, the cord rises out
+of it (`scaleY` from the base, 500ms), the eight plates stack bottom to top
+(240ms each, 70ms apart, from 150ms), and the andon lamp switches on last —
+lamp and glow rings scale and fade in together at 780ms. Dividers run a
+shorter cut of the same build: three plates, then the lamp. **Reduced
+motion:** every part renders complete and static, per
 [../index.md § 7](../index.md#7-accessibility).
 
 ---

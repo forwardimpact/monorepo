@@ -837,17 +837,26 @@ body:has(main.layout-home) .site-footer {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
 }
 
+/* The return sweep keeps non-scaling-stroke, so its decorative dash
+   holds one screen size everywhere. The trace line must NOT carry
+   it: with non-scaling-stroke, browsers compute dash patterns in
+   screen space, and the reveal's 70-unit dash then turned into a
+   dashed line at hero scale — the trace never fully connected its
+   dots. In user units the whole ~58-unit path fits inside one
+   70-unit dash, so the drawn line is always continuous. Its widths
+   below are user units sized per rendered scale. */
 .trace-mark .trace-return {
   stroke: var(--gray-300);
   stroke-width: 1;
   stroke-dasharray: 2 3;
+  vector-effect: non-scaling-stroke;
 }
 
+/* 1.8 user units render near 3px at the divider's 1.7× scale. */
 .trace-mark .trace-line {
-  stroke-width: 3;
+  stroke-width: 1.8;
 }
 
 .trace-mark .trace-dot {
@@ -869,9 +878,9 @@ body:has(main.layout-home) .site-footer {
   opacity: 0.15;
 }
 
-/* Hero size. */
+/* Hero size. 1.2 user units render near 5px at the hero's 4.4× scale. */
 .trace-mark-hero .trace-line {
-  stroke-width: 5;
+  stroke-width: 1.2;
 }
 
 .trace-mark-hero .trace-return {

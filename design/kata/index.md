@@ -80,34 +80,40 @@ structural UI.
 
 ### The PDSA Wheel
 
-Above the six personas sits the **PDSA wheel**, drawn as a filled medallion:
-a rim, a face, four flag-shaped ticks marked **P · D · S · A** clockwise, and
-a raised hanko hub at the centre. The hub is the hanko stamp: the wheel
-carries both of Kata's motifs — the chalk circle Ohno drew on the floor, and
-the ink mark of an approved decision — in one glyph. It makes the spine of
-[KATA.md](../../KATA.md) visible. The brand repeats this motif. Use it as:
+Above the six personas sits the **PDSA wheel**, drawn as a filled medallion
+inside a rotating loop: a rim, a face, a raised hanko hub at the centre, and
+four arc-shaped arrows that chase each other clockwise around the medallion,
+marked **P · D · S · A** at the quadrant they carry. The arrows are the
+point: an earlier draft placed static ticks at the cardinal points, and the
+mark read as a compass — a direction, not a cycle. Arrows that visibly chase
+each other read as the Deming wheel in motion, which is what PDSA is. The hub
+stays the hanko stamp: the mark carries both of Kata's motifs — the turning
+improvement cycle and the ink mark of an approved decision — in one glyph. It
+makes the spine of [KATA.md](../../KATA.md) visible. The brand repeats this
+motif. Use it as:
 
 - The optional accent above the second `A` in the **KATA** wordmark.
 - A section divider on long pages. Draw the rim, face, and hub only, at
-  40px, centred. Drop the flags and labels at this size. Leave 96px of
+  40px, centred. Drop the arrows and labels at this size. Leave 96px of
   vertical space either side.
 - A loading state. The wheel rotates one quadrant per 800ms. It loops P → D → S
   → A → P. It respects `prefers-reduced-motion` (static wheel).
 
 Each agent's "phase coverage" in [KATA.md § Skills](../../KATA.md#skills) maps
-to wheel flags. So the wheel is also functional. A Staff Engineer profile page
+to the arrows. So the wheel is also functional. A Staff Engineer profile page
 may show the wheel with **P** and **D** lit. An Improvement Coach profile may
-show **S** lit. A lit flag and its label take the `--ink-400` hanko color. An
-unlit flag holds the `kata-flag` gradient (`--gray-400` to `--gray-800`) and
-an unlit label holds `--gray-700`. The hub is always the `kata-hub` gradient
-— it is the constant signature, not a coverage state.
+show **S** lit. A lit arrow takes the flat `--ink-400` hanko color and its
+label takes `--ink-600`. An unlit arrow holds the `kata-arrow` gradient
+(`--gray-400` to `--gray-800`) and an unlit label holds `--gray-700`. The hub
+is always the `kata-hub` gradient — it is the constant signature, not a
+coverage state.
 
 ```text
-          P
-      ⁠·  ◆  ·
-   A ──◉──── D
-      ⁠·  ◆  ·
-          S
+        ↻ P
+     A ╭───╮
+       │ ◉ │ D
+       ╰───╯
+        S ↻
 ```
 
 **A brand-level divergence, noted per
@@ -127,17 +133,32 @@ radius-34 filled circle (`kata-medallion-rim`, a radial gradient from
 `--gray-300` to `--gray-700`), and the face is a radius-25 filled circle on
 top (`kata-medallion-face`, `--white-warm` through `--gray-50` to
 `--gray-200`). Both gradients bias their center to 35%/30%, so the highlight
-sits upper-left, as if lit from one corner. Four flag-shaped polygons sit at
-the cardinal points, based at radius 34 and tipped at radius 46, filled with
-`kata-flag` (`--gray-400` to `--gray-800` diagonal). Labels sit clear of the
-flags at radius 54, set in `--font-display` (Roboto Slab) 700 at 13px. The hub
-is a radius-10 filled circle in `kata-hub` (`--ink-200` through `--ink-400` to
-`--ink-600`). All four gradients are defined once, in a hidden sprite `<svg>`
-at the top of `index.template.html`, and every instance of the mark —
-hero, three dividers, and the footer — references them by id rather than
-redefining them, so the medallion reads identically wherever it appears.
-Hero renders at 168×168px, the divider at 40×40px, and the footer mark at
-56×56px, all considerably larger than the first draft's 64px hero.
+sits upper-left, as if lit from one corner. Each arrow is an annular segment
+sweeping 55 degrees between radius 37 and 47, closed by a chevron arrowhead
+whose barbs span radius 33 to 51 and whose tip leads 16 degrees clockwise, so
+every arrow visibly points at the next. All four fill `kata-arrow`
+(`--gray-400` to `--gray-800` diagonal). Their rotations are baked into the
+path coordinates rather than `transform` attributes, because the reveal
+animates a CSS scale on each arrow, and a CSS transform would override an
+attribute transform and collapse all four onto one quadrant. Labels ride the
+face at the quadrant diagonals (radius 17.5, at 45/135/225/315 degrees), set
+in `--font-display` (Roboto Slab) 700 at 11px, so each letter sits inside the
+quadrant its arrow carries. The hub is a radius-10 filled circle in
+`kata-hub` (`--ink-200` through `--ink-400` to `--ink-600`). All four
+gradients are defined once, in a hidden sprite `<svg>` at the top of
+`index.template.html`, and every instance of the mark — hero, three dividers,
+and the footer — references them by id rather than redefining them, so the
+medallion reads identically wherever it appears. Hero renders at 168×168px,
+the divider at 40×40px, and the footer mark at 56×56px.
+
+**Reveal.** The hero and dividers carry `.reveal`, and the shared observer in
+`main.js` adds `.visible` on first entry into the viewport, the same
+mechanism the Gemba trace mark uses. The medallion lands first (rim and face
+scale and fade in over 300ms), the four arrows arrive clockwise P → D → S → A
+(240ms each, 120ms apart, from 250ms), each label follows its arrow one beat
+behind, and the hanko hub stamps down last — it scales from 1.7 to 1 at
+850ms, the way a stamp lands on paper. Dividers run a shorter cut: medallion,
+then stamp. Under reduced motion every part renders complete and static.
 
 ---
 

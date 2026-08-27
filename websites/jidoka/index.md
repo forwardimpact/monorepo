@@ -6,7 +6,7 @@ layout: home
 ---
 
 <div class="jidoka-section jidoka-hero">
-  <svg class="layer-stack-hero" viewBox="0 0 100 150" role="img" aria-label="An andon lamp lit above eight stepped instruction layers">
+  <svg class="layer-stack-hero reveal" viewBox="0 0 100 150" role="img" aria-label="An andon lamp lit above eight stepped instruction layers">
     <ellipse class="layer-pedestal" cx="50" cy="144" rx="38" ry="4" />
     <rect class="layer-cord" x="47" y="37" width="6" height="103" rx="3" fill="url(#jidoka-cord)" />
     <rect class="layer-bar" x="16" y="132" width="68" height="8" rx="2" fill="url(#jidoka-bar)" />
@@ -58,7 +58,7 @@ layout: home
 </div>
 
 <div class="layer-divider">
-  <svg viewBox="0 0 60 94" aria-hidden="true">
+  <svg class="reveal" viewBox="0 0 60 94" aria-hidden="true">
     <ellipse class="layer-pedestal" cx="30" cy="80" rx="22" ry="3" />
     <rect class="layer-bar" x="10" y="68" width="40" height="8" rx="2" fill="url(#jidoka-bar)" />
     <rect class="layer-bar" x="16" y="52" width="28" height="8" rx="2" fill="url(#jidoka-bar)" />
@@ -123,7 +123,7 @@ layout: home
 </div>
 
 <div class="layer-divider">
-  <svg viewBox="0 0 60 94" aria-hidden="true">
+  <svg class="reveal" viewBox="0 0 60 94" aria-hidden="true">
     <ellipse class="layer-pedestal" cx="30" cy="80" rx="22" ry="3" />
     <rect class="layer-bar" x="10" y="68" width="40" height="8" rx="2" fill="url(#jidoka-bar)" />
     <rect class="layer-bar" x="16" y="52" width="28" height="8" rx="2" fill="url(#jidoka-bar)" />
@@ -163,7 +163,7 @@ layout: home
 </div>
 
 <div class="layer-divider">
-  <svg viewBox="0 0 60 94" aria-hidden="true">
+  <svg class="reveal" viewBox="0 0 60 94" aria-hidden="true">
     <ellipse class="layer-pedestal" cx="30" cy="80" rx="22" ry="3" />
     <rect class="layer-bar" x="10" y="68" width="40" height="8" rx="2" fill="url(#jidoka-bar)" />
     <rect class="layer-bar" x="16" y="52" width="28" height="8" rx="2" fill="url(#jidoka-bar)" />

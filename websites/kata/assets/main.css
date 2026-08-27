@@ -659,7 +659,12 @@
   stroke-width: 1;
 }
 
-.pdsa-wheel-hero .wheel-flag {
+/* The four arc-arrows chase each other clockwise (P → D → S → A)
+   around the medallion. Their rotations are baked into the path
+   coordinates, not transform attributes, because the reveal below
+   animates a CSS scale — and a CSS transform would override an
+   attribute transform and collapse all four onto one quadrant. */
+.pdsa-wheel-hero .wheel-arrow {
   stroke: var(--gray-900);
   stroke-width: 0.75;
   stroke-linejoin: round;
@@ -668,18 +673,142 @@
 
 .pdsa-wheel-hero .wheel-label {
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   fill: var(--gray-700);
   transition: fill var(--duration-normal) var(--ease-default);
 }
 
-.pdsa-wheel-hero .wheel-flag.lit {
+.pdsa-wheel-hero .wheel-arrow.lit {
   fill: var(--ink-400);
 }
 
 .pdsa-wheel-hero .wheel-label.lit {
   fill: var(--ink-600);
+}
+
+/* ── PDSA Wheel: Reveal ────────────────────────────────────────── */
+
+/* Armed by .reveal on the svg; main.js adds .visible on first entry
+   into the viewport. The medallion lands first, the four arrows
+   arrive clockwise (P → D → S → A) with their labels one beat
+   behind, and the hanko hub stamps down last. */
+.pdsa-wheel-hero.reveal .wheel-rim,
+.pdsa-wheel-hero.reveal .wheel-face,
+.pdsa-divider svg.reveal .wheel-rim,
+.pdsa-divider svg.reveal .wheel-face {
+  opacity: 0;
+  transform: scale(0.6);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.pdsa-wheel-hero.reveal .wheel-arrow,
+.pdsa-wheel-hero.reveal .wheel-label {
+  opacity: 0;
+  transform: scale(0.6);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.pdsa-wheel-hero.reveal .wheel-hub,
+.pdsa-divider svg.reveal .wheel-hub {
+  opacity: 0;
+  transform: scale(1.7);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-rim,
+.pdsa-wheel-hero.reveal.visible .wheel-face,
+.pdsa-divider svg.reveal.visible .wheel-rim,
+.pdsa-divider svg.reveal.visible .wheel-face {
+  animation: wheelPartIn 300ms var(--ease-default) forwards;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-arrow,
+.pdsa-wheel-hero.reveal.visible .wheel-label {
+  animation: wheelPartIn 240ms var(--ease-default) forwards;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-arrow:nth-of-type(1) {
+  animation-delay: 250ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-arrow:nth-of-type(2) {
+  animation-delay: 370ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-arrow:nth-of-type(3) {
+  animation-delay: 490ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-arrow:nth-of-type(4) {
+  animation-delay: 610ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-label:nth-of-type(1) {
+  animation-delay: 310ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-label:nth-of-type(2) {
+  animation-delay: 430ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-label:nth-of-type(3) {
+  animation-delay: 550ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-label:nth-of-type(4) {
+  animation-delay: 670ms;
+}
+
+.pdsa-wheel-hero.reveal.visible .wheel-hub {
+  animation: wheelStamp 260ms var(--ease-default) 850ms forwards;
+}
+
+.pdsa-divider svg.reveal.visible .wheel-hub {
+  animation: wheelStamp 260ms var(--ease-default) 300ms forwards;
+}
+
+@keyframes wheelPartIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes wheelStamp {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Under reduced motion the wheel renders complete and static. The
+   armed selectors above carry two and three classes, so each one is
+   repeated here — a media query adds no specificity of its own. */
+@media (prefers-reduced-motion: reduce) {
+  .pdsa-wheel-hero.reveal .wheel-rim,
+  .pdsa-wheel-hero.reveal .wheel-face,
+  .pdsa-wheel-hero.reveal .wheel-arrow,
+  .pdsa-wheel-hero.reveal .wheel-label,
+  .pdsa-wheel-hero.reveal .wheel-hub,
+  .pdsa-divider svg.reveal .wheel-rim,
+  .pdsa-divider svg.reveal .wheel-face,
+  .pdsa-divider svg.reveal .wheel-hub,
+  .pdsa-wheel-hero.reveal.visible .wheel-rim,
+  .pdsa-wheel-hero.reveal.visible .wheel-face,
+  .pdsa-wheel-hero.reveal.visible .wheel-arrow,
+  .pdsa-wheel-hero.reveal.visible .wheel-label,
+  .pdsa-wheel-hero.reveal.visible .wheel-hub,
+  .pdsa-divider svg.reveal.visible .wheel-rim,
+  .pdsa-divider svg.reveal.visible .wheel-face,
+  .pdsa-divider svg.reveal.visible .wheel-hub {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 /* ── Footer Brand ──────────────────────────────────────────────── */

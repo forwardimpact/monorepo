@@ -128,14 +128,18 @@ notes it — an instrument's live reading should look lit, not merely outlined.
 
 | Use               | Rendered size  | Line               | Dots        | Nib                     | Return sweep         |
 | ------------------ | -------------- | -------------------- | ------------ | -------------------------- | -------------------- |
-| Hero                | `280 × 131 px` | `5px`, `gemba-trace-line` gradient | `r = 2.2`, `gemba-dot` gradient | `r = 3`, `gemba-nib` gradient, 3-ring glow | `1.5px`, `3 4` dash |
-| Section divider     | `110 × 52 px`  | `3px`, same gradient  | `r = 2.2`, same gradient | `r = 2.2`, same gradient, 3-ring glow | `1px`, `2 3` dash |
+| Hero                | `280 × 131 px` | `1.2` units (≈ 5px), `gemba-trace-line` gradient | `r = 2.2`, `gemba-dot` gradient | `r = 3`, `gemba-nib` gradient, 3-ring glow | `1.5px`, `3 4` dash |
+| Section divider     | `110 × 52 px`  | `1.8` units (≈ 3px), same gradient  | `r = 2.2`, same gradient | `r = 2.2`, same gradient, 3-ring glow | `1px`, `2 3` dash |
 | Wordmark / footer   | `1em × 0.45em` | none                  | `r = 1.8`, same gradient | none                        | none                 |
 
-The return sweep alone stays plain line art: `stroke: var(--gray-300)`,
-`fill: none`, `stroke-linecap: round`, `stroke-linejoin: round`, and
-`vector-effect: non-scaling-stroke`, so its weight holds at the named pixel
-value at any size. Every gradient is defined once, in a hidden sprite `<svg>`
+The return sweep alone carries `vector-effect: non-scaling-stroke`, so its
+decorative dash holds one screen size at any scale. The trace line must not
+carry it: with non-scaling-stroke, browsers compute dash patterns in screen
+space, and the reveal's 70-unit draw dash then rendered the line as dashes at
+hero scale — the trace never fully connected its dots. The line's widths are
+therefore user units (sized per rendered scale in the table above), and the
+whole ~58-unit path fits inside one 70-unit dash, so the drawn line is always
+continuous. Every gradient is defined once, in a hidden sprite `<svg>`
 at the top of `index.template.html`, and every instance of the mark — hero,
 three dividers, the wordmark, and the footer — references it by id. The
 wordmark and footer variant drops the line, the glow, and the nib. Its five
