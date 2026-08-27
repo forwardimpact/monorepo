@@ -6,17 +6,21 @@ layout: home
 ---
 
 <div class="jidoka-section jidoka-hero">
-  <svg class="layer-stack-hero" viewBox="0 0 64 64" role="img" aria-label="An andon lamp lit above eight stepped instruction layers">
-    <rect class="layer-bar" x="10" y="54" width="44" height="4" rx="1.5" />
-    <rect class="layer-bar" x="12" y="49" width="40" height="4" rx="1.5" />
-    <rect class="layer-bar" x="14" y="44" width="36" height="4" rx="1.5" />
-    <rect class="layer-bar" x="16" y="39" width="32" height="4" rx="1.5" />
-    <rect class="layer-bar" x="18" y="34" width="28" height="4" rx="1.5" />
-    <rect class="layer-bar" x="20" y="29" width="24" height="4" rx="1.5" />
-    <rect class="layer-bar" x="22" y="24" width="20" height="4" rx="1.5" />
-    <rect class="layer-bar layer-bar-top" x="24" y="19" width="16" height="4" rx="1.5" />
-    <line class="layer-cord" x1="32" y1="58" x2="32" y2="7" />
-    <circle class="layer-lamp" cx="32" cy="7" r="4" />
+  <svg class="layer-stack-hero" viewBox="0 0 100 150" role="img" aria-label="An andon lamp lit above eight stepped instruction layers">
+    <ellipse class="layer-pedestal" cx="50" cy="144" rx="38" ry="4" />
+    <rect class="layer-cord" x="47" y="37" width="6" height="103" rx="3" fill="url(#jidoka-cord)" />
+    <rect class="layer-bar" x="16" y="132" width="68" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="20" y="120" width="60" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="24" y="108" width="52" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="28" y="96" width="44" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="32" y="84" width="36" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="36" y="72" width="28" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="40" y="60" width="20" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar layer-bar-top" x="44" y="48" width="12" height="8" rx="2" fill="url(#jidoka-bar-top)" />
+    <circle class="layer-glow" cx="50" cy="26" r="28" />
+    <circle class="layer-glow" cx="50" cy="26" r="22" />
+    <circle class="layer-glow" cx="50" cy="26" r="17" />
+    <circle class="layer-lamp" cx="50" cy="26" r="11" fill="url(#jidoka-lamp)" />
   </svg>
   <h1 class="hero-title">Build quality into agent instructions</h1>
   <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers each hold a single job. Checks stop the line the moment a layer drifts.</p>
@@ -54,11 +58,15 @@ layout: home
 </div>
 
 <div class="layer-divider">
-  <svg viewBox="0 0 16 16" aria-hidden="true">
-    <rect class="layer-bar" x="2" y="13" width="12" height="2" rx="1" />
-    <rect class="layer-bar" x="4" y="9" width="8" height="2" rx="1" />
-    <rect class="layer-bar layer-bar-top" x="6" y="5" width="4" height="2" rx="1" />
-    <circle class="layer-lamp" cx="8" cy="2" r="1.3" />
+  <svg viewBox="0 0 60 94" aria-hidden="true">
+    <ellipse class="layer-pedestal" cx="30" cy="80" rx="22" ry="3" />
+    <rect class="layer-bar" x="10" y="68" width="40" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="16" y="52" width="28" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar layer-bar-top" x="22" y="36" width="16" height="8" rx="2" fill="url(#jidoka-bar-top)" />
+    <circle class="layer-glow" cx="30" cy="20" r="18" />
+    <circle class="layer-glow" cx="30" cy="20" r="15" />
+    <circle class="layer-glow" cx="30" cy="20" r="12" />
+    <circle class="layer-lamp" cx="30" cy="20" r="8" fill="url(#jidoka-lamp)" />
   </svg>
 </div>
 
@@ -115,11 +123,15 @@ layout: home
 </div>
 
 <div class="layer-divider">
-  <svg viewBox="0 0 16 16" aria-hidden="true">
-    <rect class="layer-bar" x="2" y="13" width="12" height="2" rx="1" />
-    <rect class="layer-bar" x="4" y="9" width="8" height="2" rx="1" />
-    <rect class="layer-bar layer-bar-top" x="6" y="5" width="4" height="2" rx="1" />
-    <circle class="layer-lamp" cx="8" cy="2" r="1.3" />
+  <svg viewBox="0 0 60 94" aria-hidden="true">
+    <ellipse class="layer-pedestal" cx="30" cy="80" rx="22" ry="3" />
+    <rect class="layer-bar" x="10" y="68" width="40" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="16" y="52" width="28" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar layer-bar-top" x="22" y="36" width="16" height="8" rx="2" fill="url(#jidoka-bar-top)" />
+    <circle class="layer-glow" cx="30" cy="20" r="18" />
+    <circle class="layer-glow" cx="30" cy="20" r="15" />
+    <circle class="layer-glow" cx="30" cy="20" r="12" />
+    <circle class="layer-lamp" cx="30" cy="20" r="8" fill="url(#jidoka-lamp)" />
   </svg>
 </div>
 
@@ -151,11 +163,15 @@ layout: home
 </div>
 
 <div class="layer-divider">
-  <svg viewBox="0 0 16 16" aria-hidden="true">
-    <rect class="layer-bar" x="2" y="13" width="12" height="2" rx="1" />
-    <rect class="layer-bar" x="4" y="9" width="8" height="2" rx="1" />
-    <rect class="layer-bar layer-bar-top" x="6" y="5" width="4" height="2" rx="1" />
-    <circle class="layer-lamp" cx="8" cy="2" r="1.3" />
+  <svg viewBox="0 0 60 94" aria-hidden="true">
+    <ellipse class="layer-pedestal" cx="30" cy="80" rx="22" ry="3" />
+    <rect class="layer-bar" x="10" y="68" width="40" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar" x="16" y="52" width="28" height="8" rx="2" fill="url(#jidoka-bar)" />
+    <rect class="layer-bar layer-bar-top" x="22" y="36" width="16" height="8" rx="2" fill="url(#jidoka-bar-top)" />
+    <circle class="layer-glow" cx="30" cy="20" r="18" />
+    <circle class="layer-glow" cx="30" cy="20" r="15" />
+    <circle class="layer-glow" cx="30" cy="20" r="12" />
+    <circle class="layer-lamp" cx="30" cy="20" r="8" fill="url(#jidoka-lamp)" />
   </svg>
 </div>
 

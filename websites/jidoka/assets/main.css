@@ -174,8 +174,8 @@
 }
 
 .jidoka-hero .layer-stack-hero {
-  width: 72px;
-  height: 72px;
+  width: 110px;
+  height: 165px;
   margin-bottom: var(--space-8);
   animation: fadeUp 600ms var(--ease-default) 100ms backwards;
 }
@@ -586,49 +586,60 @@
 
 /* ── Layer-stack SVG ───────────────────────────────────────────── */
 
-.layer-stack-hero .layer-bar,
-.layer-divider .layer-bar {
-  stroke: var(--gray-300);
-  stroke-width: 1.5;
-  fill: none;
+/* Shared across hero, divider, and footer. Gradients live once in a
+   hidden sprite in index.template.html and every instance references
+   them by id. */
+.layer-bar {
+  stroke: var(--gray-900);
+  stroke-width: 0.5;
 }
 
-.layer-stack-hero .layer-bar-top,
-.layer-divider .layer-bar-top {
-  stroke: var(--ink-400);
-  fill: var(--ink-50);
+.layer-bar-top {
+  stroke: var(--ink-600);
+  stroke-width: 0.5;
 }
 
-.layer-stack-hero .layer-cord {
-  stroke: var(--gray-300);
-  stroke-width: 1.25;
-  stroke-linecap: round;
-  fill: none;
+.layer-cord {
+  stroke: var(--gray-700);
+  stroke-width: 0.5;
 }
 
-.layer-stack-hero .layer-lamp,
-.layer-divider .layer-lamp {
+.layer-pedestal {
+  fill: var(--gray-900);
+  opacity: 0.12;
+}
+
+.layer-lamp {
+  stroke: var(--ink-600);
+  stroke-width: 1;
+}
+
+/* The lamp's glow: three concentric, fading rings drawn behind the
+   lamp itself. No blur filter, so the edge stays crisp and
+   predictable across browsers. */
+.layer-glow {
   fill: var(--ink-400);
   stroke: none;
+}
+
+.layer-glow:nth-of-type(1) {
+  opacity: 0.06;
+}
+
+.layer-glow:nth-of-type(2) {
+  opacity: 0.12;
+}
+
+.layer-glow:nth-of-type(3) {
+  opacity: 0.22;
 }
 
 /* ── Footer Tower ──────────────────────────────────────────────── */
 
 .footer-tower {
-  width: 20px;
-  height: 20px;
+  width: 48px;
+  height: 75px;
   margin-bottom: var(--space-2);
-}
-
-.footer-tower .layer-bar {
-  stroke: var(--text-on-dark);
-  stroke-width: 1.5;
-  fill: none;
-}
-
-.footer-tower .layer-lamp {
-  fill: var(--ink-400);
-  stroke: none;
 }
 
 /* ── Footer Brand ──────────────────────────────────────────────── */
@@ -659,8 +670,8 @@
 }
 
 .layer-divider svg {
-  width: 20px;
-  height: 20px;
+  width: 48px;
+  height: 75px;
 }
 
 /* ── Responsive ────────────────────────────────────────────────── */

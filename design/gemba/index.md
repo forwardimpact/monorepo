@@ -92,38 +92,53 @@ instead: it is what the "instrumented bay" premise actually promised. The mark
 is inline SVG in every use.
 
 ```html
-<svg class="trace-mark" viewBox="0 0 64 24" width="64" height="24"
+<svg class="trace-mark" viewBox="0 0 64 30" width="64" height="30"
      role="img" aria-label="The Gemba loop: stand up, run, see, remember, measure">
   <path class="trace-return" d="M59 7 Q32 23 4 21" />
-  <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8 C56 8 56 7 59 7" />
-  <circle class="trace-dot" data-step="stand-up" cx="9" cy="20" r="1.6" />
-  <circle class="trace-dot" data-step="run" cx="20" cy="17" r="1.6" />
-  <circle class="trace-dot" data-step="see" cx="31" cy="14" r="1.6" />
-  <circle class="trace-dot" data-step="remember" cx="42" cy="11" r="1.6" />
-  <circle class="trace-dot" data-step="measure" cx="53" cy="8" r="1.6" />
-  <circle class="trace-nib" cx="59" cy="7" r="2.2" />
+  <path class="trace-line" d="M4 21 C6.5 21 6.5 20 9 20 C14.5 20 14.5 17 20 17 C25.5 17 25.5 14 31 14 C36.5 14 36.5 11 42 11 C47.5 11 47.5 8 53 8 C56 8 56 7 59 7" stroke="url(#gemba-trace-line)" />
+  <circle class="trace-dot" data-step="stand-up" cx="9" cy="20" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-dot" data-step="run" cx="20" cy="17" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-dot" data-step="see" cx="31" cy="14" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-dot" data-step="remember" cx="42" cy="11" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-dot" data-step="measure" cx="53" cy="8" r="2.2" fill="url(#gemba-dot)" />
+  <circle class="trace-glow" cx="59" cy="7" r="8" />
+  <circle class="trace-glow" cx="59" cy="7" r="6" />
+  <circle class="trace-glow" cx="59" cy="7" r="4.2" />
+  <circle class="trace-nib" cx="59" cy="7" r="3" fill="url(#gemba-nib)" />
 </svg>
 ```
 
 The return sweep sits first in source order, so the line and the dots paint
-over it. The line sits second, so the dots and the nib paint over its stroke.
-The nib sits last, always the topmost element — the live edge stays in front.
+over it. The line sits second, filling from a gradient stroke
+(`gemba-trace-line`) that runs `--gray-300` at the start through `--gray-400`
+to `--amber-400` at the 100% mark — the trace visibly warms as it approaches
+the live edge. The dots paint over the line's stroke, filled with a glassy
+radial gradient (`gemba-dot`) biased upper-left for a highlight. Three
+low-opacity rings fake a soft glow behind the **nib**, the live pen tip,
+which sits last, always the topmost element, filled with `gemba-nib`
+(`--amber-100` through `--amber-400` to `--amber-600`).
 
-### Named sizes and stroke weights
+**A brand-level divergence, noted per
+[../usage.md](../usage.md#specified-per-brand):** the mark moved from a thin
+stroked line to a filled, gradient ribbon with a glowing nib. The family default
+stays "no fill except where the brand explicitly notes." Gemba now explicitly
+notes it — an instrument's live reading should look lit, not merely outlined.
 
-| Use               | Rendered size | Line    | Dots      | Nib       | Return sweep         |
-| ------------------ | ------------- | ------- | ---------- | ---------- | -------------------- |
-| Hero                | `160 × 60 px` | `2px`   | `r = 2`    | `r = 2.8`  | `1.5px`, `3 4` dash  |
-| Section divider     | `64 × 24 px`  | `1.5px` | `r = 1.6`  | `r = 2.2`  | `1px`, `2 3` dash    |
-| Wordmark / footer   | `1em × 0.3em` | none    | `r = 1.3`  | none       | none                 |
+### Named sizes and fills
 
-The line and the return sweep use `stroke: var(--gray-300)`, `fill: none`,
-`stroke-linecap: round`, and `stroke-linejoin: round`. Every stroked element
-also carries `vector-effect: non-scaling-stroke`, so the rendered weight holds
-at the named pixel value at any size. Dots fill `var(--gray-300)`; the nib
-fills `var(--accent-warm-400)` — the live pen tip is the mark's one constant
-accent, the way Kata's hanko hub and Jidoka's andon lamp are always lit. The
-wordmark and footer variant drops the line, the nib, and the sweep. Its five
+| Use               | Rendered size  | Line               | Dots        | Nib                     | Return sweep         |
+| ------------------ | -------------- | -------------------- | ------------ | -------------------------- | -------------------- |
+| Hero                | `280 × 131 px` | `5px`, `gemba-trace-line` gradient | `r = 2.2`, `gemba-dot` gradient | `r = 3`, `gemba-nib` gradient, 3-ring glow | `1.5px`, `3 4` dash |
+| Section divider     | `110 × 52 px`  | `3px`, same gradient  | `r = 2.2`, same gradient | `r = 2.2`, same gradient, 3-ring glow | `1px`, `2 3` dash |
+| Wordmark / footer   | `1em × 0.45em` | none                  | `r = 1.8`, same gradient | none                        | none                 |
+
+The return sweep alone stays plain line art: `stroke: var(--gray-300)`,
+`fill: none`, `stroke-linecap: round`, `stroke-linejoin: round`, and
+`vector-effect: non-scaling-stroke`, so its weight holds at the named pixel
+value at any size. Every gradient is defined once, in a hidden sprite `<svg>`
+at the top of `index.template.html`, and every instance of the mark — hero,
+three dividers, the wordmark, and the footer — references it by id. The
+wordmark and footer variant drops the line, the glow, and the nib. Its five
 dots sit flat on one baseline, one under each letter of **GEMBA**, a resting
 signature rather than a live reading. Below an 8px mark height, omit it
 entirely.
@@ -131,15 +146,15 @@ entirely.
 ### Step coverage
 
 A page about one step lights that dot. A lit dot takes
-`fill: var(--accent-warm-400)` and grows from `r = 1.6` to `r = 2.4` (hero:
-`r = 2` to `r = 3`). Unlit dots drop to `r = 1` at `0.6` opacity, and the line
-and the sweep stay unlit. This mirrors Kata's lit and unlit tick convention, so
-the two marks read as siblings that record different things. Amber on a dot is
-a line-art fill, so the palette rule in [§ 4](#4-color-palette) holds.
+`fill: var(--accent-warm-400)` (overriding its inline gradient fill, since a
+CSS class outranks a presentation attribute) and grows from `r = 2.2` to
+`r = 2.4` (hero: `r = 3`). Unlit dots drop to `r = 1` at `0.6` opacity, and the
+line and the sweep stay unlit. This mirrors Kata's lit and unlit tick
+convention, so the two marks read as siblings that record different things.
 
 ### Section-divider use
 
-`.trace-divider` centres the `64 × 24 px` mark in a flex row and takes
+`.trace-divider` centres the `110 × 52 px` mark in a flex row and takes
 `padding: var(--space-24) 0`, which leaves 96px of vertical space above and
 below. It carries no caption and no rule. On the scroll home page it separates
 the step section from the command section, and the tenant section from the

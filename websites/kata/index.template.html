@@ -17,6 +17,28 @@
     {{/canonicalUrl}}
   </head>
   <body>
+    <svg aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden">
+      <defs>
+        <radialGradient id="kata-medallion-rim" cx="35%" cy="32%" r="75%">
+          <stop offset="0%" style="stop-color:var(--gray-300)" />
+          <stop offset="100%" style="stop-color:var(--gray-700)" />
+        </radialGradient>
+        <radialGradient id="kata-medallion-face" cx="35%" cy="30%" r="80%">
+          <stop offset="0%" style="stop-color:var(--white-warm)" />
+          <stop offset="60%" style="stop-color:var(--gray-50)" />
+          <stop offset="100%" style="stop-color:var(--gray-200)" />
+        </radialGradient>
+        <linearGradient id="kata-flag" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:var(--gray-400)" />
+          <stop offset="100%" style="stop-color:var(--gray-800)" />
+        </linearGradient>
+        <radialGradient id="kata-hub" cx="35%" cy="28%" r="75%">
+          <stop offset="0%" style="stop-color:var(--ink-200)" />
+          <stop offset="55%" style="stop-color:var(--ink-400)" />
+          <stop offset="100%" style="stop-color:var(--ink-600)" />
+        </radialGradient>
+      </defs>
+    </svg>
     <header class="site-header">
       <div class="header-inner">
         <a class="brand" href="/">
@@ -81,13 +103,10 @@
     <footer class="site-footer">
       <div class="footer-inner">
         <div class="footer-column footer-column-left">
-          <svg class="footer-wheel" viewBox="0 0 84 84" aria-hidden="true">
-            <circle class="wheel-ring" cx="42" cy="42" r="22" />
-            <line class="wheel-tick" x1="42" y1="20" x2="42" y2="14" />
-            <line class="wheel-tick" x1="64" y1="42" x2="70" y2="42" />
-            <line class="wheel-tick" x1="42" y1="64" x2="42" y2="70" />
-            <line class="wheel-tick" x1="20" y1="42" x2="14" y2="42" />
-            <circle class="wheel-hub" cx="42" cy="42" r="3" />
+          <svg class="footer-wheel" viewBox="0 0 124 124" aria-hidden="true">
+            <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
+            <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
+            <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
           </svg>
           <span class="footer-brand">Kata Agent Team</span>
           <span class="footer-tagline">Practice the form. Trust the process.</span>

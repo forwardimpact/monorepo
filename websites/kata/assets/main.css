@@ -180,8 +180,8 @@
 }
 
 .kata-hero .pdsa-wheel-hero {
-  width: 64px;
-  height: 64px;
+  width: 168px;
+  height: 168px;
   margin-bottom: var(--space-8);
   animation: fadeUp 600ms var(--ease-default) 100ms backwards;
 }
@@ -639,41 +639,47 @@
 
 /* ── PDSA Wheel SVG ────────────────────────────────────────────── */
 
-.pdsa-wheel-hero .wheel-ring {
-  stroke: var(--gray-300);
-  stroke-width: 1.5;
-  fill: none;
+/* Shared across hero, divider, and footer: the medallion rim, face,
+   and hub. Gradients live once in a hidden sprite in
+   index.template.html and every instance references them by id, so
+   the mark reads the same lit, filled object on light or dark
+   surfaces. */
+.wheel-rim {
+  stroke: var(--gray-800);
+  stroke-width: 0.75;
 }
 
-.pdsa-wheel-hero .wheel-tick {
+.wheel-face {
   stroke: var(--gray-300);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  transition:
-    stroke var(--duration-normal) var(--ease-default),
-    stroke-width var(--duration-normal) var(--ease-default);
+  stroke-width: 0.5;
+}
+
+.wheel-hub {
+  stroke: var(--ink-600);
+  stroke-width: 1;
+}
+
+.pdsa-wheel-hero .wheel-flag {
+  stroke: var(--gray-900);
+  stroke-width: 0.75;
+  stroke-linejoin: round;
+  transition: fill var(--duration-normal) var(--ease-default);
 }
 
 .pdsa-wheel-hero .wheel-label {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: 13px;
   font-weight: 700;
-  fill: var(--gray-300);
+  fill: var(--gray-700);
   transition: fill var(--duration-normal) var(--ease-default);
 }
 
-.pdsa-wheel-hero .wheel-hub {
+.pdsa-wheel-hero .wheel-flag.lit {
   fill: var(--ink-400);
-  stroke: none;
-}
-
-.pdsa-wheel-hero .wheel-tick.lit {
-  stroke: var(--ink-400);
-  stroke-width: 2;
 }
 
 .pdsa-wheel-hero .wheel-label.lit {
-  fill: var(--ink-400);
+  fill: var(--ink-600);
 }
 
 /* ── Footer Brand ──────────────────────────────────────────────── */
@@ -704,40 +710,16 @@
 }
 
 .pdsa-divider svg {
-  width: 16px;
-  height: 16px;
-}
-
-.pdsa-divider .wheel-ring {
-  stroke: var(--gray-300);
-  stroke-width: 1.5;
-  fill: none;
-}
-
-.pdsa-divider .wheel-hub {
-  fill: var(--ink-400);
-  stroke: none;
+  width: 40px;
+  height: 40px;
 }
 
 /* ── Footer Wheel ──────────────────────────────────────────────── */
 
 .footer-wheel {
-  width: 24px;
-  height: 24px;
+  width: 56px;
+  height: 56px;
   margin-bottom: var(--space-2);
-}
-
-.footer-wheel .wheel-ring,
-.footer-wheel .wheel-tick {
-  stroke: var(--text-on-dark);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  fill: none;
-}
-
-.footer-wheel .wheel-hub {
-  fill: var(--ink-400);
-  stroke: none;
 }
 
 /* ── Responsive ────────────────────────────────────────────────── */

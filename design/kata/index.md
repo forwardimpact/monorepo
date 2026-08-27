@@ -80,42 +80,64 @@ structural UI.
 
 ### The PDSA Wheel
 
-Above the six personas sits the **PDSA wheel**. It is a single chalk-drawn
-ring with four cardinal ticks marked **P · D · S · A** clockwise, and a small
-filled hub at the centre. The hub is the hanko stamp shrunk to a single dot:
-the wheel carries both of Kata's motifs — the chalk circle Ohno drew on the
-floor, and the ink mark of an approved decision — in one glyph. It makes the
-spine of [KATA.md](../../KATA.md) visible. The brand repeats this motif. Use
-it as:
+Above the six personas sits the **PDSA wheel**, drawn as a filled medallion:
+a rim, a face, four flag-shaped ticks marked **P · D · S · A** clockwise, and
+a raised hanko hub at the centre. The hub is the hanko stamp: the wheel
+carries both of Kata's motifs — the chalk circle Ohno drew on the floor, and
+the ink mark of an approved decision — in one glyph. It makes the spine of
+[KATA.md](../../KATA.md) visible. The brand repeats this motif. Use it as:
 
 - The optional accent above the second `A` in the **KATA** wordmark.
-- A section divider on long pages. Draw the ring and hub only, at 16–20px with
-  a `--gray-300` stroke, centred. Drop the ticks and labels at this size.
-  Leave 96px of vertical space either side.
+- A section divider on long pages. Draw the rim, face, and hub only, at
+  40px, centred. Drop the flags and labels at this size. Leave 96px of
+  vertical space either side.
 - A loading state. The wheel rotates one quadrant per 800ms. It loops P → D → S
   → A → P. It respects `prefers-reduced-motion` (static wheel).
 
 Each agent's "phase coverage" in [KATA.md § Skills](../../KATA.md#skills) maps
-to wheel ticks. So the wheel is also functional. A Staff Engineer profile page
+to wheel flags. So the wheel is also functional. A Staff Engineer profile page
 may show the wheel with **P** and **D** lit. An Improvement Coach profile may
-show **S** lit. A lit tick and its label take the `--ink-400` hanko color at a
-heavier 2px stroke. An unlit tick and label stay `--gray-300` at 1.5px. The
-hub is always ink-400 — it is the constant signature, not a coverage state. No
-fills on the ring or ticks.
+show **S** lit. A lit flag and its label take the `--ink-400` hanko color. An
+unlit flag holds the `kata-flag` gradient (`--gray-400` to `--gray-800`) and
+an unlit label holds `--gray-700`. The hub is always the `kata-hub` gradient
+— it is the constant signature, not a coverage state.
 
 ```text
           P
-      ⁠·  |  ·
-   A ──○──── D
-      ⁠·  |  ·
+      ⁠·  ◆  ·
+   A ──◉──── D
+      ⁠·  ◆  ·
           S
 ```
 
-Construction: ring radius 22 on an 84-unit viewBox, centred at (42, 42). Ticks
-run from radius 20 to 28 at each cardinal point, capped round. Labels sit at
-radius 34–36, set in `--font-display` (Roboto Slab) 700 at 9px, centred on the
-tick. The hub is a radius-3 filled circle in `--ink-400`. Every stroke carries
-`stroke-linecap: round`.
+**A brand-level divergence, noted per
+[../usage.md](../usage.md#specified-per-brand):** this second draft of the mark
+moves from stroke-only line art to filled, gradient-shaded surfaces — a
+medallion with a rim, a lit face, and a raised hub, not a wire outline. The
+family default stays "no fill except where the brand explicitly notes." Kata now
+explicitly notes it, on the strength that a stamped medallion is a physical,
+dimensional object in the metaphor, and a flat outline undersold that.
+Structural UI stays exactly as monochrome and flat as
+[../index.md § 2](../index.md#2-color-philosophy) requires — the gradient
+treatment is scoped to this one mark, not adopted by cards, buttons, or any
+other surface.
+
+Construction: on a 124-unit viewBox centred at (62, 62), the rim is a
+radius-34 filled circle (`kata-medallion-rim`, a radial gradient from
+`--gray-300` to `--gray-700`), and the face is a radius-25 filled circle on
+top (`kata-medallion-face`, `--white-warm` through `--gray-50` to
+`--gray-200`). Both gradients bias their center to 35%/30%, so the highlight
+sits upper-left, as if lit from one corner. Four flag-shaped polygons sit at
+the cardinal points, based at radius 34 and tipped at radius 46, filled with
+`kata-flag` (`--gray-400` to `--gray-800` diagonal). Labels sit clear of the
+flags at radius 54, set in `--font-display` (Roboto Slab) 700 at 13px. The hub
+is a radius-10 filled circle in `kata-hub` (`--ink-200` through `--ink-400` to
+`--ink-600`). All four gradients are defined once, in a hidden sprite `<svg>`
+at the top of `index.template.html`, and every instance of the mark —
+hero, three dividers, and the footer — references them by id rather than
+redefining them, so the medallion reads identically wherever it appears.
+Hero renders at 168×168px, the divider at 40×40px, and the footer mark at
+56×56px, all considerably larger than the first draft's 64px hero.
 
 ---
 
@@ -239,9 +261,9 @@ the cycle.
         ⊕     ← PDSA wheel (P · D · S · A clockwise)
 ```
 
-At very small sizes (under 16px wordmark height), the PDSA wheel reduces to a
-simple **stroke-only** circle in `--gray-700`. Drop the quadrant marks. Keep
-the no-fill rule. Below 8px wordmark height, omit the wheel entirely.
+At very small sizes (under 16px wordmark height), the PDSA wheel reduces to
+the rim and face only, with no flags and no labels. Below 8px wordmark
+height, omit the wheel entirely.
 
 ---
 

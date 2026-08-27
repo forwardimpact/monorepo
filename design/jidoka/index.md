@@ -76,54 +76,77 @@ threads down through the stack. It makes [JIDOKA.md](../../JIDOKA.md)'s
 sentence — "the `jidoka` checks are the andon cord" — literal and visible. The
 mark has three parts:
 
-1. **The stack.** Eight rounded bars, widest (most general, L0) at the base
+1. **The stack.** Eight filled bars, widest (most general, L0) at the base
    and narrowest (most specific, L7) at the top, each one centered on the
-   same vertical axis. The taper is the brand's reading of "general to
-   specific."
-2. **The cord.** A single vertical stroke, thinner than the bars, that runs
-   from the base of the stack through the center of every bar to the lamp.
-   It is the visual pull-cord. It is also the "line" the checks stop.
-3. **The lamp.** A filled circle at the top of the cord, in the indigo signal
-   color. It is always lit. It is the brand's constant signature, the same
-   way Kata's hanko hub is always inked. It says: the line is watched.
+   same vertical axis. Each bar fills a top-lit vertical gradient
+   (`jidoka-bar`, `--gray-100` to `--gray-400`), so the stack reads as
+   stepped physical plates, not outlined shapes. The taper is the brand's
+   reading of "general to specific."
+2. **The cord.** A filled cylindrical rod, rendered as a rounded rect with a
+   horizontal three-stop gradient (`jidoka-cord`: `--gray-200` →
+   `--gray-600` → `--gray-300`), that runs behind the bars from a pedestal
+   shadow at the base to the lamp. It is the visual pull-cord. It is also
+   the "line" the checks stop. Drawn before the bars, it shows only in the
+   gaps between them — the rod is occluded by every plate it passes
+   through, the way a real pole would be.
+3. **The lamp.** A filled circle at the top of the cord, glowing on a
+   radial gradient (`jidoka-lamp`: `--ink-200` → `--ink-400` → `--ink-600`),
+   sitting inside three concentric, low-opacity rings that fake a soft glow
+   without a blur filter. It is always lit. It is the brand's constant
+   signature, the same way Kata's hanko hub is always inked. It says: the
+   line is watched.
 
 ```html
-<svg class="layer-stack-hero" viewBox="0 0 64 64" role="img"
+<svg class="layer-stack-hero" viewBox="0 0 100 150" role="img"
      aria-label="An andon lamp lit above eight stepped instruction layers">
-  <rect class="layer-bar" x="10" y="54" width="44" height="4" rx="1.5" />
-  <rect class="layer-bar" x="12" y="49" width="40" height="4" rx="1.5" />
-  <rect class="layer-bar" x="14" y="44" width="36" height="4" rx="1.5" />
-  <rect class="layer-bar" x="16" y="39" width="32" height="4" rx="1.5" />
-  <rect class="layer-bar" x="18" y="34" width="28" height="4" rx="1.5" />
-  <rect class="layer-bar" x="20" y="29" width="24" height="4" rx="1.5" />
-  <rect class="layer-bar" x="22" y="24" width="20" height="4" rx="1.5" />
-  <rect class="layer-bar layer-bar-top" x="24" y="19" width="16" height="4" rx="1.5" />
-  <line class="layer-cord" x1="32" y1="58" x2="32" y2="7" />
-  <circle class="layer-lamp" cx="32" cy="7" r="4" />
+  <ellipse class="layer-pedestal" cx="50" cy="144" rx="38" ry="4" />
+  <rect class="layer-cord" x="47" y="37" width="6" height="103" rx="3" fill="url(#jidoka-cord)" />
+  <rect class="layer-bar" x="16" y="132" width="68" height="8" rx="2" fill="url(#jidoka-bar)" />
+  <!-- … six more bars, narrowing by 8 units and rising by 12 units each step … -->
+  <rect class="layer-bar layer-bar-top" x="44" y="48" width="12" height="8" rx="2" fill="url(#jidoka-bar-top)" />
+  <circle class="layer-glow" cx="50" cy="26" r="28" />
+  <circle class="layer-glow" cx="50" cy="26" r="22" />
+  <circle class="layer-glow" cx="50" cy="26" r="17" />
+  <circle class="layer-lamp" cx="50" cy="26" r="11" fill="url(#jidoka-lamp)" />
 </svg>
 ```
 
-### Named sizes and stroke weights
+**A brand-level divergence, noted per
+[../usage.md](../usage.md#specified-per-brand):** the mark moved from
+stroke-only outlines to filled, gradient-shaded plates and a glowing lamp. The
+family default stays "no fill except where the brand explicitly notes." Jidoka
+now explicitly notes it — an andon lamp that doesn't glow reads as an unlit
+warning light, which is the one thing this mark cannot afford to be. Structural
+UI stays exactly as monochrome and flat as
+[../index.md § 2](../index.md#2-color-philosophy) requires.
 
-| Use             | Rendered size | Bars                        | Cord     | Lamp                 |
-| ---------------- | ------------- | ---------------------------- | -------- | --------------------- |
-| Hero              | `72 × 72 px`  | 8, `1.5px` stroke, `--gray-300`, top bar `--ink-400`/`--ink-50` fill | `1.25px`, `--gray-300` | `r=4`, `--ink-400` fill |
-| Footer             | `20 × 20 px`  | 3, `1.5px` stroke, `--text-on-dark` | omitted | `r=1.3`, `--ink-400` fill |
-| Section divider    | `20 × 20 px`  | 3, `1.5px` stroke, `--gray-300`, top bar `--ink-400`/`--ink-50` fill | omitted | `r=1.3`, `--ink-400` fill |
+### Named sizes and fills
 
-At footer and divider scale the cord disappears; three bars and the lamp
-carry the concept. Below an 8px mark height, omit the mark entirely, matching
-the sibling brands' rule.
+| Use              | Rendered size  | Bars                                   | Cord      | Lamp                              |
+| ----------------- | -------------- | ---------------------------------------- | --------- | ------------------------------------ |
+| Hero               | `110 × 165 px` | 8, `jidoka-bar` gradient, top bar `jidoka-bar-top` | `jidoka-cord` gradient | `r = 11`, `jidoka-lamp` gradient, 3-ring glow |
+| Footer              | `48 × 75 px`   | 3, same gradients                        | omitted   | `r = 8`, same gradient, 3-ring glow   |
+| Section divider     | `48 × 75 px`   | 3, same gradients                        | omitted   | `r = 8`, same gradient, 3-ring glow   |
+
+At footer and divider scale the cord disappears; three bars and the glowing
+lamp carry the concept. Below an 8px mark height, omit the mark entirely,
+matching the sibling brands' rule.
 
 ### Construction
 
-The hero mark sits on a `64 × 64` viewBox. Bars step up at a 5-unit pitch
-(4-unit bar height, 1-unit gap), each 4 units narrower than the one below it,
-all centered on `x = 32`. The cord runs `x = 32` from `y = 58` (the base of
-the bottom bar) to `y = 7` (the lamp center), drawn before the lamp so the
-lamp paints over its terminus. The divider and footer marks reuse the same
-three-bar, tapered-by-4 proportions at `16 × 16`, with the lamp centered two
-units above the top bar.
+The hero mark sits on a `100 × 150` viewBox. Bars step up at a 12-unit pitch
+(8-unit bar height, 4-unit gap), each 8 units narrower than the one below it,
+all centered on `x = 50`. The cord is a `6`-wide rounded rect from `y = 140`
+(the pedestal) to `y = 37` (the lamp's base), drawn before the bars so each
+bar occludes it. A soft ellipse pedestal shadow sits at `(50, 144)`. The
+lamp's three glow rings sit at radius 28, 22, and 17, each at a shared 0.15
+opacity — the overlap of decreasing radii builds the falloff, so no ring
+needs its own opacity value. The divider and footer marks reuse the same
+three-bar, tapered proportions on a `60 × 94` viewBox, with the lamp at
+radius 8 above the top bar and no cord. All gradients are defined once, in a
+hidden sprite `<svg>` at the top of `index.template.html`, and every
+instance of the mark — hero, three dividers, and the footer — references
+them by id.
 
 ### Motion
 

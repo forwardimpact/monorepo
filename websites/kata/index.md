@@ -6,17 +6,18 @@ layout: home
 ---
 
 <div class="kata-section kata-hero">
-  <svg class="pdsa-wheel-hero" viewBox="0 0 84 84" role="img" aria-label="The Plan-Do-Study-Act wheel">
-    <circle class="wheel-ring" cx="42" cy="42" r="22" />
-    <line class="wheel-tick" x1="42" y1="20" x2="42" y2="14" />
-    <line class="wheel-tick" x1="64" y1="42" x2="70" y2="42" />
-    <line class="wheel-tick" x1="42" y1="64" x2="42" y2="70" />
-    <line class="wheel-tick" x1="20" y1="42" x2="14" y2="42" />
-    <text class="wheel-label" x="42" y="8" text-anchor="middle" dominant-baseline="central">P</text>
-    <text class="wheel-label" x="76" y="42" text-anchor="middle" dominant-baseline="central">D</text>
-    <text class="wheel-label" x="42" y="76" text-anchor="middle" dominant-baseline="central">S</text>
-    <text class="wheel-label" x="8" y="42" text-anchor="middle" dominant-baseline="central">A</text>
-    <circle class="wheel-hub" cx="42" cy="42" r="3" />
+  <svg class="pdsa-wheel-hero" viewBox="0 0 124 124" role="img" aria-label="The Plan-Do-Study-Act wheel">
+    <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
+    <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
+    <polygon class="wheel-flag" points="57,28 67,28 62,16" fill="url(#kata-flag)" />
+    <polygon class="wheel-flag" points="96,57 96,67 108,62" fill="url(#kata-flag)" />
+    <polygon class="wheel-flag" points="57,96 67,96 62,108" fill="url(#kata-flag)" />
+    <polygon class="wheel-flag" points="28,57 28,67 16,62" fill="url(#kata-flag)" />
+    <text class="wheel-label" x="62" y="8" text-anchor="middle" dominant-baseline="central">P</text>
+    <text class="wheel-label" x="116" y="62" text-anchor="middle" dominant-baseline="central">D</text>
+    <text class="wheel-label" x="62" y="116" text-anchor="middle" dominant-baseline="central">S</text>
+    <text class="wheel-label" x="8" y="62" text-anchor="middle" dominant-baseline="central">A</text>
+    <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
   </svg>
   <h1 class="hero-title">Autonomous coding agents that continuously improve</h1>
   <!-- enum:published-skills:count -->
@@ -58,9 +59,10 @@ layout: home
 </div>
 
 <div class="pdsa-divider">
-  <svg viewBox="0 0 84 84" aria-hidden="true">
-    <circle class="wheel-ring" cx="42" cy="42" r="22" />
-    <circle class="wheel-hub" cx="42" cy="42" r="3" />
+  <svg viewBox="0 0 124 124" aria-hidden="true">
+    <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
+    <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
+    <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
   </svg>
 </div>
 
@@ -97,9 +99,10 @@ layout: home
 </div>
 
 <div class="pdsa-divider">
-  <svg viewBox="0 0 84 84" aria-hidden="true">
-    <circle class="wheel-ring" cx="42" cy="42" r="22" />
-    <circle class="wheel-hub" cx="42" cy="42" r="3" />
+  <svg viewBox="0 0 124 124" aria-hidden="true">
+    <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
+    <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
+    <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
   </svg>
 </div>
 
@@ -164,9 +167,10 @@ layout: home
 </div>
 
 <div class="pdsa-divider">
-  <svg viewBox="0 0 84 84" aria-hidden="true">
-    <circle class="wheel-ring" cx="42" cy="42" r="22" />
-    <circle class="wheel-hub" cx="42" cy="42" r="3" />
+  <svg viewBox="0 0 124 124" aria-hidden="true">
+    <circle class="wheel-rim" cx="62" cy="62" r="34" fill="url(#kata-medallion-rim)" />
+    <circle class="wheel-face" cx="62" cy="62" r="25" fill="url(#kata-medallion-face)" />
+    <circle class="wheel-hub" cx="62" cy="62" r="10" fill="url(#kata-hub)" />
   </svg>
 </div>
 
