@@ -338,8 +338,8 @@ body:has(main.layout-home) .site-footer {
 }
 
 /* The wordmark sets GEMBA in the display serif over the flat trace
-   mark. Five letters carry five steps, and the treads align one to a
-   letter. */
+   mark. Five letters carry five steps, and the five sampled dots
+   align one to a letter. */
 .hero-wordmark {
   display: flex;
   flex-direction: column;
@@ -373,6 +373,12 @@ body:has(main.layout-home) .site-footer {
   height: 60px;
   margin-bottom: var(--space-8);
   animation: fadeUp 600ms var(--ease-default) 100ms backwards;
+}
+
+.footer-trace {
+  width: 80px;
+  height: 5px;
+  margin-top: var(--space-2);
 }
 
 .gemba-hero .hero-title {
@@ -819,12 +825,13 @@ body:has(main.layout-home) .site-footer {
 
 /* ── The Trace Mark ────────────────────────────────────────────── */
 
-/* A rising staircase of five treads over a dashed return sweep. One
-   tread stands for one step. Every element carries
-   vector-effect: non-scaling-stroke, so each named weight renders at
-   its pixel value at any size. */
-.trace-mark .trace-tread,
-.trace-mark .trace-riser,
+/* One continuous ink trace rises left to right through five sampled
+   points, the five steps, and ends at the nib, the live edge of the
+   recording. A dashed return sweep carries the reading back to the
+   first point, the way a chart recorder resets for the next pass.
+   Every element carries vector-effect: non-scaling-stroke, so each
+   named weight renders at its pixel value at any size. */
+.trace-mark .trace-line,
 .trace-mark .trace-return {
   stroke: var(--gray-300);
   fill: none;
@@ -833,12 +840,8 @@ body:has(main.layout-home) .site-footer {
   vector-effect: non-scaling-stroke;
 }
 
-.trace-mark .trace-tread {
+.trace-mark .trace-line {
   stroke-width: 1.5;
-}
-
-.trace-mark .trace-riser {
-  stroke-width: 1;
 }
 
 .trace-mark .trace-return {
@@ -846,13 +849,19 @@ body:has(main.layout-home) .site-footer {
   stroke-dasharray: 2 3;
 }
 
-/* Hero size. 160 by 60 pixels. */
-.trace-mark-hero .trace-tread {
-  stroke-width: 2;
+.trace-mark .trace-dot {
+  fill: var(--gray-300);
+  r: 1.6;
 }
 
-.trace-mark-hero .trace-riser {
-  stroke-width: 1.5;
+.trace-mark .trace-nib {
+  fill: var(--accent-warm-400);
+  r: 2.2;
+}
+
+/* Hero size. 160 by 60 pixels. */
+.trace-mark-hero .trace-line {
+  stroke-width: 2;
 }
 
 .trace-mark-hero .trace-return {
@@ -860,37 +869,46 @@ body:has(main.layout-home) .site-footer {
   stroke-dasharray: 3 4;
 }
 
-/* Wordmark size. The five treads sit flat on one baseline. The
-   variant carries no risers and no sweep. */
-.trace-mark-flat .trace-tread {
-  stroke-width: 1;
+.trace-mark-hero .trace-dot {
+  r: 2;
 }
 
-.trace-mark-flat .trace-riser,
-.trace-mark-flat .trace-return {
+.trace-mark-hero .trace-nib {
+  r: 2.8;
+}
+
+/* Wordmark and footer size. Five dots sit flat on one baseline, a
+   resting signature rather than a live reading. The variant carries
+   no line, no return sweep, and no nib. */
+.trace-mark-flat .trace-line,
+.trace-mark-flat .trace-return,
+.trace-mark-flat .trace-nib {
   display: none;
 }
 
+.trace-mark-flat .trace-dot {
+  r: 1.3;
+}
+
 /* The dark footer draws the mark in the light text value. */
-.site-footer .trace-mark .trace-tread,
-.site-footer .trace-mark .trace-riser,
-.site-footer .trace-mark .trace-return {
-  stroke: var(--text-on-dark);
+.site-footer .trace-mark .trace-dot {
+  fill: var(--text-on-dark);
 }
 
-/* Step coverage. A page about one step lights that tread. Amber on a
-   tread is a line-art stroke, so the palette rule holds. */
-.trace-mark .trace-tread.lit {
-  stroke: var(--accent-warm-400);
-  stroke-width: 2;
+/* Step coverage. A page about one step lights that dot. Amber on a
+   dot is a line-art fill, so the palette rule holds. */
+.trace-mark .trace-dot.lit {
+  fill: var(--accent-warm-400);
+  r: 2.4;
 }
 
-.trace-mark-hero .trace-tread.lit {
-  stroke-width: 2.5;
+.trace-mark-hero .trace-dot.lit {
+  r: 3;
 }
 
-.trace-mark:has(.lit) .trace-tread:not(.lit) {
-  stroke-width: 0.75;
+.trace-mark:has(.lit) .trace-dot:not(.lit) {
+  r: 1;
+  opacity: 0.6;
 }
 
 /* ── Trace Mark: Section Divider ───────────────────────────────── */
@@ -910,49 +928,74 @@ body:has(main.layout-home) .site-footer {
 
 /* Add .reveal to the mark to arm the sequence. main.js adds .visible
    on first entry into the viewport, and the sequence then runs once.
-   Each tread draws over 240ms and starts 120ms after the one before
-   it. The sweep arrives last over 400ms. The total is about 1120ms.
-   A mark with no .reveal renders complete and static. */
-.trace-mark.reveal .trace-tread {
-  stroke-dasharray: 12;
-  stroke-dashoffset: 12;
+   The line draws over 600ms. Each dot pops in as the line reaches
+   it, 120ms apart, and the nib arrives with the line's final beat.
+   The sweep arrives last over 400ms. The total is about 1180ms. A
+   mark with no .reveal renders complete and static. */
+.trace-mark.reveal .trace-line {
+  stroke-dasharray: 70;
+  stroke-dashoffset: 70;
 }
 
 .trace-mark.reveal .trace-return {
   opacity: 0;
 }
 
-.trace-mark.reveal.visible .trace-tread {
-  animation: traceDraw 240ms var(--ease-default) forwards;
+.trace-mark.reveal .trace-dot,
+.trace-mark.reveal .trace-nib {
+  opacity: 0;
+  transform: scale(0.4);
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
-.trace-mark.reveal.visible .trace-tread:nth-of-type(1) {
-  animation-delay: 0ms;
+.trace-mark.reveal.visible .trace-line {
+  animation: traceDraw 600ms var(--ease-default) forwards;
 }
 
-.trace-mark.reveal.visible .trace-tread:nth-of-type(2) {
-  animation-delay: 120ms;
+.trace-mark.reveal.visible .trace-dot,
+.trace-mark.reveal.visible .trace-nib {
+  animation: traceDotIn 240ms var(--ease-default) forwards;
 }
 
-.trace-mark.reveal.visible .trace-tread:nth-of-type(3) {
-  animation-delay: 240ms;
+.trace-mark.reveal.visible .trace-dot:nth-of-type(1) {
+  animation-delay: 80ms;
 }
 
-.trace-mark.reveal.visible .trace-tread:nth-of-type(4) {
-  animation-delay: 360ms;
+.trace-mark.reveal.visible .trace-dot:nth-of-type(2) {
+  animation-delay: 200ms;
 }
 
-.trace-mark.reveal.visible .trace-tread:nth-of-type(5) {
-  animation-delay: 480ms;
+.trace-mark.reveal.visible .trace-dot:nth-of-type(3) {
+  animation-delay: 320ms;
+}
+
+.trace-mark.reveal.visible .trace-dot:nth-of-type(4) {
+  animation-delay: 440ms;
+}
+
+.trace-mark.reveal.visible .trace-dot:nth-of-type(5) {
+  animation-delay: 560ms;
+}
+
+.trace-mark.reveal.visible .trace-nib {
+  animation-delay: 620ms;
 }
 
 .trace-mark.reveal.visible .trace-return {
-  animation: traceSweep var(--duration-slow) var(--ease-default) 720ms forwards;
+  animation: traceSweep var(--duration-slow) var(--ease-default) 780ms forwards;
 }
 
 @keyframes traceDraw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+@keyframes traceDotIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -967,40 +1010,41 @@ body:has(main.layout-home) .site-footer {
 
 /* ── Trace Mark: Running ───────────────────────────────────────── */
 
-/* The loading state steps the lamp one station per 600ms and loops
-   from measure back to stand up. */
-.trace-mark.running .trace-tread {
+/* The loading state steps the lit dot one station per 600ms and
+   loops from measure back to stand up. The nib stays lit throughout,
+   the constant live edge. */
+.trace-mark.running .trace-dot {
   animation: traceLamp 3s steps(1, end) infinite;
 }
 
-.trace-mark.running .trace-tread:nth-of-type(1) {
+.trace-mark.running .trace-dot:nth-of-type(1) {
   animation-delay: 0ms;
 }
 
-.trace-mark.running .trace-tread:nth-of-type(2) {
+.trace-mark.running .trace-dot:nth-of-type(2) {
   animation-delay: 600ms;
 }
 
-.trace-mark.running .trace-tread:nth-of-type(3) {
+.trace-mark.running .trace-dot:nth-of-type(3) {
   animation-delay: 1200ms;
 }
 
-.trace-mark.running .trace-tread:nth-of-type(4) {
+.trace-mark.running .trace-dot:nth-of-type(4) {
   animation-delay: 1800ms;
 }
 
-.trace-mark.running .trace-tread:nth-of-type(5) {
+.trace-mark.running .trace-dot:nth-of-type(5) {
   animation-delay: 2400ms;
 }
 
 @keyframes traceLamp {
   0%,
   20% {
-    stroke: var(--accent-warm-400);
+    fill: var(--accent-warm-400);
   }
   20.01%,
   100% {
-    stroke: var(--gray-300);
+    fill: var(--gray-300);
   }
 }
 
@@ -1008,30 +1052,35 @@ body:has(main.layout-home) .site-footer {
 
 /* base.css clamps animation duration. This rule is explicit, so the
    mark never depends on that clamp for a correct first paint. Under
-   reduced motion the mark renders complete and static, and the lamp
-   stops cycling. */
+   reduced motion the mark renders complete and static, and the lit
+   dot stops cycling. */
 /* The armed and running selectors carry three and four classes, so
    each one is repeated here. A media query adds no specificity, and
    the shorter selector alone would lose to them. */
 @media (prefers-reduced-motion: reduce) {
-  .trace-mark .trace-tread,
-  .trace-mark .trace-riser,
+  .trace-mark .trace-line,
   .trace-mark .trace-return,
-  .trace-mark.reveal .trace-tread,
+  .trace-mark .trace-dot,
+  .trace-mark .trace-nib,
+  .trace-mark.reveal .trace-line,
   .trace-mark.reveal .trace-return,
-  .trace-mark.running .trace-tread,
-  .trace-mark.reveal.visible .trace-tread,
-  .trace-mark.reveal.visible .trace-return {
-    stroke: var(--gray-300);
+  .trace-mark.reveal .trace-dot,
+  .trace-mark.reveal .trace-nib,
+  .trace-mark.running .trace-dot,
+  .trace-mark.reveal.visible .trace-line,
+  .trace-mark.reveal.visible .trace-return,
+  .trace-mark.reveal.visible .trace-dot,
+  .trace-mark.reveal.visible .trace-nib {
     stroke-dashoffset: 0;
     opacity: 1;
+    transform: none;
     animation: none;
   }
 
-  .trace-mark .trace-tread.lit,
-  .trace-mark.reveal .trace-tread.lit,
-  .trace-mark.reveal.visible .trace-tread.lit {
-    stroke: var(--accent-warm-400);
+  .trace-mark .trace-dot.lit,
+  .trace-mark.reveal .trace-dot.lit,
+  .trace-mark.reveal.visible .trace-dot.lit {
+    fill: var(--accent-warm-400);
   }
 
   .scroll-line {

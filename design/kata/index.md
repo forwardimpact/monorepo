@@ -80,31 +80,42 @@ structural UI.
 
 ### The PDSA Wheel
 
-Above the six personas sits the **PDSA wheel**. The wheel is a four-quadrant
-chalk circle marked **P · D · S · A** clockwise. It makes the spine of
-[KATA.md](../../KATA.md) visible. The brand repeats this motif. Use it as:
+Above the six personas sits the **PDSA wheel**. It is a single chalk-drawn
+ring with four cardinal ticks marked **P · D · S · A** clockwise, and a small
+filled hub at the centre. The hub is the hanko stamp shrunk to a single dot:
+the wheel carries both of Kata's motifs — the chalk circle Ohno drew on the
+floor, and the ink mark of an approved decision — in one glyph. It makes the
+spine of [KATA.md](../../KATA.md) visible. The brand repeats this motif. Use
+it as:
 
 - The optional accent above the second `A` in the **KATA** wordmark.
-- A section divider on long pages. Draw it at 16px with a `--gray-300` stroke,
-  centred. Leave 96px of vertical space either side.
+- A section divider on long pages. Draw the ring and hub only, at 16–20px with
+  a `--gray-300` stroke, centred. Drop the ticks and labels at this size.
+  Leave 96px of vertical space either side.
 - A loading state. The wheel rotates one quadrant per 800ms. It loops P → D → S
   → A → P. It respects `prefers-reduced-motion` (static wheel).
 
 Each agent's "phase coverage" in [KATA.md § Skills](../../KATA.md#skills) maps
-to wheel quadrants. So the wheel is also functional. A Staff Engineer profile
-page may show the wheel with **P** and **D** lit. An Improvement Coach profile
-may show **S** lit. Lit quadrants use a 1.5px stroke. Unlit quadrants use a
-0.5px stroke. No fills.
+to wheel ticks. So the wheel is also functional. A Staff Engineer profile page
+may show the wheel with **P** and **D** lit. An Improvement Coach profile may
+show **S** lit. A lit tick and its label take the `--ink-400` hanko color at a
+heavier 2px stroke. An unlit tick and label stay `--gray-300` at 1.5px. The
+hub is always ink-400 — it is the constant signature, not a coverage state. No
+fills on the ring or ticks.
 
 ```text
-       P
-   ╱─ ─ ─╲
-  ╱       ╲
- │ A     D │
-  ╲       ╱
-   ╲─ ─ ─╱
-       S
+          P
+      ⁠·  |  ·
+   A ──○──── D
+      ⁠·  |  ·
+          S
 ```
+
+Construction: ring radius 22 on an 84-unit viewBox, centred at (42, 42). Ticks
+run from radius 20 to 28 at each cardinal point, capped round. Labels sit at
+radius 34–36, set in `--font-display` (Roboto Slab) 700 at 9px, centred on the
+tick. The hub is a radius-3 filled circle in `--ink-400`. Every stroke carries
+`stroke-linecap: round`.
 
 ---
 
@@ -219,8 +230,9 @@ IBM Plex Sans, 18px, weight 400, gray-400:
 The Kata wordmark sets the four letters **KATA** in Roboto Slab 700 with
 generous letter-spacing (`0.18em`). Above the second `A` sits a small **PDSA
 wheel**, sized at 0.5em. [§ 2 The PDSA Wheel](#the-pdsa-wheel) defines that
-four-quadrant chalk circle. The wheel acts as the brand's signature. It is a
-quiet visible reminder that every Kata page is a turn of the cycle.
+ringed chalk circle with its hanko hub. The wheel acts as the brand's
+signature. It is a quiet visible reminder that every Kata page is a turn of
+the cycle.
 
 ```text
    K A T A

@@ -6,15 +6,17 @@ layout: home
 ---
 
 <div class="jidoka-section jidoka-hero">
-  <svg class="layer-stack-hero" viewBox="0 0 64 64" aria-hidden="true">
+  <svg class="layer-stack-hero" viewBox="0 0 64 64" role="img" aria-label="An andon lamp lit above eight stepped instruction layers">
     <rect class="layer-bar" x="10" y="54" width="44" height="4" rx="1.5" />
-    <rect class="layer-bar" x="12" y="47" width="40" height="4" rx="1.5" />
-    <rect class="layer-bar" x="14" y="40" width="36" height="4" rx="1.5" />
-    <rect class="layer-bar" x="16" y="33" width="32" height="4" rx="1.5" />
-    <rect class="layer-bar" x="18" y="26" width="28" height="4" rx="1.5" />
-    <rect class="layer-bar" x="20" y="19" width="24" height="4" rx="1.5" />
-    <rect class="layer-bar" x="22" y="12" width="20" height="4" rx="1.5" />
-    <rect class="layer-bar layer-bar-top" x="24" y="5" width="16" height="4" rx="1.5" />
+    <rect class="layer-bar" x="12" y="49" width="40" height="4" rx="1.5" />
+    <rect class="layer-bar" x="14" y="44" width="36" height="4" rx="1.5" />
+    <rect class="layer-bar" x="16" y="39" width="32" height="4" rx="1.5" />
+    <rect class="layer-bar" x="18" y="34" width="28" height="4" rx="1.5" />
+    <rect class="layer-bar" x="20" y="29" width="24" height="4" rx="1.5" />
+    <rect class="layer-bar" x="22" y="24" width="20" height="4" rx="1.5" />
+    <rect class="layer-bar layer-bar-top" x="24" y="19" width="16" height="4" rx="1.5" />
+    <line class="layer-cord" x1="32" y1="58" x2="32" y2="7" />
+    <circle class="layer-lamp" cx="32" cy="7" r="4" />
   </svg>
   <h1 class="hero-title">Build quality into agent instructions</h1>
   <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers each hold a single job. Checks stop the line the moment a layer drifts.</p>
@@ -53,9 +55,10 @@ layout: home
 
 <div class="layer-divider">
   <svg viewBox="0 0 16 16" aria-hidden="true">
-    <rect class="layer-bar" x="2" y="11" width="12" height="2" rx="1" />
-    <rect class="layer-bar" x="3" y="7" width="10" height="2" rx="1" />
-    <rect class="layer-bar layer-bar-top" x="4" y="3" width="8" height="2" rx="1" />
+    <rect class="layer-bar" x="2" y="13" width="12" height="2" rx="1" />
+    <rect class="layer-bar" x="4" y="9" width="8" height="2" rx="1" />
+    <rect class="layer-bar layer-bar-top" x="6" y="5" width="4" height="2" rx="1" />
+    <circle class="layer-lamp" cx="8" cy="2" r="1.3" />
   </svg>
 </div>
 
@@ -113,9 +116,10 @@ layout: home
 
 <div class="layer-divider">
   <svg viewBox="0 0 16 16" aria-hidden="true">
-    <rect class="layer-bar" x="2" y="11" width="12" height="2" rx="1" />
-    <rect class="layer-bar" x="3" y="7" width="10" height="2" rx="1" />
-    <rect class="layer-bar layer-bar-top" x="4" y="3" width="8" height="2" rx="1" />
+    <rect class="layer-bar" x="2" y="13" width="12" height="2" rx="1" />
+    <rect class="layer-bar" x="4" y="9" width="8" height="2" rx="1" />
+    <rect class="layer-bar layer-bar-top" x="6" y="5" width="4" height="2" rx="1" />
+    <circle class="layer-lamp" cx="8" cy="2" r="1.3" />
   </svg>
 </div>
 
@@ -148,9 +152,10 @@ layout: home
 
 <div class="layer-divider">
   <svg viewBox="0 0 16 16" aria-hidden="true">
-    <rect class="layer-bar" x="2" y="11" width="12" height="2" rx="1" />
-    <rect class="layer-bar" x="3" y="7" width="10" height="2" rx="1" />
-    <rect class="layer-bar layer-bar-top" x="4" y="3" width="8" height="2" rx="1" />
+    <rect class="layer-bar" x="2" y="13" width="12" height="2" rx="1" />
+    <rect class="layer-bar" x="4" y="9" width="8" height="2" rx="1" />
+    <rect class="layer-bar layer-bar-top" x="6" y="5" width="4" height="2" rx="1" />
+    <circle class="layer-lamp" cx="8" cy="2" r="1.3" />
   </svg>
 </div>
 

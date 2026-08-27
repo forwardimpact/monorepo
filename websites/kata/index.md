@@ -6,15 +6,17 @@ layout: home
 ---
 
 <div class="kata-section kata-hero">
-  <svg class="pdsa-wheel-hero" viewBox="0 0 64 64" aria-hidden="true">
-    <path class="wheel-quadrant" d="M32 4 A28 28 0 0 1 60 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M60 32 A28 28 0 0 1 32 60 L32 32 Z" />
-    <path class="wheel-quadrant" d="M32 60 A28 28 0 0 1 4 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M4 32 A28 28 0 0 1 32 4 L32 32 Z" />
-    <text class="wheel-label" x="43" y="20">P</text>
-    <text class="wheel-label" x="48" y="44">D</text>
-    <text class="wheel-label" x="21" y="50">S</text>
-    <text class="wheel-label" x="17" y="24">A</text>
+  <svg class="pdsa-wheel-hero" viewBox="0 0 84 84" role="img" aria-label="The Plan-Do-Study-Act wheel">
+    <circle class="wheel-ring" cx="42" cy="42" r="22" />
+    <line class="wheel-tick" x1="42" y1="20" x2="42" y2="14" />
+    <line class="wheel-tick" x1="64" y1="42" x2="70" y2="42" />
+    <line class="wheel-tick" x1="42" y1="64" x2="42" y2="70" />
+    <line class="wheel-tick" x1="20" y1="42" x2="14" y2="42" />
+    <text class="wheel-label" x="42" y="8" text-anchor="middle" dominant-baseline="central">P</text>
+    <text class="wheel-label" x="76" y="42" text-anchor="middle" dominant-baseline="central">D</text>
+    <text class="wheel-label" x="42" y="76" text-anchor="middle" dominant-baseline="central">S</text>
+    <text class="wheel-label" x="8" y="42" text-anchor="middle" dominant-baseline="central">A</text>
+    <circle class="wheel-hub" cx="42" cy="42" r="3" />
   </svg>
   <h1 class="hero-title">Autonomous coding agents that continuously improve</h1>
   <!-- enum:published-skills:count -->
@@ -56,11 +58,9 @@ layout: home
 </div>
 
 <div class="pdsa-divider">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <path class="wheel-quadrant" d="M32 4 A28 28 0 0 1 60 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M60 32 A28 28 0 0 1 32 60 L32 32 Z" />
-    <path class="wheel-quadrant" d="M32 60 A28 28 0 0 1 4 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M4 32 A28 28 0 0 1 32 4 L32 32 Z" />
+  <svg viewBox="0 0 84 84" aria-hidden="true">
+    <circle class="wheel-ring" cx="42" cy="42" r="22" />
+    <circle class="wheel-hub" cx="42" cy="42" r="3" />
   </svg>
 </div>
 
@@ -97,11 +97,9 @@ layout: home
 </div>
 
 <div class="pdsa-divider">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <path class="wheel-quadrant" d="M32 4 A28 28 0 0 1 60 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M60 32 A28 28 0 0 1 32 60 L32 32 Z" />
-    <path class="wheel-quadrant" d="M32 60 A28 28 0 0 1 4 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M4 32 A28 28 0 0 1 32 4 L32 32 Z" />
+  <svg viewBox="0 0 84 84" aria-hidden="true">
+    <circle class="wheel-ring" cx="42" cy="42" r="22" />
+    <circle class="wheel-hub" cx="42" cy="42" r="3" />
   </svg>
 </div>
 
@@ -166,11 +164,9 @@ layout: home
 </div>
 
 <div class="pdsa-divider">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <path class="wheel-quadrant" d="M32 4 A28 28 0 0 1 60 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M60 32 A28 28 0 0 1 32 60 L32 32 Z" />
-    <path class="wheel-quadrant" d="M32 60 A28 28 0 0 1 4 32 L32 32 Z" />
-    <path class="wheel-quadrant" d="M4 32 A28 28 0 0 1 32 4 L32 32 Z" />
+  <svg viewBox="0 0 84 84" aria-hidden="true">
+    <circle class="wheel-ring" cx="42" cy="42" r="22" />
+    <circle class="wheel-hub" cx="42" cy="42" r="3" />
   </svg>
 </div>
 

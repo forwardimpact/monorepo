@@ -639,21 +639,41 @@
 
 /* ── PDSA Wheel SVG ────────────────────────────────────────────── */
 
-.pdsa-wheel-hero .wheel-quadrant {
+.pdsa-wheel-hero .wheel-ring {
   stroke: var(--gray-300);
   stroke-width: 1.5;
   fill: none;
+}
+
+.pdsa-wheel-hero .wheel-tick {
+  stroke: var(--gray-300);
+  stroke-width: 1.5;
+  stroke-linecap: round;
   transition:
     stroke var(--duration-normal) var(--ease-default),
     stroke-width var(--duration-normal) var(--ease-default);
 }
 
 .pdsa-wheel-hero .wheel-label {
-  font-family: var(--font-sans);
-  font-size: 8px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 700;
   fill: var(--gray-300);
-  text-anchor: middle;
+  transition: fill var(--duration-normal) var(--ease-default);
+}
+
+.pdsa-wheel-hero .wheel-hub {
+  fill: var(--ink-400);
+  stroke: none;
+}
+
+.pdsa-wheel-hero .wheel-tick.lit {
+  stroke: var(--ink-400);
+  stroke-width: 2;
+}
+
+.pdsa-wheel-hero .wheel-label.lit {
+  fill: var(--ink-400);
 }
 
 /* ── Footer Brand ──────────────────────────────────────────────── */
@@ -688,10 +708,36 @@
   height: 16px;
 }
 
-.pdsa-divider .wheel-quadrant {
+.pdsa-divider .wheel-ring {
   stroke: var(--gray-300);
   stroke-width: 1.5;
   fill: none;
+}
+
+.pdsa-divider .wheel-hub {
+  fill: var(--ink-400);
+  stroke: none;
+}
+
+/* ── Footer Wheel ──────────────────────────────────────────────── */
+
+.footer-wheel {
+  width: 24px;
+  height: 24px;
+  margin-bottom: var(--space-2);
+}
+
+.footer-wheel .wheel-ring,
+.footer-wheel .wheel-tick {
+  stroke: var(--text-on-dark);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.footer-wheel .wheel-hub {
+  fill: var(--ink-400);
+  stroke: none;
 }
 
 /* ── Responsive ────────────────────────────────────────────────── */

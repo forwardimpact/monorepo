@@ -599,6 +599,38 @@
   fill: var(--ink-50);
 }
 
+.layer-stack-hero .layer-cord {
+  stroke: var(--gray-300);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.layer-stack-hero .layer-lamp,
+.layer-divider .layer-lamp {
+  fill: var(--ink-400);
+  stroke: none;
+}
+
+/* ── Footer Tower ──────────────────────────────────────────────── */
+
+.footer-tower {
+  width: 20px;
+  height: 20px;
+  margin-bottom: var(--space-2);
+}
+
+.footer-tower .layer-bar {
+  stroke: var(--text-on-dark);
+  stroke-width: 1.5;
+  fill: none;
+}
+
+.footer-tower .layer-lamp {
+  fill: var(--ink-400);
+  stroke: none;
+}
+
 /* ── Footer Brand ──────────────────────────────────────────────── */
 
 .footer-brand {
