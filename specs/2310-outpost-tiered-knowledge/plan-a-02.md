@@ -28,15 +28,17 @@ async function validate() {
   // existing agent-definition loop, unchanged …
   const kbRoots = [...new Set(agents.map(([, a]) => a.kb).filter(Boolean))]
     .map(expandPath);
-  return Math.max(agentErrors ? 1 : 0, await runKnowledgeChecks(kbRoots));
+  return Math.max(errors ? 1 : 0, await runKnowledgeChecks(kbRoots));
 }
 ```
 
+(`errors` is the existing agent-definition counter; keep its name.)
 `runKnowledgeChecks(roots)` calls `validateKnowledgeBase` per root. Without
 `--json`: one line per finding (`file:line kind link-or-path`, `warn:`
 prefix when baselined) through the logger. With `--json`: one merged JSON
-array of finding objects on stdout, no log lines. Exit 1 when any finding
-has `baselined: false`, else 0. With no configured agents and no path, keep
+array of finding objects is the only stdout; the agent-definition lines
+route to stderr so the array stays parseable. Exit 1 when any finding has
+`baselined: false`, else 0. With no configured agents and no path, keep
 the current "No agents configured" exit-0 path.
 
 Verification: new cases in `products/outpost/test/outpost-cli.test.js`
@@ -50,9 +52,9 @@ the new bytes.
 
 - Modified: `products/outpost/test/golden/fit-outpost/help.stdout`
 
-Re-capture `--help` output with the same renderer the golden test uses and
-overwrite the fixture. The other fixtures (`version`, `no-args`,
-`unknown`) do not change.
+Re-capture with the existing tool: root `bun run capture-cli-golden`
+(`scripts/capture-cli-golden.mjs`). The other fixtures (`version`,
+`no-args`, `unknown`) do not change.
 
 Verification: `bun run test` golden cases pass.
 
@@ -69,7 +71,7 @@ personal surface humans edit.
 
 Verification: kb-manager test asserts the six directories, `registry.yaml`,
 the bundled files, and nothing else (no MIGRATION.md) exist after init
-(criterion 1).
+(criteria 1 and 17, install half).
 
 ## Step 5: update installs MIGRATION.md on legacy layouts
 

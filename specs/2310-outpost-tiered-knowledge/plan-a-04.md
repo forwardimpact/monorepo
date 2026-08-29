@@ -60,7 +60,8 @@ CLAUDE.md tier table.
 Verification: `rg --files-without-match '^Write tier:'` and
 `'^Frontmatter:'` over the twelve SKILL.md files return nothing
 (criteria 4, 18); `rg -e 'Knowledge/' -e 'Drafts/'` over the twelve trees
-returns nothing.
+returns nothing; `bunx jidoka instructions` passes (trade body lines for
+the added declarations where a file sits at its length cap).
 
 ## Step 3: extract-entities depth changes
 

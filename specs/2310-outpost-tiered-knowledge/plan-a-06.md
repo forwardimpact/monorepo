@@ -34,18 +34,24 @@ nothing.
 ## Step 3: Published skill and CLI parity
 
 - Modified: `.claude/skills/fit-outpost/SKILL.md`
+- Modified: `.claude/skills/fit-outpost/references/cli.md`
 
 Replace the `Knowledge/` graph description (line 72 area) with the tier
 model: the tier table, the link rule in one sentence, the placement rule
 in one sentence, and the `validate [path] [--json]` command with the
-baseline behavior. Keep the `## Documentation` list byte-identical to the
-CLI `documentation` array in `products/outpost/src/outpost.js` — the four
-existing entries keep their titles and URLs, so no CLI change; confirm
-parity rather than edit.
+baseline behavior. Update every stale `validate` description: SKILL.md
+lines 35 and 169 and `references/cli.md` line 11 still say "Validate
+agent definitions exist" / "Verify agent/skill references exist". Keep
+the `## Documentation` list byte-identical to the CLI `documentation`
+array in `products/outpost/src/outpost.js` — the four existing entries
+keep their titles and URLs, so no CLI change; confirm parity rather than
+edit. Repository settings block direct `.claude/**` writes; apply these
+edits through `echo … | bunx gemba-selfedit <path>`.
 
 Verification: criterion 13's `rg` command over
-`.claude/skills/fit-outpost/` returns nothing; the Documentation list and
-the CLI array match entry-for-entry.
+`.claude/skills/fit-outpost/` returns nothing; `rg -n 'agent definitions
+exist|references exist' .claude/skills/fit-outpost/` returns nothing; the
+Documentation list and the CLI array match entry-for-entry.
 
 ## Writing constraints
 

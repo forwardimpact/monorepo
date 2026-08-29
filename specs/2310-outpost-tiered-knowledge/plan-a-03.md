@@ -20,7 +20,7 @@ Keep the file's role and voice. Section changes:
 | Workspace Layout & Sharing | Replace wholesale. The root model (tiers are the graph; every root entry off the rank grammar is personal; personal folders must not match the grammar), the five-tier table with audiences and default contents, the layout tree with `0-Draft/` … `4-Public/`, `Briefings/`, `registry.yaml`, and `validation-baseline.json`, and the suffix sharing model over mounts (symlinked tiers, rank from the link's own name, tier 0 in no share, the physical root outside any cloud-synced folder). This removes the "KBs are not Git repositories" statement. |
 | New: Placement and Links | The one link rule (`rank(target) >= rank(source)`), the tier-prefixed vault-absolute link format with the entity-subdirectory exemption, the placement rule in exclusion form, promote and export, the three overlay forms with link inversion, entry routing, the aggregate default (`0-Draft/`), the no-redistribute marker, and the erasure authoring rule. |
 | New: Note Metadata | The three-key core, the conditional keys with triggers, the serialization contract (flat block at line 1, snake_case, ISO dates, quoted tier-prefixed property links, canonical key order), the closed `topic/` taxonomy with per-tag tier bounds, ownership (agents stamp; humans edit `registry.yaml`), the coherence recipes (Bases on `type`/`status`, aliases in the switcher, path-keyed graph groups), and the vault settings (absolute link format, same-folder defaults). Frontmatter never carries a tier, rank, or audience key. |
-| Agents table, Cache, Identity | Keep; the cache section gains the two draft-ledger entries under `state/` (part 05 moves them). |
+| Agents table, Cache, Identity | Keep; the cache section gains a `drafts/` entry for the two ledgers (part 05 moves them; `state/` stays daemon-owned). |
 
 Verification: criterion 2's read check; `rg -e 'Knowledge/' -e 'Drafts/'
 products/outpost/templates/CLAUDE.md` returns nothing.
@@ -45,7 +45,8 @@ types:            # directory name -> type value
   Conditions: condition
   Tasks: task
   Erasure: erasure
-  CHANGELOG.md: changelog   # the per-tier changelog file, not a directory
+reserved:         # file basenames with a fixed type, in any tier
+  CHANGELOG.md: changelog
 status:           # per-type closed vocabularies
   candidate: [new, screening, interviewing, offer, hired, rejected, withdrawn]
   prospect: [identified, contacted, responded, converted, closed]
@@ -59,8 +60,9 @@ rights:
 Ship the starter set above with one comment line per block stating that
 humans edit this file and agents only select from it.
 
-Verification: part-01 vocabulary tests load this file; criterion 17's
-init check (part 02) installs it.
+Verification: part 02's init test installs this file (criterion 17). The
+part-01 vocabulary tests build their own fixture registries, so part 01
+stays independent of this part.
 
 ## Step 3: Ship MIGRATION.md
 
@@ -71,7 +73,7 @@ init check (part 02) installs it.
 Copy the spec-stage draft, drop its **Status** header block, and fix the
 names this plan fixes: the registry is `registry.yaml`, the baseline is
 `validation-baseline.json`, the ledgers move to
-`~/.cache/fit/outpost/state/drafts_handled` and `…/drafts_ignored`, and
+`~/.cache/fit/outpost/drafts/handled` and `…/drafts/ignored`, and
 every validator invocation is `npx fit-outpost validate <path> [--json]`.
 Keep the eight phases, four gates, split rules, and the workflow prompt
 as drafted. Update the spec-dir draft's status line to point at the

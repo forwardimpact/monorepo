@@ -45,8 +45,10 @@ Close the observed leak path: recruitment backlinks into team notes.
 
 - Modified: `req-track/references/{signals,templates,fields}.md`,
   `req-assess/references/{interview-template,panel-template}.md`,
-  `req-workday/references/templates.md`,
-  `extract-entities` is part 04; do not touch it here
+  `req-workday/references/templates.md`
+
+Boundary: `extract-entities` carries the same overlay rules and belongs to
+part 04; do not touch it here.
 
 The People-side backlinks the `req-*` skills write land on the person's
 `2-Confidential` overlay (`canonical` property pointing at the `3-Team`
@@ -81,10 +83,14 @@ Agent state leaves the graph.
   `draft-emails/scripts/send-email.mjs`,
   `draft-emails/references/template.md`
 
-`Drafts/handled` → `~/.cache/fit/outpost/state/drafts_handled`;
-`Drafts/ignored` → `~/.cache/fit/outpost/state/drafts_ignored`. The
-scripts create the state directory when absent. Draft bodies themselves
-go to `0-Draft/`.
+`Drafts/handled` → `~/.cache/fit/outpost/drafts/handled`;
+`Drafts/ignored` → `~/.cache/fit/outpost/drafts/ignored`. Never place the
+ledgers under `…/state/`: that directory is a daemon-owned trust root the
+template settings deny agent writes to (plan-a.md § Names). The scripts
+create the `drafts/` directory when absent. Draft bodies themselves go to
+`0-Draft/`.
 
-Verification: `rg 'Drafts/' products/outpost/templates/` returns nothing;
-`node --check` on both scripts.
+Verification: `rg 'Drafts/' products/outpost/templates/ --hidden` returns
+nothing outside `templates/MIGRATION.md` (which documents the legacy
+layout by design, per the criterion 12 carve-out); `node --check` on both
+scripts; `bunx jidoka instructions` passes for the sixteen trees.

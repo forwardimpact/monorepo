@@ -7,7 +7,11 @@ last; depends on every other part.
 
 A legacy fixture vault with the spec's seeded violations converges to a
 passing validation through the playbook's mechanical operations, with the
-human gates simulated by fixed inputs.
+human gates simulated by fixed inputs. The shipped MIGRATION.md prose is
+the source of truth; this test encodes its deterministic operations as
+the mechanical convergence proof the spec's criterion 11 verification
+names (a product test over the fixture vault). When the playbook text
+changes, this test is the parity check that must change with it.
 
 - Created: `products/outpost/test/kb-migration.integration.test.js`
 
@@ -58,8 +62,8 @@ Verification: each command returns what its comment states.
 - Modified: none
 
 Run `bun run check` and `bun run test` (criterion 15). Jidoka instruction
-and invariant checks cover the rewritten templates; `workspace-imports`
-covers the `yaml` dependency. When `check` flags pre-existing `specs/**`
+and invariant checks cover the rewritten templates; the part-01 tests
+cover the `yaml` import. When `check` flags pre-existing `specs/**`
 markdown outside this diff, confirm the file is untouched before treating
 it as a regression.
 

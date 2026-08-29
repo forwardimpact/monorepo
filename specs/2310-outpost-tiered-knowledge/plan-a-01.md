@@ -10,16 +10,22 @@ Add the YAML parser the frontmatter and registry checks need.
 
 - Modified: `products/outpost/package.json`
 
-Add `"yaml": "^2.6.0"` to `dependencies`. Run `bun install`.
+Add `"yaml": "^2.9.0"` to `dependencies` (the pin every other consumer in
+the repo uses). Run `bun install`.
 
-Verification: `bun run invariants` passes `workspace-imports` after Step 2
-imports it.
+Verification: `bun install` resolves; the Step 3 tests exercise every YAML
+path. (`workspace-imports` guards `@forwardimpact/*` imports only, so it
+does not cover this declaration.)
 
 ## Step 2: Create the validator module
 
 One pure module owns every knowledge check. It takes a KB root and a
 runtime `fs`, and returns findings. It never logs, never exits, and never
-reads config.
+reads scheduler config; the only files it consults besides the vault
+content are the vault-local `registry.yaml` and `validation-baseline.json`.
+The frontmatter block-splitter is deliberately local: reusing libdoc's
+helper would pull a site-generator package into an end-user CLI for ten
+lines of code.
 
 - Created: `products/outpost/src/kb-validator.js`
 
@@ -82,8 +88,9 @@ Internal passes, in order:
    (`<tier>/<entity>/...`). No exemption inside frontmatter.
 8. **Frontmatter.** Per shared-tier note. No block or a missing core key
    (`type`, `created`, `updated`): `frontmatter-missing`. Non-flat block,
-   non-ISO date, unquoted property wiki link, or tags outside
-   frontmatter-style: `frontmatter-invalid`. With a registry present:
+   non-ISO date, unquoted property wiki link, or an inline `#tag` in a
+   shared-tier note body (tags live in the frontmatter `tags` key):
+   `frontmatter-invalid`. With a registry present:
    `type`, `status`, or a tag outside its vocabulary, or a tag on a note
    wider than the tag's tier bound: `frontmatter-vocabulary`; conditional
    triggers (`aliases` on person/candidate/organization types, `status`
@@ -131,5 +138,6 @@ Build vaults with `mkdtemp` under a shared helper. Pass
   `narrower-link`; a bare-basename property link reports `bare-basename`
   even inside an entity subdirectory.
 
-Verification: `bun run test` in `products/outpost` is green; the gate runs
-the same files under `node --test`.
+Verification: the repository-root `bun run test` is green
+(`products/outpost` has no local test script); the gate runs the same
+files under `node --test`.
