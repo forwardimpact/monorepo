@@ -54,14 +54,26 @@ An agent walks the copy and produces a census:
 - link statistics per directory pair, so you see which flows a tier split
   would cut;
 - duplicate basenames, duplicate identity files, and dangling links;
+- every existing frontmatter key with its value shapes, every inline
+  bold-key Info field with its occurrence count, and every hashtag-shaped
+  token (most tokens are noise: hex colors, ticket identifiers, and UUID
+  fragments);
 - every personal root entry, so tooling knows what it must never touch;
 - a **proposed tier map**: one tier per top-level directory, with the link
   evidence for each proposal.
 
 **Gate 1 — you approve the tier map.** Migration blocks until every
 top-level knowledge directory has an assigned tier. Commit the approved map
-as the migration manifest; every later phase consumes it. Recurring hard
-cases:
+as the migration manifest; every later phase consumes it. The manifest also
+carries three stamping maps built from the census: the directory-to-type
+map (one `type` value per top-level directory), the status-variant map
+(every observed free-text status value, mapped onto the registry vocabulary
+or marked for the review queue), and the drift map (every observed
+frontmatter key spelling, every ad-hoc `type` value, and every inline
+Info-line key, each mapped onto one registry key or value, or marked to
+stay body prose). The maps sit at this gate for one reason: Phase 3 stamps
+frontmatter from them, so a later approval would block the mechanical pass.
+Recurring hard cases:
 
 - Per-person goal notes: no tier expresses "the person plus their manager."
   Default them narrow; share by export.
@@ -71,7 +83,9 @@ cases:
   third-party copies and licensed assets no-redistribute; they are
   ineligible for the public tier whatever their audience.
 
-*Exit test:* the manifest maps every directory; the census is committed.
+*Exit test:* the manifest maps every directory to a tier and a type; the
+status and drift maps cover every observed variant; the census is
+committed.
 
 ### Phase 2 — Hygiene
 
@@ -96,16 +110,53 @@ Agents execute the manifest:
   convert every bare-basename link; keep display aliases; handle
   escaped-pipe aliases inside tables, links inside front matter,
   markdown-style relative links, URL-encoded links, and links to binary
-  targets. The rewriter must cover the same syntax matrix the validator
-  checks, or convergence never ends;
+  targets. The rewriter and the stamper must cover every construct the
+  validator's link and frontmatter checks flag, or convergence never ends;
 - leave relative links inside one entity subdirectory untouched;
 - rewrite literal path strings and embedded commands that name legacy
   paths, not only link syntax;
+- stamp frontmatter in the same pass, with the deterministic rules below,
+  so two different agents produce byte-identical blocks on the same note:
+  - fix one run date when Phase 3 starts and pass it to every shard;
+    every date fallback below uses that fixed date, whatever day a shard
+    runs on;
+  - stamp `type` from the approved directory-to-type map; never guess;
+  - stamp `created` with the oldest date in the note's dated activity or
+    pipeline bullets; accept both bullet grammars (a bold date with a
+    source label, and a plain date); when the note has no dated bullet,
+    use the fixed run date;
+  - stamp `updated` with the newest such date, with the same fallback;
+  - lift the inline Aliases field into the `aliases` list, add the
+    reversed name-order variant (split the basename on its first comma
+    and swap the two parts; skip the variant when the basename holds no
+    comma or when the `type` is organization), deduplicate exact matches,
+    and remove the lifted line;
+  - lift every `**Key:** value` Info line whose key the approved drift
+    map names into its property (`email`, `role`, `organization`,
+    `status` through the status-variant map, `location`, `first_seen`,
+    `last_seen`, `source`); match keys through the drift map only, never
+    by guess; remove each lifted line; leave every unmapped bold key as
+    body prose;
+  - stamp `date` and `period` on briefing files from the filename;
+  - normalize the small legacy frontmatter batch through the drift map:
+    unify spelling-variant keys to one key, collapse the source-key
+    variants to `source`, and remap ad-hoc `type` values; a key or value
+    the drift map does not cover joins the review queue;
+  - rewrite wiki links inside frontmatter values in the same pass as body
+    links, quoted and vault-absolute (the syntax matrix already names
+    front-matter links);
+  - write the canonical key order, so every stamped block is byte-stable;
 - move the draft-status ID ledgers to the cache state directory and verify
   the entry counts match.
 
+The stamping pass touches nearly every file. That churn is one more reason
+every phase runs in the version-controlled copy, with the scheduler
+stopped, and never in the live share.
+
 *Exit test:* the legacy wrapper and the old drafts directory are empty and
-deleted in the copy; the validator reports no legacy-layout finding.
+deleted in the copy; the validator reports no legacy-layout finding; no
+shared-tier note lacks its required keys; a note the stamper cannot
+complete joins the review queue.
 
 ### Phase 4 — Surgical split (Gate 2: narrow routing)
 
@@ -120,25 +171,34 @@ splits using the deterministic rules below. Agents propose; you approve.
 1. **Facet overlay.** A sensitive facet of an entity moves to an overlay
    note in the narrower tier. The overlay declares itself by its one-way
    link to the canonical note. The same relative path is the default; a
-   cross-entity overlay uses an explicit link instead.
+   cross-entity overlay uses an explicit link instead. Stamp the overlay
+   with `canonical`: a quoted, tier-prefixed, vault-absolute link to the
+   canonical note. Add one audience-labeled alias. A cross-entity overlay
+   keeps its own `type`.
 2. **Timeline split.** When sensitivity interleaves per dated entry inside
    one activity log, the canonical note keeps the wide-audience entries and
    the overlay holds the narrower entries under the same date keys. A
-   narrow-access reader merges the two logs chronologically.
+   narrow-access reader merges the two logs chronologically. Stamp the
+   overlay as in rule 1.
 3. **Link inversion.** A wider note's link into a narrower tier moves, with
    its one-line context, into the narrower note. Leave no tombstone and no
    forwarding prose in the wider note.
 4. **Inverse stub.** When a note is narrow in its entirety but widely
    linked, create a wider-tier stub that carries only shareable identity
-   facts. The narrow note links down to the stub.
+   facts. The narrow note links down to the stub. The narrow note is the
+   overlay: stamp it as in rule 1, with `canonical` pointing at the stub.
 5. **Hire conversion.** When a recruitment subject joins the team, create
    the team-tier note fresh. The recruitment record stays in its tier and
-   links up. Nothing links back down.
+   links up. Nothing links back down. Stamp the candidate note with the
+   `person` property: a quoted link up to the fresh team-tier note. The
+   person note carries no link back.
 6. **Detach before promoting.** A note headed for the public tier first
    loses or inlines its internal links, and passes the rights check.
 
 **Gate 2 — you approve every routing into tier 1 or tier 0.** No agent
-decides alone that content is management-only or owner-only.
+decides alone that content is management-only or owner-only. The gate does
+not grow with the frontmatter work: audience decisions stay its only
+subject, and the overlay stamps are mechanical.
 
 *Exit test:* the review queue is empty; every approved split is applied and
 committed.
@@ -148,11 +208,21 @@ committed.
 Run the validator in machine-readable mode in a loop. Partition each
 finding: **mechanical** (the rewriter fixes it), **judgment** (append to
 the review queue and return to phase 4), or **grandfathered** (append to
-the baseline with a one-line reason). Iterate until findings minus baseline
+the baseline with a one-line reason). Frontmatter findings
+(`frontmatter-missing`, `frontmatter-invalid`, `frontmatter-vocabulary`,
+`overlay-undeclared`) partition the same way and enter the same baseline.
+A metadata gap the stamper can fill is mechanical; it is never baselined.
+A gap that needs a human fact goes to the review queue or onto the
+baseline with a one-line reason. Examples: an unmappable status value, an
+ambiguous alias, and a legitimate same-name duplicate flagged as
+`overlay-undeclared`. Baseline keys are kind, file, and property, plus
+value for vocabulary findings, never line. Later edits therefore do not
+resurface grandfathered entries. Iterate until findings minus baseline
 is empty.
 
-**Gate 3 — you approve the baseline.** Commit it beside the vault, so every
-post-migration regression is a new finding, not noise.
+**Gate 3 — you approve the baseline.** You approve the frontmatter entries
+together with the link entries. Commit the baseline beside the vault, so
+every post-migration regression is a new finding, not noise.
 
 A green validator proves structure, not content. Before the first share,
 read through every note above the size threshold once: sensitive facts also
@@ -166,18 +236,21 @@ audit is done.
 Rewrite every surface that writes into the vault, or the legacy layout
 regrows on the next scheduled run:
 
-- run `fit-outpost update` to install the tier-aware instructions;
+- run `npx fit-outpost update` to install the tier-aware instructions;
 - carry your local edits over: agent profiles, skill configuration,
   embedded search commands inside notes, ignore rules (match case
   exactly), and editor configuration;
 - retarget every external generator and ingestion pipeline at the new tier
   paths;
+- verify every generator and skill emits conforming frontmatter: the
+  canonical key order, registry values, and quoted links;
 - start one fresh changelog per shared tier; move the legacy changelog,
   whole, into the narrowest tier its entries span, fix its inbound links,
   and never append to it again. The root instruction changelog is a
   different artifact and stays where it is.
 
-*Exit test:* a dry-run agent session writes only tier-prefixed paths.
+*Exit test:* a dry-run agent session writes only tier-prefixed paths with
+conforming frontmatter.
 
 ### Phase 7 — Cutover (Gate 4: the shares)
 
@@ -195,7 +268,7 @@ Sharing is per tier and cumulative. Folder permissions cannot express
 4. Copy the migrated content in, widest tier first. Recipients place each
    received tier folder as a sibling under one local root, restore the
    rank-prefixed name if their platform changed it, and run
-   `fit-outpost validate` on that root.
+   `npx fit-outpost validate` on that root.
 5. Flip the legacy share to read-only. Retire it after a stated retention
    window, once teammates confirm the new tiers sync.
 6. Restart the agent scheduler.
@@ -209,7 +282,7 @@ validates; the scheduler runs against tier paths only.
 ## Appendix A — the migration workflow prompt
 
 Paste the prompt below into a Claude Code session at the root of the
-**working copy** (never the live share). Fill the two placeholders. The
+**working copy** (never the live share). Fill the three placeholders. The
 `ultracode` keyword opts the session into multi-agent orchestration; the
 migration then runs as staged workflows with the gates above as stopping
 points.
@@ -220,7 +293,8 @@ ultracode
 Migrate this Outpost knowledge base from the legacy layout (Knowledge/
 wrapper plus Drafts/) to root-level tiers, following MIGRATION.md in this
 directory. The tier manifest is at <path-to-approved-manifest>. My review
-decisions go in <path-to-review-queue-file>.
+decisions go in <path-to-review-queue-file>. The property registry is at
+<path-to-registry>.
 
 Rules that bind every agent you spawn:
 - Work only inside this directory. Never follow symlinks out of it. Never
@@ -236,28 +310,36 @@ Rules that bind every agent you spawn:
   inversion; leave no tombstone.
 - The link rewriter and the validator must agree: cover aliased links,
   escaped pipes inside tables, front-matter links, markdown relative
-  links, URL-encoded links, binary targets, and literal path strings.
+  links, URL-encoded links, binary targets, and literal path strings. The
+  stamper and the frontmatter checks must agree the same way, or
+  convergence never ends.
+- Stamp frontmatter only from the approved manifest maps and the registry
+  file at <path-to-registry>. Apply the stamping rules from MIGRATION.md
+  § Phase 3 exactly. Never invent a key, a type value, a status value, or
+  a tag. Lifted Info lines leave the body.
 - Folder-atomic units move whole. Never split below folder level.
 
 Run these workflows in order, and stop for my gate review between them:
 1. Inventory: fan out readers per top-level directory; produce the census
-   and the proposed tier map with link evidence. Stop for Gate 1.
+   and the proposed tier map with link evidence; include the metadata
+   census and propose the directory-to-type map and the status-variant
+   map. Stop for Gate 1.
 2. Hygiene: merge duplicate identities, fix dangling links, list
    by-design dangles for the baseline.
 3. Move and rewrite: execute the approved manifest; shard the link
-   rewrite by directory across parallel agents; verify with a full-vault
-   link resolution pass.
+   rewrite by directory across parallel agents; run the stamping pass in
+   the same shards; verify with a full-vault link resolution pass.
 4. Split: triage notes above the size threshold and notes matching
    sensitivity markers; per flagged note, one splitter agent proposes the
    split and an independent reviewer agent verifies it against the split
    rules; write proposals to the review queue. Stop for Gate 2, then
    apply only approved proposals.
-5. Convergence: loop `fit-outpost validate` in JSON mode; auto-fix
+5. Convergence: loop `npx fit-outpost validate` in JSON mode; auto-fix
    mechanical findings; queue judgment findings; propose baseline
    entries. Stop for Gate 3.
 6. Repoint: rewrite instruction surfaces, embedded commands, ignore
    rules, and generator configuration; prove with a dry-run session that
-   writes only tier-prefixed paths.
+   writes only tier-prefixed paths with conforming frontmatter.
 
 Then hand back a migration report: what moved where, every split applied,
 the final baseline, and the cutover checklist from MIGRATION.md § Phase 7
@@ -268,6 +350,11 @@ for me to execute against the sync platform.
 
 - It proves ranks, link direction, link resolution, and link format. It
   follows symlinked tiers.
+- On frontmatter, it proves the required keys, the closed vocabularies,
+  the tag grammar and tier bounds, and property-link legality. It does not
+  prove the freshness of `updated`, the completeness of `aliases`, the
+  truth of a `status`, or the retrieval quality of a tag. Instructions and
+  the content audit own those.
 - It does not prove prose is audience-appropriate, and it cannot see the
   sync platform's permissions. The content audit (phase 5) and the
   audience audit (gate 4) own those.
