@@ -83,7 +83,9 @@ Here is what the Expectations section looks like at each of those levels:
 ```
 
 Read these side by side to see the concrete shifts. From J060 to J070, impact
-scope grows from team-level components to an entire product area. Autonomy also
+scope grows from team-level components to an entire product area.
+
+Autonomy also
 shifts. At J060 you work independently on defined deliverables. At J070 you set
 direction across the full delivery lifecycle. Influence extends beyond the
 immediate team into adjacent teams. Complexity moves from "moderately complex
@@ -142,8 +144,8 @@ npx fit-pathway job software-engineering J070
 npx fit-pathway job software-engineering J080
 ```
 
-Read only the Expectations section from each output. The progression tells a
-story:
+Read only the Expectations section from each output. The table below
+summarizes the progression:
 
 | Level | Autonomy pattern                              | Impact pattern                          |
 | ----- | --------------------------------------------- | --------------------------------------- |

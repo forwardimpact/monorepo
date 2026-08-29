@@ -3,8 +3,8 @@ title: Publish a Skill Discovery Index
 description: Emit a .well-known/skills/ discovery index so an agent can find and load skills over the web. You get a per-pack index plus a deduplicated index across every pack.
 ---
 
-A tarball or a git repository is something a person installs. A **discovery
-index** is something an agent reads. `@forwardimpact/libpack` emits a
+A person installs a tarball or a git repository. An agent reads a **discovery
+index**. `@forwardimpact/libpack` emits a
 `.well-known/skills/` index. The index is a standard location and a small JSON
 manifest. An agent that fetches your host can list the skills available and
 load any of them. It needs no package manager, and it clones nothing.
@@ -71,7 +71,7 @@ that spans every pack:
 
 The emitter **deduplicates the aggregate by skill name**. If the same skill
 appears in two packs, the aggregate lists it once. It takes the copy from the
-first pack that contained it. A consumer points at one `.well-known/skills/`
+first pack that contains it. A consumer points at one `.well-known/skills/`
 location. The consumer sees the union of every skill you publish, with no
 duplicates.
 

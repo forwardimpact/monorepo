@@ -15,9 +15,9 @@ of these as scheduled AI tasks in the background.
   `EBADPLATFORM`. A cross-platform degraded install (without Apple sync) is
   on the roadmap. Until it ships, install on a Mac.
 - **Mail and calendar accounts** — Outpost reads through Mail.app and
-  Calendar.app. Outpost walks any account synced *inside* those apps. This
-  includes an IMAP'd Gmail account in Mail.app and a CalDAV-synced
-  Google Calendar in Calendar.app. Outpost does not pick up mail or calendar
+  Calendar.app. Outpost walks any account synced *inside* those apps. That
+  includes a Gmail account synced over IMAP in Mail.app and a Google Calendar
+  synced over CalDAV in Calendar.app. Outpost does not pick up mail or calendar
   that lives only outside those apps (the Gmail web app, a separate Outlook
   client).
 - Node.js 22+
@@ -46,8 +46,9 @@ npm install @forwardimpact/outpost
 ```
 
 On Linux or Windows this install fails with `EBADPLATFORM` and cites
-`@forwardimpact/libmacos`. That dependency is hard today. Nothing in the
-package degrades cleanly off-Apple yet. Switch to a Mac to continue.
+`@forwardimpact/libmacos`. That dependency is a hard requirement today. No part
+of the package degrades cleanly off Apple platforms yet. Switch to a Mac to
+continue.
 
 ## Initialize a knowledge base
 
@@ -55,7 +56,7 @@ package degrades cleanly off-Apple yet. Switch to a Mac to continue.
 npx fit-outpost init
 ```
 
-This provisions the default `Team` knowledge base at
+The command provisions the default `Team` knowledge base at
 `~/.local/share/fit/outpost/Team`. Pass a name (for example,
 `npx fit-outpost init personal`) to provision a second one beside it.
 

@@ -1,6 +1,6 @@
 ---
 title: Turn Study Findings into Fixes and Specs
-description: Classify every Study finding once, then route it to a fix branch, a spec branch, a Discussion, or a close. Fix branches and spec branches never mix, and a local commit is never a completion signal.
+description: Classify every Study finding once. Then route it to a fix branch, a spec branch, a Discussion, or a close. Fix branches and spec branches never mix. A local commit is never a completion signal.
 ---
 
 A Study shift ends with a list of findings. Each finding has to leave the shift
@@ -16,6 +16,7 @@ class then takes. It assumes the daily cycle already runs. See
 
 Your agents load the Study and Act skills from
 `apm install forwardimpact/kata-skills`, and the shared wiki is initialized.
+
 Create the labels first. `product` and `internal` mark the surface a work PR
 lands on. `triaged` and `wontfix` close an issue out. `obstacle` and
 `experiment` mark an improvement issue. `agent:<name>` routes an experiment to
@@ -70,10 +71,11 @@ graph TD
 Open the Discussion before any fix or spec that depends on the answer. Any one
 of three conditions triggers it. The answer is not settled yet. The same
 question reached two or more agents. The change touches a shared artifact such
-as a metric, a routing rule, a scope boundary, or a policy. Every Discussion has
-to end in a spec, a wiki note, or a close. One finding can also need two
-channels at once. A vulnerability that raises a policy question becomes a `fix/`
-branch and a Discussion together.
+as a metric, a routing rule, a scope boundary, or a policy.
+
+Every Discussion has to end in a spec, a wiki note, or a close. One finding can
+also need two channels at once. A vulnerability that raises a policy question
+becomes a `fix/` branch and a Discussion together.
 
 ### Out of scope creates no work
 
@@ -96,9 +98,10 @@ Product-aligned against internal is a second axis, independent of the first
 fork. A fix and a spec can each carry either value. One test decides it. A
 change that lands on a shipped surface a user hires, or on the documentation of
 that surface, is `product`. Everything else is `internal`: shared libraries,
-agent configuration, CI and automation, and release tooling. The agent that
-opens the PR applies the label. Read over a quarter, the two labels show how
-much of the team's output reached a user.
+agent configuration, CI and automation, and release tooling.
+
+The agent that opens the PR applies the label. Read over a quarter, the two
+labels show how much of the team's output reached a user.
 
 ## The route for each class
 
@@ -140,7 +143,7 @@ at
 The route is coordination. The record is memory. Every Study run does both. Each
 run appends to its own weekly log: the topic it covered, each finding, and the
 disposition of each finding as fixed, specified, or deferred. An audit run also
-stamps today's date on the audited area in its coverage map, so the next run
+stamps today's date on the audited area in its coverage map. The next run then
 picks the oldest area instead of the easiest one.
 
 Memory never substitutes for a route. See

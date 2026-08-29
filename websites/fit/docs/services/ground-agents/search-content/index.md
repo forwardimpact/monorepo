@@ -1,14 +1,16 @@
 ---
 title: Search for Related Content from a Product
-description: Find semantically related content from any product — shared vector service, no embeddings storage to manage.
+description: Find related content by meaning from any product. The shared vector service manages the embeddings, so your product stores none.
 ---
 
 You need to find content related to a natural-language query from within a
 product. The search works on meaning. It does not work on keywords. The vector
 service holds the embedding index in memory. It manages the embedding endpoint
-connection. It exposes a single RPC: `SearchContent`. Your product sends text.
-The service returns ranked resource identifiers. The product makes no embedding
-API calls. It stores no vectors. It does not score results.
+connection. It exposes a single RPC: `SearchContent`.
+
+Your product sends text. The service returns ranked resource identifiers. The
+product makes no embedding API calls. It stores no vectors. It does not score
+results.
 
 For the full setup, see
 [Ground Agents in Context](/docs/services/ground-agents/). That guide shows how
@@ -53,7 +55,7 @@ for (const id of result.identifiers ?? []) {
 }
 ```
 
-Expected output (identifiers depend on your knowledge base):
+Expected output follows. The identifiers depend on your knowledge base:
 
 ```text
 Results: 5
@@ -70,7 +72,7 @@ returns all matches above the threshold.
 ## Search with multiple queries
 
 Pass several strings to score against the index in a single call. The service
-embeds each string and keeps the highest score per item across all queries:
+embeds each string. It keeps the highest score per item across all queries:
 
 ```js
 const query = vector.TextQuery.fromObject({
@@ -84,7 +86,8 @@ const result = await vectorClient.SearchContent(query);
 console.log("Results:", result.identifiers?.length ?? 0);
 ```
 
-This avoids multiple round trips when the search intent spans several phrasings.
+One call avoids multiple round trips when the search intent spans several
+phrasings.
 
 ## Apply filters
 

@@ -36,10 +36,10 @@ The monorepo includes a synthetic data pipeline for tests and development:
 just synthetic
 ```
 
-This uses cached prose from `data/synthetic/prose-cache.json` and requires no
-LLM access. It produces definitions for the agent-aligned engineering standard,
-organizational documents, and activity data. The products consume that data
-during development and tests.
+The command uses cached prose from `data/synthetic/prose-cache.json` and needs
+no LLM access. It produces definitions for the agent-aligned engineering
+standard, organizational documents, and activity data. The products consume
+that data during development and tests.
 
 Other generation modes:
 
@@ -146,7 +146,7 @@ Tests inject mocks directly.
 4. Run `just audit` (npm audit and a gitleaks secret scan)
 5. Commit and push
 
-Commit messages follow conventional format: `type(scope): subject`. Types
+Commit messages follow the conventional format: `type(scope): subject`. Types
 include `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, and `spec`. Scope is
 the package name (e.g., `map`, `libskill`, `pathway`). Add `!` after scope for
 breaking changes.

@@ -87,9 +87,9 @@ specify where work flows next.
 
 ## Constraints
 
-Each phase defines constraints that limit what actions are allowed. Constraints
-are especially important for AI agents. They prevent scope creep. They make sure
-agents stay within their authorized boundaries.
+Each phase defines constraints that limit the actions an agent can take.
+Constraints are especially important for AI agents. They prevent scope creep.
+They make sure agents stay within their authorized boundaries.
 
 | Phase        | Cannot                                        |
 | ------------ | --------------------------------------------- |
@@ -123,12 +123,12 @@ every item before you cross a boundary.
 
 Skills define checklists as flat fields in their agent section:
 
-- `agent.readChecklist` — items for the read-then-do gate
-- `agent.confirmChecklist` — items for the do-then-confirm gate
+- `agent.readChecklist`: items for the read-then-do gate
+- `agent.confirmChecklist`: items for the do-then-confirm gate
 
-Both fields are simple arrays of strings on the skill's `agent` section. They
-are not keyed by proficiency level. They do not come from a phase x skill
-matrix. Every skill that ships an `agent:` section must define both checklists.
+Both fields are arrays of strings on the skill's `agent` section. The fields
+have no proficiency-level keys. They do not come from a phase x skill matrix.
+Every skill that ships an `agent:` section must define both checklists.
 
 ### Example
 
@@ -144,13 +144,14 @@ Given a practitioner-level CI/CD skill:
 
 - All new code has test coverage
 - Pipeline passes on the feature branch
-- Documentation is updated for changed interfaces
+- The documentation matches the changed interfaces
 
 ---
 
 ## Phases and Agents
 
-Agents are generated per discipline and track. Each combination gets one agent.
+The `fit-pathway` CLI generates agents per discipline and track. Each
+combination gets one agent.
 A lifecycle phase does not get its own agent. Phases guide an agent's workflow
 focus: what to prioritize, what constraints apply, and which checklist items are
 relevant at each point in the work.

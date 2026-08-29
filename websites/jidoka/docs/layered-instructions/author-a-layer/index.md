@@ -1,15 +1,15 @@
 ---
 title: Author or Repair One Instruction Layer
-description: Write or fix one layer at a time. Name the layer that owns a piece of text, move text that sits in the wrong layer, and bring an over-budget layer back under its cap without losing meaning.
+description: Write or fix one layer at a time. Name the layer that owns a piece of text, move misplaced text, and bring an over-budget layer back under its cap without a loss of meaning.
 ---
 
 The architecture is in place. Now a concrete edit arrives. You add an agent.
 You add a skill. A check fails on a length cap. Every one of those is the same
 bounded task: one layer, one job, one budget.
 
-This guide covers how to name the layer that owns a piece of text, how to move
-text that sits in the wrong layer, and how to bring an over-budget layer back
-under its cap. Two neighbours sit outside the task. The harness owns L0, and
+This guide covers three moves. Name the layer that owns a piece of text. Move
+text that sits in the wrong layer. Bring an over-budget layer back under its
+cap. Two neighbours sit outside the task. The harness owns L0, and
 you never edit it. Repair the root identity, standards, and jobs files through
 [Adopt Jidoka in Your Repository](/docs/getting-started/). Checklists have
 their own bounded task in

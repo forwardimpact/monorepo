@@ -144,8 +144,9 @@ The evaluation is complete when you can answer these questions from the
   resolves the observability gap. Candidate B does not." Do not rely on
   impressions.
 
-If the `what-if` output shows the candidate's role resolves none of your
-identified risks, re-examine whether the position description matches the gap.
+The `what-if` output may show that the role resolves none of your identified
+risks. In that case, re-examine whether the position description matches the
+gap.
 The problem may not be the candidate. The role may follow the position
 description instead of the team's actual needs.
 

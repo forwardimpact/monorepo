@@ -7,9 +7,10 @@ The [shared-surface guide](/docs/libraries/every-surface/) shows the route
 descriptor that binds one presenter to both the terminal and the browser. The
 browser still needs a body. It needs cards and grids to render the view. It
 needs state that reacts when the user types in a search box. It needs a router
-that survives a handler that throws. `@forwardimpact/libui` ships all of it as
-small functions you compose. You assemble the web side of a capability. You do
-not hand-build it from raw DOM.
+that survives a handler that throws.
+
+`@forwardimpact/libui` ships all of it as small functions you compose. You
+assemble the web side of a capability. You do not hand-build it from raw DOM.
 
 ## Prerequisites
 
@@ -29,7 +30,7 @@ here renders into the page that router displays.
 
 libui's component functions return plain DOM elements. You pass a config object
 and get back a node you can hand to `render` or nest inside another component.
-There are more than fourteen factories. These are the ones most pages reach for.
+The library has more than fourteen factories. Most pages use the ones below.
 
 ```js
 import { render, div } from "@forwardimpact/libui";
@@ -76,7 +77,7 @@ The factory families group by purpose:
 | Lists        | `createSearchBar`, `createCardList`, `createGroupedList`                              | Filterable collections                   |
 | Detail views | `createDetailHeader`, `createDetailSection`, `createLinksList`, `createDetailItem`    | Single-record pages                      |
 | Navigation   | `createBreadcrumbs`, `createBackLink`, `updateActiveNav`                              | Wayfinding                               |
-| Error pages  | `createNotFound`, `createErrorMessage`                                                | Friendly dead ends                       |
+| Error pages  | `createNotFound`, `createErrorMessage`                                                | Missing-page and error notices           |
 
 ## React to input with local state
 
@@ -155,13 +156,13 @@ const unsubscribe = store.subscribe((state) => {
 });
 ```
 
-A reactive is the right tool for state that lives and dies with a single page. A
-store is the right tool for state that outlives any one route.
+Use a reactive for state that belongs to one page render. Use a store for
+state that outlives any one route.
 
 ## Survive a handler that throws
 
 A page handler that throws should not blank the entire application. Wrap a
-render function with `withErrorBoundary`. A thrown error then renders a friendly
+render function with `withErrorBoundary`. A thrown error then renders a clear
 message instead of an empty screen.
 
 ```js
@@ -175,15 +176,17 @@ const safePage = withErrorBoundary(renderCity, {
 ```
 
 The bound router from the shared-surface guide already wraps every registered
-`page` in an error boundary. So you get this protection for free on routed
-pages. Reach for `withErrorBoundary` directly only when you render outside the
-router. An example is a one-off page mounted at startup. The boundary recognises
-libui's `NotFoundError` and `InvalidCombinationError`. It renders the message
-that matches. Any other error falls back to a generic notice.
+`page` in an error boundary. So routed pages get this protection with no extra
+code. Call `withErrorBoundary` directly only when you render outside the
+router. An example is a one-off page mounted at startup.
+
+The boundary recognizes libui's `NotFoundError` and `InvalidCombinationError`.
+It renders the message that matches. Any other error falls back to a generic
+notice.
 
 ## Present a guided sequence with the slide router
 
-Some surfaces are a linear walkthrough. They are not a tree of pages. Examples
+Some surfaces show a linear walkthrough instead of a tree of pages. Examples
 are an onboarding tour and a generated report deck. `createSlideRouter` extends
 the core router with an ordered sequence and keyboard navigation.
 
@@ -204,12 +207,14 @@ slides.start();
 After you set an order, arrow keys, space, and `PageUp`/`PageDown` move between
 slides. `Home` and `Escape` return to the first slide. `setSlideOrder` accepts
 chapter boundaries as a second argument. `ArrowUp`/`ArrowDown` then jump between
-chapters. Use the slide router for sequences. Use the bound router for
-everything else. They are separate tools. You do not layer them.
+chapters.
+
+Use the slide router for sequences. Use the bound router for everything else.
+They are separate tools. You do not layer them.
 
 ## Emit a machine-readable channel alongside the page
 
-The route descriptor carries three channels. It does not carry two. `page`
+The route descriptor carries three channels. `page`
 renders for people. `cli` shows the terminal equivalent in the command bar.
 `graph` emits a machine-readable representation of the same route. That
 representation is a Turtle or JSON-LD fragment. An agent can consume it and does
@@ -232,7 +237,7 @@ router.register(defineRoute({
 
 All three channels call the same presenter. So the page a person sees, the
 command an agent copies, and the graph fragment a crawler reads never disagree.
-`graph` is optional. Routes without it simply offer no machine channel.
+`graph` is optional. Routes without it offer no machine channel.
 
 ## Verify
 

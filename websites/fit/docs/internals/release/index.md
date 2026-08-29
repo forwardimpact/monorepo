@@ -9,11 +9,13 @@ toc: false
 The `forwardimpact/homebrew-tap` repository holds two package families. Seven
 Homebrew casks sit under `Casks/`, one per product plus one shared `fit-gear`
 bundle. You install the casks on macOS. Seven matching formulae sit under
-`Formula/`. You install the formulae on Linux. The `tap` job in the
-`publish-binaries.yml` workflow builds and uploads the release assets. The job
-then updates the affected cask and formula. It pushes the change directly to
-the tap's `main` and opens no pull request. A human edits every other field in
-the tap repo. Those fields survive releases unchanged.
+`Formula/`. You install the formulae on Linux.
+
+The `tap` job in the `publish-binaries.yml` workflow builds and uploads the
+release assets. The job then updates the affected cask and formula. It pushes
+the change directly to the tap's `main` and opens no pull request. A human
+edits every other field in the tap repo. Those fields survive releases
+unchanged.
 
 ## Sed contract
 
@@ -77,7 +79,7 @@ brew install <tap>/<bundle>          # Linux
 This addition does not change the macOS `--cask` path. The formula is
 `on_linux`-only. A bare `brew install <tap>/<bundle>` on macOS resolves to the
 formula. That formula loads no macOS artifact and installs nothing. The result
-is a fail-safe. It is not a wrong install.
+is a fail-safe.
 
 ### Formula checksum contract
 
@@ -85,7 +87,9 @@ A cask carries one `sha256`. The flat two-line `sed` above rewrites it. A
 formula carries two, one per architecture, and both have the same shape. So
 `build/update-formula.sh` keys each `sha256` to the arch token (`linux-x64` or
 `linux-arm64`) in the `url` line above it. The `on_intel` and `on_arm` stanzas
-never cross-assign. The same pass rewrites the top-level `version`. Each `url`
+never cross-assign.
+
+The same pass rewrites the top-level `version`. Each `url`
 then picks up the new version through `#{version}` interpolation.
 
 ## Cask topology
@@ -130,11 +134,14 @@ Both the `.app` assembly and the cask `binary` block derive from
 gear special-case. `build/build-app.sh <bundle>` reads `.bundles[<bundle>]` for
 the plist, entitlements, version source, and any launcher or resources. It reads
 `.clis[]` for the executables. The `tap` job runs `render-cask-binaries.sh` for
-every cask, so the linked binaries can never drift from the shipped set. A
-single-CLI product yields its one stanza. Gear yields 24, one per CLI in the
+every cask, so the linked binaries can never drift from the shipped set.
+
+A single-CLI product yields its one stanza. Gear yields 24, one per CLI in the
 bundle. So when you add or remove a library or service CLI, an update to
 `build/cli-manifest.json` is enough. The cask block regenerates on the next
-release. Mark a long-running service CLI with `"server": true`. A long-running
+release.
+
+Mark a long-running service CLI with `"server": true`. A long-running
 service CLI is one whose `bin` starts a server. Its `bin` does not print
 `--help` and then exit. With that mark, the native build still compiles,
 checksums, uploads, and bundles it. Its per-binary smoke gate then does not run

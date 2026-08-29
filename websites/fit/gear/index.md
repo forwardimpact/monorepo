@@ -29,7 +29,7 @@ tools to prove that changes improved outcomes. Every CLI prints grep-friendly
 help and JSON output. Most libraries ship a matching skill in the
 `forwardimpact/fit-skills` pack. Agents then land on the same docs as humans.
 
-The pack ships these packages, all published to npm under
+The pack ships these packages. All publish to npm under
 `@forwardimpact/lib*` and `@forwardimpact/svc*`:
 
 - <!-- enum:libraries-list:count -->40<!-- /enum --> libraries
@@ -83,7 +83,7 @@ Turn engineering standard definitions into queryable, derivable data.
 ### Keep Service Contracts Typed
 
 Generate types, clients, endpoints, and MCP tools from one proto source. A
-published proto resolves on any external install, so no consumer chases a
+published proto resolves on any external install. No consumer chases a
 schema it never pulled in.
 
 </a>
@@ -101,8 +101,8 @@ format an eval consumes and validate it before the run.
 
 ### Run a Predictable Platform
 
-Check preconditions before anything heavy runs, supervise long-running
-processes, emit structured telemetry, and keep instruction files honest. A CLI
+Check preconditions before heavy work runs. Supervise long-running processes.
+Emit structured telemetry. Keep instruction files honest. A CLI
 then prints your own version error instead of a confusing one from deep in a
 dependency.
 

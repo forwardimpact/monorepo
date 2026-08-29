@@ -3,8 +3,8 @@ title: "Configure Agents to Meet Your Engineering Standard"
 description: "End the cycle where you reject agent output that follows generic practices. Configure agents to meet the expectations the organization holds for humans."
 ---
 
-An agent's work was rejected. The code was not wrong. The work followed generic
-practices instead of the organization's standards. The problem is the
+You rejected an agent's work. The code was not wrong. The work followed
+generic practices instead of the organization's standards. The problem is the
 configuration. The agent has no access to the skills, behaviours, and
 conventions your engineering standard defines. This guide shows you how to
 configure agents against that standard. Their output then reflects what the
@@ -16,11 +16,11 @@ job is to see what the standard expects of you. For that half, see
 
 Complete these guides before you continue:
 
-- [Getting Started: Pathway for Engineers](/docs/getting-started/engineers/pathway/)
-  -- install Pathway and initialize a `data/pathway/` directory with starter
+- [Getting Started: Pathway for Engineers](/docs/getting-started/engineers/pathway/).
+  Install Pathway and initialize a `data/pathway/` directory with starter
   content or your organization's standard data.
-- [Authoring Agent-Aligned Engineering Standards](/docs/products/authoring-standards/)
-  -- if your organization does not yet define its standard, start there. This
+- [Authoring Agent-Aligned Engineering Standards](/docs/products/authoring-standards/).
+  If your organization does not yet define its standard, start there. This
   guide assumes a standard exists and `npx fit-pathway discipline --list`
   returns your disciplines.
 
@@ -36,7 +36,7 @@ List the available discipline and track combinations:
 npx fit-pathway agent --list
 ```
 
-Expected output (your organization's values will differ):
+The expected output follows. Your organization's values differ:
 
 ```text
 se-platform software-engineering platform, Software Engineering (Platform Engineering)
@@ -66,13 +66,13 @@ npx fit-pathway agent software-engineering --track=platform
 The output has three sections. Each section matches a layer in the generated
 agent team:
 
-1. **Team Instructions** (`.claude/CLAUDE.md`) -- cross-cutting context every
-   agent needs: platform conventions, environment variables, and architectural
-   decisions.
-2. **Agent Profile** (`.claude/agents/*.md`) -- the agent's identity, working
-   style, required skills, and constraints.
-3. **Required Skills** (`.claude/skills/*/SKILL.md`) -- which skills the agent
-   will load, with descriptions so the agent knows when each applies.
+1. **Team Instructions** (`.claude/CLAUDE.md`) carry the cross-cutting context
+   every agent needs: platform conventions, environment variables, and
+   architectural decisions.
+2. **Agent Profile** (`.claude/agents/*.md`) carries the agent's identity,
+   working style, required skills, and constraints.
+3. **Required Skills** (`.claude/skills/*/SKILL.md`) list the skills the agent
+   loads, with descriptions so the agent knows when each applies.
 
 Review the output. Confirm it reflects your organization's expectations:
 
@@ -100,8 +100,8 @@ npx fit-pathway agent software-engineering --track=platform --level=J060
 
 Set `--level` explicitly when you generate agents that should meet different
 expectations. For example, a J040 agent and a J060 agent on the same team need
-separate profiles. When you omit the flag, the output is byte-identical to
-today's default-resolved behaviour.
+separate profiles. When you omit the flag, the output matches the
+default-resolved behaviour byte for byte.
 
 ## Generate the agent team
 
@@ -127,7 +127,7 @@ discipline's tier arrays. The example below uses the starter:
 ```
 
 Pathway derives the agent name from the discipline's `roleTitle`. It adds the
-track as a suffix when you set one (e.g., `software-engineer--platform`).
+track as a suffix when you set one (for example, `software-engineer--platform`).
 Generalist configurations without a track omit the suffix.
 
 ## Confirm the generated skills
@@ -138,8 +138,8 @@ List the skill IDs the agent received to confirm they match the discipline:
 npx fit-pathway agent software-engineering --track=platform --skills
 ```
 
-Expected output (your organization's skills will differ). The starter ships
-this shape for `software-engineering --track=platform`:
+The expected output follows. Your organization's skills differ. The starter
+ships this shape for `software-engineering --track=platform`:
 
 ```text
 task-completion
@@ -154,7 +154,7 @@ consistently capable level across all skills.
 
 ## Verify
 
-Your agents are configured against your organization's standard when you can
+You configured your agents against your organization's standard when you can
 confirm the following:
 
 - **The generated files exist in your project.** Run `ls .claude/agents/*.md` to

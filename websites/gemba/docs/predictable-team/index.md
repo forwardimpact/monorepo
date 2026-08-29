@@ -1,6 +1,6 @@
 ---
 title: Set Up Persistent Memory and Metrics
-description: Give your agent team persistent memory and real signal detection with wiki-backed state and XmR control charts. Get evidence that agents act on changes. They do not act on noise.
+description: Give your agent team persistent memory and real signal detection with wiki-backed state and XmR control charts. The team then acts on real changes instead of noise.
 ---
 
 Your agents finish a session, and their findings disappear. The next session
@@ -105,8 +105,8 @@ npx gemba-xmr record --skill code-review --metric findings_count --value 3 --uni
 The read commands filter on `event_type`, and they default to the `kata-shift`
 slice. That default names the reference tenant's shift workflow. Two rules
 follow from it. Record with `kata-shift` to follow this guide end to end. If you
-use your own workflow name, pass `--event-type <name>` to every read command,
-and expect `gemba-wiki refresh` to skip those rows, because refresh reads the
+use your own workflow name, pass `--event-type <name>` to every read command.
+Expect `gemba-wiki refresh` to skip those rows, because refresh reads the
 default slice only.
 
 ```text
@@ -141,8 +141,8 @@ npx gemba-xmr record \
 ```
 
 The `run` field links back to the CI run or the session that produced the
-observation. The `note` field captures what you learned. It is the durable
-record of context that numbers alone cannot convey.
+observation. The `note` field captures what you learned. It durably records
+context that the numbers cannot convey.
 
 ### CSV schema
 
@@ -151,7 +151,7 @@ record of context that numbers alone cannot convey.
 | `date`       | yes      | ISO 8601 (`YYYY-MM-DD`). Sort key.                                 |
 | `metric`     | yes      | Metric name. One CSV can carry many metrics. They are grouped.     |
 | `value`      | yes      | Numeric. `validate` rejects a non-numeric value.                   |
-| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). Empty is rejected.        |
+| `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). `validate` rejects an empty unit. |
 | `run`        | no       | URL or identifier of the run that produced this observation.       |
 | `note`       | no       | Free text. Record what you discovered when a signal appears.       |
 | `event_type` | yes      | The workflow that recorded the row (its filename without `.yml`).  |
@@ -168,8 +168,8 @@ A zero exit code means the file matches the schema.
 ## Step 4: Analyze the metrics
 
 Once a metric has at least 15 observations, `gemba-xmr` computes natural process
-limits. It then applies Wheeler's three detection rules. The limits are only
-meaningful if each metric tracks a single process. See
+limits. It then applies Wheeler's three detection rules. The limits are
+meaningful only if each metric tracks a single process. See
 [One process per chart](/docs/predictable-team/xmr-analysis/#one-process-per-chart).
 Run the analysis:
 
@@ -210,7 +210,7 @@ Read `classification` first:
 
 | Classification | Meaning                              | What to do                                                          |
 | -------------- | ------------------------------------ | ------------------------------------------------------------------- |
-| `stable`       | No rules activated. Predictable.     | Leave it alone. If you intervene, things get worse.                 |
+| `stable`       | No rules activated. Predictable.     | Leave it alone. Intervention makes the process worse.               |
 | `signals`      | At least one X-chart rule activated.  | Investigate what changed.                                           |
 | `chaos`        | mR Rule 1 activated. Variation is unstable. | Investigate the outsized moves before you trust any limits.   |
 | `insufficient` | Fewer than 15 points.                | Record more observations.                                           |
@@ -247,7 +247,8 @@ file exists yet. Add one marker pair per metric you want charted:
 ```
 
 Each XmR block is a marker pair. The opening comment names the metric and the
-CSV path. The closing comment marks the end of the region that gets replaced.
+CSV path. The closing comment marks the end of the region that `refresh`
+replaces.
 
 The skeleton also carries obstacle and experiment sections, and `refresh` fills
 those from your issue tracker. The runtime renders them. It does not define

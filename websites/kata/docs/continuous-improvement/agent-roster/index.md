@@ -1,6 +1,6 @@
 ---
 title: Choose and Scope Your Agent Roster
-description: Decide which agent personas run in your repository, and write the scope constraints that turn an out-of-scope finding into a spec instead of an unreviewed fix.
+description: Decide which agent personas run in your repository. Write the scope constraints that turn an out-of-scope finding into a spec instead of an unreviewed fix.
 ---
 
 You installed the pack and a first shift ran green. Now you decide who is on
@@ -137,9 +137,10 @@ Here is the failure you hit when you skip this. An agent runs a cleanup pass
 and finds a real architectural problem. Its `Constraints` section says nothing
 about scope. So it rewrites the component inside the cleanup pull request. The
 diff now mixes a no-behavior-change cleanup with a redesign nobody asked for.
+
 A reviewer cannot approve half a diff, so the whole change waits. Meanwhile the
 design decision inside it never reached a spec, a design review, or a human.
-The team lost the finding and gained a stalled pull request.
+The team lost the finding. The team also holds a stalled pull request.
 
 ## Name one merge authority
 
@@ -154,11 +155,12 @@ covers the record it reads.
 
 ## Share the rules every persona obeys
 
-Some rules apply to the whole roster. How an agent reads memory. Which channel
-carries which output. What an agent does when its credentials expire. Do not
-copy those rules into each profile. Put each one in a shared reference file
-beside the profiles, then link to it from the `Constraints` section. You then
-change one file and the whole roster changes with it.
+Some rules apply to the whole roster. Examples are how an agent reads memory,
+which channel carries which output, and what an agent does when its
+credentials expire. Do not copy those rules into each profile. Put each one in
+a shared reference file beside the profiles, then link to it from the
+`Constraints` section. You then change one file and the whole roster changes
+with it.
 
 The memory read at boot and the claim write before a pull request both run
 through the Gemba wiki commands. See

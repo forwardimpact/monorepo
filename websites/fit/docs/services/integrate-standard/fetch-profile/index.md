@@ -1,6 +1,6 @@
 ---
 title: Fetch a Derived Role or Agent Profile
-description: Get a derived role or agent profile without reimplementing derivation — pass coordinates to the pathway service, receive Turtle RDF.
+description: Get a derived role or agent profile and do not reimplement the derivation. Pass coordinates to the pathway service and receive Turtle RDF.
 ---
 
 You have a discipline, level, and optional track. You need the derived role
@@ -110,11 +110,11 @@ Expected output (Turtle RDF, abbreviated):
   fit:behaviourCount 5 .
 ```
 
-The agent profile is smaller than the full role because the service removes
-human-only skills and collapses lower-proficiency duplicates. The service sorts
-skills and behaviours by strength descending. This order helps when you generate
-agent instructions. In those instructions, the most important capabilities
-should lead.
+The agent profile is smaller than the full role. This is because the service
+removes human-only skills and collapses lower-proficiency duplicates. The
+service sorts skills and behaviours by strength descending. This order helps
+when you generate agent instructions. In those instructions, the most
+important capabilities should lead.
 
 ## Handle errors
 
@@ -143,8 +143,8 @@ Common error cases:
 | Missing required track        | `Invalid job combination: discipline=... level=...`  |
 | Agent profile without track   | `track is required for DescribeAgentProfile`         |
 
-To discover valid values before you call, use `ListJobs` (for roles) or
-`ListAgentProfiles` (for agent profiles).
+To discover valid values before you call, use `ListJobs` for roles or
+`ListAgentProfiles` for agent profiles.
 
 ## Verify
 

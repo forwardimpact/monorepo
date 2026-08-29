@@ -1,6 +1,6 @@
 ---
 title: Forward Impact Engineering
-description: An open-source suite built on one idea. Define your engineering standard once, then derive roles, agent profiles, career guidance, measurement, and staffing from it.
+description: An open-source suite with one idea at its core. Define your engineering standard once, then derive roles, agent profiles, career guidance, measurement, and staffing from it.
 toc: false
 layout: home
 hero:
@@ -26,9 +26,9 @@ hero:
 
 ### Map — define the standard
 
-Two managers shouldn't disagree on what 'senior' means. Map turns implicit
-expectations into a validated, plain-text standard that the rest of the suite
-derives from.
+Two managers must not disagree on what 'senior' means. Map turns implicit
+expectations into a validated, plain-text standard. The rest of the suite
+derives from that standard.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -39,8 +39,8 @@ derives from.
 
 ### Pathway — derive roles and agents
 
-The compiler for your standard. Feed it a discipline, track, and level and get
-a complete job definition. Drop the level and get an agent profile instead.
+Pathway compiles your standard. Feed it a discipline, a track, and a level to
+get a complete job definition. Drop the level to get an agent profile instead.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -51,8 +51,8 @@ a complete job definition. Drop the level and get an agent profile instead.
 
 ### Guide — ask the standard
 
-Career guidance for engineers and second opinions on agent work, grounded in
-your standard instead of generic best practice.
+Guide gives engineers career guidance and second opinions on agent work. It
+grounds both in your standard rather than generic best practice.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -63,8 +63,8 @@ your standard instead of generic best practice.
 
 ### Landmark — measure without surveillance
 
-Track progress with evidence, trends, and engineer voice instead of ticket
-counts. Landmark does not single out anybody.
+Track progress with evidence, trends, and engineer voice rather than ticket
+counts. Landmark does not single out any person.
 
 <div class="btn btn-ghost">Learn more</div>
 </a>
@@ -99,8 +99,9 @@ into every meeting already oriented.
 
 ### Gear
 
-For platform builders: the libraries and services that compose the suite,
-published to npm. Humans and agents share the same interface and docs.
+Platform builders get the libraries and services that compose the suite.
+Forward Impact publishes them to npm. Humans and agents share the same
+interface and docs.
 
 <a href="/gear/" class="btn btn-ghost">Learn more</a>
 
@@ -129,11 +130,13 @@ and [kata.team](https://www.kata.team/).
 > — W. Edwards Deming
 
 Forward Impact Engineering puts this into practice. Engineering leaders define
-what great engineering looks like. Engineers see exactly what's expected. They
+what great engineering looks like. Engineers see the exact expectations. They
 find growth areas with real evidence. They configure agents to the same
-standard they're measured by. Leaders demonstrate progress and staff teams.
-They do not blame individuals. They do not rely on guesswork. When expectations
-are clear and progress is visible, engineers deliver with confidence and pride.
+standard that measures them.
+
+Leaders demonstrate progress and staff teams. They do not blame individuals.
+They do not rely on guesswork. When expectations are clear and progress is
+visible, engineers deliver with confidence and pride.
 
   <div class="hero-cta" style="margin-top: var(--space-6);">
     <a href="/about/" class="btn btn-secondary">Read our philosophy</a>
@@ -157,7 +160,7 @@ npx fit-pathway build --url=https://pathway.myorg.com
 
 ### For Empowered Engineers
 
-See what's expected at your level, then generate an agent profile from the
+See the expectations at your level. Then generate an agent profile from the
 same standard:
 
 ```sh
@@ -167,7 +170,7 @@ npx fit-pathway agent software-engineering --track=platform
 
 ### For Platform Builders
 
-Install the shared skill pack and browse the library catalog:
+Install the shared skill pack. Then browse the library catalog:
 
 ```sh
 apm install forwardimpact/fit-skills

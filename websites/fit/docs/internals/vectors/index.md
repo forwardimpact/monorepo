@@ -1,6 +1,6 @@
 ---
 title: Vector Processing Internals
-description: "Embedding pipeline — TEI installation, native and supervised operation, batch processing, index format, and query-time architecture."
+description: "The embedding pipeline: TEI installation, native and supervised operation, batch processing, index format, and query-time architecture."
 ---
 
 ## Pipeline
@@ -23,8 +23,8 @@ Two separate concerns use TEI:
 | **Batch indexing**  | `fit-process vectors` | CLI → embedding service (gRPC) → TEI           |
 | **Query embedding** | Runtime search        | vector service → embedding service (gRPC) → TEI |
 
-Both go through the embedding service (`SERVICE_EMBEDDING_URL`), which proxies
-to TEI internally. The gRPC framework handles authentication.
+Both paths go through the embedding service at `SERVICE_EMBEDDING_URL`. The
+service proxies to TEI internally. The gRPC framework handles authentication.
 
 ---
 
@@ -73,8 +73,8 @@ bunx fit-rc status embedding       # Check status
 bunx fit-rc stop embedding         # Stop
 ```
 
-The config marks the service `optional`. So fit-rc skips it with a warning if
-`text-embeddings-router` is not installed.
+The config marks the service `optional`. So fit-rc skips it with a warning
+when `text-embeddings-router` is missing.
 
 The gRPC server listens on `SERVICE_EMBEDDING_URL` (default
 `grpc://localhost:3015`). TEI runs on an internal backend port (default 8090).

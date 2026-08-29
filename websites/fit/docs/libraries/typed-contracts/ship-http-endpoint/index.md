@@ -1,6 +1,6 @@
 ---
 title: Ship an HTTP Service Endpoint
-description: Mount Hono routes on a configured app and call start(). Security headers, a health check, body limits, and graceful shutdown come for free.
+description: Mount Hono routes on a configured app and call start(). You get security headers, a health check, body limits, and graceful shutdown with no extra code.
 ---
 
 Not every service speaks gRPC. An OAuth callback, a webhook receiver, or an SDK
@@ -50,7 +50,7 @@ await service.start();
 
 The `configure` callback runs *after* the standard middleware, so every route
 you mount inherits the security headers and body limit automatically. The second
-argument carries the injected `logger` and the `tracer` (when you supply one).
+argument carries the injected `logger`, and the `tracer` when you supply one.
 Handlers can then log and open spans without module-level globals.
 
 The returned service object has four members:
@@ -62,7 +62,7 @@ The returned service object has four members:
 | `stop()`      | Graceful shutdown. Runs `onStop`, then closes the socket      |
 | `address()`   | The bound `{ port }`, or `null` before `start()`              |
 
-Pass `port: 0` to let the OS pick a free port, then read it back with
+Pass `port: 0` to let the OS pick a free port. Read the port back with
 `address()`. This is the usual pattern in tests:
 
 ```js

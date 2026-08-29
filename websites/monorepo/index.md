@@ -17,7 +17,7 @@ layout: home
     <rect class="tree-leaf" x="17" y="55" width="8" height="6" rx="1.5" />
   </svg>
   <h1 class="hero-title">Every file traces back to a job</h1>
-  <p class="hero-subtitle">The structure of a repository shared by humans and coding agents. Six directories, three root files, and one aim. Nothing in it is meaningless.</p>
+  <p class="hero-subtitle">The structure of a repository shared by humans and coding agents. Six directories, three root files, and one aim. Every part has a purpose.</p>
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
@@ -28,8 +28,8 @@ layout: home
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Problem</div>
-      <h2 class="section-headline">Structure without an aim is just folders.</h2>
-      <p class="section-body">Most repositories grow by accretion. Files land wherever. Directories mean whatever. No human and no agent can say why a thing lives where it does. Monorepo starts from the aim. Every directory and every file traces back to a job someone wants to get done.</p>
+      <h2 class="section-headline">Structure without an aim is only folders.</h2>
+      <p class="section-body">Most repositories grow by accretion. Files land in arbitrary places. Directory names lose their meaning. No human and no agent can say why a thing lives where it does. Monorepo starts from the aim. Every directory and every file traces back to a job someone wants to get done.</p>
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
@@ -75,7 +75,7 @@ layout: home
       </div>
       <div class="dir-card stagger-item">
         <div class="dir-name">services/</div>
-        <p class="dir-desc">Long-running services that products consume. Each captures the jobs it does for what depends on it.</p>
+        <p class="dir-desc">Long-running services that products consume. Each names the jobs it does for its dependents.</p>
       </div>
       <div class="dir-card stagger-item">
         <div class="dir-name">libraries/</div>
@@ -114,13 +114,13 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Root Files</div>
       <h2 class="section-headline">Three files. One job each. None restates another.</h2>
-      <p class="section-body">These three files come from the Jidoka standard that Monorepo builds on. Here they orient you the moment you open the repository. A link is cheaper than a duplicate. So each file points at the others and does not repeat them.</p>
+      <p class="section-body">These three files come from the Jidoka standard that Monorepo builds on. Here they orient you the moment you open the repository. A link is cheaper than a duplicate, so each file points at the others and does not repeat them.</p>
     </div>
     <div class="rootfile-grid stagger">
       <div class="rootfile-card stagger-item">
         <div class="rootfile-name">CLAUDE.md</div>
         <div class="rootfile-role">Orients</div>
-        <p class="rootfile-desc">What the project is, who it serves, and where to find things. Auto-loaded on every run.</p>
+        <p class="rootfile-desc">What the project is, who it serves, and where to find things. Every run loads it automatically.</p>
       </div>
       <div class="rootfile-card stagger-item">
         <div class="rootfile-name">CONTRIBUTING.md</div>
@@ -186,6 +186,6 @@ layout: home
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Set up a Monorepo-standard repo"</span><span class="terminal-cmd"> | claude</span></div>
       </div>
     </div>
-    <p class="closing-note reveal">The structure builds on the Jidoka <a href="https://www.jidoka.team/">instruction architecture</a>. The <a href="https://www.kata.team/">Kata Agent Team</a> runs the whole thing as a daily loop. Read the full standard in <a href="https://github.com/forwardimpact/monorepo/blob/main/MONOREPO.md">MONOREPO.md</a>.</p>
+    <p class="closing-note reveal">The structure builds on the Jidoka <a href="https://www.jidoka.team/">instruction architecture</a>. The <a href="https://www.kata.team/">Kata Agent Team</a> runs the repository as a daily loop. Read the full standard in <a href="https://github.com/forwardimpact/monorepo/blob/main/MONOREPO.md">MONOREPO.md</a>.</p>
   </div>
 </div>

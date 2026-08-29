@@ -43,7 +43,7 @@ npx fit-pathway job software-engineering J060 --track=platform
 
 ## Generate interview questions
 
-Create role-specific interview question sets:
+Create a set of interview questions for a specific role:
 
 ```sh
 npx fit-pathway interview software-engineering J060

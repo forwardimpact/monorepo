@@ -4,15 +4,15 @@ description: Mint long-lived Supabase JWTs for unattended agents that take on a 
 ---
 
 Magic-link login works when a human is in front of the email client. It
-breaks down for unattended agents. The `fit-map auth issue` verb closes
+does not work for unattended agents. The `fit-map auth issue` verb closes
 that gap. It mints a Supabase-shaped JWT for an existing roster row. The
 operator then hands the token to the agent as `PRODUCT_LANDMARK_TOKEN`.
 
 The same verb works for human emails too. The canonical use case is still
 a service-account row. A service-account row is an identity that exists
-solely so an agent can take it on. Service-account rows live in the same
-`organization_people` table as humans (with `kind = 'service_account'`)
-and share the same row-level security clamp.
+only so an agent can take it on. Service-account rows live in the same
+`organization_people` table as humans, with `kind = 'service_account'`.
+They share the same row-level security clamp.
 
 This guide is for **operators** who run the verb against a Supabase
 project. Engineers do not run it.
@@ -21,12 +21,12 @@ project. Engineers do not run it.
 
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and
   `JWT_SECRET` available in your environment.
-  - **Local stack** — `just env-setup` writes all three to `.env`.
-  - **Hosted Supabase** — find them in Project Settings → API → Project URL,
+  - **Local stack.** `just env-setup` writes all three to `.env`.
+  - **Hosted Supabase.** Find them in Project Settings → API → Project URL,
     Service Role Key, and JWT Secret.
 - The target email already has both an `organization_people` row and an
-  `auth.users` row. Run `fit-map people push` then
-  `fit-terrain substrate provision` if it doesn't.
+  `auth.users` row. If a row is missing, run `fit-map people push`. Then
+  run `fit-terrain substrate provision`.
 
 ## Mint a token
 
@@ -76,34 +76,34 @@ field. The DB check constraint enforces `level IS NULL` when
 
 ## Hand the token to the agent
 
-Write the JWT to the agent's `.env` (or your secret manager). Once you
-export `PRODUCT_LANDMARK_TOKEN` in the agent's environment, every
-`fit-landmark` invocation resolves identity directly from the token:
+Write the JWT to the agent's `.env` file or to your secret manager.
+Export `PRODUCT_LANDMARK_TOKEN` in the agent's environment. Every
+`fit-landmark` command then resolves identity directly from the token:
 
 ```sh
 PRODUCT_LANDMARK_TOKEN=$JWT fit-landmark voice
 ```
 
-The agent needs no magic-link and no refresh flow. The long-lived JWT
-verifies under `JWT_SECRET` on the Postgres side. RLS clamps the result
+The agent needs no magic-link and no refresh flow. The Postgres side
+verifies the long-lived JWT under `JWT_SECRET`. RLS clamps the result
 to the service-account's row class. The agent runs unattended.
 
 ## Security guidance
 
 Treat the JWT like an SSH key:
 
-- **Never commit it.** Even in a private repo, a leaked one-year token is
-  a one-year leak.
+- **Never commit it.** A leaked one-year token gives one year of access,
+  even from a private repository.
 - **Store it in a secret manager.** Use GitHub Actions secrets, AWS
   Secrets Manager, or HashiCorp Vault. Any store with audit logging works.
 - **Scope per agent.** Mint a separate token per agent identity. You can
   then contain a compromise when you ban that one `auth.users` row.
-- **Rotate proactively.** A year is the default ceiling. It is not a
-  target. Shorter TTLs cap exposure.
+- **Rotate proactively.** The one-year default is a maximum. Shorter
+  TTLs cap exposure.
 
 ## Revoke a token
 
-There is no separate revocation verb. Tokens revoke at the `auth.users`
+No separate revocation verb exists. You revoke tokens at the `auth.users`
 level. Ban the row. Every outstanding JWT for it then fails on the next
 Supabase Auth check.
 

@@ -261,10 +261,10 @@ npx fit-map validate --shacl  # Include RDF/SHACL validation
 
 Validation checks:
 
-- **Schema compliance** -- Each file matches its JSON Schema definition
-- **Referential integrity** -- All cross-references between entities resolve
-  (e.g. discipline skill references exist in capabilities)
-- **SHACL conformance** -- RDF shapes validate when you specify `--shacl`
+- **Schema compliance**: Each file matches its JSON Schema definition
+- **Referential integrity**: All cross-references between entities resolve.
+  For example, discipline skill references exist in capabilities
+- **SHACL conformance**: RDF shapes validate when you specify `--shacl`
 
 ---
 

@@ -21,7 +21,7 @@ The organizational context slot carries **installation-scoped** per-team facts.
 These facts do not belong on a track that teams share. They are the repository
 names this team works in, the manager handle, adjacent leads on neighbouring
 teams, the active project list, and the escalation paths. Edit
-`data/pathway/organizational-context.yaml` (sibling of `claude-settings.yaml`).
+`data/pathway/organizational-context.yaml`, a sibling of `claude-settings.yaml`.
 The section then reaches every agent the next time you regenerate. The starter
 template ships a populated example. Replace the placeholder values. Delete the
 file instead if your installation has no per-team facts to add.
@@ -60,7 +60,7 @@ section:
   - security incident → security@pharma.example.com
 ```
 
-A top-level concern that has no value (or is an empty list) suppresses its
+A top-level concern with no value or an empty list suppresses its
 bullet. You can populate the slot in part. An entirely empty or absent slot
 suppresses the whole section. The generator then produces the same bytes it
 produced before the slot existed.
@@ -80,7 +80,7 @@ organizational context section by string match. The contract:
 - Downstream tools detect the section by exact-string match on that line.
 - **Tooling that needs the unique occurrence MUST match the LAST occurrence
   of `## Organizational Context` in the file.** The generator always appends the
-  section last. The final match is robust against the unlikely case that a track
+  section last. The final match stays correct in the unlikely case that a track
   author writes that heading inside `teamInstructions` prose.
 
 A worked example:
@@ -89,7 +89,8 @@ A worked example:
 awk '/^## Organizational Context$/{i=NR} END{print i}' .claude/CLAUDE.md
 ```
 
-prints the line number of the section in any CLAUDE.md that has one.
+The command prints the line number of the section in any CLAUDE.md that has
+one.
 
 ## Understand the architecture
 
@@ -115,24 +116,25 @@ purpose. Information flows downward. It never flows upward.
 
 The rules for what goes where follow from how the agent loads these files:
 
-- **Team Instructions** -- content that every agent on the project must know
-  regardless of their specialization. Environment variables, repository
-  conventions, deployment targets, shared architectural decisions. The
-  track-scoped `teamInstructions` body carries shared-across-teams content.
-  The installation-scoped organizational-context slot (above) carries the
-  per-team facts (repos, manager, adjacent leads, projects, escalation
-  paths). Both layers render into the same `.claude/CLAUDE.md`.
-- **Agent Profile** -- content that distinguishes this agent from others.
-  Identity, working style derived from emphasized behaviours, constraints
-  specific to the discipline and track.
-- **Skills** -- each skill folder holds a procedure (the sequence and the
-  decisions), references (data the procedure consults), and checklists (entry
-  and exit verification). Each skill fires independently. Each skill should be
-  self-contained.
+- **Team Instructions** hold content that every agent on the project must
+  know, regardless of specialization. Examples are environment variables,
+  repository conventions, deployment targets, and shared architectural
+  decisions. The track-scoped `teamInstructions` body carries
+  shared-across-teams content. The installation-scoped organizational-context
+  slot (above) carries the per-team facts: repos, manager, adjacent leads,
+  projects, and escalation paths. Both layers render into the same
+  `.claude/CLAUDE.md`.
+- **Agent Profile** holds content that distinguishes this agent from others.
+  It holds the identity, the working style derived from emphasized
+  behaviours, and the constraints specific to the discipline and track.
+- **Skills** load on demand. Each skill folder holds a procedure (the
+  sequence and the decisions), references (data the procedure consults), and
+  checklists (entry and exit verification). Each skill fires independently.
+  Each skill should be self-contained.
 
 ## Place guidance in the correct layer
 
-When you need to add organizational context, ask: "Who needs to know this?"
+When you add organizational context, first decide who needs to know the fact.
 
 | Who needs it                    | Where it goes        | Example                                                    |
 | ------------------------------- | -------------------- | ---------------------------------------------------------- |
@@ -141,8 +143,8 @@ When you need to add organizational context, ask: "Who needs to know this?"
 | Anyone who does a specific task | Skill                | "Code review follows the four-step checklist in REVIEW.md" |
 
 The `--level` flag is the per-invocation calibration surface. It differs from
-`teamInstructions` (shared across every agent on a track) and from the
-organizational-context slot (shared across every installation):
+`teamInstructions`, which every agent on a track shares. It also differs from
+the organizational-context slot, which every installation shares:
 
 ```sh
 npx fit-pathway agent software-engineering --track=platform --level=J060
@@ -169,11 +171,11 @@ the layer boundaries.
 
 ### Duplicated facts
 
-The same fact stated in both team instructions and a skill file. When the fact
+The same fact appears in both team instructions and a skill file. When the fact
 changes, one copy changes and the other does not. The agent then receives
 contradictory guidance. The guidance depends on which file it reads first.
 
-**Wrong** -- deployment target repeated in two layers:
+**Wrong.** The deployment target appears in two layers:
 
 ```yaml
 # data/pathway/tracks/platform.yaml
@@ -191,13 +193,13 @@ skills:
         Deploy all services to AWS eu-west-1 using ECS Fargate.
 ```
 
-**Right** -- state the fact once in `teamInstructions`. Have the skill
+**Right.** State the fact once in `teamInstructions`. Have the skill
 reference it: `focus: Follow the deployment conventions defined in team
 instructions.`
 
 ### Contradictory guidance
 
-Two layers give instructions that conflict because they were written at
+Two layers give instructions that conflict because their authors wrote them at
 different times. For example, team instructions say "use REST" while a skill
 says "prefer gRPC." The agent has no way to resolve the conflict. Decide which
 layer owns the decision. State the decision there. Remove the statement that

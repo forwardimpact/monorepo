@@ -3,23 +3,27 @@ title: Distribute Skill Packs
 description: Stage a skill pack into APM's .apm/ layout so a bare install pulls skills and agents together. One command turns a source tree into an installable repository.
 ---
 
-You have a set of skills and agent profiles you want a team to install. You have
-also picked a package manager, APM, to distribute them. The layout is the trap.
-Put your skills in a root `skills/` directory and the installer finds them. Put
-your agents next to them in `agents/` and they install for nobody. The installer
-never scans that path. Agents have to live under `.apm/agents/` with an
-`.agent.md` suffix, and skills under `.apm/skills/`. If they do not, a bare
-install silently drops half the pack. `fit-pack` writes that layout for you.
-Point it at a source tree. It stages skills, agents, and their shared references
-into a target repository. It generates the manifest and a README. It leaves you
-a clean tree to commit and push.
+You have a set of skills and agent profiles you want a team to install. You
+have also picked a package manager, APM, to distribute them. The layout is
+where installs fail. If you put your skills in a root `skills/` directory,
+the installer finds them. If you put your agents next to them in `agents/`,
+the installer skips them. The installer never scans that path.
+
+Agents must live under `.apm/agents/` with an `.agent.md` suffix. Skills must
+live under `.apm/skills/`. If they do not, a bare install silently drops half
+the pack.
+
+`fit-pack` writes that layout for you. Point it at a source tree. It
+stages skills, agents, and their shared references into a target repository.
+It generates the manifest and a README. It leaves you a clean tree to commit
+and push.
 
 ## Prerequisites
 
 - Node.js 22+
-- A **source tree** that holds the content to ship: a `skills/` directory with
-  one subdirectory per skill (each with a `SKILL.md`) and, optionally, an
-  `agents/` directory of `*.md` agent profiles.
+- A **source tree** that holds the content to ship. It has a `skills/`
+  directory with one subdirectory per skill. Each subdirectory has a
+  `SKILL.md`. An optional `agents/` directory holds `*.md` agent profiles.
 - A **target repository** checked out locally. This is the repository you
   publish the pack from. `fit-pack` writes into its working tree. It never
   commits or pushes.
@@ -88,7 +92,7 @@ The options:
 | `--readme-title` | README H1 (default: the `--name` value)                                             |
 | `--readme-intro` | README intro paragraph                                                              |
 
-`--into`, `--name`, and `--pack-version` are always required. You must also
+You must always pass `--into`, `--name`, and `--pack-version`. You must also
 select the skills. Pass `--prefix` one or more times, or pass `--all`. The
 command exits with a usage error when you pass neither.
 
@@ -108,7 +112,9 @@ set.
 `--prefix` is how one source tree feeds several packs. With `--prefix fit`, only
 `skills/fit` and `skills/fit-*` directories ship. A `skills/other-tool`
 directory in the same source stays out. Pass `--prefix` again to add a second
-family to the same pack. Pass `--all` instead to ship every skill under
+family to the same pack.
+
+Pass `--all` instead to ship every skill under
 `--from`. Use `--all` when the source directory is itself the pack boundary.
 Omit `--with-agents` for a skills-only pack. The shared `x-*.md` references
 still ship, because skills cite them too.
@@ -190,7 +196,7 @@ You have reached the outcome of this guide when:
   `README.md` into your target repository.
 - Each staged `SKILL.md` carries the injected `license` and `metadata.version`.
 - `--prefix` selects only the skills that match, and `--with-agents` controls
-  whether agent profiles are staged.
+  whether the command stages agent profiles.
 - After you commit and push, `apm install <owner>/<repo>` installs both the
   skills and the agents.
 

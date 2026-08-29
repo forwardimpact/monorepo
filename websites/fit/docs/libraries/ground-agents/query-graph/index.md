@@ -129,7 +129,7 @@ an RDF literal.
 
 ## Supported prefixes
 
-The graph index recognizes these namespace prefixes out of the box:
+The graph index recognizes these namespace prefixes by default:
 
 | Prefix   | Namespace                                       |
 | -------- | ----------------------------------------------- |
@@ -176,7 +176,7 @@ common.Message.j0k1l2
 common.Message.m3n4o5
 ```
 
-## How the graph index is structured
+## How the graph index stores triples
 
 The graph index stores triples in an N3 in-memory store backed by a JSONL file
 at `data/graphs/index.jsonl`. On first access, the index loads the JSONL into
@@ -249,7 +249,7 @@ const turtle = serializer.serialize(ontologyData);
 object holds the per-class subject sets, predicate maps, predicate counts,
 object-type counts, and the inverse-predicate map. The scan of the graph
 collects them. An agent reads those shapes to learn what questions the graph
-can answer before it writes a single query.
+can answer before it writes a query.
 
 ## What's next
 

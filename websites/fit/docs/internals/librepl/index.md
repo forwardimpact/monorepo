@@ -1,6 +1,6 @@
 ---
 title: librepl Internals
-description: "Interactive REPL library — Repl class, custom commands, state persistence, and dual-mode (interactive/piped) CLI interfaces."
+description: "The interactive REPL library: the Repl class, custom commands, state persistence, and CLI interfaces that run interactive or piped."
 ---
 
 ## Overview
@@ -10,8 +10,8 @@ and non-interactive CLI tools. It handles readline management, command dispatch,
 state persistence, and output formatting. CLI entry points then only need to
 define their application-specific behaviour.
 
-`fit-guide` (conversational agent) and `fit-visualize` (trace visualizer) use
-the library.
+The `fit-guide` conversational agent and the `fit-visualize` trace visualizer
+use the library.
 
 ---
 
@@ -39,14 +39,16 @@ Inject mocks to verify behaviour without real I/O.
 
 ### Public API
 
-- **`repl.start()`** — Starts the REPL lifecycle (see below).
+- **`repl.start()`** — Starts the REPL lifecycle. The Lifecycle section
+  describes the sequence.
 - **`repl.state`** — The mutable state object, initialized from `app.state`.
 
 ---
 
 ## Application Configuration
 
-The `app` object passed to the constructor defines all application behaviour.
+The `app` object that you pass to the constructor defines all application
+behaviour.
 
 ```js
 const repl = new Repl({
@@ -72,8 +74,8 @@ const repl = new Repl({
 | `commands`      | `object`                                 | Custom command definitions                      |
 | `setup`         | `(state) => Promise<void>`               | Runs once before the REPL accepts input         |
 | `onLine`        | `(line, state, output) => Promise<void>` | Handles non-command input (line is trimmed)     |
-| `beforeLine`    | `(state) => Promise<void>`               | Hook before each non-empty line is processed    |
-| `afterLine`     | `(state) => Promise<void>`               | Hook called after each line is processed        |
+| `beforeLine`    | `(state) => Promise<void>`               | Hook that runs before the REPL processes each non-empty line |
+| `afterLine`     | `(state) => Promise<void>`               | Hook that runs after the REPL processes each line |
 | `indent`        | `string`                                 | Prefix prepended to each output line (default `""`) |
 
 ---
@@ -100,8 +102,8 @@ newline. It processes each line in sequence. It echoes each line with the prompt
 before it processes the line. It exits when it consumes all the input.
 
 **Errors:** the REPL silently catches errors that `onLine` or command handlers
-throw. The REPL continues and `afterLine` still runs. Handlers should log their
-own errors (typically through `libtelemetry`).
+throw. The REPL continues and `afterLine` still runs. Handlers log their own
+errors, usually through `libtelemetry`.
 
 ---
 
@@ -141,13 +143,13 @@ commands: {
 
 | Return value | Behaviour                                                          |
 | ------------ | ------------------------------------------------------------------ |
-| `undefined`  | Normal completion, REPL continues                                  |
+| `undefined`  | Normal completion. The REPL continues.                             |
 | `false`      | In CLI arg parsing: stops processing remaining args and exits.     |
-|              | In interactive mode: no special effect (treated like `undefined`). |
-| A `Readable` | Stream is piped through the formatter to stdout (interactive only; |
-|              | ignored during CLI arg parsing).                                   |
+|              | In interactive mode: no special effect, same as `undefined`.       |
+| A `Readable` | The REPL pipes the stream through the formatter to stdout          |
+|              | (interactive only; CLI arg parsing ignores it).                    |
 
-### How Commands are Invoked
+### How the REPL Invokes Commands
 
 Commands work in both modes with different syntax:
 
@@ -158,12 +160,16 @@ Commands work in both modes with different syntax:
 | Piped input   | `/<command> [args...]`                         | `echo "/name Alice" \| bunx …`  |
 
 `/`-prefixed commands work in both interactive and piped input. The REPL parses
-`--` flags from CLI arguments before it starts. Non-boolean commands accept both
+`--` flags from CLI arguments before it starts.
+
+Non-boolean commands accept both
 the `--key value` form (next argv entry) and the `--key=value` form (inline).
 The two forms are equivalent. In CLI mode, the REPL converts dashes in flag
-names to underscores for lookup (e.g. `--resource-id` maps to the `resource_id`
-command). Boolean commands consume no argument. All others receive the value as
-`args[0]`.
+names to underscores for lookup. For example, `--resource-id` maps to the
+`resource_id` command.
+
+Boolean commands consume no argument. All others receive
+the value as `args[0]`.
 
 In interactive mode, the REPL lowercases command names before lookup. CLI mode
 does not lowercase. It only converts dashes to underscores.
@@ -173,7 +179,7 @@ output.
 
 ### Built-in Commands
 
-The REPL always registers three commands (user commands can override them):
+The REPL always registers three commands. User commands can override them:
 
 | Command | Type    | Behaviour                                                                      |
 | ------- | ------- | ------------------------------------------------------------------------------ |
@@ -185,10 +191,10 @@ The REPL always registers three commands (user commands can override them):
 
 ## State Persistence
 
-When you provide `app.storage` (any `StorageInterface` implementation), the REPL
-automatically loads state on startup and saves it after every line.
+Provide any `StorageInterface` implementation as `app.storage`. The REPL then
+loads state on startup. It saves the state after every line.
 
-The REPL keys state by the system UID (`os.userInfo().uid`) and stores it as
+The REPL keys state by the system UID from `os.userInfo().uid` and stores it as
 `{uid}.json`. So each OS user gets independent state.
 
 ```js
@@ -208,7 +214,7 @@ The `/clear` command resets all state keys to the initial values that
 
 ## Output Formatting
 
-All output flows through a formatter (from `@forwardimpact/libformat`). The
+All output flows through a formatter from `@forwardimpact/libformat`. The
 `onLine` handler receives a writable `output` stream. Write to the stream. The
 REPL then formats the output and flushes it to stdout.
 
@@ -317,7 +323,7 @@ const repl = new Repl(
 
 | File                   | Purpose                                    |
 | ---------------------- | ------------------------------------------ |
-| `src/index.js`         | `Repl` class — constructor, lifecycle, I/O |
+| `src/index.js`         | `Repl` class: constructor, lifecycle, I/O  |
 | `test/librepl.test.js` | Unit tests with fully mocked dependencies  |
 
 ---

@@ -31,11 +31,11 @@ Run this unless your organization distributed a standard data bundle:
 npx fit-map init
 ```
 
-This creates `./data/pathway/` with a complete starter agent-aligned engineering
-standard. If your organization distributes a bundle for the agent-aligned
-engineering standard, follow their installation instructions instead. That is
-typically a one-line `curl | bash` install script that places data at
-`~/.fit/data/pathway/`.
+The command creates `./data/pathway/` with a complete starter agent-aligned
+engineering standard. If your organization distributes a bundle for the
+agent-aligned engineering standard, follow their installation instructions
+instead. That is typically a one-line `curl | bash` install script that places
+data at `~/.fit/data/pathway/`.
 
 ### Data directory resolution
 
@@ -65,8 +65,8 @@ definition:
 npx fit-pathway job software-engineering J040 --track=platform
 ```
 
-This produces a full view of the skills, behaviours, and expectations for that
-role.
+The command produces a full view of the skills, behaviours, and expectations
+for that role.
 
 ## Generate agent teams
 
@@ -76,7 +76,7 @@ Create AI agent definitions matched to your role's skill profile:
 npx fit-pathway agent software-engineering --track=platform --output=./agents
 ```
 
-This generates a `.claude/` directory under `./agents/` and a `.vscode/`
+The command generates a `.claude/` directory under `./agents/` and a `.vscode/`
 directory to match. The generated tree holds one `<persona>.md` per agent
 profile under `.claude/agents/` and a `SKILL.md` per skill under
 `.claude/skills/<skill>/`. It also holds shared team instructions at

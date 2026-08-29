@@ -5,21 +5,23 @@ description: "Replace staffing intuition with evidence: coverage heatmaps, struc
 
 A post-mortem surfaces the same skill gap that caused the last incident. Nobody
 saw the gap before you staffed the team. You need to make staffing decisions you
-can defend. To do that, see what each role requires. This guide walks through
-the full workflow. You define role requirements with Pathway. You model team
-composition with Summit. You simulate changes before you commit to them.
+can defend. To do that, see what each role requires.
+
+This guide walks through the full workflow. You define role requirements with
+Pathway. You model team composition with Summit. You simulate changes before
+you commit to them.
 
 ## Prerequisites
 
 This guide assumes you completed the setup below. If you did not, follow each
-link and return here.
+link. Then return here.
 
-- [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/) --
-  standard data initialized
+- [Getting Started: Map for Leaders](/docs/getting-started/leaders/map/) to
+  initialize the standard data
 - [Getting Started: Pathway for Leaders](/docs/getting-started/leaders/pathway/)
-  -- Pathway installed
+  to install Pathway
 - [Getting Started: Summit for Leaders](/docs/getting-started/leaders/summit/)
-  -- Summit installed and roster created
+  to install Summit and create the roster
 
 You need a `summit.yaml` roster file that describes your teams. The
 getting-started guide for Summit shows how to create one.
@@ -27,8 +29,9 @@ getting-started guide for Summit shows how to create one.
 ## Clarify what each role requires
 
 Before you can see where a team is strong or weak, you need to know what each
-role on the team actually demands. Pathway derives role requirements from your
-organization's engineering standard. It is not a generic framework.
+role on the team demands. Pathway derives role requirements from your
+organization's engineering standard. The requirements do not come from a
+generic framework.
 
 First, generate the full role definition for a position on the team. For
 example, see what the standard expects of a Software Engineer (J060) on a
@@ -40,13 +43,13 @@ npx fit-pathway job software-engineering J060 --track=platform
 
 The output has four sections:
 
-1. **Expectations** -- the level's impact scope, autonomy, influence, and
+1. **Expectations**: the level's impact scope, autonomy, influence, and
    complexity.
-2. **Behaviour Profile** -- each behaviour the organization values and the
+2. **Behaviour Profile**: each behaviour the organization values and the
    maturity expected at this level.
-3. **Skill Matrix** -- every skill relevant to the discipline and track, with
-   the proficiency level expected.
-4. **Driver Coverage** -- how the skill and behaviour profile maps to
+3. **Skill Matrix**: every skill relevant to the discipline and track, with
+   the expected proficiency level.
+4. **Driver Coverage**: how the skill and behaviour profile maps to
    engineering effectiveness drivers.
 
 Here is what the Expectations section looks like:
@@ -61,23 +64,23 @@ Here is what the Expectations section looks like:
 ```
 
 Generate a role definition for each distinct position on your team. If you have
-five engineers across two disciplines and two tracks, you may only need three or
-four definitions, one per unique combination. Use the `--list` flag to see all
-valid combinations:
+five engineers across two disciplines and two tracks, you may need only three
+or four definitions. Each unique combination needs one definition. Use the
+`--list` flag to see all valid combinations:
 
 ```sh
 npx fit-pathway job --list
 ```
 
 This gives you the vocabulary of roles your standard supports. Summit uses the
-Skill Matrix from each role definition to compute team coverage. These
-requirements are the foundation for everything that follows.
+Skill Matrix from each role definition to compute team coverage. The sections
+below build on these requirements.
 
 ## See what the team covers
 
 When you understand the role requirements, model the team as a whole. Summit
-aggregates each team member's skill matrix (derived from their role definition)
-into a team-level coverage view.
+derives each team member's skill matrix from their role definition. It
+aggregates the matrices into a team-level coverage view.
 
 Run the coverage command for your team:
 
@@ -106,9 +109,8 @@ for a given skill. Higher depth means the team can sustain work in that area
 even when someone is unavailable. A blank bar signals a gap. Nobody on the team
 covers that skill at the working level.
 
-This is where any staffing conversation starts. You do not need to debate
-whether the team "feels" strong in architecture. Point to the depth numbers and
-have a grounded discussion.
+Start every staffing conversation here. Point to the depth numbers. The
+numbers ground the discussion.
 
 ## Identify structural risks
 
@@ -138,7 +140,7 @@ Expected output:
 
 **Single points of failure** are skills where only one engineer has
 working-level proficiency or above. If that person is on leave or leaves the
-team, the capability disappears entirely.
+team, the capability disappears.
 
 **Critical gaps** are skills the team's disciplines and tracks require but no
 one currently covers at the working level. These are the gaps that show up in
@@ -148,9 +150,8 @@ post-mortems.
 proficiency level than everyone else. That engineer becomes a bottleneck even
 while present.
 
-Each of these categories gives you evidence you can bring to a staffing
-conversation. "We have a single point of failure on infrastructure" is a
-different argument from "I think we need another infrastructure person."
+Each category gives you evidence for a staffing conversation. You can name a
+specific single point of failure instead of a general request for headcount.
 
 ## Simulate roster changes before you decide
 
@@ -210,9 +211,9 @@ Expected output:
     Architecture capability   ████████░░ → ████░░░░░░  (-40%)
 ```
 
-This makes retention conversations concrete. You do not say "Alice is important
-to the team." You show that her departure creates two new single points of
-failure and a 40% drop in architecture coverage.
+The output makes retention conversations concrete. You can show that Alice's
+departure creates two new single points of failure and a 40% drop in
+architecture coverage.
 
 ### Model an internal move
 
@@ -255,7 +256,7 @@ npx fit-summit what-if platform --roster ./summit.yaml \
     Delivery capability       ████████░░ → ██████████  (+20%)
 ```
 
-Promotion bumps the member to the next level. The new level changes their
+A promotion moves the member to the next level. The new level changes their
 expected proficiencies. It may also shift coverage and risks.
 
 ### Focus on a single capability
@@ -280,8 +281,8 @@ npx fit-summit what-if platform --roster ./summit.yaml \
 
 ## Compare teams side by side
 
-When you restructure, or when you want to know why two similarly-sized teams
-feel different, compare them directly:
+Compare two teams directly when you restructure, or when two teams of similar
+size perform differently:
 
 ```sh
 npx fit-summit compare platform delivery --roster ./summit.yaml
@@ -301,9 +302,9 @@ npx fit-summit compare platform delivery --roster ./summit.yaml
   Risks unique to Delivery:  estimation (single point of failure)
 ```
 
-This diffs coverage and risks across both teams. It makes structural differences
-visible. Use it when you decide where to allocate a new position. Use it when
-you consider a reorganization.
+The command diffs coverage and risks across both teams. It makes structural
+differences visible. Use it when you allocate a new position or consider a
+reorganization.
 
 ## Match the audience to the conversation
 
@@ -343,7 +344,7 @@ your Pathway and Summit output:
   impact of the change you have in mind.
 - **Can you defend the decision with evidence?** For your next staffing
   conversation, you can show the coverage gap or structural risk the decision
-  addresses. You do not assert only that the team "needs" something.
+  addresses. You do not rely on a general claim of need.
 
 ## What's next
 

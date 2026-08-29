@@ -29,7 +29,7 @@ Apply one test first. Severity has a single useful value, and any finding fails
 the run. So if the repository can ship with the rule broken, the rule is a
 convention, and a convention belongs in an instruction layer. A claim that needs
 an "and" states two invariants. Write two modules. Put the claim at the top of
-each one as a comment, where a teammate reads it first when the check fails.
+each module as a comment. A teammate reads it first when the check fails.
 
 Then pick the **subjects**, the things the rule judges, and the **scope** that
 holds them. A subject is a file, a manifest, a matched line, or one restatement
@@ -58,7 +58,7 @@ runtime. Import only `yaml`, `acorn`, or a sibling file. Return plain data.
 
 Three details cost an hour each. `skip` takes directory **names**, and a glob
 there matches nothing. `grep` is case-insensitive until `caseSensitive: true`.
-A top-level `exclude` is ignored, so put it on a `patterns` entry instead.
+The engine ignores a top-level `exclude`, so put it on a `patterns` entry.
 
 The agreement shape needs no traversal. Give `restatementDrift` a `key`, the
 `expected` value from the source file, and consumers as `{ path, pattern }`
@@ -67,9 +67,9 @@ pairs. Capture group one becomes `restated`, and `ok` holds the comparison.
 ## Step 3: Declare the rules
 
 `rules` is a static array, or a `(ruleKit) => array` factory that pulls in the
-helpers. Each rule object names an `id` that prints with the finding, its
-`scope`, a `severity` of `"fail"`, an optional `when` guard, a `check`, a
-`message`, and a `hint`.
+helpers. Each rule object names an `id` that prints with the finding. It also
+names its `scope`, a `severity` of `"fail"`, an optional `when` guard, a
+`check`, a `message`, and a `hint`.
 
 `check(subject, ctx)` returns `null` when the subject is clean. It returns a
 truthy item when the subject is in violation, and that item becomes the
@@ -82,7 +82,7 @@ two ids, and the ids make each finding attributable. Two helpers do most work:
   `scanAst` sets on a file it cannot parse. Include it in every AST-derived
   scope. Leave it out and a file with a syntax error passes in silence.
 - `failAll(scope, { id, message, hint, when })` fails every subject in the
-  scope. Use it when `build` already decided each subject is a violation, which
+  scope. Use it when `build` already decided each subject is a violation. That
   holds for a `grep` match and for a drift subject you gate on `!s.ok`.
 
 ## Step 4: Make the finding name the file at fault

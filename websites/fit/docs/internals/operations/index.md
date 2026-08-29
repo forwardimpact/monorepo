@@ -3,9 +3,9 @@ title: Operations Reference
 description: "Environment configuration, service management, and common development tasks for the Forward Impact monorepo."
 ---
 
-> **Note:** The commands on this page (`just` recipes, `fit-rc`, environment
-> scripts) require a full monorepo checkout. For npm-based installs, see
-> [Getting Started: Engineers](/docs/getting-started/engineers/).
+> The commands on this page require a full monorepo checkout. This applies to
+> `just` recipes, `fit-rc`, and the environment scripts. For npm-based
+> installs, see [Getting Started: Engineers](/docs/getting-started/engineers/).
 
 This page is the day-to-day reference for environment setup, service
 management, and common development tasks. For the PR workflow and contributing
@@ -43,7 +43,7 @@ just env-setup     # Generate every secret in .env (idempotent across runs)
 
 `ANTHROPIC_API_KEY` lives in the environment. The host platform, `.env`, or
 `fit-guide --login` provides it. Any code that uses `libconfig` to access
-Anthropic credentials works out of the box.
+Anthropic credentials works without more setup.
 
 ---
 
@@ -108,10 +108,10 @@ By default, generation uses the cached prose in
 `data/synthetic/prose-cache.json`. Use `just synthetic-update` to call the LLM
 and refresh the cache.
 
-The dataset tools (the Synthea JAR, the SDV Python package, and faker) are
-heavy. Few tasks need them, so they live outside `package.json` and the
-default `bun install`. Provision them on demand with `just synthetic-deps`
-(`just synthetic-deps-check` reports status). The pipeline gracefully skips any
+The dataset tools are heavy: the Synthea JAR, the SDV Python package, and
+faker. Few tasks need them, so they live outside `package.json` and the
+default `bun install`. Provision them on demand with `just synthetic-deps`.
+`just synthetic-deps-check` reports their status. The pipeline skips any
 dataset whose tool is unavailable.
 
 ### Activity Seed (synthetic data)
@@ -164,7 +164,7 @@ just data-init                # Create data dirs, copy example data to data/know
 just config-reset             # Reset agent config files from examples
 ```
 
-See each product's skill file for full CLI reference.
+See each product's skill file for the full CLI reference.
 
 ---
 

@@ -1,12 +1,12 @@
 ---
 title: Add Observability
-description: Structured, machine-readable logs and spans without configuring a logging framework — drop in a log line or a span and it works.
+description: Add structured, machine-readable logs and spans without a logging framework. Drop in a log line or a span and it works.
 ---
 
 You need to log what a service does. You also need to trace operations across
 service boundaries. But you do not want to configure a logging framework, pick
 a format, or wire up an export pipeline. `@forwardimpact/libtelemetry`
-provides three tools that work out of the box. A `Logger` produces
+provides three tools that work without setup. A `Logger` produces
 RFC 5424-formatted lines. A `Tracer` records spans to a span service. An
 `Observer` unifies both for gRPC operations. This page covers one bounded
 task. It shows you how to add observability to a service. For the full
@@ -46,7 +46,7 @@ The format follows RFC 5424:
 LEVEL TIMESTAMP DOMAIN APP_ID PROC_ID MSG_ID [ATTRIBUTES] MESSAGE
 ```
 
-Each field is space-separated, so you can grep the lines. Attributes appear as
+A space separates each field, so you can grep the lines. Attributes appear as
 key-value pairs inside square brackets. When you provide no attributes, the
 field is a single dash (`-`).
 
@@ -178,7 +178,7 @@ The observer:
 
 1. Logs the incoming request at debug level.
 2. Starts a `SERVER` span with trace context from gRPC metadata.
-3. Runs your handler within the span context (for automatic parent propagation).
+3. Runs your handler in the span context so the parent propagates automatically.
 4. Logs the response and sets the span status to `OK`.
 5. On error, logs the exception, sets the span status to `ERROR`, and enriches
    the error object with `trace_id` and `span_id` for correlation.

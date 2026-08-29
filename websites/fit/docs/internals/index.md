@@ -1,6 +1,6 @@
 ---
 title: Internals
-description: Understand how the system works under the hood — architecture and code for the REPL library, vector services, operations, and the release process.
+description: "How the system works inside: architecture and code for the REPL library, the vector services, operations, and the release process."
 layout: product
 toc: false
 ---

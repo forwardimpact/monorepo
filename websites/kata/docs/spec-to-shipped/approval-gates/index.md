@@ -54,8 +54,8 @@ agent that merges an external change, so one checkpoint covers every path.
 | An external change that is not a fix or a specification | The gate merges no other type from outside the team. |
 
 Agents never originate a specification approval or a design approval. An agent
-only carries forward a signal a trusted human already gave, and a human who
-merges a change gave such a signal. The `.kata/` rule closes the obvious hole.
+only carries forward a signal that a trusted human already gave. A human who
+merges a change gives that signal. The `.kata/` rule closes a known hole.
 Without it, an untrusted author could widen the trusted set inside the same pull
 request that the widened set would let through. The gate also reads the settings
 from the default branch, so a branch cannot grant itself trust.
@@ -68,8 +68,8 @@ from the default branch, so a branch cannot grant itself trust.
 | A retention change | product-manager | Every target is terminal and its durable signal survives elsewhere. |
 
 Both delegations stay narrow. A plan describes how to execute an approved
-design, so a bad plan costs a rewrite. A merge performed by an agent is never an
-approval. The gate merges only what the state file already authorized.
+design, so a bad plan costs a rewrite. An agent merge is never an approval. The
+gate merges only what the state file already authorized.
 
 ## How the signal reaches STATUS
 
@@ -106,16 +106,17 @@ merge happens on the next gate run.
 
 ## Keep the approval pinned to a head
 
-Every approval certifies the exact content it was given on, and the agents
-record the head revision with the approval. When the head moves after that, the
-approval stops covering the change and the gate blocks it again. A rebase counts
-as a move. So does a formatting fix the gate applies itself. Two exceptions keep
-this workable. A move that leaves every touched path byte-identical permits a
-recorded re-verification. A merged change needs no pin, because a closed head
-cannot move.
+An approval certifies the exact content of one head. The agents record that
+head revision with the approval. When the head moves after that, the approval
+stops covering the change, and the gate blocks the change again. A rebase counts
+as a move, and so does a formatting fix that the gate applies.
 
-So sequence the work. Let the gate finish its rebase and its mechanical fixes,
-then approve. An approval given before that work lands buys you nothing.
+Two exceptions apply. A move that leaves every touched path byte-identical
+permits a recorded re-verification. A merged change needs no pin, because a
+closed head cannot move.
+
+Sequence the work. Let the gate finish its rebase and its mechanical fixes.
+Then approve. An approval that comes before that work lands has no effect.
 
 ## Tighten or loosen the boundary
 

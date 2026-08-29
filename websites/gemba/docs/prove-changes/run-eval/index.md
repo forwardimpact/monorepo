@@ -17,8 +17,8 @@ NDJSON trace captures every turn, so you can inspect what happened with
 - Node.js 22+
 - `ANTHROPIC_API_KEY` set in the environment
 - The `gemba-*` commands, which include `gemba-harness` and `gemba-trace`.
-  Install them globally with `npm install -g @forwardimpact/gemba`, or invoke
-  one ephemerally in CI with `npx --yes gemba-harness ...`
+  Install them globally with `npm install -g @forwardimpact/gemba`, or run
+  one in CI with `npx --yes gemba-harness ...` and no global install
 
 ## Write the task
 
@@ -85,7 +85,7 @@ agent edits files there. When you omit it, `gemba-harness` creates a temporary
 directory. The judge stays in `--supervisor-cwd`. It inspects the target's
 work and does not write to it. `--max-turns` is the per-runner invocation
 budget (default `200`). A separate internal lead-turn cap bounds the
-orchestration loop that drives the judge↔agent exchange. `--max-turns=0`
+orchestration loop between the judge and the agent. `--max-turns=0`
 removes the per-runner cap.
 
 Exit code `0` means the judge concluded with `success: true`. Exit code `1`
@@ -157,10 +157,10 @@ eval fails. That is when you most need it.
 
 ## Read the results
 
-When an eval fails, download the artifact and start with `overview` and
-`timeline` to orient, then drill into the verdict. The download extracts the
-artifact's `.ndjson` members — here the raw trace plus the two split lanes —
-and every verb reads them directly.
+When an eval fails, download the artifact. Start with `overview` and
+`timeline` to orient. Then drill into the verdict. The download extracts the
+artifact's `.ndjson` members. Here that is the raw trace plus the two split
+lanes. Every verb reads them directly.
 
 ```sh
 npx gemba-trace runs                              # find the failed run
@@ -171,10 +171,11 @@ npx gemba-trace tool trace--default--supervisor.supervisor.ndjson Conclude
 ```
 
 Cross-trace verbs (`overview`, `timeline`, …) take their file through `--file`
-and print text by default; `tool` pins a single trace, so it takes a
+and print text by default. `tool` pins a single trace, so it takes a
 positional. Add `--format json` to any verb for the machine-parseable shape.
-(A `structured.json` is produced only when the artifact carries a single
-`.ndjson` member; multi-member bundles like this one are read as-is.)
+The download produces a `structured.json` only when the artifact carries a
+single `.ndjson` member. The verbs read multi-member bundles like this one
+as-is.
 
 The `Conclude` tool call carries the judge's verdict and summary. From there,
 follow the timeline backwards to find the turn where the agent went wrong.
@@ -185,13 +186,13 @@ Run `npx gemba-trace --help` for the full command surface.
 
 A workflow that calls the reusable benchmark workflow
 (`forwardimpact/benchmark/.github/workflows/benchmark.yml`) mints `trace--*`
-artifacts on every shard with no caller-side steps — no manual split or
-upload like the harness-driven example above. Each cell preserves, under
-`runs/<taskId>/<runIndex>/`, its raw combined trace
-(`trace--<case>.raw.ndjson`), agent and supervisor lanes, and a judge lane
-on judged cells, with `<case>` = `<taskId>-r<runIndex>`. Download and
-analyze them with the same `runs` / `find` / `download` flow — see the
-[trace analysis guide](../trace-analysis/index.md).
+artifacts on every shard. The caller adds no steps. It needs no manual split
+or upload like the harness-driven example above. Each cell preserves its
+traces under `runs/<taskId>/<runIndex>/`. The cell holds the raw combined
+trace (`trace--<case>.raw.ndjson`), the agent and supervisor lanes, and a
+judge lane on judged cells. The `<case>` value is `<taskId>-r<runIndex>`.
+Download and analyze the files with the same `runs` / `find` / `download`
+flow. See the [trace analysis guide](/docs/prove-changes/trace-analysis/).
 
 ## Scale to a suite
 
@@ -217,10 +218,10 @@ does not stop at the first failure.
   runs. Always set a real budget in CI.
 - **`--task-amend`** appends extra text to the task and does not edit the task
   file. This helps you parameterize the same task across a matrix.
-- **The judge profile is a system prompt. It is not a contract.** It steers
-  the judge. It does not bind it. Treat eval verdicts like a code review from
-  a strong but fallible reviewer. They give useful signal. They are not ground
-  truth.
+- **The judge profile is a system prompt, not a contract.** It steers the
+  judge without binding it. Treat eval verdicts like a code review from a
+  strong but fallible reviewer. They give a useful signal and fall short of
+  ground truth.
 
 ## What's next
 

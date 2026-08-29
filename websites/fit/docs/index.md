@@ -1,6 +1,6 @@
 ---
 title: Documentation
-description: Technical documentation for the Forward Impact suite — getting started, guides, reference, and internals.
+description: "Technical documentation for the Forward Impact suite: getting started, guides, reference, and internals."
 layout: product
 toc: false
 hero:

@@ -44,7 +44,7 @@ To run one command without a global install, call it through `npx`:
 npx gemba-harness --help
 ```
 
-The steps below use `npx`. Drop that prefix when you installed the package
+The steps below use `npx`. Drop that prefix if you installed the package
 globally.
 
 ## Write the task
@@ -108,17 +108,17 @@ tools: [{"tool":"Write","count":2},{"tool":"Read","count":1}]
 taskPrompt: Create a file named greeting.js in the current directory.
 ```
 
-Every object value prints on one line, and the sample is abridged. `turnCount`
-counts the turns the trace holds. `resultEventTurns` counts the turns the model
-reported. Add `--format json` for the machine-readable shape.
+Every object value prints on one line. This sample omits some lines.
+`turnCount` counts the turns the trace holds. `resultEventTurns` counts the
+turns the model reported. Add `--format json` for the machine-readable shape.
 
 ## Run the same loop in CI
 
 The
 [`forwardimpact/gemba-bootstrap`](https://github.com/forwardimpact/gemba-bootstrap)
 action installs the pinned toolchain and the platform CLIs on a GitHub Actions
-runner. Name the commands you need in its `clis` input, pin the action to a full
-commit SHA, and read
+runner. Name the commands you need in its `clis` input. Pin the action to a
+full commit SHA. Read
 [Automate with GitHub Actions](/docs/prove-changes/run-benchmark/ci-workflow/)
 for a complete workflow.
 

@@ -1,13 +1,13 @@
 ---
 title: "Stop the Line on Instruction Drift"
-description: "Wire the jidoka checks into your check script and your CI workflow, read a finding, and route each finding to the fix that owns it. The line stops where the defect appears."
+description: "Wire the jidoka checks into your check script and your CI workflow. Read a finding. Route each finding to the fix that owns it. The line stops where the defect appears."
 ---
 
 Your layers start clean. The agent profiles are short. The skill procedures are
-complete. Six weeks later one profile has grown a procedure, a generated jobs
-block disagrees with the manifest it came from, and an agent begins to make a
-mistake nobody can attribute. Review caught none of it. A reviewer reads a diff
-and does not read a budget.
+complete. Six weeks later one profile has grown a procedure, and a generated
+jobs block disagrees with the manifest it came from. An agent begins to make a
+mistake nobody can attribute. Review caught none of it, because a reviewer
+reads a diff and does not read a budget.
 
 Jidoka builds the checking into the process. The `jidoka` command family is the
 andon cord. It halts the moment a layer breaches its budget, a jobs block goes
@@ -47,7 +47,7 @@ A line cap and a word cap gate every layer. Either breach fails.
 carries the layer table. The word cap is the one that surprises people, because
 it catches padded prose that still fits inside a passing line count.
 
-These behaviours decide which files get budgeted.
+These behaviours decide which files the check budgets.
 
 - **Front matter is exempt.** The check strips a leading YAML block before it
   counts. A published copy of a skill therefore counts the same as its source in
@@ -60,8 +60,9 @@ These behaviours decide which files get budgeted.
 - **The walk skips non-instruction trees.** It ignores version-control,
   dependency, build, cache, temporary, and worktree directories, and a `wiki/`
   checkout, so agent memory never competes with instruction budgets.
-- **Checklist blocks come from `CONTRIBUTING.md` and from each `SKILL.md`.** A
-  checklist you paste into an agent profile is never gated. Put universal gates
+- **Checklist blocks come from `CONTRIBUTING.md` and from each `SKILL.md`.**
+  The check never gates a checklist you paste into an agent profile. Put
+  universal gates
   in `CONTRIBUTING.md`. Put domain gates in the procedure that owns the pause
   point.
 
@@ -83,7 +84,7 @@ npx @forwardimpact/jidoka jtbd --fix    # regenerate the stale blocks in place
 ```
 
 Order matters. A schema finding stops regeneration for the catalog that holds
-it. So fix every schema finding first, then run `--fix`, then commit the
+it. So fix every schema finding first. Then run `--fix`. Then commit the
 regenerated files. Never hand-edit text between the generated markers. The next
 `--fix` overwrites your edit, and the check reports the same file as stale
 forever.
@@ -100,10 +101,10 @@ that your entries are good. That proof comes from
 
 Nothing, until you write a rule. The command ships the engine. Your repository
 owns the policies. The loader discovers every `*.rules.mjs` module under
-`.jidoka/invariants/`, and it searches upward from the working directory, so the
+`.jidoka/invariants/`. It searches upward from the working directory, so the
 command behaves the same from any subdirectory.
 
-A missing rules directory is an error and not a pass:
+A missing rules directory is an error:
 
 ```text
 jidoka: error: rules directory not found: /srv/my-repo/.jidoka/invariants
@@ -133,7 +134,7 @@ CLAUDE.md
 ```
 
 Findings group under the file that owns them. Each finding names the measured
-value, the cap it broke, the layer it was measured as, and the rule that fired.
+value, the cap it broke, the layer the check assigned, and the rule that fired.
 The arrow line is the hint. It names the direction of the fix and never the
 edit.
 
@@ -143,8 +144,8 @@ Two facts about the gate matter when you script it.
   output labels it a warning. The exit code stays non-zero. Severity documents
   intent and does not soften the gate.
 - **Exit codes are stable.** A clean run exits `0`. A run with findings or stale
-  blocks exits `1`. An unknown command exits `2`. Gate on the exit code, and
-  read `--json` when a bot needs the structured fields.
+  blocks exits `1`. An unknown command exits `2`. Gate on the exit code. Read
+  `--json` when a bot needs the structured fields.
 
 ## Run every check in one step
 
@@ -253,7 +254,8 @@ ahead of it in the same job.
 
 ## Triage each finding to the fix that owns it
 
-Group the findings by command before you change anything, then route each group.
+Group the findings by command before you change anything. Then route each
+group.
 
 | Finding from | What it means | Route to |
 | --- | --- | --- |
@@ -276,8 +278,8 @@ Fix the cause. Do not fix the symptom.
   because it is inconvenient this week.
 
 Re-run the suite after each fix, because one fix can expose the next. When you
-trim a profile, a checklist can move into a file that gates checklist blocks,
-and that block gets measured for the first time. A clean run is the bar.
+trim a profile, a checklist can move into a file that gates checklist blocks.
+The check then measures that block for the first time. A clean run is the bar.
 
 ## Grandfather only during a real migration
 
@@ -297,11 +299,12 @@ disguise, and it retires the invariant without anyone deciding to.
 ## Record what recurs
 
 The check names which layer broke. It does not name why the same layer keeps
-breaking. Keep a short note of the finding classes that return. When one class
-returns again and again, the layer that should prevent it is incomplete. Do not
-blame the contributor who tripped the gate. Strengthen the procedure, the
-reference, or the invariant that should have made the mistake impossible. A
-check that fires every week trains people to ignore every check.
+breaking. Keep a short note of the finding classes that return.
+
+When one class returns again and again, the layer that should prevent it is
+incomplete. Do not blame the contributor who tripped the gate. Strengthen the
+procedure, the reference, or the invariant that should have made the mistake
+impossible. A check that fires every week trains people to ignore every check.
 
 ## Migrate from the Co-Aligned era
 
@@ -323,7 +326,7 @@ not found` error that names the location it expected.
 - `npm run check` runs both commands, and `CONTRIBUTING.md` records that
   command.
 - The andon cord works. Paste a paragraph into an agent profile until it goes
-  over its cap, run the check, and confirm the finding names that file. Then
+  over its cap. Run the check, and confirm the finding names that file. Then
   revert the paste.
 - The invariant leg works. Confirm that `jidoka invariants` reports an error
   when `.jidoka/invariants/` is absent, and a pass when your module is in place.

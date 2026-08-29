@@ -15,12 +15,13 @@ hero:
       secondary: true
 ---
 
-Quarterly review is due and the only data is ticket counts. Ticket counts
-single out individuals. They do not illuminate the system. Career conversations
-feel subjective with no shared evidence base. Landmark resolves both. It
-surfaces marker evidence alongside developer-experience outcomes. Guide
-assesses that evidence against your engineering standard. Landmark presents it
-and does not blame individuals.
+The quarterly review is due and the only data is ticket counts. Ticket counts
+single out individuals. They do not show the system. Career conversations
+feel subjective with no shared evidence base. Landmark resolves both problems.
+
+Landmark surfaces marker evidence alongside developer-experience outcomes.
+Guide assesses that evidence against your engineering standard. Landmark
+presents it and does not blame individuals.
 
 ## What becomes possible
 
@@ -34,13 +35,13 @@ than impressions.
 - Team health dashboards that combine evidence, driver scores, and engineer
   voice
 - GetDX snapshot trends and quarterly comparisons
-- Practice pattern analysis that shows which skills are actively exercised
+- Practice pattern analysis that shows which skills the team exercises
 
 ### For Empowered Engineers
 
-See what your recent work demonstrates against the standard. See how it adds
-up over time. When Guide recommends a growth area, Landmark is where the proof
-of progress shows up.
+See what your recent work demonstrates against the standard. See how the
+evidence accumulates over time. When Guide recommends a growth area, Landmark
+shows your proof of progress.
 
 - Marker evidence that links GitHub artifacts to skill definitions
 - Promotion readiness and growth timeline views
@@ -94,8 +95,9 @@ npx fit-landmark practice [--skill <id>] [--manager <email>]
 npx fit-landmark sources [--email <email>]
 ```
 
-Inventory of activity row classes Landmark retains about an engineer. It is a
-transparency view for the engineer who asks what data the system holds.
+This command lists the classes of activity rows that Landmark retains about an
+engineer. The view gives transparency to the engineer who asks what data the
+system holds.
 
 #### Health
 
@@ -104,7 +106,7 @@ npx fit-landmark health [--manager <email>]
 npx fit-landmark health [--manager <email>] --verbose
 ```
 
-Default output is a compact table of drivers with one anchor per row. Pass
+The default output is a compact table of drivers with one anchor per row. Pass
 `--verbose` for the full per-driver paragraph layout. That layout includes all
 percentile anchors, GetDX comments, and contributing-skill evidence.
 
@@ -165,8 +167,9 @@ npx fit-map init                            # seed ./data/pathway/ with the star
 npx fit-landmark marker task-completion     # reference view — no Supabase required
 ```
 
-The rest of Landmark (`health`, `voice`, `snapshot`, `evidence`, …) reads
-from Map's activity layer. Walk that setup in the per-persona guides below.
+The other Landmark commands (`health`, `voice`, `snapshot`, `evidence`, …)
+read from Map's activity layer. The per-persona guides below walk through
+that setup.
 
 <div class="grid">
 

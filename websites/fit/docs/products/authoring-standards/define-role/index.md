@@ -160,12 +160,12 @@ appear one level lower.
 
 If the derived expectations do not match what the organization needs, adjust:
 
-- **Wrong proficiency levels?** -- Move skill IDs between `coreSkills`,
+- **Wrong proficiency levels** -- Move skill IDs between `coreSkills`,
   `supportingSkills`, and `broadSkills`. Core inherits the highest baseline.
-- **Missing skills?** -- Add the skill to a capability file. Then reference it
+- **Missing skills** -- Add the skill to a capability file. Then reference it
   in the discipline.
-- **Track over- or under-corrects?** -- Adjust `skillModifiers` values.
-- **Behaviour emphasis wrong?** -- Update `behaviourModifiers` on the discipline
+- **Track over- or under-corrects** -- Adjust `skillModifiers` values.
+- **Wrong behaviour emphasis** -- Update `behaviourModifiers` on the discipline
   or track.
 
 After each change, re-run `npx fit-map validate` to confirm the YAML is

@@ -8,9 +8,8 @@ in Map's activity schema. `fit-landmark sources --email <self>` lists every
 class that has at least one row visible to you. Each class shows its retention
 window and the projected fall-off date for the oldest row.
 
-This command answers the question *"what does Landmark actually know about
-me?"* That contract is worth nothing if you must read the schema migration to
-find out.
+This command shows what Landmark knows about you. You read the answer from
+the command output. You do not read the schema migration to find out.
 
 ## Prerequisites
 

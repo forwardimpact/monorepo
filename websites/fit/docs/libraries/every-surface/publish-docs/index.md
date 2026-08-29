@@ -3,14 +3,17 @@ title: "Publish a Documentation Site"
 description: "Turn a directory of markdown into a static site agents and humans can both navigate. You get directory-style URLs, a companion markdown file for every page, and auto-generated llms.txt, sitemap, table of contents, and breadcrumbs."
 ---
 
-Documentation that only renders to HTML serves humans well and agents poorly. An
-agent that fetches a page gets markup. It must strip the markup before it can
-read the words. `fit-doc` builds a static site. Every HTML page ships with a
-co-located `index.md` of the same content. So a human opens the page and an
-agent fetches the markdown. One source serves two readers. You write plain
-markdown with YAML front matter. `fit-doc` produces directory-style URLs, a
-table of contents, breadcrumbs, and the metadata files that make a site
-discoverable.
+Documentation that only renders to HTML serves human readers. It serves agents
+poorly. An agent that fetches a page gets markup. It must strip the markup
+before it can read the words.
+
+`fit-doc` builds a static site. Every HTML page ships with a co-located
+`index.md` of the same content. So a human opens the page and an agent fetches
+the markdown. One source serves two readers.
+
+You write plain markdown with YAML front matter. `fit-doc` produces
+directory-style URLs, a table of contents, breadcrumbs, and the metadata files
+that make a site discoverable.
 
 ## Prerequisites
 
@@ -42,8 +45,8 @@ also never renders the `assets/` directory as pages.
 
 ## 2. Write a page
 
-Each page is a markdown file with YAML front matter. `title` and `description`
-are the two fields you will set on almost every page:
+Each page is a markdown file with YAML front matter. You set `title` and
+`description` on almost every page:
 
 ```markdown
 ---
@@ -153,16 +156,20 @@ With a base URL available, the build adds:
 
 A collection page can link to its children. You do not hand-write anchors. A
 content-partial marker pulls the target page's `title` and `description` at
-build time. The marker is an HTML comment of the form `part:TYPE:PATH`. You wrap
-it in `<!--` and `-->`. `TYPE` is `card` or `link`. `PATH` is the target page's
-path relative to the current page's directory.
+build time.
+
+The marker is an HTML comment of the form `part:TYPE:PATH`. You wrap it in
+`<!--` and `-->`. `TYPE` is `card` or `link`. `PATH` is the target page's path
+relative to the current page's directory.
 
 A `card` marker can point at a sibling page named `about`. It resolves to a card
 that links to `about/`. The target's title becomes the card heading. Its
 description becomes the card text. A `link` marker resolves to a plain inline
 anchor instead. Because the path is relative, `../sibling` reaches across the
-tree. The build fails if the target page does not exist. That keeps internal
-navigation honest.
+tree.
+
+The build fails if the target page does not exist. This check keeps internal
+links correct.
 
 ## Keep a moved page alive
 

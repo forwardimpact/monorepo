@@ -37,8 +37,8 @@ changes and see their impact before anyone decides.
 
 ### For Empowered Engineers
 
-Align personal growth with what the team actually needs. See which skills make
-the biggest difference and where your development closes a real gap.
+Align personal growth with the team's needs. See which skills make the
+largest difference and where your development closes a real gap.
 
 - Growth alignment that connects team gaps to individual development
 - Team capability views that show where the team needs depth
@@ -81,8 +81,8 @@ $ npx fit-summit coverage --project migration-q2
 ### Structural Risks
 
 Summit identifies single points of failure, critical gaps, and concentration
-risks. These are structural facts about team composition. They are not
-judgments about individuals.
+risks. These are structural facts about team composition. They do not judge
+individuals.
 
 ```text
 $ npx fit-summit risks platform
@@ -129,9 +129,9 @@ $ npx fit-summit what-if platform --add "{ discipline: software-engineering, lev
 ```
 
 `-` lines are risks the change resolves. `+` lines are risks the change
-introduces. A staffing change that looks straightforwardly positive can still
-surface second-order gaps. Summit shows both, so you decide with the full
-picture.
+introduces. A staffing change that looks positive can still surface
+second-order gaps. Summit shows both directions, so you decide with complete
+information.
 
 ---
 

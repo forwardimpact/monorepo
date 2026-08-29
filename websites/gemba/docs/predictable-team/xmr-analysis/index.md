@@ -130,8 +130,8 @@ The JSON report for each metric carries:
 - **`stats`.** `mu`, `R`, `sigmaHat`, `UPL`, `LPL`, `URL`, `zoneUpper`,
   `zoneLower`.
 - **`latest`.** The most recent observation as `{ date, value, mr }`. The `mr`
-  field is the moving range at that point. It answers the question "is today's
-  change unusual?"
+  field is the moving range at that point. It shows whether the latest
+  change is unusual.
 - **`signals`.** Keyed by rule (`xRule1`, `xRule2`, `xRule3`, `mrRule1`). Each
   entry carries `slots` (1-indexed positions) and a `description`. When you pass
   a prior-read anchor (`analyze`'s `priorReadAnchor`, the CLI's `--prior-read`),
@@ -222,8 +222,8 @@ npx gemba-xmr analyze observations.csv --metric implementations_shipped \
 ```
 
 `--routes-eligible-includes 4` keeps rows whose `routes_eligible` set contains
-`4`, whether or not `4` was the path taken. Use it to ask "across every
-observation where path 4 was on the table, how does the metric behave?"
+`4`, whether or not `4` was the path taken. Use it to study how the metric
+behaves across every observation where path 4 was available.
 
 Both options compose with `--event-type` and `--metric`. Each option is inert
 when you omit it. A plain `analyze` charts the whole series exactly as before. A
@@ -272,7 +272,7 @@ as a whole carries the diagnostic information. The final point alone does not.
 | `stable`         | No rules activated. The process is predictable.            | Leave it alone. If you intervene, you make things worse. |
 | `signals`        | At least one X-chart rule activated.                       | Investigate what changed.                           |
 | `chaos`          | mR Rule 1 activated. The variation itself is unstable.     | Investigate the outsized moves before you trust any limits. |
-| `insufficient`   | Fewer than 15 points. Limits are not computed.             | Keep recording.                                     |
+| `insufficient`   | Fewer than 15 points. The command does not compute limits. | Keep recording.                                     |
 | `degenerate-zero` | Every observation is zero. Predictable, but the series carries no process signal. | Nothing to react to. It does not substantively meet a predictability target. |
 
 ## Summarize across metrics

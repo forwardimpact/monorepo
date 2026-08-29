@@ -6,9 +6,11 @@ description: Capabilities that work on every surface. One presenter, one contrac
 A capability can exist as a CLI command with no web page. The reverse also
 happens. Someone eventually rewrites the logic for the second surface. The two
 implementations drift apart. Agents that learned one interface cannot reach the
-other. `@forwardimpact/libcli`, `@forwardimpact/libui`, and
-`@forwardimpact/libformat` let you write a capability once. A shared contract
-puts that capability on both the terminal and the browser.
+other.
+
+`@forwardimpact/libcli`, `@forwardimpact/libui`, and `@forwardimpact/libformat`
+let you write a capability once. A shared contract puts that capability on both
+the terminal and the browser.
 
 ## Prerequisites
 
@@ -45,7 +47,7 @@ check.
 ## 1. Write the shared presenter
 
 The presenter takes an InvocationContext, looks up data, and returns a plain
-view object. It uses no DOM and no stdout. Data goes in. Data comes out.
+view object. It uses no DOM and no stdout. It receives data and returns data.
 
 ```js
 // src/present-forecast.js
@@ -279,8 +281,8 @@ assert.deepStrictEqual(cliView, webView);
 ```
 
 Both contexts are structurally identical because both surfaces follow the same
-contract. The presenter does not branch on which surface produced the context.
-It cannot tell.
+contract. The presenter cannot detect which surface produced the context, so
+it does not branch.
 
 ## How the web surface parses the query string
 
@@ -295,9 +297,11 @@ The web surface parses the query string after `?` in the URL hash with
 | (no query)               | `{}`                         |
 
 Empty values become `true`. Repeated keys become arrays. Everything else is a
-string. This matches how the CLI parses flags. `--json` produces
-`{ json: true }`. `--units=imperial` produces `{ units: "imperial" }`.
-`--tag=rain --tag=wind` produces `{ tag: ["rain", "wind"] }`.
+string.
+
+This matches how the CLI parses flags. `--json` produces `{ json: true }`.
+`--units=imperial` produces `{ units: "imperial" }`. `--tag=rain --tag=wind`
+produces `{ tag: ["rain", "wind"] }`.
 
 ## What's next
 

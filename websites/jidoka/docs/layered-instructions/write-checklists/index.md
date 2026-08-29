@@ -1,6 +1,6 @@
 ---
 title: Write a Checklist That Verifies Instead of Teaches
-description: Place a READ-DO entry gate and a DO-CONFIRM exit gate at real pause points, keep every item to one binary check, and tag both so one search finds every gate in your repository.
+description: Place a READ-DO entry gate and a DO-CONFIRM exit gate at real pause points. Keep every item to one binary check. Tag both gates so one search finds every gate in your repository.
 ---
 
 Your procedures hold the steps. A contributor under load still drops one. A
@@ -25,8 +25,10 @@ place.
 
 A READ-DO gate loads constraints into memory before the first line of work.
 Sequence matters here. One missed item sends the whole change in the wrong
-direction. A DO-CONFIRM gate sits at a commit, a merge, or a release. Its items
-are independent checks. A skilled contributor works without interruption, then
+direction.
+
+A DO-CONFIRM gate sits at a commit, a merge, or a release. Its items are
+independent checks. A skilled contributor works without interruption, then
 pauses once at the boundary and confirms nothing slipped.
 
 The wrong type at the wrong moment defeats the gate. A READ-DO list at the end
@@ -130,8 +132,8 @@ gates the block, and line count does not. A breach reads like this:
 | Nobody stops at the gate | The pause point is artificial | Move the gate to a boundary the work already crosses |
 | A known mistake keeps shipping | The gate is stale | Add the item that would have caught it |
 
-Use the gate, then watch what still goes wrong. Add the item that would have
-caught the miss, and delete an item that has caught nothing. A stale checklist
+Use the gate. Then watch what still goes wrong. Add the item that would have
+caught the miss. Delete an item that has caught nothing. A stale checklist
 teaches contributors to treat every checklist as noise.
 
 ## Verify

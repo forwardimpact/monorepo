@@ -7,10 +7,12 @@ A tool generates files such as an agent profile, a config, and a report. The
 output shape should be consistent everywhere the tool runs. But every project
 wants to adjust a detail: a header, a footer, a single section. If you copy the
 whole template to change one line, the project misses every later improvement to
-the default. `@forwardimpact/libtemplate` resolves this with two tiers. A
-package ships default templates. A project overrides any single one. It drops a
-file of the same name into its own templates folder. Everything not overridden
-falls through to the default.
+the default.
+
+`@forwardimpact/libtemplate` resolves this with two tiers. A package ships
+default templates. A project overrides any single one. It drops a file of the
+same name into its own templates folder. Everything not overridden falls
+through to the default.
 
 ## Prerequisites
 
@@ -22,7 +24,7 @@ npm install @forwardimpact/libtemplate @forwardimpact/libutil
 ```
 
 Templates are [Mustache](https://mustache.github.io/), so they stay logic-free.
-The data decides what renders. The template does not.
+The data alone decides what renders.
 
 ## How two-tier resolution works
 
@@ -44,7 +46,7 @@ diagnose.
 ## 1. Create the loader
 
 Build a loader once, bound to your package's templates folder. The loader needs
-a runtime. The runtime is the same ambient filesystem bag the rest of the stack
+a runtime. The runtime is the shared filesystem object the rest of the stack
 uses. It keeps the loader testable with an in-memory filesystem.
 
 ```js

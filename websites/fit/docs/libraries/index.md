@@ -1,6 +1,6 @@
 ---
 title: Library Guides
-description: Workflow guides for the shared libraries that give humans and agents the same capabilities. They cover coordination, interfaces, knowledge, contracts, lifecycle, skill packs, and synthetic environments.
+description: These workflow guides cover the shared libraries that give humans and agents the same capabilities. The topics are coordination, interfaces, knowledge, contracts, lifecycle, skill packs, and synthetic environments.
 layout: product
 toc: false
 ---

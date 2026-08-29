@@ -7,7 +7,7 @@ toc: false
 
 The platform runs one loop. You stand up the environment, run sessions, see
 what happened, remember it, and measure the outcome. Each job below covers one
-part of that loop. Start with the first job, then pick the job you have now.
+part of that loop. Start with the first job. Then pick the job you have now.
 
 ## Stand Up the Platform (Teams Using Agents)
 

@@ -15,18 +15,17 @@ hero:
       secondary: true
 ---
 
-You walk into a meeting cold because context was scattered across email, Slack,
-and last week's notes. Outpost assembles and maintains that context. You then
-arrive already oriented.
+You walk into a meeting cold because your context sits scattered across email,
+Slack, and last week's notes. Outpost assembles and maintains that context. You
+then arrive already oriented.
 
 ## What becomes possible
 
 ### For Empowered Engineers
 
 Keep track of people, projects, and threads. You do not depend on memory. Walk
-into every meeting already oriented. Set it up once. A team of agents then
-works in the background. You get continuous awareness without continuous
-effort.
+into every meeting already oriented. Set the team up once. A team of agents
+then keeps your awareness current in the background.
 
 - A team of scheduled agents that sync mail, calendar, and Teams chat while you
   work
@@ -44,11 +43,11 @@ effort.
 
 ## How Outpost Works
 
-Outpost is not a single assistant you chat with. It runs a **team of agents**,
-each with a job, that wake on their own schedule. Every wake, an agent observes
+Outpost runs a **team of agents** rather than a single chat assistant. Each
+agent has a job and wakes on its own schedule. On each wake, an agent observes
 what changed, decides the most useful action, and does it. The agent then goes
-back to sleep. You configure the team once. It continues to work while you do
-not.
+back to sleep. You configure the team once. The team then works without
+further input from you.
 
 ### Your agent team
 
@@ -65,7 +64,7 @@ schedule you can edit or disable in `~/.fit/outpost/scheduler.json`.
 | **head-hunter**    | Scans public sources for open candidates, never contacts them | each morning       | restricted |
 
 Each agent writes a short note per wake. The **chief-of-staff** reads all of
-them to assemble the daily briefing. Nobody has to piece it together by hand.
+them to assemble the daily briefing. You do not assemble it by hand.
 `full` and `restricted` refer to macOS access. See
 [macOS Privacy and Security](#macos-privacy-and-security) below. The recruitment
 agents (`recruiter`, `head-hunter`) ground their judgments in your
@@ -75,8 +74,8 @@ hire.
 ### What your agents can do
 
 The team's abilities come from skills. Skills are self-contained capabilities
-the agents load as needed. The default install ships these, grouped by what
-they are for. Skills that compose content (marked **draft**) only run once you
+the agents load as needed. The default install ships these skills, grouped by
+purpose. Skills that compose content (marked **draft**) run only after you
 opt into the [`brief+draft` posture](#choosing-your-posture).
 
 | Area                       | Skills                                                                       |
@@ -112,11 +111,11 @@ If your network requires a custom CA bundle, add an `env` block to
 
 ### Where your data lives
 
-Outpost runs on your Mac and keeps your data on it. This answers where your
-context lives, where AI calls go, and Forward Impact's role. That is a
-different question from the enterprise-CA note above.
+Outpost runs on your Mac and keeps your data on it. This section covers where
+your context lives, where AI calls go, and Forward Impact's role. The
+enterprise-CA note above covers a different topic.
 
-**On-device storage.** Every place Outpost-handled content lands is on your
+**On-device storage.** All content that Outpost handles lands on your
 device:
 
 - The knowledge base at the path you pass to `npx fit-outpost init`. It
@@ -124,16 +123,16 @@ device:
 - Outpost's cache directory (`~/.cache/fit/outpost/`), which holds all synced
   source content and each agent's per-wake output.
 - Apple Mail's local store, which Outpost reads from.
-- Apple Calendar's local store, which Outpost reads from. (See
-  [Getting Started](#getting-started) for the accounts Outpost picks up.)
+- Apple Calendar's local store, which Outpost reads from. See
+  [Getting Started](#getting-started) for the accounts Outpost picks up.
 - Outpost's scheduler home (`~/.fit/outpost/`), which holds config, runtime
   state, logs, and a local socket. The log and state files retain bounded
   excerpts of agent output.
 
 **Where AI calls go.** Outpost delegates every AI call to the Claude Code CLI
-already installed on your Mac. It does not select or override the endpoint. So
-the endpoint is whichever provider you configured your Claude Code to reach. By
-default that is the
+already installed on your Mac. It does not select or override the endpoint.
+The endpoint is therefore whichever provider you configured Claude Code to
+reach. By default that is the
 [Anthropic API](https://docs.claude.com/en/docs/claude-code/settings). Each
 call's prompt carries the user content the agent assembled for that wake
 (knowledge-graph excerpts, synced mail and calendar content).
@@ -162,34 +161,34 @@ postures. The CLI and `fit-outpost status` name them the same way:
 
 - **`brief`** — the default. Outpost runs only skills whose every output stays
   inside its own knowledge base or cache. These skills sync your mail and
-  calendar, build the knowledge graph, and prepare briefings. It never composes
-  a reply, message, or document for someone else. It never moves files outside
-  the knowledge base. This is the read-and-brief side of the line.
+  calendar, build the knowledge graph, and prepare briefings. Outpost never
+  composes a reply, message, or document for someone else. It never moves
+  files outside the knowledge base. In this posture, Outpost reads and briefs
+  only.
 - **`brief+draft`** — everything `brief` does, plus the skills that compose
-  content as you: email replies, chat messages, and documents. Outpost only
-  drafts these for you to stage for review. Nothing leaves until you give
-  explicit approval. Choose this posture when awareness is not enough and you
-  want help to write.
+  content as you: email replies, chat messages, and documents. Outpost drafts
+  these items and stages them for your review. Nothing leaves until you give
+  explicit approval. Choose this posture when you also want help to write.
 
-A fresh `init` defaults to `brief`. You opt into drafting deliberately. You turn
-the trust contract on. You do not discover it later.
+A fresh `init` defaults to `brief`. You opt into drafting deliberately. The
+trust contract never turns on without your action.
 
 ## Getting Started
 
 > **Outpost currently requires macOS.** Email and calendar sync read from
 > Apple Mail and Apple Calendar. A transitive dependency
 > (`@forwardimpact/libmacos`) declares `"os": ["darwin"]`. `npm install
-> @forwardimpact/outpost` will fail on Linux and Windows with `EBADPLATFORM`.
+> @forwardimpact/outpost` fails on Linux and Windows with `EBADPLATFORM`.
 > No degraded mode exists today. A cross-platform degraded install
 > (without Apple sync) is on the roadmap. Until it ships, install Outpost on
 > a Mac.
 >
-> **Which mail and calendar accounts are walked?** Outpost reads Mail.app's
+> **Mail and calendar account coverage.** Outpost reads Mail.app's
 > and Calendar.app's local stores. It picks up any account you sync *inside*
-> those apps. That includes an IMAP'd Gmail account in Mail.app and a
-> CalDAV-synced Google Calendar in Calendar.app. Outpost does not see mail or
-> calendar that lives only outside those apps (the Gmail web app, a separate
-> Outlook client).
+> those apps. That includes a Gmail account synced over IMAP in Mail.app and a
+> Google Calendar synced over CalDAV in Calendar.app. Outpost does not see
+> mail or calendar data that lives only outside those apps, for example the
+> Gmail web app or a separate Outlook client.
 
 ```sh
 brew install claude                     # Runtime: Outpost spawns claude as a subprocess

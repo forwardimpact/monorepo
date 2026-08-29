@@ -104,8 +104,8 @@ calls, and the signal that ends the work. It carries no project context and no
 domain knowledge.
 
 You never edit this layer. An interactive coding tool ships its own. An
-unattended agent runtime supplies its own, and that runtime decides how the
-persona and the session mechanics get composed into one prompt. Your profile
+unattended agent runtime supplies its own. That runtime decides how to
+compose the persona and the session mechanics into one prompt. Your profile
 source carries no composition markers of its own. See
 [Coordinate an Agent Team](https://www.gemba.team/docs/coordinate-team/) for one
 runtime that does this.
@@ -194,8 +194,8 @@ scope constraints and the routing. Push the rest to the skill the profile
 routes to.
 
 **The failure you see when it is wrong.** A profile that carries procedure. Two
-agents that do the same kind of work each grow their own copy of the steps, the
-copies diverge, and the same task now runs two ways depending on which agent
+agents that do the same kind of work each grow their own copy of the steps.
+The copies diverge. The same task then runs two ways, depending on which agent
 picked it up. Move the steps into one skill and route both profiles to it.
 
 ## L4 — agent references
@@ -239,7 +239,8 @@ complete instruction set for one domain, and four properties define it:
 - **Decisions only.** It holds sequence, rationale, and judgment calls.
   Templates, worked examples, and lookup tables move to L6.
 - **Self-contained at invocation.** Work starts with no external read. A
-  reference gets consulted partway through, and is never a prerequisite.
+  contributor consults a reference partway through. A reference is never a
+  prerequisite.
 
 **The failure you see when it is wrong.** A procedure carrying its own
 templates breaches the cap, and every attempted trim removes real meaning. Split
@@ -281,9 +282,10 @@ fact, so the gate never interrupts the flow of work.
 
 The boundary with L5 is strict. An item a contributor needs in order to *learn*
 what to do belongs in the procedure. An item that only confirms a known step
-happened belongs in the checklist. For the goal statement, the item cap, the
-tags, and the properties of a checklist that holds, see
+happened belongs in the checklist. See
 [Write a Checklist That Verifies Instead of Teaches](/docs/layered-instructions/write-checklists/).
+That guide covers the goal statement, the item cap, the tags, and the
+properties of a checklist that holds.
 
 **The failure you see when it is wrong.** An item that teaches. The list grows
 past working memory, people tick boxes without reading, and the gate catches
@@ -315,11 +317,11 @@ Run this table when an agent run goes wrong.
 | --- | --- | --- |
 | The agent invented a step nobody wrote | L5 incomplete | Add the decision to the procedure |
 | The agent followed a step that no longer applies | L6 stale | Correct the reference |
-| The work was right and the release gate got skipped | L7 missing | Add one item to the exit gate |
+| The work was right, but nobody ran the release gate | L7 missing | Add one item to the exit gate |
 | Two agents did the same job two ways | L3 duplication | Route both profiles to one skill |
 | The agent used a generic habit instead of yours | L5 too thin | Complete the procedure so nothing is left to guess |
 | The agent ignored the shared memory protocol | L4 uncited | Point the profile at the reference |
-| Reviewers disagree about whether a rule was met | L2 unverifiable | Rewrite the rule so a check can decide |
+| Reviewers disagree about whether the contribution meets a rule | L2 unverifiable | Rewrite the rule so a check can decide |
 | Nobody can find the pause-point checklists | L1 incomplete | Add the discovery searches |
 
 The table never says "the instructions are bad". A symptom that will not

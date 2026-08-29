@@ -1,6 +1,6 @@
 ---
 title: "Walk Into Every Meeting Already Oriented"
-description: "Walk into any meeting already oriented, with attendee context, open items, and talking points assembled before you sit down."
+description: "Walk into any meeting already oriented. Outpost assembles attendee context, open items, and talking points before you sit down."
 ---
 
 You need to prepare for a meeting. You do not want to scramble through inboxes
@@ -38,7 +38,7 @@ before.
 ## Look up attendees in the knowledge graph
 
 Before you generate a briefing, search the knowledge graph for each attendee.
-This is the step that turns a generic calendar entry into useful preparation:
+This step turns a generic calendar entry into useful preparation:
 
 ```sh
 rg "Sarah Chen" ~/.local/share/fit/outpost/Team/Knowledge/
@@ -53,10 +53,9 @@ Projects/Auth Migration.md:18:Status: blocked on identity provider contract
 Topics/Platform Reliability.md:5:Raised by [[Sarah Chen]] in Q1 review
 ```
 
-The results span people, projects, and topics because the
-librarian agent links entities with `[[backlinks]]` as it processes your email
-and calendar. A single search surfaces the full picture instead of a single
-file.
+The results span people, projects, and topics. The librarian agent links
+these entities with `[[backlinks]]` when it processes your email and
+calendar. One search shows the full picture.
 
 Read the person note for the full picture:
 
@@ -64,10 +63,10 @@ Read the person note for the full picture:
 cat ~/.local/share/fit/outpost/Team/Knowledge/People/Sarah\ Chen.md
 ```
 
-The note contains context (role, what they focus on), a reverse-chronological
+The note contains the person's role and focus areas, a reverse-chronological
 interaction history, and an Open Items section with unresolved commitments.
-These details disappear from memory between meetings. They determine whether
-someone feels heard.
+These details disappear from memory between meetings. These details show the
+other person that you listened.
 
 ## Wake the concierge for a fresh briefing
 
@@ -104,10 +103,10 @@ Waking chief-of-staff...
   Done (7.2s)
 ```
 
-The agent saves the result to `Briefings/2026-05-04-morning.md`. It
-includes today's schedule (meetings marked `PREPPED` have attendee context
-already assembled), priority actions linked to today's meetings, and open
-commitments to the people you will see.
+The agent saves the result to `Briefings/2026-05-04-morning.md`. The
+briefing includes today's schedule, priority actions linked to today's
+meetings, and open commitments to the people you will see. The concierge
+marks a meeting `PREPPED` after it assembles the attendee context.
 
 ## Prepare for a specific meeting on demand
 
@@ -118,8 +117,8 @@ directly in your knowledge base:
 cd ~/.local/share/fit/outpost/Team && claude "prep me for my 10am meeting"
 ```
 
-The meeting-prep skill identifies the meeting from your calendar, looks up every
-attendee in the knowledge graph, and produces a structured briefing with
+The meeting-prep skill identifies the meeting from your calendar and looks up
+every attendee in the knowledge graph. It produces a structured briefing with
 sections for each person:
 
 ```text
@@ -143,8 +142,8 @@ Suggested Talking Points
 ```
 
 Each section draws from a different part of the knowledge graph: person notes,
-project status, and interaction history. Talking points are specific to this
-meeting and these attendees. They are not generic templates.
+project status, and interaction history. The talking points are specific to
+this meeting and these attendees.
 
 For interview meetings, the briefing also surfaces candidate briefs from
 `Knowledge/Candidates/` and pipeline status from `Knowledge/Roles/`.

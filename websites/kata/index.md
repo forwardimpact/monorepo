@@ -1,6 +1,6 @@
 ---
 title: Kata Agent Team
-description: An autonomous agent team that improves continuously, organized as a daily Plan-Do-Study-Act cycle. Three lines to set up. Zero infrastructure to maintain.
+description: An autonomous agent team that improves itself on a daily Plan-Do-Study-Act cycle. Three lines set it up. You maintain zero infrastructure.
 toc: false
 layout: home
 ---
@@ -34,7 +34,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Simplicity</div>
       <h2 class="section-headline">Agent teams fail when they get complicated.</h2>
-      <p class="section-body">Most agent setups drown in infrastructure, toolchains that sprawl, and unauditable prompt chains. Kata takes the opposite path. That path is radical simplicity. It gives you everything you need and nothing more.</p>
+      <p class="section-body">Most agent setups accumulate heavy infrastructure, sprawling toolchains, and prompt chains that nobody can audit. Kata takes the opposite path. It gives you what you need and nothing more.</p>
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
@@ -224,7 +224,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Shared Memory</div>
       <h2 class="section-headline">One Git repo of markdown files.</h2>
-      <p class="section-body">Every agent reads and writes the same wiki: priorities, logs, metrics, and storyboards. A scheduled shift, a bridge-dispatched message, and an IDE session all share the same state. No database. Just markdown in a Git repository.</p>
+      <p class="section-body">Every agent reads and writes the same wiki: priorities, logs, metrics, and storyboards. A scheduled shift, a bridge-dispatched message, and an IDE session all share the same state. No database. Markdown files in a Git repository.</p>
     </div>
   </div>
 </div>
@@ -232,7 +232,7 @@ layout: home
 <div class="kata-section">
   <div class="section-inner">
     <div class="reveal">
-      <h2 class="getting-started-label">Three lines. That's it.</h2>
+      <h2 class="getting-started-label">Set up the team in three lines.</h2>
       <p class="getting-started-sub">Install the skill pack. Tell Claude to set up the team.</p>
     </div>
     <div class="terminal reveal">

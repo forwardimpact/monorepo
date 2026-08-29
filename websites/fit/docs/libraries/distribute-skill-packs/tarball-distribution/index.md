@@ -8,7 +8,9 @@ tree. You may instead want distributable **artifacts**. Examples are tarballs to
 attach to a release, or a static git repository a package manager can clone over
 plain HTTP. `@forwardimpact/libpack` builds them programmatically with
 `PackBuilder`. One call takes a list of pack combinations and emits every format
-at once. The build is deterministic. An unchanged input produces a
+at once.
+
+The build is deterministic. An unchanged input produces a
 byte-identical output. So artifacts are reproducible and safe to cache.
 
 This guide covers how to build the tarball and bare-git-repo formats. For the
@@ -93,7 +95,7 @@ wrote. You can list what `build()` produced, or feed it into release notes.
 ## Why the output is deterministic
 
 A pack you build twice from the same input is byte-identical. So the artifacts
-are cacheable. A re-release shows a real diff. It does not show churn. Two
+are cacheable. A re-release diff shows only real content changes. Two
 mechanisms enforce it:
 
 - **Reset timestamps.** Before it archives the files, `PackBuilder` sets every
@@ -109,11 +111,11 @@ filename and timestamp. That keeps even the `.tar.gz` byte-stable.
 
 ## Serve the git repo over HTTP
 
-The bare repository under `packs/apm/<name>/` is laid out for **dumb HTTP**. A
+The bare repository under `packs/apm/<name>/` uses the **dumb HTTP** layout. A
 static file host is enough for a normal clone. Dumb HTTP cannot negotiate a
 shallow clone. So `PackBuilder` also writes a small `smart-http/` directory of
-pre-computed responses. Tools that clone with `--depth=1` (APM does) then still
-succeed against a static host. You route three paths to those files:
+pre-computed responses. Tools that clone with `--depth=1`, as APM does, then
+still succeed against a static host. You route three paths to those files:
 
 | Request | Serve |
 | ------- | ----- |

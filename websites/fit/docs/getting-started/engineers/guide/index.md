@@ -25,8 +25,8 @@ npx fit-codegen generate --all    # provided by @forwardimpact/libcodegen (a dep
 npx fit-guide --init
 ```
 
-The `fit-codegen` step generates gRPC service clients that Guide needs. Without
-it, imports fail with a missing module error.
+The `fit-codegen` step generates the gRPC service clients that Guide needs. If
+you skip it, imports fail with a missing module error.
 
 The `--init` step generates:
 
@@ -63,9 +63,9 @@ store, and graph index. Re-run them whenever you update standard data.
 npx fit-rc start          # provided by @forwardimpact/librc
 ```
 
-This supervises all required microservices (trace, vector, graph, pathway, map,
-mcp) in dependency order. `fit-rc` reads configuration and secrets automatically
-from `.env`. Stop them with `npx fit-rc stop`.
+The command supervises all required microservices (trace, vector, graph,
+pathway, map, mcp) in dependency order. `fit-rc` reads configuration and
+secrets automatically from `.env`. Stop the services with `npx fit-rc stop`.
 
 ## Usage
 

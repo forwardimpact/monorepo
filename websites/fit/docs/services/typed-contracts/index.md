@@ -3,23 +3,23 @@ title: Expose Backend Services as Agent Tools
 description: Every gRPC endpoint becomes an agent tool from a single configuration file, with no per-endpoint integration code.
 ---
 
-You have several gRPC services (graph, vector, pathway, map). You need agents
+You have several gRPC services: graph, vector, pathway, and map. You need agents
 to reach them as tools. A separate MCP wrapper for each service duplicates
 schema translation, session management, and authentication logic. The MCP
 service reads a single tool configuration from `config/config.json`. It
 creates gRPC clients for each backend. It exposes every configured endpoint as
 a typed MCP tool through one HTTP/SSE server.
 
-This guide shows how to understand the configuration, start the MCP service,
-connect a client, and verify that backend RPCs are reachable as agent tools.
+This guide explains the tool configuration. You start the MCP service. You
+connect a client. You then verify that agents can reach backend RPCs as tools.
 
 ## Prerequisites
 
 - Node.js 18+
-- Generated client code available (run `npx fit-codegen generate --all` if not)
-- All backend services running (`npx fit-rc start`)
-- The `MCP_TOKEN` environment variable set (the MCP service requires a bearer
-  token for authentication)
+- Generated client code. Run `npx fit-codegen generate --all` if it is missing.
+- Running backend services. Start them with `npx fit-rc start`.
+- The `MCP_TOKEN` environment variable set. The MCP service requires a bearer
+  token for authentication.
 
 Install the MCP SDK if you build a client:
 
@@ -71,8 +71,8 @@ Tool registration is declarative. The `service.mcp.tools` section of
 Each entry specifies a `method` in `<package>.<Service>.<RPC>` format and a
 `description` that becomes the tool's human-readable summary. The MCP service
 reads the codegen metadata for each method. It builds a Zod schema for
-parameter validation. So the tool parameters take their types from the proto
-definitions automatically.
+parameter validation. As a result, the tool parameters take their types from
+the proto definitions automatically.
 
 ## Default tool set
 
@@ -110,8 +110,9 @@ Or start it individually during development:
 MCP_TOKEN=your-token node --watch services/mcp/server.js
 ```
 
-The server listens on port 3011 by default (configurable in
-`config/config.json` or `SERVICE_MCP_URL` in `.env`). Verify that it runs:
+The server listens on port 3011 by default. Configure the port in
+`config/config.json` or with `SERVICE_MCP_URL` in `.env`. Verify that the
+server runs:
 
 ```sh
 curl http://localhost:3011/health
@@ -199,14 +200,14 @@ content format wraps it.
 
 ## How tool registration works
 
-When the MCP service starts, `registerToolsFromConfig` iterates the tool
-configuration and for each entry:
+When the MCP service starts, `registerToolsFromConfig` reads the tool
+configuration. For each entry, the function:
 
 1. Parses the `method` string into package, service, and RPC name.
 2. Looks up the codegen metadata for the RPC's request type fields.
 3. Builds a Zod schema from the field metadata for parameter validation.
 4. Registers the tool on the `McpServer` with the schema and a handler. The
-   handler normalizes parameters and creates a typed request through
+   handler normalizes the parameters. It creates a typed request through
    `fromObject`. It then calls the gRPC client and returns the result.
 
 An RPC can return resource identifiers instead of content. The service then
