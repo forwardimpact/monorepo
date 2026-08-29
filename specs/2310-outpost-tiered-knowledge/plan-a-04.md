@@ -57,6 +57,11 @@ the table (`3-Team/People/`, `2-Confidential/Candidates/`, …). Any output
 this table does not name follows the entity-type mapping in the template
 CLAUDE.md tier table.
 
+Line budget: `anarlog-process/SKILL.md` sits at exactly the jidoka L5
+cap (192 counted lines), so the two added declaration lines need two body
+lines trimmed in the same edit. Measure every file with
+`bunx jidoka instructions` before and after.
+
 Verification: `rg --files-without-match '^Write tier:'` and
 `'^Frontmatter:'` over the twelve SKILL.md files return nothing
 (criteria 4, 18); `rg -e 'Knowledge/' -e 'Drafts/'` over the twelve trees

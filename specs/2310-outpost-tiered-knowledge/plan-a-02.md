@@ -45,18 +45,26 @@ Verification: new cases in `products/outpost/test/outpost-cli.test.js`
 cover the path form, the `--json` shape, and the exit codes, with a temp
 vault fixture.
 
-## Step 3: Regenerate the golden fixtures
+## Step 3: Regenerate the golden fixtures and wire a runner
 
 The definition change is deliberate; the byte-stability contract moves to
-the new bytes.
+the new bytes. Today nothing executes `test/golden/fit-outpost/` and
+`help.stdout` is stale at version 3.3.4, so the `buildDefinition` comment
+claims a contract no test enforces.
 
+- Created: `products/outpost/test/golden.test.js`
 - Modified: `products/outpost/test/golden/fit-outpost/help.stdout`
+- Modified: `products/outpost/test/golden/fit-outpost/cases.json`
 
-Re-capture with the existing tool: root `bun run capture-cli-golden`
-(`scripts/capture-cli-golden.mjs`). The other fixtures (`version`,
-`no-args`, `unknown`) do not change.
+Pin `OUTPOST_VERSION: 0.0.0-golden` in the `help` case's env (the
+`version` case already does this) so the fixture stops embedding the live
+version. Re-capture with root `bun run capture-cli-golden`
+(`scripts/capture-cli-golden.mjs`, which also has `--verify`). Add a
+golden runner test modeled on `products/gemba/test/golden.test.js` so the
+fixtures execute in the gate from now on.
 
-Verification: `bun run test` golden cases pass.
+Verification: root `bun run test` runs the new golden test and it passes;
+reverting the definition change makes it fail.
 
 ## Step 4: init creates tiers and the registry
 

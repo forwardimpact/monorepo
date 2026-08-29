@@ -29,6 +29,11 @@ shares no files with them.
 | doc-create | `0-Draft` | none |
 | doc-collab | `0-Draft` (working copies; the human promotes) | none |
 
+Line budget: `req-track/SKILL.md` sits at exactly the jidoka L5 cap (192
+counted lines), so the two added declaration lines need two body lines
+trimmed in the same edit. Measure every file with
+`bunx jidoka instructions` before and after.
+
 Path rewrites in every body: `Knowledge/Candidates/` →
 `2-Confidential/Candidates/`, `Knowledge/Prospects/` →
 `2-Confidential/Prospects/`, `Knowledge/Roles/` →
@@ -92,5 +97,7 @@ create the `drafts/` directory when absent. Draft bodies themselves go to
 
 Verification: `rg 'Drafts/' products/outpost/templates/ --hidden` returns
 nothing outside `templates/MIGRATION.md` (which documents the legacy
-layout by design, per the criterion 12 carve-out); `node --check` on both
-scripts; `bunx jidoka instructions` passes for the sixteen trees.
+layout by design, per the criterion 12 carve-out); both scripts still
+parse (`node --check` in CI; the local toolchain is bun-only, so run the
+scripts' scan path under `bun` locally); `bunx jidoka instructions`
+passes for the sixteen trees.

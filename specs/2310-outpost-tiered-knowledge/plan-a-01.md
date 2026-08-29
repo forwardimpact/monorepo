@@ -40,7 +40,7 @@ Public surface:
 export async function validateKnowledgeBase(kbRoot, runtime)
 ```
 
-Every finding carries `baselined: boolean`. Two shapes per the design:
+Every finding carries `baselined: boolean`. Three shapes per the design:
 
 | Shape | Fields | Kinds |
 | ----- | ------ | ----- |
