@@ -92,6 +92,18 @@ organization.
 - **Some audiences are not tiers.** A deliverable for one named recipient
   and a brief for a panel of peers have audiences that no cumulative tier
   chain expresses. They need an export action, not a placement.
+- **Notes carry almost no frontmatter today.** About two percent of notes
+  hold any YAML block, and those concentrate in one research-extraction
+  batch. The dominant metadata is inline bold-key lines inside an Info
+  section. Obsidian's Properties, Bases, search operators, and graph
+  tooling cannot see an inline field.
+
+A tiered vault without a metadata standard loses cross-tier coherence. The
+tiers deliberately duplicate basenames through overlays. They also split one
+identity across naming conventions, as person notes and candidate folders
+do. Obsidian's coherence surfaces (Bases, property search, the quick
+switcher) read frontmatter, not paths. Without a standard, the owner's
+single Obsidian instance cannot reunite what the tiers separate.
 
 ## Proposal
 
@@ -193,8 +205,11 @@ the write defaults; the placement rule below governs everything else.
    link rule, the placement rule, the promote and export actions, the
    overlay forms, and the sharing model. Every agent profile declares its
    read scope and its default write tier. Every skill declares the tier it
-   writes to (`none` when it writes nothing into the graph). Two write rules
-   close the observed leak paths. **Entry routing:** an agent or human who
+   writes to (`none` when it writes nothing into the graph). Agents stamp
+   the frontmatter standard (point 12) on every note they write; the
+   registry file is the vocabulary home and CLAUDE.md is the rule home.
+   Two write rules close the observed leak paths. **Entry routing:** an
+   agent or human who
    appends a dated entry routes the entry to the note in the entry's own
    tier (a recruitment fact goes to the tier-2 overlay, never to the tier-3
    canonical note). **Aggregate default:** agent-written reports, indexes,
@@ -232,11 +247,14 @@ the write defaults; the placement rule below governs everything else.
    emits machine-readable findings on request so migration tooling can
    consume them. A checked-in **baseline** file grandfathers known findings
    (for example future-dated links a scheduled skill mints by design):
-   baselined findings report as warnings, new findings fail. It passes a
-   conforming full vault and a conforming suffix subset, so any recipient of
-   a share can run it. Personal surfaces are outside its scope. Validation
-   proves **structural** compliance; it does not prove a note's prose is
-   audience-appropriate.
+   baselined findings report as warnings, new findings fail. Validation
+   also checks frontmatter conformance and tag legality in shared tiers,
+   through the same findings and baseline machinery; registry-dependent
+   checks skip when no registry file is present, so recipient suffixes
+   still validate. It passes a conforming full vault and a conforming
+   suffix subset, so any recipient of a share can run it. Personal
+   surfaces are outside its scope. Validation proves **structural**
+   compliance; it does not prove a note's prose is audience-appropriate.
 10. **Migration is agent-executed and human-gated.** MIGRATION.md ships with
     the release as an executable, phased playbook, not prose guidance.
     Agents execute the mechanical phases: inventory, hygiene, bulk moves,
@@ -253,6 +271,24 @@ the write defaults; the placement rule below governs everything else.
     and `Drafts/` layout from every instruction, template, and documentation
     surface. The release that ships it is a new major version of the Outpost
     package, and its notes point to MIGRATION.md.
+12. **One metadata standard binds every tier.** Agents maintain YAML
+    frontmatter and tags on every note they write, in every tier. The path
+    stays the only tier authority: frontmatter never carries a tier key, a
+    rank key, or an audience key. A required core of three keys (`type`,
+    `created`, `updated`) applies to every note in a shared tier.
+    Conditional keys have strict triggers: `aliases` on person, candidate,
+    and organization notes; `status` on candidate and prospect notes;
+    `canonical` on overlays; `verified` on tier-4 notes. The vocabularies
+    live in a machine-readable registry file at the KB root. The registry
+    is a personal surface that `init` installs. Humans edit the registry;
+    agents only select from it. Tags form a closed, registry-gated `topic/`
+    taxonomy. In shared tiers, tags live in frontmatter only, and each
+    registry tag carries a widest-tier bound as its leak rule. The overlay
+    declaration of point 6 becomes the structured `canonical` property. A
+    wiki link inside a property value obeys the point-3 link rule. Property
+    links are always double-quoted, tier-prefixed, and vault-absolute; the
+    entity-subdirectory relative exemption does not apply inside
+    frontmatter.
 
 **Compatibility stance:** clean break. No template instruction, agent, or
 skill supports the `Knowledge/` or `Drafts/` layout after this change.
@@ -264,14 +300,14 @@ Old-path removal is a success criterion (#9).
 
 | Surface | Change |
 | ------- | ------ |
-| Template root CLAUDE.md | Canonical tier description, root model, link rule, placement rule (exclusion form), promote and export actions, overlay forms, entry-routing and aggregate-default write rules, no-redistribute marker, suffix sharing model over mounts (replaces the "KBs are not Git repositories" sharing statement), tier-aware workspace layout, ethics rules restated as tier-independent. |
-| Template agent profiles (all 6) | Each declares read scope and default write tier in a `## Tiers` section, and every body path moves to the tier-prefixed form. Aggregate outputs default to `0-Draft/`. |
-| Template skills (all 28, with their references and scripts) | Every SKILL.md declares its write tier; tier-aware paths and write targets per the default-contents mapping; drafting skills write to `0-Draft/`; export cases named; the draft-status ledgers move to the cache state directory; per-tier changelog; tier-aware backlink, entry-routing, and link-format rules. |
-| Template MIGRATION.md (new) | The phased, human-gated migration playbook with the bundled multi-agent workflow prompt and the deterministic split rules. |
-| `fit-outpost init` | Creates the five default tier directories and `Briefings/` at the KB root. |
+| Template root CLAUDE.md | Canonical tier description, root model, link rule, placement rule (exclusion form), promote and export actions, overlay forms, entry-routing and aggregate-default write rules, no-redistribute marker, suffix sharing model over mounts (replaces the "KBs are not Git repositories" sharing statement), tier-aware workspace layout, ethics rules restated as tier-independent; the frontmatter and tag standard (schema, serialization, ownership, coherence recipes, vault settings). |
+| Template agent profiles (all 6) | Each declares read scope and default write tier in a `## Tiers` section, and every body path moves to the tier-prefixed form. Aggregate outputs default to `0-Draft/`. Each declares the frontmatter stamping duty in its `## Tiers` section. |
+| Template skills (all 28, with their references and scripts) | Every SKILL.md declares its write tier; tier-aware paths and write targets per the default-contents mapping; drafting skills write to `0-Draft/`; export cases named; the draft-status ledgers move to the cache state directory; per-tier changelog; tier-aware backlink, entry-routing, and link-format rules. Every SKILL.md declares `Frontmatter:` beside `Write tier:`; entity templates emit YAML properties and stop duplicating lifted Info lines. |
+| Template MIGRATION.md (new) | The phased, human-gated migration playbook with the bundled multi-agent workflow prompt and the deterministic split rules; frontmatter and tag backfill in the phased playbook. |
+| `fit-outpost init` | Creates the five default tier directories and `Briefings/` at the KB root, and installs the default registry file at the KB root. |
 | `fit-outpost update` | Installs the new instructions, and installs MIGRATION.md while the knowledge base still carries a legacy layout. |
-| `fit-outpost` validation | Gains the knowledge checks: rank grammar and uniqueness, link direction, resolution, and format, path-string detection, legacy-layout detection, machine-readable output, and the findings baseline. |
-| Published `fit-outpost` skill and Outpost docs pages (product page, getting started, knowledge-systems guides) | Describe the tier model, the overlay forms, the export action, and the validator; `Knowledge/` and `Drafts/` example paths are rewritten. |
+| `fit-outpost` validation | Gains the knowledge checks: rank grammar and uniqueness, link direction, resolution, and format, path-string detection, legacy-layout detection, machine-readable output, and the findings baseline; frontmatter and tag conformance findings with registry and baseline support. |
+| Published `fit-outpost` skill and Outpost docs pages (product page, getting started, knowledge-systems guides) | Describe the tier model, the overlay forms, the export action, and the validator; they describe the metadata standard; `Knowledge/` and `Drafts/` example paths are rewritten. |
 | Release | Major version cut of the Outpost npm package. |
 
 ### Excluded
@@ -281,7 +317,7 @@ Old-path removal is a success criterion (#9).
 | Access enforcement | The filesystem, OneDrive, or Git host owns permissions and polices readers. Outpost defines the boundaries; the validator cannot see a sync platform's ACLs. |
 | Sync tooling | How a team shares each tier (OneDrive share, Git remote, submodule) stays the team's choice. MIGRATION.md gives the sequence and an ACL checklist, not automation. |
 | Encryption or redaction | Out of scope; tiers are a placement-and-audience model. |
-| Per-note tier metadata | The directory is the tier. Front-matter tiering would break the folder-equals-share-unit invariant. |
+| Tier authority in frontmatter | The directory stays the tier and the share unit. Frontmatter never carries a tier, rank, or audience key; a copy could only drift from the folder. Coherence properties and tags are in scope per point 12 and are tier-independent. |
 | Prose-mention detection | The validator detects links and literal path strings mechanically. A prose sentence that names a restricted fact without either is an authoring-judgment matter the instructions govern. |
 | Per-entity share scoping inside a tier | Tier-2 sharing is deliberately coarse: a tier-2 recipient receives the whole tier. Narrower per-requisition scoping is a future spec. |
 | Export transport | Export travels over the existing drafting and sending skills. This spec names the action; it adds no new channel. |
@@ -294,8 +330,8 @@ Old-path removal is a success criterion (#9).
 
 | # | Claim | Verification |
 | - | ----- | ------------ |
-| 1 | A fresh init creates the five default tier directories, `Briefings/`, and the bundled instruction files (CLAUDE.md, apm.yml, `.claude/`) at the KB root, and nothing else; no MIGRATION.md; entity subdirectories stay on-demand. | Product test after init. |
-| 2 | The template root CLAUDE.md describes the tier system, the root model, the link rule, the exclusion-form placement rule, the promote and export actions, the three overlay forms, the entry-routing and aggregate-default write rules, and the sharing-over-mounts model. | Read `products/outpost/templates/CLAUDE.md`. |
+| 1 | A fresh init creates the five default tier directories, `Briefings/`, the default registry file, and the bundled instruction files (CLAUDE.md, apm.yml, `.claude/`) at the KB root, and nothing else; no MIGRATION.md; entity subdirectories stay on-demand. | Product test after init. |
+| 2 | The template root CLAUDE.md describes the tier system, the root model, the link rule, the exclusion-form placement rule, the promote and export actions, the three overlay forms, the entry-routing and aggregate-default write rules, the sharing-over-mounts model, and the frontmatter and tag standard. | Read `products/outpost/templates/CLAUDE.md`. |
 | 3 | Every template agent profile carries a `## Tiers` section with read scope and default write tier (`none` allowed), and no agent defaults to tier 1. | `rg --files-without-match '^## Tiers' products/outpost/templates/.claude/agents/*.md` returns nothing; profile review. |
 | 4 | Every template skill declares its write tier (`none` when it writes nothing into the graph). | `rg --files-without-match '^Write tier:' products/outpost/templates/.claude/skills/*/SKILL.md` returns nothing. |
 | 5 | Validation reports duplicate or out-of-grammar tier ranks and each narrower-tier, unresolved, ambiguous, or bare-basename link with file, line, and target, and exits non-zero. | Product tests with violating fixtures. |
@@ -304,9 +340,13 @@ Old-path removal is a success criterion (#9).
 | 8 | Validation passes a conforming full vault, a conforming suffix subset, and a vault whose tier directories are symlinks into sync targets with unrelated basenames. | Product tests with conforming and symlinked fixtures. |
 | 9 | Validation fails a legacy layout (`Knowledge/` or `Drafts/` present, an old entity directory at a tier-less root, or a target with no tiers) and names MIGRATION.md. | Product tests with legacy fixtures. |
 | 10 | MIGRATION.md ships in the template as the phased playbook with the human gates, the split rules, and the bundled workflow prompt, and `fit-outpost update` installs it into a knowledge base with a legacy layout. | Product test: after update on a legacy fixture, MIGRATION.md exists at the KB root; content review against point 10. |
-| 11 | The migration playbook converges: run against a legacy fixture vault with seeded violations (a mixed-audience note, a wider-to-narrower link, a bare link, a grown directory), it reaches a passing validation with human input only at the named gates. | Product test over the fixture vault. |
+| 11 | The migration playbook converges: run against a legacy fixture vault with seeded violations (a mixed-audience note, a wider-to-narrower link, a bare link, a grown directory, notes without frontmatter, notes with legacy inline metadata), it reaches a passing validation with conforming frontmatter and human input only at the named gates. | Product test over the fixture vault. |
 | 12 | No template instruction references a `Knowledge/` or `Drafts/` path. | `rg --hidden -e 'Knowledge/' -e 'Drafts/' products/outpost/templates/` returns nothing outside MIGRATION.md, which documents the old layout. |
 | 13 | The Outpost docs and the published skill describe the tier model and keep no `Knowledge/` or `Drafts/` example path. | The criterion 12 command over `websites/fit/outpost/`, `websites/fit/docs/getting-started/engineers/outpost/`, `websites/fit/docs/products/knowledge-systems/`, and `.claude/skills/fit-outpost/` returns nothing; the product page and getting-started guide carry the tier table and validator command. |
 | 14 | The changelog convention is one changelog per shared tier, discovered inside tier directories only. | The changelog skill names the per-tier location; criterion 12 retires `Knowledge/CHANGELOG.md`. |
 | 15 | Repository checks stay green. | `bun run check` and `bun run test` pass. |
 | 16 | The release is a major cut. | After the release cut, `npm view @forwardimpact/outpost version` reports the next major, per kata-release-cut. |
+| 17 | The template CLAUDE.md carries the frontmatter and tag standard, and a fresh init installs the default registry file at the KB root. | Read the template; product test after init. |
+| 18 | Every template skill declares its frontmatter duty and every agent profile names the stamping duty in its `## Tiers` section. | `rg --files-without-match '^Frontmatter:' products/outpost/templates/.claude/skills/*/SKILL.md` returns nothing; profile review. |
+| 19 | Validation reports `frontmatter-missing`, `frontmatter-invalid`, `frontmatter-vocabulary`, and `overlay-undeclared` findings with file and property, emits them in the JSON output, downgrades baselined ones to warnings, and skips registry-dependent checks when no registry file is present. | Product tests with violating, baselined, and registry-less fixtures. |
+| 20 | A wiki link inside a property value obeys the link legality, format, and quoting contracts and reports through the existing link kinds. | Product test with an illegal and a bare-basename property-link fixture. |
