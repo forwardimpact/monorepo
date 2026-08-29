@@ -1,7 +1,8 @@
 # Plan 2310-a Part 05: Recruitment and Composing Skills
 
 Rewrite the sixteen recruitment and composing skill trees, and move the
-draft-status ledgers to the cache state directory. Uses the part-04
+draft-status ledgers to the cache `drafts/` directory (never `state/`;
+see plan-a.md § Names). Uses the part-04
 declaration grammar. Runs in parallel with parts 04 and 06 after part 03;
 shares no files with them.
 

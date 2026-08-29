@@ -34,12 +34,13 @@ these values.
 | Draft-status ledgers | `~/.cache/fit/outpost/drafts/handled` and `~/.cache/fit/outpost/drafts/ignored` |
 | Per-tier changelog | `<N>-<Label>/CHANGELOG.md` in each shared tier (rank 1 and up); none in `0-Draft/` |
 
-The ledgers move to a sibling of `state/`, never into it:
-`~/.cache/fit/outpost/state/` is a daemon-owned trust root
+The ledger row deliberately corrects the design's phrase "the cache state
+directory": `~/.cache/fit/outpost/state/` is a daemon-owned trust root
 (`products/outpost/CLAUDE.md` § Trust Boundary) and the template settings
-deny agent writes there. The `drafts/` sibling sits inside the allow-listed
-cache root, so agent-run skills can maintain the ledgers and the trust
-boundary stays untouched per the spec's exclusion.
+deny agent writes there, so a literal reading would breach the spec's
+trust-boundary exclusion. The `drafts/` sibling sits inside the
+allow-listed cache root, so agent-run skills can maintain the ledgers and
+the trust boundary stays untouched.
 
 Neither `registry.yaml` nor `validation-baseline.json` matches the rank
 grammar, so both are personal surfaces by the root rule.
@@ -50,7 +51,7 @@ grammar, so both are personal surfaces by the root rule.
 | ---- | -------- | ---------- | ---------------- |
 | [01](plan-a-01.md) | `kb-validator.js` module + unit tests + `yaml` dependency | — | 5, 6, 7, 8, 9, 19, 20 |
 | [02](plan-a-02.md) | CLI `validate [path]` + `--json`, golden fixtures, `kb-manager` init/update, tests | 01 | 1, 10 (install half), 17 (install half) |
-| [03](plan-a-03.md) | Template CLAUDE.md, `registry.yaml`, `templates/MIGRATION.md` | — | 2, 10 (content half), 17 |
+| [03](plan-a-03.md) | Template CLAUDE.md, `registry.yaml`, `templates/MIGRATION.md` | — | 2, 10 (content half), 17 (content half) |
 | [04](plan-a-04.md) | Six agent profiles + graph, sync, and utility skills | 03 | 3, 14, part of 4/18 |
 | [05](plan-a-05.md) | Recruitment and composing skills + ledger move | 03 | part of 4/18, 12 |
 | [06](plan-a-06.md) | Docs pages + published `fit-outpost` skill + CLI parity | 03 | 13 |
@@ -95,10 +96,12 @@ to MIGRATION.md.
   the mock.
 - **Instruction-quality checks.** `jidoka` length budgets and the
   skill-template invariants run over the rewritten templates in CI, and
-  some template files sit near their caps after the repo-wide prose
-  rewrite. Parts 04 and 05 therefore run `bunx jidoka instructions` in
-  their own verification, not only at part 07, and trade body lines for
-  the added declarations where a file is at its cap.
+  three files sit exactly at their caps: `anarlog-process/SKILL.md` and
+  `req-track/SKILL.md` at the 192-line L5 cap, and
+  `templates/CLAUDE.md` at the 768-word subdirectory-CLAUDE.md cap.
+  Parts 03, 04, and 05 carry the per-file budget constraints and run
+  `bunx jidoka instructions` in their own verification, not only at
+  part 07.
 - **Prose conflicts with recent merges.** PR #2040 rewrote site prose
   repo-wide. Part 06 edits the same pages; rebase before the panel if main
   moves.

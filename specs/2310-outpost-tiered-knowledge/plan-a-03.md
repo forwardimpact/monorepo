@@ -11,6 +11,14 @@ design's Root CLAUDE.md component.
 
 - Modified: `products/outpost/templates/CLAUDE.md`
 
+Budget constraint: jidoka budgets this file as a subdirectory CLAUDE.md
+(128 lines, 768 words) and the current file sits at 114 lines and exactly
+768 words, so the rewrite has zero word headroom to inherit. Write the new
+sections as tables and one-line rules, and pay for every addition by
+tightening or dropping existing prose. If the design-required content
+cannot fit the budget, stop and raise it as a design conflict per
+kata-plan's clean-break rule; do not silently split the canonical home.
+
 Keep the file's role and voice. Section changes:
 
 | Section | Change |

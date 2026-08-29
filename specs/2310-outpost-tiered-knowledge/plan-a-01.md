@@ -92,7 +92,9 @@ Internal passes, in order:
    shared-tier note body (tags live in the frontmatter `tags` key):
    `frontmatter-invalid`. With a registry present:
    `type`, `status`, or a tag outside its vocabulary, or a tag on a note
-   wider than the tag's tier bound: `frontmatter-vocabulary`; conditional
+   wider than the tag's tier bound: `frontmatter-vocabulary` (the `type`
+   vocabulary is the union of the registry's `types:` and `reserved:`
+   values); conditional
    triggers (`aliases` on person/candidate/organization types, `status`
    on candidate/prospect types, `verified` on rank-4 notes) missing:
    `frontmatter-missing` with the property named. A cross-tier duplicate

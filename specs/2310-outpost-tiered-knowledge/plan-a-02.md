@@ -56,12 +56,20 @@ claims a contract no test enforces.
 - Modified: `products/outpost/test/golden/fit-outpost/help.stdout`
 - Modified: `products/outpost/test/golden/fit-outpost/cases.json`
 
-Pin `OUTPOST_VERSION: 0.0.0-golden` in the `help` case's env (the
-`version` case already does this) so the fixture stops embedding the live
-version. Re-capture with root `bun run capture-cli-golden`
-(`scripts/capture-cli-golden.mjs`, which also has `--verify`). Add a
-golden runner test modeled on `products/gemba/test/golden.test.js` so the
-fixtures execute in the gate from now on.
+Pin the version through `LIBCLI_PACKAGE_VERSION: 0.0.0-golden` in both
+the `help` and `version` cases — that is the env key libcli's
+`resolveVersion` (`libraries/libcli/src/version.js`) actually honors. The
+existing `OUTPOST_VERSION` env in the `version` case is a nonexistent
+mechanism (its fixture was hand-normalized); replace it. Alternatively
+render in-process with a pinned `definition.version` per the gemba model. Re-capture with
+`node scripts/capture-cli-golden.mjs --bin fit-outpost
+--exec products/outpost/bin/fit-outpost.js
+--golden-dir products/outpost/test/golden/fit-outpost`
+(the script resolves the golden dir from its flags, not the cwd; it also
+has `--verify`). Add a golden runner test modeled on
+`products/gemba/test/golden.test.js`; outpost's `buildDefinition` is
+module-local and two cases depend on env, so either export
+`buildDefinition` for in-process rendering or spawn the bin per case.
 
 Verification: root `bun run test` runs the new golden test and it passes;
 reverting the definition change makes it fail.
