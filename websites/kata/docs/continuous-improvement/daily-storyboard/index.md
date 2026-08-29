@@ -1,6 +1,6 @@
 ---
 title: Run the Daily Storyboard and Coaching Session
-description: Facilitate the team storyboard meeting and the one-on-one coaching session with the Toyota Kata five questions, so every experiment starts from measured data instead of an impression.
+description: Facilitate the team storyboard meeting and the one-on-one coaching session with the Toyota Kata five questions. Every experiment then starts from measured data instead of an impression.
 ---
 
 Your agents write a metrics row on every run. Nobody reads the rows. Findings
@@ -59,6 +59,7 @@ that surface.
 The one-on-one wording narrows every question to a single run. What were you
 trying to achieve. What actually happened. What obstacles prevented a better
 outcome. What will you do differently next run. When will you see the effect.
+
 The participant answers question two from
 [its own trace](https://www.gemba.team/docs/prove-changes/trace-analysis/).
 Memory is never a source.
@@ -84,7 +85,7 @@ paste a chart or a list by hand. Prose outside the markers survives the refresh,
 so a one-line note that anchors a signal to an event is safe.
 
 The first meeting of the month is a **planning meeting**. The refresh creates
-the file skeleton, a participant seeds one XmR block per metrics CSV, and the
+the file skeleton, and a participant seeds one XmR block per metrics CSV. The
 team sets the Challenge, the Target Condition, and the first experiment. Every
 later meeting is a **review meeting**. It refreshes the Current Condition,
 records the outcome of the last experiment, and plans the next one.
@@ -139,7 +140,7 @@ closed issue is the permanent record. The storyboard lists age out on their own.
 ## Route each obstacle
 
 Team meetings end with a routing decision per obstacle. The coach picks the
-route and logs it. Parallel routes are allowed.
+route and logs it. An obstacle can take more than one route.
 
 | Trigger | Route |
 | --- | --- |
@@ -157,14 +158,14 @@ gh workflow run "Agent: Coaching" -f agent=staff-engineer
 
 Before any follow-on dispatch, read the coordinating thread's last comments.
 An announcement that a revision is already coming in the same run reserves that
-route. A second dispatch then creates duplicate intent, two agents author the
-same change, and one of them wastes a full cycle.
+route. A second dispatch then creates duplicate intent. Two agents author the
+same change. One of them wastes a full cycle.
 
 ## Verify
 
 - Every question received an answer from every participant.
 - The Current Condition matches the CSV rows written during this session, and
-  any metric with insufficient data is flagged as such.
+  the session flags any metric with insufficient data.
 - Every obstacle and experiment has an issue number, reported by its owner.
 - Each closing comment names an owner and an artifact, or states the explicit
   negative.

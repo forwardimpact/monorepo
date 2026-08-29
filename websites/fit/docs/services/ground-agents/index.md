@@ -1,6 +1,6 @@
 ---
 title: Traverse Knowledge and Search Semantically
-description: Products that query relationships and search content without per-product stores — shared graph and vector gRPC services.
+description: Query relationships and search content through shared graph and vector gRPC services, with no per-product stores.
 ---
 
 You build a product feature that needs relationship traversal or semantic
@@ -13,8 +13,8 @@ typed interface.
 
 In this guide you connect to both services. You run a representative call
 against each one. You then check that the responses match what the underlying
-indexes contain. By the end, your product connects to both services. You will
-also understand the request/response shape well enough to build features on
+indexes contain. By the end, your product connects to both services. You also
+understand the request and response shapes well enough to build features on
 top of them.
 
 ## Prerequisites
@@ -249,9 +249,9 @@ for (const item of items) {
 }
 ```
 
-This two-step pattern (query the service, resolve the identifiers) keeps the
-services stateless. The product that calls the service resolves the resources
-locally.
+This two-step pattern keeps the services stateless. You query the service,
+then you resolve the identifiers. The product that calls the service resolves
+the resources locally.
 
 ## Verify
 

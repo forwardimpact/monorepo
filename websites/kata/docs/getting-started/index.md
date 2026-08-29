@@ -1,6 +1,6 @@
 ---
 title: "Getting Started: Your First Kata Shift"
-description: "Install the Kata skill pack, generate the shift workflow, run one scheduled shift, and read the memory, traces, and pull requests it leaves behind."
+description: "Install the Kata skill pack. Generate the shift workflow. Run one scheduled shift. Read the memory, traces, and pull requests it leaves behind."
 ---
 
 Kata is an agent team that works your repository on a daily Plan-Do-Study-Act
@@ -56,7 +56,7 @@ mutable tag would let the action change with no commit in your repository.
 The agents act as a GitHub App, so you rotate no long-lived personal token.
 Register it on the organization that owns the repository. Grant read and write
 access to Contents, Pull requests, Issues, Discussions, and Workflows, plus
-read-only Metadata. Install it, then add the repository secrets `KATA_APP_ID`,
+read-only Metadata. Install it. Then add the repository secrets `KATA_APP_ID`,
 `KATA_APP_PRIVATE_KEY`, and `ANTHROPIC_API_KEY`. Confirm each one resolves with
 `gh secret list` before the first run.
 
@@ -79,8 +79,8 @@ reads like a failure.
 ## Initialize shared memory
 
 Open repository Settings and enable Wikis. Then create the first wiki page in
-the web interface, because GitHub creates no wiki git repository until one page
-exists. Clone it into your working tree:
+the web interface. GitHub creates no wiki git repository until one page exists.
+Clone it into your working tree:
 
 ```sh
 npx gemba-wiki init
@@ -88,9 +88,9 @@ npx gemba-wiki init
 
 Expect `init: wiki ready at <repo>/wiki`, with your repository's absolute
 path. A warning that the clone failed means the
-wiki repository is still absent, so create that page and try again. Skip this
-step and every shift still runs, and every agent's memory dies with the runner.
-See the
+wiki repository is still absent, so create that page and try again. If you
+skip this step, every shift still runs. Each agent's memory then dies with the
+runner. See the
 [Gemba wiki guide](https://www.gemba.team/docs/predictable-team/wiki-operations/)
 for the command surface.
 
@@ -103,7 +103,7 @@ gh run watch
 
 The schedule fires the same workflow on its own, so trigger it by hand only on
 day one. To halt every workflow at once, set the `KATA_KILLSWITCH` repository
-variable to any value other than empty, `0`, `false`, `no`, or `off`.
+variable. Use any value other than empty, `0`, `false`, `no`, or `off`.
 
 ## Read what the shift wrote
 

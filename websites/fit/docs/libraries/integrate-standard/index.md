@@ -4,15 +4,14 @@ description: Engineering standard YAML becomes queryable data. Derive skill matr
 ---
 
 You build a feature that needs skill matrices or role definitions. The standard
-data sits in YAML files across `data/pathway/`. If you parse those files
-yourself, you reimplement the derivation rules. Those rules cover modifier
-resolution, proficiency clamping, tier classification, and validation. You also
-keep your code in sync as the standard evolves. `@forwardimpact/libskill`
-handles that derivation. Load the standard data once with
-`@forwardimpact/map`. Then call pure functions that return structured skill
-matrices, behaviour profiles, responsibilities, and agent configurations. The
-library applies the same rules that `fit-pathway` uses internally, so your
-feature stays consistent with the CLI.
+data sits in YAML files under `data/pathway/`. If you parse the files yourself,
+you reimplement modifier resolution, proficiency clamping, tier classification,
+and validation. You also keep the code in sync as the standard evolves.
+
+`@forwardimpact/libskill` handles that derivation. Load the standard data once
+with `@forwardimpact/map`. Then call pure functions that return skill matrices,
+behaviour profiles, responsibilities, and agent configurations. The library
+applies the same `fit-pathway` rules, so your feature matches the CLI.
 
 ## Prerequisites
 
@@ -23,14 +22,13 @@ feature stays consistent with the CLI.
 npm install @forwardimpact/libskill @forwardimpact/map
 ```
 
-- Standard data initialized at `data/pathway/`. If you still need to do this,
-  run `npx fit-pathway init` and follow the prompts.
+- Initialize the standard data at `data/pathway/`. If you still need to do
+  this, run `npx fit-pathway init` and follow the prompts.
 
 ## Load the standard data
 
 `@forwardimpact/map` provides a `DataLoader`. The loader reads every YAML file
-in your standard data directory. It returns a single object with all entities
-resolved:
+in the data directory. It returns one object with all entities resolved:
 
 ```js
 import { createDataLoader } from "@forwardimpact/map/loader";
@@ -40,15 +38,14 @@ const loader = createDataLoader(createDefaultRuntime());
 const data = await loader.loadAllData("data/pathway");
 ```
 
-`createDataLoader` takes a runtime, the bag of injected collaborators it reads
-files through. `createDefaultRuntime()` from `@forwardimpact/libutil` wires the
-real filesystem. Pass your own when you load data from somewhere else.
+`createDataLoader` takes a runtime, which holds the injected collaborators for
+file reads. `createDefaultRuntime()` from `@forwardimpact/libutil` wires the
+real filesystem. Pass your own runtime for other data sources.
 
 The returned `data` object contains arrays for `disciplines`, `levels`,
-`tracks`, `skills`, `behaviours`, `capabilities`, and `drivers`. Every function
-in `@forwardimpact/libskill` accepts these arrays as input parameters. The
-library never reads the filesystem itself. You control where the data comes
-from. The functions stay pure.
+`tracks`, `skills`, `behaviours`, `capabilities`, and `drivers`. Every
+`@forwardimpact/libskill` function accepts these arrays. The library never
+reads the filesystem. You control the data source. The functions stay pure.
 
 ## Derive a skill matrix
 
@@ -97,8 +94,8 @@ Each entry in the matrix includes:
 | `proficiencyDescription` | human-readable description of that proficiency |
 | `isHumanOnly`            | `true` for skills irrelevant to agents         |
 
-`deriveSkillMatrix` sorts the matrix by type. The type order is core,
-supporting, broad, then track. Within each type it sorts alphabetically.
+`deriveSkillMatrix` sorts the matrix by type. The order is core, supporting,
+broad, then track. It sorts alphabetically within each type.
 
 ## Apply track specializations
 
@@ -136,9 +133,9 @@ Platform skills: 16
 
 The platform track adds skills such as Change Management, Incident Management,
 Observability, and Performance Optimization. Those skills do not appear in the
-generalist matrix. Skills that are already present can also shift proficiency.
-A track modifier of `+1` on a capability raises every skill in that capability
-by one proficiency level. The level's maximum clamps the result.
+generalist matrix. Skills already present can also shift proficiency. A track
+modifier of `+1` on a capability raises every skill in that capability by one
+proficiency level. The level's maximum clamps the result.
 
 ## Derive a behaviour profile
 
@@ -174,11 +171,10 @@ one level from the base. A track with its own modifier stacks on top.
 
 ## Derive a complete role definition
 
-Use `deriveJob` when you need the full picture. The full picture covers the
-skill matrix, the behaviour profile, the responsibilities, and the
-expectations. `deriveJob` validates the combination first. It returns `null`
-for an invalid pairing. One example is a discipline that requires a track when
-you call `deriveJob` without one:
+Use `deriveJob` when you need the full picture. It covers the skill matrix,
+the behaviour profile, the responsibilities, and the expectations. `deriveJob`
+validates the combination first. It returns `null` for an invalid pairing. One
+example is a call without a track for a discipline that requires one:
 
 ```js
 import { deriveJob } from "@forwardimpact/libskill";
@@ -219,8 +215,7 @@ The returned object contains `id`, `title`, `skillMatrix` (same shape as
 
 ## Generate all valid roles
 
-To enumerate every valid discipline-level-track combination, use
-`generateAllJobs`:
+Use `generateAllJobs` to list every valid discipline-level-track combination:
 
 ```js
 import { generateAllJobs } from "@forwardimpact/libskill";
@@ -379,24 +374,21 @@ is valid. If it has `validTracks: ["platform", "sre"]` (no `null`), the
 discipline requires a track. The call then returns `false`.
 
 `deriveJob` calls this validation internally. It returns `null` for invalid
-combinations. Use `isValidJobCombination` when you need to check validity
-without the full derivation. One example is to disable invalid options in a
-form.
+combinations. Use `isValidJobCombination` to check validity without the full
+derivation. One example is to disable invalid options in a form.
 
 ## Verify
 
 You reach the outcome of this guide when:
 
-- You can load standard data with
-  `createDataLoader(createDefaultRuntime()).loadAllData()` and pass the result
-  to `@forwardimpact/libskill` functions.
-- You can derive a skill matrix for a discipline + level (+ optional track) and
-  inspect the type, proficiency, and description of each entry.
-- You can derive a behaviour profile and read the maturity level for each
-  behaviour.
-- You can generate a complete role definition with `deriveJob` and access its
+- `createDataLoader(createDefaultRuntime()).loadAllData()` gives you the
+  standard data that `@forwardimpact/libskill` functions accept.
+- You derive a skill matrix for a discipline + level (+ optional track) and
+  inspect each entry's type, proficiency, and description.
+- You derive a behaviour profile and read each behaviour's maturity level.
+- You generate a complete role definition with `deriveJob` and access its
   skill matrix, behaviour profile, responsibilities, and expectations.
-- You understand how track modifiers shift proficiencies and maturities.
+- You know how track modifiers shift proficiencies and maturities.
 
 ## What's next
 

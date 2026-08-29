@@ -33,7 +33,7 @@ For the suspend/resume contract unique to ghbridge, see
 - A GitHub token with `actions:write` on the target repository.
   `libconfig` falls back to `gh auth token` when `GH_TOKEN` is not set in
   `.env`, so `gh auth login` is sufficient.
-- The `cloudflared` CLI on the host (the tunnel sidecar uses it).
+- The `cloudflared` CLI on the host. The tunnel sidecar uses it.
 
 ## Architecture overview
 
@@ -49,16 +49,20 @@ Discussion ──webhook── ghtunnel ── ghbridge ──dispatch──> ag
      └────────── GraphQL ───────────┘
 ```
 
-The service is built on `@forwardimpact/libbridge`. The channel-agnostic
-intake skeleton, `Dispatcher` (the dispatch dance), `Acknowledgement`
-(reaction lifecycle), `ResumeScheduler` (suspend/resume), callback
-registry, rate limiter, history bound, prompt builder, and trigger
-evaluator all come from the library. Durable thread state lives in the
-shared `services/bridge` gRPC service, and `ghbridge` reaches it through a
-`BridgeClient`. Per-user GitHub auth lives in `services/ghuser`, and
-`ghbridge` reaches it through a `GhuserClient`. That auth mints the
-dispatch token. `ghbridge` owns the GitHub-specific glue: it verifies the
-webhook signature, mints the App installation token, and owns the GraphQL
+The service builds on `@forwardimpact/libbridge`. The library supplies the
+channel-agnostic intake skeleton, `Dispatcher` (the dispatch dance),
+`Acknowledgement` (the reaction lifecycle), and `ResumeScheduler`
+(suspend/resume). It also supplies the callback registry, the rate limiter,
+the history bound, the prompt builder, and the trigger evaluator.
+
+Durable thread state lives in the shared `services/bridge` gRPC service.
+`ghbridge` reaches it through a `BridgeClient`.
+
+Per-user GitHub auth lives in `services/ghuser`. `ghbridge` reaches it
+through a `GhuserClient`. That auth mints the dispatch token.
+
+`ghbridge` owns the GitHub-specific glue. It verifies the webhook
+signature. It mints the App installation token. It owns the GraphQL
 reaction and reply adapters.
 
 ## Configure credentials
@@ -185,16 +189,16 @@ You reach the outcome of this guide when:
 - When the workflow returns an `adjourned` verdict, every `reply` in
   the callback payload appears as a threaded comment on the discussion.
 - A follow-up comment on the same thread fires a trigger if an RFC is in
-  `recessed` state and the trigger condition is met. If no trigger fires,
-  the comment accumulates into the history and spawns no parallel
-  workflow run.
+  `recessed` state and the trigger condition holds at evaluation time. If no
+  trigger fires, the comment accumulates into the history and spawns no
+  parallel workflow run.
 
 If webhook delivery fails, confirm the App webhook log in the App
 settings shows successful deliveries. A `401 Invalid signature`
 response from the bridge usually means the webhook secret in `.env` and
-in the App settings drifted. If you are on a corporate VPN with tenant
-restrictions, outbound calls to `api.github.com` may be blocked.
-Disconnect, or allowlist the endpoint.
+in the App settings drifted. A corporate VPN with tenant restrictions may
+block outbound calls to `api.github.com`. Disconnect, or allowlist the
+endpoint.
 
 ## What's next
 

@@ -1,6 +1,6 @@
 ---
 title: Run a Continuously Improving Agent Team
-description: Run the daily Plan-Do-Study-Act cycle with an agent team, so every shift leaves evidence behind and every finding re-enters the loop as a pushed fix or a pushed spec.
+description: Run the daily Plan-Do-Study-Act cycle with an agent team. Every shift leaves evidence behind. Every finding re-enters the loop as a pushed fix or a pushed spec.
 ---
 
 Your agents ship work every day. Nobody can say whether the team is getting
@@ -77,11 +77,11 @@ because it assesses the shift that has finished.
 
 Serial order is not a performance choice. Agents share one checkout and one
 memory. Two agents that write the same file in the same minute hand you a merge
-conflict, and neither run says which change was intended.
+conflict, and neither run says which change the team intended.
 
 Each agent selects its own work at boot. It reads the priorities it owns, then
 its storyboard deliverables, then its domain checks, then the cross-cutting
-work it is listed on. The first level with real work wins. You do not write a
+work that lists it. The first level with real work wins. You do not write a
 prompt per shift.
 
 When a finding exceeds an agent's scope, the agent writes it up and leaves it.
@@ -133,14 +133,14 @@ Plan produces two artifacts in sequence:
   in a form a trusted agent executes without further interpretation.
 
 The spec, the design, and the plan sit together in one directory per spec, so
-the whole history of a change reads top to bottom. Each artifact goes through a
-review panel before it is pushed, and each waits for its own approval row.
+the whole history of a change reads top to bottom. A review panel reads each
+artifact before the push, and each artifact waits for its own approval row.
 
 Two artifacts give you two cheap places to change your mind. Redirecting a
 design costs a paragraph. Redirecting an implementation costs a week.
 
-[Take a Change from Spec to Shipped](/docs/spec-to-shipped/) walks the full arc,
-and
+[Take a Change from Spec to Shipped](/docs/spec-to-shipped/) walks the full
+arc.
 [Set the Approval Gates and Trust Boundary](/docs/spec-to-shipped/approval-gates/)
 covers who may approve what.
 
@@ -148,8 +148,8 @@ covers who may approve what.
 
 Do executes approved plans through implementation pull requests. It also runs
 the standing work that keeps a repository shippable: dependency patches, branch
-repair, release cuts, and the replies your dispatch workflow sends on issue and
-pull request events.
+repair, and release cuts. Standing work includes the replies your dispatch
+workflow sends on issue and pull request events.
 
 Every run captures a trace. The trace records what the agent read, what it
 tried, what it spent, and where it stopped. Traces are the raw material Study
@@ -193,8 +193,9 @@ program into a reporting habit. Each finding takes one route:
 - **Structural.** It needs a design decision, changes a component or a
   contract, or exceeds the scope of the agent that found it. It becomes a spec
   on its own branch, and it enters Plan on the next cycle.
-- **Unsettled.** The answer is not yet decided, or the same question reached two
-  agents, or it changes a shared rule. It becomes a Discussion first, and the
+- **Unsettled.** Nobody has decided the answer yet, or the same question
+  reached two agents, or it changes a shared rule. It becomes a Discussion
+  first, and the
   Discussion ends in a spec, a memory note, or a close.
 - **Out of scope.** Record the disposition and stop. This route creates no
   branch and no issue.
@@ -213,8 +214,9 @@ covers the classification tests and the routing for each work type.
 ## Step 7: Close the day at the storyboard
 
 Once a day the coach facilitates a storyboard session with the roster. It walks
-the coaching kata questions: where the team is headed, where it actually stands,
-what blocks it, what the next step is, and when the team will see the result.
+the coaching kata questions: where the team is headed, where it actually
+stands, and what blocks it. The last two questions ask for the next step and
+for when the team will see the result.
 
 The session has one hard rule. The current condition comes from measured
 numbers in the metric files, never from narrative. An agent that reports "docs
@@ -272,11 +274,11 @@ you never lose the schedule you configured.
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| Study produces a long report and nothing changes | findings never got classified | route every finding through Act, and treat a finding with no URL as unfinished |
+| Study produces a long report and nothing changes | nobody classified the findings | route every finding through Act, and treat a finding with no URL as unfinished |
 | The same finding returns three shifts in a row | the earlier runs left local commits | push the branch and open the pull request in the same run |
 | One pull request carries a dependency bump and a new component | fix and spec work shared a branch | split it, and keep the two branch families apart |
 | Two agents build the same thing | no claim row existed before the first code write | claim the target, push the claim, then start |
-| The storyboard reports feelings | metric rows were never recorded | make the skill record its run before it reports |
+| The storyboard reports feelings | no skill recorded metric rows | make the skill record its run before it reports |
 | A small review turned into a refactor | the profile carried no scope constraint | state what the role must not do, so it writes a spec |
 
 ## Verify

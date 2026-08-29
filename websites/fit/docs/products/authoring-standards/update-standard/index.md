@@ -1,6 +1,6 @@
 ---
 title: "Validate and Update the Standard"
-description: "Evolve your engineering standard with confidence. Structural mistakes surface during validation, before the team adopts the change."
+description: "Update your engineering standard. Validation catches structural mistakes before the team adopts the change."
 ---
 
 You need to update your agent-aligned engineering standard. You add a skill,
@@ -115,7 +115,7 @@ validation passes.
 
 Skip this step if you did not add a new skill.
 
-If you added a skill, it needs to appear in at least one discipline's tier
+If you added a skill, it must appear in at least one discipline's tier
 arrays. Otherwise Pathway cannot place it in a role. Open the relevant
 discipline file. Add the skill ID to `coreSkills`, `supportingSkills`, or
 `broadSkills`:
@@ -145,8 +145,8 @@ Errors
 
 ## Preview the result
 
-Once validation passes, preview the rendered standard to confirm the change
-looks right:
+When validation passes, preview the rendered standard to confirm the change
+renders as you expect:
 
 ```sh
 npx fit-pathway dev

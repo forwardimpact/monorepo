@@ -3,22 +3,24 @@ title: Add a Service to the MCP Surface
 description: A new gRPC service becomes agent-accessible with one registration and no integration code.
 ---
 
-You have a new gRPC service. You need agents to reach its RPCs as tools. The
-MCP service reads tool definitions from `config/config.json`. It uses codegen
-metadata to build typed parameter schemas automatically. To add your service,
-define proto files, generate the client code, and add entries to the config
-file. You write no handler code, no schema translation, and no per-service
-integration logic.
+You have a new gRPC service. You need agents to reach its RPCs as tools.
+
+The MCP service reads tool definitions from `config/config.json`. It uses
+codegen metadata to build typed parameter schemas automatically.
+
+To add your service, do three tasks. Define the proto files. Generate the
+client code. Add entries to the config file. You write no handler code, no
+schema translation, and no per-service integration logic.
 
 For the full MCP service setup and architecture, see
 [Expose Backend Services as Agent Tools](/docs/services/typed-contracts/).
 
 ## Prerequisites
 
-- Completed the
+- You completed the
   [Expose Backend Services as Agent Tools](/docs/services/typed-contracts/)
   guide. You understand the MCP service architecture. You can connect a client.
-- A gRPC service with a proto file under `proto/` (or `services/<name>/proto/`).
+- A gRPC service with a proto file under `proto/` or `services/<name>/proto/`.
 - `npx fit-codegen generate --all` available to regenerate client code.
 
 ## Step 1: Define the proto file
@@ -56,15 +58,15 @@ service needs:
 npx fit-codegen generate --all
 ```
 
-This generates:
+The command generates:
 
-- `generated/services/myservice/client.js` -- typed `MyServiceClient` class
-  with a `GetItems` method.
-- `generated/definitions/myservice.js` -- gRPC service definition.
-- Type entries in `generated/types/` -- `myservice.GetItemsRequest` with
+- `generated/services/myservice/client.js` holds the typed `MyServiceClient`
+  class with a `GetItems` method.
+- `generated/definitions/myservice.js` holds the gRPC service definition.
+- Type entries in `generated/types/` hold `myservice.GetItemsRequest` with
   `fromObject` and `toObject`.
-- Metadata entries in `generated/types/metadata.js` -- field descriptors the
-  MCP service reads to build Zod schemas.
+- Metadata entries in `generated/types/metadata.js` hold the field descriptors
+  that the MCP service reads to build Zod schemas.
 
 ## Step 3: Add tool entries to config
 
@@ -157,7 +159,7 @@ The MCP service validates the parameters against the codegen-derived schema.
 It creates a typed `GetItemsRequest`. It calls `myserviceClient.GetItems(req)`.
 It returns the content or the resolved identifiers.
 
-## How parameter schemas are derived
+## How the service derives parameter schemas
 
 You do not write Zod schemas by hand. The codegen metadata includes field
 descriptors for each request message:

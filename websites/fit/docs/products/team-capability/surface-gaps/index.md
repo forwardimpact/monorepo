@@ -1,6 +1,6 @@
 ---
 title: "Surface Capability Gaps"
-description: "See capability gaps before they become incidents: structural risks, coverage trends, and growth opportunities made visible."
+description: "See capability gaps before they become incidents. Summit shows structural risks, coverage trends, and growth opportunities."
 ---
 
 You need to find capability gaps in your team before someone gets set up to
@@ -55,7 +55,7 @@ Each category tells you something different:
   and proficiency in the same capability area. The group becomes a bottleneck
   because everyone has the same ceiling.
 
-When a single point of failure involves a part-time allocation (below 1.0),
+When a single point of failure involves a part-time allocation below 1.0,
 Summit raises the severity. A `[high]` severity means the sole holder works
 less than half-time for the team.
 
@@ -94,15 +94,16 @@ Expected output:
 ```
 
 The **persistent gaps** line names skills that had zero depth across every
-quarter shown. These are the gaps most likely to cause failures. They are not
-new. They do not trend toward resolution.
+quarter shown. These gaps are not new and they do not trend toward resolution.
+They are the most likely to cause failures.
 
 Trajectory requires a version-controlled `summit.yaml` so Summit can read
 historical roster snapshots from git.
 
 ## Compare teams to find relative weaknesses
 
-When you lead multiple teams, another team may cover a gap on one team:
+When you lead multiple teams, a gap on one team may have coverage on another
+team:
 
 ```sh
 npx fit-summit compare platform delivery --roster ./summit.yaml
@@ -125,8 +126,7 @@ Expected output:
 ```
 
 Address unique risks first. No other team compensates for them. When both teams
-share the same gap, the problem is organizational. It is not specific to one
-team.
+share the same gap, the problem is organizational and not specific to one team.
 
 ## Identify growth opportunities that close gaps
 
@@ -154,8 +154,8 @@ npx fit-summit growth platform --roster ./summit.yaml
 ```
 
 Summit groups the recommendations by impact. High-impact items address critical
-gaps, the skills nobody covers. Medium-impact items reduce single points of
-failure. Low-impact items add depth and strengthen existing coverage.
+gaps, where nobody covers the skill. Medium-impact items reduce single points
+of failure. Low-impact items add depth and strengthen existing coverage.
 
 Each recommendation names the team members closest to the target proficiency.
 The path from `foundational` to `working` is shorter than the path from

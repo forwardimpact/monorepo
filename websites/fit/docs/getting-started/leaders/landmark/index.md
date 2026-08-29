@@ -33,7 +33,7 @@ npm install @forwardimpact/landmark
 
 Every Landmark command except `marker` resolves the caller's identity from a
 Supabase Auth session. Row-level security uses the JWT's `email` claim to scope
-every query. So the session authenticates you and also determines what you can
+every query. The session authenticates you and also determines what you can
 see.
 
 **There is no hosted Forward Impact service and no free tier.** Landmark reads
@@ -121,22 +121,26 @@ Practice patterns show where your team has strong evidence of skill practice and
 where evidence is thin. They help you find coaching opportunities before they
 become gaps.
 
-## How evidence gets populated
+## How Map and Guide populate evidence
 
 Landmark presents evidence. It does not create evidence. Evidence rows come
-from two producers. Map's transform pipeline derives a first layer directly
-from ingested GitHub artifacts (it runs automatically during
-`npx fit-map activity transform`). Guide's evaluation pipeline goes deeper. It
-reads the same artifacts from Map, evaluates each one against the markers in
-your engineering standard, and writes its assessments back as evidence rows.
-In production the Guide pass runs on a schedule (a cron job or GitHub Action)
-so evidence stays current as new artifacts arrive:
+from two producers.
+
+Map's transform pipeline derives a first layer directly from ingested GitHub
+artifacts. That pipeline runs automatically during
+`npx fit-map activity transform`.
+
+Guide's evaluation pipeline goes deeper. It reads the same artifacts from Map,
+evaluates each one against the markers in your engineering standard, and
+writes its assessments back as evidence rows. In production, the Guide pass
+runs on a schedule, for example a cron job or a GitHub Action. Evidence then
+stays current as new artifacts arrive:
 
 ```sh
 echo "evaluate unscored artifacts for all" | npx fit-guide
 ```
 
-You do not need to run this manually in most setups. Your operations team
+In most setups you do not run this command manually. Your operations team
 configures it once during Guide setup.
 
 ## Browse evidence
@@ -233,7 +237,8 @@ but low evidence may indicate either a data gap or a coaching opportunity.
 
 The health view is Landmark's centerpiece. It joins driver scores, evidence
 from the skills that contribute, engineer voice comments, and growth
-recommendations (when you install Summit) into a single picture:
+recommendations into a single picture. Growth recommendations appear when you
+install Summit:
 
 ```sh
 npx fit-landmark health --manager alice@example.com
@@ -243,10 +248,10 @@ npx fit-landmark health --manager alice@example.com --verbose
 Default output is a compact table. It shows one row per driver with the GetDX
 percentile, the `vs_org` anchor, and a `More` cell. The `More` cell hints how
 many additional percentile anchors exist. A deduped `Recommendations` trailer
-follows. Pass `--verbose` for the full per-driver paragraph layout: every
-percentile anchor (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`, `vs_90th`), the
-skills that contribute, evidence counts, GetDX comments, and growth
-recommendations.
+follows. Pass `--verbose` for the full per-driver paragraph layout. That layout
+shows every percentile anchor (`vs_prev`, `vs_org`, `vs_50th`, `vs_75th`,
+`vs_90th`), the skills that contribute, evidence counts, GetDX comments, and
+growth recommendations.
 
 Sample default output:
 
@@ -283,7 +288,7 @@ npx fit-landmark voice --manager alice@example.com
 ```
 
 In manager mode, Landmark buckets comments by theme and aligns them to drivers
-with low scores. This shows where engineer sentiment matches the data. In
+with low scores. The view shows where engineer sentiment matches the data. In
 individual mode (`--email`), comments appear as a timeline alongside evidence
 context.
 

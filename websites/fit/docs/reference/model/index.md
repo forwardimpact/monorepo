@@ -8,7 +8,7 @@ description: How disciplines, levels, tracks, skills, and behaviours combine to 
 The core model defines how you traverse your engineering terrain. Every
 combination of discipline, track, and level produces a unique, consistent role
 profile. The skill proficiencies, behaviour expectations, and responsibilities
-all come from the same source data.
+come from the same source data.
 
 ---
 
@@ -94,8 +94,8 @@ modifiers apply to all skills in a capability at once.
 
 Capabilities also define:
 
-- **professionalResponsibilities** -- IC role expectations per skill proficiency
-- **managementResponsibilities** -- Manager role expectations per skill
+- **professionalResponsibilities**: IC role expectations per skill proficiency
+- **managementResponsibilities**: Manager role expectations per skill
   proficiency
 
 Per-skill checklists (`readChecklist` and `confirmChecklist`) live on each
@@ -154,17 +154,17 @@ skill adjustments. Tracks are pure modifiers. They do not define role types.
 
 Tracks define two kinds of modifiers:
 
-- **skillModifiers** -- Shift skill proficiencies for all skills in a capability
-  (e.g. `delivery: +1`)
-- **behaviourModifiers** -- Shift behaviour maturity expectations for specific
-  behaviours (e.g. `systems-thinking: +1`)
+- **skillModifiers**: Shift skill proficiencies for all skills in a
+  capability, for example `delivery: +1`
+- **behaviourModifiers**: Shift behaviour maturity expectations for specific
+  behaviours, for example `systems-thinking: +1`
 
 ---
 
 ## Levels
 
 Levels define career levels with base expectations for skill proficiency and
-behaviour maturity:
+behaviour maturity.
 
 The starter agent-aligned engineering standard ships with two levels. Your
 agent-aligned engineering standard may define more.
@@ -180,24 +180,24 @@ agent-aligned engineering standard may define more.
 
 ### Skill Derivation Steps
 
-1. **Determine skill tier** -- Is this skill core, supporting, or broad for the
-   discipline? Each discipline classifies every skill into one of three tiers:
-   core, supporting, or broad.
+1. **Determine the skill tier.** Each discipline classifies every skill into
+   one of three tiers: core, supporting, or broad. Find the tier the
+   discipline assigns to this skill.
 
-2. **Get base proficiency** -- Look up the level's base proficiency for that
+2. **Get the base proficiency.** Look up the level's base proficiency for that
    skill tier. For example, J060 maps core skills to `working`, supporting to
    `foundational`, and broad to `awareness`.
 
-3. **Apply track modifier** -- Add the track's modifier for the skill's
+3. **Apply the track modifier.** Add the track's modifier for the skill's
    capability. Track modifiers apply at the capability level. They affect all
    skills in a capability equally.
 
-4. **Cap positive modifiers** -- Positive modifiers cannot push the result above
+4. **Cap positive modifiers.** Positive modifiers cannot push the result above
    the level's maximum base proficiency. If a level peaks at `practitioner`, a
    +1 modifier cannot produce `expert`.
 
-5. **Clamp to valid range** -- Make sure the result falls between `awareness`
-   (0) and `expert` (4).
+5. **Clamp to the valid range.** Make sure the result falls between
+   `awareness` (0) and `expert` (4).
 
 ### Complete Derivation Example
 
@@ -211,7 +211,7 @@ agent-aligned engineering standard may define more.
 1. **Skill tier**: supporting
 2. **Base proficiency**: foundational (index 1)
 3. **Modifier**: +1 (delivery capability)
-4. **Cap check**: working (index 2) <= max base working (index 2) -- OK
+4. **Cap check**: working (index 2) <= max base working (index 2), so OK
 5. **Result**: working
 
 ---
@@ -244,7 +244,7 @@ Responsibilities come from capabilities and vary by role type:
 | Management        | `capability.managementResponsibilities`   |
 
 The derived skill proficiency for each capability selects the responsibilities.
-Higher skill proficiencies unlock additional responsibilities.
+Higher skill proficiencies add more responsibilities.
 
 ---
 
@@ -272,19 +272,20 @@ threshold.
 ### Positive Modifier Capping
 
 When a track modifier is positive, the result cannot exceed the level's maximum
-base skill proficiency. Lower levels then cannot gain unrealistically high
-expertise just because a track emphasizes a particular area.
+base skill proficiency. A lower level then cannot gain high expertise only
+because a track emphasizes a particular area.
 
 ### Negative Modifiers
 
-Negative modifiers are not capped. They can freely reduce a level down to
-`awareness`. This models the reduced expectations in de-emphasized areas.
+The derivation does not cap negative modifiers. A negative modifier can reduce
+a proficiency down to `awareness`. This models the reduced expectations in
+de-emphasized areas.
 
 ### Capability-Level Modifiers
 
 Track modifiers apply at the capability level. They affect all skills in that
-capability equally. This avoids per-skill configuration. It still allows
-meaningful differentiation between tracks.
+capability equally. This avoids per-skill configuration. Tracks can still
+differ in meaningful ways.
 
 ---
 

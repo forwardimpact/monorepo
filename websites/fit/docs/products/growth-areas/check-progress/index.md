@@ -64,8 +64,8 @@ npx fit-landmark readiness --email you@example.com --target J080
 The summary line at the bottom is the quickest signal. Compare the
 evidenced/total ratio to your last check. If the ratio grew, recent work
 produces visible results. The coverage line at the end shows how much of your
-artifact record backs the checklist. When fewer than 30% of your artifacts
-are interpreted, `readiness` suppresses the checklist entirely. It then prints
+artifact record backs the checklist. When Landmark interprets fewer than 30%
+of your artifacts, `readiness` suppresses the checklist entirely. It then prints
 the coverage figure with guidance on how to lift it.
 
 ## Review the evidence behind each marker
@@ -141,7 +141,9 @@ If the timeline shows the same proficiency level across multiple quarters with
 no change, one of two things happened. The work did not yet produce artifacts
 that match the next-level markers. Or nobody ingested the relevant artifacts.
 Check whether Landmark processed your recent pull requests and design
-documents. When coverage is below 30%, the timeline opens with a banner. The
+documents.
+
+When coverage is below 30%, the timeline opens with a banner. The
 banner says a flat line reflects the measurement floor. It does not reflect an
 absence of growth.
 

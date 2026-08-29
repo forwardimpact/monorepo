@@ -1,14 +1,16 @@
 ---
 title: Embed Text Using a Shared Service
-description: Products that fetch embeddings and do not manage inference infrastructure — shared embedding gRPC service backed by Text Embeddings Inference.
+description: Fetch embeddings from one shared gRPC service that runs Text Embeddings Inference, and do not manage inference infrastructure.
 ---
 
 You build a product feature that needs semantic vectors. Examples are search,
 deduplication, clustering, and retrieval-augmented generation. You do not want
-each product to run its own inference backend. The embedding gRPC service
-exposes one method. Pass an array of strings. The method returns an array of
-dense vectors, in order. The inference model runs in a sidecar process. The
-service starts that process on boot. Products see only the typed gRPC surface.
+each product to run its own inference backend.
+
+The embedding gRPC service exposes one method. Pass an array of strings. The
+method returns an array of dense vectors, in order. The inference model runs
+in a sidecar process. The service starts that process on boot. Products see
+only the typed gRPC surface.
 
 In this guide you connect to the embedding service. You call its one RPC with
 a batch of inputs. You then check that the response shape matches what your
@@ -31,11 +33,11 @@ npm install @forwardimpact/librpc @forwardimpact/libtype
 The embedding service is a thin gRPC adapter over a
 [Text Embeddings Inference](https://github.com/huggingface/text-embeddings-inference)
 (TEI) backend that runs as a sidecar process. On boot, the service spawns
-`text-embeddings-router` with a configured model (default
-`BAAI/bge-small-en-v1.5`) that listens on a local port. The service translates
-each gRPC request into a single HTTP call to TEI's OpenAI-compatible
-`/v1/embeddings` endpoint. It then translates the response back into the proto
-shape.
+`text-embeddings-router` with a configured model, and the router listens on a
+local port. The default model is `BAAI/bge-small-en-v1.5`. The service
+translates each gRPC request into a single HTTP call to TEI's
+OpenAI-compatible `/v1/embeddings` endpoint. It then translates the response
+back into the proto shape.
 
 ```text
 Product A ──┐                                    ┌── BAAI/bge-small-en-v1.5

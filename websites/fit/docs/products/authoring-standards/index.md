@@ -37,7 +37,9 @@ You define skills inside capability files. Every entity carries a `human:`
 section for engineers. Most entities can also include an `agent:` section for
 AI coding agents. Skills can carry `instructions`, `references`, and
 `toolReferences`. These fields flow into the generated SKILL.md files that
-agents load at runtime. A discipline classifies skills into three tiers
+agents load at runtime.
+
+A discipline classifies skills into three tiers
 (`coreSkills`, `supportingSkills`, `broadSkills`). A level sets the baseline
 proficiency expected at each tier (`core`, `supporting`, `broad`). When Pathway
 generates a role, these two dimensions combine into concrete expectations.
@@ -205,11 +207,13 @@ To make a skill available to AI coding agents, add an `agent:` section:
 `readChecklist` is a read-do entry gate. The agent reads each item and acts on
 it before work starts. `confirmChecklist` is a do-confirm exit gate. The agent
 works from memory. The agent then pauses to confirm each item before it
-continues. Aim for 5--7 items per list. Each item is a single action that
-starts with a verb. If an item needs explanation, the `instructions` field is
-incomplete. Mark a skill that nobody can automate with `isHumanOnly: true`. For
-the full skill schema, see the
-[YAML Schema Reference](/docs/reference/yaml-schema/).
+continues.
+
+Aim for 5--7 items per list. Each item is a single action that starts with a
+verb. If an item needs explanation, the `instructions` field is incomplete.
+
+Mark a skill that nobody can automate with `isHumanOnly: true`. For the full
+skill schema, see the [YAML Schema Reference](/docs/reference/yaml-schema/).
 
 ### Add instructions to skills
 
@@ -380,8 +384,9 @@ behaviourModifiers:
 Track `skillModifiers` target capability IDs (not individual skill IDs). A
 modifier of `+1` raises all skills in that capability by one proficiency level.
 A modifier of `-1` lowers them by one. A modifier never pushes a skill outside
-the valid proficiency range. Track `behaviourModifiers` are not capped like
-discipline modifiers. They can exceed +/-1.
+the valid proficiency range. The schema does not cap track
+`behaviourModifiers` the way it caps discipline modifiers. They can exceed
++/-1.
 
 ### Add agent team instructions to tracks
 
@@ -577,9 +582,9 @@ Software Engineering × J060 × Platform
 | ...
 ```
 
-Track modifiers raise or lower entire capabilities (not individual skills).
-The Platform track's `reliability: +1` shifts every skill in the Reliability
-capability up one proficiency level.
+Track modifiers raise or lower entire capabilities. They do not change
+individual skills. The Platform track's `reliability: +1` shifts every skill
+in the Reliability capability up one proficiency level.
 
 For common validation errors and their fixes, see the
 [YAML Schema Reference](/docs/reference/yaml-schema/).

@@ -16,16 +16,16 @@ hero:
 ---
 
 Two managers disagree on what 'senior' means. Neither can point to a written
-definition. Map gives them one. It is a structured, validatable engineering
-standard that everyone references, humans and agents alike.
+definition. Map gives them one. Map is a structured, validatable engineering
+standard. Humans and agents reference the same standard.
 
 ## What becomes possible
 
 ### For Engineering Leaders
 
 Define what good engineering means so roles have clear, defensible
-expectations. Define or update a role's expectations. Structural mistakes get
-caught.
+expectations. Define or update a role's expectations. Map catches structural
+mistakes.
 
 - A validated engineering standard in plain text. It holds skills, behaviours,
   levels, disciplines, and tracks

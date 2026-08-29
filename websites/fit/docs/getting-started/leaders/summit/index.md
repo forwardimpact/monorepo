@@ -1,15 +1,15 @@
 ---
 title: "Getting Started: Summit for Leaders"
-description: "Model team capability — coverage heatmaps, structural risks, what-if staffing scenarios, growth alignment, and trajectory over time."
+description: "Model team capability: coverage heatmaps, structural risks, what-if staffing scenarios, growth alignment, and trajectory over time."
 ---
 
-Summit treats a team as a system. It does not treat a team as a collection of
+Summit models a team as one system rather than as a collection of
 individuals. It aggregates skill matrices into capability coverage, structural
 risks, and what-if staffing scenarios. Core Summit is fully local and
 deterministic. It reads your Map standard data plus a team roster. It runs
 instantly with no network calls.
 
-Two optional flags unlock the activity layer. `--evidenced` compares derived
+Two optional flags enable the activity layer. `--evidenced` compares derived
 coverage against practice patterns from evidence rows. `--outcomes` weights
 growth recommendations by GetDX driver scores. Without those flags Summit needs
 nothing beyond standard data and a roster.
@@ -177,15 +177,15 @@ see the impact of a change on one area of the team.
 
 ## Align growth with team needs
 
-Growth opportunities highlight where individual development would have the most
-leverage for the team as a whole:
+Growth opportunities show where individual development helps the whole team
+the most:
 
 ```sh
 npx fit-summit growth platform --roster ./summit.yaml
 ```
 
-Add `--outcomes` to weight recommendations by GetDX driver scores (requires
-Map's activity layer):
+Add `--outcomes` to weight recommendations by GetDX driver scores. This flag
+requires Map's activity layer:
 
 ```sh
 npx fit-summit growth platform --roster ./summit.yaml --outcomes
@@ -217,8 +217,7 @@ history of that file to reconstruct past roster states at quarter boundaries.
 If you do not commit the file, or it has no history, or it lives outside a git
 repository, the command cannot produce results.
 
-This turns "is the team getting stronger?" from a felt sense into a structural
-answer.
+The chart replaces a felt sense of team growth with a structural answer.
 
 ## Combine with the activity layer
 

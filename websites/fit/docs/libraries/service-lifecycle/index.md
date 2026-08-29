@@ -1,11 +1,11 @@
 ---
 title: Manage Service Lifecycle from One Interface
-description: Services that stay running and problems that surface before they escalate — supervision and observability from one interface.
+description: Keep services running and surface problems before they escalate. One interface gives you supervision and observability.
 ---
 
 You run several services, such as a gRPC server, a vector store, and a span
 collector. To manage them, you must remember which command starts each one.
-You must watch for crashes by hand. You must wade through unstructured console
+You must watch for crashes by hand. You must search unstructured console
 output when something goes wrong. Three libraries remove that overhead.
 `@forwardimpact/librc` gives you a single CLI that starts, stops, and checks
 every service. `@forwardimpact/libsupervise` runs a supervision daemon that
@@ -13,15 +13,15 @@ restarts services automatically when they crash.
 `@forwardimpact/libtelemetry` adds structured logging and trace spans, so
 problems surface in context. They do not stay buried in stdout.
 
-This guide walks the full arc. Define services in a configuration file. Manage
-them through one interface. Observe their behavior through structured logs and
-spans. Each step produces a result that works. Two bounded tasks cover the
-details:
+This guide covers the full workflow. Define services in a configuration file.
+Manage them through one interface. Observe their behavior through structured
+logs and spans. Each step produces a result that works. Two bounded tasks
+cover the details:
 
 - [Start, stop, or check a service](/docs/libraries/service-lifecycle/manage-service/)
-  — manage a service without the need to remember its specific incantation.
+  manages a service. You do not need to remember its specific command.
 - [Add observability](/docs/libraries/service-lifecycle/add-observability/)
-  — add a log line or trace span without the need to configure a logging
+  adds a log line or trace span. You do not need to configure a logging
   framework.
 
 ## Prerequisites
@@ -67,8 +67,8 @@ machine-readable output.
 ## Define services
 
 You define services in `config/config.json` under the `init` key. Each service
-is either a **longrun** (a process that should stay running) or a **oneshot** (a
-command that runs once during startup or shutdown):
+is a **longrun** or a **oneshot**. A longrun is a process that stays running.
+A oneshot is a command that runs once during startup or shutdown:
 
 ```json
 {
@@ -120,13 +120,14 @@ npx fit-rc start
 
 This command:
 
-1. Spawns the `svscan` supervision daemon (or restarts it if it already runs).
+1. Spawns the `svscan` supervision daemon, or restarts a daemon that already
+   runs.
 2. Walks through each service in order.
 3. For oneshot services, runs the `up` command and waits for completion.
 4. For longrun services, adds them to the supervision tree. The daemon keeps
    each one running.
 
-Expected output (timestamps and process IDs will differ):
+The expected output follows. Your timestamps and process IDs differ:
 
 ```text
 INFO 2026-05-04T10:00:01.123Z rc codegen 42001 MSG001 - Running oneshot direction="up" cmd="npx fit-codegen generate --all"
@@ -136,8 +137,7 @@ INFO 2026-05-04T10:00:04.012Z rc vector 42001 MSG004 - Service started
 INFO 2026-05-04T10:00:04.234Z rc graph 42001 MSG005 - Service started
 ```
 
-To start only up to a specific service (useful when you need only part of the
-stack):
+Start only up to a specific service when you need only part of the stack:
 
 ```sh
 npx fit-rc start span
@@ -201,7 +201,7 @@ npx fit-rc restart span
 ```
 
 This stops the named service and everything after it in the array. It then
-starts that same slice again. Dependents that it tore down come back up. It
+starts that same slice again. The dependents that it stopped start again. It
 leaves the services before the target untouched. Without a name, it restarts
 all services.
 
@@ -243,7 +243,7 @@ processes). This prevents orphaned subprocesses.
 
 A service that starts on the wrong Node.js version, or with a required secret
 left blank, should refuse to run. It should not fail halfway through a
-request. `@forwardimpact/libpreflight` triggers that refusal at the very top
+request. `@forwardimpact/libpreflight` triggers that refusal at the top
 of a service's entry script, before any heavy import resolves.
 
 Import the runtime-floor check as the **first** import in the entry file. It has

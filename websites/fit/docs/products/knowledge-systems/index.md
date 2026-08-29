@@ -1,15 +1,16 @@
 ---
 title: "Keep Track of Context Without Effort"
-description: "Outpost assembles and maintains awareness of people, projects, and threads in the background, so you never walk into a meeting cold."
+description: "Outpost maintains awareness of people, projects, and threads in the background. You do not walk into a meeting cold."
 ---
 
 You have context scattered across email threads, calendar invites, chat
 messages, and last week's notes. To keep track of it all, you depend on your
 memory. Memory drops things. Outpost is a personal operations center that runs
-AI agents on a schedule. The agents sync your email and calendar. They build a
-knowledge graph of the people and projects you work with. They prepare
-briefings before meetings. You set it up once. It keeps working in the
-background.
+AI agents on a schedule.
+
+The agents sync your email and calendar. They build a knowledge graph of the
+people and projects you work with. They prepare briefings before meetings. You
+set it up once. It keeps working in the background.
 
 By the end of this guide, Outpost runs against your knowledge base. It
 maintains a continuously updated picture of your work context.
@@ -24,8 +25,8 @@ knowledge base works and your scheduler runs.
 
 ## See what your agents do
 
-Outpost ships with six agents. Each agent is responsible for a slice of your
-context. After the scheduler runs for a cycle or two, check what happened:
+Outpost ships with six agents. Each agent owns a slice of your context.
+After the scheduler runs for a cycle or two, check what happened:
 
 ```sh
 npx fit-outpost status
@@ -62,9 +63,10 @@ Agents:
     Status: never-woken  Last wake: never  Wakes: 0
 ```
 
-Each agent has a `+` or `-` prefix (enabled or disabled), a knowledge base
-path, a schedule, and a cumulative tally of wakes and last actions. The four
-agents that matter most when you track context day to day are:
+A `+` prefix marks an enabled agent. A `-` prefix marks a disabled agent.
+Each entry shows a knowledge base path, a schedule, and a tally of wakes and
+last actions. The four agents that matter most when you track context day to
+day are:
 
 | Agent              | What it maintains                                        |
 | ------------------ | -------------------------------------------------------- |
@@ -82,7 +84,7 @@ candidate data in your knowledge base.
 As agents sync email, calendar, and chat data, the librarian processes it into
 a knowledge graph. The graph is plain markdown files organized by entity type.
 You share only the `Knowledge/` graph with the team over a synced filesystem
-(e.g. OneDrive). The rest of the workspace stays personal and local:
+such as OneDrive. The rest of the workspace stays personal and local:
 
 ```text
 ~/.local/share/fit/outpost/Team/          # Your workspace root -- NOT shared
@@ -99,8 +101,8 @@ You share only the `Knowledge/` graph with the team over a synced filesystem
     └── skills/                # Skill definitions agents use
 ```
 
-Notes use Obsidian-compatible `[[backlinks]]`, so you can browse the graph in
-Obsidian or any markdown editor. Each person note accumulates context from
+Notes use Obsidian-compatible `[[backlinks]]`. You can browse the graph in
+Obsidian or in any markdown editor. Each person note accumulates context from
 every email, meeting, and conversation where they appeared. That is the kind of
 background you would otherwise reconstruct from memory before a meeting.
 
@@ -117,8 +119,8 @@ Projects/Auth Migration.md:12:Lead: [[Sarah Chen]]
 Topics/Platform Reliability.md:5:Raised by [[Sarah Chen]] in Q1 review
 ```
 
-This surfaces every note that mentions the person across all entity types. You
-get the full picture instead of a single file.
+The search returns every note that mentions the person across all entity
+types. You see the full context in one search.
 
 ## Customize agent schedules
 
@@ -187,8 +189,8 @@ Waking postman...
   Done (4.2s)
 ```
 
-This is useful when you know new email arrived and you want it synced before a
-meeting. It is also useful when you want a fresh briefing:
+Use this when new email arrived and you want the postman to sync it before a
+meeting. Use it also when you want a fresh briefing:
 
 ```sh
 npx fit-outpost wake chief-of-staff
@@ -222,8 +224,8 @@ Updating ~/.local/share/fit/outpost/Team...
   Done.
 ```
 
-Omit the path to update the knowledge base in the current directory, so you
-can run it from inside the KB itself:
+Omit the path to update the knowledge base in the current directory. You can
+then run the command from inside the KB:
 
 ```sh
 cd ~/.local/share/fit/outpost/Team
@@ -236,8 +238,7 @@ settings into your knowledge base. It merges new permissions into your existing
 
 ## Validate your setup
 
-After you update or change agent configurations, confirm everything is wired
-correctly:
+After you update or change agent configurations, confirm the setup:
 
 ```sh
 npx fit-outpost validate
@@ -258,11 +259,11 @@ Validating agents...
 All OK.
 ```
 
-The validator checks that each configured agent has a matching agent
-definition file in `.claude/agents/` (either in the knowledge base or in your
-global `~/.claude/agents/` directory). A `[FAIL]` result means the agent
-definition is missing. Run `npx fit-outpost update <path>` (or
-`npx fit-outpost update` from inside the knowledge base) to restore it.
+The validator checks that each configured agent has a matching definition
+file in `.claude/agents/`. The file can live in the knowledge base or in
+your global `~/.claude/agents/` directory. A `[FAIL]` result means the agent
+definition is missing. Run `npx fit-outpost update <path>` to restore it, or
+run `npx fit-outpost update` from inside the knowledge base.
 
 ## Verify
 
@@ -278,8 +279,8 @@ You reach the outcome of this guide when:
 - You can search the graph with `rg "name" Knowledge/` and find cross-referenced
   context about a person or project.
 
-If any of these are missing, check `npx fit-outpost status` for errors and
-review the logs at `~/.fit/outpost/logs/`.
+If any of these are missing, check `npx fit-outpost status` for errors.
+Then review the logs at `~/.fit/outpost/logs/`.
 
 ## What's next
 

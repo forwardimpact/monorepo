@@ -3,9 +3,9 @@ title: "Getting Started: Landmark for Engineers"
 description: "Check your evidence record, promotion readiness, growth timeline, and skill coverage against the markers in your agent-aligned engineering standard."
 ---
 
-Landmark gives you visibility into your own practice evidence and growth data.
-It shows what your engineering record looks like against the markers in your
-agent-aligned engineering standard.
+Landmark shows you your own practice evidence and growth data. It compares your
+engineering record against the markers in your agent-aligned engineering
+standard.
 
 Landmark requires Map's activity layer (Supabase). If your organization already
 set this up, Landmark works immediately. If not, ask your engineering leader to
@@ -38,15 +38,16 @@ npx fit-landmark login --email you@example.com
 platform's config directory. On Linux that is
 `~/.config/landmark/credentials.json`. See
 [Sign In to Landmark](/docs/products/signing-in-to-landmark/) for the macOS and
-Windows paths. Subsequent commands resolve your identity automatically. Use
-`--otp` to skip the browser and paste the six-digit code instead. If your email
-is not in the activity roster, login fails. Your operator runs
+Windows paths. Subsequent commands resolve your identity automatically.
+
+Use `--otp` to skip the browser and paste the six-digit code instead. If your
+email is not in the activity roster, login fails. Your operator runs
 `fit-terrain substrate provision` to keep `auth.users` synchronized.
 
 ## Browse marker definitions
 
-Look up the observable indicators defined for any skill. This helps you
-understand what evidence each proficiency level expects:
+Look up the observable indicators defined for any skill. The markers show what
+evidence each proficiency level expects:
 
 ```sh
 npx fit-landmark marker data-integration

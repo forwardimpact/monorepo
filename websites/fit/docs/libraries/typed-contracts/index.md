@@ -99,7 +99,7 @@ Generate all artifacts with a single command:
 npx fit-codegen generate --all
 ```
 
-Expected output (file count varies with proto count):
+The expected output follows. The file count varies with the proto count:
 
 ```text
 Generated 28 files in ./generated/
@@ -169,9 +169,9 @@ shared schemas:
 
 | Namespace  | What it carries                                                                 |
 | ---------- | ------------------------------------------------------------------------------- |
-| `common`   | Shared envelopes -- `Empty`, `Usage`, `Message`, `Choice`, `Embedding`, `Conversation` |
+| `common`   | Shared envelopes: `Empty`, `Usage`, `Message`, `Choice`, `Embedding`, `Conversation` |
 | `resource` | The `Identifier` type that messages and tool calls reference                     |
-| `tool`     | Tool-call types -- `ToolFunction`, `ToolCall`, `ToolCallResult`, `QueryFilter`   |
+| `tool`     | Tool-call types: `ToolFunction`, `ToolCall`, `ToolCallResult`, `QueryFilter`   |
 | `vector`   | Vector-search request and result types                                          |
 | `graph`    | Graph-query request and result types                                            |
 | `span`     | Distributed-tracing span and event types                                        |
@@ -283,10 +283,10 @@ await server.start();
 ```
 
 The `Server` takes the service, its config, and an options bag that carries the
-required `runtime` (and optional `logger` / `tracer`). It adds authentication
-(HMAC with the `SERVICE_SECRET` environment variable) and keepalive
-configuration. It adds graceful shutdown on `SIGINT`/`SIGTERM`. It adds health
-checks at the standard gRPC health endpoint. See
+required `runtime` and the optional `logger` and `tracer`. It adds HMAC
+authentication with the `SERVICE_SECRET` environment variable. It adds
+keepalive configuration. It adds graceful shutdown on `SIGINT`/`SIGTERM`. It
+adds health checks at the standard gRPC health endpoint. See
 [Ship a Service Endpoint](/docs/libraries/typed-contracts/ship-endpoint/) for
 the authentication, keepalive, retry, and tracing details.
 
@@ -313,9 +313,9 @@ console.log(result.content);
 
 The generated client validates that the request is an instance of the expected
 type. It converts the request with `toObject` for the wire format. It converts
-the response back with `fromObject`. The client has retries built in (up to 10
-retries on transient errors, exponential backoff that starts at 1 second with
-jitter).
+the response back with `fromObject`. The client has retries built in. It
+retries up to 10 times on transient errors, with exponential backoff that
+starts at 1 second and adds jitter.
 
 For streaming RPCs, use `callStream` instead of the typed method:
 
@@ -398,9 +398,9 @@ ships three canonical `.proto` files and no JavaScript:
 
 | Shared proto    | Defines                                                                  | Imports                  |
 | --------------- | ----------------------------------------------------------------------- | ------------------------ |
-| `resource.proto`| `Identifier` -- the `type` / `name` / `parent` / `subjects` shape every persisted resource carries | (none)                   |
-| `tool.proto`    | Tool-call types -- `ToolFunction`, `ToolCall`, `ToolCallResult`, `ToolCallMessage`, `QueryFilter` | `resource.proto`         |
-| `common.proto`  | Shared envelopes -- `Empty`, `Usage`, `Message`, `Choice`, `Embedding`, `Conversation` | `resource.proto`, `tool.proto` |
+| `resource.proto`| `Identifier`, the `type` / `name` / `parent` / `subjects` shape every persisted resource carries | (none)                   |
+| `tool.proto`    | Tool-call types: `ToolFunction`, `ToolCall`, `ToolCallResult`, `ToolCallMessage`, `QueryFilter` | `resource.proto`         |
+| `common.proto`  | Shared envelopes: `Empty`, `Usage`, `Message`, `Choice`, `Embedding`, `Conversation` | `resource.proto`, `tool.proto` |
 
 ### How imports resolve
 
@@ -427,8 +427,8 @@ shared schema needs no dependency on it.
 A shared schema is a contract across every service that imports it. So treat a
 change to one of these three files as a cross-service change:
 
-1. Edit the field in the shared `.proto` file (for example, add an optional
-   field to `tool.ToolCallResult`).
+1. Edit the field in the shared `.proto` file. For example, add an optional
+   field to `tool.ToolCallResult`.
 2. Re-run `npx fit-codegen generate --all` in **every** service that imports the
    changed file. Each one regenerates its own types, bases, clients, and
    metadata against the new shape.
@@ -463,12 +463,12 @@ files go in a new subdirectory under `generated/services/`.
 ## Tips
 
 - **Proto comments become the parameter descriptions for MCP tools.** Add a
-  comment above each field in your `.proto` file and it flows through the
-  metadata into the Zod schema's `.describe()` call. Agents see these
+  comment above each field in your `.proto` file. The comment flows through
+  the metadata into the Zod schema's `.describe()` call. Agents see these
   descriptions when they discover your tools.
 - **`fromObject` vs `new`**: Always use `fromObject` to construct typed
-  instances. It applies prototype patches (like `withIdentifier`) that the raw
-  constructor does not.
+  instances. It applies prototype patches, such as `withIdentifier`, that the
+  raw constructor does not.
 - **Incremental generation saves time.** When you iterate on a single service,
   `npx fit-codegen generate --client` regenerates only the clients. It does not
   regenerate the full suite.

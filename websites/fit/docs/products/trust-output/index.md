@@ -6,28 +6,29 @@ description: "Catch convention violations that look correct on the surface. Revi
 An engineer approved agent output. The engineer did not check it against the
 standard. The code looked correct, but it violated an organizational convention
 that only the standard data showed. If you read every line, you lose the
-productivity gain that agents give. This guide shows how to verify agent work
-against your organization's actual engineering standard. You then review by
-exception. You do not review by default. Two products work together.
+productivity gain that agents give.
+
+This guide shows how to verify agent work against your organization's
+engineering standard. You then review by exception. Two products work together.
 **Pathway** makes the role's expected skills, behaviours, and conventions
 visible so you know what to look for. **Guide** reviews specific deliverables
-against those expectations. For the other half of this job, career guidance
-from the same standard, see
+against those expectations. For the career-guidance half of this job, see
 [Get Career Guidance Grounded in the Standard](/docs/products/growth-areas/).
 
 ## Prerequisites
 
 This guide assumes you completed the setup for both products:
 
-- [Getting Started: Pathway for Engineers](/docs/getting-started/engineers/pathway/)
-  -- install Pathway, initialize a `data/pathway/` directory with your
+- [Getting Started: Pathway for Engineers](/docs/getting-started/engineers/pathway/):
+  install Pathway and initialize a `data/pathway/` directory with your
   organization's standard data or the starter content.
-- [Getting Started: Guide for Engineers](/docs/getting-started/engineers/guide/)
-  -- install Guide, run codegen, authenticate with Anthropic, process your
+- [Getting Started: Guide for Engineers](/docs/getting-started/engineers/guide/):
+  install Guide, run codegen, authenticate with Anthropic, process your
   standard data, and start the service stack.
 
-You should also know the role coordinates (discipline, level, and track) for
-the agent that produced the work. If you do not know them yet, work through
+Also know the role coordinates for the agent that produced the work. The
+coordinates are the discipline, the level, and the track. If you do not know
+them yet, work through
 [See What's Expected at Your Level](/docs/products/career-paths/) first. That
 guide covers how to find role coordinates and what each level expects.
 
@@ -35,7 +36,7 @@ guide covers how to find role coordinates and what each level expects.
 
 Before you review agent output, make the quality bar explicit. Pathway derives
 the full expectation profile for any role from your organization's standard
-data. It is not a generic checklist.
+data. The profile does not come from a generic checklist.
 
 Generate the role definition for the discipline and level you configured the
 agent to work at. For example, the agent may operate as a Software Engineer
@@ -47,13 +48,13 @@ npx fit-pathway job software-engineering J060 --track=platform
 
 The output has four sections:
 
-1. **Expectations** -- the level's impact scope, autonomy, influence, and
+1. **Expectations**: the level's impact scope, autonomy, influence, and
    complexity.
-2. **Behaviour Profile** -- each behaviour the organization values and the
+2. **Behaviour Profile**: each behaviour the organization values and the
    maturity expected at this level.
-3. **Skill Matrix** -- every skill relevant to the discipline and track, with
-   the proficiency level expected.
-4. **Driver Coverage** -- how the skill and behaviour profile maps to
+3. **Skill Matrix**: every skill relevant to the discipline and track, with
+   the expected proficiency level.
+4. **Driver Coverage**: how the skill and behaviour profile maps to
    engineering effectiveness drivers.
 
 Here is what the Expectations section looks like:
@@ -68,7 +69,7 @@ Here is what the Expectations section looks like:
 ```
 
 The Skill Matrix is the most useful section for output review. It lists every
-skill the role requires and the proficiency level expected at each one. An
+skill the role requires and the expected proficiency level for each one. An
 agent configured for this role should produce output consistent with
 `working`-level Architecture Design, `working`-level Code Quality, and so on.
 When a skill shows `foundational` or `awareness`, the standard expects less
@@ -76,8 +77,8 @@ depth in that area. Calibrate your review accordingly.
 
 ### Inspect specific skills the output touches
 
-If the agent's deliverable involves architecture decisions, inspect the skill
-definition to see what the expected proficiency level looks like in practice:
+The agent's deliverable may involve architecture decisions. Inspect the skill
+definition to see the expected proficiency level in practice:
 
 ```sh
 npx fit-pathway skill architecture-design
@@ -105,10 +106,10 @@ constraints typical of pharmaceutical environments.
 
 Each proficiency level describes concrete, observable actions. Compare the
 level description for the agent's expected proficiency against what the agent
-actually produced. If the role expects `working`-level Architecture Design, the
-output should show that the agent designed services and module boundaries for a
-bounded domain. An agent that only implements components inside someone else's
-architecture works at `foundational` level.
+produced. If the role expects `working`-level Architecture Design, look for
+evidence in the output. The agent should have designed services and module
+boundaries for a bounded domain. An agent that only implements components
+inside someone else's architecture works at `foundational` level.
 
 Repeat for each skill the deliverable touches. The Skill Matrix tells you which
 skills are relevant. The skill detail tells you what the expected proficiency
@@ -119,8 +120,8 @@ looks like.
 Agent output can be technically correct and still violate how the organization
 expects people to approach work. Behaviours describe those expectations.
 
-If the agent was supposed to demonstrate systems thinking in its design, check
-what the standard expects:
+If the agent's design must demonstrate systems thinking, check what the
+standard expects:
 
 ```sh
 npx fit-pathway behaviour systems-thinking
@@ -190,12 +191,12 @@ area (that's practitioner level) — so the scope should be bounded to this
 service, not a platform-wide webhook strategy.
 ```
 
-Guide tells you what to check and what is out of scope for this level. You do
-not review every line. You review the specific areas Guide identifies.
+Guide tells you what to check and what is out of scope for this level. You
+review only the specific areas Guide identifies.
 
 ### Ask about specific concerns
 
-When something in the output looks off, ask Guide whether it violates the
+When something in the output looks wrong, ask Guide whether it violates the
 standard:
 
 ```text
@@ -225,7 +226,7 @@ grounded answer.
 
 ## Build a review checklist from the standard
 
-You may review the same kind of work again and again, such as all agent PRs for
+You may review the same kind of work many times, for example all agent PRs for
 one service. Use Pathway to build a reusable checklist grounded in the
 standard.
 
@@ -249,18 +250,19 @@ data-modeling
 stakeholder-management
 ```
 
-Each skill ID maps to a set of concrete expectations in your standard. For the
-skills most relevant to the deliverable type (e.g., `architecture-design` and
-`code-quality` for a new service PR), look up the proficiency descriptions:
+Each skill ID maps to a set of concrete expectations in your standard. Look up
+the proficiency descriptions for the skills most relevant to the deliverable
+type. For a new service PR, these are `architecture-design` and
+`code-quality`:
 
 ```sh
 npx fit-pathway skill code-quality
 ```
 
-The proficiency description at the expected level becomes a checklist item. For
-example, if `working`-level Code Quality says "writes clean, well-structured
-code with consistent style and meaningful naming," that is what you verify in
-the agent's output. Everything else is noise you can skip.
+The proficiency description at the expected level becomes a checklist item.
+For example, `working`-level Code Quality may say "writes clean,
+well-structured code with consistent style and meaningful naming." That is
+what you verify in the agent's output. You can skip the other areas.
 
 ## Verify
 
@@ -279,9 +281,9 @@ You reach the outcome of this guide when you can answer these questions:
   areas Guide identified as relevant to the role's expectations. You skip areas
   where the output meets or exceeds the standard.
 
-If any of these are unclear, revisit the relevant step. You shift from "review
-everything" to "review by exception" when you trust the standard to define the
-quality bar and Guide to apply it.
+If any of these are unclear, revisit the relevant step. You shift to review by
+exception when you trust the standard to define the quality bar and trust
+Guide to apply it.
 
 ## What's next
 

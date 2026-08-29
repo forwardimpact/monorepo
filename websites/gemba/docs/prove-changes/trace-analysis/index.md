@@ -29,16 +29,16 @@ npx gemba-trace download 24497273755        # downloads to /tmp/trace-2449727375
 
 The default `runs` pattern covers kata, agent, eval, and benchmark workflow
 names, so benchmark-driven eval runs list with no flags. The download
-extracts the artifact zip's `.ndjson` members —
+extracts the artifact zip's `.ndjson` members. These are the
 `trace--<case>--<participant>.<role>.ndjson` lane files plus the combined
-`trace--<case>.raw.ndjson` — and every one of them is direct input to every
-query command below. (A `structured.json` is produced only when the artifact
-carries a single `.ndjson` member; the common bundles carry several.)
+`trace--<case>.raw.ndjson`. Every one of them is direct input to every
+query command below. The download produces a `structured.json` only when the
+artifact carries a single `.ndjson` member. The common bundles carry several.
 
 When you know the run but not the file, `find` resolves one lane in a keyed
 lookup. The key may be a participant name, a case id, or an exact member
-filename; a key matching several members errors and lists the candidates so
-you can narrow it:
+filename. A key that matches several members errors and lists the candidates
+so you can narrow it:
 
 ```sh
 npx gemba-trace find 24497273755 agent               # participant key
@@ -48,7 +48,7 @@ npx gemba-trace find 24497273755 trace--fix-bug-r0--agent.agent.ndjson
 
 ## Orient with the overview
 
-Start with the bird's-eye view before you drill into individual turns.
+Start with the overview before you drill into individual turns.
 Analysis verbs take their trace files through `--file`. They print
 human-readable text by default. Add `--format json` for the machine-parseable
 envelope:
@@ -126,7 +126,7 @@ block instead of a short excerpt.
 ## Read the agent's reasoning
 
 The text blocks in assistant turns show what the agent said it would do. The
-tool calls show what it actually did. Extract just the text blocks:
+tool calls show what it actually did. Extract only the text blocks:
 
 ```sh
 npx gemba-trace reasoning --file /tmp/trace-24497273755/trace--default--agent.agent.ndjson --from 5 --to 15
@@ -199,13 +199,13 @@ Matrix workflows pass the case id, so per-shard artifacts stay isolated.
 
 ## Eval traces
 
-Benchmark-driven eval runs emit the same convention with the case carrying
-cell identity: `<case>` is `<taskId>-r<runIndex>`, so every cell in the grid
-names its own lanes (`trace--fix-bug-r0--agent.agent.ndjson`), and the judge
+Benchmark-driven eval runs emit the same convention, and the case carries
+the cell identity. `<case>` is `<taskId>-r<runIndex>`, so every cell in the
+grid names its own lanes (`trace--fix-bug-r0--agent.agent.ndjson`). The judge
 gets its own lane, `trace--<case>--judge.judge.ndjson`. Members extract
 nested per cell (`runs/<taskId>/<runIndex>/trace--*`). Raw and judge files
-are enveloped `{source, seq, event}` streams; split lanes carry unwrapped
-events — every file-consuming verb takes both shapes as-is, with no
+are enveloped `{source, seq, event}` streams. Split lanes carry unwrapped
+events. Every file-consuming verb takes both shapes as-is, with no
 eval-specific flags.
 
 ## Navigate individual turns
@@ -244,7 +244,7 @@ npx gemba-trace paths --file /tmp/trace-24497273755/trace--default--agent.agent.
 ```
 
 These sit next to `tool` (every turn for one tool) and `tools` (frequency
-across all tools). Reach for `tool-calls` when you want one record that holds
+across all tools). Use `tool-calls` when you want one record that holds
 both the use and the result.
 
 ## Compare two traces
@@ -263,8 +263,8 @@ positionals. It does not take `--file`.
 
 ## Analyze several traces at once
 
-Cross-trace verbs accept more than one trace. Repeat `--file`, or pass a quoted
-glob the verb expands itself:
+Cross-trace verbs accept more than one trace. Repeat `--file`, or pass a
+quoted glob. The verb expands the glob itself:
 
 ```sh
 npx gemba-trace paths --file 'traces/*.ndjson' --prefix /app

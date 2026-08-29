@@ -1,6 +1,6 @@
 ---
 title: "Write Jobs To Be Done Entries"
-description: "Write a job entry that traces an instruction layer to the progress a persona seeks in a real moment. Covers the entry structure, the Big Hire and Little Hire split, the four forces, the Fired When clause, and the tag that makes every job searchable."
+description: "Write a job entry that traces an instruction layer to the progress a persona seeks in a real moment. The page covers the entry structure, the Big Hire and Little Hire split, and the four forces. It also covers the Fired When clause and the tag that makes every job searchable."
 ---
 
 Every layer above L2 inherits its direction from a job. An agent profile, a
@@ -39,19 +39,20 @@ are unsure. For the directory groups a monorepo uses, see
 
 ## 2. Reconstruct the job from a real moment
 
-Start from a struggle story. Name one real decision, then recover four things
+Start from a struggle story. Name one real decision. Then recover four things
 about it: the persona, what just happened, the progress they wanted, and what
 they hired instead. An entry invented at a desk only confirms what the team
 believes. Treat every entry as a hypothesis until a struggle story confirms it.
 
 ## 3. Write the entry to structure
 
-`User`, `Goal`, `Trigger`, `Big Hire`, `Little Hire`, and `Competes With` are
-required in every entry. The generated shape renders `User` and `Goal` as one
+Every entry requires `User`, `Goal`, `Trigger`, `Big Hire`, `Little Hire`, and
+`Competes With`. The generated shape renders `User` and `Goal` as one
 `## User: Goal` heading. `Forces` and `Fired When` apply to a product, because a
-product carries an adoption decision. Omit both for a service or a library. Here
-is a complete product entry. The persona and the product are illustrative. Copy
-the shape. Do not copy the content.
+product carries an adoption decision. Omit both for a service or a library.
+
+Here is a complete product entry. The persona and the product are illustrative.
+Copy the shape. Do not copy the content.
 
 ```markdown
 ## Release Managers: Close a Release With Confidence
@@ -82,9 +83,9 @@ same view at no cost.
 Three properties do most of the work here. Remove the product name from the Big
 Hire. When the sentence goes meaningless, the job was solution-shaped, and you
 wrote a feature request in job syntax. Next, read the trigger. It must answer
-"what just happened?". "Engineers who own deploys" is a role, so it fails. Last,
-`Competes With` must name nonconsumption. "Hire nothing and wait for a customer
-report" is usually the real incumbent.
+"what just happened?". "Engineers who own deploys" is a role, so it fails.
+Last, `Competes With` must name nonconsumption. "Hire nothing and wait for a
+customer report" is usually the real incumbent.
 
 ## 4. Split the Big Hire from the Little Hire
 
@@ -165,12 +166,12 @@ These are the failures a first entry hits.
 | `.jobs must be an array` | Wrap a single job in `[]`. One job is an array of one. |
 | A file reported as stale | Run `--fix` and commit the regenerated file.          |
 
-Never hand-edit a generated block. Edit the manifest, regenerate, and commit
-both. A hand-edited block passes review and fails the next check, because the
-generator rewrites it from the manifest either way. In the static shape the
-check has nothing to regenerate, so the properties on this page carry the whole
-gate. A checklist is the durable way to hold a gate that no command enforces.
-See
+Never hand-edit a generated block. Edit the manifest. Regenerate the block.
+Commit both files. A hand-edited block passes review and fails the next check,
+because the generator rewrites it from the manifest either way. In the static
+shape the check has nothing to regenerate, so the properties on this page carry
+the whole gate. A checklist is the durable way to hold a gate that no command
+enforces. See
 [Write a Checklist That Verifies Instead of Teaches](/docs/layered-instructions/write-checklists/).
 
 ## Verify

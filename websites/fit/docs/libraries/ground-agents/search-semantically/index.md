@@ -5,9 +5,11 @@ description: Find related content by meaning instead of by keyword. A vector ind
 
 You need to find resources related to a query by meaning. An exact keyword
 match does not do this. You do not need the overhead of a vector database for a
-few hundred embeddings. `@forwardimpact/libvector` keeps the index in a JSONL
-file. It loads the index into memory on first access. It scores queries with
-dot-product similarity. `fit-rag search` wraps this into a single CLI command.
+few hundred embeddings.
+
+`@forwardimpact/libvector` keeps the index in a JSONL file. It loads the index
+into memory on first access. It scores queries with dot-product similarity.
+`fit-rag search` wraps this into a single CLI command.
 
 For the full workflow that builds an embedding pipeline from knowledge sources,
 see [Ground Agents in Context](/docs/libraries/ground-agents/).
@@ -114,12 +116,14 @@ token budget.
 
 The score is a dot product. Standard embedding APIs produce normalized vectors.
 For those vectors, the dot product is cosine similarity, so the score lands on
-a **0-to-1 scale**. `1.0` is an identical direction (a near-perfect match).
-`0.0` is orthogonal (unrelated). A `threshold` of `0` is the default, and it
-returns every item the limit allows. Raise it toward `0.5`-`0.7` to drop weak
-matches. A higher threshold keeps only results that mean roughly the same thing
-as the query. The code enforces no upper bound. For normalized vectors, values
-above `1.0` exclude everything.
+a **0-to-1 scale**. A score of `1.0` shows an identical direction and a
+near-perfect match. A score of `0.0` shows an orthogonal, unrelated vector.
+
+A `threshold` of `0` is the default, and it returns every item the limit
+allows. Raise it toward `0.5`-`0.7` to drop weak matches. A higher threshold
+keeps only results that mean roughly the same thing as the query. The code
+enforces no upper bound. For normalized vectors, values above `1.0` exclude
+everything.
 
 ### Multiple query vectors
 

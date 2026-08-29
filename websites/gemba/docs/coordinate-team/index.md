@@ -6,10 +6,12 @@ description: Run a lead and N participant agents in one asynchronous session. Ch
 You have several agents, each good at one thing. You also have a task that needs
 more than one of them. A single autonomous agent would have to be a generalist.
 You want a lead that delegates and a set of specialists that each answer in
-their own voice. `gemba-harness` gives you that. One lead LLM session
-coordinates N participant sessions over an in-memory message bus. Every message
-and tool call lands in one trace. The exchange runs asynchronously, so nothing
-blocks while a participant works.
+their own voice.
+
+`gemba-harness` gives you that. One lead LLM session coordinates N participant
+sessions over an in-memory message bus. Every message and tool call lands in
+one trace. The exchange runs asynchronously, so nothing blocks while a
+participant works.
 
 This guide covers coordination as a capability in its own right. The same
 machinery powers [Prove Agent Changes](/docs/prove-changes/). Start there if
@@ -55,9 +57,9 @@ coordination.
 
 Every coordinated session runs the same loop. The lead receives the task on its
 first turn. Each participant waits until a message lands on its inbox. From then
-on, both sides repeat the same cycle: drain the inbox, run or resume the LLM
-with the drained messages, then settle any questions they still owe an answer
-to.
+on, both sides repeat the same cycle. Each drains its inbox and runs or resumes
+the LLM with the drained messages. Each then settles any question it still owes
+an answer to.
 
 The loop fans messages out over an in-memory bus. It writes one
 `{ source, seq, event }` NDJSON line for every tool call, bus message, and
@@ -72,7 +74,7 @@ allowlist you grant them.
 
 ## Pass messages with Ask, Answer, and Announce
 
-Coordination happens through three tools. It does not happen through free-form
+All coordination flows through three tools. Agents do not use free-form
 chat. The trace records each call, so you can later read exactly how the team
 converged.
 
@@ -96,10 +98,9 @@ line:
 ```
 
 **`Answer` routes by `askId`.** Quote the `N` from the `[ask#N]` tag so the
-reply reaches the right asker. The `askId` is optional. The handler is
-forgiving. If you owe exactly one answer, the handler picks it automatically. If
-you owe none or many and you omit the `askId`, the message broadcasts as an
-Announce instead.
+reply reaches the right asker. The `askId` is optional. If you owe exactly one
+answer, the handler selects it automatically. If you owe none or many and you
+omit the `askId`, the message broadcasts as an Announce instead.
 
 **Addressees.** On a multi-participant lead, omit `to` to broadcast an `Ask` to
 everyone. The `supervise` pair has only one possible target. The harness rejects
@@ -113,7 +114,7 @@ If a participant ends its turn and still owes an answer, the loop injects one
 synthetic reminder. The loop then resumes the participant once. If the question
 is still unanswered after the reminder, the loop emits a `protocol_violation`
 event. It also unblocks the asker with a synthetic null answer. A silent
-participant can never deadlock the team. You will see both the reminder and any
+participant can never deadlock the team. You see both the reminder and any
 violation in the trace.
 
 ## End the session
@@ -145,20 +146,22 @@ verdict. It is `0` when the lead concluded with success, and `1` otherwise.
 
 `RequestForComment` lets a participant queue an intent to open a new discussion
 thread for a question that outlives the current session. In `discuss` mode,
-`Acknowledge` posts a brief message straight to the thread (a status update or a
-reply to a human follow-up). It does not discharge an owed Answer.
+`Acknowledge` posts a brief message straight to the thread, for example a
+status update or a reply to a human follow-up. It does not discharge an owed
+Answer.
 
 ## Consult an advisor
 
 An advisor is a bounded, read-only, one-shot consult on a stronger model. An
 agent participant sometimes hits a hard decision. Examples are an architectural
 fork, an unclear root cause, and a trade-off it cannot rank. The agent then
-calls the `Advisor` tool with one focused question. The harness forwards the
-question to a fresh session on the advisor model. It also forwards the agent's
-full session context (its system prompt, delivered prompts, and transcript so
-far). That session can read files. It cannot write, execute, or spawn agents.
-Its final text returns as the tool result. The caller stays in control of its
-own loop.
+calls the `Advisor` tool with one focused question.
+
+The harness forwards the question to a fresh session on the advisor model. It
+also forwards the agent's full session context (its system prompt, delivered
+prompts, and transcript so far). That session can read files. It cannot write,
+execute, or spawn agents. Its final text returns as the tool result. The
+caller stays in control of its own loop.
 
 Two flags enable it on `run`, `supervise`, `facilitate`, and `discuss`:
 
@@ -176,10 +179,11 @@ Omit `--advisor-model` to disable the tool entirely. You then get no advisor
 prompt text, no tool, and no cost. `--advisor-max-uses` (default 3) is a
 session-wide budget. All participants share it, and the code enforces it. After
 participants spend the budget, further consults return "proceed with your best
-judgment". They do not start an advisor session. Consults are fail-open. A
-consult that times out, errors, or is aborted resolves the same way. The
-caller's session continues normally. Lead roles never get the tool. Only agent
-participants get it.
+judgment". They do not start an advisor session.
+
+Consults are fail-open. A consult that times out, errors, or stops early
+resolves the same way. The caller's session continues normally. Lead roles
+never get the tool. Only agent participants get it.
 
 Every consult is evident in the trace. An `advisor_consult` orchestrator event
 records the caller, question, model, duration, and remaining budget. The advisor
@@ -266,7 +270,7 @@ callback tokens, and the suspend/resume lifecycle.
 ## Inspect the trace
 
 Every coordinated run produces one NDJSON file. Read it as text for a quick
-sanity check. Then hand it to `gemba-trace` for structured analysis:
+check. Then hand it to `gemba-trace` for structured analysis:
 
 ```sh
 npx gemba-harness output --format=text < trace--review.ndjson
@@ -285,7 +289,7 @@ read a trace.
 Redaction is on by default across `supervise`, `facilitate`, and `discuss`. It
 replaces allowlisted environment-variable values (`ANTHROPIC_API_KEY`,
 `GH_TOKEN`, `GITHUB_TOKEN`, and more) and credential-shaped strings in the
-trace. Leave it on for any run whose trace might be shared. Workflow artifacts
+trace. Leave it on for any run whose trace you might share. Workflow artifacts
 stay downloadable through retention.
 
 ## Verify

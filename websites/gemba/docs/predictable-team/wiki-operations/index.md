@@ -127,7 +127,7 @@ unchanged. The operation is idempotent. Two runs produce the same output.
 `refresh` also sweeps expired rows from `MEMORY.md`'s `## Active Claims` table
 in the same pass. A stale claim then no longer gives a false signal of work in
 flight. A claim expires one day after you make it by default. The table then
-holds only genuinely active work.
+holds only active work.
 
 ## Recording the product-mix metric
 
@@ -200,8 +200,8 @@ the one exception. They merge and keep both sides (see
 [Concurrent metrics appends](#concurrent-metrics-appends) below). `pull` exits
 non-zero with a diagnostic when it detects a conflict.
 
-Run `pull` from a Claude Code SessionStart hook and `push` from a Stop hook. Run
-both from your GitHub Actions post-run steps as well.
+Run `pull` from a Claude Code SessionStart hook. Run `push` from a Stop hook.
+Run both from your GitHub Actions post-run steps as well.
 
 ### Concurrent metrics appends
 
@@ -225,7 +225,7 @@ never removes a duplicate on its own. Instead, `gemba-wiki audit` reports a
 owner then resolves it one of two ways:
 
 - Delete the surplus row if it is an accidental repeat.
-- Edit any column (a run id or a note) if the rows are genuinely distinct
+- Edit any column (a run id or a note) if the rows are distinct
   measurements. The edit makes the rows differ. The finding no longer fires.
 
 To run the audit and act on every finding, read
@@ -253,7 +253,7 @@ detected secret or a missing scanner blocks the command.
 ### Provisioning the scanner
 
 The scan uses [gitleaks](https://github.com/gitleaks/gitleaks). Install it on
-the machine that runs `gemba-wiki` and make it resolvable on `PATH`. The command
+the machine that runs `gemba-wiki`. Make it resolvable on `PATH`. The command
 accepts any version it can run. Pin one version across your developer machines
 and your CI jobs. The same content then produces the same findings everywhere.
 Check the installed version before you rely on the gate:
@@ -268,9 +268,8 @@ If gitleaks is not available, the push fails closed. It does not skip the scan:
 push blocked: the secret scanner (gitleaks) is unavailable; the push was not attempted.
 ```
 
-A detective control that silently disables itself is not a control. So the
-command treats a missing scanner as a refusal. It never treats a missing
-scanner as a pass.
+A detective control that disables itself silently gives no protection. So the
+command treats a missing scanner as a refusal and not as a pass.
 
 ### Break-glass overrides
 
@@ -294,9 +293,9 @@ same push commits that line. The line records the timestamp, the operator
 identity, the override class, and the reason. For a finding, it also records
 the location (`file:line:rule`). It never records the matched secret value.
 
-The recorded identity comes from `git config user.email`. It is a self-asserted
-attribution of intent. It is not an authenticated identity. Treat the log as a
-record of who claimed responsibility. It is not cryptographic proof.
+The recorded identity comes from `git config user.email`. The operator asserts
+it, and no mechanism authenticates it. Treat the log as a record of who claimed
+responsibility and not as cryptographic proof.
 
 ## Bootstrapping the wiki
 

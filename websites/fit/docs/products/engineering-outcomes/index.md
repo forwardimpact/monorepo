@@ -4,7 +4,7 @@ description: Walk into a quarterly review with system-level trends, marker evide
 ---
 
 The quarterly review is due and the only data is ticket counts. Ticket counts
-single out individuals. They do not illuminate the system. This guide shows
+single out individuals. They do not describe the system. This guide shows
 how to prepare a quarterly presentation with Landmark. The presentation uses
 system-level trends, marker evidence, and engineer voice. These show direction
 and do not name individuals.
@@ -94,7 +94,7 @@ If the output is empty, run `npx fit-map getdx sync`. Then run
 ## See system-level trends across snapshots
 
 Quarterly reviews need context. The context says whether a score improves,
-declines, or stays flat. Before you dive into the health view, check how a
+declines, or stays flat. Before you open the health view, check how a
 specific driver moved over time.
 
 Track a driver's trend across snapshots, scoped to your team:
@@ -137,7 +137,7 @@ against the previous snapshot (`vs_prev`), the organization median
 
 ## Build the health view
 
-The health view is the centerpiece of Landmark's quarterly presentation. It
+The health view is the core of Landmark's quarterly presentation. It
 joins driver scores, contributing-skill evidence, engineer voice comments, and
 growth recommendations into a single picture. It scopes that picture to a
 manager's team.
@@ -173,7 +173,8 @@ growth recommendations. Each row shows:
   `--verbose`.
 
 Landmark populates the Recommendations table at the end of the output when
-Summit is installed. It dedupes the table per `(candidate, skill)`. Each line
+the installation includes Summit. It dedupes the table per
+`(candidate, skill)`. Each line
 names the individual who could develop the skill. It also names their current
 proficiency and the driver the development serves.
 
@@ -202,16 +203,17 @@ npx fit-landmark health --manager alice@example.com --verbose
 ### What the health view shows
 
 The health view supports conversations about the system. It does not support
-conversations about individuals. Driver scores are team-level aggregates from
+conversations about individuals.
+
+Driver scores are team-level aggregates from
 GetDX. Evidence counts show how many artifacts across the team match a skill's
 markers. They do not show which individual produced them. Landmark surfaces
 comments by keyword relevance to the driver. It does not attribute them to
 specific respondents.
 
-When you present health data in a quarterly review, the narrative is: "Here is
-where the system is strong, here is where it is trending, and here is what
-engineers are saying about it." The data supports that narrative. Nobody has
-to name names.
+When you present health data in a quarterly review, the narrative names where
+the system is strong. It names the trend. It reports what engineers say about
+the system. The data supports that narrative. Nobody has to name names.
 
 ## Hear what engineers say
 
@@ -241,9 +243,9 @@ mention each theme. It shows the two most recent snippets inline per theme. It
 also highlights drivers that score below the 50th percentile where engineer
 comments align. There, sentiment matches the quantitative data.
 
-This is valuable for quarterly reviews because it grounds numerical scores in
+This view helps a quarterly review because it grounds numerical scores in
 the team's own words. A low `incident-response` score paired with three
-incident comments tells a clearer story than the score alone.
+incident comments is clearer than the score alone.
 
 ## Check where evidence supports the standard
 
@@ -296,7 +298,9 @@ npx fit-landmark practiced --manager alice@example.com
 
 Each row aggregates across the team. The `derived:` value is the highest
 proficiency the team's role definitions imply for the skill. The `evidenced:`
-value counts the marker-matched evidence rows behind it. Rows that trail
+value counts the marker-matched evidence rows behind it.
+
+Rows that trail
 `← on paper only` flag skills that the standard predicts but that evidence
 does not yet cover. The inverse marker `← evidenced beyond role` marks skills
 whose evidence outruns the derived role profile. This can mean the evidence

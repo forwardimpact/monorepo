@@ -5,9 +5,10 @@ description: Emit spans and query them immediately, with no storage infrastructu
 
 You need to record spans from within a product. A span records what happened,
 how long it took, and whether it succeeded. You also need to trust that the
-service stores those spans and keeps them queryable. This page covers one
-bounded task. Connect to the span service. Build a span and send it. Query it
-back to confirm the round trip.
+service stores those spans and keeps them queryable.
+
+This page covers one bounded task. Connect to the span service. Build a
+span. Send it. Query it back to confirm the round trip.
 
 See [Collect Spans from Any Product](/docs/services/collect-spans/) for the
 full setup with architecture context, the query interface, and tree

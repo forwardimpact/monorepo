@@ -1,10 +1,10 @@
 ---
 title: "Tell Whether Culture Investments Are Working"
-description: "Track an initiative's impact on engineering outcomes. Read driver-score trends across the snapshots that straddle its completion date. Assemble a readout that holds up under VP scrutiny."
+description: "Track an initiative's impact on engineering outcomes. Read driver-score trends across the snapshots that straddle its completion date. Assemble a readout that withstands VP scrutiny."
 ---
 
-Budget season is the week after the quarterly review. The question is the same
-every year. Did last year's culture investments actually move anything? This
+Budget season is the week after the quarterly review. Each year, leadership
+asks whether last year's culture investments moved anything. This
 guide shows how to read driver-score change across the snapshots that straddle
 an initiative's completion date. It shows how to ground the delta in engineer
 voice and organizational benchmarks. It also shows how to assemble a readout
@@ -39,8 +39,8 @@ data, write down what each initiative was *supposed* to change:
 Initiative IDs and completion dates come from GetDX. Driver IDs come from
 your `drivers.yaml`. List them with `npx fit-pathway driver --list` if you
 need to look them up. If you cannot name the intended driver for an
-initiative, the readout will not have a place to land. Pause and resolve that
-before you continue.
+initiative, the readout has no place for that initiative. Pause and resolve
+that before you continue.
 
 ## Read the driver trend across the initiative window
 
@@ -140,7 +140,7 @@ npx fit-landmark voice --manager you@example.com
 When themed comments line up with the intended driver, the qualitative
 evidence backs the quantitative shift. An example is focus comments that
 cluster after a Deep Work initiative. When comments cluster on a different
-theme, or fall silent on the driver entirely, the readout should say so.
+theme, or do not mention the driver at all, the readout should say so.
 
 ## Assemble the readout
 

@@ -1,17 +1,20 @@
 ---
 title: Resume a Recessed RFC When a Trigger Fires
-description: Trace the suspend/resume contract. A `recessed` verdict persists a trigger, accumulates replies, and re-dispatches with `resume_context` when the trigger condition is met.
+description: Trace the suspend/resume contract. A `recessed` verdict persists a trigger, accumulates replies, and re-dispatches with `resume_context` when the trigger fires.
 ---
 
 An RFC posted as a GitHub Discussion may need to wait. The lead reads the
 intake. The lead judges that humans need time to respond, or wants a fixed
 window to elapse. The lead then returns a `recessed` verdict with a trigger.
-The lead does not return a final reply. The bridge persists that trigger. It
-keeps the RFC open in the discussion-context store. It accumulates every
-follow-up comment into history. It re-dispatches the workflow with
-`resume_context` when the trigger condition is met. This page traces that
-bounded suspend/resume flow. Use the page to read logs, debug stuck
-triggers, and predict bridge behavior.
+The lead does not return a final reply.
+
+The bridge persists that trigger. It keeps the RFC open in the
+discussion-context store. It accumulates every follow-up comment into
+history. It re-dispatches the workflow with `resume_context` when the
+trigger fires.
+
+This page traces that bounded suspend/resume flow. Use the page to read
+logs, debug stuck triggers, and predict bridge behavior.
 
 For the full setup with credentials, App configuration, and tunnel startup,
 see
@@ -21,8 +24,8 @@ see
 
 - Complete the
   [Bridge GitHub Discussions to the Agent Team](/docs/services/bridge-discussions/)
-  guide. `ghbridge` runs. The tunnel is published. The App webhook is
-  configured. A fresh discussion already triggered a workflow
+  guide. `ghbridge` runs. The tunnel publishes a hostname. You configured
+  the App webhook. A fresh discussion already triggered a workflow
   successfully.
 
 ## Trigger kinds
@@ -63,7 +66,7 @@ When the bridge receives a `recessed` callback, the libbridge
    requester.
 3. **For an `elapsed` trigger**, the scheduler computes
    `due_at = opened_at + parseIsoDuration(elapsed)`, stores it on the
-   rfc, and arms the embedded `ElapsedScheduler`. When it fires the
+   rfc, and arms the embedded `ElapsedScheduler`. When it fires, the
    scheduler re-dispatches without further inbound activity.
 4. **For a `missing_input` trigger**, the scheduler arms no timer. Every
    later comment re-evaluates the trigger inside `processInbound(ctx)`.
@@ -78,13 +81,13 @@ callback. The recess state then survives a bridge restart.
 
 A trigger fires in one of two places:
 
-- **Inbound comment path** — `#handleDiscussionComment` calls
+- **Inbound comment path.** `#handleDiscussionComment` calls
   `resume.processInbound(ctx)` for every comment. The scheduler walks
   `ctx.open_rfcs`, computes
   `observed = { replies: history.length - history_index_at_open, opened_at }`,
   and feeds each `(trigger, observed, Date.now())` triple to `evaluateTrigger`.
   The scheduler re-dispatches and cancels the RFCs that fired.
-- **Elapsed timer path** — `ElapsedScheduler` (embedded in
+- **Elapsed timer path.** `ElapsedScheduler` (embedded in
   `ResumeScheduler`) fires `#fireElapsed(correlationId)` on its own
   schedule. The scheduler walks `store.index.values()` to look up the
   context. It then re-dispatches and cancels.
@@ -94,8 +97,8 @@ Either way, re-dispatch goes through the shared `Dispatcher`:
 1. **The scheduler builds `resumeContext`** as
    `JSON.stringify({ correlation_id, history_since })` where
    `history_since = ctx.history.slice(history_index_at_open)`.
-2. **`Dispatcher.dispatch(...)`** registers a fresh callback token,
-   starts a new acknowledgement, fires the workflow with the resume
+2. **`Dispatcher.dispatch(...)`** registers a fresh callback token and
+   starts a new acknowledgement. It fires the workflow with the resume
    payload, appends the prompt to history, and flushes the store. The
    workflow sees the *new* correlation id on its next callback. The
    *original* correlation id only survives inside `resume_context`.
@@ -108,8 +111,8 @@ Either way, re-dispatch goes through the shared `Dispatcher`:
 
 ## Accumulate replies when no trigger fires
 
-If an RFC is open and a comment arrives but the trigger does not yet
-fire (e.g., `replies: 3` and only one comment arrived):
+If an RFC is open and a comment arrives but the trigger does not fire
+yet (for example, `replies: 3` when only one comment arrived):
 
 - The bridge appends the inbound comment to `ctx.history`. The next
   evaluation then sees the wider window.
@@ -144,12 +147,12 @@ You reach the outcome of this guide when:
 - Later comments on the discussion accrue into the bridge's history and
   spawn no new workflow runs. Verify with the Actions tab. No new run
   appears while `hasOpenRfc` holds.
-- When the trigger condition is met (replies count reached or elapsed
+- When the trigger condition holds (replies count reached or elapsed
   duration passed), a fresh workflow run appears in the Actions tab. Its
   `resume_context` input carries the original `correlation_id` and the
   `history_since` slice.
 - The resumed workflow's lead reads the accumulated comments and posts
-  a follow-up reply (or another `recessed`) back into the same thread.
+  a follow-up reply, or another `recessed`, back into the same thread.
 
 ## What's next
 

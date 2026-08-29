@@ -6,10 +6,11 @@ description: Products emit spans and do not manage storage. One shared span gRPC
 You build a product that generates spans. A span records what an agent did,
 how long each step took, and whether it succeeded. You need to store those
 spans somewhere queryable. Per-product span files make each product reinvent
-storage, indexes, and query logic. The span gRPC service accepts spans from
-any product. It stores them in a shared JSONL-backed index. It serves them
-back through a query interface. Your product sends a span. The service stores
-the span and retrieves it.
+storage, indexes, and query logic.
+
+The span gRPC service accepts spans from any product. It stores them in a
+shared JSONL-backed index. It serves them back through a query interface.
+Your product sends a span, and the service stores and retrieves it.
 
 This guide shows how to connect to the span service, record a span, query it
 back, and verify that the round trip works.
@@ -51,7 +52,8 @@ a service that records spans, you create infinite recursion.
 ## Connect to the span service
 
 Create a span client. The span service cannot use distributed tracing
-internally. So the client connection is simpler than for other services:
+internally. The client connection is therefore simpler than for other
+services:
 
 ```js
 import { createClient } from "@forwardimpact/librpc";

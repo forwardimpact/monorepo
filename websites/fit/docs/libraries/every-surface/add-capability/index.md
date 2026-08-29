@@ -4,8 +4,8 @@ description: "Ship a feature to terminal and browser at once. One presenter and 
 ---
 
 You need to add a new capability to an application that already shares a
-presenter between its CLI and web surfaces. Here's how to make it appear in
-both places from a single implementation.
+presenter between its CLI and web surfaces. This page shows how one
+implementation makes the capability appear in both places.
 
 ## Prerequisites
 

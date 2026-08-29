@@ -6,10 +6,12 @@ description: Assign stable ids to parallel work without merge collisions. An app
 When two agents work in parallel, they need stable ids that do not collide.
 Each agent records a numbered entry in shared memory. If each agent writes its
 id straight onto a shared markdown page, the two writes collide at merge time.
-One id then silently overwrites the other. The collision ledger removes that
-race. The ledger allocates identity on an append-only issue thread. GitHub
-serializes every comment on that thread and assigns a monotonic id. The shared
-page is only ever a projection you rebuild from that thread.
+One id then silently overwrites the other.
+
+The collision ledger removes that race. The ledger allocates identity on an
+append-only issue thread. GitHub serializes every comment on that thread and
+assigns a monotonic id. The shared page is a projection that you rebuild from
+that thread.
 
 This guide shows how to allocate an id at an anchor. It shows how to rebuild
 the ledger page and the memory row from the anchor record. It also shows how to
@@ -29,7 +31,7 @@ set up. See [Set Up Persistent Memory and Metrics](/docs/predictable-team/).
 
 ## How allocation stays collision-free
 
-Allocation is **publish-an-anchor**. Allocation is not **write-the-page**. An
+Allocation **publishes an anchor**. Allocation does not **write the page**. An
 anchor is one append-only comment on the anchor issue that carries a small
 fenced block:
 
@@ -44,8 +46,9 @@ The durable key is `event`. It holds a commit SHA or a prior anchor id. The
 `ids` are display labels only, so a later relabel is lossless. Because GitHub
 assigns each comment a monotonic id, the comment order is an allocation order
 that no merge can erase. When two sessions race for the same label, the lowest
-comment id wins, first-published-wins. The command writes nothing to the ledger
-page at allocation time, so the contested page never participates in the race.
+comment id wins. The first published anchor keeps the label. The command writes
+nothing to the ledger page at allocation time, so the contested page never
+participates in the race.
 
 Each anchor has one of four kinds. The projection groups the ids under one
 heading per kind:
@@ -85,12 +88,13 @@ npx gemba-wiki ledger allocate --kind occ --count 2 --issue 42 --event 7d0f8bca
 ```
 
 The printed ids are provisional. A later `rebuild` over the published comment
-sequence is authoritative. It resolves any concurrent interleave
-first-published-wins, so two racing allocations never keep the same label.
+sequence is authoritative. It resolves any concurrent interleave in
+first-published-wins order, so two racing allocations never keep the same
+label.
 
 ### Backfill an id that predates the ledger
 
-Some ids already exist in history but were never anchored. Do not mint new ones
+Some ids already exist in history and have no anchor. Do not mint new ones
 for them. Register them explicitly:
 
 ```sh
@@ -111,9 +115,9 @@ double-register the id.
 | `--note`  | No       | Free-text note recorded on the anchor.                        |
 | `--issue` | No       | Anchor issue number.                                          |
 
-Omit `--issue` and the command falls back to a single built-in issue number.
-That number is the reference tenant's own anchor thread. Pass `--issue` in
-your own project, on every `ledger` subcommand.
+If you omit `--issue`, the command falls back to a single built-in issue
+number. That number is the reference tenant's own anchor thread. Pass
+`--issue` in your own project, on every `ledger` subcommand.
 
 ## Rebuild the projection
 
@@ -129,9 +133,10 @@ rebuilt: 12 ids, 0 double-allocation(s)
 ```
 
 `rebuild` reads the full anchor sequence. It folds that sequence and resolves
-any double allocation first-published-wins. It then writes the result to the
-ledger page and the memory row. It preserves any prose you wrote against an
-anchor. If the prose cites an anchor that no longer exists, the command warns:
+any double allocation in first-published-wins order. It then writes the result
+to the ledger page and the memory row. It preserves any prose you wrote against
+an anchor. If the prose cites an anchor that no longer exists, the command
+warns:
 
 ```text
 warning: prose cites missing anchors: #44

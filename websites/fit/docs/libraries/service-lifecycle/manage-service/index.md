@@ -1,6 +1,6 @@
 ---
 title: Start, Stop, or Check a Service
-description: Start, stop, restart, check status, and read logs through one interface. You do not need to remember each service's specific incantation.
+description: Start, stop, restart, check status, and read logs through one interface. You do not need to remember each service's specific command.
 ---
 
 You need to start a service, check whether it runs, or stop it cleanly.
@@ -25,7 +25,7 @@ Start all configured services in order:
 npx fit-rc start
 ```
 
-Expected output (timestamps and process IDs will differ):
+The expected output follows. Your timestamps and process IDs differ:
 
 ```text
 INFO 2026-05-04T10:00:01.123Z rc svscan 42001 MSG001 - Socket ready socket="data/svscan.sock"
@@ -93,9 +93,9 @@ This stops `vector` and every service after it in the configuration array, in
 reverse order. The services before `vector` stay up. The daemon stays active.
 
 Longrun services receive `SIGTERM` first. If the process does not exit within
-the shutdown timeout (default 3 seconds), the entire process group gets
-`SIGKILL`. Oneshot services run their `down` command if the configuration
-defines one.
+the shutdown timeout (default 3 seconds), the daemon sends `SIGKILL` to the
+entire process group. Oneshot services run their `down` command if the
+configuration defines one.
 
 ## Restart a service
 
@@ -104,8 +104,8 @@ npx fit-rc restart span
 ```
 
 This stops the named service and everything after it in the configuration
-array. It then starts that same slice again. The dependents that it tore down
-come back up. The services before the target stay untouched. Without a name,
+array. It then starts that same slice again. The dependents that it stopped
+start again. The services before the target stay untouched. Without a name,
 all services restart.
 
 ## Read logs

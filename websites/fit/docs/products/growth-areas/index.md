@@ -1,11 +1,12 @@
 ---
 title: "Get Career Guidance Grounded in the Standard"
-description: "When a promotion conversation ends with 'not yet' and no specifics, use Guide and Landmark to find what's missing and show concrete evidence of growth."
+description: "A promotion conversation ended with 'not yet' and no specifics. Use Guide and Landmark to find what is missing and show concrete evidence of growth."
 ---
 
 The promotion conversation ended with "not yet". Nobody could point to the
 specific evidence that would change the answer. The feedback felt subjective.
 You left without a clear picture of what to work on or how to show progress.
+
 This guide shows you how to find the specific gaps between where you are and
 where you need to be. It then shows you how to build a visible evidence record
 that grounds the next conversation in facts. The other half of this job is to
@@ -164,13 +165,13 @@ real artifacts carries more weight than placeholder rows:
 
 | Provenance              | Where the row came from                                                                  |
 | ----------------------- | ---------------------------------------------------------------------------------------- |
-| `artifact_interpreted`  | Matched directly from an ingested artifact (pull request, design document, code review)  |
-| `agent_attested`        | Written by Guide's deeper evaluation of your artifacts against a marker                  |
-| `human_attested`        | Recorded by a person who attests the marker. Also the default for rows written before provenance tracking |
-| `synthetic_placeholder` | Generated from synthetic demo data. It is not evidence of real work                      |
+| `artifact_interpreted`  | Landmark matched the row directly from an ingested artifact (pull request, design document, code review) |
+| `agent_attested`        | Guide wrote the row after a deeper evaluation of your artifacts against a marker         |
+| `human_attested`        | A person recorded the row to attest the marker. Rows written before provenance tracking also default to this label |
+| `synthetic_placeholder` | The demo generator created the row from synthetic data. It is not evidence of real work  |
 
 The `coverage` command (below) breaks your record down by these labels. You can
-then see at a glance how much of it rests on interpreted artifacts and how much
+then see how much of the record rests on interpreted artifacts and how much
 rests on placeholders.
 
 ### Check promotion readiness
@@ -236,14 +237,14 @@ npx fit-landmark coverage --email you@example.com
       pull_request          12/15 interpreted
 ```
 
-Coverage shows how many of your artifacts are interpreted into evidence. It
+Coverage shows how many of your artifacts Landmark interprets into evidence. It
 breaks the count down by provenance label and artifact type. A low interpreted
-ratio means the record is thin. Get more artifacts ingested and interpreted
-before you read too much into any other view.
+ratio means the record is thin. Ingest and interpret more artifacts
+before you rely on any other view.
 
 ### When coverage is below the confidence floor
 
-When fewer than 30% of your artifacts are interpreted, Landmark treats the
+When Landmark interprets fewer than 30% of your artifacts, it treats the
 record as too thin to support conclusions:
 
 - `readiness` suppresses its verdict entirely and prints the coverage figure

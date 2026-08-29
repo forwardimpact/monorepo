@@ -6,10 +6,11 @@ description: "Give humans and agents the same exploratory loop. One command set 
 A CLI answers one question per invocation. Some work is exploratory. A person or
 an agent issues a command, reads the result, and issues the next command with
 the previous one in mind. `@forwardimpact/librepl` provides a `Repl` that runs
-that loop. The same command set works two ways. You type it at an interactive
-prompt. You also pass it as one-shot flags. So an agent that learned the flags
-can drive the tool non-interactively. A person can explore the same commands by
-hand.
+that loop.
+
+The same command set works two ways. You type it at an interactive prompt. You
+also pass it as one-shot flags. So an agent that learned the flags can drive
+the tool non-interactively. A person can explore the same commands by hand.
 
 ## Prerequisites
 
@@ -26,8 +27,8 @@ same way as the rest of the
 
 ## 1. Define the application
 
-You construct a `Repl` from an application object. You will almost always set
-two fields. `commands` holds the named operations. `onLine` says what to do with
+You construct a `Repl` from an application object. Most applications set two
+fields. `commands` holds the named operations. `onLine` says what to do with
 a plain line of input that is not a command.
 
 ```js
@@ -75,7 +76,7 @@ Three things happen here:
 The same definition drives two modes. The `Repl` selects the mode automatically
 from whether input is a terminal.
 
-**Interactive** — run the binary with a terminal attached:
+**Interactive.** Run the binary with a terminal attached:
 
 ```sh
 notes
@@ -91,7 +92,7 @@ notes>
 
 You type commands with a `/` in front. Anything else is a line for `onLine`.
 
-**Non-interactive** — every command is also a `--flag`, so an agent can invoke
+**Non-interactive.** Every command is also a `--flag`, so an agent can invoke
 the same operations without a prompt:
 
 ```sh

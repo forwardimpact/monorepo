@@ -6,11 +6,12 @@ description: Stand up the msbridge service so a Teams mention dispatches an agen
 Engineers discuss work in Microsoft Teams. Their agent team listens on
 GitHub. Without a bridge, every interaction forces a context switch. You
 open a new tab, file an issue, hand-craft a workflow_dispatch, and paste the
-verdict back into Teams when it is done. The `msbridge` service closes that
-gap. A user mentions the bot in a Teams thread. The bridge then dispatches
-the channel-agnostic agent-dispatch workflow with the conversation history.
-It posts the lead's reply back into the same thread when the workflow
-finishes.
+verdict back into Teams when it is done.
+
+The `msbridge` service closes that gap. A user mentions the bot in a Teams
+thread. The bridge then dispatches the channel-agnostic agent-dispatch
+workflow with the conversation history. It posts the lead's reply back into
+the same thread when the workflow finishes.
 
 This guide walks through the operational steps to stand up `msbridge` for a
 target GitHub repository. Provision the Azure Bot resource. Configure the
@@ -31,9 +32,8 @@ For the library primitives `msbridge` is built on, see
 - A GitHub token with `actions:write` on that repository. `libconfig` falls
   back to `gh auth token` when `GH_TOKEN` is not set in `.env`, so
   `gh auth login` is sufficient.
-- The `mstunnel` service available alongside `msbridge` to publish the
-  bridge's HTTP endpoint to the public internet (uses `cloudflared` under
-  the hood).
+- The `mstunnel` service available alongside `msbridge`. It publishes the
+  bridge's HTTP endpoint to the public internet through `cloudflared`.
 
 ## Architecture overview
 
@@ -47,22 +47,26 @@ Teams thread ──webhook── mstunnel ── msbridge ──dispatch──> 
      └────────── callback ──────────────┘
 ```
 
-The service is built on `@forwardimpact/libbridge`. The dispatch dance,
-callback handler, callback registry, rate limiter, history bound, prompt
-builder, lenient payload validator, and the acknowledgement lifecycle
-(reaction + randomized typing-verb ticker) all come from the library.
-Durable thread state lives in the shared `services/bridge` gRPC service.
-`msbridge` reaches that service through a `BridgeClient`. Per-user GitHub
-auth lives in `services/ghuser`, and `msbridge` reaches it through a
-`GhuserClient`. That auth mints the dispatch token. `msbridge` owns three
-Bot Framework adapters in `src/teams.js`:
+The service builds on `@forwardimpact/libbridge`. The library supplies the
+dispatch dance, the callback handler, the callback registry, the rate
+limiter, the history bound, and the prompt builder. It also supplies the
+lenient payload validator and the acknowledgement lifecycle with the
+reaction and the randomized typing-verb ticker.
 
-- `botFrameworkIntake` — converts Bot Framework's express-style
+Durable thread state lives in the shared `services/bridge` gRPC service.
+`msbridge` reaches that service through a `BridgeClient`.
+
+Per-user GitHub auth lives in `services/ghuser`. `msbridge` reaches it
+through a `GhuserClient`. That auth mints the dispatch token.
+
+`msbridge` owns three Bot Framework adapters in `src/teams.js`:
+
+- `botFrameworkIntake` converts Bot Framework's express-style
   `adapter.process(req, res, cb)` into a Hono request handler.
-- `buildReactionAdapter` / `buildTypingAdapter` — deliver libbridge's
+- `buildReactionAdapter` and `buildTypingAdapter` deliver libbridge's
   acknowledgement actions through the Bot Framework's
   `continueConversationAsync`.
-- `sendReply` — posts a reply message to the conversation reference saved
+- `sendReply` posts a reply message to the conversation reference saved
   on the discussion context.
 
 ## Configure credentials
@@ -109,10 +113,10 @@ grep trycloudflare.com data/logs/mstunnel/current
 
 Configure two endpoints with that hostname:
 
-1. **Azure Bot messaging endpoint** — in the Azure portal
-   (Settings → Configuration), set the endpoint to
+1. **Azure Bot messaging endpoint.** In the Azure portal, under
+   Settings → Configuration, set the endpoint to
    `https://<tunnel-domain>/api/messages`.
-2. **Bridge callback URL** — set
+2. **Bridge callback URL.** Set
    `SERVICE_MSBRIDGE_CALLBACK_BASE_URL=https://<tunnel-domain>` in `.env`.
    Add no trailing path. The bridge composes
    `/api/callback/<tenant_id>/<token>` itself. In a single-tenant
@@ -140,11 +144,14 @@ just msbridge-package
 The recipe reads `MICROSOFT_APP_ID` and the tunnel domain from `.env` with
 `libconfig`. It writes the archive to the `--output` path, which defaults
 to a git-ignored file under `dist/`. Override the tunnel domain with
-`--tunnel-domain=<host>` when needed. The manifest uses Teams schema v1.17.
-It also carries the bot's display name, which becomes the mention your
-users type in Teams. You can rebuild the package, re-upload it, and keep
-the app in Teams. Azure Bot routes on the messaging endpoint. It does not
-route on the manifest contents.
+`--tunnel-domain=<host>` when needed.
+
+The manifest uses Teams schema v1.17. It also carries the bot's display
+name, which becomes the mention your users type in Teams.
+
+You can rebuild the package, re-upload it, and keep the app in Teams. Azure
+Bot routes on the messaging endpoint. It does not route on the manifest
+contents.
 
 Sideload through Teams Admin Center:
 
@@ -176,9 +183,9 @@ You have reached the outcome of this guide when:
 If the workflow dispatch fails, the bridge posts `Failed to reach the
 agent team. Please try again later.` into the thread. Confirm the GitHub
 token has `actions:write` on the target repository. Check the bridge log
-for `api.github.com` errors. If you are on a corporate VPN with tenant
-restrictions, outbound calls to Azure AD or GitHub may be blocked.
-Disconnect or allowlist the relevant endpoints.
+for `api.github.com` errors. A corporate VPN with tenant restrictions may
+block outbound calls to Azure AD or GitHub. Disconnect, or allowlist the
+relevant endpoints.
 
 ## What's next
 

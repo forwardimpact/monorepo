@@ -137,9 +137,9 @@ shorter value at start. How tokens flow:
 - The server verifies the signature with a timing-safe comparison. It rejects
   the call with `UNAUTHENTICATED` if the header is missing, malformed, expired,
   or signed with a different secret.
-- Tokens are time-limited (a 60-second lifetime by default). Nobody can replay a
-  captured token indefinitely. The client mints a fresh token per call, so
-  callers do not notice the short lifetimes.
+- Tokens are time-limited, with a 60-second lifetime by default. Nobody can
+  replay a captured token indefinitely. The client mints a fresh token per
+  call, so callers do not notice the short lifetimes.
 
 `Server` mounts the health check at `grpc.health.v1.Health/Check` without
 authentication. An orchestrator can then probe liveness without the secret.
@@ -209,7 +209,7 @@ streaming call in a retry policy with these defaults:
 
 - **Up to 10 retries** before the call rejects with the underlying error.
 - **Exponential backoff** that starts at a 1-second base delay. The wait roughly
-  doubles each attempt, so the client does not hammer a service in trouble.
+  doubles each attempt, so the client does not overload a service in trouble.
 - **Jitter** that the client adds to each delay. A fleet of clients that all
   failed at the same moment then does not retry in lockstep. The clients create
   no thundering herd.

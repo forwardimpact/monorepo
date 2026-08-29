@@ -1,6 +1,6 @@
 ---
 title: Guide
-description: Career guidance and output review grounded in your organization's actual engineering standard. The advice is not generic.
+description: Guide grounds career guidance and output review in your organization's engineering standard instead of generic advice.
 layout: product
 toc: false
 hero:
@@ -27,8 +27,7 @@ engineering standard.
 
 Get guidance and evidence grounded in your organization's standard. The
 guidance does not come from impressions or generic advice. Verify agent work
-against the standard. You then review by exception. You do not review by
-default.
+against the standard. You then review by exception instead of by default.
 
 - Gap analysis between current level and target, with specific skill
   recommendations

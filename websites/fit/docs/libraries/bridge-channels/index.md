@@ -5,12 +5,11 @@ description: Threaded-channel adapters share an intake skeleton, callback regist
 
 You build an adapter that relays messages between a human channel and an agent
 team's dispatch workflow. The channel can be GitHub Discussions, Microsoft
-Teams, or the next chat platform someone asks for. The first time you do this,
-you reach for last project's callback registry, rate limiter, and history-bound
-prompt builder. `@forwardimpact/libbridge` gives you those
-primitives. The host service can then focus on the channel-specific SDK glue.
-It leaves thread state, callback verification, prompt construction, and
-workflow dispatch to a shared library.
+Teams, or another chat platform. Each adapter needs the same callback registry,
+rate limiter, and history-bound prompt builder. `@forwardimpact/libbridge`
+provides those primitives. The host service then focuses on the
+channel-specific SDK glue. It leaves thread state, callback verification,
+prompt construction, and workflow dispatch to the shared library.
 
 ## Prerequisites
 
@@ -37,7 +36,7 @@ primitives every adapter needs:
 | Primitive | Purpose |
 | --- | --- |
 | `createBridgeServer` | Hono server that wires a channel webhook route and `/api/callback/:tenant_id/:token` together |
-| `Acknowledgement` | Reaction-plus-optional-typing-verb lifecycle for "I received your message" feedback |
+| `Acknowledgement` | Adds a reaction and an optional typing verb on receipt of a message, and removes the reaction on completion |
 | `Dispatcher` | Composes callback registration, acknowledgement, workflow dispatch, history append, and rollback-on-failure into one call |
 | `createCallbackHandler` | Inbound-callback skeleton with verdict routing (`adjourned` / `failed` / `recessed`) and span instrumentation |
 | `ResumeScheduler` | Channel-agnostic suspend/resume lifecycle for `recessed` verdicts. Wraps `ElapsedScheduler` |
@@ -49,12 +48,12 @@ primitives every adapter needs:
 | `appendHistory` | Bounded message history. The default cap is 10 entries, and the oldest entry drops on overflow |
 | `buildPrompt` | Prompt builder that prepends recent history bounded by exchange count and char cap |
 | `dispatchWorkflow` | GitHub Actions `workflow_dispatch` POST with the agreed input shape |
-| `evaluateTrigger` | Caller-clock resume-trigger evaluation (kinds: `missing_input`, `elapsed`, `escalation_needed`) |
+| `evaluateTrigger` | Evaluates resume triggers against a caller-supplied clock (kinds: `missing_input`, `elapsed`, `escalation_needed`) |
 | `parseIsoDuration` | ISO-8601 duration parser (`P1D`, `PT12H`, `P1DT6H`) that `evaluateTrigger` uses |
 
 Four primitives form the composition layer: `Acknowledgement`, `Dispatcher`,
 `createCallbackHandler`, and `ResumeScheduler`. A real bridge wires the channel
-SDK into these constructors, and each one owns its slice of the dance. The
+SDK into these constructors. Each one owns its part of the flow. The
 primitives below them are still available when you need to step outside the
 shared composition.
 
@@ -63,7 +62,9 @@ Two injection rules keep the surface testable from any host. Persistence is
 (`Dispatcher`, `ResumeScheduler`, `createCallbackHandler`,
 `createLinkCompleteHandler`) takes a `store` parameter that satisfies the
 `DiscussionAdapter` typedef. The library never constructs persistence on its
-own. The trigger evaluator is **clock-injected**.
+own.
+
+The trigger evaluator is **clock-injected**.
 `evaluateTrigger(trigger, observed, now)` takes `now` as a parameter. The
 library never calls `Date.now()`.
 
@@ -121,8 +122,8 @@ await bridge.start();
 `POST /api/callback/:tenant_id/:token` on a Hono app. It captures the raw POST
 body on `c.get("rawBody")` for signature verification. It returns
 `{ start, stop, app, address }`. The host owns lifecycle, the channel SDK,
-and the verdict-to-channel translation (a GraphQL `addDiscussionComment` for
-GitHub, a `botbuilder` activity for Teams, etc.).
+and the verdict-to-channel translation. GitHub uses a GraphQL
+`addDiscussionComment`. Teams uses a `botbuilder` activity.
 
 ## Persist per-thread context
 
@@ -226,7 +227,9 @@ await store.flush();
 For multi-process bridges, point the adapter at a shared backend such as Redis,
 Postgres, or a dedicated persistence service. Every bridge replica then sees the
 same `(channel, discussion_id)` records. The `pending_callbacks` tokens also
-survive restarts. The reference deployment runs a small gRPC service that owns
+survive restarts.
+
+The reference deployment runs a small gRPC service that owns
 the JSONL files and the TTL sweep. `services/ghbridge` and `services/msbridge`
 wrap a generated client in a `DiscussionAdapter` to talk to it. Implementations
 swap freely. libbridge only sees the contract.
@@ -234,13 +237,16 @@ swap freely. libbridge only sees the contract.
 ## Issue and verify callback tokens
 
 A bridge dispatches a workflow run. It then waits for the workflow to POST back
-its verdict. The host registers a `(correlationId, meta)` pair, and
-`meta.tenant_id` is required. The host receives a randomly generated token. The
-host embeds the token in the callback URL. The workflow echoes it. The host
-consumes the token once and rejects every later attempt.
+its verdict. The host registers a `(correlationId, meta)` pair. The `meta`
+object must include `tenant_id`. The host receives a randomly generated token.
+The host embeds the token in the callback URL. The workflow echoes it.
+
+The host consumes the token once and rejects every later attempt.
 `consume(token, { tenant_id })` is atomic. It removes the entry and returns it
 in one call. It returns `null` when the token is unknown, expired, or bound to
-a different tenant. The default TTL is two hours. A lookup drops an expired
+a different tenant.
+
+The default TTL is two hours. A lookup drops an expired
 entry when it observes it. `startSweepTimer()` evicts tokens whose dispatch
 never calls back, every 10 minutes by default. `stopSweepTimer()` cancels the
 sweep. Use `peek(token, { tenant_id })` to inspect an entry. `peek` does not
@@ -286,11 +292,12 @@ async function onCallback(c) {
 
 The registry is in-memory. For multi-process bridges, persist
 `pending_callbacks` on each discussion-context record through the adapter's
-`add()` call. The host can then re-register tokens on restart. The
-`correlation_id` echoes through the workflow. The host checks it against the
-consumed entry's `correlationId` to defend against token-and-payload
-mismatches. The tenant binding makes sure a token issued for one tenant cannot
-redeem a callback addressed to another.
+`add()` call. The host can then re-register tokens on restart.
+
+The `correlation_id` echoes through the workflow. The host checks it against
+the consumed entry's `correlationId` to defend against token-and-payload
+mismatches. The tenant binding makes sure that a token for one tenant cannot
+redeem a callback for another tenant.
 
 ## Evaluate recess triggers
 
@@ -338,10 +345,14 @@ if (result.fired) {
 
 `evaluateTrigger` is pure. It takes a trigger, an observation
 (`{ replies?, opened_at? }`), and a clock reading. It returns whether the
-observation satisfies the trigger. The host calls it whenever a candidate
+observation satisfies the trigger.
+
+The host calls it whenever a candidate
 event arrives. For `missing_input`, the host calls it on every new channel
 message. For `elapsed`, the host calls it on a host-scheduled wake-up at
-`due_at`. `escalation_needed` throws today. It will integrate with channel
+`due_at`.
+
+`escalation_needed` throws today. It will integrate with channel
 signal intake once that spec lands.
 
 ## Verify

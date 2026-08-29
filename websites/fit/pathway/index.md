@@ -1,6 +1,6 @@
 ---
 title: Pathway
-description: See what's expected at every level. Generate job definitions, career paths, and agent profiles from one shared engineering standard.
+description: See the expectations at every level. Generate job definitions, career paths, and agent profiles from one shared engineering standard.
 layout: product
 toc: false
 hero:
@@ -16,9 +16,10 @@ hero:
 ---
 
 'Meets expectations' on the review form has no definition anyone can point to.
-An agent's work was rejected because it followed generic practices instead of
-the organization's standards. Pathway resolves both. It is one shared standard
-that produces definitions for humans and agents alike.
+A reviewer rejected an agent's work because the agent followed generic
+practices instead of the organization's standards. Pathway resolves both
+problems. It is one shared standard that produces definitions for humans and
+for agents.
 
 ## What becomes possible
 
@@ -34,7 +35,7 @@ defend.
 
 ### For Empowered Engineers
 
-See exactly what's expected at your level. See what changes at the next level.
+See the exact expectations at your level. See what changes at the next level.
 Configure agents to meet the expectations the organization holds for humans.
 You need no bespoke prompts.
 
@@ -51,8 +52,8 @@ You need no bespoke prompts.
 - **Browse skills** — View all skills with detailed level descriptions
 - **Compare levels** — See what changes between levels side by side
 - **Prepare interviews** — Generate role-specific question sets when you hire
-- **Preview agent profiles** — See exactly what agent configuration looks like
-  before you deploy
+- **Preview agent profiles** — See the exact agent configuration before you
+  deploy
 
 ---
 

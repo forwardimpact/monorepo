@@ -3,13 +3,14 @@ title: Look Up Context Fast
 description: Retrieve exactly the context you need from a JSONL-backed index. Prefix, limit, and token-budget filters give you a subset. You do not load everything into memory.
 ---
 
-You need to find resources in an index that grows. Structural properties like
-type prefix or identifier pattern locate them. Semantic similarity and graph
-traversal do not. It is wasteful to load the entire dataset into your
-application when you need only a filtered subset. `@forwardimpact/libindex`
-provides a JSONL-backed index that loads on demand and applies built-in
-filters. Memory use stays proportional to the results. It does not grow with
-the corpus size.
+You need to find resources in an index that grows. A type prefix or an
+identifier pattern locates them. Semantic search and graph traversal solve
+different problems. You do not want to load the entire dataset when you need
+only a filtered subset.
+
+`@forwardimpact/libindex` provides a JSONL-backed index that loads on demand
+and applies built-in filters. Memory use stays proportional to the results. It
+does not grow with the corpus size.
 
 For the full workflow that builds a grounded context pipeline, see
 [Ground Agents in Context](/docs/libraries/ground-agents/).

@@ -8,7 +8,9 @@ point to a definition of what that means. Pathway makes those
 expectations visible: the skills your level requires, the behaviours the
 organization values, and the scope and autonomy your role implies. By the end of
 this guide you will have a concrete picture of what your level expects, grounded
-in your organization's own engineering standard. The other half of this job is
+in your organization's own engineering standard.
+
+The other half of this job is
 to configure agents against the same standard. See
 [Configure Agents to Meet Your Engineering Standard](/docs/products/agent-teams/).
 
@@ -159,10 +161,10 @@ constraints typical of pharmaceutical environments.
 | Expert | You define architectural strategy and reference patterns... |
 ```
 
-Each proficiency level describes concrete, observable actions. The descriptions
-are not vague aspirations. Compare the level description for your expected
-proficiency against your current practice. You then see where you are strong
-and where you have room to grow.
+Each proficiency level describes concrete actions that a colleague can
+observe. Compare the level description for your expected proficiency against
+your current practice. You then see where you are strong and where you have
+room to grow.
 
 The five proficiency levels follow a consistent progression:
 
@@ -285,7 +287,7 @@ Platform Engineering track shows 16 total changes instead of 12.
 Track-specific skills like Change Management, Incident Management,
 Observability, and Performance Optimization all need to grow as well.
 
-To compare any two specific levels (not just adjacent ones), use `--compare`:
+Use `--compare` to compare any two levels, adjacent or not:
 
 ```sh
 npx fit-pathway progress software-engineering J040 --compare=J060

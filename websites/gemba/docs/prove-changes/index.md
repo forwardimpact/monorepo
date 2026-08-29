@@ -20,7 +20,7 @@ connects observed behavior to actionable findings. This guide runs the eval with
 npm install -g @forwardimpact/gemba
 ```
 
-Or invoke each command ephemerally with `npx`:
+Or run each command through `npx` without installing it:
 
 ```sh
 npx gemba-harness --help
@@ -116,8 +116,8 @@ npx gemba-harness supervise \
 ```
 
 `--max-turns` is the per-runner invocation budget for both the judge and the
-agent. An internal lead-turn cap separately bounds the orchestration loop that
-drives the supervisor↔agent exchange. `0` removes the per-runner cap. Exit code
+agent. An internal lead-turn cap separately bounds the orchestration loop
+between the supervisor and the agent. `0` removes the per-runner cap. Exit code
 `0` means the judge concluded with `success: true`. Exit code `1` means it
 concluded `success: false`, ran out of turns, or errored.
 
@@ -151,7 +151,7 @@ re-enters. See
 [Bridge Channels](https://www.forwardimpact.team/docs/libraries/bridge-channels/)
 on the Forward Impact site for that surface.
 
-Every mode accepts the task as one of three inputs (exactly one required):
+Every mode accepts the task as one of three inputs. Pass exactly one:
 `--task-file=<path>`, `--task-text="<inline>"`, or
 `--task-event=<path>` for a native GitHub event payload.
 Every agent in the session sees the `--task-file` content as the opening

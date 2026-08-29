@@ -15,13 +15,13 @@ complete, and that the service stack runs.
 
 Also know the role you configured the agent to perform. If you set up the agent
 with [Agent Teams](/docs/products/agent-teams/), the agent profile already
-defines the role coordinates (discipline, level, and track). If not, identify
+defines the role coordinates: discipline, level, and track. If not, identify
 the closest match before you continue. Guide needs a role context to ground its
 assessment.
 
 ## Identify the deliverable
 
-Decide which artifact you want assessed. Guide works with any deliverable you
+Decide which artifact Guide should assess. Guide works with any deliverable you
 can describe or paste. That includes a pull request diff, a design document, a
 configuration file, a test plan, or prose output. A more concrete input gives a
 more specific assessment.
@@ -42,8 +42,8 @@ Guide session. They are not shell commands.
 
 ## Ask Guide to assess the deliverable
 
-Describe the deliverable, the role the agent performed, and what you want
-assessed. Be specific about the role coordinates. Guide uses them to look up the
+Describe the deliverable, the role the agent performed, and what Guide should
+assess. Be specific about the role coordinates. Guide uses them to look up the
 expected skill proficiencies and behaviour maturities for that level.
 
 ```text
@@ -119,7 +119,7 @@ would define new module boundaries or introduce integration patterns — this
 work stays within the existing structure, which is appropriate for J060.
 ```
 
-This focused mode is useful when you already reviewed most of the deliverable
+This focused mode helps when you already reviewed most of the deliverable
 yourself and want a standards-grounded check on one aspect.
 
 ## Ask about unfamiliar markers
@@ -132,8 +132,8 @@ definition:
 ```
 
 Guide returns the markers from your capability YAML for that skill at the
-requested proficiency level. This helps you understand exactly what the standard
-expects and whether Guide's assessment is well-grounded.
+requested proficiency level. The markers show exactly what the standard
+expects. You can then judge whether Guide's assessment is well-grounded.
 
 ## Use piped input for a quick assessment
 
@@ -144,7 +144,7 @@ directly:
 echo "Does this test plan meet J060 testing expectations? [paste plan]" | npx fit-guide
 ```
 
-Guide prints the assessment and exits. This is useful when you review multiple
+Guide prints the assessment and exits. Use this when you review multiple
 deliverables in sequence and want a fast check on each one.
 
 ## Verify
@@ -155,11 +155,12 @@ You reach the outcome of this guide when:
   specific skill markers and behaviour expectations from your engineering
   standard. It did not give generic quality advice.
 - **You can name what meets the bar and what does not.** The assessment
-  identified specific areas where the deliverable aligns with the expected level
-  and areas where it falls short, with enough detail to act on.
-- **You know what to ask for before you approve.** If Guide identified gaps, you
-  can describe the specific changes needed in terms the agent (or a human
-  contributor) can act on.
+  identified areas where the deliverable aligns with the expected level. It
+  identified areas where the deliverable falls short. Each finding has enough
+  detail to act on.
+- **You know what to ask for before you approve.** If Guide identified gaps,
+  you can describe the specific changes needed in terms the agent or a human
+  contributor can act on.
 
 Return to
 [Get Output Review Grounded in the Standard](/docs/products/trust-output/) for

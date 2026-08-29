@@ -4,9 +4,9 @@ description: Provision identities, pick personas, and issue credentials on any S
 ---
 
 You want agent-run interview or evaluation sessions against your own
-application. The identity plumbing is generic work you should not rebuild.
-That plumbing reconciles auth users against a roster, picks a persona that
-qualifies, mints a scoped JWT, and hands it to an agent. The
+application. The identity layer is generic work you should not rebuild.
+That layer reconciles auth users against a roster, picks a persona that
+qualifies, creates a scoped JWT, and hands the JWT to an agent. The
 `fit-terrain substrate` verbs do all of it against one documented interface,
 the **Substrate Contract**. You map your schema onto the contract once. The
 verbs never read your vendor tables.
@@ -33,8 +33,8 @@ You implement the relations as views (or tables) over your own schema:
 | Relation | Required | Columns |
 | --- | --- | --- |
 | `substrate.people` | yes | `email` (unique), `name`, `kind` (`human` rows are personas), `manager_email`, `team_id`, `team_name`, `discipline`, `level`, `track` |
-| `substrate.evidence` | no | `email` — one row per authored evidence item |
-| `substrate.discovery` | no | `key`, `value` — navigation ids copied into `.substrate.json` |
+| `substrate.evidence` | no | `email`. One row per authored evidence item |
+| `substrate.discovery` | no | `key`, `value`. Navigation ids copied into `.substrate.json` |
 
 `discipline`, `level`, and `track` are mandated columns. The
 engineering-standard vocabulary is a stated opinion of this contract. A
@@ -61,8 +61,8 @@ left join clinical.sites si on si.site_id = s.site_id;
 
 Supabase auth with email identities. Your product's row-level security keys
 on `auth.email()`. The `provision` and `pick` verbs use the service-role key.
-Only `service_role` should read the `substrate` schema itself. It is operator
-surface. It is not end-user surface.
+Only `service_role` should read the `substrate` schema itself. It is an
+operator surface. It is not an end-user surface.
 
 ### Environment variables
 
@@ -70,13 +70,14 @@ surface. It is not end-user surface.
 | --- | --- |
 | `SUPABASE_URL` | every stack-facing verb (`check`, `provision`, `pick`, `roster`, `issue`) |
 | `SUPABASE_SERVICE_ROLE_KEY` | every stack-facing verb |
-| `JWT_SECRET` | `issue` only — the HS256 secret your Supabase stack verifies tokens against |
+| `JWT_SECRET` | `issue` only. The HS256 secret your Supabase stack verifies tokens against |
 
 `substrate init` is an offline scaffold and needs none of them.
 
 ### Degradation semantics
 
-Absent optional relations degrade declaredly. They never degrade silently:
+An absent optional relation degrades in a declared way. It never degrades
+silently:
 
 - `check` reports an absent optional relation as info. It does not report a
   failure.
@@ -118,10 +119,11 @@ npx fit-terrain substrate issue --email persona@example.com --cwd . \
   --token-env MY_APP_TOKEN
 ```
 
-`pick` accepts `--memory <path>` to diversify against recent picks recorded
-in a CSV it appends on success (window size with `--memory-window`, default
-5). Omit it for a stateless pick. `issue` accepts `--ttl` (default `1h`) and
-`--stash <path>` for a bare copy of the JWT.
+`pick` accepts `--memory <path>` to diversify against recent picks. The
+command records each successful pick in that CSV. Set the window size with
+`--memory-window` (default 5). Omit the flag for a stateless pick. `issue`
+accepts `--ttl` (default `1h`) and `--stash <path>` for a bare copy of the
+JWT.
 
 `issue` writes three things atomically (mode 0600). It writes a
 `<NAME>=<jwt>` line to `.env`. It writes the discovery key/values plus

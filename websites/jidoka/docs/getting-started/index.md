@@ -28,7 +28,8 @@ and run the maintenance loop. The checks ship as a separate package.
 
 ## Decide the jobs shape first
 
-The setup skill cannot decide this for you. Packaging decides it, not taste.
+The setup skill cannot decide this for you. Your repository's packaging
+decides it.
 
 | What your repository is                    | Jobs shape                |
 | ------------------------------------------ | ------------------------- |
@@ -102,7 +103,7 @@ Call them from the command your contributors already run:
 }
 ```
 
-Then call `npm run check` from your CI job, and confirm that `rg` resolves
+Then call `npm run check` from your CI job. Confirm that `rg` resolves
 there too. A clean runner has nothing on its PATH. So a bare command that only
 a provisioned laptop resolves fails on the first pull request. Record the
 concrete invocation in `CONTRIBUTING.md`.

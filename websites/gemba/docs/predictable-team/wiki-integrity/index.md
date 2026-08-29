@@ -1,13 +1,13 @@
 ---
 title: Audit and Auto-Fix the Wiki
-description: Keep the wiki valid against a declarative rule catalogue. Auto-fix what is safely fixable. Surface the rest for a human, so stale memory never poisons coordination.
+description: Keep the wiki valid against a declarative rule catalogue. Auto-fix what is safely fixable. Surface the rest for a human, so stale memory does not corrupt coordination.
 ---
 
 A wiki that drifts out of shape is no longer reliable memory. A summary grows
-past its budget. An entry heading loses its date. An active claim outlives the
-work it described. `gemba-wiki` ships a declarative audit that catches these
-mechanically. It also ships an auto-fixer that resolves most of them. You do
-not read a single file.
+past its budget, an entry heading loses its date, or an active claim outlives
+the work it described. `gemba-wiki` ships a declarative audit that catches
+these faults mechanically. It also ships an auto-fixer that resolves most of
+them. You do not have to read each file yourself.
 
 This guide shows how to check the wiki against the rule catalogue. It shows how
 to read what the audit reports. It also shows how to run the auto-fixer. The
@@ -68,7 +68,8 @@ Two severities exist:
 
 Every finding has a stable rule id (`weekly-log.heading-grammar`,
 `summary.line-budget`, `expired-claim`, ...). Run the same audit in your
-pre-merge CI. A clean local run is then the bar every change has to clear.
+pre-merge CI. A clean local run then becomes the standard that every change
+must meet.
 
 ### JSON output
 
@@ -128,11 +129,12 @@ The deterministic layer runs first because it never rewrites history. It only
 seals an over-budget log into a numbered part and opens a fresh one. The agent
 layer then handles the residual prose findings. `gemba-wiki` composes the
 `technical-writer` role for that work. It runs the role on a fast model. The
-audit gives the verdict each round. The agent's self-report does not.
+audit gives the verdict each round. The agent's self-report does not decide
+the outcome.
 
 ### What gets flagged for a human
 
-`fix` deliberately never auto-fixes some findings. The safe action depends on
+By design, `fix` never auto-fixes some findings. The safe action depends on
 judgment that a tool cannot supply. When `fix` cannot reach a clean state, it
 exits non-zero and names them:
 

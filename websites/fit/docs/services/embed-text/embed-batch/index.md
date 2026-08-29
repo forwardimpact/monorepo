@@ -6,9 +6,10 @@ description: Send a batch of input strings to the embedding service and read bac
 You have a list of strings to embed. They can be documents to index,
 queries to compare, or passages to cluster. You want one gRPC call to return
 one vector per input, in order. You do not want to write per-string fetch
-loops or queue logic. This page walks through the bounded task. You send a
-batch and you read the response. Callers can then focus on what to do with
-the vectors. They do not need to think about how to fetch them.
+loops or queue logic.
+
+This page walks through the bounded task. You send a batch and you read the
+response. Callers can then focus on their use of the vectors.
 
 For the full setup with architecture and connection details, see
 [Embed Text Using a Shared Service](/docs/services/embed-text/).
@@ -68,15 +69,15 @@ internally on the inference side.
 
 Practical batch-size guidance:
 
-- For typical short text (titles, queries, log lines), batches of 32-128
-  strings move smoothly through the default `bge-small-en-v1.5` model on a
-  CPU host.
+- For typical short text such as titles, queries, and log lines, batches
+  of 32-128 strings work well with the default `bge-small-en-v1.5` model
+  on a CPU host.
 - For long documents, split into smaller batches first. TEI imposes a
   per-request token limit. The default model enforces that limit at 512
   tokens.
-- For online queries that need low tail latency, send one input at a time,
-  even though a batch would be more throughput-efficient. The round-trip
-  cost is small at single-input size.
+- For online queries that need low tail latency, send one input at a time.
+  A batch gives more throughput, but the round-trip cost is small for a
+  single input.
 
 ## Handle a partial failure
 

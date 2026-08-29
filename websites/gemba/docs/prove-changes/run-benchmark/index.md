@@ -70,8 +70,8 @@ with a JSON array of TODO objects.
 
 #### `workdir/`
 
-Whatever scaffolding the agent should start with: a `package.json`, a
-README, sample data. The harness copies everything here into the per-task CWD.
+This directory holds the scaffolding the agent starts with: a `package.json`,
+a README, sample data. The harness copies everything here into the per-task CWD.
 
 To share scaffolding across many tasks, put it in a **family-level**
 `workdir/` (or `specs/`) at the family root. The harness copies that shared
@@ -256,8 +256,8 @@ The pre-staged `.claude/` tree carries the skills and agent profiles the
 agent will see. `apm.lock.yaml` is the **manifest under test**. The harness
 hashes its bytes (LF-normalised) into `skillSetHash` on every result record.
 A one-byte change to the lockfile produces a different hash. That hash lets
-you compare "before-skill-change" runs against "after-skill-change" runs
-apples-to-apples.
+you compare runs before a skill change against runs after it on equal
+terms.
 
 > **Caveat.** `skillSetHash` covers the lockfile bytes only. If you edit
 > `.claude/` directly and do not regenerate the lockfile, the hash will not
@@ -325,19 +325,20 @@ the shared convention with `<case>` = `<taskId>-r<runIndex>`:
 
 Each result record carries `skillSetHash`, `familyRevision`, the combined
 verdict, invariants details, judge verdict + summary, cost, turn count, and
-the trace paths **relative to the run output directory** — valid on the
-machine that ran the benchmark and inside a downloaded trace artifact
-alike. The record's schema is validated at write time, so a malformed
-write is caught before the report stage trips over it.
+the trace paths. The trace paths are **relative to the run output
+directory**. They are valid on the machine that ran the benchmark and inside
+a downloaded trace artifact alike. The harness validates the record's schema
+at write time. It catches a malformed write before the report stage reads it.
 
 ### Traces as Artifacts
 
 In CI, the benchmark action uploads every trace file as a `trace--*`
-workflow artifact (see the `forwardimpact/benchmark` action README): the
-`trace` input gates the upload (default on; capture is unconditional), the
-`trace-dir` output locates the files on the runner, and each shard mints a
-collision-safe `trace--<artifact-name>[-shard-<i>]` artifact — kept even
-for failed and timed-out cells. Download and analyze with `gemba-trace`:
+workflow artifact. The `forwardimpact/benchmark` action README documents the
+surface. The `trace` input gates the upload. The input defaults to on, and
+capture is unconditional. The `trace-dir` output locates the files on the
+runner. Each shard mints a collision-safe artifact named
+`trace--<artifact-name>[-shard-<i>]`. The action keeps the artifact even for
+failed and timed-out cells. Download and analyze with `gemba-trace`:
 
 ```sh
 npx gemba-trace runs                      # eval and benchmark runs list by default
@@ -345,9 +346,9 @@ npx gemba-trace find <run-id> <key>       # key: exact filename, case, or partic
 npx gemba-trace download <run-id> --artifact trace--benchmark-results
 ```
 
-The extracted members land at `runs/<taskId>/<runIndex>/trace--*` — exactly
-the relative paths each result record carries. See the
-[trace analysis guide](../trace-analysis/index.md) for the full method.
+The extracted members land at `runs/<taskId>/<runIndex>/trace--*`. These are
+the same relative paths that each result record carries. See the
+[trace analysis guide](/docs/prove-changes/trace-analysis/) for the full method.
 
 ### Run Cells Concurrently
 
@@ -362,7 +363,7 @@ npx gemba-benchmark run --family=./my-coding-family --runs=5 --concurrency=4
 ```
 
 Concurrency does not change the pass@k that a serial run produces. Records
-simply stream in completion order instead of grid order. Each cell still
+stream in completion order instead of grid order. Each cell still
 lands in `results.jsonl` the moment it settles. So a cancelled run keeps
 every completed cell. One stalled cell now occupies a single slot. It does
 not block the whole run.
@@ -455,7 +456,7 @@ parallelism is `N` machines × the per-machine concurrency.
 
 ## Compare Before and After
 
-The reproducibility claim is the heart of the tool. Run the family twice. Use
+Reproducibility is the tool's central claim. Run the family twice. Use
 the old skill manifest first and the new manifest second. Then compare:
 
 ```sh

@@ -1,17 +1,17 @@
 ---
 title: Keep Team Memory and Coordination Apart
-description: Memory holds an agent's own state. Coordination needs a named receiver and an addressable artifact. Learn where the line sits, and learn what breaks when a team buries a handoff in the wiki.
+description: Memory holds an agent's own state. Coordination needs a named receiver and an addressable artifact. Learn where the line sits. Learn what breaks when a team buries a handoff in the wiki.
 ---
 
 A shift ends. The agent writes what it found into its wiki summary. It expects
 a teammate to pick the finding up. Nobody does. Three weeks later a second
 agent finds the same problem and opens a duplicate change. The wiki held the
-knowledge the whole time. The wiki never asked anyone to act.
+knowledge the whole time. It never asked anyone to act.
 
 Kata separates two things that look alike. Memory records what an agent knows.
 Coordination asks a named receiver to act. This guide shows where the line
-sits, which artifact carries each side, and how to spot a handoff that a
-team wrote into memory by mistake.
+sits and which artifact carries each side. It also shows how to spot a handoff
+that a team wrote into memory by mistake.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ team wrote into memory by mistake.
 - The wiki is in place and it syncs at session start and session stop. The
   sync, memo, and claim commands live in
   [Send a Memo or Update a Storyboard](https://www.gemba.team/docs/predictable-team/wiki-operations/).
-- Issues, pull requests, and Discussions are enabled on your repository.
+- Turn on Issues, pull requests, and Discussions in your repository.
   Coordination lands there.
 
 ## Two jobs that look like one
@@ -125,7 +125,7 @@ half is the announcement.
 - Comment on the coordinating issue when you open the change, or earlier. Give
   the branch name and the link to the change.
 - Name the route you rejected on the thread that proposed it. A later reader
-  then knows that the route is explored.
+  then knows that someone explored the route.
 - State the current scope when you close or re-route an issue. Say what is in
   flight, or say plainly that nothing is. Silence on a thread reads as an open
   invitation.
@@ -152,7 +152,7 @@ something that must move today.
 | A finding sits for weeks               | Only a summary recorded it                     | Open the issue or the change, and link the log     |
 | A summary hits its budget every shift  | History accumulated in the summary             | Move the trail to the weekly log, trim the rest    |
 | An agent re-asks a settled question    | The answer stayed in a comment thread          | Record the settled decision in the wiki as well    |
-| A request is never acknowledged        | Someone wrote into another agent's summary     | Send a memo, or comment on the artifact            |
+| Nobody acknowledges a request          | Someone wrote into another agent's summary     | Send a memo, or comment on the artifact            |
 | A rejected route gets re-implemented   | The decision lived only in the change body     | Comment the decision on the coordinating issue     |
 
 ## Verify

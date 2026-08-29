@@ -1,6 +1,6 @@
 ---
 title: "Ask a Growth Question"
-description: "Get growth advice grounded in your organization's actual skill and behaviour definitions. Do not settle for generic career guidance."
+description: "Get growth advice grounded in your organization's actual skill and behaviour definitions instead of generic career guidance."
 ---
 
 You need to ask a focused question about your career growth. You need an
@@ -71,8 +71,8 @@ from a generic model of what "senior" means.
 
 ## Ask about behaviour shifts between levels
 
-Behaviours change between levels just as skills do. Ask Guide about a specific
-behaviour to see what the next level expects:
+Behaviours change between levels in the same way skills do. Ask Guide about a
+specific behaviour to see what the next level expects:
 
 ```text
 > How is Think in Systems different at Role Modeling vs Practicing?
@@ -97,8 +97,8 @@ because of you.
 
 ## Ask for the biggest shifts between levels
 
-When you are not sure where to focus, ask Guide to identify the largest changes
-between your current level and your target:
+If the focus is unclear, ask Guide for the largest changes between your level
+and your target:
 
 ```text
 > Which skills have the biggest jump from J060 to J070 in Software Engineering?

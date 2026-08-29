@@ -14,7 +14,7 @@ that you set up in order:
    and Summit. It also lets Guide write skill evidence back against markers in
    the agent-aligned engineering standard.
 
-The standard layer is required. The activity layer is optional. It unlocks
+The standard layer is required. The activity layer is optional. It enables
 everything Landmark and Summit do.
 
 ## Prerequisites
@@ -37,8 +37,8 @@ editable YAML files:
 npx fit-map init
 ```
 
-This creates `./data/pathway/` with starter definitions for levels, disciplines,
-capabilities, skills, behaviours, drivers, and tracks. It also creates a
+The command creates `./data/pathway/` with starter definitions for levels,
+disciplines, capabilities, skills, behaviours, drivers, and tracks. It creates a
 `./config/config.json`, so later `fit-map` commands anchor their configuration
 at the project root. The starter data is a working agent-aligned engineering
 standard you can customize to match your organization. `npx fit-map init` is a
@@ -155,8 +155,8 @@ npm install supabase
 ```
 
 `fit-map` prefers a `supabase` binary on your `PATH`. If it finds none, it falls
-back to `npx supabase` and resolves it from your project's `node_modules`. So
-the npm-local install works without any PATH setup.
+back to `npx supabase` and resolves it from your project's `node_modules`. The
+npm-local install therefore works without any PATH setup.
 
 Verify the install:
 
@@ -171,7 +171,7 @@ npx supabase --version
 Map ships its full Supabase project inside the npm package. The project holds
 `config.toml`, migrations, edge functions, and `kong.yml`.
 `fit-map activity start` runs `supabase start` against the bundled project, so
-you don't need to `cd` anywhere:
+you do not need to change directory:
 
 ```sh
 npx fit-map activity start
@@ -283,10 +283,10 @@ without a manager before people with one, so the `manager_email` foreign key
 always resolves. Re-run the command any time your roster changes. It upserts on
 `email`, so you can run it repeatedly.
 
-Behind the scenes, `fit-map people push` talks to the same extract and transform
-helpers that the `people-upload` edge function uses. To run the upload
-server-side, for example from a form or an admin workflow, POST the file to the
-hosted function instead:
+Internally, `fit-map people push` talks to the same extract and transform
+helpers that the `people-upload` edge function uses. A form or an admin
+workflow can run the upload server-side. POST the file to the hosted function
+instead:
 
 ```sh
 curl -X POST \
@@ -327,7 +327,7 @@ the Landmark guide for the short version.
 Map ships a `github-webhook` edge function. The function receives GitHub webhook
 events. It stores the raw payload in the `raw` bucket. It extracts normalized
 artifacts into `activity.github_artifacts`. It handles pull requests, reviews,
-and pushes out of the box.
+and pushes by default.
 
 When the local Supabase runs, the function URL is:
 
@@ -397,21 +397,23 @@ curl -X POST \
 ```
 
 Once a quarter is typical. Match your GetDX survey cadence. The edge function
-and the CLI run the same extract-and-transform code. So the choice between them
-is purely a deployment choice.
+and the CLI run the same extract-and-transform code. The choice between them
+is only a deployment choice.
 
 The driver IDs in `data/pathway/drivers.yaml` are the same IDs as
 `getdx_snapshot_team_scores.item_id`. GetDX assigns those IDs. You mirror them
-when you author `drivers.yaml`. That shared namespace lets Landmark juxtapose a
+when you author `drivers.yaml`. That shared namespace lets Landmark compare a
 driver's GetDX score against the marker evidence for the skills that contribute
 to it.
 
 ## Activity: re-run transforms
 
 To reprocess every raw document in storage from scratch, ask `fit-map` to re-run
-every transform against the `raw` bucket. Do this after you restore a database,
-after you upgrade Map to pick up a transform fix, or to backfill from raw
-payloads:
+every transform against the `raw` bucket. Do this in these situations:
+
+- After you restore a database
+- After you upgrade Map to pick up a transform fix
+- When you backfill from raw payloads
 
 ```sh
 npx fit-map activity transform
@@ -457,11 +459,11 @@ Then seed the activity database:
 npx fit-map activity seed
 ```
 
-This uploads the generated roster and raw documents. It runs all transforms. It
-verifies the result. The database then holds realistic but fictional data you
-can query with Landmark or Summit. When you are ready to switch to real data,
-push your actual roster with `npx fit-map people push`. That command overwrites
-the synthetic entries.
+The command uploads the generated roster and raw documents. It runs all
+transforms. It verifies the result. The database then holds realistic but
+fictional data you can query with Landmark or Summit. When you are ready to
+switch to real data, push your actual roster with `npx fit-map people push`.
+That command overwrites the synthetic entries.
 
 ## Activity: verify the data
 
@@ -475,7 +477,7 @@ npx fit-map activity verify
 `fit-map activity verify` reads `activity.organization_people` and at least one
 derived table (`getdx_snapshots` or `github_events`). It prints the row counts
 it found. It exits 0 if both hold rows. If either is empty, it exits non-zero
-with a message that points at the step that didn't run.
+with a message that points at the step that did not run.
 
 If verification passes, your activity layer is ready for Landmark, Summit, and
 Guide.

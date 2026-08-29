@@ -7,15 +7,16 @@ Every Landmark read requires an authenticated caller. The privacy substrate
 keys row-level security off the JWT's `email` claim. Before any verb can
 return data, it needs to know who asks.
 
-`fit-landmark login` walks you through Supabase's magic-link flow, captures
-the session at a localhost callback, and stores it under
-`~/.config/landmark/credentials.json` (0600). Later commands resolve
+The `fit-landmark login` command starts Supabase's magic-link flow. It
+captures the session at a localhost callback. It stores the session in
+`~/.config/landmark/credentials.json` with mode 0600. Later commands resolve
 identity automatically. Subject-scoped commands default `--email` to your
 signed-in identity. These commands are `readiness`, `timeline`, `coverage`,
-`sources`, and `voice` with no flags. `evidence` stays explicit. When you
-omit `--email` from `evidence`, it shows the broadest view your access
-allows. You only run `login` again when the session expires or you change
-machines.
+`sources`, and `voice` with no flags.
+
+The `evidence` command stays explicit. When you omit `--email` from
+`evidence`, it shows the broadest view your access allows. You only run
+`login` again when the session expires or you change machines.
 
 This guide is for **engineers** who sign in to read Landmark from the CLI.
 Operators who issue tokens for unattended agents follow a different path. See
@@ -79,16 +80,16 @@ The file holds `access_token`, `refresh_token`, `expires_at`, and `email`.
 Treat it like an SSH private key. Never commit it. Never copy it to a
 shared filesystem. POSIX systems enforce the 0600 permission.
 
-You can override the path with `LANDMARK_CREDENTIALS_FILE`. It is useful
-when you isolate sessions per project or run test harnesses.
+Override the path with `LANDMARK_CREDENTIALS_FILE` when you isolate
+sessions per project or run test harnesses.
 
 ## When the session expires
 
-Supabase access tokens are short-lived (an hour by default) but the
-refresh token persists for weeks. The Landmark identity resolver checks
-`expires_at` on every command. It calls Supabase's refresh endpoint
-automatically when the access token is within a minute of expiry. The
-resolver writes the refreshed tokens back to the same credentials file.
+Supabase access tokens expire after one hour by default. The refresh
+token persists for weeks. The Landmark identity resolver checks
+`expires_at` on every command. When the access token is within a minute
+of expiry, the resolver calls Supabase's refresh endpoint. It writes the
+refreshed tokens back to the same credentials file.
 
 When the refresh token itself ages out, you see:
 
@@ -117,8 +118,8 @@ export PRODUCT_LANDMARK_TOKEN=<jwt>
 fit-landmark voice
 ```
 
-This is the path unattended agents take. Treat the token like a credential.
-It grants the same scope your magic-link session would.
+Unattended agents take this path. Treat the token like a credential.
+It grants the same scope as your magic-link session.
 
 ## What's next
 

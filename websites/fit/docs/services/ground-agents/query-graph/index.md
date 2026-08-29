@@ -1,13 +1,13 @@
 ---
 title: Answer Relationship Questions from a Product
-description: Answer relationship questions from any product — triple patterns against the shared graph service, no join logic.
+description: Answer relationship questions from any product. Send triple patterns to the shared graph service and write no join logic.
 ---
 
 You need to answer a relationship question from within a product. Examples are
 which people belong to an organization, which projects reference a capability,
 and which resources share a type. The graph service holds the RDF index in
-memory and exposes three RPCs: `QueryByPattern`, `GetSubjects`, and
-`GetOntology`. This page walks through each RPC with copy-pasteable examples.
+memory. It exposes three RPCs: `QueryByPattern`, `GetSubjects`, and
+`GetOntology`. This page shows each RPC with examples that you can copy.
 
 For the full setup, see
 [Ground Agents in Context](/docs/services/ground-agents/). That guide shows how
@@ -90,7 +90,7 @@ const query = graph.PatternQuery.fromObject({
 const result = await graphClient.QueryByPattern(query);
 ```
 
-This returns every resource that contributed triples about Alice.
+The query returns every resource that contributed triples about Alice.
 
 ### Apply a result filter
 
@@ -153,8 +153,8 @@ entities with the type `schema:Individual` if the ontology maps them.
 
 ## Read the ontology
 
-The ontology is a SHACL description of all types and predicates observed in the
-graph. It tells you what questions the graph can answer before you write
+The ontology is a SHACL description of all observed types and predicates in
+the graph. It shows you which questions the graph can answer before you write
 queries:
 
 ```js

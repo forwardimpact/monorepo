@@ -1,13 +1,15 @@
 ---
 title: Query the Engineering Standard from Any Product
-description: Products that access derived roles and profiles and do not embed derivation logic — shared pathway gRPC service.
+description: Products access derived roles and profiles through the shared pathway gRPC service and do not embed derivation logic.
 ---
 
 You build a product feature that needs career paths, skill matrices, or agent
 profiles derived from the engineering standard. The derivation logic resolves
 modifiers, clamps proficiency, classifies tiers, and specializes tracks. That
 logic lives in `@forwardimpact/libskill`. You do not want to embed that library
-in every product. The pathway gRPC service runs the derivation on a shared
+in every product.
+
+The pathway gRPC service runs the derivation on a shared
 backend. It returns Turtle RDF over a typed interface. Your product sends a
 discipline, level, and optional track. The service returns the full derived
 role or agent profile.
@@ -18,9 +20,9 @@ check that the responses contain the derived data your feature needs.
 ## Prerequisites
 
 - Node.js 18+
-- Generated client code available (run `npx fit-codegen generate --all` if not)
-- Services running (`npx fit-rc start`)
-- Standard data initialized at `data/pathway/`. If that data does not exist
+- Generated client code. Run `npx fit-codegen generate --all` if it is missing.
+- Running services. Start them with `npx fit-rc start`.
+- Standard data at `data/pathway/`. If that data does not exist
   yet, run `npx fit-pathway init`. Then follow the prompts.
 
 Install the transport and type packages:
@@ -73,8 +75,8 @@ const tracer = await createTracer("my-product");
 const pathwayClient = await createClient("pathway", logger, tracer);
 ```
 
-`createClient("pathway")` resolves the host and port from `config/config.json`,
-creates a `PathwayClient` instance, and establishes the gRPC channel with
+`createClient("pathway")` resolves the host and port from `config/config.json`.
+It creates a `PathwayClient` instance. It establishes the gRPC channel with
 automatic retry.
 
 ## List all valid roles
@@ -156,10 +158,10 @@ try {
 
 ## Describe an agent profile
 
-Agent profiles follow the same derivation path as roles. They also apply
-agent-specific policies. The service excludes human-only skills. It keeps only
-the highest-proficiency skills. It sorts skills and behaviours by strength
-descending. To derive one:
+Agent profiles follow the same derivation path as roles. The service also
+applies agent-specific policies. The service excludes human-only skills. It
+keeps only the highest-proficiency skills. It sorts skills and behaviours by
+strength descending. To derive one:
 
 ```js
 const request = pathway.DescribeAgentProfileRequest.fromObject({

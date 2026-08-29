@@ -33,7 +33,7 @@ npx --yes @forwardimpact/libterrain fit-terrain --help
 ## Write the DSL file
 
 Create a `.dsl` file that declares the organization, people distribution,
-and engineering standard. The minimum viable DSL needs four top-level blocks:
+and engineering standard. The minimum DSL needs four top-level blocks:
 
 ```text
 // evals/terrain/story.dsl
@@ -209,6 +209,7 @@ Datasets declared with `dataset` + `output` blocks land at the paths each
 `output` block names. Available output formats include `json`, `yaml`,
 `csv`, `markdown`, `parquet`, and `sql`. They also include
 `supabase_migration`, `embeddings_jsonl`, and `fhir_microdata_html`.
+
 `supabase_migration` produces numbered SQL files that you apply with
 `supabase db push`. `embeddings_jsonl` produces one JSON object per line that
 combines entity fields with cached prose, ready for vector embedding.
@@ -221,15 +222,17 @@ synthetic patients.
 
 Two verbs let you check the dataset with no LLM calls.
 
-**Check cache completeness** -- reports how many prose keys the cache holds and
-how many it misses. Exit code `1` if any key is a miss:
+**Check cache completeness.** The `check` verb reports how many prose keys the
+cache holds and how many it misses. The exit code is `1` when any key is a
+miss:
 
 ```sh
 npx fit-terrain check --story=evals/terrain/story.dsl
 ```
 
-**Validate structure** -- runs entity and cross-content checks and writes no
-files. Use it after you edit the DSL to catch errors before a full rebuild:
+**Validate structure.** The `validate` verb runs entity and cross-content
+checks and writes no files. Use it after you edit the DSL to catch errors
+before a full rebuild:
 
 ```sh
 npx fit-terrain validate --story=evals/terrain/story.dsl

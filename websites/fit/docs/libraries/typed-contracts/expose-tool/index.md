@@ -44,11 +44,12 @@ the MCP server.
 ## Step 1: Add the config entry
 
 Open `config/config.json` and add a new key under `service.mcp.tools`. The key
-is the tool name agents will see. The value needs two fields:
+is the tool name agents see. The value needs two fields:
 
-- `method` -- the fully qualified proto method path as `package.Service.Method`
-- `description` -- a one-line description agents read to decide when to use the
-  tool
+- `method` holds the fully qualified proto method path as
+  `package.Service.Method`.
+- `description` holds a one-line description that agents read to decide when
+  to use the tool.
 
 For example, to expose the `DescribeProgression` method from the Pathway
 service:
@@ -97,13 +98,14 @@ tool's parameter schema automatically.
 
 ## Verify the tool is registered
 
-Restart the MCP server, then check that the tool appears. Two ways to confirm:
+Restart the MCP server. Then check that the tool appears. Two checks confirm
+the registration:
 
-- **Inspect the config** — the MCP server registers every tool declared under
+- **Inspect the config.** The MCP server registers every tool declared under
   `service.mcp.tools` in `config/config.json` at startup. The keys in that
   object are exactly the tool names agents see.
-- **Connect an MCP client** — call the `tools/list` JSON-RPC method against the
-  MCP server while it runs and look for your new tool name in the response.
+- **Connect an MCP client.** Call the `tools/list` JSON-RPC method against the
+  MCP server while it runs. Look for your new tool name in the response.
 
 If the tool does not appear, check:
 
@@ -177,8 +179,8 @@ message DescribeJobRequest {
 These comments produce tool parameters described as "Discipline id (e.g.
 'software-engineering')" and "Level id (e.g. 'J060')". A field with no comment
 falls back to its own name with underscores replaced by spaces. `max_tokens`
-becomes the description "max tokens". So a missing comment leaves a parameter
-under-described. It never leaves the parameter undescribed.
+becomes the description "max tokens". A missing comment gives a parameter a
+weak description. The parameter always has one.
 
 ## Troubleshoot registration
 

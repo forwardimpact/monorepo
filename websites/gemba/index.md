@@ -160,7 +160,7 @@ layout: home
         <p class="command-desc">Gives a sandboxed agent a narrow, audited path to edit its own instruction files.</p>
       </div>
     </div>
-    <p class="closing-note reveal">Gemba adds no importable API of its own. It consumes published runtime libraries. When you need the components instead of the commands, import <code>@forwardimpact/libharness</code>, <code>@forwardimpact/libwiki</code>, and <code>@forwardimpact/libxmr</code> directly, and read the <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#catalog">library catalog</a>.</p>
+    <p class="closing-note reveal">Gemba adds no importable API of its own. It consumes published runtime libraries. When you need the components instead of the commands, import <code>@forwardimpact/libharness</code>, <code>@forwardimpact/libwiki</code>, and <code>@forwardimpact/libxmr</code> directly. Read the <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#catalog">library catalog</a>.</p>
   </div>
 </div>
 

@@ -117,7 +117,8 @@ const message = common.Message.fromObject({
 await resourceIndex.put(message);
 ```
 
-`put` generates the resource's identifier if one is not already set. It then
+`put` generates the resource's identifier when the resource does not carry
+one. It then
 writes a single JSON file under the index's storage prefix. `add` is an alias
 for `put`. Both store one resource. Both overwrite any existing file with the
 same identifier, so a second write of the same resource is idempotent.
@@ -233,8 +234,8 @@ for (const chunk of chunks) {
 }
 ```
 
-The graph answers "which entities match?" The resource index answers "what do
-those entities contain?" Each library owns one step.
+The graph finds the identifiers that match a pattern. The resource index
+returns the content behind them. Each library owns one step.
 
 ## What's next
 
