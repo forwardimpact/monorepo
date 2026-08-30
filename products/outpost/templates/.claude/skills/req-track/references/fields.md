@@ -1,6 +1,6 @@
 # Candidate Field Extraction
 
-Field map and resolution rules for Step 2 of `req-track`.
+Field map and resolution rules for Step 5 of `req-track`.
 
 ## Fields
 
@@ -33,7 +33,7 @@ Field map and resolution rules for Step 2 of `req-track`.
 
 ## Channel
 
-- `vendor` — Source links to an `[[Organizations/...]]` flagged as
+- `vendor` — Source links to a `[[3-Team/Organizations/...]]` note flagged as
   vendor/partner (keywords: supplier, recruitment partner, contractor,
   staffing). A Req that contains "via {vendor name}" instead of a system ID
   also means `vendor`.
@@ -44,15 +44,15 @@ Field map and resolution rules for Step 2 of `req-track`.
 
 Stop at the first match:
 
-1. **Req-first inheritance** — search `Knowledge/Roles/` for a file that matches
-   the Req number or the role description. Use a filename substring lookup for
-   req-less roles. Check the `**Status:**` field (open/closed). Then inherit
-   Hiring manager and Domain lead from the Role file.
+1. **Req-first inheritance** — search `2-Confidential/Roles/` for a file that
+   matches the Req number or the role description. Use a filename substring
+   lookup for req-less roles. Check the `**Status:**` field (open/closed). Then
+   inherit Hiring manager and Domain lead from the Role file.
 2. **Calendar inference** —
    `rg -l "{Candidate Name}" ~/.cache/fit/outpost/apple_calendar/`. The non-user
    organizer of an interview event is likely the hiring manager.
 3. **Email inference** — cross-check internal To/CC recipients (besides the
-   user) against `Knowledge/People/`.
+   user) against `3-Team/People/`.
 4. **Reporting chain** — read the hiring manager's `**Reports to:**` field. Walk
    up to a VP / senior leader for the domain lead.
 5. **Staffing project timeline** — search staffing notes for the candidate or
@@ -74,18 +74,21 @@ hiring decisions, assessment criteria, or candidate visibility.
 
 ## Source and recruiter
 
-- Map the sender email domain to an organization in `Knowledge/Organizations/`.
+- Map the sender email domain to an organization in `3-Team/Organizations/`.
 - The person who sent or forwarded the profile is the recruiter. Link with
-  `[[People/Name]]`.
-- Create the organization or recruiter notes if missing.
+  `[[3-Team/People/Name]]`.
+- Write recruiter-side and agency-side backlinks on the entity's
+  `2-Confidential` overlay note ([overlays.md](overlays.md)), never on the
+  `3-Team` note. When the `3-Team` note is missing, keep the name as plain
+  text. `extract-entities` creates team notes.
 
 ## CV attachment
 
 ```bash
 ls ~/.cache/fit/outpost/apple_mail/attachments/{thread_id}/
-mkdir -p "Knowledge/Candidates/{Full Name}"
+mkdir -p "2-Confidential/Candidates/{Full Name}"
 cp "~/.cache/fit/outpost/apple_mail/attachments/{thread_id}/{file}" \
-   "Knowledge/Candidates/{Full Name}/CV.pdf"
+   "2-Confidential/Candidates/{Full Name}/CV.pdf"
 ```
 
 Use `CV.pdf` (PDF) or `CV.docx` (Word). The `## CV` link is `./CV.pdf`.
@@ -109,9 +112,9 @@ Match by name fragment (case-insensitive). Prefer the Downloads match. Always
 write `headshot.jpeg`:
 
 ```bash
-cp "{src}" "Knowledge/Candidates/{Full Name}/headshot.jpeg"
+cp "{src}" "2-Confidential/Candidates/{Full Name}/headshot.jpeg"
 # PNG → JPEG
-magick "{src}.png" "Knowledge/Candidates/{Full Name}/headshot.jpeg"
+magick "{src}.png" "2-Confidential/Candidates/{Full Name}/headshot.jpeg"
 # HEIC → JPEG
-magick "{src}.heic" "Knowledge/Candidates/{Full Name}/headshot.jpeg"
+magick "{src}.heic" "2-Confidential/Candidates/{Full Name}/headshot.jpeg"
 ```

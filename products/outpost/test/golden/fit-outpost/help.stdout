@@ -1,4 +1,4 @@
-fit-outpost 3.3.4 — Schedule autonomous agents across knowledge bases
+fit-outpost 0.0.0-golden — Schedule autonomous agents across knowledge bases
 
 Usage: fit-outpost <command> [options]
 
@@ -8,14 +8,14 @@ Commands:
   init [name]                  Initialize a new knowledge base
   update [path]                Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)
   stop                         Gracefully stop daemon and all running agents
-  validate                     Validate agent definitions exist
+  validate [path]              Validate agent definitions and knowledge bases
   status                       Show agent status
   posture [brief|brief+draft]  Show or set the adoption posture (brief or brief+draft)
 
 Options:
   --help, -h  Show this help
   --version   Show version
-  --json      JSON output (with --help)
+  --json      JSON output (with --help and validate)
 
 Documentation:
   Outpost Overview

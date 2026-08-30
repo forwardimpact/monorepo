@@ -11,11 +11,14 @@ compatibility: Requires macOS filesystem access
 
 # Right to Be Forgotten
 
+Write tier: `2-Confidential` (erasure record; sweep every tier present)
+Frontmatter: erasure
+
 Process data erasure requests under GDPR Article 17. Work from the person's
-name. Systematically find and remove all personal data from the knowledge base,
-the cached synced data, and the agent state files. Produces an **erasure
-report** that records what you found, deleted, and redacted. The report is the
-compliance audit trail.
+name and every recorded alias. Sweep every tier present, the owner's personal
+surfaces (`0-Draft/`, `Briefings/`), the cached synced data, and the agent
+state files. Produces an **erasure report** that records what you found,
+deleted, and redacted. The report is the compliance audit trail.
 
 ## Trigger
 
@@ -38,15 +41,15 @@ compliance audit trail.
 
 ## Outputs
 
-- `Knowledge/Erasure/{Name}--{YYYY-MM-DD}.md` — erasure report.
-- Deleted files and redacted references across the knowledge base.
+- `2-Confidential/Erasure/{Name}--{YYYY-MM-DD}.md` — erasure report.
+- Deleted files and redacted references across every tier.
 
 <do_confirm_checklist goal="Verify erasure is complete and the audit trail is
 sound">
 
 - [ ] Get the user's confirmation before any deletion.
-- [ ] Run every discovery recipe. Cover knowledge, cache, state, and drafts in
-      the inventory.
+- [ ] Run every discovery recipe for the name and each alias. Cover every tier
+      present, `Briefings/`, cache, and state in the inventory.
 - [ ] Delete all dedicated files and directories.
 - [ ] Redact all mentions and backlinks from other notes.
 - [ ] Handle cached email threads, attachments, and calendar entries.
@@ -54,6 +57,8 @@ sound">
 - [ ] Save the erasure report. Keep **no** personal data in it beyond the name
       and the actions taken.
 - [ ] Run a final `rg` search. Confirm the erasure report is the only match.
+- [ ] Run `npx fit-outpost validate` on the KB root. Fix the dangles the
+      removal created.
 
 </do_confirm_checklist>
 
@@ -67,7 +72,8 @@ State to the user:
 >
 > This will permanently delete all personal data related to {Name} from:
 >
-> - Knowledge base notes (People, Candidates, Organizations mentions)
+> - Notes in every tier (People, Candidates, Organizations mentions)
+> - Personal surfaces (`0-Draft/`, `Briefings/`)
 > - Cached email threads and attachments
 > - Agent state and triage files
 >
@@ -77,8 +83,10 @@ State to the user:
 
 ### 1. Discovery
 
-Run every recipe in [references/locations.md](references/locations.md) and
-compile a complete inventory of every file and reference found.
+Read the subject's frontmatter `aliases` first. Run every recipe in
+[references/locations.md](references/locations.md) for the name, each alias,
+and each email. Compile a complete inventory of every file and reference
+found.
 
 ### 2. Classify
 
@@ -90,11 +98,12 @@ where redaction is the action.
 
 Process most-specific to most-general.
 
-**3a. Dedicated files and directories:**
+**3a. Dedicated files and directories (repeat per tier present):**
 
 ```bash
-rm -rf "Knowledge/Candidates/{Name}/"
-rm -f "Knowledge/People/{Name}.md"
+rm -rf "2-Confidential/Candidates/{Name}/"
+rm -f "2-Confidential/People/{Name}.md"   # overlay note
+rm -f "3-Team/People/{Name}.md"
 find ~/.cache/fit/outpost/apple_mail/attachments/ -iname "*{Name}*" -delete
 ```
 
@@ -129,28 +138,36 @@ rg -v "{deleted_path}" ~/.cache/fit/outpost/state/graph_processed \
 
 Use the template in
 [references/report-template.md](references/report-template.md). Save to
-`Knowledge/Erasure/{Name}--{YYYY-MM-DD}.md`. Record **only** what you deleted.
-Never record CV content, skills, or assessments.
+`2-Confidential/Erasure/{Name}--{YYYY-MM-DD}.md`. Record **only** what you
+deleted. Never record CV content, skills, or assessments.
 
 ### 5. Verify
 
+Run from the KB root so the search covers every tier and personal surface:
+
 ```bash
-rg "{Name}" Knowledge/ ~/.cache/fit/outpost/ Drafts/
+rg "{Name}" . ~/.cache/fit/outpost/
 ```
 
 The only match should be the erasure report. If other matches remain, process
-them and update the report.
+them and update the report. Repeat for each alias and email. Then validate the
+graph. The removal creates dangling links. Fix what the validator reports:
+
+```bash
+npx fit-outpost validate {kb-root}
+```
 
 ## Scope variants
 
 **`recruitment-only`** limits erasure to:
 
-- `Knowledge/Candidates/{Name}/`
-- `Knowledge/Candidates/Insights.md` mentions
+- `2-Confidential/Candidates/{Name}/`
+- `2-Confidential/Candidates/Insights.md` mentions
 - Recruitment threads (known agency domains)
 - `recruiter_triage.md`
 
-It leaves `Knowledge/People/{Name}.md` and the wider graph intact. The person
+It leaves `3-Team/People/{Name}.md` and the wider graph intact. The person
 may be a colleague or a non-recruitment contact.
 
-**`all`** (default): full erasure across knowledge base, cache, and state.
+**`all`** (default): full erasure across every tier, personal surfaces, cache,
+and state.

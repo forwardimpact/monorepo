@@ -12,7 +12,7 @@ Extract every way a source refers to each entity.
 - **Projects:** explicit names, descriptive references ("the pilot", "the
   deal").
 - **Priorities:** references to strategic directions, time-bound targets, or
-  measurable outcomes that match `Knowledge/Priorities/` entries.
+  measurable outcomes that match `3-Team/Priorities/` entries.
 
 ## Matching
 

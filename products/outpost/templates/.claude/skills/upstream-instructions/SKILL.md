@@ -5,6 +5,9 @@ description: Track changes to this installation's instruction files: the root CL
 
 # Upstream Instructions
 
+Write tier: none (the root CHANGELOG.md is a personal surface)
+Frontmatter: none
+
 Track changes to this installation's **instructions**. Record them in one root
 `CHANGELOG.md` so you can contribute improvements back to the upstream monorepo.
 "Instructions" means all three surfaces, and they carry equal weight:
@@ -32,7 +35,7 @@ Track changes to this installation's **instructions**. Record them in one root
 - `.claude/skills/*/SKILL.md` and reference files — skills.
 - `CHANGELOG.md` (root) — the existing changelog, for what's already recorded.
 - The changes you made in the current working session — the source of truth for
-  what changed. The KB lives on a synced filesystem. It has no version control.
+  what changed. The KB may sync without version control; do not rely on it.
 
 ## Outputs
 
@@ -64,8 +67,8 @@ head -20 CHANGELOG.md 2>/dev/null   # newest date already recorded, if any
 
 ### 2. Identify changed instructions
 
-Knowledge bases live on a synced filesystem. They do not live in Git, so there
-is no commit history to diff. Identify what changed from the work you did **this
+A knowledge base may sync over a mount with no version control, so never rely
+on commit history. Identify what changed from the work you did **this
 session**. Recall every edit, addition, removal, and rename you made to
 `CLAUDE.md`, `.claude/agents/`, and `.claude/skills/` during the current
 conversation. List them per surface.
@@ -102,8 +105,8 @@ Every entry must answer:
 2. **Why?** — the problem encountered or improvement discovered in use.
 3. **Details** — a summary of the actual change (not a full diff).
 
-Good: "Agents now read `Knowledge/Priorities/` at the start of every wake and
-flag anything that threatens a priority. Drafts and triage ignored strategic
+Good: "Agents now read `Priorities/` in every tier at the start of every wake
+and flag anything that threatens a priority. Drafts and triage ignored strategic
 context."
 
 Bad: "Updated the agents" / "Fixed stuff" / "Changed line 42".

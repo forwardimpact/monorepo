@@ -5,6 +5,9 @@ description: Look up ANY person in the corporate directory from free-text input 
 
 # Person Lookup
 
+Write tier: none (cache only)
+Frontmatter: none
+
 Resolve **any** person in the corporate Active Directory from natural-language
 input. The input is an email, a login, or any part of a name. This skill is the
 sibling of `person-identify`, and it aims at *other* people. It searches the

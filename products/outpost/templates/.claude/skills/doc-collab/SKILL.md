@@ -5,9 +5,13 @@ description: Help the user create, edit, and refine documents in the knowledge b
 
 # Document Collaboration
 
+Write tier: `0-Draft` (working copies; the human promotes)
+Frontmatter: none
+
 Help the user create, edit, and refine documents in the knowledge base. This
 skill supports direct edits and approval-based workflows. It always uses context
-from the knowledge base for entity references.
+from the knowledge base for entity references. New documents start in
+`0-Draft/`. The human promotes a finished document into its tier.
 
 ## Trigger
 
@@ -15,17 +19,18 @@ Run when the user asks to create, edit, review, or collaborate on a document.
 
 ## Prerequisites
 
-- Knowledge base directory exists
+- The KB root exists with its tier directories
 
 ## Inputs
 
 - The user's edit instructions
-- `Knowledge/` — existing notes and documents
+- The tier directories — existing notes and documents
 - Document to edit (user-specified or searched)
 
 ## Outputs
 
-- Created or modified documents in `Knowledge/` or user-specified location
+- New documents in `0-Draft/` (or a user-specified location)
+- Modified documents in the tier where the user points
 
 ---
 
@@ -54,8 +59,8 @@ Follow their choice for the entire session.
 Search thoroughly before you say a document doesn't exist:
 
 ```bash
-rg -l -i "roadmap" Knowledge/
-find Knowledge/ -iname "*roadmap*" 2>/dev/null
+rg -l -i "roadmap" [0-9]-*/
+find [0-9]-*/ -iname "*roadmap*" 2>/dev/null
 ```
 
 **If found:** Read it. Then proceed. **If NOT found:** Ask "I couldn't find
@@ -63,7 +68,7 @@ find Knowledge/ -iname "*roadmap*" 2>/dev/null
 
 **Create a new document:**
 
-1. Ask: "Shall I create Knowledge/[name].md?"
+1. Ask: "Shall I create 0-Draft/[name].md?"
 2. Create it with just a title. Don't pre-populate it with structure
 3. Ask: "What would you like in this?"
 
@@ -92,14 +97,14 @@ reorganize unless the user asks.
 - Ask: "What's next?"
 - Don't read back the entire document unless asked
 
-## Search Knowledge for Context
+## Search the Graph for Context
 
 When the user mentions people, companies, or projects:
 
 ```bash
-rg -l "Name" Knowledge/
-cat "Knowledge/People/Person.md"
-cat "Knowledge/Organizations/Company.md"
+rg -l "Name" [0-9]-*/
+cat "3-Team/People/Person.md"
+cat "3-Team/Organizations/Company.md"
 ```
 
 Use `[[wiki-links]]` to connect to other notes. Only link to notes that exist.

@@ -19,8 +19,7 @@ with TCC-compliant process management.
 
 **Be prepared and productive:**
 
-- Prepare daily briefings from email, calendar, and knowledge context —
-  `npx fit-outpost wake briefing`
+- Prepare daily briefings — `npx fit-outpost wake briefing`
 - Manage email drafts and prepare responses — `npx fit-outpost wake drafts`
 - Maintain a personal knowledge graph of people, projects, and topics
 
@@ -32,7 +31,7 @@ with TCC-compliant process management.
 - Initialize a new knowledge base — `npx fit-outpost init <path>`
 - Update with the latest templates and skills — `npx fit-outpost update`
 - Stop the scheduler — `npx fit-outpost stop`
-- Validate agent/skill references — `npx fit-outpost validate`
+- Validate agent definitions and knowledge bases — `npx fit-outpost validate`
 - Add, remove, disable, or change agent schedules — edit
   `~/.fit/outpost/scheduler.json`
 
@@ -65,17 +64,32 @@ Agents can then access Mail, Calendar, and other protected resources.
 
 ### Knowledge Base Initialization
 
-The `init <path>` command copies the bundled template into the target
-directory. The template holds `CLAUDE.md` (instructions), `.claude/agents/` and
-`.claude/skills/` (built-in agents and skills), and `.claude/settings.json`
-(permissions). `init` also scaffolds the knowledge base structure. The
-`Knowledge/` graph (People, Organizations, Projects, Topics) is for the team to
-share over a synced filesystem. The personal `Briefings/` directory sits at the
-KB root, outside the shared graph. The template does not copy the user identity.
-The `identify-user` skill resolves it live and caches it at
-`~/.cache/fit/outpost/state/identity.md`. The `update` command on an existing
-KB merges new files and keeps user customizations. It reconciles the settings
-permissions. It does not replace them.
+The `init` command copies the bundled template (instructions, agents, skills,
+settings, and the `registry.yaml` metadata vocabularies) and creates the five
+default tier directories plus the personal `Briefings/` directory. The
+`update` command merges new template files and keeps user customizations.
+
+The KB root is an Obsidian vault. The numbered tier directories at the root
+are the knowledge graph and the units of sharing:
+
+| Tier | Directory         | Audience                               |
+| ---- | ----------------- | -------------------------------------- |
+| 0    | `0-Draft/`        | The owner only. Never shared.          |
+| 1    | `1-Management/`   | Senior managers.                       |
+| 2    | `2-Confidential/` | Managers with people or hiring duties. |
+| 3    | `3-Team/`         | The whole team.                        |
+| 4    | `4-Public/`       | Anyone, inside or outside the team.    |
+
+A note links only to notes in its own tier or in a wider tier, with
+tier-prefixed links such as `[[3-Team/People/Sarah Chen]]`. Place each note
+in the widest tier that excludes everyone who must not read it. Every other
+root entry is personal and never shared.
+
+`validate [path] [--json]` checks tier ranks, link direction, resolution,
+and format, literal path strings, legacy layouts, and frontmatter and tags,
+on a full vault or a received share. A `validation-baseline.json` file at
+the KB root downgrades known findings to warnings. New findings exit
+non-zero. `--json` emits the findings as one JSON array.
 
 ---
 
@@ -98,8 +112,7 @@ fit-outpost.app/Contents/MacOS/Outpost  ← Swift launcher, TCC responsible
 
 ### Cache Directory
 
-Synced data and runtime state live outside the KB. Notes, drafts, and briefings
-live inside it.
+Synced data and runtime state live outside the KB.
 
 ```text
 ~/.cache/fit/outpost/
@@ -153,20 +166,18 @@ again.
 
 ### Add a New KB Skill
 
-1. Create `template/.claude/skills/{skill-name}/SKILL.md`
-2. Add YAML front matter with `name`, `description`, optional `compatibility`
-3. Write the skill workflow (trigger, prerequisites, inputs, outputs, steps)
-4. Update `template/CLAUDE.md` to list the new skill
-5. If scheduled, add a default task entry to `config/scheduler.json`
-6. Run `npx fit-outpost update <kb-path>` for each existing KB to push the new
-   skill. As an alternative, run `npx fit-outpost update` from inside the KB to
-   update the current directory
+1. Create `templates/.claude/skills/{skill-name}/SKILL.md` with YAML front
+   matter (`name`, `description`, optional `compatibility`)
+2. Write the skill workflow (trigger, prerequisites, inputs, outputs, steps)
+3. Update `templates/CLAUDE.md` to list the new skill
+4. If scheduled, add a default task entry to `config/scheduler.json`
+5. Run `npx fit-outpost update` in each existing KB to push the new skill
 
 ## Verification
 
 ```sh
 npx fit-outpost status         # Check config and agent state
-npx fit-outpost validate       # Verify agent/skill references exist
+npx fit-outpost validate       # Validate agent definitions and knowledge bases
 ```
 
 ## Documentation

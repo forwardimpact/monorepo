@@ -82,45 +82,98 @@ candidate data in your knowledge base.
 ## Understand the knowledge graph
 
 As agents sync email, calendar, and chat data, the librarian processes it into
-a knowledge graph. The graph is plain markdown files organized by entity type.
-You share only the `Knowledge/` graph with the team over a synced filesystem
-such as OneDrive. The rest of the workspace stays personal and local:
+a knowledge graph. The graph is plain markdown files inside numbered tier
+directories at the knowledge base root. Each tier is one unit of sharing. A
+lower tier number means a narrower audience:
 
 ```text
-~/.local/share/fit/outpost/Team/          # Your workspace root -- NOT shared
-├── Knowledge/                 # The knowledge graph -- SHARED with the team
-│   ├── People/                # One note per person you interact with
-│   ├── Organizations/         # Companies, teams, departments
-│   ├── Projects/              # Active projects and initiatives
-│   └── Topics/                # Technical topics and recurring themes
-├── Briefings/                 # Daily briefings compiled by chief-of-staff
-├── Drafts/                    # Email and chat drafts
-├── CLAUDE.md                  # Agent instructions for this KB
+~/.local/share/fit/outpost/Team/  # The KB root: an Obsidian vault
+├── 0-Draft/                # Tier 0: you only -- never shared
+├── 1-Management/           # Tier 1: senior managers
+├── 2-Confidential/         # Tier 2: managers with hiring duties
+│   └── Candidates/         # Candidate records and assessments
+├── 3-Team/                 # Tier 3: the whole team
+│   ├── People/             # One note per person you interact with
+│   ├── Organizations/      # Companies, teams, departments
+│   ├── Projects/           # Active projects and initiatives
+│   └── Topics/             # Technical topics and recurring themes
+├── 4-Public/               # Tier 4: anyone
+├── Briefings/              # Personal: briefings from chief-of-staff
+├── registry.yaml           # Personal: metadata vocabularies
+├── CLAUDE.md               # Personal: agent instructions for this KB
 └── .claude/
-    ├── agents/                # Agent definitions (one per agent)
-    └── skills/                # Skill definitions agents use
+    ├── agents/             # Agent definitions (one per agent)
+    └── skills/             # Skill definitions agents use
 ```
 
-Notes use Obsidian-compatible `[[backlinks]]`. You can browse the graph in
+The tier directories are the graph. Every other root entry is personal and
+never shared. Sharing is cumulative. A member who receives tier 2 also
+receives tiers 3 and 4. Shares travel over any folder-syncing mount, such as
+OneDrive or Git. A shared tier directory is often a symlink into a
+separately synced folder. Keep the vault root outside every cloud-synced
+folder. Tier 0 then never leaves your machine.
+
+Notes use Obsidian-compatible wiki links. Links in shared tiers are
+tier-prefixed, for example `[[3-Team/People/Sarah Chen]]`. A note links only
+to its own tier or to a wider one. Agents place each note in the widest tier
+that excludes everyone who must not read it. You can browse the graph in
 Obsidian or in any markdown editor. Each person note accumulates context from
-every email, meeting, and conversation where they appeared. That is the kind of
-background you would otherwise reconstruct from memory before a meeting.
+every email, meeting, and conversation where they appeared. That is the kind
+of background you would otherwise reconstruct from memory before a meeting.
 
 You can search the graph directly:
 
 ```sh
-rg "Sarah Chen" ~/.local/share/fit/outpost/Team/Knowledge/
+rg "Sarah Chen" ~/.local/share/fit/outpost/Team/3-Team/
 ```
 
 ```text
 People/Sarah Chen.md:3:Engineering Manager at Acme Corp
 People/Sarah Chen.md:8:Last seen: standup 2026-05-02
-Projects/Auth Migration.md:12:Lead: [[Sarah Chen]]
-Topics/Platform Reliability.md:5:Raised by [[Sarah Chen]] in Q1 review
+Projects/Auth Migration.md:12:Lead: [[3-Team/People/Sarah Chen]]
+Topics/Platform Reliability.md:5:Raised by [[3-Team/People/Sarah Chen]] in Q1 review
 ```
 
 The search returns every note that mentions the person across all entity
 types. You see the full context in one search.
+
+## Split one entity across tiers with overlays
+
+Some entities carry facts for different audiences. A colleague who is also a
+candidate has a team-safe person note and confidential recruitment records.
+An **overlay** keeps both without a leak. The overlay is a note in a
+narrower tier. It declares its canonical note in the wider tier with a
+one-way `canonical` link. The canonical note never links back. Three overlay
+forms cover the common cases:
+
+- **Facet** — the overlay holds the sections for the narrower audience.
+- **Timeline split** — the canonical note keeps the wide-audience dated
+  entries. The overlay holds narrower entries under the same date keys.
+- **Inverse stub** — when the content is narrow but widely linked, a
+  wider-tier stub carries only shareable identity facts. The narrow note
+  links down to it.
+
+## Send a copy to an ad-hoc audience with an export
+
+Some audiences are not tiers. A deliverable for one named recipient and a
+brief for a panel of peers are **export** cases. An export sends a copy of a
+note or a note's body through mail, chat, or a file hand-over. The note
+itself keeps its tier. Agents compose export bodies in `0-Draft/`. Nothing
+leaves until you approve it.
+
+## One metadata standard binds every tier
+
+Agents stamp YAML frontmatter on every note they write. Every shared note
+carries `type`, `created`, and `updated`. Conditional keys such as `aliases`
+and `status` follow strict triggers. The vocabularies live in
+`registry.yaml` at the KB root. You edit the registry. Agents only select
+from it. Tags form a closed `topic/` taxonomy from the same registry.
+
+The payoff is coherence across tiers. Obsidian Bases group notes by `type`
+and `status` across every tier you hold. Aliases reunite a person note and
+its candidate record in the quick switcher. Path-keyed graph groups color
+each tier in the graph view. The note path stays the only tier authority.
+Frontmatter never carries a tier or audience key.
 
 ## Customize agent schedules
 
@@ -244,7 +297,7 @@ After you update or change agent configurations, confirm the setup:
 npx fit-outpost validate
 ```
 
-Expected output when all agents are valid:
+Expected output when all agents and knowledge bases are valid:
 
 ```text
 Validating agents...
@@ -257,13 +310,25 @@ Validating agents...
   [OK]  head-hunter: agent definition
 
 All OK.
+
+Knowledge base: ~/.local/share/fit/outpost/Team
+  OK
 ```
 
-The validator checks that each configured agent has a matching definition
-file in `.claude/agents/`. The file can live in the knowledge base or in
-your global `~/.claude/agents/` directory. A `[FAIL]` result means the agent
-definition is missing. Run `npx fit-outpost update <path>` to restore it, or
-run `npx fit-outpost update` from inside the knowledge base.
+The validator first checks that each configured agent has a matching
+definition file in `.claude/agents/`. The file can live in the knowledge
+base or in your global `~/.claude/agents/` directory. A `[FAIL]` result
+means the agent definition is missing. Run `npx fit-outpost update <path>`
+to restore it, or run `npx fit-outpost update` from inside the knowledge
+base.
+
+The validator then runs the knowledge checks on each configured knowledge
+base. It checks tier ranks, link direction, link resolution, link format,
+literal path strings, legacy layouts, and note frontmatter and tags. A
+`validation-baseline.json` file at the KB root downgrades known findings to
+warnings. New findings exit with a non-zero code. Pass a path to check one
+vault or a received share (`npx fit-outpost validate <path>`). Add `--json`
+for machine-readable findings.
 
 ## Verify
 
@@ -271,12 +336,12 @@ You reach the outcome of this guide when:
 
 - `npx fit-outpost status` shows agents with recent wake times and action
   summaries. Outpost tracks context automatically.
-- Your knowledge base contains notes under `Knowledge/People/`,
-  `Knowledge/Projects/`, and `Knowledge/Organizations/`. The agents build the
+- Your knowledge base contains notes under `3-Team/People/`,
+  `3-Team/Projects/`, and `3-Team/Organizations/`. The agents build the
   knowledge graph from your email and calendar.
 - `Briefings/` contains at least one daily briefing. The chief-of-staff
   compiles context across all agents.
-- You can search the graph with `rg "name" Knowledge/` and find cross-referenced
+- You can search the graph with `rg "name" 3-Team/` and find cross-referenced
   context about a person or project.
 
 If any of these are missing, check `npx fit-outpost status` for errors.

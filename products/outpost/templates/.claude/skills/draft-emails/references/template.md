@@ -1,6 +1,6 @@
 # Draft File Template
 
-Save each draft to `Drafts/{email_id}_draft.md` with this layout:
+Save each draft to `0-Draft/{email_id}_draft.md` with this layout:
 
 ```markdown
 # Draft Response

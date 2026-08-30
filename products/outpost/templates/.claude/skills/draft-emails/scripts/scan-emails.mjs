@@ -3,13 +3,16 @@
  * Scan for unprocessed emails and output their IDs and subjects.
  *
  * The script checks ~/.cache/fit/outpost/apple_mail/ for email thread markdown
- * files. It skips a file that Drafts/handled or Drafts/ignored already lists.
- * It outputs one tab-separated line per unprocessed thread:
- * email_id<TAB>subject. The draft-emails skill uses this script to find
- * threads that need a reply.
+ * files. It skips a file that the ~/.cache/fit/outpost/drafts/handled or
+ * ~/.cache/fit/outpost/drafts/ignored ledger already lists. It outputs one
+ * tab-separated line per unprocessed thread: email_id<TAB>subject. The
+ * draft-emails skill uses this script to find threads that need a reply.
+ *
+ * The ledgers live in the cache drafts/ directory. Never move them into
+ * ~/.cache/fit/outpost/state/ — that directory is a daemon-owned trust root.
  */
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import { homedir } from "node:os";
 
@@ -18,7 +21,8 @@ const HELP = `scan-emails — list unprocessed email threads
 Usage: node scripts/scan-emails.mjs [-h|--help]
 
 Scans ~/.cache/fit/outpost/apple_mail/ for .md thread files not yet
-recorded in Drafts/handled or Drafts/ignored. Outputs one line per
+recorded in ~/.cache/fit/outpost/drafts/handled or
+~/.cache/fit/outpost/drafts/ignored. Outputs one line per
 unprocessed thread as: email_id<TAB>subject`;
 
 if (process.argv.includes("-h") || process.argv.includes("--help")) {
@@ -28,6 +32,7 @@ if (process.argv.includes("-h") || process.argv.includes("--help")) {
 
 const HOME = homedir();
 const MAIL_DIR = join(HOME, ".cache/fit/outpost/apple_mail");
+const DRAFTS_DIR = join(HOME, ".cache/fit/outpost/drafts");
 
 /** Load a file of IDs (one per line) into a Set. */
 function loadIdSet(path) {
@@ -50,8 +55,9 @@ function extractSubject(filePath) {
 function main() {
   if (!existsSync(MAIL_DIR)) return;
 
-  const handled = loadIdSet("Drafts/handled");
-  const ignored = loadIdSet("Drafts/ignored");
+  mkdirSync(DRAFTS_DIR, { recursive: true });
+  const handled = loadIdSet(join(DRAFTS_DIR, "handled"));
+  const ignored = loadIdSet(join(DRAFTS_DIR, "ignored"));
 
   for (const name of readdirSync(MAIL_DIR).sort()) {
     if (!name.endsWith(".md")) continue;

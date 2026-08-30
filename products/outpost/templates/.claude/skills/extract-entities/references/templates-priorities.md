@@ -8,13 +8,19 @@ on** existing notes.
 ## Priorities
 
 ```markdown
+---
+type: priority
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+---
+
 # {Priority Name}
 
 ## About
 {2-3 sentences: what this strategic direction means and why it matters}
 
 **Status:** {active|paused|retired}
-**Owner:** [[People/{Person}]]
+**Owner:** [[3-Team/People/{Person}]]
 **Set:** {YYYY-MM-DD}
 
 ## What this means
@@ -25,7 +31,7 @@ on** existing notes.
 here — there is no separate Goals entity.}
 
 ## Projects
-- [[Projects/{Project}]] — {relationship}
+- [[3-Team/Projects/{Project}]] — {relationship}
 
 ## Key facts
 {substantive facts only — leave empty if none}

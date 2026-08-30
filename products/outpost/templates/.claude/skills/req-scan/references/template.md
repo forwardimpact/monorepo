@@ -1,8 +1,18 @@
 # Prospect Note Template
 
-Reference for `req-scan` Step 4. Save to `Knowledge/Prospects/{Name}.md`.
+Reference for `req-scan` Step 4. Save to `2-Confidential/Prospects/{Name}.md`.
+The note opens with the frontmatter block. Select `status` from the registry
+vocabulary (`registry.yaml`).
 
 ```markdown
+---
+type: prospect
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+aliases: [{username or display-name variants, or an empty list}]
+status: {registry status: identified / contacted / responded / converted / closed}
+---
+
 # {Name}
 
 ## Info

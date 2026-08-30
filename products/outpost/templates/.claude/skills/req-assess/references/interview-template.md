@@ -1,8 +1,13 @@
 # Interview Assessment Template
 
 Reference template for `req-assess` Step 6. Save to
-`Knowledge/Candidates/{Name}/interview-{date}.md`. Include only skills the
+`2-Confidential/Candidates/{Name}/interview-{date}.md`. Include only skills the
 interview produced new evidence for. Do not repeat the full matrix.
+
+Interview-outcome prose about the candidate lives only in the candidate's own
+folder. A wider note (an interviewer's People note, a project note) records
+only that the interview happened. Interviewer names may appear here; write no
+assessment of the interviewers.
 
 ```markdown
 # Interview Assessment — {Full Name}

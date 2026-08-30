@@ -2,6 +2,7 @@
   {
     "name": "help",
     "args": ["--help"],
+    "env": { "LIBCLI_PACKAGE_VERSION": "0.0.0-golden" },
     "exitCode": 0,
     "stdoutFile": "help.stdout",
     "stderrFile": "help.stderr"
@@ -9,7 +10,7 @@
   {
     "name": "version",
     "args": ["--version"],
-    "env": { "OUTPOST_VERSION": "0.0.0-golden" },
+    "env": { "LIBCLI_PACKAGE_VERSION": "0.0.0-golden" },
     "exitCode": 0,
     "stdoutFile": "version.stdout",
     "stderrFile": "version.stderr"

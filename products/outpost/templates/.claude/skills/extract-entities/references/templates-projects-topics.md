@@ -3,6 +3,12 @@
 ## Projects
 
 ```markdown
+---
+type: project
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+---
+
 # {Project Name}
 
 ## Info
@@ -15,17 +21,17 @@
 {2-3 sentences}
 
 ## Priorities
-- [[Priorities/{Priority}]] — {how this project contributes}
+- [[3-Team/Priorities/{Priority}]] — {how this project contributes}
 
 ## People
-- [[People/{Person}]] — {role}
+- [[3-Team/People/{Person}]] — {role}
 
 ## Organizations
-- [[Organizations/{Org}]] — {relationship}
+- [[3-Team/Organizations/{Org}]] — {relationship}
 
 ## Related
-- [[Priorities/{Priority}]] — {relationship}
-- [[Topics/{Topic}]] — {relationship}
+- [[3-Team/Priorities/{Priority}]] — {relationship}
+- [[3-Team/Topics/{Topic}]] — {relationship}
 
 ## Timeline
 **{YYYY-MM-DD}** ({type})
@@ -42,6 +48,12 @@
 ## Topics
 
 ```markdown
+---
+type: topic
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+---
+
 # {Topic Name}
 
 ## About
@@ -53,8 +65,8 @@
 **Last mentioned:** {YYYY-MM-DD}
 
 ## Related
-- [[People/{Person}]] — {relationship}
-- [[Organizations/{Org}]] — {relationship}
+- [[3-Team/People/{Person}]] — {relationship}
+- [[3-Team/Organizations/{Org}]] — {relationship}
 
 ## Log
 **{YYYY-MM-DD}** ({type}: {title})

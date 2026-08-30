@@ -60,6 +60,36 @@ The command provisions the default `Team` knowledge base at
 `~/.local/share/fit/outpost/Team`. Pass a name (for example,
 `npx fit-outpost init personal`) to provision a second one beside it.
 
+The knowledge base root is an Obsidian vault. After init it holds five tier
+directories, the personal `Briefings/` directory, and the bundled files:
+
+```text
+~/.local/share/fit/outpost/Team/
+├── 0-Draft/          # Tier 0: you only, never shared
+├── 1-Management/     # Tier 1: senior managers
+├── 2-Confidential/   # Tier 2: managers with hiring duties
+├── 3-Team/           # Tier 3: the whole team
+├── 4-Public/         # Tier 4: anyone
+├── Briefings/        # Personal: daily briefings
+├── registry.yaml     # Personal: metadata vocabularies
+├── CLAUDE.md         # Personal: agent instructions
+└── .claude/          # Personal: agents, skills, settings
+```
+
+The numbered tiers hold the knowledge graph. Each tier is one unit of
+sharing. A lower tier number means a narrower audience. Every other root
+entry is personal and never shared. Entity folders such as `3-Team/People/`
+appear when an agent first writes to them.
+
+## Validate the knowledge base
+
+```sh
+npx fit-outpost validate ~/.local/share/fit/outpost/Team
+```
+
+The command checks tier ranks, link direction and format, and note
+frontmatter. A fresh knowledge base passes with no findings.
+
 ## Check status
 
 ```sh

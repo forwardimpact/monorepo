@@ -1,7 +1,7 @@
 # Screening Output Template
 
-Reference template for `req-screen` Step 6. Save to
-`Knowledge/Candidates/{Name}/screening.md`. The filename **must** be
+Reference template for `req-screen` Step 7. Save to
+`2-Confidential/Candidates/{Name}/screening.md`. The filename **must** be
 `screening.md`. Do not use `assessment.md`, `cv-screening.md`, or any variant.
 Look in the folder for a misnamed screening file with `# CV Screening` in the
 header. If one exists, delete it after you write the new one.

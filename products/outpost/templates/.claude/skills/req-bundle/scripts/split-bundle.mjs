@@ -13,7 +13,7 @@
  * This script reads the outline (pdfjs-dist), matches each bookmark title to a
  * canonical candidate name from the parsed Workday roster (so folder names agree
  * with req-workday), extracts the page range losslessly (pdf-lib), and writes it
- * to Knowledge/Candidates/{Clean Name}/CV.pdf.
+ * to 2-Confidential/Candidates/{Clean Name}/CV.pdf.
  *
  * It ALWAYS emits a JSON manifest describing every mapping and never overwrites
  * an existing CV.pdf. With --dry-run it computes the manifest without touching
@@ -29,7 +29,7 @@
  * Usage:
  *   node split-bundle.mjs <bundle.pdf> [<bundle2.pdf> ...] \
  *       --roster <roster.json> \
- *       --candidates-dir <Knowledge/Candidates> \
+ *       --candidates-dir <2-Confidential/Candidates> \
  *       --manifest <out.json> \
  *       [--dry-run]
  */

@@ -8,6 +8,9 @@ compatibility:
 
 # Send Chat
 
+Write tier: `0-Draft` (sending is an export)
+Frontmatter: none
+
 Send chat messages to people with browser automation against a web-based chat
 platform (Microsoft Teams, Slack, or similar). This skill resolves recipients by
 name from the knowledge graph. The user can say "message Sarah about the
@@ -36,7 +39,7 @@ base.**
 When the user mentions ANY person:
 
 1. **STOP** — Do not open the chat platform yet
-2. **SEARCH** — Look them up: `rg -l "{name}" Knowledge/People/`
+2. **SEARCH** — Look them up: `rg -l "{name}" 3-Team/People/`
 3. **READ** — Read their note to understand context, role, recent interactions
 4. **UNDERSTAND** — Know who they are and what you work on together
 5. **THEN PROCEED** — Only now compose the message and use browser automation
@@ -54,10 +57,10 @@ reference to a full name with the knowledge graph:
 
 ```bash
 # Find person by partial name
-rg -l -i "{name}" Knowledge/People/
+rg -l -i "{name}" 3-Team/People/
 
 # If ambiguous, read candidates to disambiguate
-cat "Knowledge/People/{Candidate}.md"
+cat "3-Team/People/{Candidate}.md"
 ```
 
 **If ambiguous** (multiple matches), ask the user which person they mean. List
@@ -74,7 +77,7 @@ can review and edit the exact message before you send it.
 ### Draft Workflow
 
 1. **Compose the message** based on context and user intent.
-2. **Write it to a draft file** at `Drafts/chat-{recipient-slug}-{date}.md`
+2. **Write it to a draft file** at `0-Draft/chat-{recipient-slug}-{date}.md`
    - `{recipient-slug}` = lowercase, hyphenated full name (e.g. `sarah-chen`)
    - `{date}` = ISO date (e.g. `2026-02-19`)
 3. **Show the user the draft** — display the file path and contents.
@@ -139,14 +142,11 @@ same organization.
 4. Press Enter or click Send
 5. Take a screenshot to confirm the message was sent
 
-### Step 4: Update Knowledge Graph (Optional)
+### Step 4: Keep the Draft as the Record
 
-If the message is substantive (not just "hey" or "thanks"), note the interaction
-on the person's knowledge note:
-
-```markdown
-- {YYYY-MM-DD}: Messaged on {Platform} re: {topic}
-```
+Do not write the interaction to the person's note. This skill writes only to
+`0-Draft/`. The chat sync (`sync-teams`) and `extract-entities` record the
+interaction when the messages sync.
 
 ## Error Handling
 

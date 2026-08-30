@@ -1,9 +1,13 @@
 # Panel Brief Template
 
 Reference template for `req-assess` Step 7. Save to
-`Knowledge/Candidates/{Name}/panel.md`. The audience is **next-stage
+`2-Confidential/Candidates/{Name}/panel.md`. The audience is **next-stage
 interviewers, often non-engineers**. Explain without jargon. Focus on
 behaviours and scope.
+
+The brief goes to the panel as an export. The note keeps its tier. Assessment
+prose about the candidate stays in this folder; never copy it into panel
+members' People notes.
 
 ```markdown
 # Panel Brief — {Full Name}

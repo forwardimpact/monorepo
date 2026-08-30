@@ -6,6 +6,9 @@ compatibility: Node.js only — no external dependencies.
 
 # Synthesize Deck
 
+Write tier: `0-Draft` (promotion is a human act)
+Frontmatter: none
+
 Turn messy PowerPoint specification decks into clear, actionable markdown briefs
 that forward deployed engineers can build from. Strip business jargon. Focus on
 what matters: what the team must build, what blocks progress, and what data you
@@ -31,7 +34,8 @@ Run when the user wants to understand what a project deck really asks for.
 ## Outputs
 
 - One markdown file per deck (or one combined file for related decks) written to
-  `Knowledge/Projects/{Project Name} - Engineering Brief.md`.
+  `0-Draft/{Project Name} - Engineering Brief.md`. The human promotes a
+  finished brief into `3-Team/Projects/`.
 
 <do_confirm_checklist goal="Verify the brief is engineer-actionable before
 delivering">
@@ -131,7 +135,7 @@ infrastructure. Call out timeline–scope mismatches.
 
 Use the structure in
 [references/brief-template.md](references/brief-template.md). Save to
-`Knowledge/Projects/{Project Name} - Engineering Brief.md`. For multiple related
+`0-Draft/{Project Name} - Engineering Brief.md`. For multiple related
 decks, write one combined brief with shared dependencies.
 
 ### 9. Save and report

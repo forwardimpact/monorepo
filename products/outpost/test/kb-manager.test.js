@@ -109,6 +109,8 @@ describe("KBManager", () => {
       const built = makeRuntime({
         "/tpl/CLAUDE.md": "# Instructions",
         "/tpl/apm.yml": "name: outpost\nversion: 0.0.0\n",
+        "/tpl/registry.yaml": "types: {}\n",
+        "/tpl/MIGRATION.md": "# Migration",
         "/tpl/.claude/settings.json": '{"permissions":{}}',
         "/tpl/.claude/agents/postman.md": "postman",
       });
@@ -119,14 +121,24 @@ describe("KBManager", () => {
       assert.ok(built.fs.data.has("/kb/CLAUDE.md"));
       assert.ok(built.fs.data.has("/kb/apm.yml"));
       assert.ok(built.fs.data.has("/kb/.claude/agents/postman.md"));
-      // `init` creates only the top-level roots: the shared `Knowledge/` graph
-      // and the personal `Drafts/` and `Briefings/`. The skills create entity
-      // subdirs on demand. So `Knowledge/` starts empty.
-      assert.ok(built.fs.dirs.has("/kb/Knowledge"));
-      assert.ok(built.fs.dirs.has("/kb/Drafts"));
-      assert.ok(built.fs.dirs.has("/kb/Briefings"));
-      assert.ok(!built.fs.dirs.has("/kb/Knowledge/People"));
-      assert.ok(!built.fs.dirs.has("/kb/Knowledge/Briefings"));
+      // `init` creates the five tier directories and the personal
+      // `Briefings/` root, and installs the default registry. The skills
+      // create entity subdirs on demand, so every tier starts empty. A fresh
+      // KB is not a legacy layout, so MIGRATION.md never installs here.
+      for (const d of [
+        "0-Draft",
+        "1-Management",
+        "2-Confidential",
+        "3-Team",
+        "4-Public",
+        "Briefings",
+      ])
+        assert.ok(built.fs.dirs.has(`/kb/${d}`), d);
+      assert.strictEqual(built.fs.data.get("/kb/registry.yaml"), "types: {}\n");
+      assert.ok(!built.fs.dirs.has("/kb/Knowledge"));
+      assert.ok(!built.fs.dirs.has("/kb/Drafts"));
+      assert.ok(!built.fs.dirs.has("/kb/3-Team/People"));
+      assert.ok(!built.fs.data.has("/kb/MIGRATION.md"));
     });
 
     test("links the KB into ~/Documents for easy navigation", async () => {
@@ -185,6 +197,13 @@ describe("KBManager", () => {
   });
 
   describe("update", () => {
+    const TPL = {
+      "/tpl/CLAUDE.md": "# Instructions",
+      "/tpl/registry.yaml": "types: {}\n",
+      "/tpl/MIGRATION.md": "# Migration",
+      "/tpl/.claude/settings.json": '{"permissions":{}}',
+    };
+
     test("returns error envelope when it finds no KB", async () => {
       const built = makeRuntime({ "/tpl/CLAUDE.md": "# Instructions" });
       const km = new KBManager(built.runtime, noop);
@@ -193,6 +212,44 @@ describe("KBManager", () => {
       assert.strictEqual(result.ok, false);
       assert.strictEqual(result.code, 1);
       assert.match(result.error, /No knowledge base found/);
+    });
+
+    test("installs MIGRATION.md into a legacy layout", async () => {
+      const built = makeRuntime({ ...TPL, "/kb/CLAUDE.md": "# Old" });
+      built.fs.dirs.add("/kb/Knowledge");
+      const km = new KBManager(built.runtime, noop);
+      const result = await km.update("/kb", "/tpl");
+
+      assert.strictEqual(result.ok, true);
+      assert.strictEqual(built.fs.data.get("/kb/MIGRATION.md"), "# Migration");
+    });
+
+    test("does not install MIGRATION.md into a conforming layout", async () => {
+      const built = makeRuntime({ ...TPL, "/kb/CLAUDE.md": "# Old" });
+      built.fs.dirs.add("/kb/3-Team");
+      const km = new KBManager(built.runtime, noop);
+      await km.update("/kb", "/tpl");
+
+      assert.ok(!built.fs.data.has("/kb/MIGRATION.md"));
+    });
+
+    test("installs the registry when absent and never overwrites it", async () => {
+      const built = makeRuntime({
+        ...TPL,
+        "/kb/CLAUDE.md": "# Old",
+        "/kb/registry.yaml": "types: {Ours: person}\n",
+      });
+      const km = new KBManager(built.runtime, noop);
+      await km.update("/kb", "/tpl");
+      assert.strictEqual(
+        built.fs.data.get("/kb/registry.yaml"),
+        "types: {Ours: person}\n",
+      );
+
+      const fresh = makeRuntime({ ...TPL, "/kb/CLAUDE.md": "# Old" });
+      const km2 = new KBManager(fresh.runtime, noop);
+      await km2.update("/kb", "/tpl");
+      assert.strictEqual(fresh.fs.data.get("/kb/registry.yaml"), "types: {}\n");
     });
   });
 

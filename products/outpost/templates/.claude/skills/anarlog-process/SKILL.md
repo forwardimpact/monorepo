@@ -1,13 +1,16 @@
 ---
 name: anarlog-process
-description: Process Anarlog meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes. Creates or updates Obsidian-compatible notes in Knowledge/. Use when the user asks to process meeting notes or after Anarlog sessions.
+description: Process Anarlog meeting sessions (memos, summaries, transcripts) into the knowledge graph. Extracts people, organizations, projects, and topics from AI-generated meeting summaries and user notes. Creates or updates Obsidian-compatible notes in the tier directories. Use when the user asks to process meeting notes or after Anarlog sessions.
 ---
 
 # Process Anarlog
 
+Write tier: `3-Team`; dated entries route per the entry's own tier
+Frontmatter: person, organization, project, topic
+
 Process meeting sessions from Anarlog (a local AI meeting-notes app) into the
 knowledge graph. Anarlog records meetings, transcribes them, and generates AI
-summaries. This skill reads that output and feeds it into `Knowledge/`.
+summaries. This skill reads that output and feeds it into the tiers.
 `extract-entities` processes emails and calendar events in the same way.
 
 ## Trigger
@@ -41,12 +44,11 @@ summaries. This skill reads that output and feeds it into `Knowledge/`.
 
 ## Outputs
 
-- `Knowledge/People/`, `Knowledge/Organizations/`, `Knowledge/Projects/`,
-  `Knowledge/Topics/` — created or updated.
-- `Knowledge/Priorities/` — **updated only**, never
-  auto-created.
-- `Knowledge/Candidates/{Name}/transcript-{date}.md` — created for interview
-  sessions (verbatim transcript; the input `req-assess` waits on).
+- `3-Team/People/`, `3-Team/Organizations/`, `3-Team/Projects/`,
+  `3-Team/Topics/` — created or updated.
+- `3-Team/Priorities/` — **updated only**, never auto-created.
+- `2-Confidential/Candidates/{Name}/transcript-{date}.md` — created for
+  interview sessions (verbatim transcript; the input `req-assess` waits on).
 - `~/.cache/fit/outpost/state/graph_processed` — updated.
 
 <do_confirm_checklist goal="Verify each session was processed correctly">
@@ -55,11 +57,11 @@ summaries. This skill reads that output and feeds it into `Knowledge/`.
 - [ ] Read both the note and the summary (when present). Consult the
       transcript only for disambiguation.
 - [ ] Apply the "Would I prep?" test to each person. Exclude the user.
-- [ ] Write interview sessions to `Knowledge/Candidates/`. Never write them
-      to `Knowledge/People/`.
+- [ ] Write interview sessions to `2-Confidential/Candidates/`. Never write them
+      to `3-Team/People/`.
 - [ ] Write a verbatim `transcript-{date}.md` for each interview session
       (skip when that date's file already exists).
-- [ ] Use an absolute path in every link (`[[Folder/Name]]`).
+- [ ] Use tier-prefixed absolute links (`[[3-Team/People/Name]]`).
 - [ ] Describe the relationship in each activity entry. Leave out the
       communication method.
 - [ ] Auto-create no new `Priorities/` note (the user sets these). Update the
@@ -84,9 +86,8 @@ The scan reads meetings through `anarlog-cli` (bulk enumerate-and-hash has no
 MCP equivalent), so it finds every meeting — even ones not yet exported to
 flat files. Each row prints the meeting `id` for Steps 2 and 6.
 
-Flags: `--changed` (re-check changed note/summary content), `--json`,
-`--count`, `--limit N` (default 20), `--legacy` (force the flat-file
-fallback); `cli-path` prints the resolved `anarlog-cli` binary.
+Flags: `--changed` (re-check changed content), `--json`, `--count`,
+`--limit N` (default 20), `--legacy`; `cli-path` prints the resolved CLI.
 
 A meeting needs processing when it has a substantive note or summary and
 `graph_processed` has no `anarlog://{id}` record for it (or, with `--changed`,
@@ -94,15 +95,13 @@ its content hash differs). Already-processed flat-file sessions stay frozen.
 Without `anarlog-cli`, the scan falls back to flat files automatically.
 
 Process all unprocessed meetings in one run. **Don't write bespoke scan
-scripts or query the database directly.** This script drives the supported
-CLI and handles the edge cases.
+scripts or query the database directly.**
 
 ### 1. Build the knowledge index
 
 ```bash
-ls Knowledge/People/ Knowledge/Organizations/ Knowledge/Projects/ \
-   Knowledge/Topics/ Knowledge/Priorities/ \
-   Knowledge/Conditions/ 2>/dev/null
+ls 3-Team/People/ 3-Team/Organizations/ 3-Team/Projects/ \
+   3-Team/Topics/ 3-Team/Priorities/ 3-Team/Conditions/ 2>/dev/null
 ```
 
 Read each note's header to build a mental index of known entities (same approach
@@ -162,23 +161,24 @@ rules, and the linking rules.
 For **new** entities, use the templates in
 `.claude/skills/extract-entities/references/TEMPLATES.md`. For interview
 sessions, use the candidate brief template from `req-track` (under
-`Knowledge/Candidates/`).
+`2-Confidential/Candidates/`).
 
 For **existing** entities, never rewrite the file. Apply targeted edits:
 
 - Add the new activity entry at the **top** of `## Activity`.
-- Update `Last seen` / `Last activity`.
+- Update `Last seen` / `Last activity`, and stamp frontmatter `updated` in
+  the same edit.
 - Add new key facts (skip duplicates).
 - Update open items (mark completed, add new).
 - Apply state changes.
 
 For interview sessions, also write the full transcript from Step 2 to
-`Knowledge/Candidates/{Name}/transcript-{date}.md`: verbatim, no frontmatter,
-speaker turns labeled by channel (`0` = user, `1` = other — cross-check
-against `participants` when ambiguous). `{date}` is the meeting's
-`started_at` (fall back to `created_at`), `YYYY-MM-DD`. Skip the write when
-that date's file already exists. The file is pure persistence for
-`req-assess`; never mine it for entities.
+`2-Confidential/Candidates/{Name}/transcript-{date}.md`: verbatim, no
+frontmatter, speaker turns labeled by channel (`0` = user, `1` = other —
+cross-check against `participants` when ambiguous). `{date}` is the meeting's
+`started_at` (fall back to `created_at`), `YYYY-MM-DD`. Skip the write when that
+date's file already exists. The file is pure persistence for `req-assess`; never
+mine it for entities.
 
 Verify bidirectional links per `extract-entities` Step 10 (Project ↔ Priority).
 

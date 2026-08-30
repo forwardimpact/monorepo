@@ -2,7 +2,8 @@
 
 Use these templates for new knowledge-base notes. One file holds each entity
 family. This keeps each file under the L5 cap. `anarlog-process` references
-this file as the index.
+this file as the index. Every template opens with its YAML frontmatter block
+(core keys plus the type's conditional keys from `registry.yaml`).
 
 - [templates-people-orgs.md](templates-people-orgs.md) — People, Organizations.
 - [templates-projects-topics.md](templates-projects-topics.md) — Projects,
