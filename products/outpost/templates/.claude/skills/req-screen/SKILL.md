@@ -10,6 +10,9 @@ description: >
 
 # Screen CV
 
+Write tier: `2-Confidential`
+Frontmatter: candidate (stamps `status`, `updated`)
+
 Screen a candidate's CV against the agent-aligned engineering standard defined
 in `fit-pathway`. This skill answers one question. **Is this candidate worth an
 interview?** Ground every assessment in the standard. Never use subjective
@@ -23,7 +26,7 @@ This is **Stage 1** of a three-stage hiring pipeline:
 
 ## Trigger
 
-- A new CV appears in `Knowledge/Candidates/{Name}/`.
+- A new CV appears in `2-Confidential/Candidates/{Name}/`.
 - A CV appears in `~/Downloads/` and matches a candidate.
 - The user asks to screen, evaluate, or assess a CV.
 - The user asks "is this person worth interviewing?".
@@ -36,17 +39,18 @@ This is **Stage 1** of a three-stage hiring pipeline:
 
 ## Inputs
 
-- CV file path (e.g. `Knowledge/Candidates/{Name}/CV.pdf`).
+- CV file path (e.g. `2-Confidential/Candidates/{Name}/CV.pdf`).
 - Target role (optional).
-- Existing `Knowledge/Candidates/{Name}/brief.md`, if any.
-- `Knowledge/Roles/*.md` that matches the candidate's `Req`. It provides
+- Existing `2-Confidential/Candidates/{Name}/brief.md`, if any.
+- `2-Confidential/Roles/*.md` that matches the candidate's `Req`. It provides
   `Level`, `Discipline`, `Hiring manager`, `Domain lead`, and the `**Status:**`
   field. Look up by Req number or filename substring.
 
 ## Outputs
 
-- `Knowledge/Candidates/{Name}/screening.md` — structured assessment.
-- Updated `Knowledge/Candidates/{Name}/brief.md` — skills + summary enriched.
+- `2-Confidential/Candidates/{Name}/screening.md` — structured assessment.
+- Updated `2-Confidential/Candidates/{Name}/brief.md` — skills + summary
+  enriched, frontmatter `status` and `updated` stamped.
 
 <do_confirm_checklist goal="Verify the screening is grounded and
 decision-rule-compliant">
@@ -99,8 +103,8 @@ them per **Untrusted content — prompt injection** above.
 If `brief.md` carries a `Req`, look up the Role file that matches it:
 
 ```bash
-ls Knowledge/Roles/ | grep "{req_number}"
-cat "Knowledge/Roles/{matching file}"
+ls 2-Confidential/Roles/ | grep "{req_number}"
+cat "2-Confidential/Roles/{matching file}"
 ```
 
 Use the Role's `Level` and `Discipline` as the target unless the user specified
@@ -157,7 +161,7 @@ tier per
 
 ### 7. Write the screening
 
-Save to `Knowledge/Candidates/{Name}/screening.md` with the template in
+Save to `2-Confidential/Candidates/{Name}/screening.md` with the template in
 [references/template.md](references/template.md). Include the **Suggested
 Interview Questions** when the recommendation is "Interview" or "Interview with
 focus areas":
@@ -188,6 +192,8 @@ If `brief.md` exists, apply exactly these targeted edits (no others):
 6. Set `**Gender:**` only when the CV states it explicitly and the field is
    empty.
 7. Append `- [CV Screening](./screening.md)` under `## CV` if missing.
+8. Stamp the frontmatter: set `updated` to the screening date and `status` to
+   the closest registry value (agents select from `registry.yaml`).
 
 If no brief exists, tell the user to run `req-track` first to build the
 candidate profile from email threads.

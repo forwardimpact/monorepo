@@ -15,12 +15,13 @@
 import { execFileSync } from "node:child_process";
 import {
   appendFileSync,
+  mkdirSync,
   mkdtempSync,
   writeFileSync,
   unlinkSync,
 } from "node:fs";
 import { basename, join } from "node:path";
-import { tmpdir } from "node:os";
+import { homedir, tmpdir } from "node:os";
 
 const HELP = `send-email — send an email through Apple Mail
 
@@ -32,7 +33,7 @@ Options:
   --bcc <addrs>      Comma-separated BCC recipients
   --subject <subj>   Email subject line (required)
   --body <text>      Plain-text email body (required)
-  --draft <path>     Draft file. The script deletes it after send and appends the ID to Drafts/handled
+  --draft <path>     Draft file. The script deletes it after send and appends the ID to ~/.cache/fit/outpost/drafts/handled
   -h, --help         Show this help message and exit
 
 Mail.app must run. You need no signature or sign-off. Apple Mail appends it.`;
@@ -104,6 +105,10 @@ function buildAppleScript({ to, cc, bcc, subject, body }) {
     .join("\n");
 }
 
+// The handled ledger lives in the cache drafts/ directory. Never move it into
+// ~/.cache/fit/outpost/state/ — that directory is a daemon-owned trust root.
+const DRAFTS_DIR = join(homedir(), ".cache/fit/outpost/drafts");
+
 function handleDraftCleanup(draft) {
   if (!draft) return;
   try {
@@ -115,7 +120,8 @@ function handleDraftCleanup(draft) {
   const draftBasename = basename(draft, ".md");
   const emailId = draftBasename.replace(/_draft$/, "");
   if (emailId) {
-    appendFileSync("Drafts/handled", emailId + "\n");
+    mkdirSync(DRAFTS_DIR, { recursive: true });
+    appendFileSync(join(DRAFTS_DIR, "handled"), emailId + "\n");
     console.log(`Marked as handled: ${emailId}`);
   }
 }

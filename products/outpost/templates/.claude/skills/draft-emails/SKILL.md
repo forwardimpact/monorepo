@@ -5,6 +5,9 @@ description: Draft and send email responses with context from the knowledge base
 
 # Draft Emails
 
+Write tier: `0-Draft`
+Frontmatter: none
+
 Draft and send email responses. Use the knowledge base and calendar for full
 context on every person and conversation. Every draft needs explicit user
 approval before you send it.
@@ -20,24 +23,26 @@ The user asks to draft, reply to, respond to, or send an email.
 
 ## Data locations
 
-| Data            | Location                                     |
-| --------------- | -------------------------------------------- |
-| People          | `Knowledge/People/*.md`                      |
-| Organizations   | `Knowledge/Organizations/*.md`               |
-| Email threads   | `~/.cache/fit/outpost/apple_mail/*.md`       |
-| Calendar events | `~/.cache/fit/outpost/apple_calendar/*.json` |
-| Handled IDs     | `Drafts/handled` (one ID per line)           |
-| Ignored IDs     | `Drafts/ignored` (one ID per line)           |
-| Draft files     | `Drafts/{email_id}_draft.md`                 |
+| Data            | Location                                            |
+| --------------- | --------------------------------------------------- |
+| People          | `3-Team/People/*.md`                                 |
+| Organizations   | `3-Team/Organizations/*.md`                          |
+| Email threads   | `~/.cache/fit/outpost/apple_mail/*.md`               |
+| Calendar events | `~/.cache/fit/outpost/apple_calendar/*.json`         |
+| Handled IDs     | `~/.cache/fit/outpost/drafts/handled` (one ID/line)  |
+| Ignored IDs     | `~/.cache/fit/outpost/drafts/ignored` (one ID/line)  |
+| Draft files     | `0-Draft/{email_id}_draft.md`                        |
 
 `handled` and `ignored` both exclude threads from `scan-emails.mjs`. Use
 `handled` for resolved threads (sent here, replied manually, resolved through a
 DM). Use `ignored` for threads that need no response (newsletters, spam,
-outbound with no reply).
+outbound with no reply). The ledgers are agent state, not knowledge. They live
+in the cache `drafts/` directory, never in `state/` (a daemon-owned trust
+root).
 
 <do_confirm_checklist goal="Verify a draft is safe and ready before sending">
 
-- [ ] You looked up the sender and the organization in `Knowledge/` before you
+- [ ] You looked up the sender and the organization in `3-Team/` before you
       drafted.
 - [ ] The draft is a single email (not multiple variants). It matches the
       incoming tone.
@@ -47,7 +52,7 @@ outbound with no reply).
       recipients. Any direct-to-candidate draft carries `⚠️ RECRUITER ONLY`.
 - [ ] The draft includes no sensitive personal data (health, politics, etc.).
 - [ ] The user explicitly approved the draft before any send.
-- [ ] Send used `--draft <path>` so cleanup and `Drafts/handled` happen
+- [ ] Send used `--draft <path>` so cleanup and the `handled` ledger happen
       automatically.
 
 </do_confirm_checklist>
@@ -61,12 +66,12 @@ node scripts/scan-emails.mjs
 ```
 
 The script outputs `email_id<TAB>subject` for unprocessed emails (those not in
-`Drafts/handled` or `Drafts/ignored`).
+the `handled` or `ignored` ledger).
 
 ### 2. Classify
 
-**Ignore** (append ID to `Drafts/ignored`): newsletters, marketing, automated
-notifications, spam, outbound with no reply.
+**Ignore** (append the ID to `~/.cache/fit/outpost/drafts/ignored`):
+newsletters, marketing, automated notifications, spam, outbound with no reply.
 
 **Draft a response**: meeting requests, personal mail from known contacts,
 business inquiries or follow-ups, requests for information or action.
@@ -75,12 +80,12 @@ Be conservative with ignore. When in doubt, draft.
 
 ### 3. Gather context
 
-Before you draft, look up the sender and the organization in `Knowledge/`:
+Before you draft, look up the sender and the organization in the graph:
 
 ```bash
-rg -l "sender_name" Knowledge/
-cat "Knowledge/People/Sender Name.md"
-cat "Knowledge/Organizations/Company Name.md"
+rg -l "sender_name" [0-9]-*/
+cat "3-Team/People/Sender Name.md"
+cat "3-Team/Organizations/Company Name.md"
 ```
 
 For an email that arranges a meeting time, also read the relevant calendar
@@ -96,7 +101,7 @@ is unclear or the person has multiple contexts, **ask** rather than guess.
 
 ### 4. Write the draft
 
-Save to `Drafts/{email_id}_draft.md` with the template in
+Save to `0-Draft/{email_id}_draft.md` with the template in
 [references/template.md](references/template.md). Reference past interactions
 naturally. To arrange a meeting, propose specific times from the calendar
 availability.
@@ -105,7 +110,7 @@ availability.
 
 You **must never** copy candidates on internal threads about them.
 
-- Identify the candidate from the thread and `Knowledge/Candidates/`.
+- Identify the candidate from the thread and `2-Confidential/Candidates/`.
 - Strip the candidate from To/CC. Draft to internal stakeholders only.
 - Direct-to-candidate emails carry the warning header
   `⚠️ RECRUITER ONLY — This email goes directly to the candidate.`
@@ -128,18 +133,19 @@ node scripts/send-email.mjs \
   --cc "other@example.com" \
   --subject "Re: Subject" \
   --body "Plain text body" \
-  --draft "Drafts/12345_draft.md"
+  --draft "0-Draft/12345_draft.md"
 ```
 
 Required: `--to`, `--subject`, `--body` (plain text). Optional: `--cc`, `--bcc`,
 `--draft`. With `--draft`, the script deletes the draft file. It also appends
-the email ID to `Drafts/handled` automatically.
+the email ID to the `handled` ledger automatically.
 
 ### 8. Mark handled and do not send
 
 When other channels resolve a thread:
 
 ```bash
-echo "$EMAIL_ID" >> Drafts/handled
-rm -f "Drafts/${EMAIL_ID}_draft.md"
+mkdir -p ~/.cache/fit/outpost/drafts
+echo "$EMAIL_ID" >> ~/.cache/fit/outpost/drafts/handled
+rm -f "0-Draft/${EMAIL_ID}_draft.md"
 ```

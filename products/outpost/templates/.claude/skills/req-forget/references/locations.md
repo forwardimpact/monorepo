@@ -1,26 +1,35 @@
 # Discovery Search Recipes
 
-Reference for `req-forget` Step 1. Run every recipe. Record every match into
-the inventory.
+Reference for `req-forget` Step 1. Run every recipe from the KB root. Repeat
+each recipe for every recorded alias and email. Record every match into the
+inventory. The tier glob `[0-9]-*/` covers every tier present.
 
-## Knowledge base — direct notes
+## Direct notes, per tier
 
 ```bash
-ls -d "Knowledge/Candidates/{Name}/" 2>/dev/null
-ls "Knowledge/People/{Name}.md" 2>/dev/null
+ls -d "2-Confidential/Candidates/{Name}/" 2>/dev/null
+ls "2-Confidential/Prospects/{Name}.md" 2>/dev/null
+ls "2-Confidential/People/{Name}.md" 2>/dev/null   # overlay note
+ls "3-Team/People/{Name}.md" 2>/dev/null
 
-# Common name variations
-ls "Knowledge/People/{First} {Last}.md" 2>/dev/null
-ls "Knowledge/People/{Last}, {First}.md" 2>/dev/null
+# Common name variations, in any tier
+ls [0-9]-*/People/"{First} {Last}.md" 2>/dev/null
+ls [0-9]-*/People/"{Last}, {First}.md" 2>/dev/null
 ```
 
-## Knowledge base — backlinks and mentions
+## Backlinks and mentions, every tier
 
 ```bash
-rg -l "{Name}" Knowledge/
-rg -l "{First name} {Last name}" Knowledge/
-rg -l "\[\[.*{Name}.*\]\]" Knowledge/
-rg -l "{email}" Knowledge/
+rg -l "{Name}" [0-9]-*/
+rg -l "{First name} {Last name}" [0-9]-*/
+rg -l "\[\[.*{Name}.*\]\]" [0-9]-*/
+rg -l "{email}" [0-9]-*/
+```
+
+## Personal surfaces
+
+```bash
+rg -l "{Name}" 0-Draft/ Briefings/ 2>/dev/null
 ```
 
 ## Cached email threads
@@ -41,19 +50,15 @@ rg -l "{email}" ~/.cache/fit/outpost/apple_calendar/ 2>/dev/null
 ## Agent state files
 
 ```bash
-rg -l "{Name}" ~/.cache/fit/outpost/state/ 2>/dev/null
-```
-
-## Drafts
-
-```bash
-rg -l "{Name}" Drafts/ 2>/dev/null
+rg -l "{Name}" ~/.cache/fit/outpost/ 2>/dev/null
 ```
 
 ## Final verification
 
+Run from the KB root so the search covers every tier and personal surface:
+
 ```bash
-rg "{Name}" Knowledge/ ~/.cache/fit/outpost/ Drafts/
+rg "{Name}" . ~/.cache/fit/outpost/
 ```
 
-Expected: only the erasure report matches.
+Expected: only the erasure report matches. Repeat per alias and email.

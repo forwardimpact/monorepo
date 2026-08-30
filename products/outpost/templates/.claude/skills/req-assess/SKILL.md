@@ -9,6 +9,9 @@ description: >
 
 # Assess Interview
 
+Write tier: `2-Confidential`
+Frontmatter: candidate (stamps `status`, `updated`)
+
 Analyze a candidate's interview transcripts. Update their skill and behaviour
 profile with **observed** (not claimed) evidence. Interview evidence is
 higher-fidelity than CV evidence. It confirms or contradicts the screening
@@ -22,7 +25,7 @@ This is **Stage 2** of the three-stage hiring pipeline:
 
 ## Trigger
 
-- A new `transcript-*.md` file appears in `Knowledge/Candidates/{Name}/`.
+- A new `transcript-*.md` file appears in `2-Confidential/Candidates/{Name}/`.
 - The user asks to analyze an interview or debrief.
 - The user asks to prepare a panel brief.
 - The concierge agent processes an Anarlog interview recording.
@@ -30,22 +33,23 @@ This is **Stage 2** of the three-stage hiring pipeline:
 ## Prerequisites
 
 - `fit-pathway` CLI installed.
-- At least one transcript in `Knowledge/Candidates/{Name}/`.
+- At least one transcript in `2-Confidential/Candidates/{Name}/`.
 - `screening.md` should exist. If it is missing, run `req-screen` first.
   Proceed regardless.
 
 ## Inputs
 
-- `Knowledge/Candidates/{Name}/transcript-{date}.md`.
-- `Knowledge/Candidates/{Name}/screening.md`.
-- `Knowledge/Candidates/{Name}/brief.md` — target role.
+- `2-Confidential/Candidates/{Name}/transcript-{date}.md`.
+- `2-Confidential/Candidates/{Name}/screening.md`.
+- `2-Confidential/Candidates/{Name}/brief.md` — target role.
 
 ## Outputs
 
-- `Knowledge/Candidates/{Name}/interview-{date}.md`.
-- `Knowledge/Candidates/{Name}/panel.md` — only when more interviews are
+- `2-Confidential/Candidates/{Name}/interview-{date}.md`.
+- `2-Confidential/Candidates/{Name}/panel.md` — only when more interviews are
   planned.
-- Updated `Knowledge/Candidates/{Name}/brief.md`.
+- Updated `2-Confidential/Candidates/{Name}/brief.md` — frontmatter `status`
+  and `updated` stamped.
 
 <do_confirm_checklist goal="Verify the assessment is grounded in transcript
 evidence">
@@ -55,6 +59,8 @@ evidence">
 - [ ] Assess the level with standard progression criteria. Ignore gut feel.
 - [ ] Attribute interviewer observations by name.
 - [ ] Distinguish confirmed strengths from new concerns.
+- [ ] Assessment prose about the candidate stays in the candidate's own
+      folder. Wider notes record only that the interview happened.
 - [ ] Write the panel brief (if created) for non-technical readers. Tie the
       suggested questions to the remaining gaps.
 - [ ] Update the brief's Pipeline section, links, and Status.
@@ -105,7 +111,7 @@ Apply the [level signals](references/rubric.md#level-signals).
 
 ### 6. Write the interview assessment
 
-Save to `Knowledge/Candidates/{Name}/interview-{date}.md` with
+Save to `2-Confidential/Candidates/{Name}/interview-{date}.md` with
 [references/interview-template.md](references/interview-template.md). Include
 only skills with new evidence. Do not repeat the full matrix.
 
@@ -118,20 +124,22 @@ candidates:
 bunx fit-pathway interview {discipline} {level} --track={track}
 ```
 
-Save `Knowledge/Candidates/{Name}/panel.md` with
+Save `2-Confidential/Candidates/{Name}/panel.md` with
 [references/panel-template.md](references/panel-template.md). The audience is
 next-stage interviewers, often non-engineers. Explain without jargon. Tie the
 suggested questions to the remaining gaps.
 
 ### 8. Update the candidate brief
 
-Apply targeted Edit operations to `Knowledge/Candidates/{Name}/brief.md`:
+Apply targeted Edit operations to `2-Confidential/Candidates/{Name}/brief.md`:
 
 - Append a Pipeline entry with date, type, and outcome.
 - Add `## Interview Notes` if missing, with key observations.
 - Append `- [Interview Assessment](./interview-{date}.md)`.
 - Append `- [Panel Brief](./panel.md)` when one was created.
 - Update `Status` to reflect the current pipeline stage.
+- Stamp the frontmatter: set `updated` to the interview date and `status` to
+  the closest registry value (agents select from `registry.yaml`).
 
 Never rewrite the file. Never update the Gender field from interview
 observations.

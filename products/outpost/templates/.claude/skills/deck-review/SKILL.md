@@ -6,6 +6,9 @@ compatibility: Standalone HTML deck opened in a Chromium-based browser (Chrome/E
 
 # Add a Review Overlay to a Deck
 
+Write tier: `0-Draft`
+Frontmatter: none
+
 Install the self-contained `slide-annotator.js` overlay onto an HTML deck. The
 user can then **highlight text on a slide and save the feedback as a sidecar
 JSON**. Each annotation carries a robust anchor (exact text + the context around
@@ -26,7 +29,7 @@ reviewable" or asks to set up a feedback loop on slides.
 ## Inputs
 
 - Path to the target deck `.html` file (ask, or default to the most recently
-  edited `*.html` in `Drafts/`).
+  edited `*.html` in `0-Draft/`).
 - The bundled tool at `assets/slide-annotator.js`. This skill's own copy is the
   source of truth. Edit it here, then re-install it to update decks.
 

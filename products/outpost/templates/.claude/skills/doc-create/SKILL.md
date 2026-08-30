@@ -6,6 +6,9 @@ compatibility: Requires Node.js installed. Playwright is installed on first use.
 
 # Create Documents
 
+Write tier: `0-Draft`
+Frontmatter: none
+
 Generate multi-page A4 PDF documents from user requests. This skill uses
 Playwright to render self-contained HTML to PDF. It can pull context from the
 knowledge base for company info, project details, and people.
@@ -23,18 +26,18 @@ submission, brief, or any multi-page PDF that is not a slide deck.
 ## Inputs
 
 - User's description of the document
-- `Knowledge/` — optional context about company, product, team, projects
+- `3-Team/` — optional context about company, product, team, projects
 
 ## Outputs
 
 - An HTML file and a PDF rendered from it, placed where the user specifies
-  (default: `Knowledge/Projects/`)
+  (default: `0-Draft/`; the human promotes a finished document into its tier)
 
 ---
 
 ## Workflow
 
-1. Check `Knowledge/` for relevant context about the company, product, team,
+1. Check `3-Team/` for relevant context about the company, product, team,
    projects, or people mentioned.
 2. Make sure Playwright is installed:
    `bun install playwright && bunx playwright install chromium`

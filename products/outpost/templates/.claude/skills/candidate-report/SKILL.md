@@ -8,6 +8,9 @@ description: >
 
 # Candidate Report
 
+Write tier: `0-Draft` (the report is an export artifact)
+Frontmatter: none
+
 Generate a polished, single-page A4 HTML report that benchmarks a candidate
 against a specific role in the agent-aligned engineering standard. The report
 serves hiring managers and pod leads. They need a quick visual summary before
@@ -24,11 +27,11 @@ they decide whether to invest interview time.
 - `@forwardimpact/pathway` CLI installed (`bunx fit-pathway --help`).
 - Playwright for PDF output
   (`bun install playwright && bunx playwright install chromium`).
-- The candidate has a `brief.md` in `Knowledge/Candidates/{Name}/`.
+- The candidate has a `brief.md` in `2-Confidential/Candidates/{Name}/`.
 
 ## Inputs
 
-- **Candidate name** — locates `Knowledge/Candidates/{Name}/brief.md`.
+- **Candidate name** — locates `2-Confidential/Candidates/{Name}/brief.md`.
 - **Target role** — discipline, level, track (e.g.
   `software-engineering J070 forward-deployed`). If the user does not give it,
   infer it from the candidate's `Req` field → Role file. Ask the user when you
@@ -38,7 +41,7 @@ they decide whether to invest interview time.
 
 ## Outputs
 
-- `Drafts/{Recipient}-{CandidateSurname}-Report.html` — the A4 one-pager.
+- `0-Draft/{Recipient}-{CandidateSurname}-Report.html` — the A4 one-pager.
 - Optional PDF with `scripts/render-pdf.mjs`.
 
 <do_confirm_checklist goal="Verify the report before delivering it">
@@ -64,17 +67,17 @@ they decide whether to invest interview time.
 Read whatever exists for the candidate:
 
 ```text
-Knowledge/Candidates/{Name}/brief.md        # required
-Knowledge/Candidates/{Name}/screening.md    # if produced by req-screen
-Knowledge/Candidates/{Name}/interview-*.md  # if produced by req-assess
-Knowledge/Candidates/{Name}/CV.pdf|CV.md    # raw CV if needed
+2-Confidential/Candidates/{Name}/brief.md        # required
+2-Confidential/Candidates/{Name}/screening.md    # if produced by req-screen
+2-Confidential/Candidates/{Name}/interview-*.md  # if produced by req-assess
+2-Confidential/Candidates/{Name}/CV.pdf|CV.md    # raw CV if needed
 ```
 
 If `screening.md` exists, treat its skill and behaviour ratings as the primary
 source. They are already standard-calibrated. Otherwise map them manually in
 Step 3.
 
-Search the graph for surrounding context: `rg "{Candidate Name}" Knowledge/`.
+Search the graph for surrounding context: `rg "{Candidate Name}" [0-9]-*/`.
 
 ### 2. Load the standard benchmark
 
@@ -122,7 +125,7 @@ preview overflows, cut content.
 Save the completed HTML to:
 
 ```text
-Drafts/{Recipient}-{CandidateSurname}-Report.html
+0-Draft/{Recipient}-{CandidateSurname}-Report.html
 ```
 
 `{Recipient}` is the first name of the person the report is for.

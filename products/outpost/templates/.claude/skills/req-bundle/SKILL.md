@@ -2,7 +2,7 @@
 name: req-bundle
 description: >
   Split a Workday CV-bundle PDF into per-candidate CV.pdf files under
-  Knowledge/Candidates/. Reads the PDF outline (one bookmark per candidate) to
+  2-Confidential/Candidates/. Reads the PDF outline (one bookmark per candidate) to
   find each candidate's page range, matches it to the requisition roster so
   folder names agree with req-workday, and extracts each CV losslessly. Use
   when the user provides a Workday CV bundle (a large combined resume PDF, often
@@ -12,8 +12,12 @@ description: >
 
 # Workday CV Bundle Split
 
+Write tier: `2-Confidential`
+Frontmatter: none (writes CV assets into candidate folders)
+
 Split a Workday CV-**bundle** PDF — one combined file holding every applicant's
-attachments — into per-candidate `Knowledge/Candidates/{Clean Name}/CV.pdf`.
+attachments — into per-candidate
+`2-Confidential/Candidates/{Clean Name}/CV.pdf`.
 
 This is the **PDF companion** to `req-workday`. `req-workday` imports the roster
 from the `.xlsx` (briefs + `CV.md` from embedded resume text); `req-bundle`
@@ -58,7 +62,7 @@ Full anatomy: [references/pdf-structure.md](references/pdf-structure.md).
 
 ## Outputs
 
-- `Knowledge/Candidates/{Clean Name}/CV.pdf` — the candidate's extracted CV
+- `2-Confidential/Candidates/{Clean Name}/CV.pdf` — the candidate's extracted CV
   (created only after the dry-run manifest is reviewed and confirmed).
 - A JSON manifest at `$HOME/.cache/fit/outpost/state/req-bundle-{Req ID}.json`
   — the reviewable mapping of every bookmark (page range, matched name, status).
@@ -116,7 +120,7 @@ a multi-part bundle in one invocation:
 node .claude/skills/req-bundle/scripts/split-bundle.mjs \
   "<bundle_1_of_N.pdf>" "<bundle_2_of_N.pdf>" ... \
   --roster "$HOME/.cache/fit/outpost/state/req-bundle-roster-{Req ID}.json" \
-  --candidates-dir Knowledge/Candidates \
+  --candidates-dir 2-Confidential/Candidates \
   --manifest "$HOME/.cache/fit/outpost/state/req-bundle-{Req ID}.json" \
   --dry-run
 ```
@@ -144,13 +148,13 @@ roster JSON) to create folders and write the CVs:
 node .claude/skills/req-bundle/scripts/split-bundle.mjs \
   "<bundle parts...>" \
   --roster "$HOME/.cache/fit/outpost/state/req-bundle-roster-{Req ID}.json" \
-  --candidates-dir Knowledge/Candidates \
+  --candidates-dir 2-Confidential/Candidates \
   --manifest "$HOME/.cache/fit/outpost/state/req-bundle-{Req ID}.json"
 ```
 
 For bookmarks that were `unmatched` but you resolved by hand in Step 4, move the
-staged file into the correct `Knowledge/Candidates/{Clean Name}/CV.pdf`, or add
-the missing name variant and re-run — never hand-edit PDFs.
+staged file into the correct `2-Confidential/Candidates/{Clean Name}/CV.pdf`, or
+add the missing name variant and re-run — never hand-edit PDFs.
 
 ### 6. Hand off and report
 

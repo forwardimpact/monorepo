@@ -1,10 +1,10 @@
 # Templates
 
-`req-track` uses these markdown templates for Role files and Candidate briefs.
+Backlink rules and the overlay stub live in [overlays.md](overlays.md).
 
 ## Role file stub
 
-Step 0b uses this stub when a candidate brief has a Req but no Role file exists.
+Step 3 stub for a Req with no Role file, in `2-Confidential/Roles/`.
 
 ```markdown
 # {Title from candidate Req field}
@@ -36,23 +36,31 @@ Step 0b uses this stub when a candidate brief has a Req but no Role file exists.
 
 ## Role Candidates table
 
-Step 0b scans briefs and rebuilds this table on each Role file:
+Step 3 scans briefs and rebuilds this table on each Role file. Sort by First
+seen, newest first:
 
 ```markdown
 ## Candidates
 | Candidate | Status | Channel | First seen |
 |---|---|---|---|
-| [[Candidates/{Name}/brief\|{Name}]] | {status} | {channel} | {date} |
+| [[2-Confidential/Candidates/{Name}/brief\|{Name}]] | {status} | {channel} | {date} |
 ```
-
-Sort by First seen, newest first.
 
 ## Candidate brief
 
-Step 5 uses this template for new candidates. File:
-`Knowledge/Candidates/{Full Name}/brief.md`.
+Step 8 uses this template for new candidates. File:
+`2-Confidential/Candidates/{Full Name}/brief.md`. Frontmatter `status` uses
+the registry vocabulary; the body `**Status:**` keeps the pipeline stage.
 
 ```markdown
+---
+type: candidate
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+aliases: [{alternate spellings, or an empty list}]
+status: {registry status: new / screening / interviewing / offer / hired / rejected / withdrawn}
+---
+
 # {Full Name}
 
 ## Info
@@ -62,7 +70,7 @@ Step 5 uses this template for new candidates. File:
 **English:** {level or "—"}
 **Location:** {location or "—"}
 **Gender:** {Woman / Man / —}
-**Source:** [[Organizations/{Agency}]] via [[People/{Recruiter Name}]]
+**Source:** [[3-Team/Organizations/{Agency}]] via [[3-Team/People/{Recruiter Name}]]
 **Status:** {pipeline status}
 **First seen:** {YYYY-MM-DD}
 **Last activity:** {YYYY-MM-DD}
@@ -75,11 +83,11 @@ Step 5 uses this template for new candidates. File:
 - [CV.pdf](./CV.pdf)
 
 ## Connected to
-- [[Organizations/{Agency}]] — sourced by
-- [[People/{Recruiter}]] — recruiter
-- [[Roles/{Role filename without .md}]] — applied to
-- [[People/{Hiring manager}]] — hiring manager
-- [[People/{Domain lead}]] — domain lead
+- [[3-Team/Organizations/{Agency}]] — sourced by
+- [[3-Team/People/{Recruiter}]] — recruiter
+- [[2-Confidential/Roles/{Role filename without .md}]] — applied to
+- [[3-Team/People/{Hiring manager}]] — hiring manager
+- [[3-Team/People/{Domain lead}]] — domain lead
 
 ## Pipeline
 - **{date}**: {event}
@@ -87,14 +95,9 @@ Step 5 uses this template for new candidates. File:
 ## Skills
 {comma-separated agent-aligned engineering standard skill IDs}
 
-## Interview Notes
-{omit section if no interviews yet}
-
 ## Notes
 {free-form observations — always present, even if empty}
 ```
-
-Omit `## CV` when no CV attachment exists.
 
 ## Extra Info fields
 
@@ -102,25 +105,23 @@ Place after `Last activity`, in this order, only when known:
 
 ```markdown
 **Role:** {internal requisition profile, e.g. "Staff Engineer"}
-**Req:** [[Roles/{filename}|{req number}]] — {title}
+**Req:** [[2-Confidential/Roles/{filename}|{req number}]] — {title}
 **Channel:** {hr / vendor}
-**Hiring manager:** {[[People/{name}]] or "—"}
-**Domain lead:** {[[People/{name}]] or "—"}
+**Hiring manager:** {[[3-Team/People/{name}]] or "—"}
+**Domain lead:** {[[3-Team/People/{name}]] or "—"}
 **Internal/External:** {Internal / External / External (Prior Worker)}
 **Model:** {engagement model, e.g. "B2B (via Agency) — conversion to FTE not possible"}
 **Current title:** {current job title and employer}
 **Email:** {personal or work email}
 **Phone:** {phone number}
 **LinkedIn:** {profile URL}
-**Also known as:** {alternate spellings}
+**Also known as:** {alternate spellings — mirror them into `aliases`}
 ```
 
 For vendor-pipeline candidates the Req backlink uses
-`[[Roles/{filename}|Vendor]] — {description}`.
+`[[2-Confidential/Roles/{filename}|Vendor]] — {description}`.
 
-## Optional sections
-
-Add between `## Skills` and `## Notes` when data is rich enough, in this order:
+Add optional sections between `## Skills` and `## Notes`, in this order:
 `## Education`, `## Certifications`, `## Work History`, `## Key Facts`,
 `## Interview Notes` (`### YYYY-MM-DD — {description}` per interview).
 

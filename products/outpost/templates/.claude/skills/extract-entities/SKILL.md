@@ -5,9 +5,8 @@ description: Process synced email/calendar files from ~/.cache/fit/outpost/ and 
 
 # Extract Entities
 
-Write tier: `3-Team` (general entities); `2-Confidential` (Candidates,
-Prospects, Roles, Erasure) Frontmatter: person, organization, project, topic,
-priority, condition
+Write tier: `3-Team` (general); `2-Confidential` (recruitment entities)
+Frontmatter: person, organization, project, topic, priority, condition
 
 Process synced email and calendar files from `~/.cache/fit/outpost/`, plus
 ad-hoc documents from other skills, into Obsidian-compatible markdown notes

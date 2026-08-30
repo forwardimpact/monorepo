@@ -1,7 +1,7 @@
 # Recommendation Template
 
-Reference template for `req-decide` Step 6. Save to
-`Knowledge/Candidates/{Name}/recommendation.md`.
+Reference template for `req-decide` Step 8. Save to
+`2-Confidential/Candidates/{Name}/recommendation.md`.
 
 ```markdown
 # Hiring Recommendation — {Full Name}
