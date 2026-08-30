@@ -255,11 +255,7 @@ function extractFrontmatter(ctx, note, blockLines, shared, links) {
         raw[match.index - 1] === '"' &&
         raw[match.index + match[0].length] === '"';
       if (quoted) {
-        links.push({
-          line: i + 2,
-          target: wikiTarget(match[1]),
-          fromFrontmatter: true,
-        });
+        links.push({ line: i + 2, target: wikiTarget(match[1]) });
       } else if (shared) {
         ctx.findings.push({
           kind: "frontmatter-invalid",
