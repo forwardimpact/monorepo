@@ -6,6 +6,13 @@ import { dirname, join } from "node:path";
 
 import { Cli } from "@forwardimpact/libcli";
 import { HelpRenderer } from "@forwardimpact/libcli";
+import {
+  createMockFs,
+  createMockProcess,
+  createTestRuntime,
+} from "@forwardimpact/libmock";
+
+import { run } from "../src/outpost.js";
 
 // Read the version from package.json so the fixture tracks the published
 // version and does not drift. The previous hardcode was 2.11.0 when the
@@ -131,5 +138,66 @@ describe("fit-outpost CLI parsing", () => {
     const result = cli.parse(["--version"]);
     assert.strictEqual(result, null);
     assert.ok(proc.stdout.output.includes(PKG_VERSION));
+  });
+});
+
+describe("fit-outpost validate with a KB path", () => {
+  const FM = "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n---\n";
+
+  function runValidate(argv, files, dirs = []) {
+    const fs = createMockFs(files);
+    for (const dir of dirs) fs.dirs.add(dir);
+    const proc = createMockProcess({
+      argv: ["bun", "fit-outpost", ...argv],
+    });
+    const runtime = createTestRuntime({ fs, proc });
+    return { exit: run(runtime, PKG_VERSION), proc };
+  }
+
+  test("a conforming vault exits 0", async () => {
+    const { exit } = runValidate(["validate", "/vault"], {
+      "/vault/3-Team/People/Sarah Chen.md": FM + "A colleague.",
+    });
+    assert.strictEqual(await exit, 0);
+  });
+
+  test("a violating vault exits 1 and reports file:line", async () => {
+    const { exit, proc } = runValidate(["validate", "/vault"], {
+      "/vault/3-Team/a.md": FM + "See [[3-Team/Ghost]].",
+    });
+    assert.strictEqual(await exit, 1);
+    const out = proc.stderr.chunks.join("");
+    assert.match(out, /3-Team\/a\.md:6 unresolved 3-Team\/Ghost/);
+  });
+
+  test("--json emits the findings array as the only stdout", async () => {
+    const { exit, proc } = runValidate(["validate", "/vault", "--json"], {
+      "/vault/3-Team/a.md": FM + "See [[3-Team/Ghost]].",
+    });
+    assert.strictEqual(await exit, 1);
+    const out = proc.stdout.chunks.join("");
+    const findings = JSON.parse(out);
+    assert.strictEqual(findings.length, 1);
+    assert.strictEqual(findings[0].kind, "unresolved");
+    assert.strictEqual(findings[0].baselined, false);
+  });
+
+  test("a baselined-only vault exits 0 with a warning line", async () => {
+    const { exit, proc } = runValidate(["validate", "/vault"], {
+      "/vault/3-Team/a.md": FM + "See [[3-Team/Ghost]].",
+      "/vault/validation-baseline.json": JSON.stringify({
+        findings: [
+          { kind: "unresolved", file: "3-Team/a.md", link: "3-Team/Ghost" },
+        ],
+      }),
+    });
+    assert.strictEqual(await exit, 0);
+    assert.match(proc.stderr.chunks.join(""), /warn: 3-Team\/a\.md:6/);
+  });
+
+  test("without a path and no agents it keeps the exit-0 path", async () => {
+    const { exit, proc } = runValidate(["validate"], {});
+    assert.strictEqual(await exit, 0);
+    assert.match(proc.stderr.chunks.join(""), /No agents configured/);
   });
 });

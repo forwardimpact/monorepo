@@ -207,14 +207,23 @@ export class KBManager {
     }
 
     await this.#ensureDir(dest);
-    // Create the top-level roots only. `Knowledge/` is the shared graph, and
-    // the team syncs it. `Drafts/` and `Briefings/` are personal and local.
-    // The skills that write into the entity subdirectories (People,
-    // Organizations, ...) create them on demand.
-    for (const d of ["Knowledge", "Drafts", "Briefings"])
+    // Create the tier directories and the personal `Briefings/` root only.
+    // The numbered tiers are the knowledge graph and the units of sharing;
+    // every other root entry is personal. The skills that write into the
+    // entity subdirectories (People, Organizations, ...) create them on
+    // demand inside each tier.
+    for (const d of [
+      "0-Draft",
+      "1-Management",
+      "2-Confidential",
+      "3-Team",
+      "4-Public",
+      "Briefings",
+    ])
       await this.#ensureDir(join(dest, d));
 
     await this.copyBundledFiles(templateDir, dest);
+    await this.#installRegistry(templateDir, dest);
     await this.#linkIntoDocuments(dest);
 
     this.#logger.info(
@@ -265,8 +274,49 @@ export class KBManager {
       };
     }
     await this.copyBundledFiles(templateDir, dest);
+    await this.#installRegistry(templateDir, dest);
+    await this.#installMigrationGuide(templateDir, dest);
     this.#logger.info(`\nKnowledge base updated: ${dest}`);
     return { ok: true, value: { dest } };
+  }
+
+  /**
+   * Install the default `registry.yaml` when the KB has none. The registry
+   * is a personal surface humans edit, so this method never overwrites an
+   * existing one. `copyBundledFiles` copies named files only and never picks
+   * it up.
+   * @param {string} tpl - Template directory
+   * @param {string} dest - Knowledge base directory
+   * @returns {Promise<void>}
+   */
+  async #installRegistry(tpl, dest) {
+    const src = join(tpl, "registry.yaml");
+    const destPath = join(dest, "registry.yaml");
+    if (!(await this.#exists(src)) || (await this.#exists(destPath))) return;
+    await this.#fs.copyFile(src, destPath);
+    this.#logger.info(`  Installed registry.yaml`);
+  }
+
+  /**
+   * Install MIGRATION.md while the KB still carries a legacy layout
+   * (`Knowledge/` or `Drafts/` at the root). A conforming KB never receives
+   * it, and this method removes nothing.
+   * @param {string} tpl - Template directory
+   * @param {string} dest - Knowledge base directory
+   * @returns {Promise<void>}
+   */
+  async #installMigrationGuide(tpl, dest) {
+    const legacy =
+      (await this.#exists(join(dest, "Knowledge"))) ||
+      (await this.#exists(join(dest, "Drafts")));
+    if (!legacy) return;
+    await this.#fs.copyFile(
+      join(tpl, "MIGRATION.md"),
+      join(dest, "MIGRATION.md"),
+    );
+    this.#logger.info(
+      `  Installed MIGRATION.md — this knowledge base carries the legacy layout. Follow it to migrate to tiers.`,
+    );
   }
 
   /**

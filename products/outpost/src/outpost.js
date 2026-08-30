@@ -7,7 +7,7 @@
 //   fit-outpost init [name]         Initialize a knowledge base by name (default: Team)
 //   fit-outpost update [path]       Update KB with latest CLAUDE.md, agents and skills (defaults to current directory)
 //   fit-outpost stop                Gracefully stop daemon and all running agents
-//   fit-outpost validate            Validate agent definitions exist
+//   fit-outpost validate [path]     Validate agent definitions and knowledge bases
 //   fit-outpost status              Show agent status
 //   fit-outpost --help              Show this help
 //
@@ -27,6 +27,7 @@ import { StateManager } from "./state-manager.js";
 import { AgentRunner } from "./agent-runner.js";
 import { Scheduler, formatLocalTime } from "./scheduler.js";
 import { KBManager } from "./kb-manager.js";
+import { validateKnowledgeBase } from "./kb-validator.js";
 import { SocketServer, requestShutdown, requestWake } from "./socket-server.js";
 import {
   readPosture,
@@ -40,12 +41,12 @@ const SHARE_DIR = "/usr/local/share/fit-outpost";
 
 /**
  * Build the CLI definition. This object is byte-identical to the libcli
- * definition that the golden capture used. So `--help` and `--version` output
- * stays stable.
+ * definition that the golden capture used, and `test/golden.test.js`
+ * enforces that contract. So `--help` and `--version` output stays stable.
  * @param {string} version
  * @returns {object}
  */
-function buildDefinition(version) {
+export function buildDefinition(version) {
   return {
     name: "fit-outpost",
     version,
@@ -72,7 +73,11 @@ function buildDefinition(version) {
         name: "stop",
         description: "Gracefully stop daemon and all running agents",
       },
-      { name: "validate", description: "Validate agent definitions exist" },
+      {
+        name: "validate",
+        args: "[path]",
+        description: "Validate agent definitions and knowledge bases",
+      },
       { name: "status", description: "Show agent status" },
       {
         name: "posture",
@@ -83,7 +88,10 @@ function buildDefinition(version) {
     globalOptions: {
       help: { type: "boolean", short: "h", description: "Show this help" },
       version: { type: "boolean", description: "Show version" },
-      json: { type: "boolean", description: "JSON output (with --help)" },
+      json: {
+        type: "boolean",
+        description: "JSON output (with --help and validate)",
+      },
     },
     documentation: [
       {
@@ -375,7 +383,45 @@ export async function run(runtime, version) {
     return !!found;
   }
 
+  /**
+   * Render one knowledge finding as a report line. Baselined findings warn.
+   * @param {import("./kb-validator.js").Finding} f
+   * @returns {string}
+   */
+  function formatFinding(f) {
+    const prefix = f.baselined ? "warn: " : "";
+    if (f.path !== undefined) {
+      return `${prefix}${f.path} ${f.kind}${f.message ? ` — ${f.message}` : ""}`;
+    }
+    return `${prefix}${f.file}:${f.line} ${f.kind} ${f.link ?? f.property}`;
+  }
+
+  /**
+   * Run the knowledge checks over each KB root. With `--json` the merged
+   * findings array is the only stdout, so tooling can parse it.
+   * @param {string[]} roots - Absolute KB root paths.
+   * @returns {Promise<number>} 1 when any finding is not baselined, else 0.
+   */
+  function reportFindings(root, findings) {
+    logger.info(`\nKnowledge base: ${root}`);
+    for (const f of findings) logger.info(`  ${formatFinding(f)}`);
+    if (findings.length === 0) logger.info("  OK");
+  }
+
+  async function runKnowledgeChecks(roots) {
+    const all = [];
+    for (const root of roots) {
+      const { findings } = await validateKnowledgeBase(root, runtime);
+      if (!values.json) reportFindings(root, findings);
+      all.push(...findings);
+    }
+    if (values.json) proc.stdout.write(`${JSON.stringify(all)}\n`);
+    return all.some((f) => !f.baselined) ? 1 : 0;
+  }
+
   async function validate() {
+    if (args[0]) return runKnowledgeChecks([expandPath(args[0])]);
+
     const config = await loadConfig();
     const agents = Object.entries(config.agents || {});
     if (agents.length === 0) {
@@ -391,7 +437,12 @@ export async function run(runtime, version) {
     }
 
     logger.info(errors > 0 ? `\n${errors} error(s).` : "\nAll OK.");
-    return errors > 0 ? 1 : 0;
+    // The logger writes to stderr, so with --json the findings array stays
+    // the only stdout even on the no-path form.
+    const kbRoots = [
+      ...new Set(agents.map(([, a]) => a.kb).filter(Boolean)),
+    ].map(expandPath);
+    return Math.max(errors ? 1 : 0, await runKnowledgeChecks(kbRoots));
   }
 
   // --- CLI entry point -------------------------------------------------------
@@ -399,7 +450,7 @@ export async function run(runtime, version) {
   const parsed = cli.parse(proc.argv.slice(2));
   if (!parsed) return 0;
 
-  const { positionals } = parsed;
+  const { positionals, values } = parsed;
   const [command, ...args] = positionals;
 
   await fs.mkdir(OUTPOST_HOME, { recursive: true });
