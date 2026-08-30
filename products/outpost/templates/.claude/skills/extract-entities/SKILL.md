@@ -1,13 +1,17 @@
 ---
 name: extract-entities
-description: Process synced email/calendar files from ~/.cache/fit/outpost/ and ad-hoc document files (e.g. from ~/Desktop/ or ~/Downloads/). Extract structured knowledge into Knowledge/ as Obsidian-compatible markdown notes. Use on a schedule, when the user asks to process/extract entities, or when another skill invokes it (e.g. organize-files). Builds the core knowledge graph from raw data.
+description: Process synced email/calendar files from ~/.cache/fit/outpost/ and ad-hoc document files (e.g. from ~/Desktop/ or ~/Downloads/). Extract structured knowledge into the tier directories as Obsidian-compatible markdown notes. Use on a schedule, when the user asks to process/extract entities, or when another skill invokes it (e.g. organize-files). Builds the core knowledge graph from raw data.
 ---
 
 # Extract Entities
 
+Write tier: `3-Team` (general entities); `2-Confidential` (Candidates,
+Prospects, Roles, Erasure) Frontmatter: person, organization, project, topic,
+priority, condition
+
 Process synced email and calendar files from `~/.cache/fit/outpost/`, plus
 ad-hoc documents from other skills, into Obsidian-compatible markdown notes
-under `Knowledge/`. This skill builds the core knowledge graph.
+in the tier directories. This skill builds the core knowledge graph.
 
 ## Trigger
 
@@ -35,15 +39,14 @@ under `Knowledge/`. This skill builds the core knowledge graph.
 
 ## Outputs
 
-- `Knowledge/People/`, `Knowledge/Organizations/`, `Knowledge/Projects/`,
-  `Knowledge/Topics/` — created or updated.
-- `Knowledge/Priorities/` — **updated only**, never
-  auto-created.
-- `Knowledge/Conditions/` — created when you detect cross-cutting patterns, or
+- `3-Team/People/`, `3-Team/Organizations/`, `3-Team/Projects/`,
+  `3-Team/Topics/` — created or updated.
+- `3-Team/Priorities/` — **updated only**, never auto-created.
+- `3-Team/Conditions/` — created when you detect cross-cutting patterns, or
   updated.
-- `Knowledge/Roles/*.md`, `Knowledge/Candidates/*/brief.md` — enriched with
-  inferred metadata. Create new role stubs with `**Status:** open`. Update to
-  `**Status:** closed` when a role closes.
+- `2-Confidential/Roles/*.md`, `2-Confidential/Candidates/*/brief.md` — enriched
+  with inferred metadata. Create new role stubs with `**Status:** open`. Update
+  to `**Status:** closed` when a role closes.
 - `~/.cache/fit/outpost/state/graph_processed` — updated.
 
 <do_confirm_checklist goal="Verify the batch produced clean, linked,
@@ -55,8 +58,8 @@ well-grounded notes">
 - [ ] Apply the "Would I prep?" test. Write no stub profiles. Give every new
       People note a substantive `## Summary`. Route calendar-only attendees to
       the Organization `## Contacts` section.
-- [ ] Use absolute paths `[[Folder/Name]]` for all links. Keep bidirectional
-      links consistent (incl. Project ↔ Priority).
+- [ ] Use tier-prefixed absolute paths (`[[3-Team/People/Name]]`) for all
+      links. Keep bidirectional links consistent (incl. Project ↔ Priority).
 - [ ] Describe the relationship in each summary. Omit the communication
       method. Make key facts substantive. Make open items commitments.
 - [ ] Log state changes with `[Field → value]`. Never auto-create a Priority
@@ -91,9 +94,8 @@ directly. Do not scan `~/.cache/fit/outpost/`. Still check each path against
 ### 1. Build the knowledge index
 
 ```bash
-find Knowledge/People Knowledge/Organizations Knowledge/Projects \
-     Knowledge/Topics Knowledge/Priorities \
-     Knowledge/Conditions -name "*.md" 2>/dev/null
+find 3-Team/People 3-Team/Organizations 3-Team/Projects 3-Team/Topics \
+     3-Team/Priorities 3-Team/Conditions -name "*.md" 2>/dev/null
 ```
 
 Run `head -20` on each note to capture the key fields. Build a mental index of
@@ -174,7 +176,7 @@ For **existing** entities, never rewrite the file. Apply targeted edits:
 
 - Add the new activity entry at the **top** of `## Activity` (reverse
   chronological).
-- Update `Last seen`.
+- Update `Last seen`, and stamp frontmatter `updated` in the same edit.
 - Add new key facts (skip duplicates).
 - Update open items (mark completed, add new).
 - Apply state changes to fields.

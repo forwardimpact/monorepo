@@ -6,6 +6,9 @@ compatibility: Requires macOS with Microsoft Teams desktop app (com.microsoft.te
 
 # Sync Teams
 
+Write tier: none (cache only)
+Frontmatter: none
+
 Sync recent Microsoft Teams chat messages into
 `~/.cache/fit/outpost/teams_chat/` as markdown files. This is an automated skill
 in the data pipeline. It ingests chat data that other skills (like

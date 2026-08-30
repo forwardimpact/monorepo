@@ -1,9 +1,14 @@
 # Recruitment Inference
 
-Reference for `extract-entities` Step 7b. Enrich `Knowledge/Roles/` and
-`Knowledge/Candidates/` with metadata that no single source carries.
+Reference for `extract-entities` Step 7b. Enrich `2-Confidential/Roles/` and
+`2-Confidential/Candidates/` with metadata that no single source carries.
 
-All Role files are flat in `Knowledge/Roles/`. The `**Status:**` field
+Recruitment entities live in tier 2: route Candidates, Prospects, Roles, and
+Erasure records to `2-Confidential/`. A recruitment fact about a `3-Team`
+person lands in the person's `2-Confidential` overlay (a note with a
+`canonical` link up to the `3-Team` note), never in the canonical team note.
+
+All Role files are flat in `2-Confidential/Roles/`. The `**Status:**` field
 distinguishes:
 
 - **`Status: open`** — active openings (use for new candidates and table
@@ -15,10 +20,10 @@ distinguishes:
 Scan email subjects and bodies for requisition numbers (e.g. 7-digit Workday
 IDs).
 
-1. `ls Knowledge/Roles/ | grep "{req_number}"` — find out whether a Role file
-   exists.
+1. `ls 2-Confidential/Roles/ | grep "{req_number}"` — find out whether a Role
+   file exists.
 2. **No file:** create a stub with the Role-stub template in `req-track` Step
-   0b, and set `**Status:** open`. Search `rg "{req_number}" Knowledge/` for
+   0b, and set `**Status:** open`. Search `rg "{req_number}" [0-9]-*/` for
    context to enrich it.
 3. **File exists:** check the `**Status:**` field. If `open`, check whether the
    email provides new metadata (hiring manager, recruiter, locations). Then
@@ -31,11 +36,11 @@ A calendar event title can match an interview pattern ("Interview", "Screening",
 "Screen", "Decomposition", "Panel", "Technical Assessment", "Candidate") and
 also carry a person name. When it does:
 
-1. Cross-reference the candidate against `Knowledge/Candidates/`.
+1. Cross-reference the candidate against `2-Confidential/Candidates/`.
 2. Extract the **organizer**. If the organizer isn't the user (per
    `~/.cache/fit/outpost/state/identity.md`),
    they are likely the hiring manager.
-3. Confirm the hiring manager. Look up the organizer in `Knowledge/People/` for
+3. Confirm the hiring manager. Look up the organizer in `3-Team/People/` for
    an indication of a manager or HM role.
 4. Check the candidate's `brief.md` for a `Req` field. If you know the req, set
    the matching Role file's `Hiring manager` (only if it is currently `—`).
@@ -44,9 +49,9 @@ also carry a person name. When it does:
 ## Recruiter — email-thread inference
 
 When a thread references candidates (name match against
-`Knowledge/Candidates/`):
+`2-Confidential/Candidates/`):
 
-1. Cross-reference To/CC against `Knowledge/People/`.
+1. Cross-reference To/CC against `3-Team/People/`.
 2. If a CC'd person's note mentions "recruiter", "talent acquisition", or a
    similar role, they are likely the internal recruiter.
 3. Update the candidate's `brief.md` recruiter field and the matching Role file

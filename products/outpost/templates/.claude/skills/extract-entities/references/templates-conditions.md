@@ -5,6 +5,12 @@ The librarian agent can **auto-create** them when it detects cross-cutting
 patterns. The user can also create them manually. Lifecycle: active → resolved.
 
 ```markdown
+---
+type: condition
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+---
+
 # {Condition Name}
 
 ## Info
@@ -16,10 +22,10 @@ patterns. The user can also create them manually. Lifecycle: active → resolved
 **Resolution signal:** {What would indicate this condition has ended}
 
 ## Affects
-{Priorities, Projects, Roles, and People impacted by this condition}
-- [[Priorities/{Priority}]] — {how it's affected}
-- [[Projects/{Project}]] — {how it's affected}
-- [[Roles/{Role}]] — {how it's affected}
+{Priorities, Projects, and People impacted by this condition. A Role file
+links here instead — a Condition never links into a narrower tier.}
+- [[3-Team/Priorities/{Priority}]] — {how it's affected}
+- [[3-Team/Projects/{Project}]] — {how it's affected}
 
 ## Agent implications
 {How agents should modify their behavior while this condition is active}

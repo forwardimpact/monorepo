@@ -5,6 +5,9 @@ description: Track changes to this installation's instruction files: the root CL
 
 # Upstream Instructions
 
+Write tier: none (the root CHANGELOG.md is a personal surface)
+Frontmatter: none
+
 Track changes to this installation's **instructions**. Record them in one root
 `CHANGELOG.md` so you can contribute improvements back to the upstream monorepo.
 "Instructions" means all three surfaces, and they carry equal weight:
@@ -102,8 +105,8 @@ Every entry must answer:
 2. **Why?** — the problem encountered or improvement discovered in use.
 3. **Details** — a summary of the actual change (not a full diff).
 
-Good: "Agents now read `Knowledge/Priorities/` at the start of every wake and
-flag anything that threatens a priority. Drafts and triage ignored strategic
+Good: "Agents now read `Priorities/` in every tier at the start of every wake
+and flag anything that threatens a priority. Drafts and triage ignored strategic
 context."
 
 Bad: "Updated the agents" / "Fixed stuff" / "Changed line 42".

@@ -20,7 +20,7 @@ same constraint or state, suspect a Condition.
 
 ## Create a Condition
 
-1. Check existing: `ls Knowledge/Conditions/ 2>/dev/null`.
+1. Check existing: `ls 3-Team/Conditions/ 2>/dev/null`.
 2. **No match:** create a new Condition note with
    [templates-conditions.md](templates-conditions.md). Give it a descriptive
    name ("Hiring Freeze Q2", "Division Reorg").
@@ -31,13 +31,13 @@ same constraint or state, suspect a Condition.
 
 When you create or update a Condition:
 
-1. Add `[[Conditions/{Condition}]]` to the `## Affects` section of affected
-   Priorities.
+1. Add `[[3-Team/Conditions/{Condition}]]` to the `## Affects` section of
+   affected Priorities.
 2. Add `[Status → on hold]` state changes to affected Projects where
    appropriate.
 3. Add a `## Blockers` entry to affected Role files if recruitment is frozen.
 4. Log the Condition reference in activity entries:
-   `- **YYYY-MM-DD** ({source}): {update}. See [[Conditions/{Condition}]]`.
+   `- **YYYY-MM-DD** ({source}): {update}. See [[3-Team/Conditions/{Condition}]]`.
 
 ## Resolve Conditions
 
@@ -45,7 +45,8 @@ Source content indicates the Condition ended: "approved", "freeze lifted",
 "reorg complete", "back on track".
 
 - Set `**Status:** resolved`, `**Resolved:** {date}`.
-- Remove `[[Conditions/{Condition}]]` from affected Priority `## Affects`.
+- Remove `[[3-Team/Conditions/{Condition}]]` from affected Priority
+  `## Affects`.
 - Log with `[Status → resolved]`.
 
 ## Conservatism

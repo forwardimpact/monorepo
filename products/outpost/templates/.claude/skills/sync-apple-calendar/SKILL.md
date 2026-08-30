@@ -6,6 +6,9 @@ compatibility: Requires macOS with Apple Calendar configured and Full Disk Acces
 
 # Sync Apple Calendar
 
+Write tier: none (cache only)
+Frontmatter: none
+
 Sync calendar events from the macOS Calendar app's local SQLite database into
 `~/.cache/fit/outpost/apple_calendar/` as JSON files. This is an automated skill
 in the data pipeline. It ingests raw calendar data that other skills (like

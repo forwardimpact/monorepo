@@ -10,6 +10,9 @@ description: >
 
 # Anarlog Follow
 
+Write tier: none
+Frontmatter: none
+
 Follow a live Anarlog recording. Read the transcript as it grows. Coach the user
 through the meeting in real time. Gather knowledge-base context once before the
 session. Then poll the transcript. Provide actionable nudges as new content
@@ -38,8 +41,9 @@ appears.
 - The live meeting transcript, via `get_meeting_transcript` (MCP) or
   `anarlog --json meetings transcript <id>` (CLI). See
   [references/sessions.md](references/sessions.md) for both interfaces.
-- `Knowledge/People/`, `Knowledge/Candidates/{Name}/{brief,screening,panel}.md`,
-  `Knowledge/Roles/`, `Knowledge/Organizations/`, `Knowledge/Projects/`.
+- `3-Team/People/`,
+  `2-Confidential/Candidates/{Name}/{brief,screening,panel}.md`,
+  `2-Confidential/Roles/`, `3-Team/Organizations/`, `3-Team/Projects/`.
 - `~/.cache/fit/outpost/apple_calendar/*.json` for context.
 
 ## Outputs
@@ -107,8 +111,8 @@ Phase 2 and the dimensions you track in Phase 3.
 Extract the names from the title and the participant list. For each name:
 
 ```bash
-rg -l "{name}" Knowledge/People/
-rg -l "{name}" Knowledge/Candidates/
+rg -l "{name}" 3-Team/People/
+rg -l "{name}" 2-Confidential/Candidates/
 ```
 
 Read each note you find for role, organization, history, open items, and prior
@@ -116,16 +120,17 @@ interactions.
 
 #### 5. Load type-specific context
 
-**Interviews:** read `Knowledge/Candidates/{Name}/{brief,screening,panel}.md`.
-Look up the `Req` field's matching `Knowledge/Roles/*.md` file. Check its
-`**Status:**` field for context. Then load the standard expectations:
+**Interviews:** read
+`2-Confidential/Candidates/{Name}/{brief,screening,panel}.md`. Look up the `Req`
+field's matching `2-Confidential/Roles/*.md` file. Check its `**Status:**` field
+for context. Then load the standard expectations:
 
 ```bash
 bunx fit-pathway job {discipline} {level} --track={track}
 ```
 
 **General meetings:** read attendee People notes plus referenced
-Project/Organization notes. Check open tasks: `rg "{name}" Knowledge/Tasks/`.
+Project/Organization notes. Check open tasks: `rg "{name}" 3-Team/Tasks/`.
 
 #### 6. Build the coaching brief
 

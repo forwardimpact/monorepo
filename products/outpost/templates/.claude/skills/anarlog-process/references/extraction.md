@@ -42,15 +42,15 @@ or the `@domain` from `~/.cache/fit/outpost/state/identity.md`.
 ## Interview sessions (special case)
 
 If the title or the note says "interview with {Name}", the interviewee is a
-**candidate**. Create or update their note in `Knowledge/Candidates/` with the
-candidate brief template from `req-track`. **Never** write it in
-`Knowledge/People/`.
+**candidate**. Create or update their note in `2-Confidential/Candidates/` with
+the candidate brief template from `req-track`. **Never** write it in
+`3-Team/People/`.
 
 Also write the full transcript to
-`Knowledge/Candidates/{Name}/transcript-{date}.md` (SKILL.md Steps 2 and 5).
-This is the input `req-assess` waits on to move the candidate to Stage 2. It
-is separate from the extraction above: persist the transcript file verbatim
-and never mine it for entities.
+`2-Confidential/Candidates/{Name}/transcript-{date}.md` (SKILL.md Steps 2 and
+5). This is the input `req-assess` waits on to move the candidate to Stage 2. It
+is separate from the extraction above: persist the transcript file verbatim and
+never mine it for entities.
 
 ## Content signals
 
@@ -76,7 +76,7 @@ One line per session per entity:
 
 ```markdown
 - **2026-02-14** (meeting): Discussed hiring pipeline. 11 internal
-  candidates, plan to shortlist to 6-7. [[People/Sarah Chen]] managing
+  candidates, plan to shortlist to 6-7. [[3-Team/People/Sarah Chen]] managing
   the team.
 ```
 
@@ -87,8 +87,9 @@ assessment, strengths and concerns, and any interview scores or decisions.
 
 ## Linking rules
 
-Use absolute paths everywhere: `[[People/Name]]`, `[[Organizations/Name]]`,
-`[[Projects/Name]]`, `[[Priorities/Priority Name]]`.
+Use absolute paths everywhere: `[[3-Team/People/Name]]`,
+`[[3-Team/Organizations/Name]]`, `[[3-Team/Projects/Name]]`,
+`[[3-Team/Priorities/Priority Name]]`.
 
 When meeting content references an existing Priority, follow the linking
 rules in `extract-entities` Step 7c. Update the progress and add the backlinks.

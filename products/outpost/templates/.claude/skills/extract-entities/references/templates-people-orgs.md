@@ -1,16 +1,28 @@
 # People and Organization Templates
 
+Every template opens with the YAML frontmatter block: the core keys (`type`,
+`created`, `updated`) plus the type's conditional keys from `registry.yaml`.
+A key lifted into frontmatter (`aliases` here) leaves the body; unmatched
+bold keys stay body prose.
+
 ## People
 
 ```markdown
+---
+type: person
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+aliases:
+  - "{name variant}"
+---
+
 # {Full Name}
 
 ## Info
 **Role:** {role or inferred role with qualifier}
-**Organization:** [[Organizations/{organization}]]
-**Reports to:** [[People/{{Person}}]]
+**Organization:** [[3-Team/Organizations/{organization}]]
+**Reports to:** [[3-Team/People/{{Person}}]]
 **Email:** {email}
-**Aliases:** {comma-separated variants}
 **First met:** {YYYY-MM-DD}
 **Last seen:** {YYYY-MM-DD}
 
@@ -18,12 +30,12 @@
 {2-3 sentences: who they are, why you know them, what you're working on}
 
 ## Connected to
-- [[Organizations/{Org}]] — works at
-- [[People/{Person}]] — {relationship}
-- [[Projects/{Project}]] — {role}
+- [[3-Team/Organizations/{Org}]] — works at
+- [[3-Team/People/{Person}]] — {relationship}
+- [[3-Team/Projects/{Project}]] — {role}
 
 ## Activity
-- **{YYYY-MM-DD}** ({meeting|email|voice memo}): {Summary with [[Folder/Name]] links}
+- **{YYYY-MM-DD}** ({meeting|email|voice memo}): {Summary with [[3-Team/Folder/Name]] links}
 
 ## Key facts
 {substantive facts only — leave empty if none}
@@ -35,6 +47,14 @@
 ## Organizations
 
 ```markdown
+---
+type: organization
+created: {YYYY-MM-DD}
+updated: {YYYY-MM-DD}
+aliases:
+  - "{name variant}"
+---
+
 # {Organization Name}
 
 ## Info
@@ -42,7 +62,6 @@
 **Industry:** {industry}
 **Relationship:** {customer|prospect|partner|vendor}
 **Domain:** {primary email domain}
-**Aliases:** {comma-separated}
 **First met:** {YYYY-MM-DD}
 **Last seen:** {YYYY-MM-DD}
 
@@ -50,13 +69,13 @@
 {2-3 sentences}
 
 ## People
-- [[People/{Person}]] — {role}
+- [[3-Team/People/{Person}]] — {role}
 
 ## Contacts
 {for transactional contacts who don't get their own notes}
 
 ## Projects
-- [[Projects/{Project}]] — {relationship}
+- [[3-Team/Projects/{Project}]] — {relationship}
 
 ## Activity
 - **{YYYY-MM-DD}** ({type}): {Summary}

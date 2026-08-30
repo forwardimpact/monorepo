@@ -86,7 +86,7 @@ decision.
 
 **Exception — interview sessions:** page through the full transcript (not just
 enough to disambiguate) and persist it verbatim to
-`Knowledge/Candidates/{Name}/transcript-{date}.md`. This doesn't relax the
+`2-Confidential/Candidates/{Name}/transcript-{date}.md`. This doesn't relax the
 no-entity-extraction rule above — the persisted file is a `req-assess` input,
 not a source `anarlog-process` itself mines.
 

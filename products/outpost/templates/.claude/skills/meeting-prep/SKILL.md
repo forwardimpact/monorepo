@@ -5,6 +5,9 @@ description: Prepare for meetings. Gather context from the knowledge base and ca
 
 # Meeting Prep
 
+Write tier: none (the output is personal `Briefings/`)
+Frontmatter: none
+
 Help the user prepare for meetings. Gather context from the knowledge base and
 calendar. Create personalized briefing documents with attendee history, open
 items, and suggested talking points.
@@ -22,14 +25,16 @@ meetings.
 ## Inputs
 
 - `~/.cache/fit/outpost/apple_calendar/*.json` — calendar events
-- `Knowledge/People/*.md` — attendee context
-- `Knowledge/Organizations/*.md` — company context
-- `Knowledge/Projects/*.md` — project context
-- `Knowledge/Priorities/*.md` — active priorities and strategic context to
+- `3-Team/People/*.md` — attendee context
+- `3-Team/Organizations/*.md` — company context
+- `3-Team/Projects/*.md` — project context
+- `3-Team/Priorities/*.md` — active priorities and strategic context to
   frame the brief
-- `Knowledge/Candidates/*/brief.md` — candidate context (for interview meetings)
-- `Knowledge/Roles/*.md` — role/requisition context (for interview meetings).
-  Check the `**Status:**` field to distinguish active from historical reqs
+- `2-Confidential/Candidates/*/brief.md` — candidate context (for interview
+  meetings)
+- `2-Confidential/Roles/*.md` — role/requisition context (for interview
+  meetings). Check the `**Status:**` field to distinguish active from historical
+  reqs
 
 ## Outputs
 
@@ -45,8 +50,8 @@ knowledge base.**
 When the user asks to prep for a meeting:
 
 1. **STOP** — Do not create a generic brief
-2. **SEARCH** — Look up each attendee: `rg -l "Attendee Name" Knowledge/`
-3. **READ** — Read their notes: `cat "Knowledge/People/Attendee Name.md"`
+2. **SEARCH** — Look up each attendee: `rg -l "Attendee Name" [0-9]-*/`
+3. **READ** — Read their notes: `cat "3-Team/People/Attendee Name.md"`
 4. **UNDERSTAND** — Extract role, organization, history, open items
 5. **THEN BRIEF** — Create the meeting brief with this context
 
@@ -93,16 +98,16 @@ Extract: summary, start/end time, attendees (names and emails), description.
 For each attendee:
 
 ```bash
-rg -l "attendee_name" Knowledge/People/
-rg -l "attendee_email" Knowledge/People/
-cat "Knowledge/People/Attendee Name.md"
-cat "Knowledge/Organizations/Their Company.md"
-rg -l "attendee_name" Knowledge/Projects/
+rg -l "attendee_name" 3-Team/People/
+rg -l "attendee_email" 3-Team/People/
+cat "3-Team/People/Attendee Name.md"
+cat "3-Team/Organizations/Their Company.md"
+rg -l "attendee_name" 3-Team/Projects/
 ```
 
 Extract: role/title, company, key facts, previous interactions, open items.
 
-Also check `Knowledge/Priorities/` for context relevant to the meeting topic.
+Also check `3-Team/Priorities/` for context relevant to the meeting topic.
 For example, if the meeting is about hiring, surface the relevant hiring
 Priority's status and progress.
 
@@ -143,11 +148,11 @@ Suggested Talking Points
 
 When you prepare for interview meetings (title contains "Interview",
 "Screening", "Decomposition", "Panel", or a candidate name from
-`Knowledge/Candidates/`):
+`2-Confidential/Candidates/`):
 
-1. **Read the candidate brief:** `Knowledge/Candidates/{Name}/brief.md`
+1. **Read the candidate brief:** `2-Confidential/Candidates/{Name}/brief.md`
 2. **Read the Role file:** Look up the `Req` field and read the corresponding
-   `Knowledge/Roles/*.md` file. Check the `**Status:**` field for context.
+   `2-Confidential/Roles/*.md` file. Check the `**Status:**` field for context.
 3. **Include in the briefing:**
    - Candidate's current status, skills, and screening recommendation
    - Role context: hiring manager, domain lead, remaining positions
