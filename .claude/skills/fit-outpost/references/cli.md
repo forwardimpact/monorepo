@@ -8,8 +8,17 @@ npx fit-outpost daemon                  # Run continuously (poll every 60s)
 npx fit-outpost wake <agent>            # Wake a specific agent immediately
 npx fit-outpost stop                    # Gracefully stop daemon and all running agents
 npx fit-outpost status                  # Show agent status and last decisions
-npx fit-outpost validate                # Validate agent definitions exist
+npx fit-outpost validate [path]         # Validate agent definitions and knowledge bases
 ```
+
+`validate` with a path runs the knowledge checks on that one KB root: tier
+ranks, link direction, resolution, and format, literal path strings, legacy
+layouts, and frontmatter and tags. Without a path, it checks the agent
+definitions and then every configured knowledge base. A
+`validation-baseline.json` file at the KB root downgrades known findings to
+warnings. New findings exit non-zero. `--json` emits the findings as one
+JSON array. A share recipient can validate a received subset of tiers the
+same way.
 
 ### Knowledge Base Management
 

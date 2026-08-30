@@ -41,16 +41,16 @@ Before you generate a briefing, search the knowledge graph for each attendee.
 This step turns a generic calendar entry into useful preparation:
 
 ```sh
-rg "Sarah Chen" ~/.local/share/fit/outpost/Team/Knowledge/
+rg "Sarah Chen" ~/.local/share/fit/outpost/Team/3-Team/
 ```
 
 ```text
 People/Sarah Chen.md:3:Engineering Manager at Acme Corp
 People/Sarah Chen.md:8:Last seen: standup 2026-05-02
 People/Sarah Chen.md:15:- 2026-04-28: Raised concern about auth migration timeline
-Projects/Auth Migration.md:12:Lead: [[Sarah Chen]]
+Projects/Auth Migration.md:12:Lead: [[3-Team/People/Sarah Chen]]
 Projects/Auth Migration.md:18:Status: blocked on identity provider contract
-Topics/Platform Reliability.md:5:Raised by [[Sarah Chen]] in Q1 review
+Topics/Platform Reliability.md:5:Raised by [[3-Team/People/Sarah Chen]] in Q1 review
 ```
 
 The results span people, projects, and topics. The librarian agent links
@@ -60,7 +60,7 @@ calendar. One search shows the full picture.
 Read the person note for the full picture:
 
 ```sh
-cat ~/.local/share/fit/outpost/Team/Knowledge/People/Sarah\ Chen.md
+cat ~/.local/share/fit/outpost/Team/3-Team/People/Sarah\ Chen.md
 ```
 
 The note contains the person's role and focus areas, a reverse-chronological
@@ -137,7 +137,8 @@ Open Items
 - Review staffing plan she shared 2026-04-15
 
 Suggested Talking Points
-- Identity provider contract status -- [[Auth Migration]] is blocked on this
+- Identity provider contract status -- [[3-Team/Projects/Auth Migration]] is
+  blocked on this
 - Staffing plan feedback -- Sarah asked 2026-04-15, still pending
 ```
 
@@ -146,7 +147,7 @@ project status, and interaction history. The talking points are specific to
 this meeting and these attendees.
 
 For interview meetings, the briefing also surfaces candidate briefs from
-`Knowledge/Candidates/` and pipeline status from `Knowledge/Roles/`.
+`2-Confidential/Candidates/` and pipeline status from `2-Confidential/Roles/`.
 
 ## Verify
 
@@ -154,7 +155,7 @@ You reach the outcome of this guide when:
 
 - You can query your calendar with `--today` or `--upcoming 2h` and see
   meetings with attendee names.
-- A search of the knowledge graph with `rg "name" Knowledge/` returns
+- A search of the knowledge graph with `rg "name" 3-Team/` returns
   cross-referenced context about the people you meet.
 - `npx fit-outpost wake concierge` produces a briefing for an upcoming meeting.
   The briefing draws on knowledge graph data instead of generic placeholders.
@@ -165,7 +166,7 @@ You reach the outcome of this guide when:
 If attendee context is thin, your knowledge graph may need more time to
 accumulate data. Run `npx fit-outpost status` to check that the postman and
 librarian agents run. Also check that email sync produces notes under
-`Knowledge/People/`.
+`3-Team/People/`.
 
 ## What's next
 

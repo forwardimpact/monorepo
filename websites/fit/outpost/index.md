@@ -91,6 +91,50 @@ opt into the [`brief+draft` posture](#choosing-your-posture).
 Outpost auto-discovers skills from the knowledge base. You can add your own or
 pull updates with `npx fit-outpost update`.
 
+### One vault, tiered for its audiences
+
+The knowledge base root is an Obsidian vault. Numbered tier directories at
+the root hold the knowledge graph. Each tier is one unit of sharing. A lower
+tier number means a narrower audience. A fresh install ships five tiers:
+
+| Tier | Directory         | Who reads it                                                          |
+| ---- | ----------------- | --------------------------------------------------------------------- |
+| 0    | `0-Draft/`        | You only. Never shared. Drafts, agent reports, and owner-only notes.  |
+| 1    | `1-Management/`   | You and fellow senior managers.                                        |
+| 2    | `2-Confidential/` | Managers with people or hiring duties. Recruitment records live here.  |
+| 3    | `3-Team/`         | The whole team. People, projects, and topics live here.                |
+| 4    | `4-Public/`       | Anyone, inside or outside the team.                                    |
+
+Every other root entry is personal and never shared. Personal entries
+include the instruction files, `Briefings/`, and `registry.yaml`. A personal
+folder never starts with one digit and a dash. You can rename a tier, add
+one, or remove one.
+
+Agents place each note in the widest tier that excludes everyone who must
+not read it. A note links only to its own tier or to a wider tier. Links in
+shared tiers are tier-prefixed, for example `[[3-Team/People/Sarah Chen]]`.
+The rule keeps every share complete. A recipient's links always resolve
+inside the tiers they received.
+
+Sharing is cumulative. A member who receives tier 2 also receives tiers 3
+and 4. Shares travel over any folder-syncing mount, such as OneDrive or Git.
+A shared tier directory is often a symlink into a separately synced folder.
+The tier rank comes from the symlink's own name at the vault root. Keep the
+vault root outside every cloud-synced folder. Tier 0 then never leaves your
+machine.
+
+Validate any vault or received share:
+
+```sh
+npx fit-outpost validate ~/.local/share/fit/outpost/Team
+```
+
+The validator checks tier ranks, link direction, link resolution, link
+format, literal path strings, legacy layouts, and note frontmatter and tags.
+A `validation-baseline.json` file at the vault root downgrades known
+findings to warnings. New findings exit with a non-zero code. Add `--json`
+for machine-readable findings.
+
 ### Prerequisites
 
 Outpost spawns `claude` as a subprocess. It does not load your shell profile.
@@ -118,8 +162,8 @@ enterprise-CA note above covers a different topic.
 **On-device storage.** All content that Outpost handles lands on your
 device:
 
-- The knowledge base at the path you pass to `npx fit-outpost init`. It
-  contains the `drafts/` directory, where Outpost writes drafted emails.
+- The knowledge base at the path you pass to `npx fit-outpost init`. Outpost
+  writes drafted emails into its `0-Draft/` tier.
 - Outpost's cache directory (`~/.cache/fit/outpost/`), which holds all synced
   source content and each agent's per-wake output.
 - Apple Mail's local store, which Outpost reads from.
@@ -206,7 +250,7 @@ After the scheduler runs, these commands drive the team day to day:
 | `fit-outpost wake <agent>`    | Wake one agent now and do not wait for its schedule     |
 | `fit-outpost posture [mode]`  | Show or set the adoption posture (`brief`, `brief+draft`) |
 | `fit-outpost update`          | Pull the latest instructions, agents, and skills into a KB |
-| `fit-outpost validate`        | Confirm every configured agent has a definition         |
+| `fit-outpost validate`        | Validate agent definitions and knowledge bases           |
 | `fit-outpost stop`            | Gracefully stop the daemon and any active agents         |
 
 ### macOS Privacy and Security
