@@ -14,7 +14,8 @@ Declaration grammar, used by every profile and skill in parts 04 and 05:
 
 ## Step 1: Agent profiles
 
-- Modified: `products/outpost/templates/.claude/agents/{postman,concierge,librarian,recruiter,head-hunter,chief-of-staff}.md`
+- Modified:
+  `products/outpost/templates/.claude/agents/{postman,concierge,librarian,recruiter,head-hunter,chief-of-staff}.md`
 
 | Profile | Read | Write |
 | ------- | ---- | ----- |
@@ -73,10 +74,22 @@ the added declarations where a file sits at its length cap).
 The graph-building skill carries the link format, the frontmatter
 emission, and the entity routing everyone else points at.
 
-- Modified: `products/outpost/templates/.claude/skills/extract-entities/references/links.md` — the tier-prefixed vault-absolute wiki-link format (`[[3-Team/People/Sarah Chen]]`), the bare-basename ban in shared tiers, the entity-subdirectory relative exemption, and the one-way overlay link rule with the `canonical` property.
-- Modified: `.../references/TEMPLATES.md` and `templates-*.md` — every entity template opens with the YAML frontmatter block (core keys plus the type's conditional keys from `registry.yaml`); a lifted `**Key:**` Info line leaves the body; unmatched bold keys stay prose; the targeted-edit rule gains one clause: an edit that updates the inline Last-seen line also stamps `updated`.
-- Modified: `.../references/recruitment.md` — recruitment entities route to `2-Confidential`; a recruitment fact about a `3-Team` person lands in the person's `2-Confidential` overlay, never the canonical note.
-- Modified: `.../references/resolution.md`, `content.md`, `sources.md`, `conditions.md` — path updates only.
+- Modified:
+  `products/outpost/templates/.claude/skills/extract-entities/references/links.md`
+  — the tier-prefixed vault-absolute wiki-link format
+  (`[[3-Team/People/Sarah Chen]]`), the bare-basename ban in shared tiers, the
+  entity-subdirectory relative exemption, and the one-way overlay link rule with
+  the `canonical` property.
+- Modified: `.../references/TEMPLATES.md` and `templates-*.md` — every entity
+  template opens with the YAML frontmatter block (core keys plus the type's
+  conditional keys from `registry.yaml`); a lifted `**Key:**` Info line leaves
+  the body; unmatched bold keys stay prose; the targeted-edit rule gains one
+  clause: an edit that updates the inline Last-seen line also stamps `updated`.
+- Modified: `.../references/recruitment.md` — recruitment entities route to
+  `2-Confidential`; a recruitment fact about a `3-Team` person lands in the
+  person's `2-Confidential` overlay, never the canonical note.
+- Modified: `.../references/resolution.md`, `content.md`, `sources.md`,
+  `conditions.md` — path updates only.
 
 Verification: the part-07 fixture notes generated from these templates
 pass the validator's frontmatter and link checks.
