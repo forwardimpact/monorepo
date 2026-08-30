@@ -1,9 +1,15 @@
 import { describe, test, after } from "node:test";
 import assert from "node:assert/strict";
 import fsp from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { validateKnowledgeBase } from "../src/kb-validator.js";
+import {
+  KB_RUNTIME,
+  removeVaults,
+  trackVault,
+  writeVaultFile as write,
+} from "./helpers.js";
 
 // Criterion 11: the migration playbook converges. This test encodes the
 // deterministic operations of templates/MIGRATION.md as the mechanical
@@ -11,23 +17,13 @@ import { validateKnowledgeBase } from "../src/kb-validator.js";
 // tier map for Gate 1, the routing list for Gate 2, the baseline for
 // Gate 3; Gate 4 is out of test scope). When the playbook text changes,
 // this test is the parity check that must change with it.
-const roots = [];
-after(async () => {
-  for (const root of roots)
-    await fsp.rm(root, { recursive: true, force: true });
-});
+after(removeVaults);
 
-const runtime = { fs: fsp };
-
-async function write(root, rel, content) {
-  await fsp.mkdir(dirname(join(root, rel)), { recursive: true });
-  await fsp.writeFile(join(root, rel), content);
-}
+const runtime = KB_RUNTIME;
 
 /** Build the legacy fixture vault with the spec's seeded violations. */
 async function buildLegacyVault() {
-  const root = await fsp.mkdtemp(join(tmpdir(), "kb-migration-"));
-  roots.push(root);
+  const root = trackVault(await fsp.mkdtemp(join(tmpdir(), "kb-migration-")));
   // A mixed-audience person note: team facts plus a recruitment backlink,
   // legacy inline **Key:** metadata, and no frontmatter.
   await write(
@@ -104,14 +100,14 @@ async function migrate(root) {
     await fsp.mkdir(join(root, tier), { recursive: true });
   }
   for (const [from, to] of Object.entries(TIER_MAP)) {
-    await fsp.mkdir(dirname(join(root, to)), { recursive: true });
     await fsp.rename(join(root, from), join(root, to));
   }
   await fsp.rmdir(join(root, "Knowledge"));
   // The draft-status ledgers are agent state and leave the graph (the real
   // playbook moves them to ~/.cache/fit/outpost/drafts/).
-  const cache = await fsp.mkdtemp(join(tmpdir(), "kb-migration-cache-"));
-  roots.push(cache);
+  const cache = trackVault(
+    await fsp.mkdtemp(join(tmpdir(), "kb-migration-cache-")),
+  );
   for (const ledger of ["handled", "ignored"]) {
     await fsp.rename(join(root, "Drafts", ledger), join(cache, ledger));
   }

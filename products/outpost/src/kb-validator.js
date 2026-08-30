@@ -49,7 +49,8 @@ import { parse as parseYaml } from "yaml";
 const TIER_RE = /^[0-9]-/;
 const NEAR_MISS_RE = /^[0-9]{2,3}-/;
 const PERSONAL_DIGITS_RE = /^[0-9]{4,}-/;
-const LEGACY_ROOTS = ["Knowledge", "Drafts"];
+/** The legacy layout markers; kb-manager keys the MIGRATION.md install on them. */
+export const LEGACY_ROOTS = ["Knowledge", "Drafts"];
 const LEGACY_ENTITIES = [
   "People",
   "Organizations",
@@ -74,6 +75,10 @@ const STATUS_TYPES = ["candidate", "prospect"];
 const WIKI_LINK_RE = /!?\[\[([^[\]]+)\]\]/g;
 const MD_LINK_RE = /!?\[[^\]]*\]\(([^)]+)\)/g;
 const URL_SCHEME_RE = /^[a-z][a-z0-9+.-]*:/i;
+// Deliberately narrower than "any #token": the tag taxonomy is a closed,
+// namespaced `topic/` vocabulary, and the field study found most bare-hash
+// tokens are noise (hex colors, ticket ids, UUID fragments). Only a
+// namespaced token counts as an inline tag.
 const INLINE_TAG_RE = /(?:^|[\s(])#([A-Za-z][\w-]*(?:\/[\w-]+)+)/g;
 
 /** @param {string} raw - A wiki-link inner text. @returns {string} The bare target. */
@@ -126,15 +131,17 @@ function baselineKey(f) {
 /**
  * Pass 1: read the root and collect tiers, near misses, and personal names.
  * @param {Ctx} ctx
- * @returns {Promise<string[]>} The sorted root entry names.
+ * @returns {Promise<string[]>} The sorted root directory names.
  */
 async function collectTiers(ctx) {
   const rootNames = (
     await ctx.fs.readdir(ctx.kbRoot, { withFileTypes: true })
   ).map((d) => d.name);
   rootNames.sort();
+  const rootDirs = [];
   for (const name of rootNames) {
     const stat = await ctx.fs.stat(join(ctx.kbRoot, name)).catch(() => null);
+    if (stat?.isDirectory()) rootDirs.push(name);
     if (!stat?.isDirectory() || PERSONAL_DIGITS_RE.test(name)) {
       ctx.personalNames.push(name);
     } else if (NEAR_MISS_RE.test(name)) {
@@ -154,21 +161,22 @@ async function collectTiers(ctx) {
       ctx.personalNames.push(name);
     }
   }
-  return rootNames;
+  return rootDirs;
 }
 
 /**
  * Pass 2: flag the legacy layout. `Knowledge/` and `Drafts/` fail at any
  * time; the historical entity directories fail only at a tier-less root;
- * a root with no tiers and no legacy markers fails no-tiers.
+ * a root with no tiers and no legacy markers fails no-tiers. Only
+ * directories count — a root file with a legacy name is personal.
  * @param {Ctx} ctx
- * @param {string[]} rootNames
+ * @param {string[]} rootDirs
  * @returns {void}
  */
-function detectLegacy(ctx, rootNames) {
-  const markers = LEGACY_ROOTS.filter((name) => rootNames.includes(name));
+function detectLegacy(ctx, rootDirs) {
+  const markers = LEGACY_ROOTS.filter((name) => rootDirs.includes(name));
   if (ctx.tiers.length === 0) {
-    markers.push(...LEGACY_ENTITIES.filter((n) => rootNames.includes(n)));
+    markers.push(...LEGACY_ENTITIES.filter((n) => rootDirs.includes(n)));
   }
   for (const name of markers) {
     ctx.findings.push({
@@ -201,7 +209,10 @@ async function walkTier(ctx, relDir, tier) {
   names.sort();
   for (const name of names) {
     const rel = `${relDir}/${name}`;
-    const stat = await ctx.fs.stat(join(ctx.kbRoot, rel));
+    // A broken symlink inside a synced tier is a vault defect, not a reason
+    // to abort the whole run; skip it like the root-level pass does.
+    const stat = await ctx.fs.stat(join(ctx.kbRoot, rel)).catch(() => null);
+    if (stat === null) continue;
     if (stat.isDirectory()) {
       await walkTier(ctx, rel, tier);
       continue;
@@ -276,7 +287,10 @@ function scanPathStrings(ctx, note, stripped, lineNo) {
   for (const name of names) {
     const at = stripped.indexOf(`${name}/`);
     if (at === -1) continue;
-    if (at > 0 && /[\w[]/.test(stripped[at - 1])) continue;
+    // A word, bracket, or slash before the match means the name sits inside
+    // a longer token (a wiki link, or a deeper path like `3-Team/Projects/`
+    // when a personal folder shares the entity name).
+    if (at > 0 && /[\w[/]/.test(stripped[at - 1])) continue;
     const tier = ctx.tierByName.get(name);
     if (tier && tier.rank >= note.tier.rank) continue;
     ctx.findings.push({
@@ -308,7 +322,13 @@ function extractBody(ctx, note, lines, bodyStart, shared, links) {
       fenced = !fenced;
       continue;
     }
-    if (fenced) continue;
+    if (fenced) {
+      // Fenced blocks carry no links or tags, but embedded commands are
+      // exactly where literal narrower-tier paths leak, so the mechanical
+      // path-string detection still runs inside them.
+      if (shared) scanPathStrings(ctx, note, lines[i], i + 1);
+      continue;
+    }
     const stripped = extractLineLinks(lines[i], i + 1, links);
     if (!shared) continue;
     scanPathStrings(ctx, note, stripped, i + 1);
@@ -383,8 +403,11 @@ async function resolveWikiTarget(ctx, target) {
   const hit = ctx.index.get(target) ?? ctx.index.get(`${target}.md`);
   if (hit) return { rel: hit.rel };
   if (await isPersonalTarget(ctx, target)) return { personal: true };
+  // The basename map keys notes without their `.md`, so an explicit
+  // `[[Note.md]]` strips before the fallback; assets keep their extension.
   const base = target.split("/").pop();
-  const matches = ctx.byBase.get(base) ?? ctx.byBase.get(`${base}.md`) ?? [];
+  const key = base.endsWith(".md") ? base.slice(0, -3) : base;
+  const matches = ctx.byBase.get(key) ?? [];
   if (matches.length === 1) return { rel: matches[0] };
   return matches.length > 1 ? { ambiguous: true } : null;
 }
@@ -440,9 +463,27 @@ async function resolveLink(ctx, note, link, base) {
 }
 
 /**
- * Apply the format contract to a resolved wiki link in a shared tier: the
- * link must be tier-prefixed and vault-absolute. Relative links inside one
- * entity subdirectory are exempt; frontmatter links are not.
+ * Whether two paths sit inside one entity subdirectory
+ * (`<tier>/<entity>/...`), the folder-atomic unit that moves whole.
+ * @param {string} a @param {string} b
+ * @returns {boolean}
+ */
+function sameEntityDir(a, b) {
+  const [aTier, aEntity, ...aRest] = a.split("/");
+  const [bTier, bEntity, ...bRest] = b.split("/");
+  return (
+    aRest.length > 0 &&
+    bRest.length > 0 &&
+    aTier === bTier &&
+    aEntity === bEntity
+  );
+}
+
+/**
+ * Apply the format contract in a shared tier: a wiki link must be
+ * tier-prefixed and vault-absolute, with no exemption. Only a relative
+ * markdown link whose source and resolved target share one entity
+ * subdirectory is exempt, so folder-atomic units move as single units.
  * @param {Ctx} ctx
  * @param {{rel: string, tier: object}} note
  * @param {object} link
@@ -452,14 +493,9 @@ async function resolveLink(ctx, note, link, base) {
  * @returns {void}
  */
 function checkLinkFormat(ctx, note, link, resolvedRel, targetTier, base) {
-  if (note.tier.rank < 1 || link.relative) return;
-  if (link.target.split("/")[0] === targetTier.name) return;
-  const sameEntityDir =
-    !link.fromFrontmatter &&
-    resolvedRel.split("/").length > 2 &&
-    note.rel.split("/").slice(0, 2).join("/") ===
-      resolvedRel.split("/").slice(0, 2).join("/");
-  if (sameEntityDir) return;
+  if (note.tier.rank < 1) return;
+  if (!link.relative && link.target.split("/")[0] === targetTier.name) return;
+  if (link.relative && sameEntityDir(note.rel, resolvedRel)) return;
   ctx.findings.push({
     kind: "bare-basename",
     ...base,
@@ -570,7 +606,8 @@ function checkVocabulary(ctx, note, fm) {
       );
     }
   }
-  for (const tag of Array.isArray(fm.tags) ? fm.tags : []) {
+  const tags = Array.isArray(fm.tags) ? fm.tags : [fm.tags].filter(Boolean);
+  for (const tag of tags) {
     const row = ctx.tagRows.get(tag);
     if (!row || note.tier.rank > row.bound) {
       fmFinding(ctx, "frontmatter-vocabulary", note.rel, "tags", String(tag));
@@ -579,14 +616,16 @@ function checkVocabulary(ctx, note, fm) {
 }
 
 /**
- * Pass 8 for one shared-tier note.
+ * Pass 8 for one shared-tier note. A note whose block failed to parse never
+ * reaches this pass — the parse failure is already one finding, and the
+ * missing-key findings would only restate the same root cause.
  * @param {Ctx} ctx
  * @param {{rel: string, tier: object}} note
- * @param {object|null|undefined} fm - Parsed frontmatter; nullish means none.
+ * @param {object|undefined} fm - Parsed frontmatter; undefined means none.
  * @returns {void}
  */
 function checkNoteFrontmatter(ctx, note, fm) {
-  if (fm === null || fm === undefined) {
+  if (fm === undefined) {
     for (const key of CORE_KEYS) {
       fmFinding(ctx, "frontmatter-missing", note.rel, key, null);
     }
@@ -654,9 +693,9 @@ export async function validateKnowledgeBase(kbRoot, runtime) {
       ),
   };
 
-  const rootNames = await collectTiers(ctx);
+  const rootDirs = await collectTiers(ctx);
   ctx.tierByName = new Map(ctx.tiers.map((t) => [t.name, t]));
-  detectLegacy(ctx, rootNames);
+  detectLegacy(ctx, rootDirs);
   for (const tier of ctx.tiers) await walkTier(ctx, tier.name, tier);
   await loadRegistry(ctx);
   await checkNotes(ctx);
@@ -672,9 +711,13 @@ export async function validateKnowledgeBase(kbRoot, runtime) {
  */
 async function loadRegistry(ctx) {
   if (!(await ctx.exists(REGISTRY_FILE))) return;
-  ctx.registry = parseYaml(
+  const parsed = parseYaml(
     await ctx.fs.readFile(join(ctx.kbRoot, REGISTRY_FILE), "utf8"),
   );
+  // An empty or comment-only registry parses to null; treat it as absent so
+  // the registry-dependent checks skip instead of crashing.
+  if (!parsed) return;
+  ctx.registry = parsed;
   ctx.typeVocab = new Set([
     ...Object.values(ctx.registry.types ?? {}),
     ...Object.values(ctx.registry.reserved ?? {}),
@@ -702,7 +745,7 @@ async function checkNotes(ctx) {
     frontmatterByRel.set(note.rel, fm);
     extractBody(ctx, note, lines, bodyStart, shared, links);
     for (const link of links) await checkLink(ctx, note, link);
-    if (shared) checkNoteFrontmatter(ctx, note, fm);
+    if (shared && fm !== null) checkNoteFrontmatter(ctx, note, fm);
   }
   checkOverlays(ctx, notes, frontmatterByRel);
 }

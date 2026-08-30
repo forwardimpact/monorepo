@@ -166,10 +166,10 @@ again.
 
 ### Add a New KB Skill
 
-1. Create `template/.claude/skills/{skill-name}/SKILL.md` with YAML front
+1. Create `templates/.claude/skills/{skill-name}/SKILL.md` with YAML front
    matter (`name`, `description`, optional `compatibility`)
 2. Write the skill workflow (trigger, prerequisites, inputs, outputs, steps)
-3. Update `template/CLAUDE.md` to list the new skill
+3. Update `templates/CLAUDE.md` to list the new skill
 4. If scheduled, add a default task entry to `config/scheduler.json`
 5. Run `npx fit-outpost update` in each existing KB to push the new skill
 

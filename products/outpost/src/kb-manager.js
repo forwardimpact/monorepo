@@ -6,6 +6,8 @@ import { join, dirname, resolve, basename } from "node:path";
 import { homedir } from "node:os";
 import { createLogger } from "@forwardimpact/libtelemetry";
 
+import { LEGACY_ROOTS } from "./kb-validator.js";
+
 /** Manage the knowledge base lifecycle: init, update, and settings merge. */
 export class KBManager {
   #fs;
@@ -306,9 +308,10 @@ export class KBManager {
    * @returns {Promise<void>}
    */
   async #installMigrationGuide(tpl, dest) {
-    const legacy =
-      (await this.#exists(join(dest, "Knowledge"))) ||
-      (await this.#exists(join(dest, "Drafts")));
+    let legacy = false;
+    for (const marker of LEGACY_ROOTS) {
+      if (await this.#exists(join(dest, marker))) legacy = true;
+    }
     if (!legacy) return;
     await this.#fs.copyFile(
       join(tpl, "MIGRATION.md"),

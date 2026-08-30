@@ -1,41 +1,25 @@
 import { describe, test, after } from "node:test";
 import assert from "node:assert/strict";
 import fsp from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { validateKnowledgeBase } from "../src/kb-validator.js";
+import {
+  KB_FM as FM,
+  KB_RUNTIME,
+  KB_TIERS as TIERS,
+  makeVault as vault,
+  removeVaults,
+  trackVault,
+} from "./helpers.js";
 
-// The validator's resolution and traversal passes need real filesystem
-// semantics (symlinks, stat-through-link), so these tests build small
-// vaults under mkdtemp instead of using the mock fs.
-const roots = [];
-after(async () => {
-  for (const root of roots)
-    await fsp.rm(root, { recursive: true, force: true });
-});
+// Structure families: rank grammar, legacy detection, links, suffix
+// subsets, symlinked tiers, and the baseline. The frontmatter and
+// property-link families live in kb-validator-frontmatter.test.js
+// (per .claude/rules/test-file-shape.md).
+after(removeVaults);
 
-/**
- * Build a temp vault. A `null` value creates a directory; a string writes a
- * file (parents auto-created).
- * @param {Record<string, string|null>} spec
- * @returns {Promise<string>} The vault root.
- */
-async function vault(spec) {
-  const root = await fsp.mkdtemp(join(tmpdir(), "kb-validator-"));
-  roots.push(root);
-  for (const [rel, content] of Object.entries(spec)) {
-    if (content === null) {
-      await fsp.mkdir(join(root, rel), { recursive: true });
-      continue;
-    }
-    await fsp.mkdir(dirname(join(root, rel)), { recursive: true });
-    await fsp.writeFile(join(root, rel), content);
-  }
-  return root;
-}
-
-const runtime = { fs: fsp };
-const validate = (root) => validateKnowledgeBase(root, runtime);
+const validate = (root) => validateKnowledgeBase(root, KB_RUNTIME);
 const ofKind = (result, ...kinds) =>
   result.findings.filter((f) => kinds.includes(f.kind));
 const LINK_KINDS = [
@@ -45,14 +29,6 @@ const LINK_KINDS = [
   "bare-basename",
   "path-string",
 ];
-const TIERS = {
-  "0-Draft/": null,
-  "1-Management/": null,
-  "2-Confidential/": null,
-  "3-Team/": null,
-  "4-Public/": null,
-};
-const FM = "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n---\n";
 
 describe("rank grammar", () => {
   test("five conforming tiers pass", async () => {
@@ -98,6 +74,13 @@ describe("legacy detection", () => {
   test("Drafts/ fails at any time", async () => {
     const result = await validate(await vault({ ...TIERS, "Drafts/": null }));
     assert.equal(ofKind(result, "legacy-layout")[0].path, "Drafts");
+  });
+
+  test("a root file with a legacy name passes", async () => {
+    const result = await validate(
+      await vault({ ...TIERS, Knowledge: "a note about knowledge" }),
+    );
+    assert.deepEqual(result.findings, []);
   });
 
   test("an entity directory at a tier-less root fails", async () => {
@@ -180,6 +163,31 @@ describe("link legality and format", () => {
     assert.equal(finding.targetTier, "3-Team");
   });
 
+  test("a bare link between siblings in one entity folder still fails", async () => {
+    // The entity-subdirectory exemption covers relative markdown links
+    // only; a wiki link in a shared tier is tier-prefixed with no
+    // exemption, because overlays duplicate basenames across tiers.
+    const result = await validate(
+      await vault({
+        ...TIERS,
+        "3-Team/People/Sarah Chen.md": "note",
+        "3-Team/People/Bob Roe.md": "Ask [[Sarah Chen]].",
+      }),
+    );
+    assert.equal(ofKind(result, "bare-basename")[0].link, "Sarah Chen");
+  });
+
+  test("an explicit-extension wiki link resolves in tier 0", async () => {
+    const result = await validate(
+      await vault({
+        ...TIERS,
+        "3-Team/People/Sarah Chen.md": "note",
+        "0-Draft/idea.md": "Ask [[Sarah Chen.md]].",
+      }),
+    );
+    assert.deepEqual(ofKind(result, ...LINK_KINDS), []);
+  });
+
   test("a bare link in a tier-0 note passes", async () => {
     const result = await validate(
       await vault({
@@ -202,6 +210,20 @@ describe("link legality and format", () => {
     assert.deepEqual(ofKind(result, ...LINK_KINDS), []);
   });
 
+  test("a cross-entity relative link fails bare-basename", async () => {
+    const result = await validate(
+      await vault({
+        ...TIERS,
+        "3-Team/Projects/Apollo.md": "note",
+        "3-Team/People/Sarah Chen.md": "See [Apollo](../Projects/Apollo.md).",
+      }),
+    );
+    assert.equal(
+      ofKind(result, "bare-basename")[0].link,
+      "../Projects/Apollo.md",
+    );
+  });
+
   test("a path string naming a narrower tier fails path-string", async () => {
     const result = await validate(
       await vault({
@@ -214,15 +236,40 @@ describe("link legality and format", () => {
     assert.equal(finding.file, "3-Team/note.md");
     assert.match(finding.link, /^1-Management\//);
   });
+
+  test("a path string inside a fenced command block still fails", async () => {
+    const result = await validate(
+      await vault({
+        ...TIERS,
+        "1-Management/Plans/reorg.md": "note",
+        "3-Team/note.md":
+          "Run:\n\n```bash\nrg reorg 1-Management/Plans/\n```\n",
+      }),
+    );
+    assert.equal(ofKind(result, "path-string").length, 1);
+  });
+
+  test("a legal deeper path sharing a personal folder name passes", async () => {
+    // A personal root folder may share an entity-directory name; the
+    // `3-Team/Projects/...` literal must not read as the personal
+    // `Projects/` surface.
+    const result = await validate(
+      await vault({
+        ...TIERS,
+        "Projects/": null,
+        "3-Team/Projects/Apollo.md": "note",
+        "3-Team/note.md": "The plan sits in 3-Team/Projects/Apollo.md today.",
+      }),
+    );
+    assert.deepEqual(ofKind(result, "path-string"), []);
+  });
 });
 
 describe("suffix subset", () => {
   test("a conforming suffix vault passes", async () => {
     const result = await validate(
       await vault({
-        "3-Team/People/Sarah Chen.md":
-          "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n---\n" +
-          "See [[4-Public/Posts/Welcome]].",
+        "3-Team/People/Sarah Chen.md": FM + "See [[4-Public/Posts/Welcome]].",
         "4-Public/Posts/Welcome.md":
           "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n" +
           "verified: true\n---\nHello.",
@@ -235,8 +282,7 @@ describe("suffix subset", () => {
 
 describe("symlinked tiers", () => {
   test("a tier symlinked to a rank-less sync target validates identically", async () => {
-    const target = await fsp.mkdtemp(join(tmpdir(), "kb-sync-target-"));
-    roots.push(target);
+    const target = trackVault(await fsp.mkdtemp(join(tmpdir(), "kb-sync-")));
     await fsp.mkdir(join(target, "People"), { recursive: true });
     await fsp.writeFile(join(target, "People", "Sarah Chen.md"), "note");
     const root = await vault({
@@ -247,6 +293,16 @@ describe("symlinked tiers", () => {
     const result = await validate(root);
     assert.equal(result.tierCount, 2);
     assert.deepEqual(ofKind(result, ...LINK_KINDS), []);
+  });
+
+  test("a broken symlink inside a tier is skipped, not fatal", async () => {
+    const root = await vault({ ...TIERS, "3-Team/a.md": "plain note" });
+    await fsp.symlink(
+      join(root, "missing.md"),
+      join(root, "3-Team", "dead.md"),
+    );
+    const result = await validate(root);
+    assert.equal(result.tierCount, 5);
   });
 });
 
@@ -281,150 +337,5 @@ describe("baseline", () => {
     const [finding] = ofKind(result, "unresolved");
     assert.equal(finding.line, 5);
     assert.equal(finding.baselined, true);
-  });
-});
-
-const REGISTRY = [
-  "types:",
-  "  People: person",
-  "  Candidates: candidate",
-  "reserved:",
-  "  CHANGELOG.md: changelog",
-  "status:",
-  "  candidate: [new, screening]",
-  "tags:",
-  "  - { tag: topic/hiring, bound: 2, intent: recruitment }",
-  "",
-].join("\n");
-
-describe("frontmatter conformance", () => {
-  test("a note without a block fails frontmatter-missing per core key", async () => {
-    const result = await validate(
-      await vault({ ...TIERS, "3-Team/People/A.md": "no block" }),
-    );
-    const properties = ofKind(result, "frontmatter-missing").map(
-      (f) => f.property,
-    );
-    assert.deepEqual(properties, ["type", "created", "updated"]);
-  });
-
-  test("bad dates, nested keys, and inline tags fail frontmatter-invalid", async () => {
-    const result = await validate(
-      await vault({
-        ...TIERS,
-        "3-Team/People/A.md":
-          "---\ntype: note\ncreated: Jan 1\nupdated: 2026-01-02\n" +
-          "nested:\n  a: 1\n---\nBody with #topic/hiring inline.",
-      }),
-    );
-    const findings = ofKind(result, "frontmatter-invalid");
-    assert.deepEqual(findings.map((f) => [f.property, f.value]).sort(), [
-      ["created", "Jan 1"],
-      ["nested", "[object Object]"],
-      ["tags", "#topic/hiring"],
-    ]);
-  });
-
-  test("vocabulary findings need the registry", async () => {
-    const spec = {
-      ...TIERS,
-      "3-Team/People/A.md":
-        "---\ntype: alien\ncreated: 2026-01-01\nupdated: 2026-01-02\n" +
-        "tags:\n  - topic/hiring\n---\n",
-    };
-    const bare = await validate(await vault(spec));
-    assert.deepEqual(ofKind(bare, "frontmatter-vocabulary"), []);
-
-    const result = await validate(
-      await vault({ ...spec, "registry.yaml": REGISTRY }),
-    );
-    const values = ofKind(result, "frontmatter-vocabulary").map((f) => f.value);
-    // `alien` is outside the type vocabulary, and topic/hiring's tier bound
-    // (2) excludes a 3-Team note.
-    assert.deepEqual(values.sort(), ["alien", "topic/hiring"]);
-  });
-
-  test("conditional triggers fail frontmatter-missing when unmet", async () => {
-    const result = await validate(
-      await vault({
-        ...TIERS,
-        "registry.yaml": REGISTRY,
-        "2-Confidential/Candidates/Jane Doe.md":
-          "---\ntype: candidate\ncreated: 2026-01-01\nupdated: 2026-01-02\n---\n",
-      }),
-    );
-    const properties = ofKind(result, "frontmatter-missing").map(
-      (f) => f.property,
-    );
-    assert.deepEqual(properties.sort(), ["aliases", "status"]);
-  });
-
-  test("an undeclared overlay fails overlay-undeclared", async () => {
-    const result = await validate(
-      await vault({
-        ...TIERS,
-        "3-Team/People/Jane Doe.md": FM,
-        "2-Confidential/People/Jane Doe.md": FM,
-      }),
-    );
-    const [finding] = ofKind(result, "overlay-undeclared");
-    assert.equal(finding.file, "2-Confidential/People/Jane Doe.md");
-    assert.equal(finding.property, "canonical");
-  });
-
-  test("a conforming person note passes with the registry", async () => {
-    const result = await validate(
-      await vault({
-        ...TIERS,
-        "registry.yaml": REGISTRY,
-        "3-Team/People/Sarah Chen.md":
-          "---\ntype: person\ncreated: 2026-01-01\nupdated: 2026-01-02\n" +
-          'aliases:\n  - "Chen, Sarah"\n---\nA colleague.',
-      }),
-    );
-    assert.deepEqual(result.findings, []);
-  });
-});
-
-describe("property links", () => {
-  test("a narrower property link reports narrower-link", async () => {
-    const result = await validate(
-      await vault({
-        ...TIERS,
-        "2-Confidential/Candidates/Jane Doe.md": FM,
-        "3-Team/People/Sarah Chen.md":
-          "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n" +
-          'related: "[[2-Confidential/Candidates/Jane Doe]]"\n---\n',
-      }),
-    );
-    const [finding] = ofKind(result, "narrower-link");
-    assert.equal(finding.link, "2-Confidential/Candidates/Jane Doe");
-  });
-
-  test("a bare property link reports bare-basename even inside an entity folder", async () => {
-    const result = await validate(
-      await vault({
-        ...TIERS,
-        "2-Confidential/Candidates/Jane Doe/CV.pdf": "binary",
-        "2-Confidential/Candidates/Jane Doe/brief.md":
-          "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n" +
-          'attachment: "[[CV.pdf]]"\n---\n',
-      }),
-    );
-    assert.equal(ofKind(result, "bare-basename")[0].link, "CV.pdf");
-  });
-
-  test("an unquoted property link reports frontmatter-invalid", async () => {
-    const result = await validate(
-      await vault({
-        ...TIERS,
-        "3-Team/People/Jane Doe.md": FM,
-        "3-Team/People/Sarah Chen.md":
-          "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n" +
-          "related: [[3-Team/People/Jane Doe]]\n---\n",
-      }),
-    );
-    const [finding] = ofKind(result, "frontmatter-invalid");
-    assert.equal(finding.property, "related");
   });
 });

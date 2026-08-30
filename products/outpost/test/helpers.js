@@ -1,8 +1,13 @@
 /**
- * This module holds the shared AgentRunner test setup. It is lifted here so
+ * This module holds the shared AgentRunner test setup, lifted here so
  * `agent-runner.test.js` and its `agent-runner-privilege.test.js` sibling
- * reuse one set of mock collaborators (per .claude/rules/test-file-shape.md).
+ * reuse one set of mock collaborators, plus the shared KB vault fixtures the
+ * kb-validator and kb-migration suites build on the real filesystem
+ * (per .claude/rules/test-file-shape.md).
  */
+import fsp from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, dirname } from "node:path";
 import {
   spy,
   createTestRuntime,
@@ -82,4 +87,67 @@ export function makeRuntime(env, files = {}) {
   });
   fs.dirs.add(TEST_KB);
   return createTestRuntime({ fs, proc: createMockProcess({ env }) });
+}
+
+// --- Shared KB vault fixtures --------------------------------------------
+// The kb-validator and kb-migration suites build small vaults under mkdtemp
+// because resolution and symlink traversal need real fs semantics.
+
+export const KB_RUNTIME = { fs: fsp };
+export const KB_TIERS = {
+  "0-Draft/": null,
+  "1-Management/": null,
+  "2-Confidential/": null,
+  "3-Team/": null,
+  "4-Public/": null,
+};
+export const KB_FM =
+  "---\ntype: note\ncreated: 2026-01-01\nupdated: 2026-01-02\n---\n";
+
+const vaultRoots = [];
+
+/**
+ * Write one file inside a vault, creating parents.
+ * @param {string} root @param {string} rel @param {string} content
+ * @returns {Promise<void>}
+ */
+export async function writeVaultFile(root, rel, content) {
+  await fsp.mkdir(dirname(join(root, rel)), { recursive: true });
+  await fsp.writeFile(join(root, rel), content);
+}
+
+/**
+ * Build a temp vault. A `null` value creates a directory; a string writes a
+ * file (parents auto-created). `removeVaults` cleans every root up.
+ * @param {Record<string, string|null>} spec
+ * @returns {Promise<string>} The vault root.
+ */
+export async function makeVault(spec) {
+  const root = await fsp.mkdtemp(join(tmpdir(), "kb-vault-"));
+  vaultRoots.push(root);
+  for (const [rel, content] of Object.entries(spec)) {
+    if (content === null) {
+      await fsp.mkdir(join(root, rel), { recursive: true });
+    } else {
+      await writeVaultFile(root, rel, content);
+    }
+  }
+  return root;
+}
+
+/**
+ * Track an externally created temp directory for cleanup.
+ * @param {string} root
+ * @returns {string} The same root.
+ */
+export function trackVault(root) {
+  vaultRoots.push(root);
+  return root;
+}
+
+/** Remove every vault this run created. @returns {Promise<void>} */
+export async function removeVaults() {
+  for (const root of vaultRoots) {
+    await fsp.rm(root, { recursive: true, force: true });
+  }
 }

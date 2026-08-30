@@ -397,10 +397,10 @@ export async function run(runtime, version) {
   }
 
   /**
-   * Run the knowledge checks over each KB root. With `--json` the merged
-   * findings array is the only stdout, so tooling can parse it.
-   * @param {string[]} roots - Absolute KB root paths.
-   * @returns {Promise<number>} 1 when any finding is not baselined, else 0.
+   * Render one KB root's findings as report lines through the logger.
+   * @param {string} root - Absolute KB root path.
+   * @param {import("./kb-validator.js").Finding[]} findings
+   * @returns {void}
    */
   function reportFindings(root, findings) {
     logger.info(`\nKnowledge base: ${root}`);
@@ -408,12 +408,26 @@ export async function run(runtime, version) {
     if (findings.length === 0) logger.info("  OK");
   }
 
+  /**
+   * Run the knowledge checks over each KB root. With `--json` the merged
+   * findings array is the only stdout, so tooling can parse it. A root the
+   * validator cannot read (a mistyped path, a malformed registry or
+   * baseline) fails with one clean error line instead of a stack trace.
+   * @param {string[]} roots - Absolute KB root paths.
+   * @returns {Promise<number>} 1 when any finding is not baselined, else 0.
+   */
   async function runKnowledgeChecks(roots) {
     const all = [];
     for (const root of roots) {
-      const { findings } = await validateKnowledgeBase(root, runtime);
-      if (!values.json) reportFindings(root, findings);
-      all.push(...findings);
+      let result;
+      try {
+        result = await validateKnowledgeBase(root, runtime);
+      } catch (err) {
+        cli.error(`validate failed for ${root}: ${err.message}`);
+        return 1;
+      }
+      if (!values.json) reportFindings(root, result.findings);
+      all.push(...result.findings);
     }
     if (values.json) proc.stdout.write(`${JSON.stringify(all)}\n`);
     return all.some((f) => !f.baselined) ? 1 : 0;

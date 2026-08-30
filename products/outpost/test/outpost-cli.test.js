@@ -200,4 +200,13 @@ describe("fit-outpost validate with a KB path", () => {
     assert.strictEqual(await exit, 0);
     assert.match(proc.stderr.chunks.join(""), /No agents configured/);
   });
+
+  test("a malformed registry fails with one clean error line", async () => {
+    const { exit, proc } = runValidate(["validate", "/vault"], {
+      "/vault/3-Team/a.md": FM + "Note.",
+      "/vault/registry.yaml": "types: [unclosed",
+    });
+    assert.strictEqual(await exit, 1);
+    assert.match(proc.stderr.chunks.join(""), /validate failed for \/vault/);
+  });
 });

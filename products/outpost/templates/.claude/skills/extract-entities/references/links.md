@@ -14,8 +14,8 @@ skill that writes wiki links follows the format and overlay rules here.
   per-candidate folder, an asset collection) stay relative, so the folder
   moves as one unit.
 - Tier-0 notes may use bare basenames.
-- Link only to the same tier or a wider one. `rank(target) >= rank(source)`
-  always holds; the validator flags the rest.
+- Link legality (own tier or wider only) lives in CLAUDE.md § Placement and
+  Links; the validator flags the rest.
 
 ## Overlay links
 
@@ -37,9 +37,9 @@ After you write, verify each link goes both ways **within the same tier**.
 | Project → Organization | Organization → Project (in Projects section) |
 | Project → Priority     | Priority → Project (in Projects section)     |
 | Condition → Project    | Project → Condition (in Related section)     |
-| Condition → Role       | Role → Condition (notes or status field)     |
+| Role → Condition       | nothing — the pair crosses tiers             |
 
-The Condition → Role pair crosses tiers (rank 3 → rank 2), so only the
+The Role → Condition pair crosses tiers (rank 2 → rank 3), so only the
 narrower side links: the Role file may name the Condition, and the Condition
 never names the Role.
 

@@ -33,10 +33,10 @@ instruction `CHANGELOG.md` is a personal surface this skill never touches.
 
 ## Inputs
 
-- **The edits made in the current session** — the source of truth. The KB lives
-  on a synced filesystem and has no version control, so no commit history exists
-  to diff. Recall every note that you created, edited, removed, or renamed in a
-  shared tier during this conversation.
+- **The edits made in the current session** — the source of truth. A tier may
+  sync over a mount with no version control, so never rely on commit history.
+  Recall every note that you created, edited, removed, or renamed in a shared
+  tier during this conversation.
 - `~/.cache/fit/outpost/state/identity.md` — the current user's identity. Use
   its **Name** as the author on each entry. The tiers are shared, so every entry
   must name the team member who made the change. Resolve `~` to `$HOME` before

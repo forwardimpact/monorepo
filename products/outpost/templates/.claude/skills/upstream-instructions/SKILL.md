@@ -35,7 +35,7 @@ Track changes to this installation's **instructions**. Record them in one root
 - `.claude/skills/*/SKILL.md` and reference files — skills.
 - `CHANGELOG.md` (root) — the existing changelog, for what's already recorded.
 - The changes you made in the current working session — the source of truth for
-  what changed. The KB lives on a synced filesystem. It has no version control.
+  what changed. The KB may sync without version control; do not rely on it.
 
 ## Outputs
 
@@ -67,8 +67,8 @@ head -20 CHANGELOG.md 2>/dev/null   # newest date already recorded, if any
 
 ### 2. Identify changed instructions
 
-Knowledge bases live on a synced filesystem. They do not live in Git, so there
-is no commit history to diff. Identify what changed from the work you did **this
+A knowledge base may sync over a mount with no version control, so never rely
+on commit history. Identify what changed from the work you did **this
 session**. Recall every edit, addition, removal, and rename you made to
 `CLAUDE.md`, `.claude/agents/`, and `.claude/skills/` during the current
 conversation. List them per surface.
