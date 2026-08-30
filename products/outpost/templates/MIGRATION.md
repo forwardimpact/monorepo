@@ -1,9 +1,4 @@
-# Outpost Knowledge Base Migration (draft)
-
-**Status:** shipped. The template at
-`products/outpost/templates/MIGRATION.md` is the file of record; this draft
-stays as the spec-stage source. The wording addresses the owner of one
-Outpost knowledge base. Every example is generic.
+# Outpost Knowledge Base Migration
 
 This playbook moves a legacy knowledge base (`Knowledge/` wrapper plus a
 personal `Drafts/` directory) into root-level tiers. Agents execute the
@@ -147,8 +142,8 @@ Agents execute the manifest:
     links, quoted and vault-absolute (the syntax matrix already names
     front-matter links);
   - write the canonical key order, so every stamped block is byte-stable;
-- move the draft-status ID ledgers to the cache state directory and verify
-  the entry counts match.
+- move the draft-status ID ledgers (`Drafts/handled`, `Drafts/ignored`) to
+  `~/.cache/fit/outpost/drafts/` and verify the entry counts match.
 
 The stamping pass touches nearly every file. That churn is one more reason
 every phase runs in the version-controlled copy, with the scheduler
@@ -222,7 +217,8 @@ resurface grandfathered entries. Iterate until findings minus baseline
 is empty.
 
 **Gate 3 — you approve the baseline.** You approve the frontmatter entries
-together with the link entries. Commit the baseline beside the vault, so
+together with the link entries. Commit it as `validation-baseline.json` at
+the vault root, so
 every post-migration regression is a new finding, not noise.
 
 A green validator proves structure, not content. Before the first share,
@@ -283,7 +279,7 @@ validates; the scheduler runs against tier paths only.
 ## Appendix A — the migration workflow prompt
 
 Paste the prompt below into a Claude Code session at the root of the
-**working copy** (never the live share). Fill the three placeholders. The
+**working copy** (never the live share). Fill the two placeholders. The
 `ultracode` keyword opts the session into multi-agent orchestration; the
 migration then runs as staged workflows with the gates above as stopping
 points.
@@ -294,8 +290,8 @@ ultracode
 Migrate this Outpost knowledge base from the legacy layout (Knowledge/
 wrapper plus Drafts/) to root-level tiers, following MIGRATION.md in this
 directory. The tier manifest is at <path-to-approved-manifest>. My review
-decisions go in <path-to-review-queue-file>. The property registry is at
-<path-to-registry>.
+decisions go in <path-to-review-queue-file>. The property registry is
+`registry.yaml` at the vault root.
 
 Rules that bind every agent you spawn:
 - Work only inside this directory. Never follow symlinks out of it. Never
@@ -314,9 +310,9 @@ Rules that bind every agent you spawn:
   links, URL-encoded links, binary targets, and literal path strings. The
   stamper and the frontmatter checks must agree the same way, or
   convergence never ends.
-- Stamp frontmatter only from the approved manifest maps and the registry
-  file at <path-to-registry>. Apply the stamping rules from MIGRATION.md
-  § Phase 3 exactly. Never invent a key, a type value, a status value, or
+- Stamp frontmatter only from the approved manifest maps and
+  `registry.yaml`. Apply the stamping rules from MIGRATION.md § Phase 3
+  exactly. Never invent a key, a type value, a status value, or
   a tag. Lifted Info lines leave the body.
 - Folder-atomic units move whole. Never split below folder level.
 

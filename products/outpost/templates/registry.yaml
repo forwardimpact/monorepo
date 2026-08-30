@@ -1,0 +1,25 @@
+# Metadata vocabularies for this knowledge base. Humans edit this file;
+# agents only select from it. See CLAUDE.md § Note Metadata for the rules.
+types: # directory name -> type value
+  People: person
+  Organizations: organization
+  Projects: project
+  Topics: topic
+  Teams: team
+  Candidates: candidate
+  Prospects: prospect
+  Roles: role
+  Priorities: priority
+  Conditions: condition
+  Tasks: task
+  Erasure: erasure
+reserved: # file basenames with a fixed type, in any tier
+  CHANGELOG.md: changelog
+status: # per-type closed vocabularies
+  candidate: [new, screening, interviewing, offer, hired, rejected, withdrawn]
+  prospect: [identified, contacted, responded, converted, closed]
+tags: # closed topic/ taxonomy; bound = the widest tier a tag may reach
+  - { tag: topic/hiring, bound: 2, intent: recruitment pipeline retrieval }
+  - { tag: topic/planning, bound: 3, intent: project and priority retrieval }
+rights:
+  - no-redistribute
