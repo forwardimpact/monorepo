@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/jidoka",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Build quality into agent instructions — the jidoka CLI and CI action stop the line the moment an instruction layer drifts, a jobs block goes stale, or a repository invariant breaks.",
   "keywords": [
     "jidoka",

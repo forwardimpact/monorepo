@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcspan",
-  "version": "0.1.51",
+  "version": "0.1.52",
   "description": "OpenTelemetry span ingestion and storage over gRPC. Collect spans from every product in one place.",
   "keywords": [
     "opentelemetry",
