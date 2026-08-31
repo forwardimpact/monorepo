@@ -120,7 +120,7 @@ jobs:
       LIBHARNESS_WORK_TRACKER: filesystem
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
-      - uses: forwardimpact/gemba-bootstrap@3e7b7c78737414a54143882375bc543e4b4f2c36 # v1.0.19
+      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
         with:
           # gemba-benchmark runs the benchmark binary straight off PATH. The
           # action has no bunx/npx fallback. It needs a gemba-bootstrap pin whose

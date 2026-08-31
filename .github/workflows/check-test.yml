@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: forwardimpact/gemba-bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
+      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
         with:
           clis: fit-terrain
       # libwiki's push path secret-scans with gitleaks (fail-closed). The
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: forwardimpact/gemba-bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
+      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
         with:
           clis: fit-terrain
       # libwiki's push path secret-scans with gitleaks (fail-closed). The
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: forwardimpact/gemba-bootstrap@a5d9098c2a1e68277f02fad39583a34ee003d9c9 # v1.0.18
+      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         id: playwright-cache
         with:
