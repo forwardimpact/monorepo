@@ -126,7 +126,7 @@ runs:
     # fit-terrain now also provides the generic substrate bring-up, so this
     # step does NOT install fit-map. A consumer's FI substrate command runs it
     # with bunx as its own documented exception.
-    - uses: forwardimpact/gemba-bootstrap@3e7b7c78737414a54143882375bc543e4b4f2c36 # v1.0.19
+    - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
       with:
         token: ${{ steps.ci-app.outputs.token }}
         app-slug: ${{ inputs.app-slug }}

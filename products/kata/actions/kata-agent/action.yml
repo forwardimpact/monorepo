@@ -162,7 +162,7 @@ runs:
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout. Leave it
     # empty to skip wiki sync. forwardimpact/gemba-wiki below pushes the wiki back
     # after the agent run.
-    - uses: forwardimpact/gemba-bootstrap@3e7b7c78737414a54143882375bc543e4b4f2c36 # v1.0.19
+    - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
         app-slug: ${{ inputs.app-slug }}
