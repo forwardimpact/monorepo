@@ -91,12 +91,12 @@
   --text-hero-size: 4rem;
   --text-hero-weight: 500;
   --text-display-size: 2.75rem;
-  --text-h1-size: 2rem;
-  --text-h2-size: 1.5rem;
-  --text-h3-size: 1.25rem;
-  --text-body-size: 1rem;
-  --text-small-size: 0.875rem;
-  --text-badge-size: 0.75rem;
+  --text-h1-size: 2.25rem;
+  --text-h2-size: 1.625rem;
+  --text-h3-size: 1.375rem;
+  --text-body-size: 1.0625rem;
+  --text-small-size: 0.9375rem;
+  --text-badge-size: 0.8125rem;
 
   /* Transitions */
   --ease-default: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -535,7 +535,7 @@ body:has(main.layout-home) .site-footer {
 .step-card .step-command {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--gray-700);
   background: var(--bg-page);
   border: 1px solid var(--border-strong);
@@ -548,7 +548,7 @@ body:has(main.layout-home) .site-footer {
 .step-card .step-kind {
   margin-left: var(--space-2);
   font-family: var(--font-sans);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -736,7 +736,7 @@ body:has(main.layout-home) .site-footer {
 
 .closing-note code {
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--gray-700);
   background: var(--gray-50);
   padding: 2px 6px;
@@ -1094,6 +1094,8 @@ body:has(main.layout-home) .site-footer {
   :root {
     --text-hero-size: 2.75rem;
     --text-display-size: 2rem;
+    --text-h1-size: 1.75rem;
+    --text-h2-size: 1.375rem;
     --space-24: 64px;
     --space-16: 48px;
   }
