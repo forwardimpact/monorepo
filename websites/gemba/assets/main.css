@@ -516,16 +516,6 @@ body:has(main.layout-home) .site-footer {
   border-top-color: var(--accent-warm-400);
 }
 
-.step-card .step-motif {
-  font-family: var(--font-mono);
-  font-size: var(--text-badge-size);
-  font-weight: 500;
-  color: var(--amber-600);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-2);
-}
-
 .step-card .step-name {
   font-family: var(--font-display);
   font-weight: 500;
@@ -563,59 +553,6 @@ body:has(main.layout-home) .site-footer {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--gray-400);
-}
-
-/* ── The Command Family ────────────────────────────────────────── */
-
-.command-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-6);
-}
-
-.command-card {
-  background: var(--bg-warm);
-  border: 1.5px solid var(--gray-200);
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  transition:
-    border-color var(--duration-normal) var(--ease-default),
-    transform var(--duration-normal) var(--ease-default),
-    box-shadow var(--duration-normal) var(--ease-default);
-}
-
-.command-card:hover {
-  border-color: var(--accent-warm-200);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(26, 22, 17, 0.05);
-}
-
-.gemba-section-warm .command-card,
-.gemba-section-amber .command-card {
-  background: var(--bg-page);
-}
-
-.command-card .command-name {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  font-size: var(--text-body-size);
-  color: var(--gray-900);
-  margin-bottom: var(--space-1);
-}
-
-.command-card .command-step {
-  font-family: var(--font-mono);
-  font-size: var(--text-badge-size);
-  color: var(--amber-600);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-3);
-}
-
-.command-card .command-desc {
-  font-size: var(--text-small-size);
-  line-height: 1.55;
-  color: var(--gray-500);
 }
 
 /* ── The Two Surfaces ──────────────────────────────────────────── */
@@ -1167,10 +1104,6 @@ body:has(main.layout-home) .site-footer {
 
   .step-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .command-grid {
-    grid-template-columns: 1fr;
   }
 
   .surface-grid {
