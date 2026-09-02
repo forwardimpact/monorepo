@@ -47,12 +47,12 @@ Steps 2–9 and the PR body:
 | Claim to confirm | Where in bionova-apps |
 | --- | --- |
 | Web stack is hand-rolled Tailwind components, not shadcn/ui | `products/polaris/site/` dependencies; commit `5efe9de` |
-| Next 15.5, Node 22, Deno 2.x (lockfile v5), eslint 10 | site `package.json`, root `engines`/`.tool-versions`, `services/polaris-functions/deno.lock`, root eslint dep; bionova specs 30/40/50 |
+| Next 15.5, Node 22, Deno 2.x (lockfile v5), eslint 10 | site `package.json`, root `engines`/`.tool-versions`, the repo-root `deno.lock` (v5), root eslint dep; bionova specs 30/40/50 |
 | `criteria` is one row per trial with `inclusion`/`exclusion` JSONB | seed migration for `criteria`; `eligibility-check` reader |
-| `smoke.sh` asserts row counts, not prose text (SC1 gap stands) | `scripts/smoke.sh` |
+| `smoke.sh` SC1 prose-table checks assert row counts only; its SC4 checks already assert prose text | `scripts/smoke.sh` |
 | Edge-function security posture: request body caps, generic error responses | `services/polaris-functions/` source |
 | `storage-init` oneshot provisions the `trial-documents` bucket | `docker-compose.yml` |
-| Structural counts still hold: 12 compose services, 4 edge functions, 8 handlers, 9 CLI commands, 9 pages + 6 `/api/*` routes | `docker-compose.yml`, `services/polaris-functions/`, `products/polaris/handlers/src/`, `products/polaris/cli/src/definition.js`, `products/polaris/site/src/app/` |
+| Structural counts still hold: 12 long-running compose services plus the `storage-init` oneshot, 4 edge functions, 8 handlers, 9 CLI commands, 9 pages, 6 `/api/*` JSON routes plus the health route | `docker-compose.yml`, `services/polaris-functions/`, `products/polaris/handlers/src/`, `products/polaris/cli/src/definition.js`, `products/polaris/site/src/app/` |
 | The REPL output convention the shipped REPL implements | `products/polaris/cli/src/repl.js` |
 | First-week fix commits exist for the constraints table | `git log` for `eb29652`, `d7d908d`, `eb1114a` |
 | The Polaris CLI pins `@forwardimpact/libutil` from npm | `products/polaris/cli/package.json` |
@@ -77,7 +77,7 @@ Sections, in order:
 | Capability inventory | Both tables from spec 2320 § Capability inventory, row for row (Supabase patterns; FIT capabilities incl. `libutil`). |
 | Version policy | The three load-bearing minimums: `fit-terrain` >= 0.1.41, Bun >= 1.2.9, Deno 2.x. A rebuild resolves current versions and records them in `PROVENANCE.md` and the PR body. |
 | Scope | Included/excluded, condensed. Keeps: synthetic data only, no DSL edits in bionova-apps, self-hosted only. |
-| Success criteria | SC1–SC7 as one criterion per line. SC1 and SC4 assert non-null prose text, not row counts alone. Then the five visual outcomes V1–V5 from spec 2320 § Visual outcome, marked **not yet met by the shipped repository**. |
+| Success criteria | SC1–SC7 as one criterion per line. SC1 and SC4 assert non-null prose text, not row counts alone; SC1's prose-text assertion is marked **not yet met by the shipped repository** (SC4's already ships, per Step 1). Then the five visual outcomes V1–V5 from spec 2320 § Visual outcome, carrying the same marker. |
 
 Removed: the Prerequisites section, the data-seeding walkthrough, and every
 stale exact pin.
@@ -197,8 +197,8 @@ migration intent from current plan-a-05.md step 2. Content as intent:
   to `trials`, score check, RLS enabled), the RLS policy migration (staff
   writes on `trials`/`criteria`, anon insert + staff read on
   `interest_signals`, the self-contained `auth.jwt()` helper, the anon
-  INSERT grant, and the service-role GRANT on every product table that the
-  edge-function PostgREST writes depend on), the `condition_embeddings`
+  INSERT grant, and the unrestricted GRANT to the `service_role` role on
+  every product table), the `condition_embeddings`
   unique index (distinct 14-digit version), and the `match_conditions` RPC
   (`vector(384)`, threshold and count parameters). Terrain owns every
   `public_read` policy; the hand-written file adds none.
@@ -255,9 +255,15 @@ trigger; `cron.job` lists the schedule; handler tests pass offline with an
 injected fetch; both surfaces return identical data; the handlers unit
 imports `libtemplate`'s entry symbol.
 
-Step verify: `wc -l` <= 180; all four function names, all eight handler
-names, and `libtemplate` present
-(`rg -c ... references/bionova-apps/plan-a-03.md`).
+Step verify: `wc -l` <= 180; every required name present:
+
+```sh
+for t in embed-seed eligibility-check notify-updates sync-listings \
+  searchTrials showTrial showCondition checkEligibility listSites \
+  listStories showAbout manageTrial libtemplate InvocationContext; do
+  rg -qF "$t" references/bionova-apps/plan-a-03.md || echo "MISSING: $t"
+done                                      # prints nothing
+```
 
 ## Step 8 — Rewrite `plan-a-04.md` (budget 220)
 
@@ -312,10 +318,11 @@ Polaris for the interview pointers. Content as intent:
 - SC smoke: one table row per SC1–SC7 with its assertion. SC1 asserts each
   prose table carries non-null, non-empty text (not row counts alone). SC4
   asserts `faq`, `consentSummary`, and `explainer` are non-empty through
-  the `/api/*` surface. Mark the prose-text assertions **not yet met by
-  the shipped repository** (its `smoke.sh` asserts row counts today, per
-  Step 1). SC7 has a non-destructive render half (`SEED.sha256`) and a DB
-  half gated behind `SMOKE_DESTRUCTIVE=1`; cite C6.
+  the `/api/*` surface. Mark SC1's prose-text assertion **not yet met by
+  the shipped repository** (its `smoke.sh` SC1 checks assert row counts
+  today, per Step 1; the SC4 prose-text checks already ship). SC7 has a
+  non-destructive render half (`SEED.sha256`) and a DB half gated behind
+  `SMOKE_DESTRUCTIVE=1`; cite C6.
 - Fixture procedure against the real schema: `build-fixture.sh` reads the
   trial's single `criteria` row; age from the `inclusion` JSONB range
   midpoint, required conditions from `inclusion.conditions_required`, one
