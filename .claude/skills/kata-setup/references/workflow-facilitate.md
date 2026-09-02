@@ -11,7 +11,7 @@ one-on-one.
 | --------------------- | -------------------------------------------------- |
 | `{{STORYBOARD_CRON}}` | `0 6 * * *` (from `schedules.md`)                  |
 | `{{AGENT_LIST}}`      | selected agents except `improvement-coach`         |
-| `{{MODEL}}`           | `claude-opus-4-8[1m]`                              |
+| `{{MODEL}}`           | `claude-opus-5`                              |
 | `{{WIKI}}`            | `"true"` or `"false"`                              |
 | `{{KATA_AGENT_REF}}`  | resolved per `workflow-shift.md`                   |
 
