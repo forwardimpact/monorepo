@@ -47,8 +47,9 @@ The committed `.github/workflows/kata-interview.yml` workflow and the
 Substrate Contract guide are normative (design § Interviewing Polaris
 carries the three Polaris-specific mappings). The interview loop runs on
 the `fit-terrain substrate` verbs: `init`, `check`, `provision`, `pick`,
-and `issue`. `init` writes the committed substrate-contract migration
-that maps the seed schema onto the contract views.
+and `issue`. `init` scaffolds the committed substrate-contract
+migration; the mapping from the seed schema onto the contract views is
+authored on top of that scaffold.
 
 ## Docs
 

@@ -22,6 +22,7 @@ hand-written files add none of those.
 | `match_conditions` RPC | Similarity search over `condition_embeddings`: takes a `vector(384)` query embedding plus threshold and count parameters, returns condition ids with scores |
 | Notify trigger | The pg_net trigger on `trials.status` change that invokes `notify-updates` (part 03) through Kong, reading the service-role key from the database setting the setup sequence exports |
 | Sync schedule | The pg_cron schedule that invokes `sync-listings` (part 03) on a daily cadence with the same key setting |
+| Substrate contract | Scaffolded by `fit-terrain substrate init` and hand-mapped onto the seed schema (part 05 § Interviews) |
 
 ## Vendor the DSL verbatim
 
@@ -71,9 +72,9 @@ path the `embed-seed` mount expects.
 
 `setup.sh` applies the pipeline in order (C6):
 
-1. Run the seed build.
-2. Export the service-role key into the database setting that the
+1. Export the service-role key into the database setting that the
    notify trigger and the sync schedule read.
+2. Run the seed build.
 3. Push all migrations with `db push --include-all`.
 4. Reload the PostgREST schema cache after the push.
 5. Invoke `embed-seed` through Kong with the service-role key.
@@ -90,8 +91,8 @@ already-seeded database without it (C6).
   exist, and, under the anon role, a `trials` read passes, an
   `interest_signals` INSERT passes, and an `interest_signals` read-back
   returns nothing. Behavioral anon-write-fails and staff-JWT-write
-  assertions are **not yet met by the shipped repository** (the staff
-  write is proven end to end by the SC6 smoke).
+  assertions are **not yet met by the shipped repository** (the SC6
+  smoke writes as `service_role`, which bypasses the staff policy).
 - The script stages at least 15 seed migrations and
   `sha256sum -c SEED.sha256` passes on a re-render.
 - `sha256sum -c SOURCE.sha256` passes, and the same render in the
