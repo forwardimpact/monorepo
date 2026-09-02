@@ -36,10 +36,10 @@ graph LR
 | --- | --- | --- |
 | `libcli` | CLI | Dispatch, `--help`, subcommand routes |
 | `librepl` | CLI | The `repl` subcommand |
-| `libformat` | CLI | Renders templated markdown to ANSI. The web surface renders React directly and does not use it |
+| `libformat` | CLI | Renders templated markdown to ANSI. The web surface renders React directly |
 | `libtemplate` | Handlers | Shared markdown templates through the exported templates-dir |
 | `libui` | Site | `freezeInvocationContext` and web-surface helpers |
-| `libutil` | CLI | Pinned from npm in the Polaris CLI manifest |
+| `libutil` | CLI | Runtime injection: the CLI entry builds its runtime through the `libutil` runtime module. Pinned from npm in the Polaris CLI manifest |
 | `fit-terrain` | Build scripts only | Renders the vendored DSL to seed SQL + embeddings JSONL. No surface imports it |
 
 ## Shared surface and handlers
@@ -78,9 +78,10 @@ Primary keys and FK columns are `text`.
 | `interest_signals` | `id uuid pk`, `trial_id text fk`, `screener_answers jsonb`, `match_score` | hand-written |
 
 The `criteria` JSONB shapes: `inclusion` carries `age_min`, `age_max`,
-`conditions_required`, `ecog_max`, `prior_treatments_allowed`, and
-`custom[]`. `exclusion` carries `conditions_excluded` and its own
-`custom[]`. The `custom[]` strings are the screener-question source.
+`conditions_required`, `ecog_max`, and
+`custom[]`. `exclusion` carries `conditions_excluded`,
+`active_autoimmune`, `prior_immunotherapy`, and its own `custom[]`. The
+`custom[]` strings are the screener-question source.
 
 ## Row-Level Security
 
@@ -138,11 +139,13 @@ component library stays an implementation choice.
 The committed `.github/workflows/kata-interview.yml` in `bionova-apps`
 and the
 [Substrate Contract guide](https://www.forwardimpact.team/docs/libraries/substrate-contract/index.md)
-are normative. Two mappings are Polaris-specific:
+are normative. Three mappings are Polaris-specific:
 
 - The substrate setup command boots Polaris' own compose stack and runs
   `setup.sh`, then the `fit-terrain substrate` contract gate and identity
   provisioning. It does not use the Supabase CLI stack.
+- PostgREST exposes the `substrate` schema in its schema list, so the
+  substrate verbs can reach the contract views through the data API.
 - Patient interviews omit `persona-select-command`. Polaris is
   patient-facing with anonymous access, so the supervisor builds the
   persona from the vendored `story.dsl` and issues no JWT. Staff-facing

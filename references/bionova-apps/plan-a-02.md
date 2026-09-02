@@ -20,6 +20,8 @@ hand-written files add none of those.
 | RLS policies | Staff writes on `trials` and `criteria` (`auth.jwt() ->> 'role' = 'staff'`); anon INSERT plus staff-only SELECT on `interest_signals`; a self-contained `auth.jwt()` helper so the migration applies before GoTrue migrates; the anon INSERT grant (RLS gates rows, not base-table privileges); an unrestricted GRANT to the `service_role` role on every product table |
 | `condition_embeddings` unique index | A unique index on `condition_id`, under a distinct 14-digit version (the push tool keys migrations on the leading digits, so a suffixed duplicate version is skipped silently). The `embed-seed` upsert requires it |
 | `match_conditions` RPC | Similarity search over `condition_embeddings`: takes a `vector(384)` query embedding plus threshold and count parameters, returns condition ids with scores |
+| Notify trigger | The pg_net trigger on `trials.status` change that invokes `notify-updates` (part 03) through Kong, reading the service-role key from the database setting the setup sequence exports |
+| Sync schedule | The pg_cron schedule that invokes `sync-listings` (part 03) on a daily cadence with the same key setting |
 
 ## Vendor the DSL verbatim
 
@@ -54,9 +56,12 @@ stages the SQL under versions that sort before the hand-written
 migrations. The render command shape:
 
 ```sh
-bunx fit-terrain build --story data/synthetic/story.dsl \
+node_modules/.bin/fit-terrain build --story data/synthetic/story.dsl \
   --cache data/synthetic/prose-cache.json --output-root data/synthetic/.build
 ```
+
+The script resolves the pinned local bin, never a live registry fetch,
+so the `SEED.sha256` check always exercises the declared devDependency.
 
 The build is credential-free: it renders from the committed prose cache
 with zero LLM calls. The script also copies the embeddings JSONL to the
@@ -67,9 +72,11 @@ path the `embed-seed` mount expects.
 `setup.sh` applies the pipeline in order (C6):
 
 1. Run the seed build.
-2. Push all migrations with `db push --include-all`.
-3. Reload the PostgREST schema cache after the push.
-4. Invoke `embed-seed` through Kong with the service-role key.
+2. Export the service-role key into the database setting that the
+   notify trigger and the sync schedule read.
+3. Push all migrations with `db push --include-all`.
+4. Reload the PostgREST schema cache after the push.
+5. Invoke `embed-seed` through Kong with the service-role key.
 
 A re-seed takes the destructive reset path: the stable migration
 versions carry mutable content, so a re-render never reaches an
@@ -79,9 +86,12 @@ already-seeded database without it (C6).
 
 - The anon and service-role JWTs verify against `JWT_SECRET`, and a
   staff-role JWT passes the trials write policy.
-- The five pgTAP RLS assertions pass: anon read on `trials` passes; anon
-  write on `trials` fails; staff-JWT write passes; anon INSERT into
-  `interest_signals` passes; anon read-back of `interest_signals` fails.
+- The pgTAP RLS suite passes: RLS is enabled, the hand-written policies
+  exist, and, under the anon role, a `trials` read passes, an
+  `interest_signals` INSERT passes, and an `interest_signals` read-back
+  returns nothing. Behavioral anon-write-fails and staff-JWT-write
+  assertions are **not yet met by the shipped repository** (the staff
+  write is proven end to end by the SC6 smoke).
 - The script stages at least 15 seed migrations and
   `sha256sum -c SEED.sha256` passes on a re-render.
 - `sha256sum -c SOURCE.sha256` passes, and the same render in the

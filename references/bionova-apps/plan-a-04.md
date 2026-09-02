@@ -90,6 +90,8 @@ Apply all six groups of the design § Visual token contract:
 
 - Each library's entry symbol is imported by its consuming unit.
 - An admin upload through Kong lands in the `trial-documents` bucket.
+  The upload surface is **not yet met by the shipped repository**; the
+  bucket provisioning ships in part 01.
 - The five visual outcomes from spec § Visual outcomes, checked on the
   running site. They are **not yet met by the shipped repository**; the
   token layer above is the rebuild step that meets them.

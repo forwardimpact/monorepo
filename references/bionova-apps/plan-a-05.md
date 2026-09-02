@@ -7,8 +7,9 @@ success criteria, and the interview loop. All paths are relative to the
 ## Railway watch-path model
 
 One Railway config per service, with watch paths bound to that service's
-directory, so a push rebuilds only the changed services. The site also
-watches the shared handlers workspace and redeploys when they change.
+directory, so a push rebuilds only the changed services. A handlers
+change also redeploys the site through the deploy workflow's
+changed-path service mapping, because the site bundles the handlers.
 The deploy workflow detects the changed paths on a push to `main`,
 installs the Railway CLI from a pinned npm version (never a `curl | sh`
 flow that resolves "latest"), and runs with a read-only `GITHUB_TOKEN`.
@@ -35,17 +36,19 @@ booted stack:
 `scripts/build-fixture.sh` regenerates the committed matching-patient
 fixture from the live, seeded database. It reads the trial's single
 `criteria` row: age comes from the `inclusion` JSONB range midpoint,
-required conditions from `inclusion.conditions_required`, and one true
-answer per `inclusion.custom[]` string. Commit the regenerated JSON
-whenever the seed changes.
+required conditions from `inclusion.conditions_required`, the ecog
+answer from the inclusion ecog cap (0 when absent), and one true answer
+per `inclusion.custom[]` string. Commit the regenerated JSON whenever
+the seed changes.
 
 ## Interviews
 
 The committed `.github/workflows/kata-interview.yml` workflow and the
 Substrate Contract guide are normative (design § Interviewing Polaris
-carries the two Polaris-specific mappings). The interview loop runs on
+carries the three Polaris-specific mappings). The interview loop runs on
 the `fit-terrain substrate` verbs: `init`, `check`, `provision`, `pick`,
-and `issue`.
+and `issue`. `init` writes the committed substrate-contract migration
+that maps the seed schema onto the contract views.
 
 ## Docs
 

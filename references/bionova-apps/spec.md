@@ -27,7 +27,7 @@ record exists so the artifact can be recreated from it at any time.
 | Persona | Hires the app to... |
 | --- | --- |
 | Patient / Advocate | Find trials for their condition with no dense protocols to read |
-| Clinical Development Staff | Manage trial listings, update criteria, monitor enrollment interest |
+| Clinical Development Staff | Manage trial listings, monitor enrollment interest |
 | Referring Physician | Search on behalf of patients, share trial details |
 
 ## Core capabilities
@@ -43,15 +43,18 @@ record exists so the artifact can be recreated from it at any time.
   tables that `story.dsl` generates.
 - **Express interest** — an anonymous signal with no PII lands in
   `interest_signals`. Staff see aggregate counts per trial.
-- **Manage trials (staff)** — CLI and web admin for listings, criteria,
-  document uploads, and interest review.
+- **Manage trials (staff)** — a staff CLI command updates listings; a
+  web admin view shows the trial with interest aggregates. Staff RLS
+  policies also gate criteria writes. A document-upload surface and a
+  criteria-editing surface are **not yet met by the shipped
+  repository**.
 
 **Technology stack.** A self-hosted Supabase stack on Docker Compose (the
 PG On Rails pattern): PostgreSQL with pgvector, PostgREST as the data API,
 GoTrue for auth, HuggingFace TEI for embeddings, and Deno edge functions.
 The web surface is Next.js App Router with hand-rolled Tailwind
-components. The CLI and handlers consume Forward Impact shared libraries
-from npm. `fit-terrain` renders the seed at build time.
+components. The surfaces and handlers consume Forward Impact shared
+libraries from npm. `fit-terrain` renders the seed at build time.
 
 ## Capability inventory
 

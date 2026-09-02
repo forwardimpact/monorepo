@@ -55,17 +55,19 @@ ports, and probe text follow C1, C2, C3, and C9.
 | `storage` | Supabase storage API over MinIO; direct Postgres connection (C2) | HTTP spider |
 | `storage-init` | Oneshot sidecar: creates the `trial-documents` bucket, then exits | completes successfully |
 | `imgproxy` | Baseline image service | native CLI |
-| `tei` | Embeddings service; port per C1, runtime options and model fetch per C9; 120 s start period | TCP connect |
+| `tei` | Embeddings service; port and platform per C1, runtime options and model fetch per C9; a long probe start period covers slow starts | TCP connect |
 | `polaris-functions` | Deno edge functions | TCP connect |
 | `polaris-site` | Next.js frontend on host port 3001 | TCP connect |
 
-The two product services build with the repo root as context, because
-their Dockerfiles copy the shared handlers workspace.
+The two product services build with the repo root as context: their
+Dockerfiles address sources by repo-root-relative paths, and the site
+Dockerfile copies the shared handlers workspace.
 
 ## Kong routes
 
 `infrastructure/kong/kong.yml` declares five routes. The `key-auth` plus
-`acl` plugins sit on every route and read the `apikey` header.
+`acl` plugins read the `apikey` header on the rest, realtime, and
+functions routes. The auth and storage routes carry CORS only.
 
 | Path | Upstream |
 | --- | --- |
@@ -97,9 +99,9 @@ container start.
 
 `.env.example` commits the template; `.env` is gitignored. Keys:
 `JWT_SECRET`, `POSTGRES_PASSWORD`, `ANON_KEY`, `SERVICE_ROLE_KEY`,
-`REALTIME_SECRET`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`. The anon
-and service-role keys are JWTs signed with `JWT_SECRET` and must stay in
-sync with the copies in the Kong config (C4).
+`REALTIME_SECRET`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`,
+`IMGPROXY_KEY`, `IMGPROXY_SALT`. `ANON_KEY` and `SERVICE_ROLE_KEY`
+follow the auth-coherence rule (C4).
 
 ## Verification
 
