@@ -48,7 +48,7 @@ the canonical form into your target repository:
       <skill-name>/SKILL.md        # one directory per skill
     agents/
       <agent-name>.agent.md        # one file per agent profile
-      x-<name>.md                  # shared files skills and agents cite (flat)
+      x-<name>.md                  # only the shared files this pack cites (flat)
 ```
 
 Two rules are load-bearing. If you get either one wrong, you hit the failure
@@ -117,7 +117,14 @@ family to the same pack.
 Pass `--all` instead to ship every skill under
 `--from`. Use `--all` when the source directory is itself the pack boundary.
 Omit `--with-agents` for a skills-only pack. The shared `x-*.md` references
-still ship, because skills cite them too.
+a skill cites still ship.
+
+`fit-pack` ships a reference only when the pack cites it. It parses the
+markdown links in every staged skill file and, with `--with-agents`, every
+staged profile. It then follows links between references until the set is
+closed. A reference that nothing in the pack links stays out. So a
+skills-only pack carries no agent-only protocol files, and a pack whose
+skills cite nothing ships an empty `.apm/agents/`.
 
 ## Review what `fit-pack` wrote
 
