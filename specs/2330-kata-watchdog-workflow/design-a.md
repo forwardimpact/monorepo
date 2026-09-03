@@ -1,140 +1,153 @@
-# Design 2330-a: Kata Watchdog Workflow
+# Design 2330-a: Repository Activity Watchdog
 
 Spec 2330 adds a deterministic brake on Kata event chains. This design fixes the
-components, the two credentials, the decision order, and the failure semantics.
-The watchdog runs no agent. It reads no file from the repository tree. Its whole
-input is three counts from the GitHub REST API and one variable value.
+components, the credential containment, the decision order, and the failure
+semantics. The watchdog runs no agent. Its whole input is three counts from the
+GitHub REST API and one variable record.
 
 ## Component map
 
 ```mermaid
 graph LR
-    CR["Cron<br/>every 15 min"] --> WF[".github/workflows/<br/>kata-watchdog.yml<br/>thresholds + window"]
-    WF -->|"inputs"| ACT["kata-watchdog<br/>composite action"]
+    CR["schedule */15<br/>+ workflow_dispatch"] --> WF[".github/workflows/watchdog.yml<br/>thresholds · window · environment"]
+    WF -->|"inputs"| ACT[".github/actions/watchdog<br/>count · compare · engage"]
     ACT -->|"GITHUB_TOKEN<br/>read only"| API["GitHub REST<br/>commits · pulls · issues"]
-    ACT -->|"vars context"| KS["KATA_KILLSWITCH"]
-    ACT -->|"watchdog App token<br/>Variables: write"| KS
+    ACT -->|"watchdog App token<br/>Variables read+write"| KS["KATA_KILLSWITCH"]
     KS --> KW["kata-shift · kata-dispatch<br/>kata-storyboard · kata-coaching<br/>kata-interview"]
-    ACT --> SUM["Run summary<br/>counts + verdict"]
+    ACT --> SUM["Run summary<br/>counts · verdict"]
+    ENV["watchdog Environment<br/>default branch only"] -.->|"App secrets"| WF
 ```
 
 The watchdog is the one arrow into `KATA_KILLSWITCH` that no agent can travel.
-The Kata App holds no Variables permission, so no agent session can clear the
-switch with the token it runs under.
+The Kata App holds no Variables permission, and the watchdog App secrets sit in
+an Environment that only a default-branch job can read, so neither an agent's
+own token nor a workflow an agent pushes to a branch reaches the switch.
 
 ## Components
 
 | Component | Where | Role |
 | --------- | ----- | ---- |
-| Watchdog workflow | `.github/workflows/kata-watchdog.yml` | Holds the schedule, the three thresholds, and the window as literal numbers. Grants the run's `GITHUB_TOKEN` read access to contents, issues, and pull requests, and nothing else. Passes `vars.KATA_KILLSWITCH` through. It is a sequence of `uses:` steps with no inline logic. |
-| Watchdog action | `products/kata/actions/kata-watchdog/`, published to `forwardimpact/kata-watchdog` by the subtree split | Counts, compares, mints the write token, engages, and writes the run summary. One reviewed home for the logic that every installation runs. |
-| Watchdog credential | A second GitHub App. Secrets `KATA_WATCHDOG_APP_ID` and `KATA_WATCHDOG_APP_PRIVATE_KEY` | Repository Metadata read and Variables write. No other permission. Separate from the Kata App by design. |
+| Watchdog workflow | `.github/workflows/watchdog.yml` | Holds the `schedule` and `workflow_dispatch` triggers, the three thresholds, the 60-minute window, `concurrency: watchdog` with `cancel-in-progress: false`, `timeout-minutes: 5`, and `environment: watchdog`. Grants `GITHUB_TOKEN` read access to contents, issues, and pull requests, and nothing else. It is a sequence of `uses:` steps with no inline logic. |
+| Watchdog action | `.github/actions/watchdog/` (`action.yml` plus `README.md`) | Reads the variable, counts, compares, engages, and writes the run summary. Inputs: `app-id`, `app-private-key`, `window-minutes`, `max-commits`, `max-pull-requests`, `max-issues`, `dry-run`. It mints the write token itself, as `kata-agent` does. |
+| Watchdog credential | A second GitHub App. Secrets `WATCHDOG_APP_ID` and `WATCHDOG_APP_PRIVATE_KEY` in the `watchdog` Actions Environment, restricted to the default branch | Repository Metadata read and Variables read and write. No other permission. The README documents the boundary, as `.github/actions/macos-signing/README.md` does for the signing material. |
 | Killswitch variable | `KATA_KILLSWITCH` repository Actions variable | Unchanged contract. Truthy is anything other than empty, `0`, `false`, `no`, or `off`. The watchdog is one more writer. |
-| Setup template | New `kata-setup` reference beside the other workflow templates | Generates the workflow for a new installation, with the second credential named. |
-| Orientation and gates | `KATA.md` § Killswitch, `kata-setup` SKILL.md checklist, `kata-release-merge` trust rule, `enumeration-drift` topic `kata-workflows`, Kata getting-started page | Record the watchdog, its exemption from the killswitch gate, and its trust-sensitive status. |
+| Orientation and gates | `KATA.md` § Killswitch, `.github/CLAUDE.md` local-action table, `kata-release-merge` trust rule (checklist item and § Settings diffs prose) | Record the automatic writer, the new local action, and the trust-sensitive paths. |
 
-## Counting interface
+## Interfaces
 
-Each counter is one unpaginated request. `per_page=100` sets a ceiling far above
-every threshold, so a full page already proves a breach and pagination never
-runs.
+The workflow reads the variable through the API, not through the `vars` context,
+because the resume rule needs the record's `updated_at` and because a `vars`
+value binds at job start and would go stale across the counting requests.
 
-| Counter | Request | Count |
-| ------- | ------- | ----- |
-| Commits | `GET /repos/{repo}/commits?since={cutoff}&per_page=100` | Length of the array |
+| Step | Request | Result |
+| ---- | ------- | ------ |
+| Read state | `GET /repos/{repo}/actions/variables/KATA_KILLSWITCH` | `value` and `updated_at`. A 404 means unset, which reads as falsy with no timestamp. |
+| Commits | `GET /repos/{repo}/commits?sha={default_branch}&since={cutoff}&per_page=100` | Length of the array |
 | Pull requests | `GET /repos/{repo}/pulls?state=all&sort=created&direction=desc&per_page=100` | Items whose `created_at` is at or after the cutoff |
 | Issues | `GET /repos/{repo}/issues?state=all&sort=created&direction=desc&per_page=100` | Items whose `created_at` is at or after the cutoff and that carry no `pull_request` key |
+| Engage | `PATCH /repos/{repo}/actions/variables/KATA_KILLSWITCH`, and `POST /repos/{repo}/actions/variables` on a 404 | The reason string |
 
-`cutoff` is the run start minus the window. The window is 60 minutes and the
-schedule interval is 15 minutes, so four consecutive runs observe any single
-breach. A run that GitHub delays or drops loses no breach, because each run
-recomputes the whole window instead of a per-tick delta.
+`cutoff` is the run start minus 60 minutes. Each request makes three attempts in
+total, with a 2-second pause after the first and a 4-second pause after the
+second.
 
-Each request retries up to three times with a 2-second and then a 4-second
-pause. A request that still fails yields no count.
+**Window coverage.** One page of 100 is far above every threshold, but the
+issues and pull-requests endpoints return items the counter discards, so a full
+page does not prove a breach on its own. The action therefore applies one
+uniform rule to all three counters: a first page that holds 100 items whose
+oldest item is still inside the window leaves the window uncovered. An uncovered
+window is a breach, exactly as an unreadable one is. Pagination never runs.
+
+**Committer dates.** The commits counter filters on committer date. A push that
+rewrites 20 or more committer dates on the default branch therefore trips it.
+The repository squash-merges, so this is a force-push case, and a false stop
+there is the intended fail-safe behaviour rather than a defect.
 
 ## Decision order
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Read
-    Read --> Skip: KATA_KILLSWITCH already truthy
-    Read --> Count
+    [*] --> ReadState
+    ReadState --> Skip: value truthy
+    ReadState --> Skip: value falsy and updated_at inside the window
+    ReadState --> Count
     Count --> Quiet: every count under its threshold
     Count --> Breach: any count at or over its threshold
-    Count --> Breach: any count unreadable
-    Breach --> Engage: mint watchdog token, write variable
-    Engage --> Engaged: write succeeded (exit 1)
-    Engage --> WriteFailed: write failed after retries (exit 2)
+    Count --> Breach: any counter unreadable or uncovered
+    Breach --> Engage: write the reason (exit 1)
+    Breach --> Report: dry-run, no write (exit 0)
     Quiet --> [*]
     Skip --> [*]
 ```
 
-The watchdog reads the current killswitch state from the `vars` context, not
-from the API. The workflow already receives that value, so the read needs no
-permission and no request. An organization-level truthy value therefore also
-suppresses the write, which is the correct idempotence. A repository variable
-overrides an organization variable, so the write always wins when it runs.
+The second Skip branch is the resume path. A human clears the switch by writing
+a falsy value rather than deleting the variable, which leaves an `updated_at`
+the watchdog reads. The watchdog then stays quiet for one window while the burst
+that caused the stop drains out of it.
 
-The write is create-or-update: `PATCH` the variable, and `POST` it on a 404.
+Counting runs before the Skip decision is reported, so every run summary carries
+the counts it obtained. An operator who is deciding whether to clear reads the
+current activity level from the latest run.
 
-The value the watchdog writes is one field-separated string, for example
-`watchdog:issues:31/20:2026-09-02T15:20:00Z`. It names the writer, the breached
-counter, the count, the threshold, and the time. Every such value is truthy
-under the existing rule.
+The value the watchdog writes is one field-separated string. A threshold breach
+writes `watchdog:issues:31/25:2026-09-02T15:20:00Z`. A read failure writes
+`watchdog:issues:unreadable:2026-09-02T15:20:00Z`, and an uncovered window
+writes `uncovered` in the same position. Every such value is truthy under the
+existing rule.
 
 ## Failure semantics
 
-| Condition | Watchdog result | Why |
-| --------- | --------------- | --- |
+| Condition | Result | Why |
+| --------- | ------ | --- |
 | Killswitch already truthy | Skip, exit 0 | The line is already stopped. A rewrite would destroy a human's reason string. |
+| Killswitch cleared inside the window | Skip, exit 0 | The resume path. Without it the next run re-engages on the same drained burst. |
 | Every count under threshold | Exit 0 | Normal operation. |
 | Any count at or over threshold | Engage, exit 1 | The deterministic contract. |
-| Any count unreadable after retries | Engage, exit 1, reason names the counter | Doubt stops the line. A human clears an early stop in seconds. A silent watchdog costs a night of tokens. |
-| Token mint or variable write fails | Exit 2, no state change | The next run in 15 minutes recomputes the same window, finds the same breach, and retries. |
+| Any counter unreadable or uncovered | Engage, exit 1, reason names the counter | Doubt stops the line. An unnecessary stop costs idle agent time. A silent watchdog costs an unbounded token spend. |
+| Token mint or variable write fails | Exit 1, no state change, summary names the failure | The next run in 15 minutes recomputes the same window and retries. |
 
-Exit 1 and exit 2 both make the run red. GitHub's scheduled-run failure
-notification then reaches the account that last changed the schedule. The run
-summary always carries the three counts and the verdict, including on a quiet
-run, so an operator reads the current activity level from any run.
+Every non-quiet outcome exits non-zero, so the run shows red in the Actions
+list. That red run and the recorded reason are the whole signal, because spec
+2330 excludes a separate alerting channel. A watchdog whose credential expires
+therefore fails red on every run rather than going quiet, which is the failure
+mode the summary line distinguishes.
 
 ## Key decisions
 
 | Decision | Choice | Rejected alternative and why |
 | -------- | ------ | ---------------------------- |
 | Brake mechanism | Write `KATA_KILLSWITCH` | Disable each workflow through the Actions API. That needs no second credential, but it fragments one documented control into N enablement states a human must reverse one at a time, and it leaves the killswitch record blank. |
-| Write credential | A second App with Variables write only | Add Variables write to the Kata App. Every agent session runs under that App's token, so an agent could clear the switch that stops it. That defeats the mechanism. |
-| Write credential | A second App | A fine-grained personal access token. It is long-lived, it needs rotation, and it ties the brake to one person's account. |
-| Killswitch read | The `vars` context | An API read. It needs another permission and another request, and it can fail on the one path that must not fail. |
-| Logic home | A published composite action | Inline bash in the workflow. The repository forbids inline walls in workflows, and every installation would carry its own drifting copy. |
+| Write credential | A second App, its secrets in a default-branch Environment | Variables write on the Kata App, or the same App key as a repository secret. Either lets an agent's token, or a workflow an agent pushes to a branch, clear the switch that stops it. A fine-grained personal access token is long-lived and ties the brake to one person's account. |
+| Logic home | A local composite action under `.github/actions/` | A published sibling action. That adds a repository to create, an App grant, a subtree split, a SHA pin, and a release lineage before the brake can run once, and it makes a threshold change a four-landing operation. An inline wall in the workflow is what `.github/CLAUDE.md` § Local composite actions forbids for a self-contained logic unit. |
+| Workflow name | `watchdog.yml` | `kata-watchdog.yml`. That name enters the `kata-*` glob, so it would force an exclusion in the `kata-workflows` enumeration topic and make the "every `kata-*` workflow gates on the killswitch" sentence in `KATA.md` and on three Kata pages ambiguous. The watchdog runs no agent, so it is repository CI, not a Kata surface. |
+| Killswitch read | One API read of the variable record | The `vars` context. It carries no `updated_at`, so the resume path would need stored state, and its value binds at job start and goes stale before the write. |
+| Resume | Quiet for one window after a human clears | Nothing, or a stored high-water mark. Without the rule the next run re-engages on a burst that is still inside the window, and the human cannot resume at all. Stored state is a file an agent could reach. |
 | Measured signal | Repository artifacts: commits, pull requests, issues | Token spend or agent turns. Those are internal to the run that is misbehaving. External evidence survives a harness that reports its own cost wrongly, and each LLM platform already carries its own spend cap. |
-| Actor filter | None. Count every author | Count only Kata App activity. A filter adds a judgment the watchdog must make and gives sprawl a place to hide. Total churn is the evidence. |
-| Unreadable count | Engage | Skip the counter and continue. A watchdog that goes quiet under an API failure is worst at the moment it matters. |
-| Threshold home | Literal numbers in the workflow file | `.kata/settings.json`. That file configures agent-read skills. The watchdog must not depend on repository content it could be asked to reread. |
-| Threshold home | Literal numbers in the workflow file | Repository variables. The variable surface is what the watchdog defends. A brake whose limits live where the sprawl can reach is not a brake. |
+| Actor filter | None. Count every author | Count only Kata App activity. A filter adds a judgment the watchdog must make and gives sprawl a place to hide. The thresholds clear the known scheduled batches instead. |
+| Unreadable or uncovered count | Engage | Skip the counter and continue. A watchdog that goes quiet under an API failure is worst at the moment it matters. |
+| Threshold home | Literal numbers in the workflow file | `.kata/settings.json`, or repository variables. The first is agent-read repository content. The second lives on the surface the watchdog defends, so the sprawl could reach its own limits. |
 | Clearing | Human only | Auto-clear after a quiet window. That lets a chain resume and the pair oscillate, and it hides the cause. |
-| Killswitch gate | The watchdog does not gate on it | Gate like every other `kata-*` workflow. The watchdog would then stop itself the moment it fires, and no later run would confirm the state. |
+| Exit code | One non-zero code for every non-quiet outcome | Separate codes for engaged and write-failed. GitHub renders both the same red, no consumer reads the difference, and the summary already names which happened. |
 | Commit counter scope | Default branch | Every branch. That needs a clone or one request per branch, which is the opposite of simple. Agent branches reach the default branch through pull requests, and the pull-request counter covers them. |
-| Schedule and window | 15 minutes, 60-minute window | Equal cadence and window. A delayed or dropped run would then leave a gap in which a breach passes unobserved. |
-| Run visibility | Non-zero exit on engagement | Exit 0 with a summary only. A green run raises no notification, and the operator learns of the stop from the halted team instead of from the watchdog. |
+| Verification lever | A `dry-run` input on the manual trigger | A live test run. That writes a truthy value and halts every Kata surface until a human clears it, which makes the two most load-bearing criteria untestable without an outage. |
 
 ## Surfaces the change touches
 
 | Surface | Edit |
 | ------- | ---- |
-| `KATA.md` § Killswitch | The watchdog engages the variable automatically. Name the three counters and the exemption. |
-| `KATA.md` and `CLAUDE.md` sibling-action enums | Seven composite actions become eight. Both enum fences and the `.github/CLAUDE.md` table gain `kata-watchdog`. |
-| `.jidoka/invariants/enumeration-drift.topics.yml` | Add `kata-watchdog.yml` to the `kata-workflows` topic exclude list, beside `kata-interview.yml`. The watchdog belongs to no PDSA phase. |
-| `kata-setup` SKILL.md | Carve the watchdog out of the "every generated workflow gates on the killswitch" checklist item. Name the watchdog in the setup report. |
-| `kata-setup` `github-app.md` | A second permission table for the watchdog App, and its two secrets. |
-| `kata-release-merge` SKILL.md | The trust-sensitive path rule names the watchdog workflow beside `.kata/`. |
-| `.github/dependabot.yml` and `publish-actions.yml` | The new sibling joins the SHA-bump group and the subtree split. |
-| Kata getting-started page | One paragraph: the watchdog exists, it counts, it engages, a human clears. |
+| `KATA.md` § Killswitch | This repository also runs `watchdog.yml`, which sets the variable automatically on a commit, pull-request, or issue-rate breach. The watchdog itself does not gate on the variable. The paragraph is prose, outside the enumerated workflow table, as the `kata-interview` mention already is. |
+| `.github/CLAUDE.md` § Local composite actions | One `watchdog` row in the local-action table. The `sibling-composite-actions` enumeration is untouched, because the action is local. |
+| `.claude/skills/kata-release-merge/SKILL.md` | Both homes of the `.kata/` trust rule, the checklist item and the § Settings diffs prose, gain `.github/workflows/watchdog.yml` and `.github/actions/watchdog/`. The prose reframes the rule as a guardrail-configuration change rather than a settings change only. |
+| `.github/actions/watchdog/README.md` | The App, its two permissions, the Environment boundary, the thresholds and their grounding, and the clear-by-writing-a-falsy-value rule. |
+
+Nothing under `products/`, `services/`, or `websites/` changes. The Kata
+product's own contract is unchanged, so the three published pages that state it
+stay accurate.
 
 ## Clean break
 
-The design removes no existing path, because the killswitch contract is the
-path it uses. It adds no second brake and no fallback. One variable stops the
-team, and the watchdog is one more writer of that variable. No environment
-variable, no repository file, and no agent decision sits between a breach and
-the write.
+The design removes no existing path, because the killswitch contract is the path
+it uses. It adds no second brake and no fallback. One variable stops the team,
+and the watchdog is one more writer of that variable. No environment variable,
+no repository data file, and no agent decision sits between a breach and the
+write.
