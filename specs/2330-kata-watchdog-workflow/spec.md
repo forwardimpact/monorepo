@@ -36,13 +36,14 @@ default-branch commit listing.
 
 | Signal | Steady state | Observed burst |
 | ------ | ------------ | -------------- |
-| Issues created | 1 in the 30 days to 2026-09-01 (#2021) | 67 between 14:49Z and 21:34Z on 2026-09-02 (#2053 to #2119), peaking at 31 in the 60 minutes from 14:49Z |
+| Issues created | 1 in the 30 days to 2026-09-01 (#2021) | 67 between 14:49Z and 21:34Z on 2026-09-02 (#2053 to #2119), of which 47 fell inside the 2 hours from 14:49Z |
 | Pull requests created | The 100 most recently created all fall between 2026-07-18T09:22Z and 2026-09-02T07:51Z, so exactly 100 in those 46 days, about 2.2 per day | 5 inside 2 minutes on 2026-08-21 (#2027 to #2031) |
 | Default-branch commits | 22 between 2026-08-20 and 2026-09-02, about 1.7 per day | 6 in the 60 minutes from 2026-08-02 17:59Z, of which 5 landed inside 31 seconds |
+| Comments | Not measured. The issue listings expose a comment count of 0 or 1 on every issue in the corpus, which does not describe pull-request threads | Not measured |
 
 Every steady-state figure understates the unsuppressed rate. `KATA_KILLSWITCH`
-held a truthy value from 2026-08-31, so the last two days of all three baseline
-windows carried no scheduled agent work.
+held a truthy value from 2026-08-31, so the last two days of all three measured
+baseline windows carried no scheduled agent work.
 
 Each event in a chain starts a fresh agent session. Each session loads its
 profile, its skills, and its memory before it does any work. The token cost
@@ -64,28 +65,30 @@ chain, and it reports no repository-level evidence.
 A scheduled watchdog measures repository activity and engages the existing
 killswitch when the activity crosses a fixed threshold.
 
-1. **Three counters over one window.** The watchdog counts commits on the
-   default branch, pull requests created, and issues created, each within a
-   60-minute window that ends at the run time.
-2. **Fixed thresholds.** Each counter carries one threshold. A count that
-   reaches or passes its threshold is a breach. Any one breach engages the
-   killswitch. A reviewer reads the thresholds and the window in one file and
-   changes them in that file alone.
-3. **A 15-minute schedule.** The window is four times the interval, so a breach
-   stays observable across three missed runs. The watchdog also accepts a
-   manual run.
+1. **Four counters over one window.** The watchdog counts commits on the default
+   branch, pull requests created, issues created, and comments created, each
+   within a 2-hour window that ends at the run time. Comments cover issue and
+   pull-request conversation comments, which is the `issue_comment` trigger
+   surface.
+2. **One threshold, 32.** Every counter carries the same threshold. A count that
+   reaches or passes 32 is a breach. Any one breach engages the killswitch. A
+   reviewer reads the threshold and the window in one file and changes them in
+   that file alone.
+3. **A 15-minute schedule.** The window is eight times the interval, so a breach
+   stays observable across seven missed runs. The watchdog also accepts a manual
+   run.
 4. **Measurement and engagement are separate.** Measurement is read-only and
-   holds no write credential. Engagement runs only after a breach. This keeps
-   the privileged step off every quiet run and lets a measurement-only run
-   execute from any branch.
-5. **Engage only.** The watchdog sets the killswitch. It never clears it. Only
-   a human clears it, by writing a falsy value. Deleting the variable is not
+   mints no App token. Engagement runs only after a breach. This keeps the
+   privileged step off every quiet run and lets a measurement-only run execute
+   from any branch.
+5. **Engage only.** The watchdog sets the killswitch. It never clears it. Only a
+   human clears it, by writing a falsy value. Deleting the variable is not
    clearing it, and the action README says so.
 6. **Idempotent, and it yields after a human clears.** The watchdog writes
    nothing while the killswitch already holds a truthy value at either
-   repository or organization scope. It also writes nothing for one window
-   after a human clears it, so the burst that caused the stop drains out of the
-   window and the team resumes.
+   repository or organization scope. It also writes nothing for one window after
+   a human clears it, so the burst that caused the stop drains out of the window
+   and the team resumes.
 7. **Recorded reason.** The value the watchdog writes names the watchdog, every
    breached counter with its count and threshold, and the time. Every run
    reports every count it obtained and the verdict on its own run summary. An
@@ -96,46 +99,42 @@ killswitch when the activity crosses a fixed threshold.
    an unbounded token spend. Retries inside the run absorb a transient failure
    before the fail-safe applies.
 9. **No agent, no repository data.** The watchdog runs no agent, installs no
-   toolchain, and reads no data file from the repository. It checks out only
-   its own action directory.
+   toolchain, and reads no data file from the repository. It checks out only its
+   own action directory.
 10. **Not a `kata-*` workflow.** The watchdog does not gate on
     `KATA_KILLSWITCH`. It must keep running after it engages. Its name places it
     outside the `kata-*` family, so the "every `kata-*` workflow gates on the
     killswitch" contract stays true as written.
-11. **Contained write credential.** The watchdog authenticates with a credential
-    that is distinct from the Kata App and that carries no permission other than
-    repository Metadata read and Variables read and write. Its secrets live in a
-    GitHub Actions Environment restricted to the default branch, never as
-    repository secrets. This follows the isolation the repository already
-    applies to the macOS signing material.
-12. **Trust-sensitive surfaces.** The watchdog's own workflow and action are
-    repository content. Two controls guard them. The Environment restriction
-    stops any workflow on a branch from minting the write token. The
-    trust-sensitive merge rule that already covers `.kata/` extends to the
-    watchdog paths, in both the ordinary merge gate and the Dependabot triage
-    that maintains the action's pinned dependencies. The residual is the
-    repository's known branch-protection gap, recorded in `wiki/MEMORY.md`,
-    which lets a direct push to the default branch bypass both.
+11. **One credential, scoped to variables.** The watchdog authenticates with the
+    existing Kata App. That App gains `Variables: read & write` and gains no
+    `Secrets` permission, so the same credential that halts the team can never
+    read or write a secret. The killswitch is an Actions variable today in every
+    workflow, action, and setup template, which is what makes this scoping
+    possible. The operator registers and rotates one App, not two.
+12. **The containment is a gate, not a permission boundary.** Agent sessions run
+    under that same Kata App token, so an agent that calls the variables API can
+    clear the switch that stopped it. Three controls stand against that, and
+    none is a permission boundary: the agent skills state that no agent writes
+    the killswitch; the trust-sensitive merge rule that already covers `.kata/`
+    extends to the watchdog workflow and action, in both the merge gate and the
+    Dependabot triage; and the run summary of every watchdog run records the
+    variable's current value, so an unexplained clear is visible within 15
+    minutes. The residual is deliberate and stated: this brake is robust against
+    an agent chain that is not trying to defeat it, not against one that is.
 13. **Tested logic.** The counting, comparison, and reason-building logic sits
     in a script the repository test suite exercises against fixture payloads. A
     component that must not fail is not verified by review alone.
 
-**Thresholds.** Each threshold clears the largest legitimate batch the
-repository produces on a normal day. Only the issues threshold has a recorded
-incident to sit below.
+**Threshold.** One number, 32 per 2-hour window, on every counter. It clears the
+largest legitimate batch the repository produces and sits below the recorded
+incident.
 
-| Counter | Threshold per 60 minutes | Grounding |
-| ------- | ------------------------ | --------- |
-| Issues created | 25 | Above a full storyboard session, which files one obstacle issue and one experiment issue for each of 7 agent profiles, plus triage headroom. Below the observed peak of 31, so the 2026-09-02 burst engages. |
-| Pull requests created | 25 | Above the largest scheduled batch the repository can produce: one weekly Dependabot run may open 10 `bun` pull requests plus `github-actions` pull requests up to GitHub's default limit of 5. About 270 times the steady-state rate. |
-| Default-branch commits | 25 | Above the 15 squash merges a security-update session produces from that same Dependabot batch. Over 4 times the largest observed hour of 6, and about 15 times the daily steady state. |
-
-No runaway has been recorded for pull requests or commits. Those two thresholds
-therefore come from the legitimate ceiling plus headroom. Recalibration follows
-the first engagement.
-
-**Compatibility stance:** clean break. The watchdog replaces no existing path.
-The killswitch contract is unchanged and gains one automatic writer.
+| Counter | Largest legitimate batch | Headroom to 32 |
+| ------- | ------------------------ | -------------- |
+| Issues created | About 14 from a full storyboard session, which files one obstacle issue and one experiment issue for each of 7 agent profiles | 18, and the 2026-09-02 burst of 47 in 2 hours engages |
+| Pull requests created | Up to 15 from one weekly Dependabot run: 10 `bun` plus `github-actions` up to GitHub's default limit of 5 | 17, and about 175 times the steady-state rate |
+| Default-branch commits | Up to 15 squash merges from a security-update session clearing that same batch | 17, and over 2.5 times the largest observed hour of 6 |
+| Comments | Not measured | Unknown. The comment threshold is the one counter with no baseline behind it. Recalibrate it after the first weeks of observation, before it stops the team on a busy review day. |
 
 ## Scope
 
@@ -143,26 +142,30 @@ The killswitch contract is unchanged and gains one automatic writer.
 
 | Surface | Change |
 | ------- | ------ |
-| `.github/workflows/watchdog.yml` | New scheduled workflow. It carries the schedule, the three thresholds, the window, the manual inputs, and the two jobs: a read-only measurement job and an engagement job that declares the `watchdog` Environment. |
-| `.github/actions/watchdog/` | New local composite action: `action.yml`, the logic script it runs, and a README that documents the credential, the Environment boundary, the thresholds, and the clearing rule. |
+| `.github/workflows/watchdog.yml` | New scheduled workflow. It carries the schedule, the threshold, the window, the manual inputs, and two jobs: a read-only measurement job and an engagement job that mints the Kata App token. |
+| `.github/actions/watchdog/` | New local composite action: `action.yml`, the logic script it runs, and a README that documents the credential scope, the threshold grounding, the clearing rule, and the containment residual. |
 | `tests/` | A test that drives the logic script against fixture payloads: each counter over threshold, unreadable, uncovered, quiet, already engaged, and cleared inside the window. |
-| `KATA.md` § Killswitch | State that this repository also runs a watchdog that engages the variable automatically, name the three counters, and state that the watchdog itself does not gate on the variable. |
+| `kata-setup` GitHub App reference | The Kata App permission table gains `Variables: read & write`. The page states that the App holds no `Secrets` permission and why. |
+| `kata-setup` SKILL.md | The setup report names the variables permission and the reason for it. |
+| Agent skills that write to GitHub | One rule: no agent writes `KATA_KILLSWITCH`. Only a human clears it, and only the watchdog sets it. |
+| `KATA.md` § Killswitch | State that this repository also runs a watchdog that engages the variable automatically, name the four counters, and state that the watchdog itself does not gate on the variable. |
 | `.github/CLAUDE.md` § Local composite actions | Add the `watchdog` row to the table of local actions. |
 | `kata-release-merge` and `kata-security-update` skills | Add the watchdog workflow and action paths to the trust-sensitive rule that already covers `.kata/`. The merge gate carries it in both of its homes. The security-update skill needs it because Dependabot pull requests against `.github/actions/*` route around the merge gate. |
 | `websites/kata/docs/continuous-improvement/index.md`, `websites/kata/docs/getting-started/index.md` | Qualify the two unqualified "every workflow" claims as "every Kata workflow", which is what they already mean and what the other two homes already say. |
-| Repository configuration | A second GitHub App and a `watchdog` Actions Environment restricted to the default branch, holding the two App secrets. |
 
 ### Excluded
 
 | Item | Why |
 | ---- | --- |
 | Cost, token, and agent-turn limits | The watchdog measures external evidence in the repository. Each LLM platform carries its own spend cap, configured there. |
-| Comment-rate and branch-push counters | A chain that only comments, and a chain that only pushes to an existing branch, stay unmeasured. This is the known coverage gap and a follow-up. The three counters named here are the deterministic contract this spec commits to. |
-| Cancelling runs already in flight | The killswitch gates each workflow's first step. `kata-shift` and `kata-dispatch` both pass `timeout-minutes: "300"`, so a session already past that step can keep creating artifacts for up to 300 minutes after engagement, plus up to 15 minutes of detection lag. Closing that gap needs `actions: write` on the workflow token and a run-cancelling step. It is the highest-value follow-up. |
+| A second GitHub App, or an Actions Environment for the write credential | Either would make the containment a permission boundary rather than a gate. The operator chose one App and one rotation over that isolation, with the residual in item 12 accepted. |
+| Inline pull-request review comments | They are not a `kata-dispatch` trigger, and one review panel legitimately posts many, so counting them would stop the team on ordinary review activity. The comment counter covers conversation comments only. |
+| Branch-push counters | A chain that only pushes to an existing branch stays unmeasured. Its work reaches the default branch through a pull request, which the pull-request counter sees. |
+| Cancelling runs already in flight | Accepted. The killswitch gates each workflow's first step. `kata-shift` and `kata-dispatch` both pass `timeout-minutes: "300"`, so a session already past that step can keep creating artifacts for up to 300 minutes after engagement, plus up to 15 minutes of detection lag. The watchdog stops the next run, not the current one. |
 | Automatic clearing of the killswitch | A watchdog that clears its own stop can oscillate and hides the cause. Item 6 gives the human a quiet window instead. |
-| Telling a legitimate burst from sprawl | The watchdog compares counts. It makes no judgment about who acted or why. The thresholds clear the known legitimate batches, and a human clears a false stop. |
+| Telling a legitimate burst from sprawl | The watchdog compares counts. It makes no judgment about who acted or why. The threshold clears the known legitimate batches, and a human clears a false stop. |
 | Author or actor filters on the counts | Total repository churn is the evidence. A filter adds a judgment the watchdog must make and gives sprawl a place to hide behind an identity. |
-| Rollout to Kata installations through `kata-setup` | Every installation has its own baselines, and this repository has no engagement yet to calibrate against. Ship the mechanism here, observe it, then generalize. No installation gains a non-gating workflow from this change. |
+| Rollout of the watchdog workflow to installations through `kata-setup` | Every installation has its own baselines, and this repository has no engagement yet to calibrate against. The App permission change ships to installations; the workflow does not, yet. |
 | Threshold selection through `.kata/settings.json` | That file configures skills that agents read. The watchdog must not depend on repository content. |
 | Engaging at organization scope | The watchdog reads both scopes so an organization-scope stop suppresses it, but it writes the repository-scoped variable only. |
 | One shared home for the truthy predicate | The `""`/`0`/`false`/`no`/`off` test is already restated in four places. The watchdog adds a fifth. Consolidating all five is its own change. |
@@ -174,16 +177,16 @@ The killswitch contract is unchanged and gains one automatic writer.
 | # | Claim | Verification |
 | - | ----- | ------------ |
 | 1 | The watchdog runs every 15 minutes and by hand. | `.github/workflows/watchdog.yml` carries a `schedule` trigger at a 15-minute interval and a `workflow_dispatch` trigger. |
-| 2 | The window is 60 minutes and appears once. | `rg -n '60' .github/workflows/watchdog.yml` shows one window value, and the action declares no default for it. |
-| 3 | The thresholds are fixed and reviewable in one file. | The three thresholds appear as literal numbers in `.github/workflows/watchdog.yml`. The action declares the threshold inputs required and default-free, so no second copy exists. |
-| 4 | Any single breach engages the killswitch. | The test suite drives the logic script with each counter over its threshold in turn and asserts an engage verdict naming that counter. |
+| 2 | The window is 2 hours and the threshold is 32, each written once. | Both appear as literal numbers in `.github/workflows/watchdog.yml`, and the action declares the two inputs required and default-free, so no second copy exists. |
+| 3 | Four counters are measured. | The logic script counts default-branch commits, pull requests created, issues created, and issue and pull-request conversation comments created, each against the same cutoff. |
+| 4 | Any single breach engages the killswitch. | The test suite drives the logic script with each counter over the threshold in turn and asserts an engage verdict naming that counter. |
 | 5 | An unreadable or uncovered counter engages the killswitch. | The test suite drives the logic script with a failed counter response and with a response that cannot cover the window, and asserts an engage verdict with the reason `unreadable` or `uncovered`. |
 | 6 | The watchdog never clears the killswitch. | The logic script has one code path that writes the variable. Every write it makes carries a non-empty reason string. The test suite asserts no path produces a falsy value. |
 | 7 | An engaged killswitch stays untouched, and a cleared one gets a quiet window. | The engagement job reads the repository variable and the organization variables first. It writes nothing when either value is truthy, and nothing when the repository value is falsy and its `updated_at` is inside the window. The test suite covers both. |
-| 8 | The reason is recorded and the run is red. | The written value names the watchdog, every breached counter with its count and threshold, and the time. The run summary carries every count obtained and the verdict. An engaging run exits non-zero. |
+| 8 | The reason is recorded and the run is red. | The written value names the watchdog, every breached counter with its count and threshold, and the time. The run summary carries every count obtained, the killswitch's current value, and the verdict. An engaging run exits non-zero. |
 | 9 | The watchdog is outside the `kata-*` family and does not gate on the killswitch. | The workflow file does not match `.github/workflows/kata-*.yml`, it contains no killswitch gate step, and `bunx jidoka invariants` passes with no change to the `kata-workflows` enumeration topic. |
 | 10 | The watchdog runs no agent and reads no repository data. | The workflow uses no `kata-agent` or `gemba-*` action. Its checkout is limited to `.github/actions/watchdog`. |
-| 11 | The write credential is contained. | Only the engagement job declares the `watchdog` Environment. The Environment is restricted to the default branch and holds both App secrets, and neither name exists as a repository secret (`gh secret list`). The README documents the App's two permissions. The Kata App permission table in `kata-setup` stays unchanged. |
-| 12 | The watchdog surfaces are trust-sensitive on both routes. | `.claude/skills/kata-release-merge/SKILL.md` names `.github/workflows/watchdog.yml` and `.github/actions/watchdog/` in both the checklist item and the prose that carries the `.kata/` rule. `.claude/skills/kata-security-update/SKILL.md` names the same paths for Dependabot pull requests. |
-| 13 | Orientation is current. | `KATA.md` § Killswitch states the automatic writer, the three counters, and the exemption. `.github/CLAUDE.md` lists the `watchdog` local action. Neither of the two Kata pages carries an unqualified "every workflow" claim. |
+| 11 | The credential is scoped to variables and excludes secrets. | The `kata-setup` GitHub App permission table carries `Variables: read & write` and no `Secrets` row, and states why. The watchdog uses `secrets.KATA_APP_ID` and `secrets.KATA_APP_PRIVATE_KEY`, so no new secret is added. |
+| 12 | The containment is stated, not implied. | The agent skills that write to GitHub carry the "no agent writes `KATA_KILLSWITCH`" rule. `.claude/skills/kata-release-merge/SKILL.md` names the two watchdog paths in both the checklist item and the prose that carries the `.kata/` rule, and `.claude/skills/kata-security-update/SKILL.md` names them for Dependabot pull requests. The action README states the residual. |
+| 13 | Orientation is current. | `KATA.md` § Killswitch states the automatic writer, the four counters, and the exemption. `.github/CLAUDE.md` lists the `watchdog` local action. Neither of the two Kata pages carries an unqualified "every workflow" claim. |
 | 14 | Repository checks stay green. | `bun run check` and `bun run test` pass. |
