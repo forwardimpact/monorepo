@@ -55,7 +55,7 @@
     "html-minifier-terser": "^7.2.0",
     "linkedom": "^0.18.13",
     "microdata-rdf-streaming-parser": "^3.0.0",
-    "n3": "^2.2.0"
+    "n3": "^2.7.0"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
