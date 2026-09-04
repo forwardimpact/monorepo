@@ -145,6 +145,8 @@ Modified: `products/gemba/test/bin-smoke.integration.test.js`
 Add `"gemba-watchdog"` to the `BINS` array.
 
 Verify: `bun test products/gemba/test/bin-smoke.integration.test.js` passes.
+The floor in `scripts/test-gate.floor.json` is a `>=` bound, so this one added
+test keeps it green; part 01 step 11 moves it.
 
 ## Step 6: Write the task guide
 
@@ -166,7 +168,7 @@ naming the brake. The body covers, in order:
 | `engage` | The options, the two skip rules, the write, and exit 1 on engagement, on a failed read, and on a failed write. |
 | The latch contract | The command engages. It never clears. A human clears it by writing a falsy value. Deleting the variable is not clearing it, and it earns no quiet window. |
 | Fail safe | An unreadable counter, and a counter that cannot cover the window, both engage. |
-| CI wiring | A two-job example, read-only measurement and token-minting engagement. Write the `uses:` line as `forwardimpact/gemba-watchdog@v1`. That tag does not exist until part 06 step 4, so the guide ships one merge ahead of it. Mark the example as the shape to copy, not a live pin. |
+| CI wiring | A two-job example, read-only measurement and token-minting engagement. Write the `uses:` line as `forwardimpact/gemba-watchdog@v1`. That tag does not exist until part 06 step 4, three landings later (part 03, part 06 step 3, part 06 step 4). Mark the example as the shape to copy, not a live pin. |
 | Exit codes | A table of the three outcomes. |
 
 Every command example uses `npx`. The page names no tenant variable. It uses
@@ -179,6 +181,10 @@ Verify: `bun run lint:md` passes and `bunx fit-doc build` resolves the page.
 Give the agent the same content from its own entry point.
 
 Created: `.claude/skills/gemba-watchdog/SKILL.md`
+
+The file is an L5 layer capped at 1280 words and 192 lines. Its model,
+`.claude/skills/gemba-xmr/SKILL.md`, already sits at 1253 words and 184 lines,
+so write to roughly 900 words and leave headroom for later options.
 
 The file follows `.claude/skills/gemba-xmr/SKILL.md`: front matter with `name`
 and a `description` that names the job and the triggers, then the command
@@ -213,12 +219,13 @@ keeps the loop's order and the guard step reads last:
 ```
 
 This step adds the card only. The page's front-matter `description` and its
-opening paragraph both enumerate the five-step loop, and part 04 step 4 moves
-every loop count on the site in one merge. Editing them here would leave
-`docs/index.md` naming six steps while `index.md` still named five, across three
-merges.
+opening paragraph both enumerate the five-step loop, and part 04 step 7 moves
+both, together with `index.md` and `llms.txt`, in one merge. Editing them here
+would leave `docs/index.md` naming six steps while `index.md` still named five,
+across three merges.
 
-Verify: `bunx fit-doc build` renders the card and emits no unresolved-partial
+Verify: `bunx fit-doc build` renders the card. An unresolved `part:card:` marker
+throws from `libraries/libdoc/src/partials.js`, so the build fails rather than
 warning.
 
 ## Step 9: Record the seventh runtime command

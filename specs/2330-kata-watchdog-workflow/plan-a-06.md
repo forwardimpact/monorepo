@@ -37,7 +37,7 @@ either; and `forwardimpact/gemba-watchdog` resolves.
 
 Make `npx gemba-watchdog` resolve for the readers the new guide instructs.
 
-Depends on: part 02 merged to `main`. Must precede part 3.
+Depends on: part 02 merged to `main`. Must precede part 03.
 
 Modified: the monorepo's release tags.
 
@@ -69,8 +69,8 @@ Modified: the monorepo's release tags.
 2. Confirm the release publishes `gemba-watchdog-bun-linux-x64`, its `.sha256`
    sidecar, and the `fit-install.sh` asset stamped with that tag.
 3. Record the tag and `sha256sum` the released `fit-install.sh` asset. Part 03
-   step 1 sets both as the action's `gear-release` and `installer-sha256`
-   defaults.
+   step 1 writes both into the action as the `gear-release` and
+   `installer-sha256` input defaults, so the workflow passes neither.
 
 Verify:
 `curl -fsSL https://github.com/forwardimpact/monorepo/releases/download/<tag>/fit-install.sh | bash -s -- --only gemba-watchdog`

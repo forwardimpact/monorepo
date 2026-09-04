@@ -23,8 +23,8 @@ does not.
 
 ## Scope notes for the approver
 
-Eight findings the spec and the design do not settle. Each is the approver's to
-overturn. The first six the plan resolves. The last two it cannot.
+Eleven findings the spec and the design do not settle. Each is the approver's to
+overturn. The plan resolves nine. The last two it cannot.
 
 | Finding | Detail |
 | ------- | ------ |
@@ -34,6 +34,7 @@ overturn. The first six the plan resolves. The last two it cannot.
 | Loop-step name | design-a.md names the site's sixth step `Stop`. spec.md § Included names it `Guard`. The plan follows the design, because `.claude/skills/gemba/SKILL.md` already heads a `Guard the loop:` block for `gemba-selfedit`. The guide slug stays `guard-activity`. |
 | No golden CLI capture | `products/gemba/test/golden/` holds manual capture dirs. Only `gemba-wiki` has an automated golden test, and no test enumerates the dirs. The plan extends the `bin-smoke` list only. |
 | The action's `variable` input is optional | design-a.md makes `--variable` a required CLI option, and spec success criterion 2 requires `threshold` and `window-hours` to be required and default-free on the action. `assess` needs no variable, so declaring the action input required would make every measurement call pass an argument it does not use. The action input is optional, the engage step fails fast on an empty value, and the CLI option stays required for `engage`. |
+| The comments probe drops the timestamp coverage escape | design-a.md § Window coverage fixes one coverage rule for the three unfiltered probes. `commentsProbe` filters `since` on `updated_at` while counting `created_at`, so an old comment edited in-window would satisfy that escape on a full page and report `covered: true` while newer items stayed hidden. Part 01 uses `page.length < 100` alone for it. |
 | The latch policy drops its `verdict` argument | design-a.md § Library surface fixes the policy seam as `(verdict, state, { windowMs }) => …`. `engage` runs only after a breach and carries no counting options, so it holds no verdict to pass. Part 01 uses `decide(state, { windowMs, now })`. |
 | The rollout order swaps two middle steps | design-a.md § Contracts orders sibling seed, matrix entry, subtree split, manifest entry, binary release. The plan cuts the binary release before the action lands, so the action can ship a real `gear-release` default rather than a placeholder its published copy would carry to external consumers. |
 | The sixth step carries three names | The site step is `Stop` (design), the guide slug is `guard-activity` (spec), and the docs-index heading is "Guard an Agent Team". One concept, three vocabularies. The plan keeps all three because the spec and design each fix one, and the third follows the docs-index heading convention. The approver may collapse them. |
@@ -70,7 +71,11 @@ overturn. The first six the plan resolves. The last two it cannot.
   split: steps 1 to 4, 7, and 8 go to `technical-writer`, because they are prose
   and skill instruction text. Steps 5 and 6 go to `staff-engineer`, because they
   rewrite bezier geometry across four SVG copies and recompute two
-  animation-delay ladders and a keyframe period in `main.css`.
+  animation-delay ladders, a keyframe period, and its lit window in `main.css`.
+  The two routes share one branch, so they run in sequence, never concurrently:
+  `technical-writer` lands steps 1 to 4, pushes, and hands off; `staff-engineer`
+  then lands steps 5 and 6 and pushes before steps 7 and 8 return. That
+  handshake is what the coordination protocol requires of a shared workspace.
 - **Landing shape.** One pull request per part. Every part leaves
   `bun run check`, `bun run test`, and `bunx jidoka invariants` green on its own
   head. Part 05 step 3 is the one exception the plan names, because GitHub
@@ -90,7 +95,6 @@ overturn. The first six the plan resolves. The last two it cannot.
   | ---- | ----- | --- | -------- | -------- |
   | `.github/CLAUDE.md` | L1 subdir | 768 w / 128 l | 768 / 118 | **0 w** / 10 l |
   | `CLAUDE.md` | L1 root | 896 w / 192 l | 892 / 189 | 4 w / 3 l |
-  | `JTBD.md` | L2 | 1664 w / 320 l | 1660 / 299 | **4 w** / 21 l |
   | `.claude/agents/x-coordination-protocol.md` | L4 | 1280 w / 192 l | 1278 / 186 | 2 w / 6 l |
   | `.claude/skills/kata-setup/SKILL.md` | L5 | 1280 w / 192 l | 1268 / 192 | 12 w / **0 l** |
   | `.claude/skills/kata-setup/references/github-app.md` | L6 | 768 w / 128 l | 680 / 114 | 88 w / 14 l |
@@ -149,10 +153,11 @@ overturn. The first six the plan resolves. The last two it cannot.
 | Risk | Detail |
 | ---- | ------ |
 | The installer falls through to npm | `fit-install.sh` `channels_for` returns `brew_gear release_gear npm` for any `gemba-*` name. A failed release download silently installs the npm launcher, which resolves the whole `@forwardimpact/gemba` closure the design rejected, inside a 5-minute timeout. Part 03 step 1 fails the step on the installer's own `(npm)` channel marker. |
+| A full page of edited comments engages on a count under the threshold | `commentsProbe` filters `since` on `updated_at` and reports `covered: false` on a full page. One hundred comments merely edited inside the window therefore engage the killswitch while the created-in-window count sits far below 32. The threshold cannot tune this away, because coverage outranks it. |
 | The comment counter has no baseline | spec.md § Threshold records no measured comment rate. The first busy review day can engage the killswitch on ordinary activity. Recalibrate after the first weeks, before it stops the team. |
 | The App grant is operator-only and silent | Without `Variables: read & write` at repository scope and read at organization scope, the engage job exits 1 on the read or the write. That is a red run every 15 minutes with the brake absent, not a stopped team. Part 06 step 1 is the only place this can be fixed. |
 | A large force-push trips the commits counter | `since` filters on committer date, so a rewrite that restamps 32 or more default-branch commits engages the killswitch. design-a.md § Interfaces names this as the intended fail-safe. |
-| The action's `gear-release` default pins one tag forever | Dependabot bumps no composite-action input default, and no invariant guards it. When the CLI changes, someone must cut a release and bump that default by hand. This plan names no owner for that, and no follow-up issue exists. |
+| The action's two release pins move in lockstep or not at all | `gear-release` and `installer-sha256` name one release and that release's own `fit-install.sh` digest. Bumping either alone fails `sha256sum -c` and takes the brake down. Dependabot bumps no composite-action input default and no invariant guards the pair, so a CLI change needs a hand bump of both. This plan names no owner for that, and no follow-up issue exists. |
 | The live write path never runs before it matters | Every unit test stubs the transport, and the engage job is gated on a real breach, so nothing in CI exercises `latch.write` against a real Actions variable. Part 05 step 3 proves it once, by hand, against a throwaway variable name. |
 | Runs can overlap | A run is `assess` (≤5 min) then `engage` (≤5 min) plus GitHub's scheduled-dispatch delay, which can exceed the 15-minute interval under load. Two engage jobs racing is harmless: the second reads a truthy value and skips. The plan adds no `concurrency` group, because cancelling an in-flight engage would drop the write. |
 

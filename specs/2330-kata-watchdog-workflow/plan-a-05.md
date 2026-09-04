@@ -76,6 +76,10 @@ jobs:
           mode: engage
           variable: ${{ env.WATCHDOG_VARIABLE }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
+          # Declared required on the action. The engage step consumes none of
+          # it, and it costs no second copy: the value comes from the one env
+          # home above.
+          threshold: ${{ env.WATCHDOG_THRESHOLD }}
           reason: ${{ needs.assess.outputs.reason }}
           dry-run: ${{ inputs.dry-run || 'false' }}
           app-id: ${{ secrets.KATA_APP_ID }}
@@ -86,8 +90,11 @@ Replace `<sha>` with the commit SHA part 06 step 4 tags as `v1`. The action
 already carries the real `gear-release` default from part 03 step 1, so this
 workflow passes none.
 
-The assess job passes no `variable` and the engage job passes no `threshold`.
-The action forwards only the options each subcommand declares.
+The assess job passes no `variable`, which the action declares optional. Both
+jobs pass `threshold` and `window-hours`, which the action declares required.
+Neither passes `gear-release` or `installer-sha256`: part 03 step 1 carries both
+as real defaults. The action forwards to each subcommand only the options that
+subcommand declares.
 
 `vars[env.WATCHDOG_VARIABLE]` is this repository's only dynamic `vars` index.
 If it does not evaluate, fall back to the literal `${{ vars.KATA_KILLSWITCH }}`

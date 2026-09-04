@@ -45,7 +45,7 @@ Created: `libraries/libwatchdog/package.json`
   },
   "files": ["src/**/*.js", "README.md"],
   "scripts": { "test": "bun test test/*.test.js" },
-  "dependencies": { "@forwardimpact/libutil": "^0.1.0" },
+  "dependencies": { "@forwardimpact/libutil": "^0.1.100" },
   "devDependencies": { "@forwardimpact/libmock": "^0.1.0" },
   "engines": { "bun": ">=1.2.0", "node": ">=22.0.0" },
   "publishConfig": { "access": "public" }
@@ -53,8 +53,11 @@ Created: `libraries/libwatchdog/package.json`
 ```
 
 `homepage` is the default host `scripts/check-metadata.mjs` computes for every
-`libraries/*` package. The dependency ranges match the dominant workspace
-ranges. The library declares no `libcli` dependency.
+`libraries/*` package. The `libutil` floor is `^0.1.100`, not the workspace's
+more common `^0.1.85`, because `createRetry`'s injectable `sleep` first ships at
+0.1.100 and step 3 depends on it. A lower floor would let an external install
+resolve a `libutil` that ignores the injected clock. The library declares no
+`libcli` dependency.
 
 Verify: `bun install` links the workspace and `bun run context:check-metadata`
 passes.
@@ -97,9 +100,11 @@ Created: `libraries/libwatchdog/src/request.js`
   `createRetry({ retries, sleep: (ms) => clock.sleep(ms) })` from
   `@forwardimpact/libutil`, which gives five attempts with exponential backoff
   and jitter and already retries 429, 499, and 5xx.
-- Inside the retried function, a `403` whose body or `x-ratelimit-remaining: 0`
-  header marks a rate limit throws `new Error("HTTP 429: rate limited")`, so
-  `Retry`'s retryable-error path covers it.
+- Inside the retried function, a `403` whose `x-ratelimit-remaining: 0` header
+  marks a rate limit throws `new Error("HTTP 429: rate limited")`, so `Retry`'s
+  retryable-error path covers it. Read the header, not the body: consuming the
+  body inside the retried function would leave the returned `Response` unusable
+  for the JSON parse that follows. If the body is needed, `res.clone()` first.
 - The retried function returns the `Response` unchanged, so `Retry` can read its
   status. `createRequest` raises `new Error(\`GitHub
   \${status} on \${path}\`)` **after** `Retry.execute` resolves, never inside it. Raised inside, the message would not match `#isRetryableError`'s `/http
@@ -138,7 +143,9 @@ computed over the raw page, never over the filtered set, so `issuesProbe`
 discarding `pull_request` entries cannot turn an uncovered page into a covered
 one. No probe pages.
 
-`commentsProbe` takes the one exception: `covered = page.length < 100` alone.
+`commentsProbe` uses `covered = page.length < 100` alone. `commitsProbe` filters
+`since` server-side, so its timestamp escape can never fire either and it
+degenerates to the same test.
 Its `since` filter reads `updated_at` while its count reads `created_at`, so an
 old comment edited inside the window occupies a page slot, sorts last under
 `direction=desc`, and would satisfy `oldest(page) < cutoff` on a full page. That
@@ -219,8 +226,10 @@ command runs only after a breach, so the policy takes no verdict:
 | 2 | `state.repository` exists, its value is falsy, and `now - toEpoch(state.repository.updatedAt) < windowMs` | `skip` (resume window) |
 | 3 | otherwise | `engage` |
 
-Rule 1 reads the effective value, so a truthy organization variable under a
-falsy repository variable falls through to rule 2 and then engages.
+Rule 1 reads the effective value. A truthy organization variable under a falsy
+repository variable therefore reaches rule 2, and engages only when that
+repository record's `updatedAt` is outside the window. Inside the window the
+resume rule wins, whichever scope holds the truthy value.
 `toEpoch` is a module-local helper over `Date.parse`. The invariant flags
 `new Date(...)` and `Date.now()` only, so `Date.parse` on an explicit timestamp
 is permitted and reads no wall clock.
@@ -255,7 +264,9 @@ Created: `libraries/libwatchdog/src/commands/assess.js`,
 
 Both handlers take the libcli `InvocationContext` and read `ctx.deps.runtime`.
 Both resolve `--repo` from `runtime.proc.env.GITHUB_REPOSITORY` when the option
-is absent. The two option sets are disjoint, and each handler reads only its
+is absent, and both read the credential from `runtime.proc.env.GH_TOKEN` and
+pass it to `createRequest`. A missing token fails the handler before any
+request. The two option sets are disjoint, and each handler reads only its
 own. libcli merges globals plus the matched subcommand's options and calls
 `node:util` `parseArgs` in strict mode (`libraries/libcli/src/cli.js:76-88`
 merges, `:90-92` parses), so an option one subcommand does not declare aborts
@@ -328,8 +339,8 @@ example that builds rules, evaluates them, and decides, and the seam table
 `https://www.gemba.team/docs/guard-activity/index.md`.
 
 Write the `BEGIN:description` and `BEGIN:catalog` markers as empty blocks and
-let `bun run context:fix` fill them. `scripts/check-metadata.mjs --fix` writes
-both.
+let `bun run context:fix` fill them. `bun run context:fix` writes both through
+`jidoka jtbd --fix`, which owns the two generated blocks.
 
 Add a JSDoc block with `@param` and `@returns` to every exported function in
 `src/`. `eslint.config.js` applies `jsdoc/require-jsdoc` with
@@ -353,6 +364,9 @@ Tests import from `node:test` and `node:assert`, and take the runtime from
 `createTestRuntime()` in `@forwardimpact/libmock`. `test/helpers.js` builds
 fixture pages of commits, pull requests, issues, and comments at chosen offsets
 from a fixed `now`, plus a stub `request` that maps a path prefix to a response.
+Seed the clock: `createMockClock` starts virtual time at 0, so
+`createTestRuntime({ clock: { start: Date.parse("2026-09-02T16:49:00Z") } })`,
+or the cutoff resolves to 1969 and every fixture offset misses.
 
 The suite covers the six spec cases plus the four ordering cases:
 
@@ -365,7 +379,8 @@ The suite covers the six spec cases plus the four ordering cases:
 | Effective value truthy | `decide` returns `skip`, `write` uncalled |
 | Repository value cleared inside the window | `decide` returns `skip`, `write` uncalled |
 | Repository value cleared outside the window | `decide` returns `engage` |
-| Truthy organization under falsy repository | `decide` returns `engage` |
+| Truthy organization under falsy repository, repository `updatedAt` outside the window | `decide` returns `engage` |
+| Truthy organization under falsy repository, repository `updatedAt` inside the window | `decide` returns `skip`; the resume rule outranks the scope |
 | Two counters breach | The reason names both, in rule order |
 | Empty `--reason` | `runEngageCommand` returns exit 1, and `read` and `write` are both uncalled |
 | Every write path | Every `write` call receives a non-empty reason, and no path produces a falsy value |
@@ -374,32 +389,26 @@ The suite covers the six spec cases plus the four ordering cases:
 Verify: `bun test libraries/libwatchdog/test/` passes and
 `bun run context:check-bun-test` reports no finding.
 
-## Step 11: Regenerate the catalog inside the JTBD budget
+## Step 11: Regenerate the catalog and move the test floor
 
-Let the generated catalog match the tree without breaching an L2 cap.
+Let the generated catalog match the tree and keep the release gate honest.
 
-Modified: `libraries/README.md`, `websites/fit/gear/index.md`, `JTBD.md`
+Modified: `libraries/README.md`, `websites/fit/gear/index.md`,
+`scripts/test-gate.floor.json`
 
-`JTBD.md` measures 1660 of its 1664-word L2 cap. `collectJobGroups` in
-`libraries/libinvariant/src/jtbd.js` keys on `${entry.user}\0${entry.goal}`, and
-step 1's entry reuses `products/gemba`'s exact pair, so its `trigger`,
-`bigHire`, `littleHire`, and three `competesWith` fragments merge into that
-existing group and add roughly 70 words. Leaving the entry out instead fails
-`bun run context:check-jtbd`.
+`JTBD.md` is untouched. `processJtbdMd` in `libraries/libinvariant/src/jtbd.js`
+loads the **products** catalog only, so a library `jobs` block reaches
+`libraries/README.md` and never `JTBD.md`. The whole of `JTBD.md` sits inside a
+generated `BEGIN:jobs` block, so it carries no hand-editable prose to trim.
 
-1. Run `bun run context:fix`. It regenerates `libraries/README.md` and the
-   `JTBD.md` job groups.
-2. Measure `JTBD.md` with the checker's algorithm: strip frontmatter, count
-   `\S+`. Record the overshoot.
-3. Trim `JTBD.md` prose by at least the overshoot plus a 20-word margin. The
-   § Teams Using Agents narrative is the candidate: its Gemba and Kata
-   paragraphs restate Big Hires the generated groups below already carry.
-4. Run `bunx jidoka invariants --seed enumeration-drift` and reconcile the
+1. Run `bun run context:fix`. It regenerates the `libraries/README.md` catalog
+   and jobs tables.
+2. Run `bunx jidoka invariants --seed enumeration-drift` and reconcile the
    `libraries-list` count fence in `websites/fit/gear/index.md` against the
    printed set.
-5. Run `bun run test:gate` and commit the printed floor into
+3. Run `bun run test:gate` and commit the printed floor into
    `scripts/test-gate.floor.json`. It reads `{ "floor": 4611 }` today, and this
    part adds roughly forty tests.
 
 Verify: `bun run check`, `bun run test`, `bun run test:gate`, and
-`bunx jidoka instructions` all pass.
+`bunx jidoka instructions` all pass, and `git diff --stat JTBD.md` is empty.

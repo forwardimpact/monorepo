@@ -32,7 +32,7 @@ it never clears the latch, and that it checks no repository out.
 | `app-id` | no | `""` | App id for the `engage` token mint |
 | `app-private-key` | no | `""` | App key for the `engage` token mint |
 | `gear-release` | no | the tag part 06 step 3 cut | The release the installer pins |
-| `installer-sha256` | yes | — | SHA-256 of that release's `fit-install.sh` asset |
+| `installer-sha256` | no | the digest part 06 step 3 recorded | SHA-256 of that release's `fit-install.sh` asset |
 
 `threshold` and `window-hours` carry `required: true` and no `default:`, so
 success criterion 2 holds and no second copy of either number exists. A
@@ -85,9 +85,11 @@ Steps, each with the `id` its references need:
        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
    ```
 
-   The input table gains `installer-sha256`, required, no default. Part 06 step
-   3 records the digest. `.github/actions/split-and-push/action.yml` is the
-   precedent: it pins its downloaded tool and runs `sha256sum -c`.
+   The input table gains `installer-sha256`. It defaults to the digest part 06
+   step 3 records, exactly as `gear-release` defaults to that step's tag, so the
+   workflow passes neither and the two pins travel together.
+   `.github/actions/split-and-push/action.yml` is the precedent: it pins its
+   downloaded tool and runs `sha256sum -c`.
 
 2. **`id: token`.** `if: inputs.mode == 'engage'`, using
    `actions/create-github-app-token` pinned by SHA with a `# v3` comment, at the
@@ -166,7 +168,8 @@ Created: `products/gemba/actions/gemba-watchdog/README.md`
 | Containment residual | Agent sessions may run under the same App token, so an agent that calls the variables API can clear the latch that stopped it. The three controls are stated, and none is a permission boundary. This brake is robust against an agent chain that is not trying to defeat it, and not against one that is. |
 | Exit codes | 0 on quiet, on skip, and on dry run. 1 on engagement, on an empty reason, on a failed read, and on a failed write. |
 
-Verify: `bun run lint:md` passes.
+Verify: read the file end to end. `.rumdl.toml` excludes
+`products/gemba/actions/**`, so `bun run lint:md` never inspects it.
 
 ## Step 3: Publish the action
 
@@ -233,7 +236,8 @@ the published pack requires:
 
 - The DO-CONFIRM checklist item at line 33, inside the block opened at line 24.
   This file carries no `read_do_checklist`.
-- The `**Settings diffs.**` paragraph in § Step 6.
+- The `**Settings diffs.**` bold lead-in inside § Step 6, not a navigable
+  heading.
 
 Write the surface as a class, not as this monorepo's paths: "a diff that touches
 `.kata/`, or the repository's activity-watchdog surface (its workflow, its
@@ -249,7 +253,7 @@ cap and 287 of 320 lines, so the prose home has room. The checklist item does
 not: `L7_MAX_WORDS_PER_ITEM` is 32. Write it at 32 words or fewer, for example
 "A diff touching `.kata/` or the activity-watchdog surface merges only on a
 trusted human's signal pinned to the approved head. No agent approval
-qualifies." (28 words).
+qualifies." (24 words).
 
 Verify: `bunx jidoka instructions` and `bunx jidoka invariants` pass, and
 `rg 'watchdog' .claude/skills/kata-release-merge/SKILL.md` returns both homes.
@@ -295,7 +299,7 @@ Give the containment a home that fits its budget and its topic.
 
 Created: `.claude/agents/x-killswitch.md`
 
-`.claude/agents/x-coordination-protocol.md` measures 1261 of 1280 words and 186
+`.claude/agents/x-coordination-protocol.md` measures 1278 of 1280 words and 186
 of 192 lines, and its § Creating outputs maps output types to tracker
 operations rather than carrying write prohibitions. A new reference costs no
 existing budget and names its own topic.
@@ -332,5 +336,6 @@ narrowing against success criterion 12.
 Write every `.claude/**` file through
 `echo … | bunx gemba-selfedit <path>` when settings block the direct edit.
 
-Verify: `bunx jidoka instructions` passes with no layer-restatement and no
-agent-naming finding, and `bunx jidoka invariants` passes.
+Verify: `bunx jidoka instructions` passes its line and word budgets, and
+`bunx jidoka invariants` passes `agents.naming-convention`, which
+`skill-genericity.rules.mjs` owns.
