@@ -239,7 +239,10 @@ the published pack requires:
 - The `**Settings diffs.**` bold lead-in inside § Step 6, not a navigable
   heading.
 
-Write the surface as a class, not as this monorepo's paths: "a diff that touches
+Write the rule conditionally, as step 7 writes the killswitch rule, because the
+pack ships to installations that run no watchdog: "where the repository runs an
+activity watchdog". Then write the surface as a class, not as this monorepo's
+paths: "a diff that touches
 `.kata/`, or the repository's activity-watchdog surface (its workflow, its
 composite action home, its CLI bin, and its guardrail library), merges only on a
 trusted human's explicit signal pinned to the approved head." Name no package,
@@ -255,7 +258,8 @@ not: `L7_MAX_WORDS_PER_ITEM` is 32. Write it at 32 words or fewer, for example
 trusted human's signal pinned to the approved head. No agent approval
 qualifies." (24 words).
 
-Verify: `bunx jidoka instructions` and `bunx jidoka invariants` pass, and
+Verify: `bunx jidoka instructions` passes, `bunx jidoka invariants` passes
+`skills.monorepo-specific`, whose globs cover `.claude/skills/kata-*/**`, and
 `rg 'watchdog' .claude/skills/kata-release-merge/SKILL.md` returns both homes.
 
 ## Step 6: Extend the Dependabot triage to the action

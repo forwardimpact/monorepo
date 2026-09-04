@@ -23,6 +23,14 @@ Modified: `.claude/skills/kata-setup/SKILL.md`,
 `KATA.md:193` carries the fourth home. Part 05 changes it, in the same edit that
 adds the watchdog paragraph.
 
+`.claude/skills/kata-setup/SKILL.md` measures 1268 of 1280 words and **192 of
+192 lines**. It passes today with zero line headroom, and `.rumdl.toml` sets
+`reflow = true` at 80 columns inside `bun run check`, so the replacement takes
+the line-199 bullet past 80 characters and wraps it to a second line. Step 3
+adds a third. Free at least **3 lines and 40 words** in this file **before**
+either edit. The § Next steps bullet list is the candidate: two of its bullets
+restate content the referenced settings pages already carry.
+
 Write the skill file through
 `echo … | bunx gemba-selfedit .claude/skills/kata-setup/SKILL.md` when settings
 block the direct edit.
@@ -69,7 +77,8 @@ one step 1 already trimmed; that trim must cover this step's added report line
 as well, so free 3 lines there, not 2.
 `.claude/skills/kata-setup/references/github-app.md` measures 680 of its
 768-word L6 cap and 114 of 128 lines. This step adds roughly 99 words and a
-dozen lines, so trim at least 35 words and 12 lines first. The § Event
+dozen lines. The dozen lines fit inside the 14-line headroom, so trim words
+only: at least 35. The § Event
 Subscriptions preamble is the candidate.
 
 Line 31 reads "Under **Permissions**, set the **repository permissions**
@@ -121,8 +130,8 @@ Text changes:
 | 125 | "Four published composite actions run the same steps" | "Five published composite actions run the same steps" |
 | 131 | "Install the five commands" | "Install the six commands" |
 | 135 | surface-name "Four composite actions" | "Five composite actions" |
-| 137 | `surface-desc` names four actions: `gemba-bootstrap`, `gemba-harness`, `gemba-wiki`, `gemba-benchmark` | the same list plus `gemba-watchdog` |
-| 163 | "the same five commands" and "the same four actions" | unchanged. The sentence describes what Kata's skills call and what Kata's workflows pin. No Kata skill invokes `gemba-watchdog`, and `watchdog.yml` is deliberately not a Kata workflow, so both counts stay correct. |
+| 136 | `surface-desc` names four actions: `gemba-bootstrap`, `gemba-harness`, `gemba-wiki`, `gemba-benchmark` | the same list plus `gemba-watchdog` |
+| 163 | "Its skills call the same five commands. Its workflows pin the same four actions" | "Its skills call five of the six commands. Its workflows pin four of the five actions". No Kata skill invokes `gemba-watchdog` and `watchdog.yml` is deliberately not a Kata workflow, so the counts stay four and five; the wording stops leaning on "the same", which loses its referent once the page reads six and five. |
 
 Add one `step-card` after the `Measure` card, which closes at line 115:
 
@@ -192,8 +201,8 @@ Modified: `websites/gemba/assets/main.css`
 | 921-923 | The comment reads "The first four dots stagger by sibling position". Make it five |
 | 924-941 | The reveal stagger keys `animation-delay` on `.trace-dot:nth-of-type(1)` through `(4)` at 80/200/320/440ms, then `.trace-dot-live` at 560ms. Add `:nth-of-type(5)` at 560ms and move `.trace-dot-live` to 680ms |
 | 944-946 | `.trace-glow` holds a 560ms delay inside its `animation` shorthand. Move it to 680ms so the rings light with the nib they surround, not one station early |
-| 1010-1019 | `@keyframes traceLamp` lights each dot for the `0%`-`20%` window. At a `3.6s` period that is 720ms against a 600ms station step, so two dots light at once. Move the stops to `16.66%` / `16.67%` |
 | 990-1008 | The `traceLamp` cycle keys `(1)` through `(4)` at 0/600/1200/1800ms (lines 990-1004) and `.trace-dot-live` at 2400ms (lines 1006-1008) over a `3s` period. Add `:nth-of-type(5)` at 2400ms, move `.trace-dot-live` to 3000ms, and lengthen the `animation` period at line 987 from `3s` to `3.6s` so six stations divide it evenly |
+| 1010-1019 | `@keyframes traceLamp` lights each dot for the `0%`-`20%` window. At a `3.6s` period that is 720ms against a 600ms station step, so two dots light at once. Move the stops to `16.66%` / `16.67%` |
 
 Verify: `bunx fit-doc build` renders one row of six cards above 960px, and the
 lamp animation visits six stations in order.
@@ -202,7 +211,7 @@ lamp animation visits six stations in order.
 
 Keep the agent-readable summary in step with the site.
 
-Modified: `websites/gemba/llms.txt`
+Modified: `websites/gemba/llms.txt`, `websites/gemba/docs/index.md`
 
 - Lines 3-4 enumerate the loop as five verbs: "Stand up the environment, run
   agent sessions, read the traces, keep the memory, and measure the outcomes."
