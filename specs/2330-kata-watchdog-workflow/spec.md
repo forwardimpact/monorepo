@@ -174,10 +174,10 @@ incident.
 | `websites/gemba/index.md`, `websites/gemba/llms.txt` | The loop gains a sixth step, `Guard`. The command count moves from five to six, and the published-action count from four to five. |
 | `kata-setup` GitHub App reference | The Kata App permission table gains `Variables: read & write`. The page states that the App holds no `Secrets` permission and why. |
 | `kata-setup` SKILL.md | The setup report names the variables permission and the reason for it. |
-| Agent skills that write to GitHub | One rule: no agent writes `KATA_KILLSWITCH`. Only a human clears it, and only the watchdog sets it. |
+| A shared agent reference, loaded by every agent profile | One rule: no agent writes the repository's agent killswitch variable. A human clears it by writing a falsy value. Where the repository runs an activity watchdog, that watchdog is the only automatic writer. |
 | `KATA.md` § Killswitch | State that this repository also runs a watchdog that engages the variable automatically, name the four counters, and state that the watchdog itself does not gate on the variable. |
 | `.github/CLAUDE.md` § Third-party actions, and the generated tables | Add the `gemba-watchdog` row to the sibling-action table, then reseed the `sibling-composite-actions` fences in `CLAUDE.md`, `KATA.md`, and `.github/CLAUDE.md`. Regenerate the library catalog and count with `bun run context:fix`. |
-| `kata-release-merge` and `kata-security-update` skills | Add the four watchdog paths (workflow, action, CLI bin, library) to the trust-sensitive rule that already covers `.kata/`. The merge gate carries it in both of its homes. The security-update skill needs it because Dependabot pull requests against the action route around the merge gate. |
+| `kata-release-merge` and `kata-security-update` skills | Add the activity-watchdog surface (its workflow, its composite action home, its CLI bin, and its guardrail library) to the trust-sensitive rule that already covers `.kata/`, in the generic form the published pack requires. The merge gate carries it in both of its homes. The security-update skill needs it because Dependabot pull requests against the action route around the merge gate. |
 | `websites/kata/docs/continuous-improvement/index.md`, `websites/kata/docs/getting-started/index.md` | Qualify the two unqualified "every workflow" claims as "every Kata workflow", which is what they already mean and what the other two homes already say. |
 
 ### Excluded

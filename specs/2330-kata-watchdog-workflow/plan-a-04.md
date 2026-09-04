@@ -121,8 +121,8 @@ Text changes:
 | 125 | "Four published composite actions run the same steps" | "Five published composite actions run the same steps" |
 | 131 | "Install the five commands" | "Install the six commands" |
 | 135 | surface-name "Four composite actions" | "Five composite actions" |
-| 137 | The `surface-desc` below it names exactly four actions (`gemba-bootstrap`, `gemba-harness`, `gemba-wiki`, `gemba-benchmark`). Add `gemba-watchdog` |  |
-| 163 | **Leave the whole sentence unchanged.** It describes what Kata's skills call and what Kata's workflows pin. No Kata skill invokes `gemba-watchdog`, and `watchdog.yml` is deliberately not a Kata workflow, so both "five commands" and "four actions" stay correct. |  |
+| 137 | `surface-desc` names four actions: `gemba-bootstrap`, `gemba-harness`, `gemba-wiki`, `gemba-benchmark` | the same list plus `gemba-watchdog` |
+| 163 | "the same five commands" and "the same four actions" | unchanged. The sentence describes what Kata's skills call and what Kata's workflows pin. No Kata skill invokes `gemba-watchdog`, and `watchdog.yml` is deliberately not a Kata workflow, so both counts stay correct. |
 
 Add one `step-card` after the `Measure` card, which closes at line 115:
 
@@ -193,7 +193,7 @@ Modified: `websites/gemba/assets/main.css`
 | 924-941 | The reveal stagger keys `animation-delay` on `.trace-dot:nth-of-type(1)` through `(4)` at 80/200/320/440ms, then `.trace-dot-live` at 560ms. Add `:nth-of-type(5)` at 560ms and move `.trace-dot-live` to 680ms |
 | 944-946 | `.trace-glow` holds a 560ms delay inside its `animation` shorthand. Move it to 680ms so the rings light with the nib they surround, not one station early |
 | 1010-1019 | `@keyframes traceLamp` lights each dot for the `0%`-`20%` window. At a `3.6s` period that is 720ms against a 600ms station step, so two dots light at once. Move the stops to `16.66%` / `16.67%` |
-| 989-1009 | The `traceLamp` cycle keys `(1)` through `(4)` at 0/600/1200/1800ms (lines 989-1005) and `.trace-dot-live` at 2400ms (lines 1007-1009) over a `3s` period. Add `:nth-of-type(5)` at 2400ms, move `.trace-dot-live` to 3000ms, and lengthen the `animation` period at line 987 from `3s` to `3.6s` so six stations divide it evenly |
+| 990-1008 | The `traceLamp` cycle keys `(1)` through `(4)` at 0/600/1200/1800ms (lines 990-1004) and `.trace-dot-live` at 2400ms (lines 1006-1008) over a `3s` period. Add `:nth-of-type(5)` at 2400ms, move `.trace-dot-live` to 3000ms, and lengthen the `animation` period at line 987 from `3s` to `3.6s` so six stations divide it evenly |
 
 Verify: `bunx fit-doc build` renders one row of six cards above 960px, and the
 lamp animation visits six stations in order.
@@ -238,9 +238,11 @@ Modified: `.claude/skills/gemba/SKILL.md`
   `forwardimpact/gemba-watchdog` action is the same guard step in CI.
 - Line 50's "The loop is **stand up → run → see → remember → measure**" gains
   "→ stop", so the published skill and the site agree on the loop's length.
-- The `**Operate the loop**` list carries four bullets for what is now a
-  six-step loop. Leave the bullets as they are and let the new Guard bullet
-  carry the sixth step, or the list and the loop disagree twice over.
+- The `**Operate the loop**` list carries four bullets (Run, See, Remember,
+  Measure) and omits Stand up, which the bring-up bullets above already cover.
+  Leave those four alone. The sixth step arrives as the new `gemba-watchdog`
+  bullet under the existing `**Guard the loop:**` heading, so the two headings
+  together carry all six steps.
 - The `## Documentation` list gains
   `[Guard an Agent Team's Activity](https://www.gemba.team/docs/guard-activity/index.md)`.
 

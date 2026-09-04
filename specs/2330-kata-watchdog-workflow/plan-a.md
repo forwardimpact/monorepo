@@ -40,7 +40,7 @@ success criterion 12 on 2026-09-04.
 | The rollout order swaps two middle steps | design-a.md § Contracts orders sibling seed, matrix entry, subtree split, manifest entry, binary release. The plan cuts the binary release before the action lands, so the action can ship a real `gear-release` default rather than a placeholder its published copy would carry to external consumers. |
 | The sixth step carries three names | The site step is `Stop` (design), the guide slug is `guard-activity` (spec), and the docs-index heading is "Guard an Agent Team". One concept, three vocabularies. The plan keeps all three because the spec and design each fix one, and the third follows the docs-index heading convention. The approver may collapse them. |
 | **Settled: success criterion 12 amended** | The criterion required `kata-release-merge` and `kata-security-update` to name four monorepo paths literally. Both publish in `kata-skills`, where `.claude/skills/CLAUDE.md` § No monorepo leakage forbids that, and spec.md § Excluded ships no watchdog workflow to installations, so the literal list would have taught every installation about files it does not have. The repo-local alternative was closed: agent profiles are exempt from `skill-genericity`, but `release-engineer.md` measures 448 of its 448-word cap. The approver amended the criterion to require the generic surface form part 03 lands. |
-| **Settled: success criterion 12's second clause amended** | The clause required "the agent skills that write to GitHub" to carry the killswitch rule. That set is unbounded and grows, restating the rule per skill would read as layer drift, and `x-coordination-protocol.md` sits at 1278 of 1280 words with a § Creating outputs that maps tracker operations rather than write prohibitions. The approver amended the criterion to require one shared agent reference every profile loads, which is what part 03 step 7 creates. |
+| **Settled: success criterion 12's second clause amended** | The clause required "the agent skills that write to GitHub" to carry the killswitch rule. That set is unbounded and grows, restating the rule per skill would read as layer drift, and `x-coordination-protocol.md` sits at 1278 of 1280 words with a § Creating outputs that maps tracker operations rather than write prohibitions. The approver amended the criterion to require one shared agent reference that **every agent profile loads**. Part 03 step 7 creates the reference and links it from all eight profiles, trimming `release-engineer.md` and `product-manager.md` first, because each bullet costs about 5 words against a 448-word L3 cap. |
 
 ## Parts
 
@@ -101,6 +101,8 @@ success criterion 12 on 2026-09-04.
   | `.claude/skills/kata-setup/references/github-app.md` | L6 | 768 w / 128 l | 680 / 114 | 88 w / 14 l |
   | `.claude/skills/kata-security-update/SKILL.md` | L5 | 1280 w / 192 l | 1216 / 177 | 64 w / 15 l |
   | `.claude/skills/kata-release-merge/SKILL.md` | L5 | 2304 w / 320 l | 1849 / 287 | 455 w / 33 l |
+  | `.claude/agents/release-engineer.md` | L3 | 448 w / 72 l | 448 / 68 | **0 w** / 4 l |
+  | `.claude/agents/product-manager.md` | L3 | 448 w / 72 l | 447 / 70 | **1 w** / 2 l |
 
   Two checklist caps bind separately: `L7_MAX_ITEMS = 9` and
   `L7_MAX_WORDS_PER_ITEM = 32`. `kata-security-update`'s DO-CONFIRM block holds

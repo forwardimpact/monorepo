@@ -100,11 +100,13 @@ Created: `libraries/libwatchdog/src/request.js`
   `createRetry({ retries, sleep: (ms) => clock.sleep(ms) })` from
   `@forwardimpact/libutil`, which gives five attempts with exponential backoff
   and jitter and already retries 429, 499, and 5xx.
-- Inside the retried function, a `403` whose `x-ratelimit-remaining: 0` header
-  marks a rate limit throws `new Error("HTTP 429: rate limited")`, so `Retry`'s
-  retryable-error path covers it. Read the header, not the body: consuming the
-  body inside the retried function would leave the returned `Response` unusable
-  for the JSON parse that follows. If the body is needed, `res.clone()` first.
+- Inside the retried function, a rate-limited `403` throws
+  `new Error("HTTP 429: rate limited")`, so `Retry`'s retryable-error path
+  covers it. Two forms count: `x-ratelimit-remaining: 0` marks a primary limit,
+  and a secondary limit carries a non-zero remaining with the reason in the
+  body. Test the header first, and read the body only from `res.clone()`,
+  because consuming the original would leave the returned `Response` unusable
+  for the JSON parse that follows.
 - The retried function returns the `Response` unchanged, so `Retry` can read its
   status. `createRequest` raises `new Error(\`GitHub
   \${status} on \${path}\`)` **after** `Retry.execute` resolves, never inside it. Raised inside, the message would not match `#isRetryableError`'s `/http
@@ -143,9 +145,15 @@ computed over the raw page, never over the filtered set, so `issuesProbe`
 discarding `pull_request` entries cannot turn an uncovered page into a covered
 one. No probe pages.
 
-`commentsProbe` uses `covered = page.length < 100` alone. `commitsProbe` filters
-`since` server-side, so its timestamp escape can never fire either and it
-degenerates to the same test.
+Two probes reduce that rule to its first half. `commitsProbe` filters `since`
+server-side, so no returned commit predates the cutoff and the timestamp escape
+can never fire. `commentsProbe` drops the escape deliberately: its `since`
+filter reads `updated_at` while its count reads `created_at`, so an old comment
+edited inside the window occupies a page slot, sorts last under
+`direction=desc`, and would satisfy the escape on a full page. That would report
+`covered: true` while newer qualifying comments stayed hidden behind the page.
+Both therefore use `covered = page.length < 100`. `pullsProbe` and `issuesProbe`
+keep the full rule.
 Its `since` filter reads `updated_at` while its count reads `created_at`, so an
 old comment edited inside the window occupies a page slot, sorts last under
 `direction=desc`, and would satisfy `oldest(page) < cutoff` on a full page. That
@@ -365,7 +373,7 @@ Tests import from `node:test` and `node:assert`, and take the runtime from
 fixture pages of commits, pull requests, issues, and comments at chosen offsets
 from a fixed `now`, plus a stub `request` that maps a path prefix to a response.
 Seed the clock: `createMockClock` starts virtual time at 0, so
-`createTestRuntime({ clock: { start: Date.parse("2026-09-02T16:49:00Z") } })`,
+`createTestRuntime({ clock: createMockClock({ start: Date.parse("2026-09-02T16:49:00Z") }) })`,
 or the cutoff resolves to 1969 and every fixture offset misses.
 
 The suite covers the six spec cases plus the four ordering cases:

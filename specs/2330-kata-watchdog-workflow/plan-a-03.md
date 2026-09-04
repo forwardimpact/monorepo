@@ -246,7 +246,7 @@ trusted human's explicit signal pinned to the approved head." Name no package,
 no workflow filename, and no path under `libraries/` or `products/`.
 `.claude/skills/CLAUDE.md` § No monorepo leakage forbids them here, and
 `.jidoka/invariants/skill-genericity.rules.mjs` scans this file. plan-a.md
-§ Scope notes records the conflict with success criterion 12's literal wording.
+§ Scope notes records how the approver settled criterion 12 on this point.
 
 `.claude/skills/kata-release-merge/SKILL.md` measures 1849 of its 2304-word L5
 cap and 287 of 320 lines, so the prose home has room. The checklist item does
@@ -272,7 +272,12 @@ The DO-CONFIRM block already holds 9 items, which is `L7_MAX_ITEMS` in
 
    | Check | Policy source | Failure action |
    | ----- | ------------- | -------------- |
-   | Watchdog-surface diff | `kata-release-merge` § Settings diffs | **skip** — a trusted human's signal gates it |
+   | `.kata/` or activity-watchdog-surface diff | `kata-release-merge` § Settings diffs | **skip** — a trusted human's signal gates it |
+
+   Name the surface in the same generic four-element form step 5 uses: the
+   watchdog's workflow, its composite action home, its CLI bin, and its
+   guardrail library, alongside `.kata/`. Criterion 12 requires both skills to
+   carry the pair.
 
    The policy source cites a durable skill section. Do not write `spec 2330`:
    `.jidoka/invariants/temporal.rules.mjs` matches `\bspec[- ][0-9]{2,5}\b` and
@@ -293,9 +298,10 @@ two sentences restate what the table's own column headings say.
 Verify: `bunx jidoka instructions` passes with no `L7` and no word-budget
 finding, and `bun run context:check-dependabot` passes unchanged.
 
-## Step 7: State the killswitch rule once
+## Step 7: State the killswitch rule once, where every agent loads it
 
-Give the containment a home that fits its budget and its topic.
+Give the containment a home that fits its budget and its topic, and link it
+from every agent profile.
 
 Created: `.claude/agents/x-killswitch.md`
 
@@ -319,23 +325,41 @@ The second rule is conditional because the pack ships to installations that run
 no watchdog. `.claude/skills/CLAUDE.md` § The litmus test asks whether every
 line holds in a repository that installed the pack yesterday.
 
+Modified: all eight `.claude/agents/*.md` profiles
+
+Success criterion 12 requires every agent profile to load the reference, so each
+gains one bullet beside its existing `**Memory**` / `**Coordination**` links:
+
+```markdown
+- **Killswitch**: [killswitch](.claude/agents/x-killswitch.md)
+```
+
+The bullet costs about 5 words against the L3 cap of 448 words and 72 lines.
+Six profiles absorb it. Two do not, and each needs a trim first:
+
+| Profile | Words | Headroom | Action |
+| ------- | ----- | -------- | ------ |
+| `release-engineer.md` | 448 | **0** | Trim at least 6 words before the bullet lands |
+| `product-manager.md` | 447 | **1** | Trim at least 5 words before the bullet lands |
+| `archivist.md` | 421 | 27 | Add the bullet |
+| `technical-writer.md` | 421 | 27 | Add the bullet |
+| `staff-engineer.md` | 420 | 28 | Add the bullet |
+| `improvement-coach.md` | 419 | 29 | Add the bullet |
+| `security-engineer.md` | 385 | 63 | Add the bullet |
+| `devex-engineer.md` | 372 | 76 | Add the bullet |
+
 Modified: `.claude/skills/kata-release-merge/SKILL.md`,
 `.claude/skills/kata-security-update/SKILL.md`
 
 Each gains one pointer line to `../../agents/x-killswitch.md`.
 `kata-release-merge` carries such links already; `kata-security-update` carries
 none today, so its pointer joins the § Policy failure dispositions prose.
-Neither restates the rule, which `jidoka instructions` would read as layer
-drift.
-
-`kata-spec`, `kata-plan`, `kata-implement`, `kata-product-issue`, and
-`kata-session` also write GitHub artifacts and gain no pointer, because each
-costs a line in a file near its cap. plan-a.md § Scope notes records that
-narrowing against success criterion 12.
+Neither restates the rule.
 
 Write every `.claude/**` file through
 `echo … | bunx gemba-selfedit <path>` when settings block the direct edit.
 
-Verify: `bunx jidoka instructions` passes its line and word budgets, and
-`bunx jidoka invariants` passes `agents.naming-convention`, which
-`skill-genericity.rules.mjs` owns.
+Verify: `bunx jidoka instructions` passes its line and word budgets for all
+eight profiles, `bunx jidoka invariants` passes `agents.naming-convention`, and
+`rg -l 'x-killswitch' .claude/agents/*.md | wc -l` returns 9 (eight profiles
+plus the reference itself).
