@@ -122,10 +122,10 @@ killswitch when the activity crosses a fixed threshold.
 12. **The containment is a gate, not a permission boundary.** Agent sessions run
     under that same Kata App token, so an agent that calls the variables API can
     clear the switch that stopped it. Three controls stand against that, and
-    none is a permission boundary: the agent skills state that no agent writes
-    the killswitch; the trust-sensitive merge rule that already covers `.kata/`
-    extends to all four watchdog paths, in both the merge gate and the
-    Dependabot triage; and the run summary of every watchdog run records the
+    none is a permission boundary: a shared agent reference states that no agent
+    writes the killswitch; the trust-sensitive merge rule that already covers
+    `.kata/` extends to the whole watchdog surface, in both the merge gate and
+    the Dependabot triage; and the run summary of every watchdog run records the
     variable's current value, so an unexplained clear is visible within 15
     minutes. Moving the logic into a published library widens that review
     surface and adds no new route, because the action pins one exact CLI
@@ -216,7 +216,7 @@ incident.
 | 9 | The watchdog is outside the `kata-*` family and does not gate on the killswitch. | The workflow file does not match `.github/workflows/kata-*.yml`, it contains no killswitch gate step, and `bunx jidoka invariants` passes with no change to the `kata-workflows` enumeration topic. |
 | 10 | The watchdog runs no agent and reads no repository data. | The workflow uses no agent-running action and no `actions/checkout` step. The action installs the CLI as a pinned, SHA-verified binary, so no dependency tree resolves at run time. |
 | 11 | The credential is scoped to variables and excludes secrets. | The `kata-setup` GitHub App permission table carries `Variables: read & write` and no `Secrets` row, and states why. The watchdog uses `secrets.KATA_APP_ID` and `secrets.KATA_APP_PRIVATE_KEY`, so no new secret is added. |
-| 12 | The containment is stated, not implied. | The agent skills that write to GitHub carry the "no agent writes `KATA_KILLSWITCH`" rule. `.claude/skills/kata-release-merge/SKILL.md` names the four watchdog paths in both the checklist item and the prose that carries the `.kata/` rule, and `.claude/skills/kata-security-update/SKILL.md` names them for Dependabot pull requests. The action README states the residual. |
+| 12 | The containment is stated, not implied. | `.claude/skills/kata-release-merge/SKILL.md` and `.claude/skills/kata-security-update/SKILL.md` each make the repository's activity-watchdog surface — its workflow, its composite action home, its CLI bin, and its guardrail library — trust-sensitive alongside `.kata/`, in the generic form the published pack requires. A shared agent reference carries the "no agent writes the killswitch variable" rule, and every agent profile loads it. The action README states the residual. |
 | 13 | The brake is platform surface, and it names no tenant. | `libwatchdog` and the CLI contain no occurrence of `KATA_KILLSWITCH`, and the variable name reaches the CLI as a required option. `libraries/libwatchdog/` ships `package.json` metadata, a README, `src/`, and `test/`. `products/gemba/package.json` declares the bin and the dependency. The guide, the skill, and the CLI `documentation` array carry the same entry. |
 | 14 | Orientation is current. | `KATA.md` § Killswitch states the automatic writer, the four counters, and the exemption. `.github/CLAUDE.md` lists `gemba-watchdog` among the published actions. The Gemba site names the sixth loop step. Neither of the two Kata pages carries an unqualified "every workflow" claim. |
 | 15 | Repository checks stay green. | `bun run check`, `bun run test`, and `bunx jidoka invariants` pass, including `public-cli-set` and `enumeration-drift`. |
