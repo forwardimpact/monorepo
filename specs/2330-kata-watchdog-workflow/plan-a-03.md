@@ -3,9 +3,9 @@
 The published action, its publication legs, its row in the action table, and the
 review rules that guard the watchdog's own surface.
 
-Depends on: part 06 steps 1 and 2. The sibling repository must exist before the
-matrix leg merges, and the gear release must exist before the action can carry a
-real `gear-release` default. Route: `staff-engineer`.
+Depends on: part 06 steps 1 to 3. The sibling repository must exist before the
+matrix leg merges, and the gear release must exist before the action can carry
+real `gear-release` and `installer-sha256` defaults. Route: `staff-engineer`.
 
 ## Step 1: Write the composite action
 
@@ -31,13 +31,20 @@ it never clears the latch, and that it checks no repository out.
 | `token` | no | `""` | Read-only token for `assess` |
 | `app-id` | no | `""` | App id for the `engage` token mint |
 | `app-private-key` | no | `""` | App key for the `engage` token mint |
-| `gear-release` | no | the tag part 06 step 2 cut | The release the installer pins |
+| `gear-release` | no | the tag part 06 step 3 cut | The release the installer pins |
+| `installer-sha256` | yes | — | SHA-256 of that release's `fit-install.sh` asset |
 
 `threshold` and `window-hours` carry `required: true` and no `default:`, so
-success criterion 2 holds and no second copy of either number exists. `variable`
-is optional because `assess` needs none; see plan-a.md § Scope notes.
-`gear-release` defaults to the real tag part 06 step 2 cut, never a placeholder,
-because the subtree split publishes this file to external consumers.
+success criterion 2 holds and no second copy of either number exists. A
+composite action's `required:` is documentation, not a runner-enforced gate, so
+the assess step also fails fast on an empty `threshold`. `variable` is optional
+because `assess` needs none, and `threshold` reaches only the assess step, so
+the engage job passes neither; see plan-a.md § Scope notes.
+`gear-release` defaults to the real tag part 06 step 3 cut, never a placeholder,
+because the subtree split publishes this file to external consumers. Nothing
+advances that default automatically: Dependabot does not bump composite-action
+input defaults and no invariant guards it, so a CLI change needs a hand bump.
+plan-a.md § Risks records the gap.
 
 Outputs, both mapped from the assess step's `$GITHUB_OUTPUT`:
 
@@ -53,25 +60,34 @@ outputs:
 
 Steps, each with the `id` its references need:
 
-1. **`id: install`.** A `bash` step that runs the released installer and then
-   refuses the npm fallback:
+1. **`id: install`.** Download the installer, verify it, run it, and refuse the
+   npm fallback:
 
-   ```bash
-   out=$(curl -fsSL "https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}/fit-install.sh" \
-     | bash -s -- --only gemba-watchdog)
-   printf '%s\n' "$out"
-   case "$out" in
-     *"(npm)"*)
-       echo "::error::gemba-watchdog resolved through the npm channel; this action requires the pinned, SHA-verified release binary"
-       exit 1 ;;
-   esac
-   echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+   ```yaml
+     shell: bash
+     env:
+       GEAR_RELEASE: ${{ inputs.gear-release }}
+       INSTALLER_SHA256: ${{ inputs.installer-sha256 }}
+     run: |
+       set -euo pipefail
+       base="https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}"
+       curl -fsSL -o fit-install.sh "${base}/fit-install.sh"
+       echo "${INSTALLER_SHA256}  fit-install.sh" | sha256sum -c -
+       # The installer's own FIT_GEAR_RELEASE default is stamped at publish
+       # time. Export it so the pin is this action's input, not that default.
+       out=$(FIT_GEAR_RELEASE="${GEAR_RELEASE}" bash fit-install.sh --only gemba-watchdog)
+       printf '%s\n' "$out"
+       case "$out" in
+         *"(npm)"*)
+           echo "::error::gemba-watchdog resolved through the npm channel; this action requires the pinned, SHA-verified release binary"
+           exit 1 ;;
+       esac
+       echo "$HOME/.local/bin" >> "$GITHUB_PATH"
    ```
 
-   `channels_for` in `fit-install.sh` returns `brew_gear release_gear npm` for
-   any `gemba-*` name, so a failed release download would otherwise install the
-   npm launcher and resolve the whole `@forwardimpact/gemba` closure the design
-   rejects. `ch_npm` marks its line `(npm)`, which is the guard's signal.
+   The input table gains `installer-sha256`, required, no default. Part 06 step
+   3 records the digest. `.github/actions/split-and-push/action.yml` is the
+   precedent: it pins its downloaded tool and runs `sha256sum -c`.
 
 2. **`id: token`.** `if: inputs.mode == 'engage'`, using
    `actions/create-github-app-token` pinned by SHA with a `# v3` comment, at the
@@ -83,6 +99,7 @@ Steps, each with the `id` its references need:
    interpolated into the command line:
 
    ```yaml
+     shell: bash
      env:
        GH_TOKEN: ${{ inputs.token }}
        REPOSITORY: ${{ inputs.repository }}
@@ -103,6 +120,7 @@ Steps, each with the `id` its references need:
    list, because `--dry-run` is a presence flag:
 
    ```yaml
+     shell: bash
      env:
        GH_TOKEN: ${{ steps.token.outputs.token }}
        REPOSITORY: ${{ inputs.repository }}
@@ -118,13 +136,8 @@ Steps, each with the `id` its references need:
        gemba-watchdog "${args[@]}"
    ```
 
-   Passing `--dry-run false` would set the flag true and leave `false` a stray
-   positional, so every scheduled engage run would silently dry-run and never
-   write. The conditional append is what prevents an inert brake.
-
-Neither mode passes an option the other's subcommand does not declare. libcli
-merges globals plus the matched subcommand's options only and calls `parseArgs`
-in strict mode, so a stray option aborts the run.
+Neither mode passes an option the other's subcommand does not declare, and
+`--dry-run` is appended only when the input is `true`.
 
 Created: `products/gemba/actions/gemba-watchdog/LICENSE`
 
@@ -164,8 +177,10 @@ Modified: `.github/workflows/publish-actions.yml`
 - `on.push.paths` gains `- "products/gemba/actions/gemba-watchdog/**"`.
 - `jobs.publish.strategy.matrix.action` gains
   `- prefix: products/gemba/actions/gemba-watchdog` with `repo: gemba-watchdog`.
-- The header comment moves from seven co-located actions to eight, and from four
-  agent-run actions under `products/gemba/actions/` to five.
+- The header comment moves from seven co-located actions to eight. Keep "the
+  four agent-run actions under products/gemba/actions/" as it stands and name
+  the watchdog separately: it runs no agent, which spec item 9 and success
+  criterion 10 both require.
 
 Part 06 step 1 has already created `forwardimpact/gemba-watchdog`, so the leg
 resolves on the merge that adds it. `fail-fast: false` means a missed step 1
@@ -201,9 +216,9 @@ headroom. Free at least the row's cost first, then add:
    `.github/CLAUDE.md` (count), `CLAUDE.md` (list), and `KATA.md` (both).
    `--seed` prints the canonical set. It has no write mode.
 
-Root `CLAUDE.md` measures 850 of 896 words and 189 of 192 lines, so the list
-fence gains one name with 46 words and 3 lines of headroom. Confirm after the
-reseed.
+Root `CLAUDE.md` measures 892 of 896 words and 189 of 192 lines. The list fence
+is one line, so adding `gemba-watchdog` costs one word and no line, inside the
+4-word headroom. Confirm after the reseed.
 
 Verify: `bunx jidoka instructions` and `bunx jidoka invariants` both pass.
 
@@ -229,8 +244,12 @@ no workflow filename, and no path under `libraries/` or `products/`.
 `.jidoka/invariants/skill-genericity.rules.mjs` scans this file. plan-a.md
 § Scope notes records the conflict with success criterion 12's literal wording.
 
-The file measures 1862 words with no L5 breach today. Confirm the added clause
-keeps it inside the cap.
+`.claude/skills/kata-release-merge/SKILL.md` measures 1849 of its 2304-word L5
+cap and 287 of 320 lines, so the prose home has room. The checklist item does
+not: `L7_MAX_WORDS_PER_ITEM` is 32. Write it at 32 words or fewer, for example
+"A diff touching `.kata/` or the activity-watchdog surface merges only on a
+trusted human's signal pinned to the approved head. No agent approval
+qualifies." (28 words).
 
 Verify: `bunx jidoka instructions` and `bunx jidoka invariants` pass, and
 `rg 'watchdog' .claude/skills/kata-release-merge/SKILL.md` returns both homes.
@@ -262,8 +281,13 @@ The DO-CONFIRM block already holds 9 items, which is `L7_MAX_ITEMS` in
    package-manager scan does reach the guardrail library through the workspace.
    That skill therefore guards the action by review and the library by triage.
 
-Verify: `bunx jidoka instructions` passes with no `L7` finding, and
-`bun run context:check-dependabot` passes unchanged.
+`.claude/skills/kata-security-update/SKILL.md` measures 1216 of its 1280-word
+L5 cap. Steps 6 and 7 add roughly 83 words between them, so trim at least 25
+words first. The § Policy failure dispositions preamble is the candidate: its
+two sentences restate what the table's own column headings say.
+
+Verify: `bunx jidoka instructions` passes with no `L7` and no word-budget
+finding, and `bun run context:check-dependabot` passes unchanged.
 
 ## Step 7: State the killswitch rule once
 
@@ -281,18 +305,29 @@ The file carries no `name`/`description` frontmatter, so the agent loader and
 than a profile. It states three rules in generic terms:
 
 - No agent writes the repository's agent killswitch variable.
-- Only the activity watchdog sets it. Only a human clears it, by writing a falsy
-  value. Deleting the variable is not clearing it.
+- A human clears it, by writing a falsy value. Deleting the variable is not
+  clearing it. Where the repository runs an activity watchdog, that watchdog is
+  the only automatic writer.
 - An agent that finds the team stopped reports the stop and waits. It does not
   work around it.
+
+The second rule is conditional because the pack ships to installations that run
+no watchdog. `.claude/skills/CLAUDE.md` § The litmus test asks whether every
+line holds in a repository that installed the pack yesterday.
 
 Modified: `.claude/skills/kata-release-merge/SKILL.md`,
 `.claude/skills/kata-security-update/SKILL.md`
 
-Each gains one pointer line to `../../agents/x-killswitch.md` beside its
-existing agent-reference links, so both skills that write to GitHub carry the
-rule by reference. Neither restates it, which `jidoka instructions` would read
-as layer drift.
+Each gains one pointer line to `../../agents/x-killswitch.md`.
+`kata-release-merge` carries such links already; `kata-security-update` carries
+none today, so its pointer joins the § Policy failure dispositions prose.
+Neither restates the rule, which `jidoka instructions` would read as layer
+drift.
+
+`kata-spec`, `kata-plan`, `kata-implement`, `kata-product-issue`, and
+`kata-session` also write GitHub artifacts and gain no pointer, because each
+costs a line in a file near its cap. plan-a.md § Scope notes records that
+narrowing against success criterion 12.
 
 Write every `.claude/**` file through
 `echo … | bunx gemba-selfedit <path>` when settings block the direct edit.

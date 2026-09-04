@@ -1,8 +1,9 @@
 # Plan 2330-a Part 06: Operator steps
 
-Three steps no agent can run, at three points in the sequence. Step 1 gates part
-03's publish leg and part 05's engage job. Step 2 gates part 03's
-`gear-release` default. Step 3 gates part 05's action pin.
+Four steps no agent can run, at three points in the sequence. Step 1 gates part
+03's publish leg and part 05's engage job. Steps 2 and 3 gate part 03's
+`gear-release` and `installer-sha256` defaults. Step 4 gates part 05's action
+pin.
 
 Route: an operator with GitHub organization admin rights. Each step is
 independently executable at its own slot. The plan-a.md § Parts index lists each
@@ -32,32 +33,51 @@ Verify: the App's permission page lists `Variables: Read & write` at repository
 scope, `Variables: Read-only` at organization scope, and no `Secrets` row at
 either; and `forwardimpact/gemba-watchdog` resolves.
 
-## Step 2: Cut the gear release that carries the binary
+## Step 2: Publish the npm packages
 
-Create the tag part 03 writes into the action as a real default.
+Make `npx gemba-watchdog` resolve for the readers the new guide instructs.
 
-Depends on: part 02 merged to `main`. Must precede part 03.
+Depends on: part 02 merged to `main`. Must precede part 3.
+
+Modified: the monorepo's release tags.
+
+`.github/workflows/publish-npm.yml` fires on `*@v*` tags only, so nothing
+publishes without one. Part 02 makes `libwatchdog` a runtime dependency of the
+published `@forwardimpact/gemba` package and ships a launcher whose whole
+purpose is the `npx gemba-watchdog` the guide teaches.
+
+1. Cut `@forwardimpact/libwatchdog` through
+   [`kata-release-cut`](../../.claude/skills/kata-release-cut/SKILL.md),
+   producer before consumer.
+2. Cut `@forwardimpact/gemba`, which carries the new bin and the dependency.
+3. Confirm the registry serves both, and that the bare `gemba-watchdog` launcher
+   published at the same version.
+
+Verify: `npx gemba-watchdog --version` prints a semver line on a clean host with
+no repository checkout.
+
+## Step 3: Cut the gear release that carries the binary
+
+Create the tag and digest part 03 writes into the action as real defaults.
+
+Depends on: step 2. Must precede part 03.
 
 Modified: the monorepo's release tags.
 
 1. Cut a `gear@v*` release from a `main` commit that carries part 02's
-   `build/cli-manifest.json` entry, through
-   [`kata-release-cut`](../../.claude/skills/kata-release-cut/SKILL.md).
+   `build/cli-manifest.json` entry, through `kata-release-cut`.
 2. Confirm the release publishes `gemba-watchdog-bun-linux-x64`, its `.sha256`
    sidecar, and the `fit-install.sh` asset stamped with that tag.
-3. Record the tag. Part 03 step 1 sets it as the action's `gear-release`
-   default.
-
-Cutting the release before the action lands is what lets the action ship a real
-tag. The subtree split publishes that file to external consumers, so a
-placeholder default would 404 for anyone who omits the input.
+3. Record the tag and `sha256sum` the released `fit-install.sh` asset. Part 03
+   step 1 sets both as the action's `gear-release` and `installer-sha256`
+   defaults.
 
 Verify:
 `curl -fsSL https://github.com/forwardimpact/monorepo/releases/download/<tag>/fit-install.sh | bash -s -- --only gemba-watchdog`
 installs the binary on a clean Linux x64 host, prints no `(npm)` marker, and
 `gemba-watchdog --version` prints a semver line.
 
-## Step 3: Publish and tag the sibling action
+## Step 4: Publish and tag the sibling action
 
 Create the SHA part 05 pins.
 
@@ -66,15 +86,17 @@ Depends on: part 03 merged to `main`. Must precede part 05.
 Modified: `forwardimpact/gemba-watchdog`.
 
 1. Run `Publish: Actions` by hand, or let the merge push trigger it. The
-   `gemba-watchdog` leg seeds the sibling's `main` with the subtree split. This
-   is the lineage's one sanctioned force push. Every later run is a non-force
-   fast-forward.
+   `gemba-watchdog` leg seeds the sibling's `main` with the subtree split.
+   `.github/actions/split-and-push/action.yml` pushes a plain refspec with no
+   force flag, and seeding an empty repository is a fast-forward, so this needs
+   no exception.
 2. Tag the seeded commit `v1`.
 3. Record the commit SHA. Part 05 step 1 pins it on both `uses:` lines.
 
-Nothing edits the action after this tag. The `gear-release` default is already
-real, so no follow-up push advances the sibling head past the pinned SHA.
+Nothing edits the action after this tag. The `gear-release` and
+`installer-sha256` defaults are already real, so no follow-up push advances the
+sibling head past the pinned SHA.
 
 Verify: `forwardimpact/gemba-watchdog` holds the action at `v1`, its
-`action.yml` `gear-release` default is the tag from step 2, and the recorded SHA
+`action.yml` `gear-release` default is the tag from step 3, and the recorded SHA
 resolves on that repository.

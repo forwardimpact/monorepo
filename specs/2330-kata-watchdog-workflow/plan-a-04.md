@@ -3,7 +3,8 @@
 The resume rule in every home that states it, the two unqualified Kata claims,
 the Gemba site's sixth loop step and two counts, and the App permission table.
 
-Depends on: part 03. Route: `technical-writer`.
+Depends on: part 03. Route: `technical-writer` for steps 1 to 4, 7, and 8;
+`staff-engineer` for steps 5 and 6, which rewrite SVG geometry and CSS timing.
 
 ## Step 1: Correct the resume instruction in three homes
 
@@ -27,7 +28,8 @@ Write the skill file through
 block the direct edit.
 
 Verify: `rg 'unset it|Clear it to resume|Clear the variable to resume' -i
-websites/kata .claude/skills/kata-setup` returns nothing.
+websites/kata .claude/skills/kata-setup` returns nothing, and
+`bunx jidoka instructions` passes.
 
 ## Step 2: Qualify the two unqualified claims
 
@@ -62,8 +64,16 @@ Add one row to § Repository Permissions, after **Workflows**:
 | **Variables**     | Read & write | The watchdog engages the killswitch variable; organization-scope read resolves the effective value |
 ```
 
-Add a second section below it, because the file has no organization-permission
-home today and `latch.read()` pages the organization listing:
+`.claude/skills/kata-setup/references/github-app.md` measures 680 of its
+768-word L6 cap and 114 of 128 lines. This step adds roughly 99 words, so trim
+at least 35 words first. The § Event Subscriptions preamble is the candidate.
+
+Line 31 reads "Under **Permissions**, set the **repository permissions**
+below." Change it to name both tables.
+
+Add a second section below the first, because the file has no
+organization-permission home today and `latch.read()` pages the organization
+listing:
 
 ```markdown
 ## Organization Permissions
@@ -154,9 +164,9 @@ position: `stand-up`, `run`, `see`, `remember`, and `measure` sit on the five
 plain dots in that order, and the live dot at `(53, 8)` becomes
 `data-step="stop"`.
 
-The flat wordmark SVG at lines 11-17 (viewBox `0 0 64 4`) gains a sixth dot.
-Replace its five `cx` values with `6.5`, `16.7`, `26.9`, `37.1`, `47.3`, and
-`57.5`.
+The flat wordmark SVG at lines 11-17 (viewBox `0 0 64 4`) gains a sixth dot. Its
+five circles become six, with `cx` values `6.5`, `16.7`, `26.9`, `37.1`, `47.3`,
+and `57.5`.
 
 Verify: `bunx fit-doc build` renders the page, and each staircase copy holds
 five plain `trace-dot` circles plus one `trace-dot-live` circle, six stations in
@@ -170,16 +180,14 @@ Modified: `websites/gemba/assets/main.css`
 
 | Line | Change |
 | ---- | ------ |
-| 505 | `.step-grid` `grid-template-columns: repeat(5, 1fr)` becomes `repeat(6, 1fr)` |
+| 504 | `.step-grid` `grid-template-columns: repeat(5, 1fr)` becomes `repeat(6, 1fr)` |
 | 1088 | The `max-width: 960px` `.step-grid` rule stays at `repeat(3, 1fr)`, which divides six evenly |
 | 1107 | The `max-width: 768px` `.step-grid` rule stays at `repeat(2, 1fr)` |
 | 1135 | The `max-width: 480px` `.step-grid` rule stays at `1fr` |
+| 920-922 | The comment reads "The first four dots stagger by sibling position". Make it five |
 | 924-941 | The reveal stagger keys `animation-delay` on `.trace-dot:nth-of-type(1)` through `(4)` at 80/200/320/440ms, then `.trace-dot-live` at 560ms. Add `:nth-of-type(5)` at 560ms and move `.trace-dot-live` to 680ms |
-| 990-1005 | The `traceLamp` cycle keys `(1)` through `(4)` at 0/600/1200/1800ms and `.trace-dot-live` at 2400ms over a `3s` period. Add `:nth-of-type(5)` at 2400ms, move `.trace-dot-live` to 3000ms, and lengthen the `animation` period at line 987 from `3s` to `3.6s` so six stations divide it evenly |
-
-Without these, the sixth card orphans onto a second row at every breakpoint
-above 960px, the fifth plain dot reveals with no delay, and the lamp cycle skips
-a station.
+| 943-945 | `.trace-glow` holds a 560ms delay inside its `animation` shorthand. Move it to 680ms so the rings light with the nib they surround, not one station early |
+| 990-1008 | The `traceLamp` cycle keys `(1)` through `(4)` at 0/600/1200/1800ms (lines 990-1005) and `.trace-dot-live` at 2400ms (lines 1006-1008) over a `3s` period. Add `:nth-of-type(5)` at 2400ms, move `.trace-dot-live` to 3000ms, and lengthen the `animation` period at line 987 from `3s` to `3.6s` so six stations divide it evenly |
 
 Verify: `bunx fit-doc build` renders one row of six cards above 960px, and the
 lamp animation visits six stations in order.
@@ -190,6 +198,9 @@ Keep the agent-readable summary in step with the site.
 
 Modified: `websites/gemba/llms.txt`
 
+- Lines 3-4 enumerate the loop as five verbs: "Stand up the environment, run
+  agent sessions, read the traces, keep the memory, and measure the outcomes."
+  Add "and stop the team when it runs away", moving the conjunction.
 - "Five commands and four CI actions run one loop." becomes "Six commands and
   five CI actions run one loop." The sentence wraps across lines 4-5, so match
   it across the break rather than on one line.

@@ -45,19 +45,16 @@ Created: `libraries/libwatchdog/package.json`
   },
   "files": ["src/**/*.js", "README.md"],
   "scripts": { "test": "bun test test/*.test.js" },
-  "dependencies": { "@forwardimpact/libutil": "^0.1.100" },
-  "devDependencies": { "@forwardimpact/libmock": "^0.1.15" },
+  "dependencies": { "@forwardimpact/libutil": "^0.1.0" },
+  "devDependencies": { "@forwardimpact/libmock": "^0.1.0" },
   "engines": { "bun": ">=1.2.0", "node": ">=22.0.0" },
   "publishConfig": { "access": "public" }
 }
 ```
 
-`homepage` is `www.forwardimpact.team`, not the guide host.
-`scripts/check-metadata.mjs` maps only `products/gemba/`, `launchers/gemba-`,
-`products/kata/`, and `products/jidoka/` to per-product hosts, so every
-`libraries/*` package canonicalizes to the default, as `libharness`, `libwiki`,
-and `libxmr` all do. The library declares no `libcli` dependency. It exports the
-two handlers, and the CLI bin supplies the `InvocationContext`.
+`homepage` is the default host `scripts/check-metadata.mjs` computes for every
+`libraries/*` package. The dependency ranges match the dominant workspace
+ranges. The library declares no `libcli` dependency.
 
 Verify: `bun install` links the workspace and `bun run context:check-metadata`
 passes.
@@ -72,7 +69,7 @@ Created: `libraries/libwatchdog/src/truthy.js`,
 | Export | Signature | Contract |
 | ------ | --------- | -------- |
 | `isTruthy` | `(value) => boolean` | `false` for `null`, `undefined`, and, after `String(value).trim().toLowerCase()`, for `""`, `0`, `false`, `no`, `off`. `true` otherwise. It agrees with the four shell readers. |
-| `encodeReason` | `({ name, breaches, at }) => string` | Pipe-separated: `watchdog\|issues=47/32\|comments=38/32\|2026-09-02T16:49:00Z`. `name` leads, the ISO timestamp closes. |
+| `encodeReason` | `({ name, breaches, at }) => string` | Pipe-separated: `watchdog\|issues=47/32\|comments=38/32\|2026-09-02T16:49:00.000Z`. `name` leads, the ISO timestamp closes. |
 | `decodeReason` | `(value) => { name, breaches, at } \| null` | `null` when the value does not start with the name segment. |
 
 `encodeReason` orders breaches with `unreadable` and `uncovered` first, then
@@ -103,9 +100,11 @@ Created: `libraries/libwatchdog/src/request.js`
 - Inside the retried function, a `403` whose body or `x-ratelimit-remaining: 0`
   header marks a rate limit throws `new Error("HTTP 429: rate limited")`, so
   `Retry`'s retryable-error path covers it.
-- A non-2xx response after the retries throws
-  `new Error(\`GitHub \${status} on \${path}\`)`. A 404 throws the same way, and
-  the latch catches it.
+- The retried function returns the `Response` unchanged, so `Retry` can read its
+  status. `createRequest` raises `new Error(\`GitHub
+  \${status} on \${path}\`)` **after** `Retry.execute` resolves, never inside it. Raised inside, the message would not match `#isRetryableError`'s `/http
+  (\d{3})/` probe and the five-attempt contract would collapse to one. A 404
+  raises the same way, and the latch catches it.
 - It returns `{ body, headers }` where `body` is the parsed JSON and `headers`
   carries `link` for the organization paging.
 
@@ -131,18 +130,21 @@ throws when it cannot read.
 | `issuesProbe` | `GET /repos/{repo}/issues?state=all&sort=created&direction=desc&per_page=100` | item at or after the cutoff, with no `pull_request` key | `item.created_at` |
 | `commentsProbe` | `GET /repos/{repo}/issues/comments?since={cutoff}&sort=created&direction=desc&per_page=100` | item at or after the cutoff | `item.created_at` |
 
+Each probe reads `page = (await request(path)).body`, the raw response array.
 One coverage rule serves all four:
-`covered = page.length < 100 || oldest(page) < cutoff`, where `page` is the raw
-response array and `oldest` reads that probe's timestamp field. Coverage is
+`covered = page.length < 100 || oldest(page) < cutoff`, where `oldest` reads
+that probe's timestamp field. Coverage is
 computed over the raw page, never over the filtered set, so `issuesProbe`
 discarding `pull_request` entries cannot turn an uncovered page into a covered
 one. No probe pages.
 
-`commentsProbe` is the one probe whose server-side filter (`since`) reads
-`updated_at` while its count reads `created_at`. A comment created before the
-cutoff and edited inside it therefore occupies a slot on the page without being
-counted, which can only push a full page toward `covered: false`. The direction
-is fail-safe, and the probe needs no compensation.
+`commentsProbe` takes the one exception: `covered = page.length < 100` alone.
+Its `since` filter reads `updated_at` while its count reads `created_at`, so an
+old comment edited inside the window occupies a page slot, sorts last under
+`direction=desc`, and would satisfy `oldest(page) < cutoff` on a full page. That
+would report `covered: true` while newer qualifying comments stayed hidden
+behind the page. Dropping the timestamp escape for this probe alone keeps the
+fail-safe pointing the right way.
 
 Verify: unit tests drive each probe against a fixture page and assert the count,
 plus a 100-item page held inside the window that reports `covered: false`.
@@ -255,8 +257,9 @@ Both handlers take the libcli `InvocationContext` and read `ctx.deps.runtime`.
 Both resolve `--repo` from `runtime.proc.env.GITHUB_REPOSITORY` when the option
 is absent. The two option sets are disjoint, and each handler reads only its
 own. libcli merges globals plus the matched subcommand's options and calls
-`node:util` `parseArgs` in strict mode (`libraries/libcli/src/cli.js:75-100`),
-so an option one subcommand does not declare aborts the run.
+`node:util` `parseArgs` in strict mode (`libraries/libcli/src/cli.js:76-88`
+merges, `:90-92` parses), so an option one subcommand does not declare aborts
+the run.
 
 | Handler | Options it declares | Missing-option failure |
 | ------- | ------------------- | ---------------------- |
@@ -325,10 +328,16 @@ example that builds rules, evaluates them, and decides, and the seam table
 `https://www.gemba.team/docs/guard-activity/index.md`.
 
 Write the `BEGIN:description` and `BEGIN:catalog` markers as empty blocks and
-let `bun run context:fix` fill them. `jidoka jtbd --fix` owns that content.
+let `bun run context:fix` fill them. `scripts/check-metadata.mjs --fix` writes
+both.
+
+Add a JSDoc block with `@param` and `@returns` to every exported function in
+`src/`. `eslint.config.js` applies `jsdoc/require-jsdoc` with
+`publicOnly: true` to `libraries/**/*.js`, and `bun run jsdoc` runs inside
+`bun run check`.
 
 Verify: `bun run context:fix` writes the blocks, a second run is a no-op, and
-`bun run lint:md` passes.
+`bun run jsdoc` and `bun run lint:md` both pass.
 
 ## Step 10: Write the test suite
 
@@ -365,15 +374,32 @@ The suite covers the six spec cases plus the four ordering cases:
 Verify: `bun test libraries/libwatchdog/test/` passes and
 `bun run context:check-bun-test` reports no finding.
 
-## Step 11: Regenerate the catalog
+## Step 11: Regenerate the catalog inside the JTBD budget
 
-Let the generated library count and catalog row match the tree.
+Let the generated catalog match the tree without breaching an L2 cap.
 
-Modified: `libraries/README.md`, `websites/fit/gear/index.md`
+Modified: `libraries/README.md`, `websites/fit/gear/index.md`, `JTBD.md`
 
-Run `bun run context:fix`, then
-`bunx jidoka invariants --seed enumeration-drift` and reconcile the
-`libraries-list` count fence in `websites/fit/gear/index.md` against the printed
-set.
+`JTBD.md` measures 1660 of its 1664-word L2 cap. `collectJobGroups` in
+`libraries/libinvariant/src/jtbd.js` keys on `${entry.user}\0${entry.goal}`, and
+step 1's entry reuses `products/gemba`'s exact pair, so its `trigger`,
+`bigHire`, `littleHire`, and three `competesWith` fragments merge into that
+existing group and add roughly 70 words. Leaving the entry out instead fails
+`bun run context:check-jtbd`.
 
-Verify: `bun run check` and `bunx jidoka invariants` pass.
+1. Run `bun run context:fix`. It regenerates `libraries/README.md` and the
+   `JTBD.md` job groups.
+2. Measure `JTBD.md` with the checker's algorithm: strip frontmatter, count
+   `\S+`. Record the overshoot.
+3. Trim `JTBD.md` prose by at least the overshoot plus a 20-word margin. The
+   § Teams Using Agents narrative is the candidate: its Gemba and Kata
+   paragraphs restate Big Hires the generated groups below already carry.
+4. Run `bunx jidoka invariants --seed enumeration-drift` and reconcile the
+   `libraries-list` count fence in `websites/fit/gear/index.md` against the
+   printed set.
+5. Run `bun run test:gate` and commit the printed floor into
+   `scripts/test-gate.floor.json`. It reads `{ "floor": 4611 }` today, and this
+   part adds roughly forty tests.
+
+Verify: `bun run check`, `bun run test`, `bun run test:gate`, and
+`bunx jidoka instructions` all pass.

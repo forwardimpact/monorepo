@@ -3,7 +3,7 @@
 The scheduled workflow, its two jobs, its literal numbers, and the `KATA.md`
 paragraph that names it.
 
-Depends on: part 04, and part 06 step 3. Route: `staff-engineer`.
+Depends on: part 04, and part 06 step 4. Route: `staff-engineer`.
 
 ## Step 1: Write the workflow
 
@@ -59,7 +59,6 @@ jobs:
           mode: assess
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          variable: ${{ env.WATCHDOG_VARIABLE }}
           killswitch-value: ${{ vars[env.WATCHDOG_VARIABLE] }}
           default-branch: ${{ github.event.repository.default_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -83,16 +82,19 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-Replace `<sha>` with the commit SHA part 06 step 3 tags as `v1`. The action
+Replace `<sha>` with the commit SHA part 06 step 4 tags as `v1`. The action
 already carries the real `gear-release` default from part 03 step 1, so this
 workflow passes none.
 
-The engage job passes no `threshold`. The action forwards only the options each
-subcommand declares, and `engage` declares none.
+The assess job passes no `variable` and the engage job passes no `threshold`.
+The action forwards only the options each subcommand declares.
+
+`vars[env.WATCHDOG_VARIABLE]` is this repository's only dynamic `vars` index.
+If it does not evaluate, fall back to the literal `${{ vars.KATA_KILLSWITCH }}`
+and accept the second occurrence of the name; the summary is the only consumer.
 
 The workflow adds no `concurrency` group. Two engage jobs racing is harmless:
-the second reads a truthy value and skips. Cancelling an in-flight engage would
-drop the write, which is the one outcome the brake cannot afford.
+the second reads a truthy value and skips.
 
 Verify: `bunx jidoka invariants` passes with no change to the `kata-workflows`
 enumeration topic, and a `workflow_dispatch` run with `dry-run: true` reports
@@ -129,21 +131,31 @@ Verify: `bunx jidoka instructions` passes, `bunx jidoka invariants` passes, and
 
 ## Step 3: Confirm the brake end to end
 
-Prove the two paths on the first scheduled window after the merge.
+Prove the read path in CI and the write path by hand, before the brake matters.
 
 Modified: nothing.
 
-This step runs **after** the pull request merges. GitHub serves
-`workflow_dispatch` only from the default branch, so it is the one verification
-in this plan that cannot run on its own head.
+Steps 1 and 2 run after the pull request merges. GitHub serves
+`workflow_dispatch` only from the default branch, so they are the one
+verification in this plan that cannot run on its own head.
 
-1. Dispatch the workflow with `dry-run: true`. The assess job reports four
-   counts and a quiet or engage verdict. The engage job, when it runs, reports
-   both killswitch scopes and writes nothing.
-2. Read the assess run summary. It carries every count obtained, the
-   killswitch's current value, and the verdict.
-3. Confirm neither job checked the repository out and neither used an
+1. Dispatch the workflow. The assess job reports four counts, the killswitch's
+   current value, and a verdict, inside the 5-minute timeout.
+2. Confirm neither job checked the repository out and neither used an
    agent-running action.
+3. Prove the write path outside the workflow, because the engage job is gated on
+   a real breach and no dispatch can force one. An operator runs the CLI locally
+   with the App token against a throwaway variable name, never the killswitch:
 
-Verify: both runs finish inside the 5-minute timeout, and
-`gh variable list` shows `KATA_KILLSWITCH` unchanged.
+   ```sh
+   gemba-watchdog engage --repo <owner>/<repo> --variable WATCHDOG_SMOKE \
+     --reason "watchdog|smoke=1/1|$(date -u +%FT%TZ)" --window-hours 2
+   ```
+
+   It must exit 1, write the reason verbatim, and leave `KATA_KILLSWITCH`
+   untouched. Re-running it must exit 0 and skip, because the effective value is
+   now truthy. Delete `WATCHDOG_SMOKE` afterwards.
+
+Verify: the dispatched run finishes green, `gh variable list` shows
+`KATA_KILLSWITCH` unchanged throughout, and step 3 leaves no `WATCHDOG_SMOKE`
+behind.

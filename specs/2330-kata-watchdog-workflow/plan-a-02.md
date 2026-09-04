@@ -57,7 +57,9 @@ tenant. `--variable` has no default at all.
 ```
 
 Verify: `node products/gemba/bin/gemba-watchdog.js --help` renders both
-subcommands and exits 0.
+subcommands and exits 0, and
+`rg -c KATA_KILLSWITCH libraries/libwatchdog products/gemba/bin/gemba-watchdog.js`
+returns no match, which is success criterion 13's grep.
 
 ## Step 2: Declare the bin and the dependency
 
@@ -72,8 +74,8 @@ Modified: `products/gemba/package.json`
 
 Modified: `.github/workflows/publish-skills.yml`
 
-The `gemba` matrix entry's `apm-description` at line 59 enumerates the command
-family as "the harness, trace, benchmark, wiki, and xmr commands". Add
+The `gemba` matrix entry's `apm-description` value at line 61 enumerates the
+command family as "the harness, trace, benchmark, wiki, and xmr commands". Add
 `watchdog` to that list.
 
 The package declares no `exports` field, so Node's legacy resolution serves the
@@ -98,12 +100,20 @@ import "@forwardimpact/gemba/bin/gemba-watchdog.js";
 ```
 
 The manifest copies `launchers/gemba-xmr/package.json` with the name, the
-`bin` key, the `repository.directory`, and the description changed. `version`
+`bin` key, the `repository.directory`, and the description changed. Keep
+`homepage: https://www.gemba.team`: `scripts/check-metadata.mjs` maps the
+`launchers/gemba-` prefix to that host. `version`
 and the `@forwardimpact/gemba` pin both stay at the `0.0.0` placeholder.
 `publish-npm.yml` stamps the real versions.
 
 This directory is valid only once step 6 or step 7 publishes an
 `npx gemba-watchdog` invocation. Land all three in the same change.
+
+Modified: `.jidoka/invariants/public-cli-set.rules.mjs`
+
+Add `"gemba-watchdog"` to `SIBLING_ACTION_CLIS`, keeping the array sorted. The
+list names every CLI a published sibling action invokes. Without the entry the
+launcher's existence depends solely on the guide keeping its `npx` example.
 
 Verify: `bunx jidoka invariants` reports no `public-cli.*` finding.
 
@@ -113,7 +123,7 @@ Compile and ship the binary the composite action installs.
 
 Modified: `build/cli-manifest.json`
 
-Add one entry to `clis`, beside the other `gemba-*` members:
+Add one entry to the `clis` array:
 
 ```json
 {
@@ -156,7 +166,7 @@ naming the brake. The body covers, in order:
 | `engage` | The options, the two skip rules, the write, and exit 1 on engagement, on a failed read, and on a failed write. |
 | The latch contract | The command engages. It never clears. A human clears it by writing a falsy value. Deleting the variable is not clearing it, and it earns no quiet window. |
 | Fail safe | An unreadable counter, and a counter that cannot cover the window, both engage. |
-| CI wiring | A `forwardimpact/gemba-watchdog@v1` two-job example, read-only measurement and token-minting engagement. |
+| CI wiring | A two-job example, read-only measurement and token-minting engagement. Write the `uses:` line as `forwardimpact/gemba-watchdog@v1`. That tag does not exist until part 06 step 4, so the guide ships one merge ahead of it. Mark the example as the shape to copy, not a live pin. |
 | Exit codes | A table of the three outcomes. |
 
 Every command example uses `npx`. The page names no tenant variable. It uses
@@ -180,7 +190,8 @@ Write it through
 settings block the direct edit.
 
 Verify: `bunx jidoka instructions` passes, and the skill's `## Documentation`
-entry matches the CLI array byte for byte.
+entry carries the same title and URL as the CLI `documentation` array, in the
+`[Title](url)\n  — description` shape `.claude/skills/gemba-xmr/SKILL.md` uses.
 
 ## Step 8: Add the guide to the docs index
 
@@ -201,19 +212,25 @@ keeps the loop's order and the guard step reads last:
 </div>
 ```
 
-The page's front-matter `description` and its opening paragraph both enumerate
-the five-step loop. Add the stop step to each, matching the wording part 04
-step 4 lands on the site.
+This step adds the card only. The page's front-matter `description` and its
+opening paragraph both enumerate the five-step loop, and part 04 step 4 moves
+every loop count on the site in one merge. Editing them here would leave
+`docs/index.md` naming six steps while `index.md` still named five, across three
+merges.
 
 Verify: `bunx fit-doc build` renders the card and emits no unresolved-partial
-warning, and `rg -n 'measure the outcome' websites/gemba/docs/index.md` returns
-the updated sentence.
+warning.
 
 ## Step 9: Record the seventh runtime command
 
 Keep the library conventions true as written.
 
-Modified: `libraries/CLAUDE.md`
+Modified: `libraries/CLAUDE.md`, `websites/gemba/docs/getting-started/index.md`
+
+`websites/gemba/docs/getting-started/index.md:25` reads "The pack carries the
+six platform skills". Creating `.claude/skills/gemba-watchdog/` makes seven, and
+no enumeration invariant guards that page: `enumeration-drift.topics.yml` scopes
+its `published-skills` topic to `.claude/skills/kata-*/SKILL.md`.
 
 - The runtime-command sentence moves from six commands to seven and gains
   `gemba-watchdog` in the list.
