@@ -18,7 +18,7 @@ Created: `libraries/libwatchdog/package.json`
   "version": "0.1.0",
   "description": "Guardrail engine for agent teams — count repository activity over a window, compare it against thresholds, and engage an operator latch when the activity breaches them.",
   "keywords": ["guardrail", "watchdog", "killswitch", "threshold", "agent"],
-  "homepage": "https://www.gemba.team",
+  "homepage": "https://www.forwardimpact.team",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/forwardimpact/monorepo.git",
@@ -45,15 +45,19 @@ Created: `libraries/libwatchdog/package.json`
   },
   "files": ["src/**/*.js", "README.md"],
   "scripts": { "test": "bun test test/*.test.js" },
-  "dependencies": {
-    "@forwardimpact/libcli": "^0.1.0",
-    "@forwardimpact/libutil": "^0.1.0"
-  },
-  "devDependencies": { "@forwardimpact/libmock": "^0.1.0" },
+  "dependencies": { "@forwardimpact/libutil": "^0.1.100" },
+  "devDependencies": { "@forwardimpact/libmock": "^0.1.15" },
   "engines": { "bun": ">=1.2.0", "node": ">=22.0.0" },
   "publishConfig": { "access": "public" }
 }
 ```
+
+`homepage` is `www.forwardimpact.team`, not the guide host.
+`scripts/check-metadata.mjs` maps only `products/gemba/`, `launchers/gemba-`,
+`products/kata/`, and `products/jidoka/` to per-product hosts, so every
+`libraries/*` package canonicalizes to the default, as `libharness`, `libwiki`,
+and `libxmr` all do. The library declares no `libcli` dependency. It exports the
+two handlers, and the CLI bin supplies the `InvocationContext`.
 
 Verify: `bun install` links the workspace and `bun run context:check-metadata`
 passes.
@@ -128,7 +132,17 @@ throws when it cannot read.
 | `commentsProbe` | `GET /repos/{repo}/issues/comments?since={cutoff}&sort=created&direction=desc&per_page=100` | item at or after the cutoff | `item.created_at` |
 
 One coverage rule serves all four:
-`covered = items.length < 100 || oldestTimestamp < cutoff`. No probe pages.
+`covered = page.length < 100 || oldest(page) < cutoff`, where `page` is the raw
+response array and `oldest` reads that probe's timestamp field. Coverage is
+computed over the raw page, never over the filtered set, so `issuesProbe`
+discarding `pull_request` entries cannot turn an uncovered page into a covered
+one. No probe pages.
+
+`commentsProbe` is the one probe whose server-side filter (`since`) reads
+`updated_at` while its count reads `created_at`. A comment created before the
+cutoff and edited inside it therefore occupies a slot on the page without being
+counted, which can only push a full page toward `covered: false`. The direction
+is fail-safe, and the probe needs no compensation.
 
 Verify: unit tests drive each probe against a fixture page and assert the count,
 plus a 100-item page held inside the window that reports `covered: false`.
@@ -144,8 +158,12 @@ Created: `libraries/libwatchdog/src/rule.js`,
 - `activityRules(threshold)` returns the four rules `commits`, `pulls`,
   `issues`, `comments`, each carrying the same threshold.
 - `evaluate(rules, { request, repo, defaultBranch, clock, windowMs })` derives
-  `cutoff = new Date(clock.now() - windowMs).toISOString()`, awaits every probe,
-  and catches each throw.
+  `cutoff = isoTimestamp(clock.now() - windowMs)` with `isoTimestamp` imported
+  from `@forwardimpact/libutil`, awaits every probe, and catches each throw. No
+  `libwatchdog` module constructs a `Date`.
+  `.jidoka/invariants/ambient-deps.rules.mjs` flags every `NewExpression` on
+  `Date`, whatever its arguments, and `libraries/libwatchdog/src/**` sits on no
+  allow-list.
 
 ```js
 // verdict
@@ -190,17 +208,20 @@ await latch.write(value);
 // PATCH /repos/{repo}/actions/variables/{name}, or POST /repos/{repo}/actions/variables when repository is null
 ```
 
-`decide(verdict, state, { windowMs, now })` returns `"engage"` or `"skip"`:
+`decide(state, { windowMs, now })` returns `"engage"` or `"skip"`. The engage
+command runs only after a breach, so the policy takes no verdict:
 
 | Order | Condition | Result |
 | ----- | --------- | ------ |
-| 1 | `verdict.engage` is false | `skip` |
-| 2 | `isTruthy(state.value)` | `skip` (already stopped) |
-| 3 | `state.repository` exists, its value is falsy, and `now - Date.parse(state.repository.updatedAt) < windowMs` | `skip` (resume window) |
-| 4 | otherwise | `engage` |
+| 1 | `isTruthy(state.value)` | `skip` (already stopped) |
+| 2 | `state.repository` exists, its value is falsy, and `now - toEpoch(state.repository.updatedAt) < windowMs` | `skip` (resume window) |
+| 3 | otherwise | `engage` |
 
-Rule 2 reads the effective value, so a truthy organization variable under a
-falsy repository variable falls through to rule 3 and then engages.
+Rule 1 reads the effective value, so a truthy organization variable under a
+falsy repository variable falls through to rule 2 and then engages.
+`toEpoch` is a module-local helper over `Date.parse`. The invariant flags
+`new Date(...)` and `Date.now()` only, so `Date.parse` on an explicit timestamp
+is permitted and reads no wall clock.
 
 Verify: unit tests cover already engaged, cleared inside the window, cleared
 outside the window, a truthy organization variable under a falsy repository
@@ -213,11 +234,12 @@ verdict.
 
 Created: `libraries/libwatchdog/src/summary.js`
 
-`renderSummary({ verdict, state, killswitchValue, decision, dryRun })` returns
-a markdown string with an `### Watchdog` heading, one table row per counter
-(`id`, count or `unreadable`, `covered`, threshold), a line for the killswitch's
-current value and scope, and a verdict line. `state` is optional, so an assess
-run renders with `killswitchValue` alone.
+`renderSummary({ verdict, state, killswitchValue, decision, dryRun })` returns a
+markdown string with an `### Watchdog` heading, one table row per counter (`id`,
+count or `unreadable`, `covered`, threshold), a line for the killswitch's
+current value and scope, and a verdict line. `verdict` and `state` are both
+optional: an assess run renders counts with `killswitchValue` alone, and an
+engage run renders the two scopes and the decision with no counts.
 
 Verify: a unit test asserts the block names all four counters and both the
 verdict and the current value.
@@ -231,37 +253,60 @@ Created: `libraries/libwatchdog/src/commands/assess.js`,
 
 Both handlers take the libcli `InvocationContext` and read `ctx.deps.runtime`.
 Both resolve `--repo` from `runtime.proc.env.GITHUB_REPOSITORY` when the option
-is absent, and both fail with a usage error when `--variable` is missing
-(libcli options carry no `required` field).
+is absent. The two option sets are disjoint, and each handler reads only its
+own. libcli merges globals plus the matched subcommand's options and calls
+`node:util` `parseArgs` in strict mode (`libraries/libcli/src/cli.js:75-100`),
+so an option one subcommand does not declare aborts the run.
+
+| Handler | Options it declares | Missing-option failure |
+| ------- | ------------------- | ---------------------- |
+| `runAssessCommand` | `repo`, `default-branch`, `threshold`, `window-hours`, `killswitch-value` | `threshold` or `window-hours` absent or not a positive number |
+| `runEngageCommand` | `repo`, `variable`, `reason`, `window-hours`, `dry-run` | `variable` absent, or `reason` empty |
+
+A failure returns `{ ok: false, error }`, which the bin turns into a usage
+error. libcli options carry no `required` field, so each handler validates its
+own.
 
 `runAssessCommand`:
 
 1. Build `activityRules(Number(options.threshold))`.
 2. `evaluate(...)` with `windowMs = Number(options["window-hours"]) * 3600000`.
-3. Append `renderSummary(...)` to `runtime.proc.env.GITHUB_STEP_SUMMARY` when
-   the variable is set.
+3. Append `renderSummary({ verdict, killswitchValue })` to
+   `runtime.proc.env.GITHUB_STEP_SUMMARY` when the variable is set.
 4. Append `verdict=engage|quiet` and `reason=<encodeReason(...)>` to
    `runtime.proc.env.GITHUB_OUTPUT` when the variable is set. The reason is one
-   line, so no heredoc delimiter is needed.
+   line, so no heredoc delimiter is needed. A quiet run writes an empty
+   `reason=`.
 5. Print the text report, or the verdict as JSON when `--format json`.
 6. Return `{ ok: true }`. Assess exits 0 on every outcome.
 
 `runEngageCommand`:
 
-1. `latch.read()`. A read failure returns `{ ok: false, code: 1 }` with no
+1. **Refuse an empty reason before anything else.** A blank or whitespace-only
+   `--reason` returns `{ ok: false, code: 1 }` and touches no variable. The
+   latch's only writer must never produce a falsy value, and every killswitch
+   reader treats a falsy value as "not stopped", so an unguarded write would
+   clear the switch rather than set it. Success criterion 6 forbids exactly
+   this.
+2. `latch.read()`. A read failure returns `{ ok: false, code: 1 }` with no
    write.
-2. `--dry-run` renders the summary and returns `{ ok: true }`.
-3. `decide(...)`. On `skip`, render the summary and return `{ ok: true }`.
-4. On `engage`, `latch.write(options.reason)`, render the summary, and return
+3. `--dry-run` renders the summary and returns `{ ok: true }`.
+4. `decide(state, { windowMs, now: runtime.clock.now() })`. On `skip`, render
+   the summary and return `{ ok: true }`.
+5. On `engage`, assert `isTruthy(options.reason)`, then
+   `latch.write(options.reason)`, render the summary, and return
    `{ ok: false, code: 1 }`. A write failure returns the same.
 
-Both append to the two env files with
-`runtime.fs.writeFile(path, chunk, { flag: "a" })`. `runtime.fs` carries no
-`appendFile`.
+Both handlers append with `runtime.fs.appendFile(path, chunk)`.
+`createDefaultRuntime` spreads `node:fs/promises`, which exports `appendFile`,
+and `libraries/libmock/src/mock/fs.js` defines an `appendFile` spy. Do not use
+`writeFile(path, chunk, { flag: "a" })`: the libmock spy takes `(path, content)`
+and drops its third argument, so the flag would truncate under
+`createTestRuntime()` and the append contract would go untested.
 
 Verify: unit tests drive both handlers with `createTestRuntime()` and a stub
-request, then assert the env-file contents, the returned envelope, and that no
-skip path calls `write`.
+request, then assert the two env-file contents accumulate across calls, the
+returned envelope, and that no skip path and no empty-reason path calls `write`.
 
 ## Step 9: Write the barrel and the README
 
@@ -279,7 +324,10 @@ example that builds rules, evaluates them, and decides, and the seam table
 (rule, probe, latch, policy). It links
 `https://www.gemba.team/docs/guard-activity/index.md`.
 
-Verify: `bun run context:fix` leaves the description block unchanged and
+Write the `BEGIN:description` and `BEGIN:catalog` markers as empty blocks and
+let `bun run context:fix` fill them. `jidoka jtbd --fix` owns that content.
+
+Verify: `bun run context:fix` writes the blocks, a second run is a no-op, and
 `bun run lint:md` passes.
 
 ## Step 10: Write the test suite
@@ -310,7 +358,9 @@ The suite covers the six spec cases plus the four ordering cases:
 | Repository value cleared outside the window | `decide` returns `engage` |
 | Truthy organization under falsy repository | `decide` returns `engage` |
 | Two counters breach | The reason names both, in rule order |
+| Empty `--reason` | `runEngageCommand` returns exit 1, and `read` and `write` are both uncalled |
 | Every write path | Every `write` call receives a non-empty reason, and no path produces a falsy value |
+| Two appends to one env file | The second `appendFile` call adds to the first, so `$GITHUB_OUTPUT` carries both keys |
 
 Verify: `bun test libraries/libwatchdog/test/` passes and
 `bun run context:check-bun-test` reports no finding.

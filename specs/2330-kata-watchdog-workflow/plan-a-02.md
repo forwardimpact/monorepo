@@ -23,15 +23,23 @@ import { runAssessCommand } from "@forwardimpact/libwatchdog/commands/assess.js"
 import { runEngageCommand } from "@forwardimpact/libwatchdog/commands/engage.js";
 ```
 
-| Command | Options | Handler |
-| ------- | ------- | ------- |
+| Command | Options it declares | Handler |
+| ------- | ------------------- | ------- |
 | `assess` | `repo`, `default-branch`, `threshold`, `window-hours`, `killswitch-value` | `runAssessCommand` |
 | `engage` | `repo`, `variable`, `reason`, `window-hours`, `dry-run` | `runEngageCommand` |
 
-`globalOptions` carry `format`, `help`, `version`, and `json`, matching
-`gemba-xmr`. Every option is a `string` except `dry-run`, which is a `boolean`.
-No option carries a default that names a tenant. `--variable` has no default at
-all.
+The two sets are disjoint by design. libcli merges globals plus the matched
+subcommand's options only and calls `parseArgs` in strict mode, so `assess`
+rejects `--variable` and `engage` rejects `--threshold`. Part 03 step 1 builds
+one command line per mode for this reason.
+
+`globalOptions` carry `format`, `help`, `version`, and `json`. `gemba-xmr` also
+carries `ascii`, which renders charts and has no meaning here, so this CLI omits
+it. Every option is a `string` except `dry-run`, which is a `boolean`. A libcli
+`boolean` is a bare presence flag: `--dry-run false` parses as
+`{ "dry-run": true }` with `false` left as a stray positional, so a caller
+passes `--dry-run` or passes nothing. No option carries a default that names a
+tenant. `--variable` has no default at all.
 
 `examples` show `gemba-watchdog assess --threshold 32 --window-hours 2` and
 `gemba-watchdog engage --variable MY_KILLSWITCH --reason "$REASON"
@@ -62,11 +70,18 @@ Modified: `products/gemba/package.json`
 - `description` gains `watchdog` in the command family list.
 - `keywords` gains `watchdog`.
 
+Modified: `.github/workflows/publish-skills.yml`
+
+The `gemba` matrix entry's `apm-description` at line 59 enumerates the command
+family as "the harness, trace, benchmark, wiki, and xmr commands". Add
+`watchdog` to that list.
+
 The package declares no `exports` field, so Node's legacy resolution serves the
 `./bin/gemba-watchdog.js` subpath the launcher imports. Leave it absent.
 
-Verify: `bun install` resolves the workspace dependency and
-`bun run context:check-metadata` passes.
+Verify: `bun install` resolves the workspace dependency, `bun run context:fix`
+reseeds the generated description blocks, and `bun run context:check-metadata`
+passes.
 
 ## Step 3: Add the launcher package
 
@@ -173,7 +188,8 @@ Give the guide a card so the site navigation reaches it.
 
 Modified: `websites/gemba/docs/index.md`
 
-Add one section after `## Stand Up the Platform (Teams Using Agents)`:
+Add one section **after** `## Operate a Predictable Agent Team`, so the index
+keeps the loop's order and the guard step reads last:
 
 ```markdown
 ## Guard an Agent Team (Teams Using Agents)
@@ -185,8 +201,13 @@ Add one section after `## Stand Up the Platform (Teams Using Agents)`:
 </div>
 ```
 
+The page's front-matter `description` and its opening paragraph both enumerate
+the five-step loop. Add the stop step to each, matching the wording part 04
+step 4 lands on the site.
+
 Verify: `bunx fit-doc build` renders the card and emits no unresolved-partial
-warning.
+warning, and `rg -n 'measure the outcome' websites/gemba/docs/index.md` returns
+the updated sentence.
 
 ## Step 9: Record the seventh runtime command
 

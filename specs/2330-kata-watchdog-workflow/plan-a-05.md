@@ -3,7 +3,7 @@
 The scheduled workflow, its two jobs, its literal numbers, and the `KATA.md`
 paragraph that names it.
 
-Depends on: part 04, and part 06 step 2. Route: `staff-engineer`.
+Depends on: part 04, and part 06 step 3. Route: `staff-engineer`.
 
 ## Step 1: Write the workflow
 
@@ -32,8 +32,9 @@ on:
 permissions:
   contents: read
 
-# The threshold, the window, and the variable name each appear once. Both jobs
-# read them from here, so no second copy exists.
+# The threshold, the window, and the variable name each appear exactly once.
+# Both jobs read them from here, including the `vars` lookup below, which
+# indexes with the same env value rather than repeating the name.
 env:
   WATCHDOG_THRESHOLD: "32"
   WATCHDOG_WINDOW_HOURS: "2"
@@ -59,7 +60,7 @@ jobs:
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
           variable: ${{ env.WATCHDOG_VARIABLE }}
-          killswitch-value: ${{ vars.KATA_KILLSWITCH }}
+          killswitch-value: ${{ vars[env.WATCHDOG_VARIABLE] }}
           default-branch: ${{ github.event.repository.default_branch }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -75,7 +76,6 @@ jobs:
         with:
           mode: engage
           variable: ${{ env.WATCHDOG_VARIABLE }}
-          threshold: ${{ env.WATCHDOG_THRESHOLD }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
           reason: ${{ needs.assess.outputs.reason }}
           dry-run: ${{ inputs.dry-run || 'false' }}
@@ -83,12 +83,16 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-Replace `<sha>` with the commit SHA part 06 step 2 tags as `v1` on
-`forwardimpact/gemba-watchdog`. Set the action's `gear-release` default, in
-part 03 step 1, to the release part 06 step 2 cuts, or pass it here.
+Replace `<sha>` with the commit SHA part 06 step 3 tags as `v1`. The action
+already carries the real `gear-release` default from part 03 step 1, so this
+workflow passes none.
 
-The workflow adds no `concurrency` group. Each job times out at 5 minutes, and
-the schedule fires every 15, so a run cannot overlap its successor.
+The engage job passes no `threshold`. The action forwards only the options each
+subcommand declares, and `engage` declares none.
+
+The workflow adds no `concurrency` group. Two engage jobs racing is harmless:
+the second reads a truthy value and skips. Cancelling an in-flight engage would
+drop the write, which is the one outcome the brake cannot afford.
 
 Verify: `bunx jidoka invariants` passes with no change to the `kata-workflows`
 enumeration topic, and a `workflow_dispatch` run with `dry-run: true` reports
@@ -107,19 +111,31 @@ add one paragraph after it:
 > This repository also runs a watchdog that engages the variable
 > automatically. `.github/workflows/watchdog.yml` counts default-branch
 > commits, pull requests created, issues created, and conversation comments
-> created over a 2-hour window, every 15 minutes. Any counter that reaches 32
-> engages the variable, and so does a counter the watchdog cannot read or
-> cannot cover. The watchdog only sets the variable. It never clears it, and it
+> created over a fixed window, on a fixed schedule. Any counter that reaches the
+> threshold engages the variable, and so does a counter the watchdog cannot read
+> or cannot cover. The workflow carries the schedule, the window, and the
+> threshold. The watchdog only sets the variable. It never clears it, and it
 > does not gate on it, because it must keep running after it engages.
+
+The paragraph names no number. Success criterion 2 requires the threshold and
+the window to be written once, and the workflow is that home.
+
+`KATA.md` carries the `sibling-composite-actions` and `kata-workflows` fences
+part 03 already reseeded. `watchdog.yml` does not match
+`.github/workflows/kata-*.yml`, so the `kata-workflows` topic is unchanged.
 
 Verify: `bunx jidoka instructions` passes, `bunx jidoka invariants` passes, and
 `rg 'unset it' KATA.md` returns nothing.
 
 ## Step 3: Confirm the brake end to end
 
-Prove the two paths before the first unattended run.
+Prove the two paths on the first scheduled window after the merge.
 
 Modified: nothing.
+
+This step runs **after** the pull request merges. GitHub serves
+`workflow_dispatch` only from the default branch, so it is the one verification
+in this plan that cannot run on its own head.
 
 1. Dispatch the workflow with `dry-run: true`. The assess job reports four
    counts and a quiet or engage verdict. The engage job, when it runs, reports
