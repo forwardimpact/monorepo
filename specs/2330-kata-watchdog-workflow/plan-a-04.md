@@ -229,6 +229,11 @@ Modified: `websites/gemba/llms.txt`, `websites/gemba/docs/index.md`
   published composite actions run the same loop in CI." and gains one sentence
   for `gemba-watchdog`.
 
+`websites/gemba/docs/index.md` carries the same five-step loop in its
+front-matter `description` (line 3) and its opening paragraph (lines 8-10).
+Part 02 step 8 defers both here so the site, `llms.txt`, and the docs index all
+move in one merge. Add the stop step to each, matching the wording step 4 lands.
+
 Verify:
 `rg -n 'Five command|Four published|four CI actions' websites/gemba/llms.txt`
 returns nothing.

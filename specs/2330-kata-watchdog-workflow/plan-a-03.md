@@ -242,10 +242,10 @@ the published pack requires:
 Write the rule conditionally, as step 7 writes the killswitch rule, because the
 pack ships to installations that run no watchdog: "where the repository runs an
 activity watchdog". Then write the surface as a class, not as this monorepo's
-paths: "a diff that touches
-`.kata/`, or the repository's activity-watchdog surface (its workflow, its
-composite action home, its CLI bin, and its guardrail library), merges only on a
-trusted human's explicit signal pinned to the approved head." Name no package,
+paths: "a diff that touches `.kata/`, or, where the repository runs an activity
+watchdog, that watchdog's surface (its workflow, its composite action home, its
+CLI bin, and its guardrail library), merges only on a trusted human's explicit
+signal pinned to the approved head." Name no package,
 no workflow filename, and no path under `libraries/` or `products/`.
 `.claude/skills/CLAUDE.md` § No monorepo leakage forbids them here, and
 `.jidoka/invariants/skill-genericity.rules.mjs` scans this file. plan-a.md
@@ -253,10 +253,10 @@ no workflow filename, and no path under `libraries/` or `products/`.
 
 `.claude/skills/kata-release-merge/SKILL.md` measures 1849 of its 2304-word L5
 cap and 287 of 320 lines, so the prose home has room. The checklist item does
-not: `L7_MAX_WORDS_PER_ITEM` is 32. Write it at 32 words or fewer, for example
-"A diff touching `.kata/` or the activity-watchdog surface merges only on a
-trusted human's signal pinned to the approved head. No agent approval
-qualifies." (24 words).
+not: `L7_MAX_WORDS_PER_ITEM` is 32. Write it at 32 words or fewer, in the same
+conditional form, for example "A diff touching `.kata/`, or a watchdog surface
+where one exists, merges only on a trusted human's signal pinned to the approved
+head. No agent approval qualifies." (31 words).
 
 Verify: `bunx jidoka instructions` passes, `bunx jidoka invariants` passes
 `skills.monorepo-specific`, whose globs cover `.claude/skills/kata-*/**`, and
@@ -278,10 +278,12 @@ The DO-CONFIRM block already holds 9 items, which is `L7_MAX_ITEMS` in
    | ----- | ------------- | -------------- |
    | `.kata/` or activity-watchdog-surface diff | `kata-release-merge` § Settings diffs | **skip** — a trusted human's signal gates it |
 
-   Name the surface in the same generic four-element form step 5 uses: the
+   Name the surface in the same generic four-element form step 5 uses, and under
+   the same condition: where the repository runs an activity watchdog, that
    watchdog's workflow, its composite action home, its CLI bin, and its
    guardrail library, alongside `.kata/`. Criterion 12 requires both skills to
-   carry the pair.
+   carry the pair, and the litmus test requires both to hold in an installation
+   that runs no watchdog.
 
    The policy source cites a durable skill section. Do not write `spec 2330`:
    `.jidoka/invariants/temporal.rules.mjs` matches `\bspec[- ][0-9]{2,5}\b` and
@@ -295,8 +297,9 @@ The DO-CONFIRM block already holds 9 items, which is `L7_MAX_ITEMS` in
    That skill therefore guards the action by review and the library by triage.
 
 `.claude/skills/kata-security-update/SKILL.md` measures 1216 of its 1280-word
-L5 cap. Steps 6 and 7 add roughly 83 words between them, so trim at least 25
-words first. The § Policy failure dispositions preamble is the candidate: its
+L5 cap. Step 6 now also lands the four-element surface
+enumeration, so steps 6 and 7 add roughly 100 words between them. Trim at least
+40 words first. The § Policy failure dispositions preamble is the candidate: its
 two sentences restate what the table's own column headings say.
 
 Verify: `bunx jidoka instructions` passes with no `L7` and no word-budget
@@ -338,7 +341,8 @@ gains one bullet beside its existing `**Memory**` / `**Coordination**` links:
 - **Killswitch**: [killswitch](.claude/agents/x-killswitch.md)
 ```
 
-The bullet costs about 5 words against the L3 cap of 448 words and 72 lines.
+The bullet measures 3 words under the checker's `\S+` count, against the L3 cap
+of 448 words and 72 lines. The trims below round up for margin.
 Six profiles absorb it. Two do not, and each needs a trim first:
 
 | Profile | Words | Headroom | Action |
@@ -356,14 +360,17 @@ Modified: `.claude/skills/kata-release-merge/SKILL.md`,
 `.claude/skills/kata-security-update/SKILL.md`
 
 Each gains one pointer line to `../../agents/x-killswitch.md`.
-`kata-release-merge` carries such links already; `kata-security-update` carries
-none today, so its pointer joins the § Policy failure dispositions prose.
+Both skills carry agent-reference links already, so each pointer joins the
+existing set; in `kata-security-update` it sits with the § Policy failure
+dispositions prose.
 Neither restates the rule.
 
 Write every `.claude/**` file through
 `echo … | bunx gemba-selfedit <path>` when settings block the direct edit.
 
 Verify: `bunx jidoka instructions` passes its line and word budgets for all
-eight profiles, `bunx jidoka invariants` passes `agents.naming-convention`, and
-`rg -l 'x-killswitch' .claude/agents/*.md | wc -l` returns 9 (eight profiles
-plus the reference itself).
+eight profiles, `bunx jidoka invariants` passes both `agents.naming-convention`
+and `skills.monorepo-specific`, whose globs cover `.claude/agents/x-*.md`, and
+`rg -l 'x-killswitch' .claude/agents/*.md | wc -l` returns 8, one per profile.
+`rg -l` matches file contents, and the reference does not cite itself, so 8 is
+the complete set.

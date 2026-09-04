@@ -86,9 +86,7 @@ jobs:
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
 
-Replace `<sha>` with the commit SHA part 06 step 4 tags as `v1`. The action
-already carries the real `gear-release` and `installer-sha256` defaults from
-part 03 step 1.
+Replace `<sha>` with the commit SHA part 06 step 4 tags as `v1`.
 
 The assess job passes no `variable`, which the action declares optional. Both
 jobs pass `threshold` and `window-hours`, which the action declares required.

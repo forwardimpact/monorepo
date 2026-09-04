@@ -154,13 +154,6 @@ edited inside the window occupies a page slot, sorts last under
 `covered: true` while newer qualifying comments stayed hidden behind the page.
 Both therefore use `covered = page.length < 100`. `pullsProbe` and `issuesProbe`
 keep the full rule.
-Its `since` filter reads `updated_at` while its count reads `created_at`, so an
-old comment edited inside the window occupies a page slot, sorts last under
-`direction=desc`, and would satisfy `oldest(page) < cutoff` on a full page. That
-would report `covered: true` while newer qualifying comments stayed hidden
-behind the page. Dropping the timestamp escape for this probe alone keeps the
-fail-safe pointing the right way.
-
 Verify: unit tests drive each probe against a fixture page and assert the count,
 plus a 100-item page held inside the window that reports `covered: false`.
 
