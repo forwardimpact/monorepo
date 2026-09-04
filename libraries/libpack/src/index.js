@@ -5,8 +5,3 @@ export { GitEmitter } from "./git-emitter.js";
 export { DiscEmitter } from "./disc-emitter.js";
 export { SkillPackPublisher } from "./skill-pack.js";
 export { APM_SKILLS_DIR, APM_AGENTS_DIR, apmAgentFilename } from "./layout.js";
-export {
-  markdownLinkTargets,
-  referenceTarget,
-  referenceClosure,
-} from "./skill-pack.js";

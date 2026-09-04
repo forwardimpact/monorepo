@@ -2,11 +2,11 @@ name: Publish skill pack
 description: >
   Sync one skill pack from the monorepo into the checked-out sibling repo. The
   sync includes only the agent references that the pack's skills and profiles
-  cite. For kata it also includes the agent profiles. Regenerate apm.yml and README.md. Then commit, push,
-  and tag at the pack's package version. All pack-specific values arrive through
-  inputs, so every pack shares one implementation. Prose and repo names
-  reach the scripts through the environment, never by interpolation into source
-  text.
+  cite. For kata it also includes the agent profiles. Regenerate apm.yml and
+  README.md. Then commit, push, and tag at the pack's package version. All
+  pack-specific values arrive through inputs, so every pack shares one
+  implementation. Prose and repo names reach the scripts through the
+  environment, never by interpolation into source text.
 
   The action lays out primitives under APM's conventional `.apm/` source root
   (`.apm/skills/<name>/`, `.apm/agents/<name>.agent.md`). A bare

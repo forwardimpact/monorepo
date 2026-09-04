@@ -6,13 +6,7 @@ import { existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-import {
-  SkillPackPublisher,
-  injectFrontmatter,
-  markdownLinkTargets,
-  referenceClosure,
-  referenceTarget,
-} from "../src/skill-pack.js";
+import { SkillPackPublisher } from "../src/skill-pack.js";
 
 const runtime = createDefaultRuntime();
 
@@ -58,90 +52,6 @@ async function makeSource() {
   await writeFile(join(source, "agents", "x-orphan.md"), "# Orphan\n");
   return source;
 }
-
-describe("injectFrontmatter", () => {
-  test("inserts license and metadata before the closing fence", () => {
-    const out = injectFrontmatter("---\nname: x\n---\n# Body\n", "1.2.3");
-    expect(out).toContain("license: Apache-2.0");
-    expect(out).toContain("metadata:");
-    expect(out).toContain('  version: "1.2.3"');
-    expect(out).toContain("  author: forwardimpact");
-    // Body and name survive.
-    expect(out).toContain("name: x");
-    expect(out).toContain("# Body");
-  });
-
-  test("returns content without frontmatter unchanged", () => {
-    const input = "# No frontmatter\n";
-    expect(injectFrontmatter(input, "1.0.0")).toBe(input);
-  });
-});
-
-describe("markdownLinkTargets", () => {
-  test("extracts inline links and strips fragments, queries, and titles", () => {
-    const md = [
-      "See [a](x-a.md#section) and [b](../../agents/x-b.md?x=1).",
-      '[c](<x-c.md> "Title") plus [d]( x-d.md ).',
-      "[def]: .claude/agents/x-e.md",
-      "Not a link: x-f.md",
-    ].join("\n");
-    expect(markdownLinkTargets(md)).toEqual([
-      "x-a.md",
-      "../../agents/x-b.md",
-      "x-c.md",
-      "x-d.md",
-      ".claude/agents/x-e.md",
-    ]);
-  });
-});
-
-describe("referenceTarget", () => {
-  test("resolves the three link shapes that reach the agents dir", () => {
-    expect(referenceTarget(".claude/agents/x-a.md", true)).toBe("x-a.md");
-    expect(referenceTarget("../../agents/x-a.md", false)).toBe("x-a.md");
-    expect(referenceTarget("../../../agents/x-a.md", false)).toBe("x-a.md");
-    expect(referenceTarget("x-a.md", true)).toBe("x-a.md");
-  });
-
-  test("rejects bare names from skills, other dirs, URLs, and non-markdown", () => {
-    // A bare name inside a skill resolves to the skill dir, not agents/.
-    expect(referenceTarget("x-a.md", false)).toBe(null);
-    // A skill-local reference is not a shared reference.
-    expect(referenceTarget("references/x-a.md", false)).toBe(null);
-    expect(referenceTarget("wiki/x-a.md", true)).toBe(null);
-    expect(
-      referenceTarget("https://example.com/.claude/agents/x-a.md", true),
-    ).toBe(null);
-    expect(referenceTarget("mailto:x-a.md", true)).toBe(null);
-    expect(referenceTarget("../../agents/x-a.yaml", false)).toBe(null);
-    expect(referenceTarget("", true)).toBe(null);
-  });
-});
-
-describe("referenceClosure", () => {
-  test("follows links between references to a fixpoint and skips unknowns", () => {
-    const references = new Map([
-      ["x-a.md", "[b](x-b.md)"],
-      ["x-b.md", "[c](x-c.md) [a](x-a.md) [gone](x-gone.md)"],
-      ["x-c.md", "end"],
-      ["x-orphan.md", "[a](x-a.md)"],
-    ]);
-    const roots = [{ content: "[a](../../agents/x-a.md)", inAgentsDir: false }];
-    expect([...referenceClosure(roots, references)].sort()).toEqual([
-      "x-a.md",
-      "x-b.md",
-      "x-c.md",
-    ]);
-  });
-
-  test("returns an empty set for roots with no citations", () => {
-    const references = new Map([["x-a.md", ""]]);
-    expect(
-      referenceClosure([{ content: "# Plain", inAgentsDir: false }], references)
-        .size,
-    ).toBe(0);
-  });
-});
 
 describe("SkillPackPublisher", () => {
   test("requires a runtime", () => {
@@ -418,6 +328,82 @@ describe("SkillPackPublisher", () => {
       version: "1.0.0",
     });
     expect(references).toEqual(["x-auth.md"]);
+  });
+
+  test("all: stages the references the selected skills cite", async () => {
+    const source = await makeSource();
+    // The directory is the pack boundary, so both families ship. The closure
+    // still spans every staged skill.
+    const target = await makeTempDir();
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      all: true,
+      targetDir: target,
+      name: "outpost-skills",
+      version: "3.11.0",
+    });
+    expect(references).toEqual(["x-memory.md", "x-work.md"]);
+  });
+
+  test("with agents but no citation: the agents dir still exists", async () => {
+    const source = await makeSource();
+    // A profile that cites nothing. The pack ships it and no reference.
+    await writeFile(
+      join(source, "agents", "staff-engineer.md"),
+      "---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n# Staff\n",
+    );
+    const target = await makeTempDir();
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: "fit",
+      targetDir: target,
+      name: "fit-skills",
+      version: "1.0.0",
+      withAgents: true,
+    });
+    expect(references).toEqual([]);
+    expect(
+      existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
+    ).toBe(true);
+  });
+
+  test("fails when a named reference did not ship", async () => {
+    const source = await makeSource();
+    // A citation the link parser cannot read. Shipping it would publish a
+    // broken link, so the stage must stop instead.
+    await writeFile(
+      join(source, "skills", "fit-map", "SKILL.md"),
+      "---\nname: fit-map\ndescription: Map\n---\n# Map\nSee x-work.md.\n",
+    );
+    const target = await makeTempDir();
+    await expect(
+      new SkillPackPublisher({ runtime }).publish({
+        sourceDir: source,
+        prefix: "fit",
+        targetDir: target,
+        name: "fit-skills",
+        version: "1.0.0",
+      }),
+    ).rejects.toThrow("x-work.md");
+  });
+
+  test("a full URL to a reference does not require shipping it", async () => {
+    const source = await makeSource();
+    // The sanctioned cross-pack citation form. The link resolves on its own.
+    await writeFile(
+      join(source, "skills", "fit-map", "SKILL.md"),
+      "---\nname: fit-map\ndescription: Map\n---\n# Map\n" +
+        "See [work](https://github.com/o/r/blob/main/.claude/agents/x-work.md).\n",
+    );
+    const target = await makeTempDir();
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: "fit",
+      targetDir: target,
+      name: "fit-skills",
+      version: "1.0.0",
+    });
+    expect(references).toEqual([]);
   });
 
   test("retires a pre-existing flat layout", async () => {
