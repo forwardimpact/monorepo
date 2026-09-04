@@ -1,0 +1,329 @@
+# Plan 2330-a Part 01: `libwatchdog`
+
+The guardrail engine, the four GitHub activity probes, the Actions-variable
+latch, the latch policy, the reason grammar, and the tests. No consumer imports
+it yet.
+
+Depends on: nothing. Route: `staff-engineer`.
+
+## Step 1: Create the package manifest
+
+Declare the library so the workspace links it and the catalog generator sees it.
+
+Created: `libraries/libwatchdog/package.json`
+
+```json
+{
+  "name": "@forwardimpact/libwatchdog",
+  "version": "0.1.0",
+  "description": "Guardrail engine for agent teams — count repository activity over a window, compare it against thresholds, and engage an operator latch when the activity breaches them.",
+  "keywords": ["guardrail", "watchdog", "killswitch", "threshold", "agent"],
+  "homepage": "https://www.gemba.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libwatchdog"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Teams Using Agents",
+      "goal": "Stand Up and Operate an Agent Team",
+      "trigger": "An agent event chain creates artifacts faster than a human can read them, and no deterministic brake bounds the volume.",
+      "bigHire": "bound an agent team's output volume with a deterministic brake that a human clears.",
+      "littleHire": "count one activity signal over a window and engage a latch when it crosses a threshold.",
+      "competesWith": "a prose recursion guard inside an agent task; a spend cap on the LLM platform; a human who notices the sprawl"
+    }
+  ],
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./commands/assess.js": "./src/commands/assess.js",
+    "./commands/engage.js": "./src/commands/engage.js"
+  },
+  "files": ["src/**/*.js", "README.md"],
+  "scripts": { "test": "bun test test/*.test.js" },
+  "dependencies": {
+    "@forwardimpact/libcli": "^0.1.0",
+    "@forwardimpact/libutil": "^0.1.0"
+  },
+  "devDependencies": { "@forwardimpact/libmock": "^0.1.0" },
+  "engines": { "bun": ">=1.2.0", "node": ">=22.0.0" },
+  "publishConfig": { "access": "public" }
+}
+```
+
+Verify: `bun install` links the workspace and `bun run context:check-metadata`
+passes.
+
+## Step 2: Write the truthy predicate and the reason grammar
+
+Give the killswitch value one JavaScript home and one encoder.
+
+Created: `libraries/libwatchdog/src/truthy.js`,
+`libraries/libwatchdog/src/reason.js`
+
+| Export | Signature | Contract |
+| ------ | --------- | -------- |
+| `isTruthy` | `(value) => boolean` | `false` for `null`, `undefined`, and, after `String(value).trim().toLowerCase()`, for `""`, `0`, `false`, `no`, `off`. `true` otherwise. It agrees with the four shell readers. |
+| `encodeReason` | `({ name, breaches, at }) => string` | Pipe-separated: `watchdog\|issues=47/32\|comments=38/32\|2026-09-02T16:49:00Z`. `name` leads, the ISO timestamp closes. |
+| `decodeReason` | `(value) => { name, breaches, at } \| null` | `null` when the value does not start with the name segment. |
+
+`encodeReason` orders breaches with `unreadable` and `uncovered` first, then
+`threshold`, each group in rule order. A `threshold` breach renders
+`${id}=${count}/${threshold}`. The other two render `${id}=unreadable` and
+`${id}=uncovered`.
+
+Verify: a unit test asserts `isTruthy` over the five falsy strings in both
+cases, and round-trips a two-breach reason through `encodeReason` and
+`decodeReason`.
+
+## Step 3: Write the retrying transport
+
+Give the probes and the latch one request helper with no `gh` binary in the
+path.
+
+Created: `libraries/libwatchdog/src/request.js`
+
+- `createRequest({ token, clock, fetchImpl = fetch, retries = 4 })` returns
+  `async (path, init) => object`.
+- It builds `https://api.github.com${path}` and sets `Authorization: Bearer`,
+  `Accept: application/vnd.github+json`, and
+  `X-GitHub-Api-Version: 2022-11-28`.
+- It wraps the call in
+  `createRetry({ retries, sleep: (ms) => clock.sleep(ms) })` from
+  `@forwardimpact/libutil`, which gives five attempts with exponential backoff
+  and jitter and already retries 429, 499, and 5xx.
+- Inside the retried function, a `403` whose body or `x-ratelimit-remaining: 0`
+  header marks a rate limit throws `new Error("HTTP 429: rate limited")`, so
+  `Retry`'s retryable-error path covers it.
+- A non-2xx response after the retries throws
+  `new Error(\`GitHub \${status} on \${path}\`)`. A 404 throws the same way, and
+  the latch catches it.
+- It returns `{ body, headers }` where `body` is the parsed JSON and `headers`
+  carries `link` for the organization paging.
+
+Verify: a unit test drives a stub `fetchImpl` through a 403 rate-limit response
+followed by a 200, asserts one retry with an injected `clock`, and asserts a
+throw after five 500 responses.
+
+## Step 4: Write the four activity probes
+
+Count each signal against one cutoff and report whether the response covers the
+window.
+
+Created: `libraries/libwatchdog/src/sources/github-activity.js`
+
+Every probe has the signature
+`async ({ request, repo, defaultBranch, cutoff }) => { count, covered }` and
+throws when it cannot read.
+
+| Export | Request | Counted item | Timestamp field |
+| ------ | ------- | ------------ | --------------- |
+| `commitsProbe` | `GET /repos/{repo}/commits?sha={defaultBranch}&since={cutoff}&per_page=100` | every item | `item.commit.committer.date` |
+| `pullsProbe` | `GET /repos/{repo}/pulls?state=all&sort=created&direction=desc&per_page=100` | item at or after the cutoff | `item.created_at` |
+| `issuesProbe` | `GET /repos/{repo}/issues?state=all&sort=created&direction=desc&per_page=100` | item at or after the cutoff, with no `pull_request` key | `item.created_at` |
+| `commentsProbe` | `GET /repos/{repo}/issues/comments?since={cutoff}&sort=created&direction=desc&per_page=100` | item at or after the cutoff | `item.created_at` |
+
+One coverage rule serves all four:
+`covered = items.length < 100 || oldestTimestamp < cutoff`. No probe pages.
+
+Verify: unit tests drive each probe against a fixture page and assert the count,
+plus a 100-item page held inside the window that reports `covered: false`.
+
+## Step 5: Write the rule shape and the engine
+
+Turn thresholds plus probes into one verdict.
+
+Created: `libraries/libwatchdog/src/rule.js`,
+`libraries/libwatchdog/src/evaluate.js`
+
+- `createRule({ id, threshold, probe })` freezes and returns the triple.
+- `activityRules(threshold)` returns the four rules `commits`, `pulls`,
+  `issues`, `comments`, each carrying the same threshold.
+- `evaluate(rules, { request, repo, defaultBranch, clock, windowMs })` derives
+  `cutoff = new Date(clock.now() - windowMs).toISOString()`, awaits every probe,
+  and catches each throw.
+
+```js
+// verdict
+{
+  cutoff,                                        // ISO string
+  windowMs,
+  counts:   [{ id, count, covered, error }],     // one per rule, in rule order
+  breaches: [{ id, kind, count, threshold }],    // kind: threshold | unreadable | uncovered
+  engage:   breaches.length > 0,
+}
+```
+
+A probe that throws yields `kind: "unreadable"` and `count: null`. A probe that
+returns `covered: false` yields `kind: "uncovered"`. A count at or above the
+threshold yields `kind: "threshold"`. One probe can raise at most one breach,
+and `unreadable` and `uncovered` outrank `threshold`.
+
+Verify: unit tests assert an engage verdict for each counter over threshold in
+turn, for a thrown probe, for an uncovered probe, and a quiet verdict when every
+count sits below the threshold.
+
+## Step 6: Write the latch and the latch policy
+
+Read both variable scopes, then decide whether to write.
+
+Created: `libraries/libwatchdog/src/latches/actions-variable.js`,
+`libraries/libwatchdog/src/latch.js`
+
+`createActionsVariableLatch({ request, repo, name })` returns `read` and
+`write`.
+
+```js
+await latch.read();
+// {
+//   repository:   { value, updatedAt } | null,   // GET /repos/{repo}/actions/variables/{name}, 404 reads as null
+//   organization: { value, updatedAt } | null,   // GET /repos/{repo}/actions/organization-variables?per_page=30, paged to the end
+//   scope: "repository" | "organization" | null, // repository wins when present
+//   value: string | null,                        // the effective value
+//   updatedAt: string | null,                    // the effective record's updated_at
+// }
+await latch.write(value);
+// PATCH /repos/{repo}/actions/variables/{name}, or POST /repos/{repo}/actions/variables when repository is null
+```
+
+`decide(verdict, state, { windowMs, now })` returns `"engage"` or `"skip"`:
+
+| Order | Condition | Result |
+| ----- | --------- | ------ |
+| 1 | `verdict.engage` is false | `skip` |
+| 2 | `isTruthy(state.value)` | `skip` (already stopped) |
+| 3 | `state.repository` exists, its value is falsy, and `now - Date.parse(state.repository.updatedAt) < windowMs` | `skip` (resume window) |
+| 4 | otherwise | `engage` |
+
+Rule 2 reads the effective value, so a truthy organization variable under a
+falsy repository variable falls through to rule 3 and then engages.
+
+Verify: unit tests cover already engaged, cleared inside the window, cleared
+outside the window, a truthy organization variable under a falsy repository
+variable, and an absent repository variable.
+
+## Step 7: Write the run-summary renderer
+
+Render one markdown block that carries the counts, the current value, and the
+verdict.
+
+Created: `libraries/libwatchdog/src/summary.js`
+
+`renderSummary({ verdict, state, killswitchValue, decision, dryRun })` returns
+a markdown string with an `### Watchdog` heading, one table row per counter
+(`id`, count or `unreadable`, `covered`, threshold), a line for the killswitch's
+current value and scope, and a verdict line. `state` is optional, so an assess
+run renders with `killswitchValue` alone.
+
+Verify: a unit test asserts the block names all four counters and both the
+verdict and the current value.
+
+## Step 8: Write the two command handlers
+
+Wire argv to the engine and to the latch, and emit the CI side effects.
+
+Created: `libraries/libwatchdog/src/commands/assess.js`,
+`libraries/libwatchdog/src/commands/engage.js`
+
+Both handlers take the libcli `InvocationContext` and read `ctx.deps.runtime`.
+Both resolve `--repo` from `runtime.proc.env.GITHUB_REPOSITORY` when the option
+is absent, and both fail with a usage error when `--variable` is missing
+(libcli options carry no `required` field).
+
+`runAssessCommand`:
+
+1. Build `activityRules(Number(options.threshold))`.
+2. `evaluate(...)` with `windowMs = Number(options["window-hours"]) * 3600000`.
+3. Append `renderSummary(...)` to `runtime.proc.env.GITHUB_STEP_SUMMARY` when
+   the variable is set.
+4. Append `verdict=engage|quiet` and `reason=<encodeReason(...)>` to
+   `runtime.proc.env.GITHUB_OUTPUT` when the variable is set. The reason is one
+   line, so no heredoc delimiter is needed.
+5. Print the text report, or the verdict as JSON when `--format json`.
+6. Return `{ ok: true }`. Assess exits 0 on every outcome.
+
+`runEngageCommand`:
+
+1. `latch.read()`. A read failure returns `{ ok: false, code: 1 }` with no
+   write.
+2. `--dry-run` renders the summary and returns `{ ok: true }`.
+3. `decide(...)`. On `skip`, render the summary and return `{ ok: true }`.
+4. On `engage`, `latch.write(options.reason)`, render the summary, and return
+   `{ ok: false, code: 1 }`. A write failure returns the same.
+
+Both append to the two env files with
+`runtime.fs.writeFile(path, chunk, { flag: "a" })`. `runtime.fs` carries no
+`appendFile`.
+
+Verify: unit tests drive both handlers with `createTestRuntime()` and a stub
+request, then assert the env-file contents, the returned envelope, and that no
+skip path calls `write`.
+
+## Step 9: Write the barrel and the README
+
+Give importers one entry point and give the catalog its description.
+
+Created: `libraries/libwatchdog/src/index.js`,
+`libraries/libwatchdog/README.md`
+
+`src/index.js` re-exports `activityRules`, `createRule`, `evaluate`, `decide`,
+`createActionsVariableLatch`, `createRequest`, `encodeReason`, `decodeReason`,
+`isTruthy`, `renderSummary`, and the four probes.
+
+`README.md` carries the generated `BEGIN:description` block, a composition
+example that builds rules, evaluates them, and decides, and the seam table
+(rule, probe, latch, policy). It links
+`https://www.gemba.team/docs/guard-activity/index.md`.
+
+Verify: `bun run context:fix` leaves the description block unchanged and
+`bun run lint:md` passes.
+
+## Step 10: Write the test suite
+
+Drive the engine against fixture payloads so the component that must not fail
+is verified by more than review.
+
+Created: `libraries/libwatchdog/test/truthy.test.js`,
+`test/reason.test.js`, `test/request.test.js`, `test/probes.test.js`,
+`test/evaluate.test.js`, `test/latch.test.js`, `test/summary.test.js`,
+`test/commands.test.js`, `test/helpers.js`
+
+Tests import from `node:test` and `node:assert`, and take the runtime from
+`createTestRuntime()` in `@forwardimpact/libmock`. `test/helpers.js` builds
+fixture pages of commits, pull requests, issues, and comments at chosen offsets
+from a fixed `now`, plus a stub `request` that maps a path prefix to a response.
+
+The suite covers the six spec cases plus the four ordering cases:
+
+| Case | Assertion |
+| ---- | --------- |
+| Each counter over threshold | Engage verdict naming that counter, once per counter |
+| Probe throws after retries | Engage verdict, reason `unreadable` |
+| Response cannot cover the window | Engage verdict, reason `uncovered` |
+| Every count under threshold | Quiet verdict, no engage |
+| Effective value truthy | `decide` returns `skip`, `write` uncalled |
+| Repository value cleared inside the window | `decide` returns `skip`, `write` uncalled |
+| Repository value cleared outside the window | `decide` returns `engage` |
+| Truthy organization under falsy repository | `decide` returns `engage` |
+| Two counters breach | The reason names both, in rule order |
+| Every write path | Every `write` call receives a non-empty reason, and no path produces a falsy value |
+
+Verify: `bun test libraries/libwatchdog/test/` passes and
+`bun run context:check-bun-test` reports no finding.
+
+## Step 11: Regenerate the catalog
+
+Let the generated library count and catalog row match the tree.
+
+Modified: `libraries/README.md`, `websites/fit/gear/index.md`
+
+Run `bun run context:fix`, then
+`bunx jidoka invariants --seed enumeration-drift` and reconcile the
+`libraries-list` count fence in `websites/fit/gear/index.md` against the printed
+set.
+
+Verify: `bun run check` and `bunx jidoka invariants` pass.
