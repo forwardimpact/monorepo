@@ -87,10 +87,14 @@ killswitch when the activity crosses a fixed threshold.
    human clears it, by writing a falsy value. Deleting the variable is not
    clearing it, and the action README says so.
 6. **Idempotent, and it yields after a human clears.** The watchdog writes
-   nothing while the killswitch already holds a truthy value at either
-   repository or organization scope. It also writes nothing for one window after
-   a human clears it, so the burst that caused the stop drains out of the window
-   and the team resumes.
+   nothing while the effective killswitch value is truthy, resolved the way
+   every `kata-*` gate resolves it: the repository variable when it exists, and
+   the organization variable otherwise. It also writes nothing for one window
+   after a human clears the repository variable, so the burst that caused the
+   stop drains out of the window and the team resumes. Clearing by deleting the
+   variable, or at organization scope, leaves no timestamp and gets no quiet
+   window, so every home that documents the killswitch tells the operator to
+   write a falsy value instead.
 7. **Recorded reason.** The value the watchdog writes names the watchdog, every
    breached counter with its count and threshold, and the time. Every run
    reports every count it obtained and the verdict on its own run summary. An
@@ -100,19 +104,21 @@ killswitch when the activity crosses a fixed threshold.
    stop costs idle agent time until a human clears it. A silent watchdog costs
    an unbounded token spend. Retries inside the run absorb a transient failure
    before the fail-safe applies.
-9. **No agent, no repository data.** The watchdog runs no agent, installs no
-   toolchain, and reads nothing from the repository. It never checks the
-   repository out.
+9. **No agent, no repository data.** The watchdog runs no agent and reads
+   nothing from the repository. It never checks the repository out. It installs
+   one pinned, SHA-verified CLI binary and no toolchain.
 10. **Not a `kata-*` workflow.** The watchdog does not gate on
     `KATA_KILLSWITCH`. It must keep running after it engages. Its name places it
     outside the `kata-*` family, so the "every `kata-*` workflow gates on the
     killswitch" contract stays true as written.
 11. **One credential, scoped to variables.** The watchdog authenticates with the
-    existing Kata App. That App gains `Variables: read & write` and gains no
-    `Secrets` permission, so the same credential that halts the team can never
-    read or write a secret. The killswitch is an Actions variable today in every
-    workflow, action, and setup template, which is what makes this scoping
-    possible. The operator registers and rotates one App, not two.
+    existing Kata App. That App gains `Variables: read & write` at repository
+    scope and read access at organization scope, because the effective value
+    spans both. It gains no `Secrets` permission, so the same credential that
+    halts the team can never read or write a secret. The killswitch is an
+    Actions variable today in every workflow, action, and setup template, which
+    is what makes this scoping possible. The operator registers and rotates one
+    App, not two.
 12. **The containment is a gate, not a permission boundary.** Agent sessions run
     under that same Kata App token, so an agent that calls the variables API can
     clear the switch that stopped it. Three controls stand against that, and
@@ -158,7 +164,10 @@ incident.
 | `libraries/libwatchdog/` | New import-only library: the guardrail engine, the four GitHub activity probes, the Actions-variable latch, the latch policy, the reason grammar, the truthy predicate, and the run-summary renderer. |
 | `products/gemba/bin/gemba-watchdog.js` | New CLI, the seventh `gemba-*` command. Two subcommands, `assess` and `engage`. It holds the command definition and the exit-code wiring, and no guardrail logic. |
 | `products/gemba/actions/gemba-watchdog/` | New composite action, published to `forwardimpact/gemba-watchdog` by the subtree split: `action.yml`, `LICENSE`, and a README that documents the credential scope, the threshold grounding, the clearing rule, and the containment residual. |
-| `launchers/gemba-watchdog/` | The launcher package that makes `npx gemba-watchdog` resolve, as the `public-cli-set` invariant computes for every public CLI. |
+| `launchers/gemba-watchdog/` | The launcher package that makes `npx gemba-watchdog` resolve, as the `public-cli-set` invariant computes for every public CLI. External users reach the CLI that way. CI installs the compiled binary instead. |
+| `build/cli-manifest.json`, `.github/workflows/publish-actions.yml` | The manifest gains `gemba-watchdog` in the `gear` bundle, so the binary compiles and ships. The publish workflow gains a `paths:` entry and a matrix entry, so the sibling action publishes. Both lists name every member explicitly. |
+| `libraries/CLAUDE.md` | The runtime-command list and the `www.gemba.team` citation list each gain `libwatchdog`, so the seventh command and its guide match the stated convention. |
+| The killswitch operator contract | Four homes carry a resume instruction the rule cannot honour. `KATA.md` and `kata-setup`'s SKILL.md say "unset it". Two `websites/kata/` pages say "clear it", which reads either way. Each becomes "write a falsy value". The `kata-agent` action prose also drops its unqualified "every workflow" claim. |
 | `libraries/libwatchdog/test/` | Tests that drive the engine against fixture payloads: each counter over threshold, unreadable, uncovered, quiet, already engaged, and cleared inside the window. |
 | `.claude/skills/gemba-watchdog/SKILL.md`, `.claude/skills/gemba/SKILL.md` | The new skill is the third progressive-documentation artifact beside the guide and the CLI `--help`. The composing Gemba skill gains the guard step. |
 | `websites/gemba/docs/guard-activity/index.md`, `websites/gemba/docs/index.md` | New task guide for the job: the counters, the threshold and window, the latch contract, the clearing rule, the CI wiring, and the exit codes. The docs index gains one card for it. |
@@ -202,10 +211,10 @@ incident.
 | 4 | Any single breach engages the killswitch. | The test suite drives the engine with each counter over the threshold in turn and asserts an engage verdict naming that counter. |
 | 5 | An unreadable or uncovered counter engages the killswitch. | The test suite drives the engine with a failed probe and with a response that cannot cover the window, and asserts an engage verdict with the reason `unreadable` or `uncovered`. |
 | 6 | The watchdog never clears the killswitch. | The library has one code path that writes the latch. Every write carries a non-empty reason string. The test suite asserts no path produces a falsy value. |
-| 7 | An engaged killswitch stays untouched, and a cleared one gets a quiet window. | `gemba-watchdog engage` reads the repository variable and the organization variables first. It writes nothing when either value is truthy, and nothing when the repository value is falsy and its `updated_at` is inside the window. The test suite covers both. |
+| 7 | An engaged killswitch stays untouched, and a cleared one gets a quiet window. | `gemba-watchdog engage` reads the repository variable, then pages the organization listing. It writes nothing when the effective value is truthy, and nothing when the repository value is falsy and its `updated_at` is inside the window. The test suite covers both, plus the case a truthy organization variable under a falsy repository variable engages, because the team is still running. |
 | 8 | The reason is recorded and the run is red. | The written value names the watchdog, every breached counter with its count and threshold, and the time. The run summary carries every count obtained, the killswitch's current value, and the verdict. An engaging run exits non-zero. |
 | 9 | The watchdog is outside the `kata-*` family and does not gate on the killswitch. | The workflow file does not match `.github/workflows/kata-*.yml`, it contains no killswitch gate step, and `bunx jidoka invariants` passes with no change to the `kata-workflows` enumeration topic. |
-| 10 | The watchdog runs no agent and reads no repository data. | The workflow uses no agent-running action and no `actions/checkout` step. |
+| 10 | The watchdog runs no agent and reads no repository data. | The workflow uses no agent-running action and no `actions/checkout` step. The action installs the CLI as a pinned, SHA-verified binary, so no dependency tree resolves at run time. |
 | 11 | The credential is scoped to variables and excludes secrets. | The `kata-setup` GitHub App permission table carries `Variables: read & write` and no `Secrets` row, and states why. The watchdog uses `secrets.KATA_APP_ID` and `secrets.KATA_APP_PRIVATE_KEY`, so no new secret is added. |
 | 12 | The containment is stated, not implied. | The agent skills that write to GitHub carry the "no agent writes `KATA_KILLSWITCH`" rule. `.claude/skills/kata-release-merge/SKILL.md` names the four watchdog paths in both the checklist item and the prose that carries the `.kata/` rule, and `.claude/skills/kata-security-update/SKILL.md` names them for Dependabot pull requests. The action README states the residual. |
 | 13 | The brake is platform surface, and it names no tenant. | `libwatchdog` and the CLI contain no occurrence of `KATA_KILLSWITCH`, and the variable name reaches the CLI as a required option. `libraries/libwatchdog/` ships `package.json` metadata, a README, `src/`, and `test/`. `products/gemba/package.json` declares the bin and the dependency. The guide, the skill, and the CLI `documentation` array carry the same entry. |
