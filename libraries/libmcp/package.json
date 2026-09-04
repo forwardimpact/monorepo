@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@forwardimpact/libtype": "^0.1.0",
-    "zod": "^4.4.3"
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
