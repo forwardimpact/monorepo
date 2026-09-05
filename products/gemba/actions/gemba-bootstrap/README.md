@@ -64,7 +64,7 @@ monorepo) takes this branch.
 | `token`       | No       | `""`       | GitHub token with read access to the wiki. When you provide it, the action checks the wiki out into `./wiki`. The caller must push it back. See [`forwardimpact/gemba-wiki@v1`](https://github.com/forwardimpact/gemba-wiki). |
 | `app-slug`    | No       | `""`       | GitHub App slug for the git identity (e.g. `kata-agent-team`).                          |
 | `app-id`      | No       | `""`       | GitHub App ID for the git identity email.                                                |
-| `bun-version` | No       | `"1.3.11"` | Bun version to install.                                                                  |
+| `bun-version` | No       | `""`       | Bun version to install. Empty installs 1.3.11.                                           |
 | `clis`        | No       | `""`       | Space-separated `fit-*`/`gemba-*` CLIs to install as pinned, SHA-verified pre-compiled binaries on `PATH` (e.g. `gemba-wiki gemba-harness gemba-trace`). An empty value installs only the external tools. |
 
 ## Caching
