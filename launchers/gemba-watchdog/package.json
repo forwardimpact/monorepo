@@ -1,0 +1,30 @@
+{
+  "name": "gemba-watchdog",
+  "version": "0.0.0",
+  "description": "Run gemba-watchdog from the npm registry — launcher for @forwardimpact/gemba",
+  "homepage": "https://www.gemba.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "launchers/gemba-watchdog"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "type": "module",
+  "bin": {
+    "gemba-watchdog": "./bin/gemba-watchdog.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "dependencies": {
+    "@forwardimpact/gemba": "0.0.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

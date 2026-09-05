@@ -57,6 +57,14 @@ part of that loop. Start with the first job. Then pick the job you have now.
 
 </div>
 
+## Guard an Agent Team (Teams Using Agents)
+
+<div class="grid">
+
+<!-- part:card:guard-activity -->
+
+</div>
+
 The platform ships commands and CI actions. It adds no importable API of its
 own. When you want the components instead of the commands, import the runtime
 libraries directly. See the

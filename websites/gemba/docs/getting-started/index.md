@@ -22,7 +22,7 @@ export ANTHROPIC_API_KEY=<your-anthropic-api-key>
 
 ## Install the skill pack
 
-The pack carries the six platform skills. They teach a coding agent the command
+The pack carries the seven platform skills. They teach a coding agent the command
 family and the published actions.
 
 ```sh

@@ -52,6 +52,7 @@ export const SIBLING_ACTION_CLIS = [
   "gemba-benchmark",
   "gemba-harness",
   "gemba-trace",
+  "gemba-watchdog",
   "gemba-wiki",
 ];
 

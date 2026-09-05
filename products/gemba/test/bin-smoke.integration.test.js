@@ -15,6 +15,7 @@ const BINS = [
   "gemba-selfedit",
   "gemba-wiki",
   "gemba-xmr",
+  "gemba-watchdog",
 ];
 
 function binPath(name) {
