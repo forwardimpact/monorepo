@@ -1,0 +1,57 @@
+{
+  "name": "@forwardimpact/libwatchdog",
+  "version": "0.1.0",
+  "description": "Guardrail engine for agent teams — count repository activity over a window, compare it against thresholds, and engage an operator latch when the activity breaches them.",
+  "keywords": [
+    "guardrail",
+    "watchdog",
+    "killswitch",
+    "threshold",
+    "agent"
+  ],
+  "homepage": "https://www.forwardimpact.team",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forwardimpact/monorepo.git",
+    "directory": "libraries/libwatchdog"
+  },
+  "license": "Apache-2.0",
+  "author": "D. Olsson <hi@senzilla.io>",
+  "jobs": [
+    {
+      "user": "Teams Using Agents",
+      "goal": "Stand Up and Operate an Agent Team",
+      "trigger": "An agent event chain creates artifacts faster than a human can read them, and no deterministic brake bounds the volume.",
+      "bigHire": "bound an agent team's output volume with a deterministic brake that a human clears.",
+      "littleHire": "count one activity signal over a window and engage a latch when it crosses a threshold.",
+      "competesWith": "a prose recursion guard inside an agent task; a spend cap on the LLM platform; a human who notices the sprawl"
+    }
+  ],
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./commands/assess.js": "./src/commands/assess.js",
+    "./commands/engage.js": "./src/commands/engage.js"
+  },
+  "files": [
+    "src/**/*.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "bun test test/*.test.js"
+  },
+  "dependencies": {
+    "@forwardimpact/libutil": "^0.1.100"
+  },
+  "devDependencies": {
+    "@forwardimpact/libmock": "^0.1.0"
+  },
+  "engines": {
+    "bun": ">=1.2.0",
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

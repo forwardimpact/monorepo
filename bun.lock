@@ -578,6 +578,16 @@
         "@forwardimpact/libutil": "^0.1.60",
       },
     },
+    "libraries/libwatchdog": {
+      "name": "@forwardimpact/libwatchdog",
+      "version": "0.1.0",
+      "dependencies": {
+        "@forwardimpact/libutil": "^0.1.100",
+      },
+      "devDependencies": {
+        "@forwardimpact/libmock": "^0.1.0",
+      },
+    },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
       "version": "0.3.2",
@@ -639,6 +649,7 @@
         "gemba-selfedit": "./bin/gemba-selfedit.js",
         "gemba-wiki": "./bin/gemba-wiki.js",
         "gemba-xmr": "./bin/gemba-xmr.js",
+        "gemba-watchdog": "./bin/gemba-watchdog.js",
       },
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.17",
@@ -647,6 +658,7 @@
         "@forwardimpact/libpreflight": "^0.1.4",
         "@forwardimpact/libtelemetry": "^0.1.50",
         "@forwardimpact/libutil": "^0.1.100",
+        "@forwardimpact/libwatchdog": "^0.1.0",
         "@forwardimpact/libwiki": "^0.3.0",
         "@forwardimpact/libxmr": "^3.0.0",
       },
@@ -1381,6 +1393,8 @@
     "@forwardimpact/libutil": ["@forwardimpact/libutil@workspace:libraries/libutil"],
 
     "@forwardimpact/libvector": ["@forwardimpact/libvector@workspace:libraries/libvector"],
+
+    "@forwardimpact/libwatchdog": ["@forwardimpact/libwatchdog@workspace:libraries/libwatchdog"],
 
     "@forwardimpact/libwiki": ["@forwardimpact/libwiki@workspace:libraries/libwiki"],
 

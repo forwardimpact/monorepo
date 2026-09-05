@@ -50,6 +50,7 @@ service infrastructure with knobs agents can read and tune through JSON.
 | **libui**              | Agent-friendly web surfaces — share handler logic across web and terminal so capabilities ship only once.                                                                                                                      |
 | **libutil**            | Cross-cutting utilities: retry, hashing, token counting, and project discovery.                                                                                                                                                |
 | **libvector**          | Vector dot-product scoring — find semantically related content without a dedicated database.                                                                                                                                   |
+| **libwatchdog**        | Guardrail engine for agent teams — count repository activity over a window, compare it against thresholds, and engage an operator latch when the activity breaches them.                                                       |
 | **libwiki**            | Wiki lifecycle for agent teams — persistent memory, declarative integrity audits, and a collision ledger so coordination survives across sessions and parallel work.                                                           |
 | **libxmr**             | Wheeler/Vacanti XmR control charts — distinguish signal from noise so agent teams act on real changes instead of fluctuations.                                                                                                 |
 
@@ -290,6 +291,24 @@ libpreflight, librc, libsupervise, libtelemetry**
 
 **Competes With:** failing deep in execution instead of at startup; ad-hoc
 process management; console.log debugging; instruction files nobody validates.
+
+</job>
+
+<job user="Teams Using Agents" goal="Stand Up and Operate an Agent Team">
+
+## Teams Using Agents: Stand Up and Operate an Agent Team
+
+**Trigger:** An agent event chain creates artifacts faster than a human can read
+them, and no deterministic brake bounds the volume.
+
+**Big Hire:** Help me bound an agent team's output volume with a deterministic
+brake that a human clears. → **libwatchdog**
+
+**Little Hire:** Help me count one activity signal over a window and engage a
+latch when it crosses a threshold. → **libwatchdog**
+
+**Competes With:** a prose recursion guard inside an agent task; a spend cap on
+the LLM platform; a human who notices the sprawl.
 
 </job>
 
