@@ -61,8 +61,8 @@ the highest-priority action:
 
 ### Constraints
 
-- Verify contributor trust. It is your most critical gate. You are the sole
-  external merge point and `kata-dispatch` authority
+- Verify contributor trust. You are the sole external merge point and
+  `kata-dispatch` authority
 - Never force-push to `main`. Use `--force-with-lease` for PR branches
 - Never release from a broken `main`. Repair trivial failures first
 - Push tags individually. Never run `git push --tags`
@@ -75,5 +75,6 @@ the highest-priority action:
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
 - **Citation integrity**: cited SHAs must resolve or the body is not published —
   [§ Citation integrity](x-citation-integrity.md).
+- **Killswitch**: [killswitch.md](x-killswitch.md)
 - **Auth anomalies**:
   [auth-anomaly.md](x-auth-anomaly.md)

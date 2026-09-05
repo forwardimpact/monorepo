@@ -40,9 +40,6 @@ Dependabot PR triage.
 
 ### Policy failure dispositions
 
-When a check fails, the disposition depends on the check. The table below maps
-each check to its policy source and failure action: merge, fix, close, or skip.
-
 | Check                    | Policy source                       | Failure action                                                |
 | ------------------------ | ----------------------------------- | ------------------------------------------------------------- |
 | CI checks                | CONTRIBUTING.md § Before Submitting | **fix** if PR-caused. **skip** if pre-existing on main        |
@@ -55,6 +52,15 @@ each check to its policy source and failure action: merge, fix, close, or skip.
 | Pin direction (forward)  | CONTRIBUTING.md § Security          | **close** — record detection evidence. Route the tag that lags to release-engineer |
 | Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
 | Override-range shadowing | CONTRIBUTING.md § Dependency Policy | **fix** — open follow-up override-bump PR before the merge    |
+| `.kata/` or activity-watchdog-surface diff | kata-release-merge § Settings diffs | **skip** — a trusted human's signal gates it |
+
+Where the repository runs an activity watchdog, that surface is its workflow,
+its composite action home, its CLI bin, and its guardrail library. No agent
+writes the latch it engages
+([`killswitch.md`](../../agents/x-killswitch.md)). The `github-actions` scan
+covers the workflow root and the local actions directory, so it never reaches
+a published action's own pins. The root package-manager scan does reach the
+guardrail library. Guard the action by review and the library by triage.
 
 When you evaluate the SHA-pinning check, verify the PR updates **all** workflow
 files that reference the action. See `references/sha-inventory.md` for how to

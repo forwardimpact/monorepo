@@ -78,4 +78,5 @@ the Act paths:
 - **Citation integrity**: every cited SHA must resolve on its referenced repo or
   the body is not published —
   [§ Citation integrity](x-citation-integrity.md).
+- **Killswitch**: [killswitch](x-killswitch.md)
 - **Auth anomalies**: [auth-anomaly](x-auth-anomaly.md)

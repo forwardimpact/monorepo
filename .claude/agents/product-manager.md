@@ -79,8 +79,8 @@ A supervisor initiates `kata-interview`. Scheduled runs exclude it.
 - **Coordination**:
   [coordination-protocol.md](x-coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
-- **Citation integrity**: every cited SHA must resolve on its repo or the body
-  is not published —
-  [§ Citation integrity](x-citation-integrity.md).
+- **Citation integrity**:
+  [citation-integrity.md](x-citation-integrity.md)
+- **Killswitch**: [killswitch.md](x-killswitch.md)
 - **Auth anomalies**:
   [auth-anomaly.md](x-auth-anomaly.md)

@@ -30,8 +30,9 @@ PR's trust check.
 - [ ] On unreadable trust configuration, fail closed: block trust-gated
       merges with reason `settings unreadable`. Never widen back to the
       default ranking.
-- [ ] A diff that touches `.kata/` merges only on a trusted human's explicit
-      signal pinned to the approved head. No agent approval qualifies.
+- [ ] A diff touching `.kata/`, or a watchdog surface where one exists,
+      merges only on a trusted human's signal pinned to the approved head.
+      No agent approval qualifies.
 - [ ] PR type parsed from the title prefix, and the classification label
       (`product` / `internal`) present.
 - [ ] All CI checks pass, after mechanical fixes if needed.
@@ -196,11 +197,15 @@ outside [`references/review-transfer.md`](references/review-transfer.md), whose
 this rule directly. See
 [`approval-signals.md`](../../agents/x-approval-signals.md).
 
-**Settings diffs.** A diff that touches `.kata/` is a trust-policy change. It
-merges only on a trusted human's explicit signal on that change, pinned to
-the approved head, per the existing approval-signal classes
-([`approval-signals.md`](../../agents/x-approval-signals.md)). No
-agent-originated approval qualifies, whatever the PR's type or phase.
+**Settings diffs.** A diff that touches `.kata/`, or, where the repository
+runs an activity watchdog, that watchdog's surface (its workflow, its
+composite action home, its CLI bin, and its guardrail library), is a
+trust-policy change. It merges only on a trusted human's explicit signal on
+that change, pinned to the approved head, per the existing approval-signal
+classes ([`approval-signals.md`](../../agents/x-approval-signals.md)). No
+agent-originated approval qualifies, whatever the PR's type or phase. The
+watchdog is the team's brake, and no agent writes the latch it engages
+([`killswitch.md`](../../agents/x-killswitch.md)).
 
 ### Step 7: Open Comment Gate
 
