@@ -1,8 +1,9 @@
 # Plan 2340-a Part 03: Wrapper, template, and instruction surfaces
 
 The repository's own pins and the instruction layers that describe them. It
-merges only after part 04 tier 3 tags `kata-agent`. Read that tag's SHA from
-`main` and write it as `<tier-3-sha> # v1.0.10` wherever this part says so.
+merges only after part 04 tier 3 tags `kata-agent`. Read that tag's SHA from the
+**`forwardimpact/kata-agent` sibling repository**, never from a monorepo commit,
+and write it as `<sibling-v1.0.10-sha> # v1.0.10` wherever this part says so.
 
 This part modifies nine files: four workflows, three `kata-setup` files,
 `.claude/agents/x-auth-anomaly.md`, and `.github/CLAUDE.md`.
@@ -18,35 +19,29 @@ Keep the whole file above `steps:` byte for byte: the `on:` block with its
 Add no job-level `timeout-minutes`. The file declares none today, and the run
 limits ride the step.
 
-Replace all nine steps with one:
+Replace all nine steps with one. `.github/CLAUDE.md` asks that a workflow read
+as a sequence of `uses:` steps, so the comment states only what the reader
+cannot see in the step:
 
 ```yaml
     steps:
-      # kata-agent runs the killswitch first and reports run cost last. It
-      # mints the token, stamps it, checks out, bootstraps, refreshes and
-      # pushes the wiki, and delivers the callback when the caller names one.
+      # kata-agent owns the whole lifecycle: killswitch first, token mint and
+      # stamp, checkout, bootstrap, wiki refresh and push, callback, cost last.
       #
-      # Select discuss mode when the caller supplies a discussion_id. That is
-      # the bridge path, which resumes or starts a threaded conversation.
-      # Otherwise run a one-shot facilitate.
-      #
-      # libharness composes the task (libraries/libharness/src/events/
-      # github.js). This workflow hands the runner's native event JSON to the
-      # action and assembles no prompt. The runner exports GITHUB_EVENT_NAME
-      # automatically, so the composer picks the right template with no extra
-      # wiring. Untrusted dispatch inputs (discussion_id, resume_context,
-      # dispatch prompt) flow as `with:` inputs. The action env-wraps them
-      # before they reach any shell, so this surface keeps the same
-      # template-injection-safe contract.
+      # This workflow assembles no prompt. libharness composes the task from
+      # the runner's native event JSON, which the runner also identifies
+      # through GITHUB_EVENT_NAME. Untrusted dispatch inputs flow as `with:`
+      # inputs, and the action env-wraps them before any shell sees them.
       #
       # On issue and PR events `inputs` is null, so every bridge input is empty
       # and the action's callback step skips.
-      - uses: forwardimpact/kata-agent@<tier-3-sha> # v1.0.10
+      - uses: forwardimpact/kata-agent@<sibling-v1.0.10-sha> # v1.0.10
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
           killswitch: ${{ vars.KATA_KILLSWITCH }}
+          # discuss resumes a thread; otherwise one-shot facilitate.
           mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
           task-event: ${{ github.event_path }}
           agent-profiles: release-engineer,product-manager,security-engineer,staff-engineer,technical-writer,improvement-coach
@@ -76,9 +71,12 @@ Files modified: `.github/workflows/kata-shift.yml`,
 
 Each file carries one `kata-agent` pin at
 `ae8d86f64ae7a8edaba059d1314e97e4dc652d35 # v1.0.9`. Move all three to
-`<tier-3-sha> # v1.0.10`. Change nothing else in these files. These pins
-carry the token stamp to shift, storyboard, and coaching, which step 5's
-playbook sentence then describes truthfully. See
+`<sibling-v1.0.10-sha> # v1.0.10`. Change nothing else in these files.
+
+design-a.md § Token stamp says these three "gain the stamp with no change to
+their workflows". That holds for their step inputs, which do not change, and it
+needs these pins to move before the stamp reaches them. Step 5's playbook
+sentence depends on this step. See
 [plan-a.md § Scope notes](plan-a.md#scope-notes-for-the-approver).
 
 Verify: `rg 'kata-agent@' .github/workflows/` returns four lines at one SHA.
@@ -92,9 +90,10 @@ alone: the outer four-backtick fence marks the boundary and is not part of the
 file. The template block is complete and literal, with one `uses:` line, no
 comment that points to another reference for a step, and no mutable tag. It
 resolves `{{AGENT_LIST}}`, `{{MODEL}}`, `{{WIKI}}`, and `{{KATA_AGENT_REF}}`.
-Its hosted heading is `## Template (Hosted)`, which matches
-`workflow-shift.md` and the block name `SKILL.md` Step 3 tells the generator
-to emit.
+Its six `workflow_dispatch` input descriptions match `kata-dispatch.yml`'s word
+for word, so the two dispatch surfaces do not restart the drift this spec
+removes. Its hosted section points at `workflow-shift.md` and restates none of
+it, per `.claude/skills/CLAUDE.md` § House style.
 
 ````markdown
 # Workflow Template: Event-Driven Dispatch
@@ -139,23 +138,23 @@ on:
         required: true
         type: string
       callback_url:
-        description: "URL that receives the run's conclusion (optional)"
+        description: "URL to POST the facilitator conclusion to (optional)"
         required: false
         type: string
       correlation_id:
-        description: "Correlation id echoed in the callback payload (optional)"
+        description: "Correlation ID returned in the callback payload (optional)"
         required: false
         type: string
       discussion_id:
-        description: "Stable id for a threaded conversation (bridge path)"
+        description: "Stable identifier for the threaded conversation (carried through traces)"
         required: false
         type: string
       resume_context:
-        description: "Serialized prior state for a resumed run (JSON string)"
+        description: "Serialized prior state for a resumed recessed run (JSON string)"
         required: false
         type: string
       inbox_url:
-        description: "Long-poll URL that injects messages into a live run"
+        description: "Long-poll URL to inject messages into a live run (optional)"
         required: false
         type: string
 
@@ -163,8 +162,8 @@ permissions:
   contents: write
 
 # Coalesce simultaneous events on one target so the recursion guard sees a
-# stable thread. cancel-in-progress: false is load-bearing — runs last 30+
-# minutes and a new label or comment mid-run must not cancel that work.
+# stable thread. `cancel-in-progress: false` is load-bearing. Runs last 30+
+# minutes, and a new label or comment mid-run must not cancel that work.
 concurrency:
   group: agent-dispatch-${{ github.event.issue.number || github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
@@ -209,13 +208,8 @@ every bridge input is empty and the action's callback step skips. Set a job
 
 ## Template (Hosted)
 
-The hosted delta equals the shift delta. Apply
-[`workflow-shift.md` § Template (Hosted)](workflow-shift.md) verbatim: add
-`id-token: write` to `permissions`, insert the OIDC mint step first, and on the
-`kata-agent` step drop `app-id`/`app-private-key` and add
-`installation-token: ${{ steps.mint.outputs.token }}`. Hosted needs a
-`kata-agent` SHA that takes `installation-token`, and the `FIT_OIDC_URL`
-repository variable.
+Apply [`workflow-shift.md` § Template (Hosted)](workflow-shift.md) to the block
+above. Its three deltas are the whole hosted recipe, and it owns them.
 ````
 
 Verify: the template block has one `uses:` line naming
@@ -235,7 +229,7 @@ Files modified: `.claude/skills/kata-setup/references/workflow-shift.md`,
 | `workflow-shift.md` | § Inline steps             | Delete the whole section: heading, prose, and YAML block.                                                                                                                                                |
 | `workflow-shift.md` | § Resolving Action Refs    | Drop the parenthetical that names `gemba-bootstrap`, `gemba-harness`, and `gemba-wiki` for `workflow-dispatch.md`. The sentence names `kata-agent` alone.                                               |
 | `SKILL.md`          | DO-CONFIRM killswitch item | Becomes: "Every generated workflow gates on the killswitch. Each passes `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which runs the gate as its first internal step."                       |
-| `SKILL.md`          | Step 2, ref resolution     | Resolve one placeholder: "Resolve the `{{KATA_AGENT_REF}}` placeholder per [`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs)."                          |
+| `SKILL.md`          | Step 2, ref resolution     | Resolve one placeholder, and point rather than restate: "Resolve `{{KATA_AGENT_REF}}` per [`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs)." Delete the tag-listing, highest-tag, and `@<sha> # <tag>` sentences that follow, which that section owns. |
 | `SKILL.md`          | Step 2, killswitch prose   | Replace "The `kata-agent` workflows (shift, storyboard, coaching) pass" with "Every generated workflow passes", because dispatch is now a `kata-agent` workflow too.                                    |
 | `SKILL.md`          | Step 2, killswitch prose   | Delete the one sentence that begins "The harness-based dispatch workflow mints its own token". Keep the sentence after it about the switch starting unset.                                              |
 
@@ -249,20 +243,27 @@ nothing (success criterion 9). `rg 'shift, storyboard, coaching'
 Files modified: `.claude/agents/x-auth-anomaly.md`.
 
 State a rule rather than an inventory. The playbook ships to installations this
-repository never sees, and four `eval-*` workflows here call `gemba-harness`
-directly with no stamp, so any list of stampless surfaces is wrong on arrival.
+repository never sees, and agent sessions run here outside `kata-agent` too:
+`eval-guide.yml` through `gemba-harness`, and `eval-jidoka.yml`,
+`eval-kata.yml`, and `eval-wiki.yml` through `gemba-benchmark`. None carries a
+stamp, so any list of stampless surfaces is wrong on arrival.
 
-In the paragraph that introduces the stamp, add one sentence after the first:
+Two edits, each in a named place:
 
-    Every `kata-agent` surface carries it, because the action stamps the token
-    it mints.
+1. In the § intro paragraph (the one beginning "This playbook governs every
+   agent session"), append this sentence to the end of the paragraph, after the
+   § Stampless surfaces pointer:
 
-In § Stampless surfaces, add one sentence after the first:
+       Every `kata-agent` surface carries the stamp, because the action stamps
+       the token it mints.
 
-    A surface that runs an agent without `kata-agent`, or outside GitHub
-    Actions, has no stamp.
+2. In § Stampless surfaces, append this sentence to the end of the first
+   paragraph:
 
-Verify: `rg 'kata-agent surface' .claude/agents/x-auth-anomaly.md` matches, the
+       A surface that runs an agent without `kata-agent`, or outside GitHub
+       Actions, has no stamp.
+
+Verify: `rg 'the action stamps' .claude/agents/x-auth-anomaly.md` matches, the
 file names no specific workflow, and `bunx jidoka instructions` passes.
 
 ## Step 6: The actions table names the event mode, within budget
@@ -276,13 +277,14 @@ least as many words as it adds. Make all three changes together.
    `Kata run from text, file, or event (auth, stamp, checkout, bootstrap, harness, wiki, callback)`
 2. Delete the sentence "`kata-agent` delegates to
    gemba-bootstrap/gemba-harness/gemba-wiki internally." The expanded cell now
-   carries it.
+   names all three.
 3. Rewrite "Every workflow calls `gemba-bootstrap@v1` for the environment." as
-   "Workflows reach the environment through `gemba-bootstrap@v1`." After this
-   part no `kata-*` workflow calls it directly, so the original overstates.
+   "Workflows reach the environment through `gemba-bootstrap@v1`." Every
+   `kata-*` workflow now reaches it through `kata-agent`, so "calls" overstates
+   while "reach" stays true for the workflows that do call it directly.
 
-These three land the file back at exactly 768 words, measured. Adding "Full"
-to the cell, or keeping either sentence, puts it over.
+These three land the file back at exactly 768 words, measured. Adding "Full" to
+the cell, or keeping either sentence, puts it over.
 
 Leave the `Action (`@v1`)` column untouched. That column is the
 `sibling-composite-actions` enumeration source
@@ -297,9 +299,9 @@ words. `bun run invariants` passes with the `sibling-composite-actions` and
 
 Files modified: none.
 
-Run `bun run check`, `bun run test`, and `bunx jidoka instructions`. The third
-runs separately, because `bun run check` does not include it and this part
-rewrites two skill reference files against the L6 length cap in JIDOKA.md.
+Run `bun run check` and `bun run test`. `bun run check` reaches
+`jidoka instructions` through `context` → `context:check-instructions`, so it
+covers the L6 length cap on the two skill reference files this part rewrites.
 
-Verify: all three exit zero (success criterion 12), and `git diff --stat
+Verify: both commands exit zero (success criterion 12), and `git diff --stat
 origin/main` lists exactly the nine files this part owns.
