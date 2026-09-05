@@ -152,6 +152,7 @@ env:
 jobs:
   assess:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       issues: read
@@ -166,13 +167,14 @@ jobs:
           mode: assess
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          default-branch: ${{ github.event.repository.default_branch }}
+          killswitch-value: ${{ vars[env.WATCHDOG_VARIABLE] }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
   engage:
     needs: assess
     if: needs.assess.outputs.verdict == 'engage'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions: {}
     steps:
       - uses: forwardimpact/gemba-watchdog@v1
