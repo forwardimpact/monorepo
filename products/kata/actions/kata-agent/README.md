@@ -66,7 +66,7 @@ jobs:
 | `mode`                     | No       | `run`                 | `run`, `supervise`, `facilitate`, or `discuss`                         |
 | `task-text`                | Yes\*    | —                     | Inline task text                                                       |
 | `task-file`                | Yes\*    | —                     | Path to task file                                                      |
-| `task-event`               | Yes\*    | —                     | Path to a native GitHub event payload (`${{ github.event_path }}`); the CLI composes the task |
+| `task-event`               | Yes\*    | `""`                  | Path to a native GitHub event payload (`${{ github.event_path }}`); the CLI composes the task |
 | `agent-profile`            | No       | —                     | Agent profile (run / supervise modes)                                  |
 | `lead-profile`             | No       | —                     | Lead role profile (supervise / facilitate / discuss modes)             |
 | `agent-profiles`           | No       | —                     | Comma-separated participant profiles (facilitate / discuss modes)      |
@@ -108,6 +108,11 @@ to restore prior state when the caller resumes a suspended discussion.
 A non-empty `callback-url` makes the action POST the terminal payload after the
 run. It posts on success and on failure alike.
 
+The callback belongs to every mode, not to `discuss` alone. The action gates it
+on `callback-url` and nothing else, so a `run`, `supervise`, or `facilitate`
+caller that names a URL gets the same terminal payload. Only `inbox-url` is
+specific to `discuss`, because it injects messages into a live discussion.
+
 Keep `trace` enabled when you pass a `callback-url`. With `trace: "false"` the
 callback has no trace to read, so it posts the no-trace placeholder instead of
 the run's conclusion.
@@ -123,8 +128,8 @@ the run's conclusion.
 | `cwd`             | No       | `.`     | Agent working dir (run mode)  |
 | `supervisor-cwd`  | No       | `.`     | Supervisor working dir (supervise mode) |
 | `agent-cwd`       | No       | `.`     | Agent working dir (supervise / facilitate / discuss modes) |
-| `bun-version`     | No       | `""`    | Bun version for the bootstrap; empty installs the bootstrap's pinned 1.3.11 |
-| `killswitch`      | No       | `""`    | Operator killswitch; any truthy value fails the run before it mints a token or does agent work |
+| `bun-version`     | No       | `""`    | Bun version for the bootstrap; empty installs the bootstrap's pinned default |
+| `killswitch`      | No       | `""`    | Operator killswitch. Empty, `0`, `false`, `no`, and `off` let the run proceed. Any other value fails it before it mints a token or does agent work. Pass the `KATA_KILLSWITCH` repository variable so one variable halts every workflow at once. |
 
 \*Supply exactly one of `task-text`, `task-file`, or `task-event`.
 
@@ -135,6 +140,34 @@ composes the task from the payload, so the workflow assembles no prompt. A
 dispatch workflow that also carries the bridge contract reads like this:
 
 ```yaml
+name: "Agent: Dispatch"
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      prompt:
+        required: false
+        type: string
+      callback_url:
+        required: false
+        type: string
+      correlation_id:
+        required: false
+        type: string
+      discussion_id:
+        required: false
+        type: string
+      resume_context:
+        required: false
+        type: string
+      inbox_url:
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
 jobs:
   dispatch:
     runs-on: ubuntu-latest
@@ -144,10 +177,17 @@ jobs:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
           anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          killswitch: ${{ vars.KATA_KILLSWITCH }}
           task-event: ${{ github.event_path }}
           mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
+          agent-profiles: "product-manager,staff-engineer,technical-writer"
           callback-url: ${{ inputs.callback_url }}
           correlation-id: ${{ inputs.correlation_id }}
           discussion-id: ${{ inputs.discussion_id }}
+          resume-context: ${{ inputs.resume_context }}
           inbox-url: ${{ inputs.inbox_url }}
 ```
+
+Both `facilitate` and `discuss` need `agent-profiles`, so name the participants
+on the step. On an issue or pull request event `inputs` is null, every bridge
+value resolves empty, and the callback step skips.

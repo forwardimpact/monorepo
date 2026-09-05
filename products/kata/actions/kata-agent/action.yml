@@ -66,7 +66,10 @@ inputs:
   task-amend:
     description: Additional text the action appends to the task prompt to steer the run
     required: false
-  # --- Discussion (discuss mode) ---
+  # --- Discussion and the bridge contract ---
+  # discussion-id, resume-context, and inbox-url serve discuss mode. The
+  # callback pair serves every mode, because the callback step gates on
+  # callback-url alone.
   discussion-id:
     description: Stable id for the threaded discussion (discuss mode). The traces carry it to link runs. Callers use it to resume a suspended run.
     required: false
