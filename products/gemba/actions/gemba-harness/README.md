@@ -94,7 +94,9 @@ to restore prior state when the caller resumes a suspended discussion.
 | `case`       | Effective case identifier, after the action resolves `case` or the legacy `artifact-suffix`.                                                |
 
 Downstream steps can read the raw trace directly. For example, they can extract
-the orchestrator summary and POST it to an external caller:
+the orchestrator summary and POST it to an external caller. The recipe below
+presumes a `workflow_dispatch` or `workflow_call` caller that declares
+`callback_url` and `correlation_id` inputs:
 
 ```yaml
 - id: assess
@@ -106,12 +108,15 @@ the orchestrator summary and POST it to an external caller:
     agent-profiles: product-manager,security-engineer,staff-engineer
 
 - name: Deliver callback
+  # always(), so a failed run still reports a verdict. The URL test skips
+  # the step when the caller named no callback.
+  if: always() && inputs.callback_url != ''
   env:
     TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
     CALLBACK_URL: ${{ inputs.callback_url }}
     CORRELATION_ID: ${{ inputs.correlation_id }}
   run: |
-    gemba-harness callback \
+    npx gemba-harness callback \
       --trace-file="$TRACE_FILE" \
       --callback-url="$CALLBACK_URL" \
       --correlation-id="$CORRELATION_ID"

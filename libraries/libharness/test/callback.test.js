@@ -7,6 +7,7 @@ import { createMockFs } from "@forwardimpact/libmock";
 import { runCallbackCommand } from "../src/commands/callback.js";
 
 const TRACE_PATH = "/callback/trace.ndjson";
+const NO_TRACE_SUMMARY = "The run produced no trace file. See the run log.";
 
 /**
  * Invoke the callback handler with an InvocationContext-shaped object. An
@@ -27,9 +28,8 @@ function callback(values, fsSync = createMockFs()) {
 const REAL_FETCH = globalThis.fetch.bind(globalThis);
 
 /**
- * Start a one-shot HTTP server that records the first request and returns
- * the configured status. Returns the URL, a getter for the captured
- * request, and a close() helper.
+ * Start an HTTP server that records the most recent request and returns the
+ * configured status. Returns the URL, a request getter, and a close() helper.
  */
 function startServer(status = 200) {
   return new Promise((resolve) => {
@@ -239,7 +239,7 @@ describe("gemba-harness callback", () => {
         correlation_id: "no-trace",
         kind: "terminal",
         verdict: "failed",
-        summary: "The run produced no trace file. See the run log.",
+        summary: NO_TRACE_SUMMARY,
         run_url: "https://github.com/foo/bar/actions/runs/9",
         cost_usd: 0,
         replies: [],
@@ -252,10 +252,15 @@ describe("gemba-harness callback", () => {
         "callback-url": `${server.url}/api/callback/empty`,
         "correlation-id": "empty",
       });
-
+      // Pin the URL. Both sub-cases share one server, and the first body
+      // carries the same summary and cost, so an unpinned read would pass
+      // even if this POST never happened.
       assert.strictEqual(empty.ok, true);
-      assert.strictEqual(server.getLastRequest().body.verdict, "failed");
-      assert.strictEqual(server.getLastRequest().body.cost_usd, 0);
+      const second = server.getLastRequest();
+      assert.strictEqual(second.url, "/api/callback/empty");
+      assert.strictEqual(second.body.summary, NO_TRACE_SUMMARY);
+      assert.strictEqual(second.body.cost_usd, 0);
+      assert.strictEqual(second.body.discussion_id, undefined);
     } finally {
       await server.close();
     }

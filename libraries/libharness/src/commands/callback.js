@@ -71,8 +71,8 @@ const NO_SUMMARY_TEXT = "The run ended and produced no summary.";
  *
  * ```
  * {
- *   correlation_id, verdict, summary, run_url,
- *   discussion_id?, replies: [], trigger?
+ *   correlation_id, kind, verdict, summary, run_url, cost_usd,
+ *   replies: [], last_acted_seq, discussion_id?, trigger?
  * }
  * ```
  *
