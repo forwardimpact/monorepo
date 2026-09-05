@@ -7,7 +7,7 @@ import { decide } from "../latch.js";
 import { isTruthy } from "../truthy.js";
 import { renderSummary } from "../summary.js";
 import { createRequest } from "../request.js";
-import { appendEnvFile, resolveRepo } from "../ci.js";
+import { HOUR_MS, appendEnvFile, positiveNumber, resolveRepo } from "../ci.js";
 
 /**
  * Report the run and return the envelope.
@@ -24,7 +24,8 @@ async function report(runtime, input) {
 /**
  * Run the engage command: read both latch scopes, then write when the policy
  * allows it.
- * @param {object} ctx - The libcli invocation context.
+ * @param {object} ctx - The libcli invocation context. `ctx.deps.request`
+ *   overrides the transport, so a test reaches every branch with no network.
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>} The envelope.
  */
 export async function runEngageCommand(ctx) {
@@ -45,8 +46,8 @@ export async function runEngageCommand(ctx) {
   if (!variable) {
     return { ok: false, error: "engage requires --variable" };
   }
-  const windowHours = Number(options["window-hours"]);
-  if (!Number.isFinite(windowHours) || windowHours <= 0) {
+  const windowHours = positiveNumber(options["window-hours"]);
+  if (windowHours === null) {
     return {
       ok: false,
       error: "engage requires --window-hours as a positive number",
@@ -58,11 +59,12 @@ export async function runEngageCommand(ctx) {
     return { ok: false, error: "engage requires --repo as owner/repo" };
   }
   const token = proc.env.GH_TOKEN;
-  if (!token) {
+  if (!token && !deps.request) {
     return { ok: false, error: "engage requires GH_TOKEN in the environment" };
   }
 
-  const request = createRequest({ token, clock: runtime.clock });
+  const request =
+    deps.request ?? createRequest({ token, clock: runtime.clock });
   const latch = createActionsVariableLatch({ request, repo, name: variable });
 
   let state;
@@ -79,7 +81,7 @@ export async function runEngageCommand(ctx) {
   }
 
   const decision = decide(state, {
-    windowMs: windowHours * 3600000,
+    windowMs: windowHours * HOUR_MS,
     now: runtime.clock.now(),
   });
   if (decision === "skip") {

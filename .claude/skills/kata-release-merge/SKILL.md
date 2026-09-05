@@ -31,8 +31,8 @@ PR's trust check.
       merges with reason `settings unreadable`. Never widen back to the
       default ranking.
 - [ ] A diff touching `.kata/`, or a watchdog surface where one exists,
-      merges only on a trusted human's signal pinned to the approved head.
-      No agent approval qualifies.
+      merges only on a trusted human's explicit signal pinned to the approved
+      head. No agent approval qualifies.
 - [ ] PR type parsed from the title prefix, and the classification label
       (`product` / `internal`) present.
 - [ ] All CI checks pass, after mechanical fixes if needed.

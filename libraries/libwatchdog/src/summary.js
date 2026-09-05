@@ -9,17 +9,16 @@
  */
 function verdictLines(verdict) {
   const lines = [
-    `Window closes at \`${verdict.cutoff}\`.`,
+    `Counting since \`${verdict.cutoff}\`.`,
     "",
     "| Counter | Count | Covered | Threshold |",
     "| ------- | ----- | ------- | --------- |",
   ];
   for (const count of verdict.counts) {
-    const breach = verdict.breaches.find((entry) => entry.id === count.id);
     const reading = count.count === null ? "unreadable" : count.count;
     const covered = count.covered ? "yes" : "no";
     lines.push(
-      `| ${count.id} | ${reading} | ${covered} | ${breach?.threshold ?? "—"} |`,
+      `| ${count.id} | ${reading} | ${covered} | ${count.threshold} |`,
     );
   }
   lines.push("", `Verdict: **${verdict.engage ? "engage" : "quiet"}**`);

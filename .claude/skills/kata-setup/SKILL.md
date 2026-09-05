@@ -190,11 +190,11 @@ Summarize what you created and the next steps:
 
 - Customize agent profiles if you use the defaults
 - Select trust policy and review rigor in an optional `.kata/settings.json`.
-  See the shared kata-settings agent reference
+  Options: the `kata-release-merge` and `kata-review` settings references.
+  Read mechanic: the shared kata-settings agent reference
 - Adjust schedules after you observe the first runs
 - Emergency stop: set `KATA_KILLSWITCH` to a truthy value. Write a falsy value
-  to resume. Deleting the variable is not clearing it
-- The App holds `Variables` read & write at repository scope, read-only at
-  organization scope, and no `Secrets` grant, so a watchdog may engage the
-  killswitch and can never reach a secret
+  to resume. Deleting it is not clearing it
+- The App holds `Variables` read & write at repository scope and read-only at
+  organization scope, and no `Secrets` grant
 - Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm

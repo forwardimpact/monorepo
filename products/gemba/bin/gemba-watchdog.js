@@ -26,7 +26,8 @@ const definition = {
         },
         "default-branch": {
           type: "string",
-          description: "Branch the commit counter reads (default: main)",
+          default: "main",
+          description: "Branch the commit counter reads",
         },
         threshold: {
           type: "string",
@@ -120,7 +121,12 @@ async function main() {
   const result = await cli.dispatch(parsed, { deps: { runtime } });
 
   const envelope = result ?? { ok: true };
-  if (!envelope.ok && envelope.error) cli.usageError(envelope.error);
+  // A usage error exits 2, so an operator triaging a red run can tell a
+  // misconfigured step from a run that stopped the team.
+  if (!envelope.ok && envelope.error) {
+    cli.usageError(envelope.error);
+    return runtime.proc.exit(2);
+  }
   runtime.proc.exit(envelope.ok ? 0 : (envelope.code ?? 1));
 }
 

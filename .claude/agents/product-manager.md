@@ -72,15 +72,15 @@ A supervisor initiates `kata-interview`. Scheduled runs exclude it.
   Both are human-only. You may post a review that approves a `retention` PR
   once every target is terminal and its durable signal is preserved. That
   review writes no STATUS.
-- Never change code on PR branches (release-engineer scope). Change code only
-  on your own `fix/` branches.
+- Never change code on PR branches (release-engineer scope). Use your own
+  `fix/` branches.
 - **Memory**: [memory-protocol.md](x-memory-protocol.md)
   — files: `wiki/product-manager.md`, `wiki/product-manager-$(date +%G-W%V).md`
 - **Coordination**:
   [coordination-protocol.md](x-coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
-- **Citation integrity**:
-  [citation-integrity.md](x-citation-integrity.md)
-- **Killswitch**: [killswitch.md](x-killswitch.md)
+- **Citation integrity**: cited SHAs must resolve or the body is not
+  published — [§ Citation integrity](x-citation-integrity.md).
+- **Killswitch**: [killswitch](x-killswitch.md)
 - **Auth anomalies**:
   [auth-anomaly.md](x-auth-anomaly.md)

@@ -1,6 +1,6 @@
 ---
 title: Gemba
-description: The agent-runtime platform. A factory floor for your agent team. Six commands in a terminal and five composite actions in CI run the same loop. Stand up, run, see, remember, measure, then stop.
+description: The agent-runtime platform. A factory floor for your agent team. Six commands in a terminal and four composite actions in CI run the same loop. Stand up, run, see, remember, measure, then stop.
 toc: false
 layout: home
 ---
@@ -130,7 +130,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">Two Surfaces</div>
       <h2 class="section-headline">What a team rehearses locally runs on every push.</h2>
-      <p class="section-body">Gemba ships the loop twice. The commands run in a terminal. Five published composite actions run the same steps in GitHub Actions. A workflow pins each action by SHA.</p>
+      <p class="section-body">Gemba ships the loop twice. The commands run in a terminal. Four published composite actions run the same steps in GitHub Actions. A workflow pins each action by SHA.</p>
     </div>
     <div class="surface-grid stagger">
       <div class="surface-card stagger-item">
@@ -140,11 +140,11 @@ layout: home
       </div>
       <div class="surface-card stagger-item">
         <div class="surface-kind">Your CI</div>
-        <div class="surface-name">Five composite actions</div>
-        <p class="surface-desc"><code>gemba-bootstrap</code> stands the platform environment up. <code>gemba-harness</code> runs the session and uploads the trace. <code>gemba-wiki</code> writes memory with a freshly minted token. <code>gemba-benchmark</code> spreads benchmark families across machines and merges the reports. <code>gemba-watchdog</code> counts repository activity and engages an operator latch on a breach.</p>
+        <div class="surface-name">Four composite actions</div>
+        <p class="surface-desc"><code>gemba-bootstrap</code> stands the platform environment up. <code>gemba-harness</code> runs the session and uploads the trace. <code>gemba-wiki</code> writes memory with a freshly minted token. <code>gemba-benchmark</code> spreads benchmark families across machines and merges the reports.</p>
       </div>
     </div>
-    <p class="closing-note reveal">Gemba adds no importable API of its own. It consumes published runtime libraries. When you need the components instead of the commands, import <code>@forwardimpact/libharness</code>, <code>@forwardimpact/libwiki</code>, and <code>@forwardimpact/libxmr</code> directly. Read the <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#catalog">library catalog</a>.</p>
+    <p class="closing-note reveal">Gemba adds no importable API of its own. It consumes published runtime libraries. When you need the components instead of the commands, import <code>@forwardimpact/libharness</code>, <code>@forwardimpact/libwiki</code>, <code>@forwardimpact/libxmr</code>, and <code>@forwardimpact/libwatchdog</code> directly. Read the <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#catalog">library catalog</a>.</p>
   </div>
 </div>
 
@@ -169,7 +169,7 @@ layout: home
     <div class="reveal">
       <div class="section-label">The Reference Tenant</div>
       <h2 class="section-headline">Kata runs on this platform. Daily.</h2>
-      <p class="section-body">Kata is an agent team that plans specs, ships features, studies its traces, and acts on findings. Its skills call five of the six commands. Its workflows pin four of the five actions any other team would pin. Kata proves the platform is generic. Read the practice at <a href="https://www.kata.team/">kata.team</a>.</p>
+      <p class="section-body">Kata is an agent team that plans specs, ships features, studies its traces, and acts on findings. Its skills call five of the six commands. Its workflows pin the same four actions any other team would pin. Kata proves the platform is generic. Read the practice at <a href="https://www.kata.team/">kata.team</a>.</p>
       <p class="section-body">Two defaults still name that tenant. <code>gemba-wiki</code> creates a metrics directory only for a skill whose name starts with <code>kata-</code>. <code>gemba-xmr</code> uses <code>kata-shift</code> as its default shift type. Everything else in the platform is tenant-neutral.</p>
     </div>
   </div>

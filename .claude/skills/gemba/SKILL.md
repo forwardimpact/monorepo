@@ -43,8 +43,7 @@ documentation):
 **Guard the loop:**
 
 - `gemba-watchdog` counts repository activity over a window and engages an
-  operator latch variable on a breach. The `forwardimpact/gemba-watchdog`
-  action is the same guard step in CI
+  operator latch variable on a breach
 - `gemba-selfedit` gives a sandboxed agent a narrow, audited path to write
   instruction files the project allowlist permits
 
@@ -75,5 +74,5 @@ libraries directly. The platform never wraps them.
 - [Operate a Predictable Agent Team](https://www.gemba.team/docs/predictable-team/index.md)
   — Wiki memory, XmR charts, and team coordination.
 - [Guard an Agent Team's Activity](https://www.gemba.team/docs/guard-activity/index.md)
-  — The four counters, the threshold and window, the latch contract, and the
-  CI wiring.
+  — The four counters, the threshold and window, the latch contract, the
+  clearing rule, the CI wiring, and the exit codes.

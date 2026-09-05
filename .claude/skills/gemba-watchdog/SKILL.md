@@ -68,7 +68,7 @@ writes `verdict` (`engage` or `quiet`) and `reason` to `$GITHUB_OUTPUT`.
 | Option | Role |
 | ------ | ---- |
 | `--variable` | Latch variable name. Required |
-| `--reason` | Value to write. An empty value is refused |
+| `--reason` | Value to write. Required. An empty value is refused |
 | `--window-hours` | Window the resume rule measures. Required |
 | `--repo` | `owner/repo`. Falls back to `$GITHUB_REPOSITORY` |
 | `--dry-run` | Read both scopes and write nothing |
@@ -90,8 +90,7 @@ watchdog|issues=47/32|comments=38/32|2026-09-02T14:49:00.000Z
 ## Rules
 
 - **Never write the latch variable yourself.** The watchdog is the only
-  automatic writer. See
-  [killswitch](../../agents/x-killswitch.md).
+  automatic writer.
 - **A human clears the latch by writing a falsy value** (`""`, `0`, `false`,
   `no`, `off`). Deleting the variable is not clearing it, and it earns no
   quiet window.

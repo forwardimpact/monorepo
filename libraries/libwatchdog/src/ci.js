@@ -1,6 +1,13 @@
 // The CI seams the two command handlers share: the credential, the repository
-// slug, and the two GitHub Actions env files. Both handlers append rather than
-// write, because a step may report more than once into the same file.
+// slug, the option arithmetic, and the two GitHub Actions env files. Both
+// handlers append rather than write, because a step may report more than once
+// into the same file.
+
+/** Milliseconds in one hour. Every window arrives in hours. */
+export const HOUR_MS = 3600000;
+
+/** The name that leads every reason this library writes. */
+export const WRITER = "watchdog";
 
 /**
  * Resolve `owner/repo` from the option or from the Actions environment.
@@ -9,7 +16,21 @@
  * @returns {?string} The slug, or `null` when neither home carries one.
  */
 export function resolveRepo(options, proc) {
-  return options.repo || proc.env.GITHUB_REPOSITORY || null;
+  const slug = options.repo || proc.env.GITHUB_REPOSITORY || "";
+  return slug.trim() || null;
+}
+
+/**
+ * Read an option as a positive number.
+ * @param {*} value - The raw option value.
+ * @returns {?number} The number, or `null` when it is absent or not positive.
+ */
+export function positiveNumber(value) {
+  if (value === undefined || value === null || String(value).trim() === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
 /**

@@ -38,7 +38,11 @@ export function stubRequest(routes, { headers } = {}) {
   const calls = [];
   const request = async (path, init) => {
     calls.push({ path, init });
-    const key = Object.keys(routes).find((prefix) => path.startsWith(prefix));
+    // Longest prefix wins, so `/repos/o/r/issues` never shadows
+    // `/repos/o/r/issues/comments` on declaration order alone.
+    const key = Object.keys(routes)
+      .filter((prefix) => path.startsWith(prefix))
+      .sort((a, b) => b.length - a.length)[0];
     if (key === undefined) throw new Error(`unmapped path ${path}`);
     const value = routes[key];
     if (value instanceof Error) throw value;
@@ -52,6 +56,6 @@ export function stubRequest(routes, { headers } = {}) {
 }
 
 /** A minimal invocation context for a command handler. */
-export function context(options, runtime) {
-  return { options, args: {}, deps: { runtime } };
+export function context(options, runtime, request) {
+  return { options, args: {}, deps: { runtime, request } };
 }

@@ -4,7 +4,8 @@
 
 import { createRetry } from "@forwardimpact/libutil";
 
-const API = "https://api.github.com";
+/** The GitHub REST base. The latch strips it back off a `Link` header. */
+export const API = "https://api.github.com";
 
 /**
  * Decide whether a 403 response is a rate limit rather than a permission
@@ -14,7 +15,7 @@ const API = "https://api.github.com";
  * @returns {Promise<boolean>} `true` when the refusal is a rate limit.
  */
 async function isRateLimited(res) {
-  if (res.headers?.get?.("x-ratelimit-remaining") === "0") return true;
+  if (res.headers.get("x-ratelimit-remaining") === "0") return true;
   try {
     const text = await res.clone().text();
     return /rate limit|secondary rate/i.test(text);

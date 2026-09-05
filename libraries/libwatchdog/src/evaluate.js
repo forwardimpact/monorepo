@@ -13,8 +13,8 @@ import { isoTimestamp } from "@forwardimpact/libutil";
  * @param {string} input.defaultBranch - The branch the commits probe reads.
  * @param {{now: () => number}} input.clock - The clock the cutoff derives from.
  * @param {number} input.windowMs - The window the counters cover.
- * @returns {Promise<object>} The verdict: `cutoff`, `windowMs`, `counts`,
- *   `breaches`, and `engage`.
+ * @returns {Promise<object>} The verdict: `cutoff`, `windowMs`, `counts`
+ *   (each carrying its own threshold), `breaches`, and `engage`.
  */
 export async function evaluate(
   rules,
@@ -33,6 +33,7 @@ export async function evaluate(
         id: rule.id,
         count: null,
         covered: false,
+        threshold: rule.threshold,
         error: error.message,
       });
       breaches.push({
@@ -48,6 +49,7 @@ export async function evaluate(
       id: rule.id,
       count: reading.count,
       covered: reading.covered,
+      threshold: rule.threshold,
       error: null,
     });
 

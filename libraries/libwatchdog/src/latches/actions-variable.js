@@ -2,15 +2,18 @@
 // reader resolves the repository variable first and the organization variable
 // otherwise. It writes the repository scope only.
 
+import { API } from "../request.js";
+
 /**
  * Read the next page path out of a `Link` header.
  * @param {*} headers - The response headers.
  * @returns {?string} The next path, or `null` at the end of the listing.
  */
 function nextLink(headers) {
-  const link = headers?.get?.("link");
-  const match = link?.match(/<([^>]+)>;\s*rel="next"/);
-  return match ? match[1].replace("https://api.github.com", "") : null;
+  const link = headers.get("link");
+  if (!link) return null;
+  const match = link.match(/<([^>]+)>;\s*rel="next"/);
+  return match ? match[1].replace(API, "") : null;
 }
 
 /**
@@ -55,12 +58,21 @@ async function readRepository(request, repo, name) {
 async function readOrganization(request, repo, name) {
   let path = `/repos/${repo}/actions/organization-variables?per_page=30`;
   while (path) {
-    const { body, headers } = await request(path);
-    const found = (body?.variables ?? []).find(
+    let page;
+    try {
+      page = await request(path);
+    } catch (error) {
+      // A repository under a personal account has no organization scope, and
+      // GitHub answers 404. That is an absent record, not a failed read. A
+      // 403 is the missing grant, and it stays fatal.
+      if (error.status === 404) return null;
+      throw error;
+    }
+    const found = page.body.variables.find(
       (variable) => variable.name === name,
     );
     if (found) return toRecord(found);
-    path = nextLink(headers);
+    path = nextLink(page.headers);
   }
   return null;
 }

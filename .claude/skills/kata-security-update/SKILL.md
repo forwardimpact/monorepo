@@ -52,7 +52,7 @@ Dependabot PR triage.
 | Pin direction (forward)  | CONTRIBUTING.md § Security          | **close** — record detection evidence. Route the tag that lags to release-engineer |
 | Peer/transitive compat   | CONTRIBUTING.md § Dependency Policy | **close** until co-dependent packages release compat versions |
 | Override-range shadowing | CONTRIBUTING.md § Dependency Policy | **fix** — open follow-up override-bump PR before the merge    |
-| `.kata/` or activity-watchdog-surface diff | kata-release-merge § Settings diffs | **skip** — a trusted human's signal gates it |
+| Watchdog or `.kata/` diff | kata-release-merge § Settings diffs   | **skip** — a trusted human's signal gates it                  |
 
 Where the repository runs an activity watchdog, that surface is its workflow,
 its composite action home, its CLI bin, and its guardrail library. No agent
