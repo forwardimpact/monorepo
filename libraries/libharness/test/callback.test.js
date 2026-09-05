@@ -217,13 +217,48 @@ describe("gemba-harness callback", () => {
     }
   });
 
-  test("requires --trace-file and --callback-url", async () => {
-    const noTrace = await callback({ "callback-url": "http://example" });
-    assert.strictEqual(noTrace.ok, false);
-    assert.match(noTrace.error, /--trace-file is required/);
-    const noUrl = await callback({ "trace-file": "/dev/null" });
+  test("requires --callback-url", async () => {
+    const noUrl = await callback({ "trace-file": TRACE_PATH });
     assert.strictEqual(noUrl.ok, false);
     assert.match(noUrl.error, /--callback-url is required/);
+  });
+
+  test("posts the full-shape placeholder when the trace is absent or empty", async () => {
+    const server = await startServer(200);
+    try {
+      const missing = await callback({
+        "trace-file": "/callback/missing.ndjson",
+        "callback-url": `${server.url}/api/callback/none`,
+        "correlation-id": "no-trace",
+        "run-url": "https://github.com/foo/bar/actions/runs/9",
+        "discussion-id": "GD_no_trace",
+      });
+
+      assert.strictEqual(missing.ok, true);
+      assert.deepStrictEqual(server.getLastRequest().body, {
+        correlation_id: "no-trace",
+        kind: "terminal",
+        verdict: "failed",
+        summary: "The run produced no trace file. See the run log.",
+        run_url: "https://github.com/foo/bar/actions/runs/9",
+        cost_usd: 0,
+        replies: [],
+        last_acted_seq: -1,
+        discussion_id: "GD_no_trace",
+      });
+
+      const empty = await callback({
+        "trace-file": "",
+        "callback-url": `${server.url}/api/callback/empty`,
+        "correlation-id": "empty",
+      });
+
+      assert.strictEqual(empty.ok, true);
+      assert.strictEqual(server.getLastRequest().body.verdict, "failed");
+      assert.strictEqual(server.getLastRequest().body.cost_usd, 0);
+    } finally {
+      await server.close();
+    }
   });
 
   test("treats a missing verdict as 'failed'", async () => {
