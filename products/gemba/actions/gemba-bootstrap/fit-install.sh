@@ -75,7 +75,7 @@ DEFAULT_TOOLS=(apm just gh rg gitleaks claude jidoka
 # caller may override it through the environment to pin a different release. On
 # Darwin the fit-gear cask supersedes this. The tap versions the gear set there.
 FIT_RELEASE_REPO="${FIT_RELEASE_REPO:-forwardimpact/monorepo}"
-FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.3.4}"
+FIT_GEAR_RELEASE="${FIT_GEAR_RELEASE:-gear@v0.3.6}"
 
 # ── tool classification ──────────────────────────────────────────
 # System-package-manager token for the four third-party CLIs a distro packages.
