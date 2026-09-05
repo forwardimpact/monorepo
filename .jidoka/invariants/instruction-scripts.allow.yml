@@ -1,0 +1,14 @@
+# Instruction-script allow-list — invocations that name another repository.
+#
+# The checker (.jidoka/invariants/instruction-scripts.rules.mjs) reads a call
+# the agent makes. A layer that writes a command into a file for a repository
+# it sets up looks the same at the character level, and it is not a dependency
+# the pack must carry. List that command here, keyed by the file that holds it,
+# with the reason inline. Keep the list short. Anything an agent runs itself
+# belongs in the layer's own scripts/ directory or in a published CLI.
+
+# The skill writes this SessionStart hook into the new repository's
+# .claude/settings.json. The script is the target repo's bootstrap seam, which
+# references/repo-skeleton.md tells the agent to author. Nothing runs it here.
+.claude/skills/monorepo-setup/references/wiki-init.md:
+  - scripts/bootstrap.sh
