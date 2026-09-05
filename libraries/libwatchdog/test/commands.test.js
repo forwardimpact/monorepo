@@ -328,3 +328,14 @@ test("every write path carries a non-empty reason", async () => {
     assert.equal(["", "0", "false", "no", "off"].includes(write.value), false);
   }
 });
+
+test("a repo that is not an owner/repo slug does not resolve", async () => {
+  const runtime = testRuntime(ENV);
+  for (const repo of ["o/r/../../evil", "o", "o/r?x=1", " "]) {
+    const result = await runAssessCommand(
+      context({ ...ASSESS, repo }, runtime, stubRequest(QUIET)),
+    );
+    assert.equal(result.ok, false, repo);
+    assert.match(result.error, /--repo/);
+  }
+});

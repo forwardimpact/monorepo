@@ -181,7 +181,7 @@ Setup is verified when the repository is green. Files on disk do not verify it:
 - Validate every generated workflow parses as YAML.
 - Run the repository's checks on a clean checkout. Never leave or ignore red CI.
 - `gh secret list` — confirm the secrets and the named agent profiles resolve
-  at run time.
+  at run time (committed, or installed from the pinned packs).
 - Suggest a first run: `gh workflow run "Agent: Shift"`.
 
 ### Step 5: Report

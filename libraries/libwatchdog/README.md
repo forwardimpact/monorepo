@@ -38,6 +38,7 @@ import {
   encodeReason,
   evaluate,
 } from "@forwardimpact/libwatchdog";
+import { isoTimestamp } from "@forwardimpact/libutil";
 
 const request = createRequest({ token, clock });
 const windowMs = 2 * 3600000;
@@ -62,7 +63,8 @@ if (verdict.engage) {
       encodeReason({
         name: "watchdog",
         breaches: verdict.breaches,
-        at: verdict.cutoff,
+        // The reason records the run, not the moment the window opened.
+        at: isoTimestamp(clock.now()),
       }),
     );
   }

@@ -9,15 +9,19 @@ export const HOUR_MS = 3600000;
 /** The name that leads every reason this library writes. */
 export const WRITER = "watchdog";
 
+// A slug is two path segments of GitHub's own name grammar. The latch write
+// interpolates it into a path, so a value that is not a slug must not resolve.
+const SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+
 /**
  * Resolve `owner/repo` from the option or from the Actions environment.
  * @param {object} options - The parsed options.
  * @param {object} proc - The process surface.
- * @returns {?string} The slug, or `null` when neither home carries one.
+ * @returns {?string} The slug, or `null` when neither home carries a valid one.
  */
 export function resolveRepo(options, proc) {
-  const slug = options.repo || proc.env.GITHUB_REPOSITORY || "";
-  return slug.trim() || null;
+  const slug = (options.repo || proc.env.GITHUB_REPOSITORY || "").trim();
+  return SLUG.test(slug) ? slug : null;
 }
 
 /**

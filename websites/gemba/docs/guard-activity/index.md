@@ -57,8 +57,8 @@ npx gemba-watchdog assess --threshold 32 --window-hours 2
 
 | Option | Role |
 | ------ | ---- |
-| `--threshold` | The breach threshold, one number for every counter |
-| `--window-hours` | The window the counters cover |
+| `--threshold` | The breach threshold, one number for every counter. Required |
+| `--window-hours` | The window the counters cover. Required |
 | `--repo` | `owner/repo`. Falls back to `$GITHUB_REPOSITORY` |
 | `--default-branch` | The branch the commit counter reads. Default `main` |
 | `--killswitch-value` | Your own reading of the latch, for the summary only |
@@ -91,8 +91,8 @@ npx gemba-watchdog engage --variable MY_KILLSWITCH \
 | Option | Role |
 | ------ | ---- |
 | `--variable` | The latch variable's name. Required |
-| `--reason` | The value to write. An empty value is refused |
-| `--window-hours` | The window the resume rule measures |
+| `--reason` | The value to write. Required. An empty value is refused |
+| `--window-hours` | The window the resume rule measures. Required |
 | `--repo` | `owner/repo`. Falls back to `$GITHUB_REPOSITORY` |
 | `--dry-run` | Read both variable scopes and write nothing |
 
