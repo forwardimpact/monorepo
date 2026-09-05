@@ -162,7 +162,7 @@ jobs:
         run: echo "dir=$(mktemp -d)" >> "$GITHUB_OUTPUT"
 
       - name: Run eval
-        uses: forwardimpact/gemba-harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
+        uses: forwardimpact/gemba-harness@621448583f996ce1736ab358aee33e4b72240484 # v1.0.6
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
