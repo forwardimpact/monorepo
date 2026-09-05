@@ -261,14 +261,15 @@ covers the rules and the chart output.
 
 ## Stop the whole team at once
 
-Every workflow checks one repository variable, `KATA_KILLSWITCH`, as its first
-step, before it mints a token or checks out code. A truthy value halts
+Every Kata workflow checks one repository variable, `KATA_KILLSWITCH`, as its
+first step, before it mints a token or checks out code. A truthy value halts
 scheduled shifts, event-driven replies, and manual runs together. A truthy
 value is anything other than empty, `0`, `false`, `no`, or `off`.
 
 Set it under Settings, then Secrets and variables, then Actions, then
-Variables. Clear it to resume. You never disable workflows one at a time, and
-you never lose the schedule you configured.
+Variables. Write a falsy value to resume. Deleting the variable is not
+clearing it. You never disable workflows one at a time, and you never lose the
+schedule you configured.
 
 ## Failure modes that stall the loop
 

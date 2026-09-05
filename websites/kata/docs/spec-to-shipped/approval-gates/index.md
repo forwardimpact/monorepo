@@ -155,8 +155,9 @@ gate fails closed. It blocks every trust-gated merge with the reason
 
 Set the `KATA_KILLSWITCH` Actions variable to any truthy value. Every Kata
 workflow checks it first and fails fast, so scheduled shifts, the event
-dispatcher, and manual runs stop together. Clear the variable to resume. Use it
-when an agent behaves wrongly and you do not yet know which gate let it through.
+dispatcher, and manual runs stop together. Write a falsy value to resume.
+Deleting the variable is not clearing it. Use it when an agent behaves wrongly
+and you do not yet know which gate let it through.
 
 ## The failure you will hit
 

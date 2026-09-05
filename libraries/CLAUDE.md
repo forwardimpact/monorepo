@@ -70,9 +70,10 @@ The seven runtime commands (`gemba-harness`, `gemba-trace`, `gemba-benchmark`,
 `gemba-selfedit`, `gemba-wiki`, `gemba-xmr`, `gemba-watchdog`) are the
 exception. Their bins and skills belong to the Gemba product
 (`products/gemba/bin/`, `.claude/skills/gemba-*/`). `libharness`, `libwiki`,
-`libxmr`, and `libwatchdog` remain import-only libraries. Their guides live on `www.gemba.team`, at
-`websites/gemba/docs/<task-slug>/index.md`, with no `libraries/` tier. The
-`libbridge` and `libterrain` guides stay on `www.forwardimpact.team`.
+`libxmr`, and `libwatchdog` remain import-only libraries. Their guides live on
+`www.gemba.team`, at `websites/gemba/docs/<task-slug>/index.md`, with no
+`libraries/` tier. The `libbridge` and `libterrain` guides stay on
+`www.forwardimpact.team`.
 
 ### Linking rule
 

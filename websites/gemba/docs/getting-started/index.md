@@ -22,8 +22,8 @@ export ANTHROPIC_API_KEY=<your-anthropic-api-key>
 
 ## Install the skill pack
 
-The pack carries the seven platform skills. They teach a coding agent the command
-family and the published actions.
+The pack carries the seven platform skills. They teach a coding agent the
+command family and the published actions.
 
 ```sh
 apm install forwardimpact/gemba-skills
