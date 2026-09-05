@@ -6,7 +6,7 @@ actions (`actions/`) they use.
 ## Third-party actions
 
 <!-- enum:sibling-composite-actions:count -->
-Seven composite actions live under `products/{gemba,jidoka,kata}/actions/`,
+Eight composite actions live under `products/{gemba,jidoka,kata}/actions/`,
 published to `forwardimpact/` siblings, SHA-pinned (`# v1`) on `uses:` lines:
 <!-- /enum -->
 
@@ -19,12 +19,10 @@ published to `forwardimpact/` siblings, SHA-pinned (`# v1`) on `uses:` lines:
 | [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, gemba-bootstrap, gemba-harness, gemba-wiki) |
 | [kata-interview](https://github.com/forwardimpact/kata-interview) | Runs JTBD switching interviews |
 | [jidoka](https://github.com/forwardimpact/jidoka) | Jidoka checks (instructions, jtbd, invariants). Stops the line on drift |
+| [gemba-watchdog](https://github.com/forwardimpact/gemba-watchdog) | Counts repository activity over a window and engages an operator latch variable on a breach |
 
-Every workflow calls `gemba-bootstrap@v1` for the environment. `kata-agent`
-delegates to gemba-bootstrap/gemba-harness/gemba-wiki internally.
-`gemba-bootstrap` only **checks out** the wiki (given a `token`). Its App token
-expires after an hour, so agent runs push memory with `gemba-wiki@v1` as an
-`always()` step. Change and tag a sibling's interface before the consumer.
+Every agent workflow calls `gemba-bootstrap@v1` for the environment. Change
+and tag a sibling's interface before the consumer.
 
 ### Edit a published action
 

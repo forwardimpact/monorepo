@@ -1,9 +1,10 @@
 name: "Publish: Actions"
 
-# Outbound mirror for the seven co-located composite actions: the four
-# agent-run actions under products/gemba/actions/, the two Kata actions under
-# products/kata/actions/, and the Jidoka product's check action under
-# products/jidoka/actions/. Each leg splits its monorepo prefix with the pinned
+# Outbound mirror for every co-located composite action: the agent-run actions
+# under products/gemba/actions/, the gemba-watchdog guardrail action beside
+# them (it runs no agent), the Kata actions under products/kata/actions/, and
+# the Jidoka product's check action under products/jidoka/actions/. The counted
+# set lives in the enum fences in .github/CLAUDE.md and KATA.md. Each leg splits its monorepo prefix with the pinned
 # splitsh-lite. It then non-force-pushes the projection to its sibling repo's
 # main (see ./.github/actions/split-and-push). Edit one matrix entry to add or
 # retire an action.
@@ -22,6 +23,7 @@ on:
       - "products/gemba/actions/gemba-benchmark/**"
       - "products/gemba/actions/gemba-wiki/**"
       - "products/gemba/actions/gemba-bootstrap/**"
+      - "products/gemba/actions/gemba-watchdog/**"
       - "products/kata/actions/kata-agent/**"
       - "products/kata/actions/kata-interview/**"
       - "products/jidoka/actions/jidoka/**"
@@ -52,6 +54,8 @@ jobs:
             repo: kata-interview
           - prefix: products/gemba/actions/gemba-bootstrap
             repo: gemba-bootstrap
+          - prefix: products/gemba/actions/gemba-watchdog
+            repo: gemba-watchdog
           - prefix: products/jidoka/actions/jidoka
             repo: jidoka
     steps:

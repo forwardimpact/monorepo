@@ -1,0 +1,202 @@
+name: Gemba Watchdog
+description: >
+  Count repository activity over a window and engage an operator latch variable
+  when any counter breaches its threshold. The action only ever sets the latch.
+  It never clears it: a human clears it by writing a falsy value. It runs no
+  agent and it checks no repository out. It installs one pinned, SHA-verified
+  release binary, so no dependency tree resolves at run time.
+
+inputs:
+  mode:
+    description: "assess or engage. assess measures and writes nothing. engage writes the latch."
+    required: true
+  threshold:
+    description: "The breach threshold, one number for every counter."
+    required: true
+  window-hours:
+    description: "The window the counters cover, in hours."
+    required: true
+  variable:
+    description: >
+      The latch variable's name. Required in engage mode, where the step fails
+      fast on an empty value. assess reads no variable, so it passes none.
+    required: false
+    default: ""
+  repository:
+    description: "owner/repo to measure."
+    required: false
+    default: ${{ github.repository }}
+  default-branch:
+    description: "The branch the commits counter reads."
+    required: false
+    default: ${{ github.event.repository.default_branch }}
+  killswitch-value:
+    description: "The caller's own reading of the latch, for the run summary only."
+    required: false
+    default: ""
+  reason:
+    description: "The encoded reason to write, in engage mode."
+    required: false
+    default: ""
+  dry-run:
+    description: "Read both latch scopes and write nothing."
+    required: false
+    default: "false"
+  token:
+    description: "Read-only token for assess. It needs contents, issues, and pull-requests read."
+    required: false
+    default: ""
+  app-id:
+    description: "App id for the engage token mint."
+    required: false
+    default: ""
+  app-private-key:
+    description: "App private key for the engage token mint."
+    required: false
+    default: ""
+  gear-release:
+    description: >
+      The monorepo release the installer pins. Nothing advances this default
+      automatically, so a CLI change needs a hand bump of this and
+      installer-sha256 together.
+    required: false
+    default: "gear@v0.3.5"
+  installer-sha256:
+    description: "SHA-256 of that release's fit-install.sh asset."
+    required: false
+    default: "bdb365c1e73e042092b15c421206f3aa365d04878e124137a00b59ef25c6be97"
+
+outputs:
+  verdict:
+    description: "engage when any counter breached, quiet otherwise"
+    value: ${{ steps.assess.outputs.verdict }}
+  reason:
+    description: "The encoded reason string, empty on a quiet run"
+    value: ${{ steps.assess.outputs.reason }}
+
+runs:
+  using: composite
+  steps:
+    # A composite action's `required:` is documentation, not a runner-enforced
+    # gate. Without this check an unknown mode skips every conditional step
+    # below, and the action exits 0 having measured nothing. A brake that goes
+    # dark on a green run is the one failure this cannot have.
+    - id: mode
+      shell: bash
+      env:
+        MODE: ${{ inputs.mode }}
+        REPOSITORY: ${{ inputs.repository }}
+      run: |
+        set -euo pipefail
+        case "$MODE" in
+          assess|engage) ;;
+          *) echo "::error::mode must be assess or engage (got '${MODE}')"; exit 2 ;;
+        esac
+        case "$REPOSITORY" in
+          */*/*|"") echo "::error::repository must be owner/repo (got '${REPOSITORY}')"; exit 2 ;;
+          */*) ;;
+          *) echo "::error::repository must be owner/repo (got '${REPOSITORY}')"; exit 2 ;;
+        esac
+        echo "owner=${REPOSITORY%%/*}" >> "$GITHUB_OUTPUT"
+        echo "name=${REPOSITORY##*/}" >> "$GITHUB_OUTPUT"
+
+    - id: install
+      shell: bash
+      env:
+        GEAR_RELEASE: ${{ inputs.gear-release }}
+        INSTALLER_SHA256: ${{ inputs.installer-sha256 }}
+      run: |
+        set -euo pipefail
+        # The tag is interpolated into a download URL, so reject anything that
+        # is not a release tag. `curl` normalises `..`, which would otherwise
+        # redirect the download to another repository.
+        case "$GEAR_RELEASE" in
+          *[!A-Za-z0-9@._-]*|*..*|"")
+            echo "::error::gear-release is not a release tag: '${GEAR_RELEASE}'"; exit 2 ;;
+        esac
+        # Download outside the caller's workspace, so the action never
+        # overwrites a checked-out file or leaves a script behind.
+        work=$(mktemp -d)
+        base="https://github.com/forwardimpact/monorepo/releases/download/${GEAR_RELEASE}"
+        curl -fsSL --retry 3 --retry-delay 2 --max-time 60 \
+          -o "$work/fit-install.sh" "${base}/fit-install.sh"
+        echo "${INSTALLER_SHA256}  ${work}/fit-install.sh" | sha256sum -c -
+        # The installer's own FIT_GEAR_RELEASE default is stamped at publish
+        # time. Export it so the pin is this action's input, not that default.
+        out=$(FIT_GEAR_RELEASE="${GEAR_RELEASE}" bash "$work/fit-install.sh" --only gemba-watchdog)
+        printf '%s\n' "$out"
+        rm -rf "$work"
+        # Assert the release channel positively. Refusing the `(npm)` marker
+        # alone is not enough: a `gemba-watchdog` already on PATH makes the
+        # installer report `tools ready` and install nothing, and the action
+        # would then run a binary it never verified.
+        case "$out" in
+          *"Installed gemba-watchdog "*"(${GEAR_RELEASE})"*) ;;
+          *"(npm)"*)
+            echo "::error::gemba-watchdog resolved through the npm channel; this action requires the pinned, SHA-verified release binary"
+            exit 1 ;;
+          *)
+            echo "::error::gemba-watchdog did not install from ${GEAR_RELEASE}; refusing to run an unverified binary"
+            exit 1 ;;
+        esac
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    # Down-scope the installation token to the one permission the latch needs.
+    # An un-scoped mint carries every permission the App holds on the
+    # repository, so the credential that halts the team could also push code.
+    # The organization read resolves the effective value across both scopes.
+    - id: token
+      if: inputs.mode == 'engage'
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.app-private-key }}
+        owner: ${{ steps.mode.outputs.owner }}
+        repositories: ${{ steps.mode.outputs.name }}
+        permission-variables: write
+        permission-organization-variables: read
+
+    - id: assess
+      if: inputs.mode == 'assess'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPOSITORY: ${{ inputs.repository }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        THRESHOLD: ${{ inputs.threshold }}
+        WINDOW_HOURS: ${{ inputs.window-hours }}
+        KILLSWITCH_VALUE: ${{ inputs.killswitch-value }}
+      run: |
+        set -euo pipefail
+        [ -n "$THRESHOLD" ] || { echo "::error::threshold is required"; exit 2; }
+        [ -n "$WINDOW_HOURS" ] || { echo "::error::window-hours is required"; exit 2; }
+        gemba-watchdog assess \
+          --repo "$REPOSITORY" \
+          --default-branch "$DEFAULT_BRANCH" \
+          --threshold "$THRESHOLD" \
+          --window-hours "$WINDOW_HOURS" \
+          --killswitch-value "$KILLSWITCH_VALUE"
+
+    - id: engage
+      if: inputs.mode == 'engage'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ steps.token.outputs.token }}
+        REPOSITORY: ${{ inputs.repository }}
+        VARIABLE: ${{ inputs.variable }}
+        REASON: ${{ inputs.reason }}
+        WINDOW_HOURS: ${{ inputs.window-hours }}
+        DRY_RUN: ${{ inputs.dry-run }}
+      run: |
+        set -euo pipefail
+        [ -n "$VARIABLE" ] || { echo "::error::variable is required in engage mode"; exit 2; }
+        [ -n "$WINDOW_HOURS" ] || { echo "::error::window-hours is required"; exit 2; }
+        args=(engage --repo "$REPOSITORY" --variable "$VARIABLE" \
+          --reason "$REASON" --window-hours "$WINDOW_HOURS")
+        # Any truthy spelling means dry run. A caller who believes the run is
+        # a rehearsal must never get a live write.
+        case "$(printf '%s' "$DRY_RUN" | tr '[:upper:]' '[:lower:]')" in
+          ""|0|false|no|off) ;;
+          *) args+=(--dry-run) ;;
+        esac
+        gemba-watchdog "${args[@]}"

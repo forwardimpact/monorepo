@@ -44,7 +44,7 @@ surfaces and sessions.
 Local composite actions under `.github/actions/` encapsulate shared CI steps:
 `audit/`.
 <!-- enum:sibling-composite-actions:count -->
-Seven composite actions are co-located in the monorepo (under
+Eight composite actions are co-located in the monorepo (under
 `products/{gemba,jidoka,kata}/actions/`) and published to
 `forwardimpact/` siblings:
 <!-- /enum -->
@@ -53,6 +53,7 @@ Seven composite actions are co-located in the monorepo (under
 - `gemba-benchmark` — coding-agent benchmarks
 - `gemba-bootstrap` — the FIT CI environment
 - `gemba-harness` — agent task execution
+- `gemba-watchdog` — activity counts that engage an operator latch
 - `gemba-wiki` — agent-memory commands with fresh App token
 - `kata-agent` — full Kata workflow (auth, checkout, gemba-bootstrap, eval,
   gemba-wiki push)

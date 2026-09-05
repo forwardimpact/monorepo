@@ -101,7 +101,7 @@ through npm. It is the source of truth for `forwardimpact/*` sibling repos:
   Edit in-repo ([`.github/CLAUDE.md`](.github/CLAUDE.md)):
 
   <!-- enum:sibling-composite-actions:list -->
-  `gemba-benchmark`, `gemba-bootstrap`, `gemba-harness`, `gemba-wiki`, `jidoka`, `kata-agent`, `kata-interview`
+  `gemba-benchmark`, `gemba-bootstrap`, `gemba-harness`, `gemba-watchdog`, `gemba-wiki`, `jidoka`, `kata-agent`, `kata-interview`
   <!-- /enum -->
 
 Published skills teach how products **work** and **use**. They never teach
