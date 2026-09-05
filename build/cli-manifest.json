@@ -107,6 +107,11 @@
       "bundle": "gear"
     },
     {
+      "name": "gemba-watchdog",
+      "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
+      "bundle": "gear"
+    },
+    {
       "name": "fit-storage",
       "targets": ["bun-linux-x64", "bun-linux-arm64", "bun-darwin-arm64"],
       "bundle": "gear"

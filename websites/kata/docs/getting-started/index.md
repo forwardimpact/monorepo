@@ -102,8 +102,9 @@ gh run watch
 ```
 
 The schedule fires the same workflow on its own, so trigger it by hand only on
-day one. To halt every workflow at once, set the `KATA_KILLSWITCH` repository
-variable. Use any value other than empty, `0`, `false`, `no`, or `off`.
+day one. To halt every Kata workflow at once, set the `KATA_KILLSWITCH`
+repository variable. Use any value other than empty, `0`, `false`, `no`, or
+`off`.
 
 ## Read what the shift wrote
 

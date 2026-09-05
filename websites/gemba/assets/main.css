@@ -502,7 +502,7 @@ body:has(main.layout-home) .site-footer {
    stands in for the tread and hover lights it. */
 .step-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: var(--space-6);
 }
 
@@ -918,7 +918,7 @@ body:has(main.layout-home) .site-footer {
   animation: traceDotIn 240ms var(--ease-default) forwards;
 }
 
-/* The first four dots stagger by sibling position. The live dot
+/* The first five dots stagger by sibling position. The live dot
    sits after the glow rings in source order, out of nth-of-type
    reach among the circles, so its delay keys off its class. */
 .trace-mark.reveal.visible .trace-dot:nth-of-type(1) {
@@ -937,12 +937,16 @@ body:has(main.layout-home) .site-footer {
   animation-delay: 440ms;
 }
 
-.trace-mark.reveal.visible .trace-dot-live {
+.trace-mark.reveal.visible .trace-dot:nth-of-type(5) {
   animation-delay: 560ms;
 }
 
+.trace-mark.reveal.visible .trace-dot-live {
+  animation-delay: 680ms;
+}
+
 .trace-mark.reveal.visible .trace-glow {
-  animation: traceGlowIn 240ms var(--ease-default) 560ms forwards;
+  animation: traceGlowIn 240ms var(--ease-default) 680ms forwards;
 }
 
 .trace-mark.reveal.visible .trace-return {
@@ -981,10 +985,10 @@ body:has(main.layout-home) .site-footer {
 /* ── Trace Mark: Running ───────────────────────────────────────── */
 
 /* The loading state steps the lit dot one station per 600ms and
-   loops from measure back to stand up. The nib stays lit throughout,
+   loops from stop back to stand up. The nib stays lit throughout,
    the constant live edge. */
 .trace-mark.running .trace-dot {
-  animation: traceLamp 3s steps(1, end) infinite;
+  animation: traceLamp 3.6s steps(1, end) infinite;
 }
 
 .trace-mark.running .trace-dot:nth-of-type(1) {
@@ -1003,16 +1007,22 @@ body:has(main.layout-home) .site-footer {
   animation-delay: 1800ms;
 }
 
-.trace-mark.running .trace-dot-live {
+.trace-mark.running .trace-dot:nth-of-type(5) {
   animation-delay: 2400ms;
 }
 
+.trace-mark.running .trace-dot-live {
+  animation-delay: 3000ms;
+}
+
+/* Six stations over a 3.6s period is one 600ms step each, so the lit
+   window closes at 1/6 of the period. */
 @keyframes traceLamp {
   0%,
-  20% {
+  16.66% {
     fill: var(--accent-warm-400);
   }
-  20.01%,
+  16.67%,
   100% {
     fill: var(--gray-300);
   }

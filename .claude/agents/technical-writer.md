@@ -76,4 +76,5 @@ Each work-type lands on its own branch:
   In Assess/memory writes, every cited SHA must resolve on its referenced repo
   or the body is not published —
   [§ Citation integrity](x-citation-integrity.md).
+- **Killswitch**: [killswitch](x-killswitch.md)
 - **Auth anomalies**: [auth-anomaly](x-auth-anomaly.md)

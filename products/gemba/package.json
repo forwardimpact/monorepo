@@ -1,12 +1,13 @@
 {
   "name": "@forwardimpact/gemba",
   "version": "0.1.2",
-  "description": "Stand up and operate an agent team — the runtime platform's command family (harness, trace, benchmark, selfedit, wiki, xmr) and CI actions. They consume the runtime libraries.",
+  "description": "Stand up and operate an agent team — the runtime platform's command family (harness, trace, benchmark, selfedit, wiki, xmr, watchdog) and CI actions. They consume the runtime libraries.",
   "keywords": [
     "agent",
     "harness",
     "trace",
     "wiki",
+    "watchdog",
     "xmr",
     "runtime",
     "platform"
@@ -42,6 +43,7 @@
     "gemba-trace": "./bin/gemba-trace.js",
     "gemba-benchmark": "./bin/gemba-benchmark.js",
     "gemba-selfedit": "./bin/gemba-selfedit.js",
+    "gemba-watchdog": "./bin/gemba-watchdog.js",
     "gemba-wiki": "./bin/gemba-wiki.js",
     "gemba-xmr": "./bin/gemba-xmr.js"
   },
@@ -54,6 +56,7 @@
   "dependencies": {
     "@forwardimpact/libharness": "^3.0.0",
     "@forwardimpact/libwiki": "^0.3.0",
+    "@forwardimpact/libwatchdog": "^0.1.0",
     "@forwardimpact/libxmr": "^3.0.0",
     "@forwardimpact/libcli": "^0.1.17",
     "@forwardimpact/libconfig": "^0.1.85",

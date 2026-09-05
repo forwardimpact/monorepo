@@ -24,9 +24,9 @@ rehearses locally is exactly what runs on every push. In Lean practice,
   installs the toolchain and the pinned platform binaries. Its `fit-install.sh`
   installer runs the same way in any shell
 - Install the command family — `@forwardimpact/gemba` on npm carries all
-  six `gemba-*` commands
+  seven `gemba-*` commands
 - Install the skills — `apm install forwardimpact/gemba-skills` gives agents
-  the six platform skills
+  the seven platform skills
 
 **Operate the loop** (each step has its own skill with full command
 documentation):
@@ -42,18 +42,20 @@ documentation):
 
 **Guard the loop:**
 
+- `gemba-watchdog` counts repository activity over a window and engages an
+  operator latch variable on a breach
 - `gemba-selfedit` gives a sandboxed agent a narrow, audited path to write
   instruction files the project allowlist permits
 
 ## How the Capabilities Compose
 
-The loop is **stand up → run → see → remember → measure**. Each step feeds
-the next. Bootstrap installs the binaries the harness runs. The harness emits
-the traces the trace tools read. Findings from traces land in wiki memory, so
-the next session starts oriented. Metrics recorded per run land on control
-charts that separate real change from noise. A team adopts the whole loop or
-any prefix of it. It can run sessions without charts. Charts without traces
-to explain them are guesswork.
+The loop is **stand up → run → see → remember → measure → stop**. Each step
+feeds the next. Bootstrap installs the binaries the harness runs. The harness
+emits the traces the trace tools read. Findings from traces land in wiki memory,
+so the next session starts oriented. Metrics recorded per run land on control
+charts that separate real change from noise. A team adopts the whole loop or any
+prefix of it. It can run sessions without charts. Charts without traces to
+explain them are guesswork.
 
 The platform exposes commands and actions only. It has no importable API.
 When you need the components behind the commands, import the runtime
@@ -71,3 +73,6 @@ libraries directly. The platform never wraps them.
   analysis.
 - [Operate a Predictable Agent Team](https://www.gemba.team/docs/predictable-team/index.md)
   — Wiki memory, XmR charts, and team coordination.
+- [Guard an Agent Team's Activity](https://www.gemba.team/docs/guard-activity/index.md)
+  — The four counters, the threshold and window, the latch contract, the
+  clearing rule, the CI wiring, and the exit codes.

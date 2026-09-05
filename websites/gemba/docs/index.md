@@ -1,13 +1,14 @@
 ---
 title: Documentation
-description: Guides for the Gemba agent-runtime platform. Stand up the environment, run agent sessions, read traces, keep memory, and measure outcomes.
+description: Guides for the Gemba agent-runtime platform. Stand up the environment, run agent sessions, read traces, keep memory, measure outcomes, and stop the team when it runs away.
 layout: product
 toc: false
 ---
 
 The platform runs one loop. You stand up the environment, run sessions, see
-what happened, remember it, and measure the outcome. Each job below covers one
-part of that loop. Start with the first job. Then pick the job you have now.
+what happened, remember it, measure the outcome, and stop the team when it runs
+away. Each job below covers one part of that loop. Start with the first job.
+Then pick the job you have now.
 
 ## Stand Up the Platform (Teams Using Agents)
 
@@ -54,6 +55,14 @@ part of that loop. Start with the first job. Then pick the job you have now.
 <!-- part:card:predictable-team/collision-ledger -->
 
 <!-- part:card:predictable-team/xmr-analysis -->
+
+</div>
+
+## Guard an Agent Team (Teams Using Agents)
+
+<div class="grid">
+
+<!-- part:card:guard-activity -->
 
 </div>
 

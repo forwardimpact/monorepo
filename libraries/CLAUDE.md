@@ -66,13 +66,14 @@ point:
 - **CLI `--help`** — `documentation` entries on the libcli definition, one
   per linked guide.
 
-The six runtime commands (`gemba-harness`, `gemba-trace`, `gemba-benchmark`,
-`gemba-selfedit`, `gemba-wiki`, `gemba-xmr`) are the exception. Their bins and
-skills belong to the Gemba product (`products/gemba/bin/`,
-`.claude/skills/gemba-*/`). `libharness`, `libwiki`, and `libxmr` remain
-import-only libraries. Their guides live on `www.gemba.team`, at
-`websites/gemba/docs/<task-slug>/index.md`, with no `libraries/` tier. The
-`libbridge` and `libterrain` guides stay on `www.forwardimpact.team`.
+The seven runtime commands (`gemba-harness`, `gemba-trace`, `gemba-benchmark`,
+`gemba-selfedit`, `gemba-wiki`, `gemba-xmr`, `gemba-watchdog`) are the
+exception. Their bins and skills belong to the Gemba product
+(`products/gemba/bin/`, `.claude/skills/gemba-*/`). `libharness`, `libwiki`,
+`libxmr`, and `libwatchdog` remain import-only libraries. Their guides live on
+`www.gemba.team`, at `websites/gemba/docs/<task-slug>/index.md`, with no
+`libraries/` tier. The `libbridge` and `libterrain` guides stay on
+`www.forwardimpact.team`.
 
 ### Linking rule
 
@@ -85,9 +86,9 @@ https://www.forwardimpact.team/docs/libraries/<task-slug>/index.md
 https://www.gemba.team/docs/<task-slug>/index.md
 ```
 
-The `libharness`, `libwiki`, and `libxmr` guides cite `www.gemba.team`. Every
-other library, `libbridge` and `libterrain` included, cites
-`www.forwardimpact.team`.
+The `libharness`, `libwiki`, `libxmr`, and `libwatchdog` guides cite
+`www.gemba.team`. Every other library, `libbridge` and `libterrain` included,
+cites `www.forwardimpact.team`.
 
 Slugs are task-shaped (`every-surface`). Do not shape a slug after a library
 name. The `.md` extension is deliberate. Agents fetch markdown more reliably

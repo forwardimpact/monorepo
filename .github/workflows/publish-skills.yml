@@ -58,8 +58,8 @@ jobs:
               published composite actions that run the same loop in CI.
             apm-description: >-
               Gemba platform skills: stand up and operate an agent team with
-              the harness, trace, benchmark, wiki, and xmr commands and their
-              CI actions.
+              the harness, trace, benchmark, wiki, xmr, and watchdog commands
+              and their CI actions.
           - prefix: jidoka
             repo: jidoka-skills
             version-file: products/jidoka/package.json

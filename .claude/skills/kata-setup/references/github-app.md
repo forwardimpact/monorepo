@@ -28,7 +28,8 @@ path.
    `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET` on the ghbridge process). The ghbridge
    service serves Discussion events. Other events still reach GitHub Actions
    through their own triggers. They need no webhook URL.
-4. Under **Permissions**, set the **repository permissions** below.
+4. Under **Permissions**, set the repository and organization permissions
+   below.
 5. Under **Subscribe to events**, check the events listed below.
 6. Set "Where can this GitHub App be installed?" to "Only on this account."
 7. Click **Create GitHub App**.
@@ -49,12 +50,23 @@ for deployment, tunnel, and configuration steps.
 | **Discussions**   | Read & write | Reply to discussions and discussion comments        |
 | **Workflows**     | Read & write | Token-driven pushes re-trigger downstream workflows |
 | **Metadata**      | Read-only    | GitHub requires it for all Apps                     |
+| **Variables**     | Read & write | A watchdog engages the killswitch variable          |
+
+## Organization Permissions
+
+| Permission    | Access    | Why                                          |
+| ------------- | --------- | -------------------------------------------- |
+| **Variables** | Read-only | Resolves the effective killswitch value      |
+
+The App holds no **Secrets** permission at either scope, so the credential that
+halts the team can never reach a secret. The killswitch is an Actions variable
+everywhere, which is what makes that scoping possible. Without the organization
+grant, that read returns 403 and every engage run exits 1 without writing.
 
 ## Event Subscriptions
 
-The App delivers two event families through different channels. Subscribe to
-the events below on the App. Both channels then fire when their respective
-events arrive.
+Subscribe to the events below. Two channels deliver them, and each fires on its
+own events.
 
 ### App Webhook (served by ghbridge)
 

@@ -71,4 +71,5 @@ on `main`. Pick the highest-priority action:
 - **Memory**: [memory-protocol](x-memory-protocol.md)
 - **Coordination**:
   [coordination-protocol](x-coordination-protocol.md)
+- **Killswitch**: [killswitch](x-killswitch.md)
 - **Auth anomalies**: [auth-anomaly](x-auth-anomaly.md)

@@ -146,18 +146,17 @@ block. Each reference carries both. On hosted setup, remind the operator:
 the first workflow run." The hosted blocks carry no `KATA_APP_PRIVATE_KEY`.
 
 The matrix in `agent-shift.yml` carries one line per selected agent, in
-producer → reviewer → shipper order (see `references/schedules.md`). Generate
-the storyboard and coaching workflows only when you select `improvement-coach`.
+producer → reviewer → shipper order (`references/schedules.md`). Generate the
+storyboard and coaching workflows only for `improvement-coach`.
 
 Every template gates on the `KATA_KILLSWITCH` repository (or org) Actions
-variable. The run fails when the variable holds a truthy value. A truthy value
-is anything other than empty, `0`, `false`, `no`, or `off`. The `kata-agent`
-workflows (shift, storyboard, coaching) pass
-`killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action. The action runs the
-gate as its first internal step, before any token mint, checkout, or agent
-work. The harness-based dispatch workflow mints its own token in the workflow,
-so it keeps an inline `Kata killswitch` first step that halts before that mint.
-The switch starts unset, so it has no effect until an operator sets it.
+variable. The run fails on a truthy value: anything other than empty, `0`,
+`false`, `no`, or `off`. The `kata-agent` workflows (shift, storyboard,
+coaching) pass `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which
+gates as its first internal step, before any token mint, checkout, or agent
+work. The harness-based dispatch workflow mints its own token, so it keeps an
+inline `Kata killswitch` first step that halts before that mint. The switch
+starts unset, so it has no effect until an operator sets it.
 
 ### Step 3: Generate agent-dispatch
 
@@ -168,23 +167,21 @@ comments, issue comments, and discussions?" If yes, generate
 `## Template (self-hosted)`. The workflow does no prompt assembly. It passes
 the event payload through `task-event`. The action composes the task.
 
-If the operator wants discussion replies, also tell them to deploy the
-ghbridge service before they point the App webhook URL at it. PR, issue, and
-review events reach `agent-dispatch` directly through workflow triggers, and
-they need no bridge. Discussion events arrive through the App webhook, and
-they need a live ghbridge instance. Point the operator at the
-[ghbridge README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
-for prerequisites, configuration, and the tunnel/webhook setup.
+For discussion replies, deploy the ghbridge service before pointing the App
+webhook URL at it. PR, issue, and review events reach `agent-dispatch`
+directly. Discussion events arrive through the App webhook and need a live
+ghbridge instance. Its
+[README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
+carries prerequisites, configuration, and the tunnel/webhook setup.
 
 ### Step 4: Verify
 
-Setup is verified when the repository is green. Files on disk do not verify it:
+Setup is verified when the repository is green, not by files on disk:
 
 - Validate every generated workflow parses as YAML.
 - Run the repository's checks on a clean checkout. Never leave or ignore red CI.
-- `gh secret list` — confirm the secrets and the named agent profiles resolve at
-  run time (profiles committed, or gemba-bootstrap-installed from the pinned
-  packs).
+- `gh secret list` — confirm the secrets and the named profiles resolve at run
+  time (committed, or installed from the pinned packs).
 - Suggest a first run: `gh workflow run "Agent: Shift"`.
 
 ### Step 5: Report
@@ -193,8 +190,11 @@ Summarize what you created and the next steps:
 
 - Customize agent profiles if you use the defaults
 - Select trust policy and review rigor in an optional `.kata/settings.json`.
-  Options tables: the `kata-release-merge` and `kata-review` settings
-  references; read mechanic: the shared kata-settings agent reference
+  Options: the `kata-release-merge` and `kata-review` settings references; read
+  mechanic: the shared kata-settings agent reference
 - Adjust schedules after you observe the first runs
-- Emergency stop: set `KATA_KILLSWITCH` to a truthy value. Unset it to resume
+- Emergency stop: set `KATA_KILLSWITCH` truthy. Write a falsy value to resume;
+  deleting it is not clearing it
+- The App holds `Variables` read & write (repo) and read-only (org), so a
+  watchdog engages the killswitch, and no `Secrets` grant
 - Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm
