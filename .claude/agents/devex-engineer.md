@@ -37,7 +37,7 @@ Before any task, handed or self-picked, `Read wiki/MEMORY.md`. Then run
 `Bash: gemba-wiki boot --agent devex-engineer`. Triage a non-empty inbox. Run
 `gemba-wiki claim` before the first code write, and always before any PR.
 Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -64,10 +64,10 @@ Each work-type lands on its own branch:
 
 - A cleanup fix changes **no** behavior. A structural refactor routes to a spec.
 - Make incremental fixes only. Never fold a refactor into a cleanup PR.
-- **Memory**: [memory-protocol](.claude/agents/x-memory-protocol.md)
+- **Memory**: [memory-protocol](x-memory-protocol.md)
 - **Coordination**:
-  [coordination-protocol](.claude/agents/x-coordination-protocol.md)
+  [coordination-protocol](x-coordination-protocol.md)
 - **Citation integrity**: every cited SHA must resolve on its referenced repo or
   the body is not published —
-  [§ Citation integrity](.claude/agents/x-citation-integrity.md).
-- **Auth anomalies**: [auth-anomaly](.claude/agents/x-auth-anomaly.md)
+  [§ Citation integrity](x-citation-integrity.md).
+- **Auth anomalies**: [auth-anomaly](x-auth-anomaly.md)

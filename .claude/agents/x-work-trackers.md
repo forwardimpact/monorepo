@@ -81,7 +81,7 @@ the live repo. The shapes are canonical. Pass the flags each call site needs.
 Discussion events and PR-side approvals. `kata-setup` generates and wires that
 reactor (App, secrets, reactor workflow). That generated wiring is the github
 tracker's own provisioning rather than portable coordination. See
-[`kata-setup`](../../skills/kata-setup/SKILL.md). The matrix names it here. It
+[`kata-setup`](../skills/kata-setup/SKILL.md). The matrix names it here. It
 does not relocate the generated YAML.
 
 ## Filesystem layout

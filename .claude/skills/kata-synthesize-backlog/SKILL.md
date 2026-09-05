@@ -161,7 +161,7 @@ Re-read the corpus. Act on every item's disposition per
 ## Coach Scope Exception
 
 This skill extends the coach's general "no writing specs or fix PRs"
-constraint ([`improvement-coach.md`](../../agents/improvement-coach.md)). The
+constraint (the `improvement-coach` profile). The
 spec writes up what the corpus already implicitly decided. It does not add a
 new feature. The extension is scoped to this skill.
 

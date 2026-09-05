@@ -39,7 +39,7 @@ Before any task, handed or self-picked, `Read wiki/MEMORY.md`. Then run
 `Bash: gemba-wiki boot --agent product-manager`. Triage a non-empty inbox. Run
 `gemba-wiki claim` before the first code write, and always before any PR.
 Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -64,8 +64,9 @@ A supervisor initiates `kata-interview`. Scheduled runs exclude it.
 
 ### Constraints
 
-- **Users**: [JTBD.md](JTBD.md) — know which persona/job each issue and spec
-  serves.
+- **Users**:
+  [JTBD.md](https://github.com/forwardimpact/monorepo/blob/main/JTBD.md) — know
+  which persona/job each issue and spec serves.
 - Spec quality is your gate. PR-comment findings signal a trusted human to
   write `wiki/STATUS.md`. Never originate `spec approved` or `design approved`.
   Both are human-only. You may post a review that approves a `retention` PR
@@ -73,13 +74,13 @@ A supervisor initiates `kata-interview`. Scheduled runs exclude it.
   review writes no STATUS.
 - Never change code on PR branches (release-engineer scope). Change code only
   on your own `fix/` branches.
-- **Memory**: [memory-protocol.md](.claude/agents/x-memory-protocol.md)
+- **Memory**: [memory-protocol.md](x-memory-protocol.md)
   — files: `wiki/product-manager.md`, `wiki/product-manager-$(date +%G-W%V).md`
 - **Coordination**:
-  [coordination-protocol.md](.claude/agents/x-coordination-protocol.md)
+  [coordination-protocol.md](x-coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
 - **Citation integrity**: every cited SHA must resolve on its repo or the body
   is not published —
-  [§ Citation integrity](.claude/agents/x-citation-integrity.md).
+  [§ Citation integrity](x-citation-integrity.md).
 - **Auth anomalies**:
-  [auth-anomaly.md](.claude/agents/x-auth-anomaly.md)
+  [auth-anomaly.md](x-auth-anomaly.md)
