@@ -99,14 +99,16 @@ Verify: `rg -A8 'id: stamp' products/kata/actions/kata-agent/action.yml` shows
 the step writing `value=` to `$GITHUB_OUTPUT`, and the step sits between the
 mint and the checkout.
 
-## Step 3: Forward the Bun version and repair three pins
+## Step 3: Forward the Bun version and repin the bootstrap
 
 Files modified: `products/kata/actions/kata-agent/action.yml`.
 
 Move `gemba-bootstrap` to the release part 04 tier 2 produced. Read the
 40-character SHA from the `v1.0.21` tag in the **`forwardimpact/gemba-bootstrap`
-sibling repository**, never from a monorepo commit. Keep both existing comment
-blocks, the one above `- uses:` and the one above `clis:`.
+sibling repository**, never from a monorepo commit. The tag is the expected next
+patch, so if an unrelated release landed first, take the tag tier 2 actually
+cut. Keep both existing comment blocks, the one above `- uses:` and the one
+above `clis:`.
 
 ```yaml
     - uses: forwardimpact/gemba-bootstrap@<sibling-v1.0.21-sha> # v1.0.21
@@ -120,20 +122,24 @@ blocks, the one above `- uses:` and the one above `clis:`.
         clis: ${{ inputs.wiki == 'true' && 'gemba-wiki gemba-harness gemba-trace' || 'gemba-harness gemba-trace' }}
 ```
 
-Repair the two third-party pins in the same file. `kata-agent` sits behind
-`kata-dispatch.yml` on both, and Dependabot never scans this directory, so
-packaging the dispatch would move every dispatch run onto the older pair
-permanently:
+Change no other pin in this file. `kata-agent` sits behind `kata-dispatch.yml`
+on `actions/checkout` (v6 against v7.0.1) and on its `create-github-app-token`
+SHA, so packaging moves dispatch runs onto the older pair. Repairing it here
+would ship a `checkout` major bump to every external consumer through the
+`v1.0.10` release, and would still leave the same stale pair in `gemba-wiki`,
+`gemba-bootstrap`, and `kata-interview`, which this action invokes.
 
-| Step                        | From                                          | To                                                   |
-| --------------------------- | --------------------------------------------- | ---------------------------------------------------- |
-| `Generate installation token` | `1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3` | `bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3`     |
-| `Checkout`                  | `de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6` | `3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1` |
+Open one issue for the root cause instead: `.github/dependabot.yml` scopes its
+`github-actions` ecosystem to `/` and `/.github/actions/*`, and
+`scripts/check-dependabot.mjs` asserts coverage of `.github/actions/` alone, so
+no pin under `products/*/actions/` is ever scanned. Adding those directories
+bumps all six stale pins across the four sibling actions in one Dependabot
+cycle. Do not widen this plan to fix it.
 
 Verify: the `gemba-bootstrap` pin resolves to the `v1.0.21` tag on the sibling,
 `action.yml` at that SHA declares `bun-version` with `default: ""`, both prior
-comments survive, and `rg -e 'checkout@3d3c42e5' -e 'app-token@bcd2ba49'
-products/kata/actions/kata-agent/action.yml` matches both new pins.
+comments survive, and `git diff` shows exactly one changed `uses:` line in this
+file.
 
 ## Step 4: Hand the event and the bridge env to the harness
 
@@ -153,10 +159,13 @@ Place `task-event` beside `task-text` and `task-file`. Place
 `KATA_GH_TOKEN_STAMP` directly under `GH_TOKEN` with this comment:
 
 ```yaml
-        # Token freshness stamp. It rides the same step env as GH_TOKEN so the
-        # accounting can never pair a token with another token's stamp. See the
-        # "Stamp installation token" step and .claude/agents/x-auth-anomaly.md.
+        # Token freshness stamp, paired with GH_TOKEN on this step env. See the
+        # "Stamp installation token" step above for why, and
+        # .claude/agents/x-auth-anomaly.md for what reads it.
 ```
+
+The stamp step's own comment carries the full rationale, so this one points at
+it rather than repeating it.
 
 The `discuss` command reads `CALLBACK_URL`, `INBOX_URL`, and `CORRELATION_ID`
 from this env. `facilitate` ignores them.
@@ -217,7 +226,7 @@ order:
 
 Files modified: `products/kata/actions/kata-agent/action.yml`.
 
-Part 04 tier 5 deletes the reference consumer's seven-line comment that guards
+Part 05 step 2 deletes the reference consumer's seven-line comment that guards
 the cost step's `>>` redirect against a 64 KiB pipe truncation. Fold that
 reasoning into the `Report run cost` step here, so it survives the deletion:
 
@@ -236,19 +245,20 @@ Files modified: `products/kata/actions/kata-agent/README.md`.
 
 | Section                | Change                                                                                                                                                                                                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Opening paragraph      | Add one sentence: the action stamps the token it mints, and the agent reads the stamp as `KATA_GH_TOKEN_STAMP`. In the same paragraph, correct the retired `fit-harness` link so it names `gemba-harness`.                                                          |
+| Opening paragraph      | Add one sentence: the action stamps the token it mints, and the agent reads the stamp as `KATA_GH_TOKEN_STAMP`. Correct the retired `fit-harness` link in the same paragraph: the label becomes `gemba-harness` and the URL becomes `https://www.npmjs.com/package/@forwardimpact/gemba`, which is the package that ships the CLI. |
 | Agent Configuration    | Add a `task-event` row: `Yes*`, no default, "Path to a native GitHub event payload (`${{ github.event_path }}`); the CLI composes the task". Change the `\*` footnote to "Supply exactly one of `task-text`, `task-file`, or `task-event`."                          |
 | Discuss mode           | Retitle to `Discuss mode and the bridge contract`. Add `callback-url`, `correlation-id`, and `inbox-url` rows. Add one paragraph: a non-empty `callback-url` makes the action POST the terminal payload after the run, on success and on failure alike.              |
 | Discuss mode           | Add one warning sentence: with `trace: "false"` and a `callback-url`, the verb has no trace to read and posts the no-trace placeholder, so a bridge caller keeps `trace` enabled (design-a.md § `kata-agent` interface).                                             |
-| Optional Overrides     | Add a `bun-version` row: `No`, default `""`, "Bun version for the bootstrap; empty takes the bootstrap's default". Add the `killswitch` row the table omits today, because part 03 makes that input the sole killswitch gate for every generated workflow.           |
+| Agent Configuration    | Correct the `agent-model` and `lead-model` rows, which document a `claude-opus-4-7[1m]` default that `action.yml` sets to `""`. Both read `""` with "empty uses the gemba-harness CLI default".                                                                      |
+| Optional Overrides     | Add a `bun-version` row: `No`, default `""`, "Bun version for the bootstrap; empty installs the bootstrap's pinned 1.3.11". Add the `killswitch` row the table omits today, because part 03 makes that input the sole killswitch gate for every generated workflow.  |
 | New `Event mode` block | One short usage block: a dispatch workflow that passes `task-event: ${{ github.event_path }}`, `mode: ${{ inputs.discussion_id != '' && 'discuss' \|\| 'facilitate' }}`, and the four bridge inputs.                                                                 |
 
 Keep the README external-audience: `npx`, no `bun`, no monorepo paths, per
 [products/CLAUDE.md § Audience](../../products/CLAUDE.md).
 
 Verify: `rg 'task-event' products/kata/actions/kata-agent/` matches
-`action.yml` and `README.md` (success criterion 1), and `rg -e fit-harness
-products/kata/actions/kata-agent/README.md` returns nothing.
+`action.yml` and `README.md` (success criterion 1), and `rg -e fit-harness -e
+'claude-opus-4-7' products/kata/actions/kata-agent/README.md` returns nothing.
 
 ## Step 8: Repository checks
 

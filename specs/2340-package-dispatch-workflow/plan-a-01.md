@@ -167,10 +167,11 @@ step, which no longer exists. Rewrite the first sentence:
  */
 ```
 
-In the test file, one name cites "the kata-dispatch shell output". Rename it to
-name the behaviour instead of the retired step.
+In the test file, the `describe` name "matches the kata-dispatch shell output"
+becomes "matches the composed task text".
 
-Verify: `rg kata-dispatch libraries/libharness/` returns nothing.
+Verify: `rg kata-dispatch libraries/libharness/` returns nothing, which also
+requires step 1's docstring edit.
 
 ## Step 5: `gemba-bootstrap` treats an empty `bun-version` as its default
 
@@ -203,12 +204,15 @@ in the expression:
 ```
 
 In the README inputs table, the `bun-version` row default becomes `""` and its
-description becomes `Bun version to install. Empty takes the action's pinned
-default.` The row states no version number, so the literal keeps one home.
+description becomes `Bun version to install. Empty installs 1.3.11.` The
+external reader still learns which version the action installs
+([products/CLAUDE.md § Audience](../../products/CLAUDE.md)), and the README
+documents the value without resolving it: the `setup-bun` expression is the
+only place that decides it, which is the one home design-a.md § Components
+requires.
 
-Verify: `rg '1\.3\.11' products/gemba/actions/gemba-bootstrap/` matches exactly
-one line, the `setup-bun` expression, which is the one home design-a.md
-§ Components requires.
+Verify: `rg '1\.3\.11' products/gemba/actions/gemba-bootstrap/action.yml`
+matches exactly one line, the `setup-bun` expression.
 
 ## Step 6: Repository checks
 

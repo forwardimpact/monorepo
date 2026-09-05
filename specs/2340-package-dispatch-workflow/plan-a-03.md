@@ -4,9 +4,16 @@ The repository's own pins and the instruction layers that describe them. It
 merges only after part 04 tier 3 tags `kata-agent`. Read that tag's SHA from the
 **`forwardimpact/kata-agent` sibling repository**, never from a monorepo commit,
 and write it as `<sibling-v1.0.10-sha> # v1.0.10` wherever this part says so.
+`v1.0.10` is the expected next patch, so if an unrelated release landed first,
+use the tag tier 3 actually cut.
 
 This part modifies nine files: four workflows, three `kata-setup` files,
 `.claude/agents/x-auth-anomaly.md`, and `.github/CLAUDE.md`.
+
+Four of those sit under `.claude/`, where `.claude/settings.json` denies
+`Edit` and `Write`. Write each one whole through
+`echo … | bunx gemba-selfedit <path>`, per root CLAUDE.md § Contributor
+Workflow. The gate also requires a non-`main` branch, which this part is on.
 
 ## Step 1: `kata-dispatch.yml` becomes one `kata-agent` step
 
@@ -90,10 +97,14 @@ alone: the outer four-backtick fence marks the boundary and is not part of the
 file. The template block is complete and literal, with one `uses:` line, no
 comment that points to another reference for a step, and no mutable tag. It
 resolves `{{AGENT_LIST}}`, `{{MODEL}}`, `{{WIKI}}`, and `{{KATA_AGENT_REF}}`.
-Its six `workflow_dispatch` input descriptions match `kata-dispatch.yml`'s word
-for word, so the two dispatch surfaces do not restart the drift this spec
-removes. Its hosted section points at `workflow-shift.md` and restates none of
-it, per `.claude/skills/CLAUDE.md` § House style.
+
+The template is a generic artifact for a repository you have never seen, so its
+prose is its own and need not track `kata-dispatch.yml` word for word. The
+divergence spec.md § Problem charges is a capability gap, the stamp, the
+callback, the inbox URL, the queue depth, and the Bun version. Every dispatch
+surface gains the same capability set through `kata-agent`, which closes that
+gap. Its hosted section points at `workflow-shift.md` and restates none of it,
+per `.claude/skills/CLAUDE.md` § House style.
 
 ````markdown
 # Workflow Template: Event-Driven Dispatch
@@ -195,6 +206,10 @@ jobs:
           agent-model: "{{MODEL}}"
           lead-model: "{{MODEL}}"
           wiki: "{{WIKI}}"
+          # Facilitator sessions outlast the action's 200-turn / 45-minute
+          # defaults. Raise both, as the shift template does.
+          max-turns: "1500"
+          timeout-minutes: "300"
           callback-url: ${{ inputs.callback_url }}
           correlation-id: ${{ inputs.correlation_id }}
           discussion-id: ${{ inputs.discussion_id }}
@@ -208,8 +223,14 @@ every bridge input is empty and the action's callback step skips. Set a job
 
 ## Template (Hosted)
 
-Apply [`workflow-shift.md` § Template (Hosted)](workflow-shift.md) to the block
-above. Its three deltas are the whole hosted recipe, and it owns them.
+Apply
+[`workflow-shift.md` § Template (Hosted)](workflow-shift.md#template-hosted) to
+the block above. Its three deltas are the whole hosted recipe, and it owns them.
+
+Its third delta adds `installation-token`, which `kata-agent` does not declare
+yet. A hosted dispatch generated today therefore mints no token and fails at run
+time. Generate the self-hosted block until a `kata-agent` release declares that
+input.
 ````
 
 Verify: the template block has one `uses:` line naming
@@ -229,14 +250,21 @@ Files modified: `.claude/skills/kata-setup/references/workflow-shift.md`,
 | `workflow-shift.md` | § Inline steps             | Delete the whole section: heading, prose, and YAML block.                                                                                                                                                |
 | `workflow-shift.md` | § Resolving Action Refs    | Drop the parenthetical that names `gemba-bootstrap`, `gemba-harness`, and `gemba-wiki` for `workflow-dispatch.md`. The sentence names `kata-agent` alone.                                               |
 | `SKILL.md`          | DO-CONFIRM killswitch item | Becomes: "Every generated workflow gates on the killswitch. Each passes `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which runs the gate as its first internal step."                       |
-| `SKILL.md`          | Step 2, ref resolution     | Resolve one placeholder, and point rather than restate: "Resolve `{{KATA_AGENT_REF}}` per [`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs)." Delete the tag-listing, highest-tag, and `@<sha> # <tag>` sentences that follow, which that section owns. |
+| `SKILL.md`          | Step 2, ref resolution     | Resolve one placeholder, and point rather than restate: "Resolve `{{KATA_AGENT_REF}}` per [`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs)." Delete every sentence that follows in that paragraph, through "If resolution fails, stop and ask the operator." All five restate § Resolving Action Refs, which owns them. |
+| `SKILL.md`          | Step 2, hosted emit prose  | "Each reference carries both" is false once `workflow-dispatch.md` defers its hosted path. Rewrite as: `workflow-shift.md` and `workflow-facilitate.md` carry both blocks, and `workflow-dispatch.md` carries the self-hosted block plus a pointer.                                                     |
+| `SKILL.md`          | Step 3, dispatch emit      | "Emit the `## Template (hosted)` block in hosted mode (question 8). Otherwise emit `## Template (self-hosted)`." becomes: emit `## Template (Self-Hosted)`, then apply the `## Template (Hosted)` delta it points at. Note that hosted dispatch waits on a `kata-agent` release declaring `installation-token`. |
 | `SKILL.md`          | Step 2, killswitch prose   | Replace "The `kata-agent` workflows (shift, storyboard, coaching) pass" with "Every generated workflow passes", because dispatch is now a `kata-agent` workflow too.                                    |
 | `SKILL.md`          | Step 2, killswitch prose   | Delete the one sentence that begins "The harness-based dispatch workflow mints its own token". Keep the sentence after it about the switch starting unset.                                              |
+
+`SKILL.md` sits at exactly its 192-line cap (200 lines less 8 of frontmatter),
+with 12 words of headroom. These rows net-remove lines and words, so the file
+stays inside both caps.
 
 Verify: `rg -i -e 'inline steps' -e 'harness-based' .claude/skills/kata-setup/`
 returns nothing, and `rg '\{\{GEMBA_' .claude/skills/kata-setup/` returns
 nothing (success criterion 9). `rg 'shift, storyboard, coaching'
-.claude/skills/kata-setup/SKILL.md` returns nothing.
+.claude/skills/kata-setup/SKILL.md` returns nothing. `bunx jidoka instructions`
+passes.
 
 ## Step 5: The playbook states which surfaces carry the stamp
 
@@ -257,11 +285,17 @@ Two edits, each in a named place:
        Every `kata-agent` surface carries the stamp, because the action stamps
        the token it mints.
 
-2. In § Stampless surfaces, append this sentence to the end of the first
+2. In § Stampless surfaces, append these two sentences to the end of the first
    paragraph:
 
        A surface that runs an agent without `kata-agent`, or outside GitHub
-       Actions, has no stamp.
+       Actions, has no stamp. The `kata-interview` action is one such surface,
+       because it mints its own token and carries its own lifecycle.
+
+   design-a.md § Components asks this section to name `kata-interview` and
+   sessions outside Actions. The rule comes first because that pair is not the
+   whole set, and a closed list would ship false. See
+   [plan-a.md § Scope notes](plan-a.md#scope-notes-for-the-approver).
 
 Verify: `rg 'the action stamps' .claude/agents/x-auth-anomaly.md` matches, the
 file names no specific workflow, and `bunx jidoka instructions` passes.
