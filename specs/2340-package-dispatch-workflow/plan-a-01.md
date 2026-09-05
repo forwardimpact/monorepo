@@ -1,8 +1,7 @@
 # Plan 2340-a Part 01: Callback verb and bootstrap input
 
-Tier-1 and tier-2 source for the release chain in
-[plan-a.md](plan-a.md#execution). Nothing here pins a sibling, so this part
-lands first and alone.
+The source that ships in the gear bundle and in `gemba-bootstrap`. Nothing here
+pins a sibling, so this part lands first and alone.
 
 ## Step 1: `gemba-harness callback` gains the absent-trace branch
 
@@ -15,11 +14,10 @@ Add the two summary literals above `runCallbackCommand`:
 
 ```js
 /** Terminal summary when the run wrote no trace the verb can read. */
-const NO_TRACE_SUMMARY =
-  "The run produced no trace file. See the run log.";
+const NO_TRACE_SUMMARY = "The run produced no trace file. See the run log.";
 
 /** Terminal summary when a trace exists but carries no orchestrator summary. */
-const NO_SUMMARY_SUMMARY = "The run ended and produced no summary.";
+const NO_SUMMARY_TEXT = "The run ended and produced no summary.";
 ```
 
 Replace the required-flag guard and the unconditional read:
@@ -28,9 +26,6 @@ Replace the required-flag guard and the unconditional read:
   if (!callbackUrl)
     return { ok: false, code: 1, error: "--callback-url is required" };
 
-  // An absent or empty --trace-file means the run died before it wrote one.
-  // The caller is still owed a terminal payload, so build the placeholder from
-  // the same shape below instead of failing. One home owns the wire shape.
   const content =
     traceFile && runtime.fsSync.existsSync(traceFile)
       ? runtime.fsSync.readFileSync(traceFile, "utf8")
@@ -40,7 +35,7 @@ Replace the required-flag guard and the unconditional read:
       ? { verdict: "failed", summary: NO_TRACE_SUMMARY, replies: [] }
       : (readTraceSummary(content) ?? {
           verdict: "failed",
-          summary: NO_SUMMARY_SUMMARY,
+          summary: NO_SUMMARY_TEXT,
           replies: [],
         });
   const { totalCostUsd } = sumTraceCost(
@@ -51,46 +46,43 @@ Replace the required-flag guard and the unconditional read:
 The payload literal below stays as it is. `found.discussionId` is undefined on
 the placeholder branch, so `discussionIdOverride` supplies `discussion_id`.
 
-Rewrite the `runCallbackCommand` docstring. Drop the sentence that names
-`kata-dispatch.yml` as the caller. State the absent-trace contract instead:
+In the `runCallbackCommand` docstring, keep the wire-shape sample, the
+`@param`, and the `@returns` tags. Replace only the sentence that names
+`kata-dispatch.yml` as the caller with the optional-flag contract:
 
 ```js
-/**
- * Callback command — read an NDJSON trace and extract the terminal
- * orchestrator summary. POST a canonical callback body to the configured
  * URL. `--trace-file` is optional: an absent or empty path posts the same
  * shape with `verdict: failed`, so a run that produced no trace never
  * strands its caller.
- * …
- */
 ```
 
-Verify: `bun test libraries/libharness/test/callback.test.js` passes step 2's
-new cases.
+Verify: the suite is red until step 2, because the existing
+`requires --trace-file and --callback-url` case asserts the guard this step
+removes. Step 2's verify covers both steps.
 
 ## Step 2: Cover the branch in the callback test
 
 Files modified: `libraries/libharness/test/callback.test.js`.
 
-Replace the `requires --trace-file and --callback-url` case with a
-`--callback-url` case only:
+Narrow the `requires --trace-file and --callback-url` case to the URL alone,
+and rename it:
 
 ```js
   test("requires --callback-url", async () => {
-    const noUrl = await callback({ "trace-file": "/dev/null" });
+    const noUrl = await callback({ "trace-file": TRACE_PATH });
     assert.strictEqual(noUrl.ok, false);
     assert.match(noUrl.error, /--callback-url is required/);
   });
 ```
 
-Add one case for the absent path. It asserts the full terminal shape, the zero
-exit, and the `discussion-id` fallback:
+Add one case that drives both no-trace inputs. It asserts the full terminal
+shape, the zero exit, and the `discussion-id` fallback:
 
 ```js
-  test("posts the full-shape placeholder when the trace file is absent", async () => {
+  test("posts the full-shape placeholder when the trace is absent or empty", async () => {
     const server = await startServer(200);
     try {
-      const result = await callback({
+      const missing = await callback({
         "trace-file": "/callback/missing.ndjson",
         "callback-url": `${server.url}/api/callback/none`,
         "correlation-id": "no-trace",
@@ -98,9 +90,8 @@ exit, and the `discussion-id` fallback:
         "discussion-id": "GD_no_trace",
       });
 
-      assert.strictEqual(result.ok, true);
-      const req = server.getLastRequest();
-      assert.deepStrictEqual(req.body, {
+      assert.strictEqual(missing.ok, true);
+      assert.deepStrictEqual(server.getLastRequest().body, {
         correlation_id: "no-trace",
         kind: "terminal",
         verdict: "failed",
@@ -111,25 +102,14 @@ exit, and the `discussion-id` fallback:
         last_acted_seq: -1,
         discussion_id: "GD_no_trace",
       });
-    } finally {
-      await server.close();
-    }
-  });
-```
 
-Add one case for the empty option. It asserts the same branch:
-
-```js
-  test("treats an empty --trace-file option as absent", async () => {
-    const server = await startServer(200);
-    try {
-      const result = await callback({
+      const empty = await callback({
         "trace-file": "",
         "callback-url": `${server.url}/api/callback/empty`,
         "correlation-id": "empty",
       });
 
-      assert.strictEqual(result.ok, true);
+      assert.strictEqual(empty.ok, true);
       assert.strictEqual(server.getLastRequest().body.verdict, "failed");
       assert.strictEqual(server.getLastRequest().body.cost_usd, 0);
     } finally {
@@ -138,33 +118,37 @@ Add one case for the empty option. It asserts the same branch:
   });
 ```
 
-Both cases call `callback()` with its default `createMockFs()`, which reports
-every path absent.
+Both invocations use `callback()`'s default `createMockFs()`, which reports
+every path absent. The `deepStrictEqual` pins the whole wire shape, which is
+the contract design-a.md § Callback verb states. One case covers both inputs,
+so the file stays near the 400-line target in
+[`.claude/rules/test-file-shape.md`](../../.claude/rules/test-file-shape.md)
+and needs no split.
 
 Verify: `bun test libraries/libharness/test/callback.test.js` passes, and the
-existing present-trace cases still pass unchanged.
+existing present-trace cases pass unchanged.
 
 ## Step 3: Align the CLI help and the action recipe
 
 Files modified: `products/gemba/bin/gemba-harness.js`,
 `products/gemba/actions/gemba-harness/README.md`.
 
-| File               | Change                                                                                                                                                               |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gemba-harness.js` | The `callback` command's `"trace-file"` option description becomes `"Path to the NDJSON trace file (optional; an absent path posts the no-trace placeholder)"`.       |
-| `README.md`        | The `Deliver callback` recipe drops its `if: steps.assess.outputs.trace-file != ''` guard. The recipe's prose gains one sentence: the verb handles an absent trace.  |
+| File               | Change                                                                                                                                                                                                              |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gemba-harness.js` | The `callback` command's `"trace-file"` option description becomes `"Path to the NDJSON trace file (optional; an absent path posts the no-trace placeholder)"`.                                                    |
+| `README.md`        | The `Deliver callback` recipe drops its `if: steps.assess.outputs.trace-file != ''` guard. Its `run:` line becomes a bare `gemba-harness callback`, because the recipe's audience installs the binary and never has a monorepo checkout ([products/CLAUDE.md § Audience](../../products/CLAUDE.md)). One sentence states that the verb handles an absent trace. |
 
 Verify: `bunx gemba-harness callback --help` shows the new description, and
-`rg "trace-file != ''" products/gemba/actions/gemba-harness/README.md` returns
-nothing.
+`rg -e "trace-file != ''" -e 'products/gemba/bin'
+products/gemba/actions/gemba-harness/README.md` returns nothing.
 
-## Step 4: Drop the caller name from the task composer docstring
+## Step 4: Drop the caller name from the task composer
 
-Files modified: `libraries/libharness/src/events/github.js`.
+Files modified: `libraries/libharness/src/events/github.js`,
+`libraries/libharness/test/events-github.test.js`.
 
 The module docstring opens by naming `kata-dispatch.yml`'s `Compose task text`
-step. That step no longer exists. Rewrite the first sentence to describe the
-module without a caller:
+step, which this change deletes. Rewrite the first sentence:
 
 ```js
 /**
@@ -175,24 +159,23 @@ module without a caller:
  */
 ```
 
-Verify: `rg "kata-dispatch" libraries/libharness/src/` returns nothing.
+In the test file, one describe or test name cites "the kata-dispatch shell
+output". Rename it to name the behaviour instead of the retired step.
+
+Verify: `rg kata-dispatch libraries/libharness/` returns nothing.
 
 ## Step 5: `gemba-bootstrap` treats an empty `bun-version` as its default
-
-A composite action cannot omit a `with:` key, so a wrapper forwards its own
-empty input verbatim. The pinned literal moves out of the input default and
-into one resolve step, so a forwarded empty value still selects it.
 
 Files modified: `products/gemba/actions/gemba-bootstrap/action.yml`,
 `products/gemba/actions/gemba-bootstrap/README.md`.
 
-Change the input:
+Change the input so it carries no version literal:
 
 ```yaml
   bun-version:
     description: >
-      Bun version to install. Leave it empty to select the pinned default
-      (1.3.11), so a wrapper action can forward its own empty input verbatim.
+      Bun version to install. Leave it empty to take the pinned default, so a
+      wrapper action can forward its own empty input verbatim.
     required: false
     default: ""
 ```
@@ -207,11 +190,11 @@ Insert the resolve step as the first step under `runs.steps`, above
       env:
         BUN_VERSION: ${{ inputs.bun-version }}
       run: |
-        # The pinned default lives here and nowhere else. An empty input
-        # reaches this step from a wrapper that forwards its own empty value,
-        # and from a caller that omits the key. Both select the same version.
-        # setup-bun reads "" as "latest", so the fallback cannot move to the
-        # input default.
+        set -euo pipefail
+        # The pinned default lives here and nowhere else in this action. An
+        # empty value arrives from a caller that omits the key and from a
+        # wrapper that forwards its own empty input. setup-bun reads "" as
+        # "latest", so the fallback cannot sit on the input default.
         echo "version=${BUN_VERSION:-1.3.11}" >> "$GITHUB_OUTPUT"
 ```
 
@@ -225,17 +208,19 @@ Point `setup-bun` at the step output:
 ```
 
 In the README inputs table, the `bun-version` row default becomes `""` and its
-description becomes `Bun version to install. Empty selects 1.3.11.`
+description becomes `Bun version to install. Empty resolves to 1.3.11.`
 
 Verify: `rg '1\.3\.11' products/gemba/actions/gemba-bootstrap/action.yml`
-matches the resolve step only, and the input carries `default: ""`.
+matches the resolve step and nothing else, so the action holds one home for the
+literal, as design-a.md § Components requires. The README row documents that
+value without carrying a second home.
 
 ## Step 6: Repository checks
 
 Files modified: none.
 
 Run `bun run check` and `bun run test`. Both pass. `bun run test` excludes
-`products/gemba/actions/`, so the action YAML has no test surface, by
+`products/gemba/actions/`, so the action YAML has no test surface, per
 CONTRIBUTING.md § Testing.
 
 Verify: both commands exit zero.

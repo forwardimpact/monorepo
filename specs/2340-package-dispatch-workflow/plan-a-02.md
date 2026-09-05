@@ -1,19 +1,27 @@
 # Plan 2340-a Part 02: `kata-agent` runs the dispatch
 
-Tier-3 source. It merges only after tier 2 tags `gemba-bootstrap`, because
-step 3 pins that release.
+It merges only after part 04 tier 2 tags `gemba-bootstrap`, because step 3 pins
+that release.
 
 ## Step 1: Declare the five new inputs
 
 Files modified: `products/kata/actions/kata-agent/action.yml`.
 
 Add `task-event` beside `task-text` and `task-file` under
-`# --- Agent configuration ---`:
+`# --- Agent configuration ---`, and correct both neighbours, which name only
+two of the three task sources today:
 
 ```yaml
+  task-text:
+    description: Inline task text (mutually exclusive with task-file and task-event)
+    required: false
+  task-file:
+    description: Path to task file (mutually exclusive with task-text and task-event)
+    required: false
   task-event:
     description: Path to a native GitHub event payload JSON, typically github.event_path (mutually exclusive with task-text and task-file). The gemba-harness CLI composes the task from the payload.
     required: false
+    default: ""
 ```
 
 Add the three bridge inputs under `# --- Discussion (discuss mode) ---`,
@@ -21,7 +29,7 @@ beside `discussion-id` and `resume-context`:
 
 ```yaml
   callback-url:
-    description: URL that receives the run's terminal conclusion. A non-empty value enables the callback step. The step delivers on success and on failure.
+    description: URL that receives the run's terminal conclusion. A non-empty value enables the callback step, which delivers on success and on failure. Keep `trace` enabled, because the verb reads the trace to build the payload.
     required: false
     default: ""
   correlation-id:
@@ -43,14 +51,21 @@ Add `bun-version` under `# --- Optional overrides ---`:
     default: ""
 ```
 
+Update the action's top-level `description:` so it covers the new lifecycle:
+
+```yaml
+description: >
+  Run a Kata agent workflow. The action generates and stamps an installation
+  token, checks out the repository, bootstraps the environment, runs the agent
+  with gemba-harness from text, a file, or a GitHub event, and delivers the
+  run's conclusion to a callback URL when the caller names one.
+```
+
 Verify: `rg -e 'task-event' -e 'callback-url' -e 'correlation-id' -e
 'inbox-url' -e 'bun-version' products/kata/actions/kata-agent/action.yml`
 matches all five (success criteria 1, 2, and 5).
 
 ## Step 2: Stamp the token the action mints
-
-The stamp is a step output, not a `GITHUB_ENV` write. `GITHUB_ENV` is job-wide
-and would leak past the action boundary.
 
 Files modified: `products/kata/actions/kata-agent/action.yml`.
 
@@ -59,16 +74,18 @@ checkout:
 
 ```yaml
     # Pair the mint time with the identity of the job execution that issued the
-    # token, in one stamp. The stamp rides the same step env as GH_TOKEN below,
-    # so no carried or resumed session state can pair a token with another
-    # token's stamp. create-github-app-token exports no expiry, so `exp`
-    # derives from the ~1h (3600s) installation-token TTL. This step captures
-    # `mint` one step AFTER the mint, so `mint` trails the true mint by the
-    # inter-step latency. The 120s margin keeps `exp` a conservative
-    # UNDER-estimate: the accounting must never report a dead token as alive.
-    # Run id plus run attempt make "issuing job execution ≠ current ⇒ presumed
-    # revoked" a local comparison. A re-run attempt shares GITHUB_RUN_ID and
-    # revokes attempt 1's token. The auth-anomaly playbook consumes the stamp.
+    # token, in one stamp. The stamp is a step output rather than a GITHUB_ENV
+    # write, because GITHUB_ENV is job-wide and would leak past the action
+    # boundary. It rides the same step env as GH_TOKEN below, so no carried or
+    # resumed session state can pair a token with another token's stamp.
+    # create-github-app-token exports no expiry, so `exp` derives from the ~1h
+    # (3600s) installation-token TTL. This step captures `mint` one step AFTER
+    # the mint, so `mint` trails the true mint by the inter-step latency. The
+    # 120s margin keeps `exp` a conservative UNDER-estimate: the accounting must
+    # never report a dead token as alive. Run id plus run attempt make "issuing
+    # job execution ≠ current ⇒ presumed revoked" a local comparison. A re-run
+    # attempt shares GITHUB_RUN_ID and revokes attempt 1's token. The
+    # auth-anomaly playbook consumes the stamp.
     - name: Stamp installation token
       id: stamp
       shell: bash
@@ -78,15 +95,18 @@ checkout:
         echo "value=mint=${mint};exp=$((mint + 3600 - 120));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
 ```
 
-Verify: `rg KATA_GH_TOKEN_STAMP products/kata/actions/kata-agent/action.yml`
-matches step 4's env line (success criterion 4, first half).
+Verify: `rg -A2 'id: stamp' products/kata/actions/kata-agent/action.yml` shows
+the step writes `value=` to `$GITHUB_OUTPUT`, and the step sits between the mint
+and the checkout.
 
 ## Step 3: Forward the Bun version and repin the bootstrap
 
 Files modified: `products/kata/actions/kata-agent/action.yml`.
 
-The `gemba-bootstrap` step gains one `with:` key and moves to the release that
-part 01 produced. Take the 40-character SHA from the tier-2 tag.
+The `gemba-bootstrap` step gains one `with:` key and moves to the release part
+04 tier 2 produced. Take the 40-character SHA from `main` after that tag lands.
+Keep both existing comment blocks, the one above `- uses:` and the one above
+`clis:`.
 
 ```yaml
     - uses: forwardimpact/gemba-bootstrap@<tier-2-sha> # v1.0.21
@@ -101,8 +121,8 @@ part 01 produced. Take the 40-character SHA from the tier-2 tag.
 ```
 
 Verify: the pinned SHA resolves to the `v1.0.21` tag on
-`forwardimpact/gemba-bootstrap`, and `action.yml` at that SHA declares
-`bun-version` with `default: ""`.
+`forwardimpact/gemba-bootstrap`, `action.yml` at that SHA declares
+`bun-version` with `default: ""`, and both prior comments survive the edit.
 
 ## Step 4: Hand the event and the bridge env to the harness
 
@@ -110,17 +130,17 @@ Files modified: `products/kata/actions/kata-agent/action.yml`.
 
 The `Assess and Act` step gains four env entries and one `with:` key.
 
-| Block   | Addition                                                  |
-| ------- | --------------------------------------------------------- |
-| `env:`  | `KATA_GH_TOKEN_STAMP: ${{ steps.stamp.outputs.value }}`    |
-| `env:`  | `CALLBACK_URL: ${{ inputs.callback-url }}`                 |
-| `env:`  | `CORRELATION_ID: ${{ inputs.correlation-id }}`             |
-| `env:`  | `INBOX_URL: ${{ inputs.inbox-url }}`                       |
-| `with:` | `task-event: ${{ inputs.task-event }}`                     |
+| Block   | Addition                                               |
+| ------- | ------------------------------------------------------ |
+| `env:`  | `KATA_GH_TOKEN_STAMP: ${{ steps.stamp.outputs.value }}` |
+| `env:`  | `CALLBACK_URL: ${{ inputs.callback-url }}`              |
+| `env:`  | `CORRELATION_ID: ${{ inputs.correlation-id }}`          |
+| `env:`  | `INBOX_URL: ${{ inputs.inbox-url }}`                    |
+| `with:` | `task-event: ${{ inputs.task-event }}`                  |
 
 Place `task-event` beside `task-text` and `task-file`. The `gemba-harness`
-action forwards all three and lets the CLI enforce exclusivity. Place
-`KATA_GH_TOKEN_STAMP` directly under `GH_TOKEN` with this comment:
+action declares all three and forwards them, so the CLI enforces exclusivity.
+Place `KATA_GH_TOKEN_STAMP` directly under `GH_TOKEN` with this comment:
 
 ```yaml
         # Token freshness stamp. It rides the same step env as GH_TOKEN so the
@@ -132,15 +152,17 @@ The `discuss` command reads `CALLBACK_URL`, `INBOX_URL`, and `CORRELATION_ID`
 from this env. `facilitate` ignores them.
 
 Verify: `rg 'task-event' products/kata/actions/kata-agent/action.yml` matches
-the input and its forwarding.
+the input and its forwarding, and `rg KATA_GH_TOKEN_STAMP
+products/kata/actions/kata-agent/action.yml` matches this env line (success
+criterion 4, first half).
 
 ## Step 5: Deliver the callback
 
 Files modified: `products/kata/actions/kata-agent/action.yml`.
 
 Insert this step directly after `Assess and Act` and before
-`Refresh wiki (post-run)`. The bridge then gets its verdict before the wiki
-round trip, and cost still reports last.
+`Refresh wiki (post-run)`, so the bridge gets its verdict before the wiki round
+trip and cost still reports last.
 
 ```yaml
     # Deliver the run's conclusion to the caller that dispatched it, for
@@ -168,20 +190,45 @@ round trip, and cost still reports last.
 ```
 
 Verify: `rg curl products/kata/actions/kata-agent/action.yml` returns nothing
-(success criterion 3, second half), and the eleven steps run in the order
-[design-a.md § Step sequence](design-a.md) lists.
+(success criterion 3, this file's half), and the eleven steps read in this
+order:
 
-## Step 6: Document the new surface
+    1 Kata killswitch            7 Assess and Act
+    2 Generate installation token 8 Deliver callback
+    3 Stamp installation token   9 Refresh wiki (post-run)
+    4 Checkout                  10 Push wiki changes
+    5 gemba-bootstrap           11 Report run cost
+    6 Refresh wiki (pre-run)
+
+## Step 6: Keep the redirect rationale with the cost step
+
+Files modified: `products/kata/actions/kata-agent/action.yml`.
+
+Part 04 tier 5 deletes the reference consumer's seven-line comment that guards
+the cost step's `>>` redirect against a 64 KiB pipe truncation. Fold that
+reasoning into the `Report run cost` step here, so it survives the deletion:
+
+```yaml
+    # Sum spend across every participant. Redirect with `>>` and never pipe:
+    # a pipe truncates at 64 KiB and silently drops the tail of a long table.
+    # gemba-trace cost tolerates a missing trace, because the run may fail
+    # before it produces one. So this step needs no file guard.
+```
+
+Verify: `rg '64 KiB' products/kata/actions/kata-agent/action.yml` matches.
+
+## Step 7: Document the new surface
 
 Files modified: `products/kata/actions/kata-agent/README.md`.
 
-| Section                | Change                                                                                                                                                                                                                                                                    |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Opening paragraph      | Add one sentence: the action stamps the token it mints, and the agent reads the stamp as `KATA_GH_TOKEN_STAMP`.                                                                                                                                                            |
-| Agent Configuration    | Add a `task-event` row: `Yes*`, no default, "Path to a native GitHub event payload (`${{ github.event_path }}`); the CLI composes the task". Change the `\*` footnote to "Supply exactly one of `task-text`, `task-file`, or `task-event`."                                |
-| Discuss mode           | Retitle to `Discuss mode and the bridge contract`. Add `callback-url`, `correlation-id`, and `inbox-url` rows to its table. Add one paragraph: a non-empty `callback-url` makes the action POST the terminal payload after the run, on success and on failure alike.       |
-| Optional Overrides     | Add a `bun-version` row: `No`, default `""`, "Bun version for the bootstrap; empty takes the bootstrap's default".                                                                                                                                                        |
-| New `Event mode` block | One short usage block: a dispatch workflow that passes `task-event: ${{ github.event_path }}`, `mode: ${{ inputs.discussion_id != '' && 'discuss' \|\| 'facilitate' }}`, and the four bridge inputs.                                                                       |
+| Section                | Change                                                                                                                                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Opening paragraph      | Add one sentence: the action stamps the token it mints, and the agent reads the stamp as `KATA_GH_TOKEN_STAMP`.                                                                                                                                                      |
+| Agent Configuration    | Add a `task-event` row: `Yes*`, no default, "Path to a native GitHub event payload (`${{ github.event_path }}`); the CLI composes the task". Change the `\*` footnote to "Supply exactly one of `task-text`, `task-file`, or `task-event`."                          |
+| Discuss mode           | Retitle to `Discuss mode and the bridge contract`. Add `callback-url`, `correlation-id`, and `inbox-url` rows. Add one paragraph: a non-empty `callback-url` makes the action POST the terminal payload after the run, on success and on failure alike.              |
+| Discuss mode           | Add one warning sentence: with `trace: "false"` and a `callback-url`, the verb has no trace to read and posts the no-trace placeholder, so a bridge caller keeps `trace` enabled (design-a.md § `kata-agent` interface).                                             |
+| Optional Overrides     | Add a `bun-version` row: `No`, default `""`, "Bun version for the bootstrap; empty takes the bootstrap's default".                                                                                                                                                  |
+| New `Event mode` block | One short usage block: a dispatch workflow that passes `task-event: ${{ github.event_path }}`, `mode: ${{ inputs.discussion_id != '' && 'discuss' \|\| 'facilitate' }}`, and the four bridge inputs.                                                                 |
 
 Keep the README external-audience: `npx`, no `bun`, no monorepo paths, per
 [products/CLAUDE.md § Audience](../../products/CLAUDE.md).
@@ -189,7 +236,7 @@ Keep the README external-audience: `npx`, no `bun`, no monorepo paths, per
 Verify: `rg 'task-event' products/kata/actions/kata-agent/` matches
 `action.yml` and `README.md` (success criterion 1).
 
-## Step 7: Repository checks
+## Step 8: Repository checks
 
 Files modified: none.
 

@@ -5,72 +5,94 @@ Executes [design-a.md](design-a.md) for [spec.md](spec.md).
 ## Approach
 
 CONTRIBUTING.md § Releasing sets the part boundaries. A consumer may pin its
-producer only after the producer ships, so the four release tiers of that
-section become four parts and four pull requests. Part 01 carries the tier-1
-and tier-2 source: the `gemba-harness callback` absent-trace branch and the
-`gemba-bootstrap` empty-means-default input. Part 02 gives `kata-agent` the
-five inputs, the token stamp, and the callback step, and it pins the
-`gemba-bootstrap` release that part 01 produced. Part 03 turns the wrapper
+producer only after the producer ships, so the release tiers of that section
+split this change into three code parts and one runbook. Part 01 carries the
+source that ships in the gear bundle and in `gemba-bootstrap`. Part 02 gives
+`kata-agent` the five inputs, the token stamp, and the callback step, and it
+pins the `gemba-bootstrap` release part 01 produced. Part 03 turns the wrapper
 workflow, the setup template, and the instruction surfaces over to the
-`kata-agent` release that part 02 produced. Part 04 is the runbook for the
-three cuts between the code parts and for the consumer repository.
+`kata-agent` release part 02 produced. Part 04 runs the cuts between them and
+the reference consumer.
+
+The change lands as four pull requests in this repository (parts 01, 02, 03,
+and part 04's `fit-install.sh` pin), one release-cut commit on `main` for the
+gear bump, and one pull request in `forwardimpact/bionova-apps-v2`.
 
 Libraries used: libharness (`callback` command, `sumTraceCost`), libmock
 (`createMockFs` in the callback test).
 
 ## Scope notes for the approver
 
-Three decisions this plan makes that the spec and the design leave open. Each
-is deliberate. Each is the approver's to overturn.
+Three decisions the spec and the design leave open. Each is the approver's to
+overturn.
 
-| Decision                     | Detail                                                                                                                                                                                                                                                                                                                                                                              |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Four pull requests, not one  | spec.md § Rollout constraint names three sibling releases between the source change and the repin. Part 02 pins a `gemba-bootstrap` SHA that exists only after part 01 ships, and part 03 pins a `kata-agent` SHA that exists only after part 02 ships. No two of these parts can share a pull request.                                                                              |
-| Three extra workflow pins    | spec.md § Included names `.github/workflows/kata-dispatch.yml` alone. Part 03 also repins `kata-shift.yml`, `kata-storyboard.yml`, and `kata-coaching.yml` to the same `kata-agent` release. Without those three pins, `x-auth-anomaly.md`'s new sentence ("every `kata-agent` surface carries the stamp") is false for three of the four surfaces until Dependabot bumps them.       |
-| Two files outside § Included | Part 01 also edits `products/gemba/bin/gemba-harness.js` (the `--trace-file` option description, which states the flag is required) and `libraries/libharness/src/events/github.js` (a docstring that names `kata-dispatch.yml` as its caller). design-a.md § Removed names the second. The first would publish a `--help` line that contradicts the command after this change. |
+| Decision                        | Detail                                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Four pull requests              | spec.md § Rollout constraint names three sibling releases between the source change and the repin. Part 02 pins a `gemba-bootstrap` SHA that exists only after part 01 ships. Part 03 pins a `kata-agent` SHA that exists only after part 02 ships. No two of these parts can share a pull request.                                        |
+| Three extra workflow pins       | spec.md § Included names `.github/workflows/kata-dispatch.yml` alone. Part 03 also repins `kata-shift.yml`, `kata-storyboard.yml`, and `kata-coaching.yml` to the same `kata-agent` release. Those pins are what make the stamp reach the three surfaces spec.md § Problem names as stampless today.                                       |
+| Seven files outside § Included  | See the table below. Each one either carries a statement this change makes false, or rides the release chain the spec requires.                                                                                                                                                                                                            |
+
+| File outside spec § Included                       | Part | Why it changes                                                                                                             |
+| -------------------------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `products/gemba/bin/gemba-harness.js`              | 01   | The `--trace-file` help reads "Path to the NDJSON trace file". After this change the flag is optional, and the help must say so. |
+| `libraries/libharness/src/events/github.js`        | 01   | design-a.md § Removed names its docstring, which cites a `kata-dispatch.yml` step this change deletes.                     |
+| `products/gemba/actions/gemba-harness/README.md`   | 01   | design-a.md § Components names it: the callback recipe drops the trace-file guard.                                          |
+| `products/gemba/actions/gemba-bootstrap/README.md` | 01   | It documents the `bun-version` input that `action.yml` changes.                                                             |
+| `products/gemba/actions/gemba-bootstrap/fit-install.sh` | 04 | Tier 2 of the release chain. Nothing consumes the new gear bundle until this default moves.                               |
+| `products/gear/package.json`                       | 04   | Tier 1 of the release chain. The `gemba-harness` binary a runner installs comes from a gear release.                       |
+| `.github/workflows/kata-{shift,storyboard,coaching}.yml` | 03 | Row 2 above.                                                                                                            |
 
 ## Parts
 
-| Part                      | Title                                        | Depends on                  |
-| ------------------------- | -------------------------------------------- | --------------------------- |
-| [01](plan-a-01.md)        | Callback verb and bootstrap input            | —                           |
-| [04 tier 1-2](plan-a-04.md) | Cut `gear` and `gemba-bootstrap`           | 01                          |
-| [02](plan-a-02.md)        | `kata-agent` runs the dispatch               | 04 tier 2                   |
-| [04 tier 3](plan-a-04.md) | Cut `kata-agent`                             | 02                          |
-| [03](plan-a-03.md)        | Wrapper, template, and instruction surfaces  | 04 tier 3                   |
-| [04 tier 5](plan-a-04.md) | The reference consumer                       | 04 tier 3                   |
+| Part                        | Title                                       | Depends on |
+| --------------------------- | ------------------------------------------- | ---------- |
+| [01](plan-a-01.md)          | Callback verb and bootstrap input           | —          |
+| [04 tier 1-2](plan-a-04.md) | Cut `gear` and `gemba-bootstrap`            | 01         |
+| [02](plan-a-02.md)          | `kata-agent` runs the dispatch              | 04 tier 2  |
+| [04 tier 3](plan-a-04.md)   | Cut `kata-agent`                            | 02         |
+| [03](plan-a-03.md)          | Wrapper, template, and instruction surfaces | 04 tier 3  |
+| [04 tier 4](plan-a-04.md)   | Acceptance run                              | 03         |
+| [04 tier 5](plan-a-04.md)   | The reference consumer                      | 04 tier 3  |
 
 ## Execution
 
-- **Agent route.** Parts 01, 02, and 03 go to `staff-engineer`. Each one
-  carries JavaScript, action YAML, or workflow YAML, so no part is docs-only.
+- **Agent route.** Parts 01, 02, and 03 go to `staff-engineer`. Each carries
+  JavaScript, action YAML, or workflow YAML, so no part is docs-only.
   `technical-writer` reviews the prose part 03 adds to `workflow-dispatch.md`,
-  `SKILL.md`, and `x-auth-anomaly.md`. Part 04 goes to `release-engineer` for
-  tiers 1 to 3 and to `staff-engineer` for tier 5.
+  `SKILL.md`, and `x-auth-anomaly.md`. Part 04 tiers 1 to 3 go to
+  `release-engineer`. Part 04 tiers 4 and 5 go to `staff-engineer`.
 - **Strictly sequential.** No two parts run in parallel. Each code part pins a
   release the previous part produced. Part 04's tiers interleave with the code
   parts in the order the Parts table lists.
-- **File ownership.** Each file has exactly one owning part. Part 01 owns every
-  line under `libraries/libharness/` and
-  `products/gemba/actions/gemba-bootstrap/`. Part 02 owns every line under
-  `products/kata/actions/kata-agent/`, the `gemba-bootstrap` pin included. Part
-  03 owns every line under `.github/workflows/` and
-  `.claude/skills/kata-setup/`. No two parts edit one file.
+- **File ownership.** Each file has exactly one owning part, so no two parts
+  edit one file.
+
+  | Part | Owns                                                                                                                                                                                    |
+  | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+  | 01   | `libraries/libharness/`, `products/gemba/bin/gemba-harness.js`, `products/gemba/actions/gemba-harness/README.md`, and `action.yml` plus `README.md` under `products/gemba/actions/gemba-bootstrap/` |
+  | 02   | `products/kata/actions/kata-agent/`                                                                                                                                                     |
+  | 03   | `.github/workflows/`, `.claude/skills/kata-setup/`, `.claude/agents/x-auth-anomaly.md`, `.github/CLAUDE.md`                                                                              |
+  | 04   | `products/gear/package.json`, `products/gemba/actions/gemba-bootstrap/fit-install.sh`, and the reference consumer's `agent-dispatch.yml`                                                 |
+
 - **Verify before each cut.** `bun run check` and `bun run test` pass on each
   part's branch before it merges. Part 04 tags only commits already on `main`.
-- **Success criteria.** Criteria 1 to 5 verify on part 02's branch. Criteria 8,
-  9, and 12 verify on part 03's branch, and 6 with them. Criterion 7 verifies
-  after part 03 merges and one dispatch run finishes. Criterion 11 verifies
-  after tier 3. Criterion 10 verifies in the consumer repository's own pull
-  request.
+- **Success criteria.**
+
+  | Criterion  | Verifies at                                                              |
+  | ---------- | ------------------------------------------------------------------------ |
+  | 1, 2, 5    | Part 02's branch                                                         |
+  | 3, 4       | Part 03's branch. Each spans two files, one owned by part 02 and one by part 03. Part 01 lands criterion 3's test half. |
+  | 6, 8, 9, 12 | Part 03's branch                                                        |
+  | 11         | Part 04 tier 3                                                           |
+  | 7          | Part 04 tier 4, one dispatch run after part 03 merges                    |
+  | 10         | The reference consumer's own pull request, part 04 tier 5                |
 
 ## Risks
 
-| Risk                                                                                                                                                                                                                                                                                                            | Mitigation                                                                                                                                                                            |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Part 02's callback step calls the `gemba-harness` binary that `fit-install.sh` pins, not workspace source. Merged before tier 2, a dispatch run with an empty trace path hits the old required-flag guard and exits 1 instead of posting the placeholder.                                                        | Part 02 merges only after tier 2 tags `gemba-bootstrap`, and its own `gemba-bootstrap` pin is the proof that it did.                                                                    |
-| A run that fails before the bootstrap step leaves no `gemba-harness` binary on the runner. The `always()` callback step then fails as "command not found" and adds a second red step to an already red run. No callback posts.                                                                                   | design-a.md accepts the gap. `Report run cost` already behaves this way. Do not add a guard: a guard would hide the same failure on the cost step, which the action deliberately lacks. |
-| `gemba-bootstrap`'s `bun-version` input default changes from `1.3.11` to `""`. A caller that reads the declared default instead of calling the action sees an empty string.                                                                                                                                     | Part 01 keeps the resolved value in the input description and in the README row, so both surfaces still name `1.3.11`.                                                                  |
-| `Release: Tag` tags only commits reachable from the default branch. A squash merge leaves the branch's own commits off `main`.                                                                                                                                                                                   | Part 04 tags the `main` commit each merge produced, never a branch commit. CONTRIBUTING.md § Releasing states the rule.                                                                 |
-| Between part 02's merge and part 03's merge, `publish-actions.yml` mirrors a `kata-agent` that carries the callback step, while every consumer still pins `v1.0.9`.                                                                                                                                              | Consumers move only when they repin. Shift, storyboard, and coaching pass no `callback-url`, so the new step skips even after they repin.                                               |
-| The reference consumer's dispatch workflow carries a queue-depth concurrency policy and a job timeout that the monorepo's does not.                                                                                                                                                                              | spec.md § Excluded keeps both in the workflow. Part 04 tier 5 preserves the consumer's own values and changes only the steps.                                                           |
+| Risk                                                                                                                                                                                                                                                                             | Mitigation                                                                                                                                                                                                                                        |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A bridge dispatch that trips the killswitch loses its terminal verdict. Today `kata-dispatch.yml` posts the `curl` placeholder on that path, because the placeholder needs no installed binary. After this change the callback step calls `gemba-harness`, which the failed run never installed. | design-a.md § Step sequence accepts the pre-bootstrap gap. This row names the killswitch as its most common case, so the approver weighs it beside spec.md § Accepted regression. Overturning it means a bridge-side dispatch timeout, which is its own change. |
+| `.github/CLAUDE.md` sits at exactly 768 of its 768-word cap, so any net addition reddens `jidoka instructions` inside `bun run check`.                                                                                                                                          | Part 03 step 6 budgets an offsetting trim in the same edit and verifies with the tool.                                                                                                                                                            |
+| Dispatch runs move from the workflow's `actions/checkout` v7.0.1 pin to `kata-agent`'s v6 pin, and to a different `create-github-app-token` v3 SHA. Both are older.                                                                                                              | Dependabot scans `products/kata/actions/*/action.yml` on its `github-actions` ecosystem and carries the bumps. The plan does not repin them here, because that widens part 02 beyond the design.                                                   |
+| `Release: Tag` tags only commits reachable from the default branch, and a squash merge leaves the branch's own commits off `main`. A SHA copied from the pull request is untaggable.                                                                                             | Each tier reads the SHA from `main` after the merge, never from the pull request.                                                                                                                                                                 |
+| The reference consumer's dispatch workflow carries a queue-depth concurrency policy and a job timeout the monorepo's lacks.                                                                                                                                                      | spec.md § Excluded keeps both in the workflow. Part 04 tier 5 preserves the consumer's values and changes only the steps.                                                                                                                          |
