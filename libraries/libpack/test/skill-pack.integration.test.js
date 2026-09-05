@@ -6,7 +6,7 @@ import { existsSync } from "fs";
 import { join } from "path";
 import { tmpdir } from "os";
 
-import { SkillPackPublisher, injectFrontmatter } from "../src/skill-pack.js";
+import { SkillPackPublisher } from "../src/skill-pack.js";
 
 const runtime = createDefaultRuntime();
 
@@ -18,9 +18,12 @@ async function makeTempDir() {
 async function makeSource() {
   const source = join(await makeTempDir(), ".claude");
   await mkdir(join(source, "skills", "kata-review"), { recursive: true });
+  // The skill cites one reference the way monorepo skills do: relative to
+  // the skills dir, with a fragment.
   await writeFile(
     join(source, "skills", "kata-review", "SKILL.md"),
-    "---\nname: kata-review\ndescription: Review an artifact\n---\n# Review\n",
+    "---\nname: kata-review\ndescription: Review an artifact\n---\n# Review\n" +
+      "See [memory](../../agents/x-memory.md#on-boot).\n",
   );
   // A different prefix that the publisher must NOT select.
   await mkdir(join(source, "skills", "fit-map"), { recursive: true });
@@ -29,33 +32,26 @@ async function makeSource() {
     "---\nname: fit-map\ndescription: Map\n---\n# Map\n",
   );
   await mkdir(join(source, "agents"), { recursive: true });
+  // The profile cites a reference the way monorepo profiles do: with a
+  // repo-root-relative path.
   await writeFile(
     join(source, "agents", "staff-engineer.md"),
-    "---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n# Staff\n",
+    "---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n# Staff\n" +
+      "Follow [auth-anomaly](.claude/agents/x-auth.md).\n",
   );
   // References are flat siblings of the profiles. The absence of agent
-  // frontmatter identifies them, as does the x- naming convention.
-  await writeFile(join(source, "agents", "x-memory.md"), "# Memory protocol\n");
+  // frontmatter identifies them, as does the x- naming convention. They cite
+  // each other with bare filenames.
+  await writeFile(
+    join(source, "agents", "x-memory.md"),
+    "# Memory protocol\nSee [work](x-work.md).\n",
+  );
+  await writeFile(join(source, "agents", "x-work.md"), "# Work definition\n");
+  await writeFile(join(source, "agents", "x-auth.md"), "# Auth anomaly\n");
+  // Nothing cites this one. It must never ship.
+  await writeFile(join(source, "agents", "x-orphan.md"), "# Orphan\n");
   return source;
 }
-
-describe("injectFrontmatter", () => {
-  test("inserts license and metadata before the closing fence", () => {
-    const out = injectFrontmatter("---\nname: x\n---\n# Body\n", "1.2.3");
-    expect(out).toContain("license: Apache-2.0");
-    expect(out).toContain("metadata:");
-    expect(out).toContain('  version: "1.2.3"');
-    expect(out).toContain("  author: forwardimpact");
-    // Body and name survive.
-    expect(out).toContain("name: x");
-    expect(out).toContain("# Body");
-  });
-
-  test("returns content without frontmatter unchanged", () => {
-    const input = "# No frontmatter\n";
-    expect(injectFrontmatter(input, "1.0.0")).toBe(input);
-  });
-});
 
 describe("SkillPackPublisher", () => {
   test("requires a runtime", () => {
@@ -96,6 +92,18 @@ describe("SkillPackPublisher", () => {
     expect(existsSync(join(target, ".apm", "agents", "references"))).toBe(
       false,
     );
+    // The profile's citation ships. So does the reference that x-memory
+    // cites. The orphan stays out.
+    expect(existsSync(join(target, ".apm", "agents", "x-auth.md"))).toBe(true);
+    expect(existsSync(join(target, ".apm", "agents", "x-work.md"))).toBe(true);
+    expect(existsSync(join(target, ".apm", "agents", "x-orphan.md"))).toBe(
+      false,
+    );
+    expect(result.references).toEqual([
+      "x-auth.md",
+      "x-memory.md",
+      "x-work.md",
+    ]);
 
     expect(result.skills).toEqual([
       { name: "kata-review", description: "Review an artifact" },
@@ -253,10 +261,12 @@ describe("SkillPackPublisher", () => {
     expect(readme).not.toContain("npx skills");
   });
 
-  test("without agents: references still ship, no Available Agents section", async () => {
+  test("without agents: only skill-cited references ship, no Available Agents section", async () => {
     const source = await makeSource();
     const target = await makeTempDir();
-    const { agents } = await new SkillPackPublisher({ runtime }).publish({
+    const { agents, references } = await new SkillPackPublisher({
+      runtime,
+    }).publish({
       sourceDir: source,
       prefix: "kata",
       targetDir: target,
@@ -268,12 +278,132 @@ describe("SkillPackPublisher", () => {
     expect(
       existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
     ).toBe(false);
-    // References still ship flat for a skills-only pack.
+    // The reference the skill cites still ships flat, with its transitive
+    // citation. The reference only the profile cites stays out.
     expect(existsSync(join(target, ".apm", "agents", "x-memory.md"))).toBe(
       true,
     );
+    expect(existsSync(join(target, ".apm", "agents", "x-work.md"))).toBe(true);
+    expect(existsSync(join(target, ".apm", "agents", "x-auth.md"))).toBe(false);
+    expect(references).toEqual(["x-memory.md", "x-work.md"]);
     const readme = await readFile(join(target, "README.md"), "utf-8");
     expect(readme).not.toContain("## Available Agents");
+  });
+
+  test("a pack whose skills cite no reference ships no reference", async () => {
+    const source = await makeSource();
+    const target = await makeTempDir();
+    // fit-map cites nothing. Without agents, the closure is empty.
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: "fit",
+      targetDir: target,
+      name: "fit-skills",
+      version: "1.0.0",
+    });
+    expect(references).toEqual([]);
+    expect(existsSync(join(target, ".apm", "agents"))).toBe(false);
+  });
+
+  test("a citation inside a skill's references/ dir counts", async () => {
+    const source = await makeSource();
+    // Move the citation out of SKILL.md and into a nested reference file.
+    await writeFile(
+      join(source, "skills", "kata-review", "SKILL.md"),
+      "---\nname: kata-review\ndescription: Review an artifact\n---\n# Review\n",
+    );
+    await mkdir(join(source, "skills", "kata-review", "references"), {
+      recursive: true,
+    });
+    await writeFile(
+      join(source, "skills", "kata-review", "references", "metrics.md"),
+      "See [auth](../../../agents/x-auth.md).\n",
+    );
+    const target = await makeTempDir();
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: "kata",
+      targetDir: target,
+      name: "kata-skills",
+      version: "1.0.0",
+    });
+    expect(references).toEqual(["x-auth.md"]);
+  });
+
+  test("all: stages the references the selected skills cite", async () => {
+    const source = await makeSource();
+    // The directory is the pack boundary, so both families ship. The closure
+    // still spans every staged skill.
+    const target = await makeTempDir();
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      all: true,
+      targetDir: target,
+      name: "outpost-skills",
+      version: "3.11.0",
+    });
+    expect(references).toEqual(["x-memory.md", "x-work.md"]);
+  });
+
+  test("with agents but no citation: the agents dir still exists", async () => {
+    const source = await makeSource();
+    // A profile that cites nothing. The pack ships it and no reference.
+    await writeFile(
+      join(source, "agents", "staff-engineer.md"),
+      "---\nname: staff-engineer\ndescription: Staff engineer profile\n---\n# Staff\n",
+    );
+    const target = await makeTempDir();
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: "fit",
+      targetDir: target,
+      name: "fit-skills",
+      version: "1.0.0",
+      withAgents: true,
+    });
+    expect(references).toEqual([]);
+    expect(
+      existsSync(join(target, ".apm", "agents", "staff-engineer.agent.md")),
+    ).toBe(true);
+  });
+
+  test("fails when a named reference did not ship", async () => {
+    const source = await makeSource();
+    // A citation the link parser cannot read. Shipping it would publish a
+    // broken link, so the stage must stop instead.
+    await writeFile(
+      join(source, "skills", "fit-map", "SKILL.md"),
+      "---\nname: fit-map\ndescription: Map\n---\n# Map\nSee x-work.md.\n",
+    );
+    const target = await makeTempDir();
+    await expect(
+      new SkillPackPublisher({ runtime }).publish({
+        sourceDir: source,
+        prefix: "fit",
+        targetDir: target,
+        name: "fit-skills",
+        version: "1.0.0",
+      }),
+    ).rejects.toThrow("x-work.md");
+  });
+
+  test("a full URL to a reference does not require shipping it", async () => {
+    const source = await makeSource();
+    // The sanctioned cross-pack citation form. The link resolves on its own.
+    await writeFile(
+      join(source, "skills", "fit-map", "SKILL.md"),
+      "---\nname: fit-map\ndescription: Map\n---\n# Map\n" +
+        "See [work](https://github.com/o/r/blob/main/.claude/agents/x-work.md).\n",
+    );
+    const target = await makeTempDir();
+    const { references } = await new SkillPackPublisher({ runtime }).publish({
+      sourceDir: source,
+      prefix: "fit",
+      targetDir: target,
+      name: "fit-skills",
+      version: "1.0.0",
+    });
+    expect(references).toEqual([]);
   });
 
   test("retires a pre-existing flat layout", async () => {

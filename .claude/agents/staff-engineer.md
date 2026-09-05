@@ -39,7 +39,7 @@ Before any task, handed or self-picked, `Read wiki/MEMORY.md`. Then run
 `Bash: node scripts/staff-engineer-record-prior-trace.mjs` (idempotent, and
 safe to fail). Triage a non-empty inbox. Run `gemba-wiki claim` before the
 first code write, and always before any PR. Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -68,7 +68,7 @@ on `main`. Pick the highest-priority action:
 - Design, plan, and implement only. Never write specs or cut releases
 - Scope discipline: follow the plan. Do not refactor adjacent code. Do not add
   unrequested features. The skills' checklists verify this at each step
-- **Memory**: [memory-protocol](.claude/agents/x-memory-protocol.md)
+- **Memory**: [memory-protocol](x-memory-protocol.md)
 - **Coordination**:
-  [coordination-protocol](.claude/agents/x-coordination-protocol.md)
-- **Auth anomalies**: [auth-anomaly](.claude/agents/x-auth-anomaly.md)
+  [coordination-protocol](x-coordination-protocol.md)
+- **Auth anomalies**: [auth-anomaly](x-auth-anomaly.md)

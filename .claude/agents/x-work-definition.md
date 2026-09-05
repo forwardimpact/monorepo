@@ -13,7 +13,7 @@ classification rubric. The sibling references own the rest.
 - **Commands** — the concrete shapes for each operation live in
   [`work-trackers.md`](x-work-trackers.md). The obstacle/experiment recipes that
   compose them are in
-  [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
+  [`issue-lifecycle.md`](../skills/kata-session/references/issue-lifecycle.md)
   and the agent profiles (branch names).
 
 ## Work-type catalogue
@@ -122,8 +122,8 @@ place. This boundary makes the work addressable. It also keeps `fix/` and
   `main`.
 - [`work-trackers.md`](x-work-trackers.md) — the concrete shape for each
   abstract operation, per tracker.
-- [`issue-lifecycle.md`](../../skills/kata-session/references/issue-lifecycle.md)
+- [`issue-lifecycle.md`](../skills/kata-session/references/issue-lifecycle.md)
   — the operation recipes for obstacle and experiment issues.
 - `kata-synthesize-backlog` (corpus mapping) and `kata-session`
-  [team-storyboard](../../skills/kata-session/references/team-storyboard.md)
+  [team-storyboard](../skills/kata-session/references/team-storyboard.md)
   Q3 routing are **specializations** that build on this rubric.

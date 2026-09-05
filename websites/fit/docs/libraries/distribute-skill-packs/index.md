@@ -48,7 +48,8 @@ the canonical form into your target repository:
       <skill-name>/SKILL.md        # one directory per skill
     agents/
       <agent-name>.agent.md        # one file per agent profile
-      x-<name>.md                  # shared files skills and agents cite (flat)
+      x-<name>.md                  # only the shared files this pack cites (flat)
+                                   # omitted entirely when the pack cites none
 ```
 
 Two rules are load-bearing. If you get either one wrong, you hit the failure
@@ -101,13 +102,13 @@ agents from your source tree that matched. It reflects the `--prefix` you chose
 and whether you passed `--with-agents`:
 
 ```text
-✓ Staged 17 skill(s) and 8 agent(s) into ./skills-repo
+✓ Staged 17 skill(s), 8 agent(s), and 4 reference(s) into ./skills-repo
 ```
 
 That line is an example. A `--prefix fit` source with seventeen `skills/fit-*`
-directories and eight agent profiles reports those seventeen and eight. Your
-numbers will differ. The count is your check that `fit-pack` selected the right
-set.
+directories and eight agent profiles reports those seventeen and eight. The
+third count is the shared references the pack cites. Your numbers will differ.
+The counts are your check that `fit-pack` selected the right set.
 
 `--prefix` is how one source tree feeds several packs. With `--prefix fit`, only
 `skills/fit` and `skills/fit-*` directories ship. A `skills/other-tool`
@@ -117,7 +118,21 @@ family to the same pack.
 Pass `--all` instead to ship every skill under
 `--from`. Use `--all` when the source directory is itself the pack boundary.
 Omit `--with-agents` for a skills-only pack. The shared `x-*.md` references
-still ship, because skills cite them too.
+a skill cites still ship.
+
+`fit-pack` ships a reference only when the pack cites it. It parses the
+markdown links in every staged skill file and, with `--with-agents`, every
+staged profile. It then follows links between references until the set is
+closed. A reference that nothing in the pack links stays out. So a
+skills-only pack carries no agent-only protocol files. A pack that cites no
+reference and ships no profile gets no `.apm/agents/` directory at all.
+
+`fit-pack` then checks its own work. It rereads the staged tree and looks for
+every reference filename the tree names. A name that belongs to a reference
+that did not ship stops the command with an error. A citation the parser
+cannot read therefore fails the publish. It does not ship a broken link. Cite
+a reference by a full URL when you want the pack to link it without carrying
+it.
 
 ## Review what `fit-pack` wrote
 
@@ -191,9 +206,10 @@ real differences.
 
 You have reached the outcome of this guide when:
 
-- `npx fit-pack stage` writes `.apm/skills/<name>/`,
-  `.apm/agents/<name>.agent.md`, `.apm/agents/x-<name>.md`, `apm.yml`, and
-  `README.md` into your target repository.
+- `npx fit-pack stage` writes `.apm/skills/<name>/`, `apm.yml`, and
+  `README.md` into your target repository. It writes
+  `.apm/agents/<name>.agent.md` with `--with-agents`, and
+  `.apm/agents/x-<name>.md` for each reference the pack cites.
 - Each staged `SKILL.md` carries the injected `license` and `metadata.version`.
 - `--prefix` selects only the skills that match, and `--with-agents` controls
   whether the command stages agent profiles.

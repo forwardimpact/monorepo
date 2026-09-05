@@ -170,7 +170,7 @@ report per coordination channels. Route structural findings to `kata-spec`.
 ## Coach Scope Exception
 
 This skill extends the coach's general "no writing specs or fix PRs"
-constraint ([`improvement-coach.md`](../../agents/improvement-coach.md)). A
+constraint (the `improvement-coach` profile). A
 routed spec writes up what the record already shows. It does not add a new
 feature. The extension is scoped to this skill.
 

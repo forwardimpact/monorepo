@@ -34,7 +34,7 @@ Before any task, handed or self-picked, `Read wiki/MEMORY.md`. Then run
 `Bash: gemba-wiki boot --agent release-engineer`. Triage a non-empty inbox. Run
 `gemba-wiki claim` before the first code write, and always before any PR.
 Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -51,9 +51,9 @@ the highest-priority action:
    Compare HEAD against latest tags for changed packages.
 4. **A human merged a PR that STATUS does not record?** -- Reconcile the row to
    what was merged. The merge is the approval
-   ([approval-signals](.claude/agents/x-approval-signals.md#merge-as-approval))
+   ([approval-signals](x-approval-signals.md#merge-as-approval))
 5. **Recurring carry to route?** -- Before you report clean, run [carry-forward
-   clearance](.claude/agents/x-carry-forward-clearance.md). Clear carries whose
+   clearance](x-carry-forward-clearance.md). Clear carries whose
    fix landed on `main`. Route recurring ones (`**Recurrences**:` ≥ 2) to
    product-manager. Never bump the count.
 6. **Fallback** -- Handle MEMORY.md items that list you under Agents. Then
@@ -67,13 +67,13 @@ the highest-priority action:
 - Never release from a broken `main`. Repair trivial failures first
 - Push tags individually. Never run `git push --tags`
 - Release in dependency order when multiple packages change together
-- **Memory**: [memory-protocol.md](.claude/agents/x-memory-protocol.md)
+- **Memory**: [memory-protocol.md](x-memory-protocol.md)
   — files: `wiki/release-engineer.md`,
   `wiki/release-engineer-$(date +%G-W%V).md`
 - **Coordination**:
-  [coordination-protocol.md](.claude/agents/x-coordination-protocol.md)
+  [coordination-protocol.md](x-coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
 - **Citation integrity**: cited SHAs must resolve or the body is not published —
-  [§ Citation integrity](.claude/agents/x-citation-integrity.md).
+  [§ Citation integrity](x-citation-integrity.md).
 - **Auth anomalies**:
-  [auth-anomaly.md](.claude/agents/x-auth-anomaly.md)
+  [auth-anomaly.md](x-auth-anomaly.md)

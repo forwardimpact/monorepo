@@ -51,7 +51,10 @@ It writes into `<target-repo>`:
   renames it to the `.agent.md` suffix the installer discovers. This happens
   only with `--with-agents`.
 - `.apm/agents/x-<name>.md` — shared reference files that skills and profiles
-  cite. Every pack ships them flat, with no `references/` subdir.
+  cite. `fit-pack` parses the links in every staged skill file. With
+  `--with-agents` it also parses every staged profile. It follows links
+  between references and ships only that set. They ship flat, with no
+  `references/` subdir. A pack that cites none gets no `.apm/agents/` at all.
 - `apm.yml` — the package manifest (`name`, `version`, `description`).
 - `README.md` — install command and a table of the staged skills and agents.
 
@@ -61,8 +64,11 @@ It writes into `<target-repo>`:
    writes into its working tree. It does not commit or push.
 2. **Stage** with `npx fit-pack stage`. Pass `--prefix` to select which skills
    ship (`--prefix kata` selects `skills/kata-*`). Omit `--with-agents` for a
-   skills-only pack. References still ship.
-3. **Review** the generated `.apm/` tree, `apm.yml`, and `README.md`.
+   skills-only pack. The references its skills cite still ship.
+3. **Review** the generated `.apm/` tree, `apm.yml`, and `README.md`. The
+   command fails when the staged tree names a reference that did not ship. A
+   link shape it cannot read raises that error instead of publishing a broken
+   link.
 4. **Commit and push** the target repository. Then tag the release.
 
 When you stage again, `fit-pack` retires any earlier flat `skills/` or

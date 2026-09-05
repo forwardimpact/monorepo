@@ -14,7 +14,9 @@ Pack distribution — tarballs, bare git repos, and skill discovery indices
 - `GitEmitter` — static bare git repo from a staged directory
 - `DiscEmitter` — `.well-known/skills/` discovery index
 - `SkillPackPublisher` — stage a skill pack into a sibling repo's working tree
-  in APM's canonical `.apm/` layout (drives the `fit-pack` CLI)
+  in APM's canonical `.apm/` layout (drives the `fit-pack` CLI). Ships only
+  the `x-*.md` references the staged skills and profiles link, transitively,
+  and fails the stage when a citation it cannot parse would dangle
 - `APM_SKILLS_DIR` / `APM_AGENTS_DIR` / `apmAgentFilename` — the one definition
   of APM's source layout that every staging path uses
 

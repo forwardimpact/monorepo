@@ -67,7 +67,7 @@ PR-side signal.
 
 A signal can un-count when a phase PR's head moves after approval. Four-point
 mechanics:
-[`review-transfer.md`](../../skills/kata-release-merge/references/review-transfer.md).
+[`review-transfer.md`](../skills/kata-release-merge/references/review-transfer.md).
 This section names the per-class pin source and consequence.
 
 | Signal class | Pin source | On head move |

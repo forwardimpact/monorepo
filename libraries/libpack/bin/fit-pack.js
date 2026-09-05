@@ -114,7 +114,7 @@ const commands = {
       process.exit(2);
     }
     const publisher = new SkillPackPublisher({ runtime });
-    const { skills, agents } = await publisher.publish({
+    const { skills, agents, references } = await publisher.publish({
       sourceDir: values.from || ".claude",
       prefix: values.prefix,
       all: Boolean(values.all),
@@ -128,7 +128,7 @@ const commands = {
     });
     process.stdout.write(
       formatSuccess(
-        `Staged ${skills.length} skill(s) and ${agents.length} agent(s) into ${values.into}`,
+        `Staged ${skills.length} skill(s), ${agents.length} agent(s), and ${references.length} reference(s) into ${values.into}`,
       ) + "\n",
     );
   },

@@ -34,7 +34,7 @@ Activity commands need the Supabase CLI. Install it with Homebrew
 (`brew install supabase/tap/supabase`) or npm (`npm install supabase`).
 `fit-map` finds either one. It falls back to `npx supabase` for the npm-local
 install. See the
-[engineering leaders getting-started guide](../../website/docs/getting-started/leaders/map/index.md#activity-install-the-supabase-cli)
+[engineering leaders getting-started guide](https://www.forwardimpact.team/docs/getting-started/leaders/map/index.md#activity-install-the-supabase-cli)
 for details.
 
 ```sh

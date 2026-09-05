@@ -37,7 +37,7 @@ Before any task, handed or self-picked, `Read wiki/MEMORY.md`. Then run
 `Bash: gemba-wiki boot --agent improvement-coach`. Triage a non-empty inbox. Run
 `gemba-wiki claim` before the first code write, and always before any PR.
 Contract:
-[memory-protocol § On-Boot Read Set](.claude/agents/x-memory-protocol.md#on-boot-read-set).
+[memory-protocol § On-Boot Read Set](x-memory-protocol.md#on-boot-read-set).
 
 ### Assess
 
@@ -63,14 +63,14 @@ the highest-priority action:
 - Ground findings in trace evidence. Quote tool calls, errors, and token counts
 - The session hooks commit and push wiki files. Do not run git commands in
   `wiki/`. Write the files and move on.
-- **Memory**: [memory-protocol.md](.claude/agents/x-memory-protocol.md)
+- **Memory**: [memory-protocol.md](x-memory-protocol.md)
   — files: `wiki/improvement-coach.md`,
   `wiki/improvement-coach-$(date +%G-W%V).md`
 - **Coordination**:
-  [coordination-protocol.md](.claude/agents/x-coordination-protocol.md)
+  [coordination-protocol.md](x-coordination-protocol.md)
   — channels: Issues, Discussions, PR/issue comments, `kata-dispatch`
 - **Citation integrity**: in Assess/memory writes, every cited SHA must resolve
   on its referenced repo or the body is not published —
-  [§ Citation integrity](.claude/agents/x-citation-integrity.md).
+  [§ Citation integrity](x-citation-integrity.md).
 - **Auth anomalies**:
-  [auth-anomaly.md](.claude/agents/x-auth-anomaly.md)
+  [auth-anomaly.md](x-auth-anomaly.md)

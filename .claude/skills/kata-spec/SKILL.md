@@ -72,8 +72,9 @@ content. The directory name pairs the claimed `NNN` with a kebab-case slug.
 
 ## Writing a Spec (WHAT and WHY)
 
-The spec answers two questions: what the change is, and why it matters.
-Identify which persona and job from [JTBD.md](../../../JTBD.md) the spec serves.
+The spec answers two questions: what the change is, and why it matters. Name
+the persona and job it serves from
+[JTBD.md](https://github.com/forwardimpact/monorepo/blob/main/JTBD.md).
 
 - **Problem first.** Give evidence before the proposal: errors, metrics,
   examples.
