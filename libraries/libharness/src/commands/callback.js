@@ -52,18 +52,27 @@ function readTraceSummary(content) {
   return summary;
 }
 
+/** Terminal summary when the run wrote no trace the verb can read. */
+const NO_TRACE_SUMMARY = "The run produced no trace file. See the run log.";
+
+/** Terminal summary when a trace exists but carries no orchestrator summary. */
+const NO_SUMMARY_TEXT = "The run ended and produced no summary.";
+
 /**
  * Callback command — read an NDJSON trace and extract the terminal
  * orchestrator summary. POST a canonical callback body to the configured
- * URL. `kata-dispatch.yml` uses this command to deliver the lead's
- * conclusion to the bridge that dispatched the run.
+ * URL.
+ *
+ * `--trace-file` is optional: an absent or empty path posts the same shape
+ * with `verdict: failed`, so a run that produced no trace never strands its
+ * caller.
  *
  * Wire shape (single shape across modes):
  *
  * ```
  * {
- *   correlation_id, verdict, summary, run_url,
- *   discussion_id?, replies: [], trigger?
+ *   correlation_id, kind, verdict, summary, run_url, cost_usd,
+ *   replies: [], last_acted_seq, discussion_id?, trigger?
  * }
  * ```
  *
@@ -79,20 +88,26 @@ export async function runCallbackCommand(ctx) {
   const runUrl = values["run-url"] ?? "";
   const discussionIdOverride = values["discussion-id"] ?? null;
 
-  if (!traceFile)
-    return { ok: false, code: 1, error: "--trace-file is required" };
   if (!callbackUrl)
     return { ok: false, code: 1, error: "--callback-url is required" };
 
-  const content = runtime.fsSync.readFileSync(traceFile, "utf8");
-  const found = readTraceSummary(content) ?? {
-    verdict: "failed",
-    summary: "The run ended and produced no summary.",
-    replies: [],
-  };
+  const content =
+    traceFile && runtime.fsSync.existsSync(traceFile)
+      ? runtime.fsSync.readFileSync(traceFile, "utf8")
+      : null;
+  const found =
+    content === null
+      ? { verdict: "failed", summary: NO_TRACE_SUMMARY, replies: [] }
+      : (readTraceSummary(content) ?? {
+          verdict: "failed",
+          summary: NO_SUMMARY_TEXT,
+          replies: [],
+        });
   // Total spend across every participant in the trace. The bridge surfaces
   // it alongside the verdict, so a dispatched run reports what it cost.
-  const { totalCostUsd } = sumTraceCost(content.split("\n"));
+  const { totalCostUsd } = sumTraceCost(
+    content === null ? [] : content.split("\n"),
+  );
 
   const discussionId = found.discussionId ?? discussionIdOverride ?? null;
   const payload = {

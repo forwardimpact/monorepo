@@ -7,6 +7,7 @@ import { createMockFs } from "@forwardimpact/libmock";
 import { runCallbackCommand } from "../src/commands/callback.js";
 
 const TRACE_PATH = "/callback/trace.ndjson";
+const NO_TRACE_SUMMARY = "The run produced no trace file. See the run log.";
 
 /**
  * Invoke the callback handler with an InvocationContext-shaped object. An
@@ -27,9 +28,8 @@ function callback(values, fsSync = createMockFs()) {
 const REAL_FETCH = globalThis.fetch.bind(globalThis);
 
 /**
- * Start a one-shot HTTP server that records the first request and returns
- * the configured status. Returns the URL, a getter for the captured
- * request, and a close() helper.
+ * Start an HTTP server that records the most recent request and returns the
+ * configured status. Returns the URL, a request getter, and a close() helper.
  */
 function startServer(status = 200) {
   return new Promise((resolve) => {
@@ -217,13 +217,53 @@ describe("gemba-harness callback", () => {
     }
   });
 
-  test("requires --trace-file and --callback-url", async () => {
-    const noTrace = await callback({ "callback-url": "http://example" });
-    assert.strictEqual(noTrace.ok, false);
-    assert.match(noTrace.error, /--trace-file is required/);
-    const noUrl = await callback({ "trace-file": "/dev/null" });
+  test("requires --callback-url", async () => {
+    const noUrl = await callback({ "trace-file": TRACE_PATH });
     assert.strictEqual(noUrl.ok, false);
     assert.match(noUrl.error, /--callback-url is required/);
+  });
+
+  test("posts the full-shape placeholder when the trace is absent or empty", async () => {
+    const server = await startServer(200);
+    try {
+      const missing = await callback({
+        "trace-file": "/callback/missing.ndjson",
+        "callback-url": `${server.url}/api/callback/none`,
+        "correlation-id": "no-trace",
+        "run-url": "https://github.com/foo/bar/actions/runs/9",
+        "discussion-id": "GD_no_trace",
+      });
+
+      assert.strictEqual(missing.ok, true);
+      assert.deepStrictEqual(server.getLastRequest().body, {
+        correlation_id: "no-trace",
+        kind: "terminal",
+        verdict: "failed",
+        summary: NO_TRACE_SUMMARY,
+        run_url: "https://github.com/foo/bar/actions/runs/9",
+        cost_usd: 0,
+        replies: [],
+        last_acted_seq: -1,
+        discussion_id: "GD_no_trace",
+      });
+
+      const empty = await callback({
+        "trace-file": "",
+        "callback-url": `${server.url}/api/callback/empty`,
+        "correlation-id": "empty",
+      });
+      // Pin the URL. Both sub-cases share one server, and the first body
+      // carries the same summary and cost, so an unpinned read would pass
+      // even if this POST never happened.
+      assert.strictEqual(empty.ok, true);
+      const second = server.getLastRequest();
+      assert.strictEqual(second.url, "/api/callback/empty");
+      assert.strictEqual(second.body.summary, NO_TRACE_SUMMARY);
+      assert.strictEqual(second.body.cost_usd, 0);
+      assert.strictEqual(second.body.discussion_id, undefined);
+    } finally {
+      await server.close();
+    }
   });
 
   test("treats a missing verdict as 'failed'", async () => {

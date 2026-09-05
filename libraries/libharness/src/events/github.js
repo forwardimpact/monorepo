@@ -1,6 +1,5 @@
 /**
- * GitHub event → task-prompt composition. Replaces ~70 lines of shell in
- * kata-dispatch.yml's `Compose task text` step. Each branch in the dispatch
+ * GitHub event → task-prompt composition. Each branch in the dispatch
  * function corresponds to one (event_name, action) the agent workflows react
  * to.
  *
