@@ -11,7 +11,11 @@ export const WRITER = "watchdog";
 
 // A slug is two path segments of GitHub's own name grammar. The latch write
 // interpolates it into a path, so a value that is not a slug must not resolve.
+// A `.` or `..` segment matches that grammar and `fetch` normalizes it out of
+// the path, so each segment must carry at least one character that is not a
+// dot. A repository may legitimately be named `.github`.
 const SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const DOTS = /^\.+$/;
 
 /**
  * Resolve `owner/repo` from the option or from the Actions environment.
@@ -21,7 +25,8 @@ const SLUG = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
  */
 export function resolveRepo(options, proc) {
   const slug = (options.repo || proc.env.GITHUB_REPOSITORY || "").trim();
-  return SLUG.test(slug) ? slug : null;
+  if (!SLUG.test(slug)) return null;
+  return slug.split("/").some((segment) => DOTS.test(segment)) ? null : slug;
 }
 
 /**

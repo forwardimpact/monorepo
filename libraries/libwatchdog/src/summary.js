@@ -32,6 +32,16 @@ function verdictLines(verdict) {
 }
 
 /**
+ * Render a latch value inside a markdown code span. A value carrying a
+ * backtick would otherwise break the block an operator reads to triage a stop.
+ * @param {*} value - The raw value, or a nullish value when absent.
+ * @returns {string} The code span.
+ */
+function span(value) {
+  return `\`${String(value ?? "").replaceAll("`", "'")}\``;
+}
+
+/**
  * Render the latch's two records and the effective reading.
  * @param {object} state - The latch state.
  * @returns {Array<string>} The block's lines.
@@ -39,10 +49,10 @@ function verdictLines(verdict) {
 function stateLines(state) {
   return [
     "",
-    `Killswitch scope: \`${state.scope ?? "absent"}\``,
-    `Killswitch value: \`${state.value ?? ""}\``,
-    `Repository record: \`${state.repository?.value ?? "absent"}\``,
-    `Organization record: \`${state.organization?.value ?? "absent"}\``,
+    `Killswitch scope: ${span(state.scope ?? "absent")}`,
+    `Killswitch value: ${span(state.value)}`,
+    `Repository record: ${span(state.repository?.value ?? "absent")}`,
+    `Organization record: ${span(state.organization?.value ?? "absent")}`,
   ];
 }
 
@@ -73,7 +83,7 @@ export function renderSummary({
   if (state) {
     lines.push(...stateLines(state));
   } else if (killswitchValue !== undefined) {
-    lines.push("", `Killswitch value: \`${killswitchValue ?? ""}\``);
+    lines.push("", `Killswitch value: ${span(killswitchValue)}`);
   }
 
   if (decision) lines.push("", `Decision: **${decision}**`);

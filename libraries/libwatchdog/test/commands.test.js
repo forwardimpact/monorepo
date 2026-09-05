@@ -331,7 +331,15 @@ test("every write path carries a non-empty reason", async () => {
 
 test("a repo that is not an owner/repo slug does not resolve", async () => {
   const runtime = testRuntime(ENV);
-  for (const repo of ["o/r/../../evil", "o", "o/r?x=1", " "]) {
+  for (const repo of [
+    "o/r/../../evil",
+    "o",
+    "o/r?x=1",
+    " ",
+    "../..",
+    "./.",
+    "o/..",
+  ]) {
     const result = await runAssessCommand(
       context({ ...ASSESS, repo }, runtime, stubRequest(QUIET)),
     );

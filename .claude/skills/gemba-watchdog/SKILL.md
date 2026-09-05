@@ -21,7 +21,7 @@ The command engages the latch. **It never clears it.** A human clears it.
 **Measure the current activity:**
 
 - Report the four counts and the verdict —
-  `npx gemba-watchdog assess --threshold 32 --window-hours 2`
+  `npx gemba-watchdog assess --threshold 32 --window-hours 2 --default-branch main`
 - Get the verdict as JSON — add `--format json`
 
 **Engage the latch after a breach:**
@@ -57,7 +57,7 @@ Read-only. It writes no variable and exits 0 on every outcome.
 | `--threshold` | Breach threshold, one number for every counter. Required |
 | `--window-hours` | Window the counters cover. Required |
 | `--repo` | `owner/repo`. Falls back to `$GITHUB_REPOSITORY` |
-| `--default-branch` | Branch the commit counter reads. Default `main` |
+| `--default-branch` | Branch the commit counter reads. Required |
 | `--killswitch-value` | Your own latch reading, for the summary only |
 
 Under GitHub Actions it appends the counts to `$GITHUB_STEP_SUMMARY` and

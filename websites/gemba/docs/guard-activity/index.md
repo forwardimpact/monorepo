@@ -52,7 +52,8 @@ missed runs.
 `assess` measures. It reads the repository and writes nothing.
 
 ```sh
-npx gemba-watchdog assess --threshold 32 --window-hours 2
+npx gemba-watchdog assess --threshold 32 --window-hours 2 \
+  --default-branch main
 ```
 
 | Option | Role |
@@ -60,7 +61,7 @@ npx gemba-watchdog assess --threshold 32 --window-hours 2
 | `--threshold` | The breach threshold, one number for every counter. Required |
 | `--window-hours` | The window the counters cover. Required |
 | `--repo` | `owner/repo`. Falls back to `$GITHUB_REPOSITORY` |
-| `--default-branch` | The branch the commit counter reads. Default `main` |
+| `--default-branch` | The branch the commit counter reads. Required |
 | `--killswitch-value` | Your own reading of the latch, for the summary only |
 
 Under GitHub Actions it appends a table of every count to

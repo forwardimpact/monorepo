@@ -26,8 +26,7 @@ const definition = {
         },
         "default-branch": {
           type: "string",
-          default: "main",
-          description: "Branch the commit counter reads",
+          description: "Branch the commit counter reads. Required",
         },
         threshold: {
           type: "string",
@@ -87,8 +86,8 @@ const definition = {
     },
   },
   examples: [
-    "gemba-watchdog assess --threshold 32 --window-hours 2",
-    "gemba-watchdog assess --threshold 32 --window-hours 2 --format json",
+    "gemba-watchdog assess --threshold 32 --window-hours 2 --default-branch main",
+    "gemba-watchdog assess --threshold 32 --window-hours 2 --default-branch main --format json",
     'gemba-watchdog engage --variable MY_KILLSWITCH --reason "$REASON" --window-hours 2',
     "gemba-watchdog engage --variable MY_KILLSWITCH --reason watchdog --window-hours 2 --dry-run",
   ],

@@ -61,3 +61,9 @@ test("a dry run says the latch was read and not written", () => {
   });
   assert.match(block, /Dry run/);
 });
+
+test("a latch value carrying a backtick cannot break the block", () => {
+  const block = renderSummary({ killswitchValue: "stop `now`" });
+  assert.match(block, /Killswitch value: `stop 'now'`/);
+  assert.equal(block.match(/`/g).length, 2);
+});
