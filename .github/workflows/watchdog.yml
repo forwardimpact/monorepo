@@ -1,0 +1,72 @@
+name: "Watchdog"
+
+# Repository CI, not a Kata surface. This workflow runs no agent, so it does
+# not gate on KATA_KILLSWITCH. It must keep running after it engages the
+# variable, and its name stays outside the kata-* glob so the "every kata-*
+# workflow gates on the killswitch" contract stays true as written.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Read both killswitch scopes and write nothing"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# The threshold, the window, and the variable name each appear exactly once.
+# Both jobs read them from here, including the `vars` lookup below, which
+# indexes with the same env value rather than repeating the name.
+env:
+  WATCHDOG_THRESHOLD: "32"
+  WATCHDOG_WINDOW_HOURS: "2"
+  WATCHDOG_VARIABLE: KATA_KILLSWITCH
+
+jobs:
+  assess:
+    name: Measure
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      verdict: ${{ steps.assess.outputs.verdict }}
+      reason: ${{ steps.assess.outputs.reason }}
+    steps:
+      - id: assess
+        uses: forwardimpact/gemba-watchdog@21c6268a8326e9ba52e82ac463b30d8995610fd3 # v1
+        with:
+          mode: assess
+          threshold: ${{ env.WATCHDOG_THRESHOLD }}
+          window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
+          killswitch-value: ${{ vars[env.WATCHDOG_VARIABLE] }}
+          default-branch: ${{ github.event.repository.default_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  engage:
+    name: Engage
+    needs: assess
+    if: needs.assess.outputs.verdict == 'engage'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - uses: forwardimpact/gemba-watchdog@21c6268a8326e9ba52e82ac463b30d8995610fd3 # v1
+        with:
+          mode: engage
+          variable: ${{ env.WATCHDOG_VARIABLE }}
+          window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
+          # Declared required on the action. The engage step consumes none of
+          # it, and it costs no second copy: the value comes from the one env
+          # home above.
+          threshold: ${{ env.WATCHDOG_THRESHOLD }}
+          reason: ${{ needs.assess.outputs.reason }}
+          dry-run: ${{ inputs.dry-run || 'false' }}
+          app-id: ${{ secrets.KATA_APP_ID }}
+          app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}

@@ -191,7 +191,17 @@ when the variable holds a truthy value (anything other than empty, `0`,
 `false`, `no`, or `off`). Set it from the repository's Settings → Secrets and
 variables → Actions → Variables. That halts all kata automation at once:
 scheduled shifts, the event-driven dispatcher, and manual dispatches. You do not
-need to disable each workflow individually. Clear or unset it to resume.
+need to disable each workflow individually. Write a falsy value to resume.
+Deleting the variable is not clearing it.
+
+This repository also runs a watchdog that engages the variable automatically.
+`.github/workflows/watchdog.yml` counts default-branch commits, pull requests
+created, issues created, and conversation comments created over a fixed window,
+on a fixed schedule. Any counter that reaches the threshold engages the
+variable, and so does a counter the watchdog cannot read or cannot cover. The
+workflow carries the schedule, the window, and the threshold. The watchdog only
+sets the variable. It never clears it, and it does not gate on it, because it
+must keep running after it engages.
 
 ## Skills
 
