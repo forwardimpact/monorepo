@@ -11,10 +11,10 @@ step. The latch is how a human halts the team at once.
   believes the team must stop says so, in the change or the tracker item it is
   working, and leaves the write to a human.
 - **A human clears the latch by writing a falsy value.** The empty string,
-  `0`, `false`, `no`, and `off` all read as cleared. Deleting the variable is
-  not clearing it: it leaves no record of who cleared it or when. Where the
-  repository runs an activity watchdog, that watchdog is the only automatic
-  writer, and it only ever sets the latch.
+  `0`, `false`, `no`, and `off` all read as cleared. Deleting the variable
+  also resumes the team, but it leaves no record of who cleared it or when.
+  Where the repository runs an activity watchdog, that watchdog is the only
+  automatic writer, and it only ever sets the latch.
 - **An agent that finds the team stopped reports the stop and waits.** It does
   not work around the latch, and it does not start the work through another
   surface. The stop is the signal that a human has to look first.
