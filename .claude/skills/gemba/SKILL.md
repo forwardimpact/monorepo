@@ -43,7 +43,8 @@ documentation):
 **Guard the loop:**
 
 - `gemba-watchdog` counts repository activity over a window and engages an
-  operator latch variable on a breach
+  operator latch variable on a breach. The `forwardimpact/gemba-watchdog`
+  action is the same guard step in CI
 - `gemba-selfedit` gives a sandboxed agent a narrow, audited path to write
   instruction files the project allowlist permits
 

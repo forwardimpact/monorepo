@@ -10,13 +10,15 @@ on:
   workflow_dispatch:
     inputs:
       dry-run:
-        description: "Read both killswitch scopes and write nothing"
+        description: >-
+          Rehearse the engage job without writing. It reaches the engage job
+          only when the assess job reports a breach, so on a quiet repository
+          a dispatch exercises the counters alone.
         required: false
         type: boolean
         default: false
 
-permissions:
-  contents: read
+permissions: {}
 
 # The threshold, the window, and the variable name each appear exactly once.
 # Both jobs read them from here, including the `vars` lookup below, which
@@ -24,7 +26,7 @@ permissions:
 env:
   WATCHDOG_THRESHOLD: "32"
   WATCHDOG_WINDOW_HOURS: "2"
-  WATCHDOG_VARIABLE: KATA_KILLSWITCH
+  WATCHDOG_VARIABLE: "KATA_KILLSWITCH"
 
 jobs:
   assess:
@@ -45,9 +47,17 @@ jobs:
           mode: assess
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          killswitch-value: ${{ vars[env.WATCHDOG_VARIABLE] }}
-          default-branch: ${{ github.event.repository.default_branch }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # The literal, not `vars[env.WATCHDOG_VARIABLE]`: a dynamic index
+          # that fails to resolve yields an empty string, which the summary
+          # renders as a cleared latch. The name's second occurrence buys a
+          # containment control that cannot go quietly wrong.
+          killswitch-value: ${{ vars.KATA_KILLSWITCH }}
+          # A literal, not `github.event.repository.default_branch`: the
+          # schedule event's payload is not documented to carry one, and a
+          # workflow_dispatch rehearsal always does, so a dispatch could
+          # never detect the empty case before the schedule hit it.
+          default-branch: main
+          token: ${{ github.token }}
 
   engage:
     name: Engage
@@ -57,7 +67,8 @@ jobs:
     timeout-minutes: 5
     permissions: {}
     steps:
-      - uses: forwardimpact/gemba-watchdog@21c6268a8326e9ba52e82ac463b30d8995610fd3 # v1
+      - id: engage
+        uses: forwardimpact/gemba-watchdog@21c6268a8326e9ba52e82ac463b30d8995610fd3 # v1
         with:
           mode: engage
           variable: ${{ env.WATCHDOG_VARIABLE }}

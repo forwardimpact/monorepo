@@ -19,7 +19,8 @@ This action is the brake. It runs in two modes:
   a breach, and it exits 1 so the run stands out red.
 
 The action sets the latch. **It never clears it.** A human clears it by writing
-a falsy value.
+a falsy value. Deleting the variable resumes the team too, but forfeits the
+quiet window that follows a clear.
 
 It runs no agent and it checks no repository out.
 

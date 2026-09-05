@@ -267,9 +267,9 @@ scheduled shifts, event-driven replies, and manual runs together. A truthy
 value is anything other than empty, `0`, `false`, `no`, or `off`.
 
 Set it under Settings, then Secrets and variables, then Actions, then
-Variables. Write a falsy value to resume. Deleting the variable is not
-clearing it. You never disable workflows one at a time, and you never lose the
-schedule you configured.
+Variables. Write a falsy value to resume. Deleting the variable resumes the
+team too, but it leaves no record of who cleared it or when. You never disable
+workflows one at a time, and you never lose the schedule you configured.
 
 ## Failure modes that stall the loop
 
