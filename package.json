@@ -59,7 +59,7 @@
     "@playwright/test": "^1.62.1",
     "acorn": "^8.18.0",
     "eslint": "^10.8.1",
-    "eslint-plugin-jsdoc": "^63.3.2",
+    "eslint-plugin-jsdoc": "^64.3.3",
     "rumdl": "^0.2.53",
     "semver": "^7.8.5",
     "serve": "^14.2.6",
