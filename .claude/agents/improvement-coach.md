@@ -72,7 +72,6 @@ the highest-priority action:
 - **Citation integrity**: in Assess/memory writes, every cited SHA must resolve
   on its referenced repo or the body is not published —
   [§ Citation integrity](x-citation-integrity.md).
-- **Killswitch**:
-  [killswitch.md](x-killswitch.md)
+- **Killswitch**: [killswitch](x-killswitch.md)
 - **Auth anomalies**:
   [auth-anomaly.md](x-auth-anomaly.md)

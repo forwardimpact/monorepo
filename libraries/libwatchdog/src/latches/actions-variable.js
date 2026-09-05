@@ -68,7 +68,7 @@ async function readOrganization(request, repo, name) {
       if (error.status === 404) return null;
       throw error;
     }
-    const found = page.body.variables.find(
+    const found = (page.body?.variables ?? []).find(
       (variable) => variable.name === name,
     );
     if (found) return toRecord(found);

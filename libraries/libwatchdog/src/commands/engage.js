@@ -25,7 +25,8 @@ async function report(runtime, input) {
  * Run the engage command: read both latch scopes, then write when the policy
  * allows it.
  * @param {object} ctx - The libcli invocation context. `ctx.deps.request`
- *   overrides the transport, so a test reaches every branch with no network.
+ *   replaces the transport and `ctx.deps.fetchImpl` replaces only its fetch,
+ *   so a test reaches every branch with no network.
  * @returns {Promise<{ok: boolean, code?: number, error?: string}>} The envelope.
  */
 export async function runEngageCommand(ctx) {
@@ -64,7 +65,12 @@ export async function runEngageCommand(ctx) {
   }
 
   const request =
-    deps.request ?? createRequest({ token, clock: runtime.clock });
+    deps.request ??
+    createRequest({
+      token,
+      clock: runtime.clock,
+      fetchImpl: deps.fetchImpl,
+    });
   const latch = createActionsVariableLatch({ request, repo, name: variable });
 
   let state;

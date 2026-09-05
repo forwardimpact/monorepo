@@ -339,3 +339,56 @@ test("a repo that is not an owner/repo slug does not resolve", async () => {
     assert.match(result.error, /--repo/);
   }
 });
+
+test("the handler's own transport reaches the API and the counters", async () => {
+  // No `deps.request`, so this drives `createRequest` from inside the handler,
+  // which is the path CI runs.
+  const runtime = testRuntime(ENV);
+  const seen = [];
+  const fetchImpl = async (url, init) => {
+    seen.push({ url, init });
+    const body = url.includes("/issues/comments")
+      ? created(3)
+      : url.includes("/pulls")
+        ? created(1)
+        : url.includes("/issues")
+          ? created(40)
+          : commits(2);
+    return new Response(JSON.stringify(body), { status: 200 });
+  };
+
+  const result = await runAssessCommand(
+    context(ASSESS, runtime, undefined, fetchImpl),
+  );
+  assert.deepEqual(result, { ok: true });
+  assert.equal(seen.length, 4);
+  assert.equal(
+    seen[0].url.startsWith("https://api.github.com/repos/o/r/"),
+    true,
+  );
+  assert.equal(seen[0].init.headers.Authorization, "Bearer t");
+  assert.match(runtime.fs.data.get("/gh/output.txt"), /^verdict=engage$/m);
+});
+
+test("engage refuses a reason every killswitch reader would read as cleared", async () => {
+  for (const reason of ["0", "false", "off", "no"]) {
+    const writes = [];
+    const runtime = testRuntime(ENV);
+    const result = await runEngageCommand(
+      context(
+        { ...ENGAGE, reason },
+        runtime,
+        latchStub({
+          repository: {
+            name: "MY_KILLSWITCH",
+            value: "",
+            updated_at: ago(600),
+          },
+          writes,
+        }),
+      ),
+    );
+    assert.deepEqual(result, { ok: false, code: 1 }, reason);
+    assert.deepEqual(writes, [], reason);
+  }
+});

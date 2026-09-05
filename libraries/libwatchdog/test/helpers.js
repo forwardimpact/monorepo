@@ -56,6 +56,6 @@ export function stubRequest(routes, { headers } = {}) {
 }
 
 /** A minimal invocation context for a command handler. */
-export function context(options, runtime, request) {
-  return { options, args: {}, deps: { runtime, request } };
+export function context(options, runtime, request, fetchImpl) {
+  return { options, args: {}, deps: { runtime, request, fetchImpl } };
 }

@@ -82,7 +82,7 @@ The written value names the writer, every breached counter with its count and
 threshold, and the time:
 
 ```text
-watchdog|issues=47/32|comments=38/32|2026-09-02T14:49:00.000Z
+watchdog|issues=47/32|comments=38/32|2026-09-02T16:49:00.000Z
 ```
 
 `unreadable` and `uncovered` breaches lead the line.
