@@ -278,7 +278,8 @@ const definition = {
       options: {
         "trace-file": {
           type: "string",
-          description: "Path to the NDJSON trace file",
+          description:
+            "Path to the NDJSON trace file (optional; an absent path posts the no-trace placeholder)",
         },
         "callback-url": {
           type: "string",

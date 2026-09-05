@@ -70,7 +70,7 @@ describe("TASK_TEMPLATE_* constants carry the documented placeholders", () => {
   });
 });
 
-describe("composeTaskFromGitHubEvent matches the kata-dispatch shell output", () => {
+describe("composeTaskFromGitHubEvent matches the composed task text", () => {
   test("issues / opened", () => {
     const { task, amend } = composeTaskFromGitHubEvent(
       loadFixture("issues-opened.json"),

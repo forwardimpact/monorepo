@@ -29,6 +29,7 @@ the artifact.
 | -------------------------- | -------- | --------------------- | ---------------------------------------------------------------------------- |
 | `task-text`                | Yes\*    | —                     | Inline task text                                                             |
 | `task-file`                | Yes\*    | —                     | Path to task file                                                            |
+| `task-event`               | Yes\*    | —                     | Path to a native GitHub event payload JSON (typically `${{ github.event_path }}`). The CLI composes the task from the payload |
 | `mode`                     | No       | `run`                 | `run`, `supervise`, `facilitate`, or `discuss`                               |
 | `agent-model`              | No       | `claude-opus-4-7[1m]` | Claude model for agents                                                      |
 | `lead-model`               | No       | `claude-opus-4-7[1m]` | Claude model for the lead role (supervise / facilitate / discuss modes)      |
@@ -49,7 +50,7 @@ the artifact.
 | `timeout-minutes`          | No       | `45`                  | Max runtime in minutes                                                       |
 | `case`                     | No       | `default`             | Case id embedded in trace filenames                                          |
 
-\*Exactly one of `task-text` or `task-file` is required.
+\*Exactly one of `task-text`, `task-file`, or `task-event` is required.
 
 ### Lead role (`supervisor` / `facilitator` / `chair`)
 
@@ -105,15 +106,20 @@ the orchestrator summary and POST it to an external caller:
     agent-profiles: product-manager,security-engineer,staff-engineer
 
 - name: Deliver callback
-  if: steps.assess.outputs.trace-file != ''
   env:
     TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
+    CALLBACK_URL: ${{ inputs.callback_url }}
+    CORRELATION_ID: ${{ inputs.correlation_id }}
   run: |
-    node products/gemba/bin/gemba-harness.js callback \
+    gemba-harness callback \
       --trace-file="$TRACE_FILE" \
       --callback-url="$CALLBACK_URL" \
       --correlation-id="$CORRELATION_ID"
 ```
+
+The step needs no trace-file guard. `--trace-file` is optional, and an
+absent or empty path posts the same terminal shape with `verdict: failed`.
+So a run that produced no trace still reports a conclusion.
 
 ## Trace Artifacts
 
