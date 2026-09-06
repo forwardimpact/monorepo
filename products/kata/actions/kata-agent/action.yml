@@ -1,8 +1,9 @@
 name: Kata Agent
 description: >
-  Run a Kata agent workflow. The action generates an installation token,
-  checks out the repository, bootstraps the environment, and runs the agent
-  with gemba-harness.
+  Run a Kata agent workflow. The action generates and stamps an installation
+  token, checks out the repository, bootstraps the environment, runs the agent
+  with gemba-harness from text, a file, or a GitHub event, and delivers the
+  run's conclusion to a callback URL when the caller names one.
 
 inputs:
   # --- Authentication ---
@@ -25,11 +26,15 @@ inputs:
     required: false
     default: "run"
   task-text:
-    description: Inline task text (mutually exclusive with task-file)
+    description: Inline task text (mutually exclusive with task-file and task-event)
     required: false
   task-file:
-    description: Path to task file (mutually exclusive with task-text)
+    description: Path to task file (mutually exclusive with task-text and task-event)
     required: false
+  task-event:
+    description: Path to a native GitHub event payload JSON, typically github.event_path (mutually exclusive with task-text and task-file). The gemba-harness CLI composes the task from the payload.
+    required: false
+    default: ""
   agent-profile:
     description: Agent profile name (run and supervise modes)
     required: false
@@ -61,14 +66,33 @@ inputs:
   task-amend:
     description: Additional text the action appends to the task prompt to steer the run
     required: false
-  # --- Discussion (discuss mode) ---
+  # --- Discussion and the bridge contract ---
+  # discussion-id, resume-context, and inbox-url serve discuss mode. The
+  # callback pair serves every mode, because the callback step gates on
+  # callback-url alone.
   discussion-id:
     description: Stable id for the threaded discussion (discuss mode). The traces carry it to link runs. Callers use it to resume a suspended run.
     required: false
   resume-context:
     description: JSON-serialized prior state for a resumed discuss run (discuss mode)
     required: false
+  callback-url:
+    description: URL that receives the run's terminal conclusion. A non-empty value enables the callback step, which delivers on success and on failure. Keep `trace` enabled, because the verb reads the trace to build the payload.
+    required: false
+    default: ""
+  correlation-id:
+    description: Correlation id the callback payload echoes back to the caller
+    required: false
+    default: ""
+  inbox-url:
+    description: Long-poll URL that injects messages into a live discuss run
+    required: false
+    default: ""
   # --- Optional overrides ---
+  bun-version:
+    description: Bun version the bootstrap installs. Leave it empty to take the bootstrap's pinned default.
+    required: false
+    default: ""
   cwd:
     description: Agent working directory (run mode)
     required: false
@@ -153,6 +177,27 @@ runs:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
 
+    # Pair the mint time with the identity of the job execution that issued the
+    # token, in one stamp. The stamp is a step output rather than a GITHUB_ENV
+    # write, because GITHUB_ENV is job-wide and would leak past the action
+    # boundary. It rides the same step env as GH_TOKEN below, so no carried or
+    # resumed session state can pair a token with another token's stamp.
+    # create-github-app-token exports no expiry, so `exp` derives from the ~1h
+    # (3600s) installation-token TTL. This step captures `mint` one step AFTER
+    # the mint, so `mint` trails the true mint by the inter-step latency. The
+    # 120s margin keeps `exp` a conservative UNDER-estimate: the accounting must
+    # never report a dead token as alive. Run id plus run attempt make "issuing
+    # job execution ≠ current ⇒ presumed revoked" a local comparison. A re-run
+    # attempt shares GITHUB_RUN_ID and revokes attempt 1's token. The
+    # auth-anomaly playbook consumes the stamp.
+    - name: Stamp installation token
+      id: stamp
+      shell: bash
+      run: |
+        set -euo pipefail
+        mint=$(date +%s)
+        echo "value=mint=${mint};exp=$((mint + 3600 - 120));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
+
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         fetch-depth: 0
@@ -162,11 +207,14 @@ runs:
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout. Leave it
     # empty to skip wiki sync. forwardimpact/gemba-wiki below pushes the wiki back
     # after the agent run.
-    - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
+    - uses: forwardimpact/gemba-bootstrap@60fc7428dd4755d6f49f9d4b4ad0b64ddb5a4b56 # v1.0.21
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
         app-slug: ${{ inputs.app-slug }}
         app-id: ${{ inputs.app-id }}
+        # An empty value reaches the bootstrap, which resolves its own pinned
+        # default. The version literal keeps one home.
+        bun-version: ${{ inputs.bun-version }}
         # Install the pre-compiled CLIs the run uses onto PATH. Install
         # gemba-wiki only when wiki sync is on. The gemba-harness/gemba-wiki
         # steps below resolve these binaries before any npx path.
@@ -191,6 +239,13 @@ runs:
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+        # Token freshness stamp, paired with GH_TOKEN on this step env. See the
+        # "Stamp installation token" step above for why, and
+        # .claude/agents/x-auth-anomaly.md for what reads it.
+        KATA_GH_TOKEN_STAMP: ${{ steps.stamp.outputs.value }}
+        CALLBACK_URL: ${{ inputs.callback-url }}
+        CORRELATION_ID: ${{ inputs.correlation-id }}
+        INBOX_URL: ${{ inputs.inbox-url }}
         CLAUDE_CODE_USE_BEDROCK: "0"
         # The agent runs in bypass-permissions mode, which Claude Code refuses
         # under uid 0 unless the process is marked sandboxed. gemba-harness@v1
@@ -201,6 +256,7 @@ runs:
         mode: ${{ inputs.mode }}
         task-text: ${{ inputs.task-text }}
         task-file: ${{ inputs.task-file }}
+        task-event: ${{ inputs.task-event }}
         agent-profile: ${{ inputs.agent-profile }}
         lead-profile: ${{ inputs.lead-profile }}
         agent-profiles: ${{ inputs.agent-profiles }}
@@ -218,6 +274,30 @@ runs:
         case: ${{ inputs.case }}
         discussion-id: ${{ inputs.discussion-id }}
         resume-context: ${{ inputs.resume-context }}
+
+    # Deliver the run's conclusion to the caller that dispatched it, for
+    # example a Microsoft Teams or GitHub Discussions bridge. The step runs on
+    # both success and failure of the run step, so a caller always gets a
+    # verdict. `gemba-harness callback` builds the payload from the trace, and
+    # posts the same shape with `verdict: failed` when the run produced none.
+    # So this step needs no file guard and no inline payload.
+    - name: Deliver callback
+      if: always() && inputs.callback-url != ''
+      shell: bash
+      env:
+        CALLBACK_URL: ${{ inputs.callback-url }}
+        CORRELATION_ID: ${{ inputs.correlation-id }}
+        DISCUSSION_ID: ${{ inputs.discussion-id }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
+      run: |
+        set -euo pipefail
+        gemba-harness callback \
+          --trace-file="$TRACE_FILE" \
+          --callback-url="$CALLBACK_URL" \
+          --correlation-id="$CORRELATION_ID" \
+          --run-url="$RUN_URL" \
+          --discussion-id="$DISCUSSION_ID"
 
     # Re-render the storyboard from the issue + CSV state the agent just
     # produced. That state covers obstacles and experiments it created or
@@ -244,9 +324,10 @@ runs:
         app-id: ${{ inputs.app-id }}
         app-private-key: ${{ inputs.app-private-key }}
 
-    # Sum spend across every participant. gemba-trace cost tolerates a missing
-    # trace, because the run may fail before it produces one. So this step
-    # needs no file guard.
+    # Sum spend across every participant. Redirect with `>>` and never pipe:
+    # a pipe truncates at 64 KiB and silently drops the tail of a long table.
+    # gemba-trace cost tolerates a missing trace, because the run may fail
+    # before it produces one. So this step needs no file guard.
     - name: Report run cost
       if: always()
       shell: bash
