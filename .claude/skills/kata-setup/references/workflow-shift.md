@@ -18,8 +18,8 @@ List `{{AGENT_MATRIX}}` in producer → reviewer → shipper order.
 `{{SHIFT_CRONS}}` are shift-start times. Set `wiki: "false"` to skip the sync.
 Omit `agent-model:` for the default. `kata-agent` runs the killswitch gate first
 and reports cost last. These workflows pass
-`killswitch: ${{ vars.KATA_KILLSWITCH }}` and add no inline steps. Emit the
-self-hosted (default) or hosted block per `--hosted` (`SKILL.md`).
+`killswitch: ${{ vars.KATA_KILLSWITCH }}`. Emit the self-hosted (default) or
+hosted block per `--hosted` (`SKILL.md`).
 
 ## Template (Self-Hosted)
 
@@ -99,30 +99,9 @@ Change the self-hosted template in three ways (the **canonical** hosted recipe):
 `FIT_OIDC_URL` is the hosted OIDC service URL, a repository **variable** that is
 masked in logs. Hosted needs a `kata-agent` SHA that takes `installation-token`.
 
-## Inline steps
-
-The harness-based dispatch workflow (`workflow-dispatch.md`) does not delegate
-to `kata-agent`. Copy the killswitch below as its first step. Add a final
-`if: always()` step that runs `gemba-trace cost "$TRACE_FILE" --markdown >>
-"$GITHUB_STEP_SUMMARY"`. `TRACE_FILE` comes from the trace step's
-`trace-file`. The step tolerates a missing trace, so add no guard.
-
-```yaml
-      - name: Kata killswitch
-        shell: bash
-        env:
-          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
-        run: |
-          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
-            ""|0|false|no|off) ;;
-            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH})." >&2; exit 1 ;;
-          esac
-```
-
 ## Resolving Action Refs
 
 Pin published actions to an immutable SHA. Never use the mutable `v1` tag. List
-tags with `gh api repos/forwardimpact/kata-agent/tags` (also `gemba-bootstrap`,
-`gemba-harness`, and `gemba-wiki` for `workflow-dispatch.md`). Pick the highest
+tags with `gh api repos/forwardimpact/kata-agent/tags`. Pick the highest
 `vX.Y.Z`. Emit `<full-40-char-sha> # <tag>`. If resolution fails, stop and ask.
 Pair the pins with the `github-actions` Dependabot config (`SKILL.md` Step 2).

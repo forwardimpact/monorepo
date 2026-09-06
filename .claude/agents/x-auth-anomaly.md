@@ -7,7 +7,8 @@ theorize about a component. It is **not** to harvest a credential.
 
 This playbook governs every agent session. On a surface that carries the (b)
 token stamp (`KATA_GH_TOKEN_STAMP`), the full gate and falsifier apply. On a
-stampless surface, see § Stampless surfaces.
+stampless surface, see § Stampless surfaces. A `kata-agent` surface carries the
+stamp once the pinned release stamps the token it mints.
 
 ## Token accounting (deterministic, API-free)
 
@@ -83,7 +84,10 @@ On a surface without a `KATA_GH_TOKEN_STAMP`, the shape-1 TTL gate is
 unavailable. The control-read + githubstatus discipline still applies on its
 own. A persistent gated 401 there classifies as **unattributable**. Record it
 and degrade gracefully. It is **never a falsifier fire**, because
-fire-condition (2) requires the stamp.
+fire-condition (2) requires the stamp. A surface that runs an agent without
+`kata-agent`, or outside GitHub Actions, has no stamp. The `kata-interview`
+action is one such surface, because it mints its own token and carries its own
+lifecycle.
 
 ## Honesty note
 

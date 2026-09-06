@@ -60,9 +60,9 @@ event-driven responses.
 - [ ] The dispatch workflow does no prompt assembly. It passes
       `task-event: ${{ github.event_path }}`. The action composes the task,
       including the recursion guard.
-- [ ] Every generated workflow gates on the killswitch. `kata-agent` workflows
-      pass `killswitch: ${{ vars.KATA_KILLSWITCH }}`. The harness-based dispatch
-      workflow keeps the inline `Kata killswitch` first step.
+- [ ] Every generated workflow gates on the killswitch. Each passes
+      `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which runs the
+      gate as its first internal step.
 
 </do_confirm_checklist>
 
@@ -121,12 +121,8 @@ with `references/workflow-shift.md`. The matrix holds all selected agents. It
 runs them in declaration order, one at a time. Write the storyboard and
 coaching workflows from `references/workflow-facilitate.md` only when you
 select `improvement-coach`. Use `forwardimpact/kata-agent` as the action and
-pin it to a SHA. Resolve the `{{KATA_AGENT_REF}}` / `{{GEMBA_BOOTSTRAP_REF}}` /
-`{{GEMBA_HARNESS_REF}}` / `{{GEMBA_WIKI_REF}}` placeholders per
+pin it to a SHA. Resolve `{{KATA_AGENT_REF}}` per
 [`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs).
-List the sibling's release tags with `gh api`. Pick the highest `vX.Y.Z` tag.
-Emit `@<full-40-char-sha> # <tag>`. Never emit the mutable `v1` tag. If
-resolution fails, stop and ask the operator.
 
 Pair the pins with a `github-actions` Dependabot config. The pins then get
 bump PRs and do not rot. Write `.github/dependabot.yml` (or merge this
@@ -140,10 +136,13 @@ entry into an existing one):
           interval: "weekly"
 
 Emit the variant that matches question 8's mode: the **`## Template
-(self-hosted)`** block (the default) or the **`## Template (hosted)`**
-block. Each reference carries both. On hosted setup, remind the operator:
-"Set the `FIT_OIDC_URL` repository variable to your hosted OIDC URL before
-the first workflow run." The hosted blocks carry no `KATA_APP_PRIVATE_KEY`.
+(Self-Hosted)`** block (the default) or the **`## Template (Hosted)`**
+block. `workflow-shift.md` carries both under those names. The other two
+references carry a self-hosted block plus a hosted delta, which
+`workflow-facilitate.md` heads `## Hosted Variant`. On hosted setup, remind the
+operator: "Set the `FIT_OIDC_URL` repository variable to your
+hosted OIDC URL before the first workflow run." The hosted blocks carry no
+`KATA_APP_PRIVATE_KEY`.
 
 The matrix in `agent-shift.yml` carries one line per selected agent, in
 producer → reviewer → shipper order (`references/schedules.md`). Generate the
@@ -151,21 +150,21 @@ storyboard and coaching workflows only for `improvement-coach`.
 
 Every template gates on the `KATA_KILLSWITCH` repository (or org) Actions
 variable. The run fails on a truthy value: anything other than empty, `0`,
-`false`, `no`, or `off`. The `kata-agent` workflows (shift, storyboard,
-coaching) pass `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which
-gates as its first internal step, before any token mint, checkout, or agent
-work. The harness-based dispatch workflow mints its own token, so it keeps an
-inline `Kata killswitch` first step that halts before that mint. The switch
+`false`, `no`, or `off`. Every generated workflow passes
+`killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which gates as its
+first internal step, before any token mint, checkout, or agent work. The switch
 starts unset, so it has no effect until an operator sets it.
 
 ### Step 3: Generate agent-dispatch
 
 If you select `product-manager`, ask: "Do you want agents to respond to PR
 comments, issue comments, and discussions?" If yes, generate
-`agent-dispatch.yml` from `references/workflow-dispatch.md`. Emit the
-`## Template (hosted)` block in hosted mode (question 8). Otherwise emit
-`## Template (self-hosted)`. The workflow does no prompt assembly. It passes
-the event payload through `task-event`. The action composes the task.
+`agent-dispatch.yml` from `references/workflow-dispatch.md`. Emit
+`## Template (Self-Hosted)`. In hosted mode (question 8), apply the
+`## Template (Hosted)` delta it points at. Hosted dispatch needs a `kata-agent`
+release that declares `installation-token`. The workflow does no prompt
+assembly. It passes the event payload through `task-event`. The action composes
+the task.
 
 For discussion replies, deploy the ghbridge service before pointing the App
 webhook URL at it. PR, issue, and review events reach `agent-dispatch`
