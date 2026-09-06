@@ -71,7 +71,7 @@ jobs:
       # and the issued token name. `bunx fit-map substrate stage` is the sole
       # remaining `fit-map` exception. fit-map ships in the map release. It is
       # absent from the gear bundle on PATH.
-      - uses: forwardimpact/kata-interview@03b304ae3b7dbecee0c8dd6a12aa260936fd758c # v1.0.2
+      - uses: forwardimpact/kata-interview@c420c83328d443c15c905c6667367ed636578286 # v1.0.3
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
