@@ -1,117 +1,165 @@
-# Spec 2350: Deterministic chain triage for event-driven dispatch
+# Spec 2350: Bound self-caused dispatch volume
 
 **Classification:** product-aligned. The change lands on the published
-`kata-agent` action under `products/kata/actions/`, on the `gemba-harness`
-command the Gemba product ships, and on the `www.gemba.team` guide for
-coordinating a team. The `libharness` module that computes the verdict is a
-shared library, and the action and the CLI are the surfaces a persona hires
+`kata-agent` action under `products/kata/actions/`, on the `gemba-harness` and
+`gemba-watchdog` commands the Gemba product ships, on the `kata-setup` skill,
+and on the `www.gemba.team` guides. The `libharness` module that computes the
+verdict is a shared library. The action, the commands, and the skill are the
+surfaces a persona hires
 ([work-definition.md § Product-aligned vs internal](../../.claude/agents/x-work-definition.md#product-aligned-vs-internal)).
 
 **Persona and job:** Teams Using Agents → Run a Continuously Improving Agent
 Team, the Big Hire in [JTBD.md](../../JTBD.md). The job's anxiety is that
 autonomy amplifies bad patterns faster than humans can intervene. Gemba's Big
 Hire, Stand Up and Operate an Agent Team, carries the mechanism, because the
-harness that composes the task from the event is the one place every consumer
-shares.
+action and the harness that compose the task from the event are the one place
+every consumer shares.
 
 ## Problem
 
-An event-driven agent team can answer its own output. `kata-dispatch` fires on
-issues, comments, labels, reviews, and merges. A facilitator triages each event
-and engages a participant. The participant posts a comment, opens a pull
-request, or files an issue. That output is one of the same trigger classes, so
-it fires the next run. Spec 2330 recorded the sprawl this produces and added a
-repository-wide brake. That brake counts total volume and latches an operator
-killswitch. It is deliberately blunt. It stops the next run, not the current
-chain, and a human must clear it.
+An event-driven agent team answers its own output. The dispatch workflow fires
+on issues, comments, labels, reviews, and merges. A facilitator triages each
+event and engages participants. The participants post comments, open pull
+requests, and file issues. Each output is one of the same trigger classes, so
+it fires the next run. Spec 2330 added a repository-wide brake that counts
+volume and latches an operator killswitch. It is deliberately blunt. It needs a
+runner slot to measure, and it needs a human to clear.
 
-Three facts about the dispatch path make the chain cheaper to cut at its
-source.
+### The reference consumer, 2026-09-02
 
-| Fact | Evidence |
-| ---- | -------- |
-| The recursion guard the workflow describes no longer exists. | The dispatch workflow comment says the task text carries a recursion guard. The `kata-setup` DO-CONFIRM checklist says the action composes one. The task composer's templates carry no such sentence. Spec 2330 § Problem also names the guard as the only brake on volume. |
-| The one surviving stand-down rule runs at the most expensive layer. | The facilitated-participant system prompt tells an agent to answer "no further action" when the task already holds a completed response. A participant boots its profile, its skills, and its memory before it can say so. The wiki records the earlier facilitator-level exit at about three turns and a few cents. The same exit today costs a participant session. |
-| The facilitator cannot tell the team's own bot from any other bot. | The task text renders the author's account type. Dependabot, GitHub Actions, and the team's own App all render as the same word. The team's agents post under one App identity, and the payload carries that identity, yet the task text never names it. |
+The reference consumer `bionova-apps-v2` ran the published Kata team for one
+day. Eleven research passes over its issues, pull requests, comments, workflow
+runs, job logs, and trace artifacts produced the figures below. Every figure
+comes from the GitHub API or a job log. Every issue, pull request, comment,
+commit, and run in the incident was authored by the team's own App identity.
+No human event exists between the last bring-up commit at 08:10Z and the manual
+workflow disable at 14:48Z the next day.
 
-The result is a stop decision that is probabilistic, late, and blind to self.
-A cheaper facilitator model does not fix that. It is the right reader for the
-one question only a model can answer: whether a comment hands new work to a
+| Fact | Figure |
+| ---- | ------ |
+| Seed | One scheduled shift persona filed issue #1 at 14:13Z. Dispatch run 1 reacted with a 44-minute facilitated session that created three issues and three pull requests. Those six artifacts drew 70 dispatch runs inside three hours. |
+| Dispatch runs | 4,253 in 7 h 25 min. 2,419 cancelled by the default concurrency policy, 698 skipped by the label filter, 620 failed, 516 succeeded. |
+| Output | 416 issues, 142 pull requests, about 2,300 comments, 12 direct pushes to `main`, 1,416 label events. Zero formal reviews. Approvals travelled as comments. |
+| Fan-out | Each completed run wrote about 2.5 utterances across several artifacts. 415 of 416 issues were filed while a run triggered by a different artifact was in flight. |
+| Reply chains | On the twelve most-discussed artifacts, 421 comments: 71 % status, 13 % decision, 9 % acknowledgement, 7 % handoff. The longest unbroken bot-to-bot run is 54 comments. |
+| Per-run cost | Every model-backed session engaged all four participants, ran 278 to 776 turns, and cost $22 to $115. Estimated model spend for the day: about $13.5k. Timeouts hold about 58 % of it. |
+| Queue | Runs waited 2 to 5 hours for a runner. One session triaged an issue closed three hours earlier. Twenty runner slots were held by dispatch from 15:00Z onward. |
+| Brake | The killswitch was never engaged. The agents themselves diagnosed the loop at 17:04Z and named the brake. The chain stopped at 21:14Z when the API credit balance ran out. Runs then exited 0 while printing the credit error. |
+| Watchdog | Not installed. `kata-setup` emits no watchdog workflow. |
+| Concurrency | At 18:56Z an agent committed a 100-deep FIFO queue to `main` in place of the default pending depth of one, because the default was cancelling 455 runs per hour on hot artifacts. |
+
+### What the dispatch path lacks
+
+| Gap | Evidence |
+| --- | -------- |
+| The recursion guard the workflow describes does not exist. | The dispatch workflow comment and the `kata-setup` DO-CONFIRM checklist name a guard in the task text. The task composer's templates carry no such sentence. |
+| The one stand-down rule runs at the most expensive layer. | The facilitated-participant prompt tells an agent to answer "no further action" when the task holds a completed response. Three sampled sessions reached that judgement only after all four participants had booted and answered, at $50 to $97 each. |
+| The facilitator cannot tell the team's own App from any other bot, or from itself. | The task text renders the author's account type. One facilitator concluded: "I could not tell, because every agent here authenticates as one identity." |
+| Nothing bounds fan-out across artifacts. | Per-artifact concurrency groups reset on every new artifact. A per-artifact hop cap of three touches 42 % of the mapped runs. The other 58 % are openings and first comments on fresh artifacts. |
+| Nothing bounds a run's own fan-in. | Every session asked all four participants. The facilitator prompt says each addressed agent needs its own Ask. |
+| Stale events run anyway. | A run reads the payload it was queued with. After a multi-hour wait, the artifact has moved on. |
+| The watchdog measures from the pool the flood saturates. | A scheduled assess job queues behind the dispatch jobs it exists to stop. The reference consumer's scheduled runs waited 76 to 93 minutes for a runner. |
+
+The stop decision today is probabilistic, late, blind to self, and blind to
+volume. A cheaper facilitator model does not fix that. It is the right reader
+for one question only a model can answer: whether a comment hands new work to a
 different agent or only acknowledges finished work. It is the wrong place to
 count events, because code counts for free and never drifts.
 
-### What a chain looks like on one artifact
-
-| Hop | Actor | Event | Legitimate? |
-| --- | ----- | ----- | ----------- |
-| 0 | Human | Applies an `agent:*` label, or comments with a request | Yes. A human caused it. |
-| 1 | Own App | Participant posts "ready for the merge gate, Release Engineer" | Yes. A handoff to a different named agent with new state. |
-| 2 | Own App | Release engineer comments "merge gate holds, waiting on approval" | Doubtful. No new state. Nobody is addressed. |
-| 3 | Own App | First agent replies "acknowledged, standing by" | No. Pure acknowledgement. Each hop costs a full run. |
-
-The wiki holds both shapes. Handoffs from staff-engineer to release-engineer
-were routed correctly in W18 and W19. Acknowledgement loops are the pattern
-spec 2330 counted in September. The distinguishing datum is how many
-consecutive events the team's own App authored on the artifact since the last
-human touched it. That number is deterministic. Nothing computes it today.
-
 ## Proposal
 
-The harness computes a chain verdict from the event and the artifact's history
-before any model starts. Code handles the two clear cases. The facilitator
-decides only the middle case, with the numbers in front of it.
+Code computes a verdict before any model starts, from three deterministic
+sources: the actor's identity, the artifact's history, and the repository's
+recent activity. Code handles the clear cases. The facilitator decides only the
+middle case, with the numbers in front of it and a bounded fan-in.
 
-1. **Self identity is an input.** The run knows which account its own agents
-   post under. The action already knows the App slug and the App id. The
-   harness receives one of them and classifies every actor on the artifact as
-   human, self, or another bot.
-2. **Chain depth is measured, not inferred.** Before the harness composes the
-   task, it reads the artifact's timeline once. It counts the dispatch-class
-   events the team's own App authored since the last human-authored event of
-   any kind on that artifact. It also records how long ago that human acted,
-   whether any state changed since the previous self-authored event, and how
-   many self-authored events fell inside a window.
-3. **Three verdicts.** A human-caused event proceeds with no extra prompt. A
-   self-caused event past a configured hop cap suppresses the run before the
-   facilitator starts. A self-caused event under the cap proceeds with a
-   fenced context block in the task text. The block carries the measured
-   numbers and a two-line rule: engage a participant only when the body hands
-   new actionable work to a different named agent, and otherwise conclude as a
-   stand-down.
-4. **A suppressed run is a green run with a recorded reason.** The trace
-   carries a terminal summary with a distinct suppressed verdict and the
-   measured numbers. The run summary shows the same. The step exits zero. A
-   suppressed run is normal behaviour, and a red run would train operators to
-   ignore red.
-5. **Stand-down is a first-class outcome.** The facilitator can conclude a run
-   with a stand-down verdict that trace tooling counts apart from success and
-   failure. Today a stand-down hides inside a success verdict.
-6. **Every processed comment carries a mark the team's own App leaves.** The
-   run leaves one reaction on the triggering comment when it picks it up.
-   Reactions fire no dispatch event. A triggering comment that already carries
-   the App's reaction is a duplicate delivery or a re-run, and the run
-   suppresses. Humans get a visible "seen" cue. The count of such marks on an
-   artifact inside the window is a per-artifact run count with no extra
-   storage.
-7. **The hop cap is configurable and calibrated.** The cap arrives as an
-   input. Its default comes from a measurement of this repository's traces:
-   the known-good handoffs the wiki cites and the September burst. Spec 2330
-   grounded its threshold the same way. The default keeps the legitimate
-   pipeline under the cap: a human approval resets the chain, the release
-   engineer merges, and dispatch records the approval.
-8. **Discuss mode gets the same triage.** The bridge-dispatched path composes
-   its task from the same payload path. It receives the same verdict and the
-   same context block.
-9. **Fail open, and say so.** A timeline the harness cannot read yields a
-   proceed verdict with a note in the context block. Spec 2330's brake fails
-   closed on doubt, so a chain that hides behind an unreadable timeline still
-   meets the repository-wide latch. Two brakes that both fail closed would
-   stop the team on every transient API error.
-10. **The layers stay distinct.** The watchdog stays identity-blind and counts
-    repository-wide volume. The dispatch triage is identity-aware and counts
-    per-artifact hops. Neither replaces the other. The spec that shipped the
-    watchdog excluded actor filters on purpose, and that reasoning holds at
-    that layer.
+1. **Self identity is an input.** The run knows which App its agents post
+   under. The action already knows the App slug and the App id. The harness
+   receives both and classifies every actor as human, self, or another bot.
+   The match tolerates the three login spellings GitHub uses for one App.
+2. **Chain depth is measured on the artifact.** Before the run composes the
+   task, it reads the artifact's timeline once. It counts self-authored
+   utterances since the last human-authored event of any kind. The opening of
+   a self-authored artifact is the first utterance. A comment, a review, and a
+   merge are utterances. A label is not, because one run applies several. A
+   human label, comment, review, or merge resets the count.
+3. **Supersession is measured on the artifact.** When a newer self-authored
+   utterance already sits after the triggering event, the run stands down. The
+   run that the newer utterance queued sees the whole tail.
+4. **Volume is measured on the repository.** The run evaluates the same four
+   activity counters the watchdog uses, over the same window, against a lower
+   budget. Above the budget, self-caused runs stand down and human-caused runs
+   proceed. The budget self-releases as the window slides. It latches nothing
+   and needs no human.
+5. **Three verdicts.** `proceed` for a human-caused event under budget.
+   `suppress` for a duplicate delivery, a superseded event, a self-caused event
+   at or past the hop cap, or a self-caused event over budget. `caution` for a
+   self-caused or other-bot event under both limits. A `caution` run carries a
+   fenced context block with the measured numbers and a two-line rule: engage
+   one participant only when the body hands new actionable work to a different
+   named agent, and otherwise conclude as a stand-down.
+6. **A `caution` run engages at most one participant.** The Ask budget is part
+   of the verdict, not of the prompt.
+7. **Triage runs before checkout.** The action evaluates the verdict right
+   after the killswitch and the token mint, with one pinned binary and no
+   repository checkout, the way the watchdog action installs. A suppressed run
+   ends in seconds and holds no runner slot for a bootstrap it will not use.
+8. **A suppressed run is a green run with a recorded reason.** The step
+   summary and the trace carry a `suppressed` verdict, the reason, and the
+   measured numbers. The step exits zero. A suppressed run is the design
+   working. A red run trains operators to ignore red.
+9. **Stand-down is a first-class outcome.** The facilitator concludes with a
+   `stand_down` verdict that trace tooling reports apart from success and
+   failure.
+10. **Every processed comment or opened issue carries a mark.** The run leaves
+    one reaction on the triggering comment, or on the issue for an opened
+    event. Reactions fire no dispatch event. A trigger that already carries the
+    App's reaction is a duplicate delivery or a re-run.
+11. **Doubt stops the self-caused line only.** An unreadable timeline or an
+    unreadable counter suppresses a self-caused run and proceeds a human-caused
+    run with a note. A human can always restart a chain. A chain that hides
+    behind an API error cannot.
+12. **Discuss mode gets the same triage.** The bridge-dispatched path composes
+    its task from the same payload and receives the same verdict.
+13. **The label and merge templates name the actor.** Today they render the
+    artifact's author. The sender is the actor on those events.
+14. **The watchdog reaches every installation.** `kata-setup` emits the
+    watchdog workflow beside the four agent workflows, with the defaults below.
+15. **Watchdog defaults are re-grounded.** § Calibration shows what each value
+    would have done on the reference incident. The threshold and the window
+    stay. The schedule tightens. The dispatch budget is half the threshold.
+16. **The layers stay distinct.** The watchdog stays identity-blind and
+    latches. The dispatch triage is identity-aware and yields. Neither
+    replaces the other.
+
+## Calibration
+
+Every figure is a replay of the recovered event timestamps against the rule
+named in the row. "Escaped" counts artifacts created before the rule engaged
+plus a 45-minute tail for sessions already in flight, which is the harness
+step's default cap.
+
+| Rule | Engages | Escaped: issues, PRs, comments | Notes |
+| ---- | ------- | ------------------------------ | ----- |
+| Nothing (actual) | never | 416, 142, about 2,300 | Stopped by credit exhaustion at 21:14Z. |
+| Watchdog, 32 per counter, 2 h window, 15-minute tick | 15:15Z tick | 111, 36, 444 | Comments crossed 32 at 15:03Z, issues at 15:12Z, PRs at 15:43Z, commits never. The tick is the lag. Assumes the assess job found a runner. |
+| Watchdog, 32 per counter, 2 h window, 5-minute tick | 15:05Z tick | 95, 34, 380 | Ten minutes earlier. At the observed rate that is 17 issues, 70 comments, and 90 runs fewer. |
+| Dispatch budget, 16 per counter, 2 h window, evaluated at every run start | 14:56Z | 88, 31, 328 | Needs no tick and no runner beyond the run itself. Everything after it is in-flight tail. |
+| Per-artifact hop cap of 3 alone | per artifact | not bounded | Suppresses 42 % of mapped runs, 94 % of comment-triggered runs on the twelve hottest artifacts, and all 28 bot-only handoffs. Does not touch openings. |
+| Hop cap 3, budget 16, and supersession together | 14:56Z | 88, 31, 328 or fewer | The budget bounds the flood. The cap bounds each thread once the flood is under budget. Supersession removes the stale tail of the queue. |
+
+Peak two-hour counts in the incident: issues 167, pull requests 49, comments
+835, commits 4. The largest legitimate batches spec 2330 recorded: issues 14,
+pull requests 15, commits 15, comments unknown. A threshold of 32 sits above
+every legitimate batch and below every incident counter except commits. The
+comments counter still has no legitimate baseline. The incident gives its upper
+side only, so this spec does not move it.
+
+The hop cap of three keeps the intended pipeline alive: a human approval resets
+the chain, the release engineer merges, and dispatch records the approval. In
+the incident the earliest bot-only handoff sat at hop three. The cap trades
+those handoffs for a bound. A handoff no human asked for is the pattern being
+bounded, and a human releases it with one touch.
 
 ## Scope
 
@@ -119,53 +167,65 @@ decides only the middle case, with the numbers in front of it.
 
 | Surface | Change |
 | ------- | ------ |
-| The task composer in `libharness` | Gains the chain-triage step: actor classification, the timeline read, the verdict, and the context block. The templates keep their shape. |
-| The facilitate and discuss commands | Short-circuit on a suppress verdict before any runner starts. Emit the suppressed summary. Mark the triggering comment on proceed and caution. |
-| The facilitator's terminal tool | Gains the stand-down verdict. |
-| The `gemba-harness` action and CLI | Gain the self-identity input and the hop-cap option. |
-| The `kata-agent` action | Forwards its App slug as the self identity. Gains a hop-cap input with the calibrated default. |
-| The dispatch workflow and the `kata-setup` dispatch template | The prose that claims a recursion guard names the triage instead. No step changes. |
-| The `kata-setup` skill | The DO-CONFIRM item that names the recursion guard names the triage. |
+| A triage module in `libharness` | Actor classification, the timeline read, the chain record, the supersession check, the budget evaluation through the watchdog library's rules, the verdict, and the context block. |
+| A `gemba-harness triage` verb | Reads the event payload and writes the verdict, the reason, the chain record, and the context block to a file and to the step outputs. |
+| The facilitate and discuss commands | Consume the triage file when given, run the triage themselves otherwise. Short-circuit on `suppress`. Mark the trigger. Append the block. Set the Ask budget on `caution`. |
+| The facilitator's terminal tool | Gains the `stand_down` verdict. |
+| The `kata-agent` action | Gains a triage step after the token mint and before checkout, with the watchdog action's pinned-binary install. Gains `hop-cap` and `dispatch-budget` inputs with the calibrated defaults. Forwards the App slug and id as the self identity. Skips every later step on `suppress`. |
+| The `gemba-harness` action | Gains `triage-file`, `self-login`, `self-app-id`, `hop-cap`, and `dispatch-budget` inputs. |
+| The task composer | The label and merge templates render the sender. |
+| The dispatch workflow and the `kata-setup` dispatch template | The prose that claims a recursion guard names the triage. No step changes. |
+| The `kata-setup` skill | Emits the watchdog workflow with the defaults. The DO-CONFIRM item that names the recursion guard names the triage and the watchdog. |
+| The watchdog workflow, action README, and guide | Schedule `*/5`. Threshold 32 and window 2 hours unchanged. A sentence on the pool the watchdog shares with the runs it measures. |
 | The facilitated-participant system prompt | Drops the stand-down sentence. The facilitator owns stand-down. |
-| Trace tooling | Counts suppressed and stand-down verdicts apart from success and failure. |
-| The coordinate-team guide on `www.gemba.team` | Documents the verdicts, the context block, the reaction mark, and the cap. |
-| The `libharness` test suite | Fixture-driven tests for actor classification, depth over a timeline, each verdict, the unreadable-timeline branch, and the duplicate-delivery branch. |
-| The calibration record | A table in this spec's design or plan that shows the measured depth of the known-good handoffs and of the September burst, and the cap that separates them. |
+| Trace tooling | The overview and cost verbs report the terminal verdict, including `suppressed` and `stand_down`. |
+| The coordinate-team and guard-activity guides on `www.gemba.team` | Document the verdicts, the budget, the block, the mark, and the calibration. |
+| The `libharness` test suite | Fixture-driven tests for actor classification with the three login spellings, depth over a timeline, supersession, each verdict and reason, the Ask budget, the unreadable branches, and the duplicate-delivery branch. |
 
 ### Excluded
 
 | Item | Why |
 | ---- | --- |
-| Cross-artifact lineage | A chain that creates new artifacts resets the per-artifact depth. A body marker that carries the parent run and depth across artifacts is the next change. It needs a write hook or a post tool on every participant, and the per-artifact numbers this spec produces calibrate it. |
-| Changes to the watchdog | It stays identity-blind and repository-wide. |
-| Changes to the trigger surface or the concurrency policy | The `on:`, `if:`, and `concurrency` blocks stay as they are. |
-| A self-echo check in the bridges | The bridge-dispatched discussion path may loop through its own posted replies. That is a `libbridge` concern with its own evidence. |
-| Marks on label, review, and merge events | Only comments accept reactions. Those events carry no duplicate-delivery history that needs a mark. |
-| Cancelling a run already in flight | The triage runs at the start of a run. It changes nothing about a session already past that point. |
-| Reading the artifact body to decide | The harness classifies actors and counts events. Only the facilitator reads content. |
-| A model-graded stop | The suppress verdict is code. No model can override it inside the run. |
+| Cross-artifact lineage markers | The dispatch budget bounds fan-out by rate, which is what the incident shows. A body marker that carries a parent run across artifacts stays a later change. |
+| Changes to the trigger surface or the concurrency policy | The `on:`, `if:`, and `concurrency` blocks stay. The incident shows the default pending depth of one damped the flood, and the 100-deep queue an agent committed removed that damping. That lesson belongs in the template's comments and in the trust-sensitive review rule, not in this spec. |
+| Per-run output budgets | A session that files three issues and three pull requests is bounded by its own skills. The 45-minute tail in § Calibration is that gap. It is a session-level change. |
+| Per-counter watchdog thresholds | One number stays. The comments counter has no legitimate baseline yet. |
+| A fifth watchdog counter for workflow runs | Runs crossed 32 at 14:54Z, nine minutes before comments. The gain is small and it needs an Actions read scope the App does not hold today. |
+| The refused `Conclude` while Asks are pending | Five sampled timeouts show a facilitator that concluded and was refused. That is a harness defect with its own evidence. |
+| A run that exits zero on an authentication or credit error | The facilitator printed the error and the step reported success. That is a harness defect with its own evidence. |
+| The killswitch's fail-open on an absent variable | The gate cannot tell absent from cleared. That is a `kata-agent` change with its own evidence. |
+| A self-echo check in the bridges | A `libbridge` concern with its own evidence. |
+| Cancelling a run already in flight | The triage runs at the start of a run. |
+| Reading the artifact body to decide | Code classifies actors and counts events. Only the facilitator reads content. |
 
 **Compatibility stance:** clean break. The stand-down sentence leaves the
 participant prompt. The "recursion guard" wording leaves the workflow, the
-template, and the skill. No shim keeps the old wording.
+template, and the skill. The watchdog schedule changes in place. No shim keeps
+the old wording.
 
 ## Success criteria
 
 | # | Claim | Verification |
 | - | ----- | ------------ |
-| 1 | The harness classifies every actor on the artifact as human, self, or another bot. | A fixture timeline with a human, the App, Dependabot, and GitHub Actions yields the four expected classes in the test suite. |
-| 2 | The harness measures chain depth as the count of self-authored dispatch-class events since the last human-authored event. | Fixture timelines for a human-caused event, a one-hop handoff, and a three-hop acknowledgement loop yield depth zero, one, and three. |
-| 3 | A human-caused event proceeds with no context block. | The composed task for a depth-zero fixture equals the template output byte for byte. |
-| 4 | A self-caused event under the cap proceeds with the context block. | The composed task for a depth-one fixture carries the fenced block with the measured fields and the two-line rule. |
-| 5 | A self-caused event at or past the cap suppresses before any runner starts. | With a depth-three fixture and a cap of three, the facilitate command emits a terminal summary with the suppressed verdict, starts no runner, and exits zero. |
-| 6 | The facilitator can conclude a stand-down. | The terminal tool accepts the stand-down verdict, and the trace summary carries it. |
-| 7 | A duplicate delivery suppresses. | A fixture whose triggering comment already carries the App's reaction yields a suppress verdict with a duplicate reason. |
-| 8 | A processed comment carries the App's reaction. | On a proceed or caution verdict the command issues exactly one reaction write for the triggering comment. |
-| 9 | An unreadable timeline fails open. | A fixture whose timeline read throws yields a proceed verdict, and the context block names the unreadable timeline. |
-| 10 | Discuss mode receives the same verdict. | The discuss command short-circuits on the same fixture the facilitate command does. |
-| 11 | The self identity and the cap arrive as inputs. | The `kata-agent` action forwards its App slug, and both the action and the CLI accept a hop-cap value. The library contains no hard-coded App slug. |
-| 12 | Trace tooling counts the new verdicts. | The cost and overview verbs report suppressed and stand-down runs apart from success and failure. |
-| 13 | The cap is calibrated. | The design or plan carries a table with the measured depth of the known-good handoffs and of the September burst, and the default sits between them. |
-| 14 | The stale guard wording is gone. | Neither the dispatch workflow, the `kata-setup` template, nor the skill's DO-CONFIRM item contains the phrase "recursion guard". |
-| 15 | The participant prompt no longer owns stand-down. | The facilitated-participant system prompt contains no "no further action" sentence. |
-| 16 | Repository checks stay green. | `bun run check`, `bun run test`, and `bunx jidoka invariants` pass. |
+| 1 | The triage classifies every actor as human, self, or another bot across the three login spellings. | Fixtures with `slug[bot]`, `slug`, `app/slug`, a human, Dependabot, and GitHub Actions yield the expected classes. |
+| 2 | Depth counts self utterances since the last human event, and the opening counts. | Fixtures for a human-caused event, a self-opened issue with one triage comment, and a three-comment acknowledgement loop yield depth zero, two, and four. |
+| 3 | A human-caused event under budget proceeds with no block. | The composed task for that fixture equals the template output byte for byte. |
+| 4 | A self-caused event under both limits proceeds with the block and an Ask budget of one. | The composed task carries the fenced block, and a second `Ask` in that session returns an error. |
+| 5 | A self-caused event at or past the cap suppresses before any runner starts. | With a depth-three fixture and a cap of three, the command emits the suppressed summary, starts no runner, and exits zero. |
+| 6 | A superseded event suppresses. | A fixture whose timeline holds a newer self utterance after the trigger yields `suppress` with reason `superseded`. |
+| 7 | A self-caused event over budget suppresses, and a human-caused one proceeds. | With counters at 16 in the window, the self fixture yields `suppress` with reason `budget` and the human fixture yields `proceed`. |
+| 8 | A duplicate delivery suppresses. | A fixture whose trigger already carries the App's reaction yields `suppress` with reason `duplicate`. |
+| 9 | A processed trigger carries the App's reaction. | On `proceed` and `caution` the command issues one reaction write for a comment trigger and one for an opened issue. |
+| 10 | Doubt stops the self-caused line only. | A fixture whose timeline read throws yields `suppress` for a self actor and `proceed` with a note for a human actor. |
+| 11 | The facilitator can conclude a stand-down. | The terminal tool accepts `stand_down`, and the trace summary carries it. |
+| 12 | Discuss mode receives the same verdict. | The discuss command short-circuits on the same fixture the facilitate command does. |
+| 13 | The triage runs before checkout. | The `kata-agent` step order is killswitch, mint, triage, checkout. A `suppress` outcome skips checkout, bootstrap, wiki, harness, and callback. |
+| 14 | The identity, the cap, and the budget arrive as inputs. | The action forwards its App slug and id and accepts `hop-cap` and `dispatch-budget`. The library contains no App slug and no threshold literal outside the defaults table. |
+| 15 | The label and merge tasks name the sender. | The label and merge fixtures render the sender login, not the artifact author. |
+| 16 | Trace tooling reports the new verdicts. | The overview and cost verbs print `suppressed` and `stand_down` where the summary carries them. |
+| 17 | The watchdog reaches installations. | `kata-setup` emits a watchdog workflow with threshold 32, window 2, and schedule `*/5`, and its DO-CONFIRM checklist verifies it. |
+| 18 | The monorepo watchdog ticks every five minutes. | `.github/workflows/watchdog.yml` carries `*/5 * * * *`, threshold 32, and window 2. |
+| 19 | The calibration is recorded. | § Calibration carries the replay table and the peak counts. |
+| 20 | The stale guard wording is gone. | Neither the dispatch workflow, the `kata-setup` template, nor the skill contains the phrase "recursion guard". |
+| 21 | The participant prompt no longer owns stand-down. | The facilitated-participant prompt contains no "no further action" sentence. |
+| 22 | Repository checks stay green. | `bun run check`, `bun run test`, and `bunx jidoka invariants` pass. |
