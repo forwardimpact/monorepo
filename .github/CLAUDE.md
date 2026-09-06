@@ -16,13 +16,13 @@ published to `forwardimpact/` siblings, SHA-pinned (`# v1`) on `uses:` lines:
 | [gemba-wiki](https://github.com/forwardimpact/gemba-wiki) | Runs a `gemba-wiki` agent-memory command (push/pull/audit). Mints a fresh App token first |
 | [gemba-benchmark](https://github.com/forwardimpact/gemba-benchmark) | Coding-agent benchmarks |
 | [gemba-harness](https://github.com/forwardimpact/gemba-harness) | Runs agent tasks |
-| [kata-agent](https://github.com/forwardimpact/kata-agent) | Full Kata run (auth, checkout, gemba-bootstrap, gemba-harness, gemba-wiki) |
+| [kata-agent](https://github.com/forwardimpact/kata-agent) | Kata run from text, file, or event (auth, stamp, checkout, bootstrap, harness, wiki, callback) |
 | [kata-interview](https://github.com/forwardimpact/kata-interview) | Runs JTBD switching interviews |
 | [jidoka](https://github.com/forwardimpact/jidoka) | Jidoka checks (instructions, jtbd, invariants). Stops the line on drift |
 | [gemba-watchdog](https://github.com/forwardimpact/gemba-watchdog) | Counts repository activity over a window and engages an operator latch variable on a breach |
 
-Every agent workflow calls `gemba-bootstrap@v1` for the environment. Change
-and tag a sibling's interface before the consumer.
+Workflows reach the environment through `gemba-bootstrap@v1`. Change and tag a
+sibling's interface before the consumer.
 
 ### Edit a published action
 

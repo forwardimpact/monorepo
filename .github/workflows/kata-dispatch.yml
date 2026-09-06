@@ -92,149 +92,31 @@ jobs:
       github.event_name == 'workflow_dispatch' || (github.event_name == 'issues' && (github.event.action == 'opened' || (github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))))) || github.event_name == 'issue_comment' || (github.event_name == 'pull_request_target' && ((github.event.action == 'labeled' && (startsWith(github.event.label.name, 'agent:') || endsWith(github.event.label.name, ':approved'))) || (github.event.action == 'closed' && github.event.pull_request.merged == true))) || github.event_name == 'pull_request_review'
     runs-on: ubuntu-latest
     steps:
-      # Run the killswitch first. Fail before the job mints a token or runs
-      # agent work. One repository variable then halts every kata-* workflow
-      # at once.
-      - name: Kata killswitch
-        shell: bash
-        env:
-          KATA_KILLSWITCH: ${{ vars.KATA_KILLSWITCH }}
-        run: |
-          case "$(printf '%s' "${KATA_KILLSWITCH:-}" | tr '[:upper:]' '[:lower:]')" in
-            ""|0|false|no|off) ;;
-            *) echo "::error::KATA_KILLSWITCH engaged (value: ${KATA_KILLSWITCH})." >&2; exit 1 ;;
-          esac
-
-      - name: Generate installation token
-        id: ci-app
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
-        with:
-          app-id: ${{ secrets.KATA_APP_ID }}
-          private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
-
-      # Capture the mint time. Pair it with the identity of the job execution
-      # that issued the token, in a single stamp env var. The stamp travels on
-      # the same step env as GH_TOKEN (below), so no carried or resumed session
-      # state can pair a token with another token's stamp. The
-      # create-github-app-token action exports no expiry, so `exp` derives from
-      # the ~1h (3600s) installation-token TTL. This step captures `mint` one
-      # step AFTER the token mint, so `mint` trails the token's true mint by
-      # the inter-step latency. `exp` = mint + 3600 − 120s margin. The 120s
-      # margin keeps `exp` a conservative UNDER-estimate of the true expiry.
-      # The accounting must never report a dead token as alive in the
-      # boundary. Run id + run attempt make "issuing job execution ≠ current ⇒
-      # presumed revoked" a local comparison (a re-run attempt shares
-      # GITHUB_RUN_ID but revokes attempt 1's token). The auth-anomaly playbook
-      # consumes the stamp.
-      - name: Stamp installation token
-        run: |
-          set -euo pipefail
-          mint=$(date +%s)
-          echo "KATA_GH_TOKEN_STAMP=mint=${mint};exp=$((mint + 3600 - 120));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_ENV"
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          token: ${{ steps.ci-app.outputs.token }}
-
-      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
-        with:
-          token: ${{ steps.ci-app.outputs.token }}
-          app-slug: kata-agent-team
-          app-id: ${{ secrets.KATA_APP_ID }}
-          # gemba-harness (the Assess and Act step), the cost/callback steps,
-          # and the gemba-wiki push step all run their binaries straight off
-          # PATH. There is no bunx fallback.
-          clis: gemba-harness gemba-trace gemba-wiki
-
-      # Select discuss mode when the caller supplies a discussion_id. That is
-      # the bridge path, which resumes or starts a threaded conversation.
-      # Otherwise run a one-shot facilitate. The discuss / facilitate /
-      # supervise modes all take the same lead-profile + agent-profiles pair
-      # after the libharness consolidation that landed alongside discuss mode.
+      # kata-agent owns the whole lifecycle: killswitch first, token mint and
+      # stamp, checkout, bootstrap, wiki refresh, the run, callback, wiki push,
+      # cost last.
       #
-      # libharness composes the task (libraries/libharness/src/events/
-      # github.js). The workflow just hands the runner's native event JSON
-      # to the action. The runner exports `GITHUB_EVENT_NAME` automatically,
-      # so the composer can pick the right template with no extra wiring.
-      # Untrusted dispatch inputs (discussion_id, resume_context, dispatch
-      # prompt) flow as `with:` inputs. The composite action env-wraps them
-      # before they reach any shell, so this surface preserves the same
-      # template-injection-safe contract.
-      - name: Assess and Act
-        id: assess
-        uses: forwardimpact/gemba-harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-          # Token freshness stamp. It rides the same step env as GH_TOKEN so
-          # the accounting can never pair a token with another token's stamp.
-          # See the "Stamp installation token" step and
-          # .claude/agents/x-auth-anomaly.md.
-          KATA_GH_TOKEN_STAMP: ${{ env.KATA_GH_TOKEN_STAMP }}
-          CLAUDE_CODE_USE_BEDROCK: "0"
-          CALLBACK_URL: ${{ inputs.callback_url }}
-          CORRELATION_ID: ${{ inputs.correlation_id }}
-          INBOX_URL: ${{ inputs.inbox_url }}
+      # This workflow assembles no prompt. libharness composes the task from
+      # the runner's native event JSON, which the runner also identifies
+      # through GITHUB_EVENT_NAME. Untrusted dispatch inputs flow as `with:`
+      # inputs, and the action env-wraps them before any shell sees them.
+      #
+      # On issue and PR events `inputs` is null, so every bridge input is empty
+      # and the action's callback step skips.
+      - uses: forwardimpact/kata-agent@21128835de79d58fbd73031489066f4a1639579c # v1.0.11
         with:
+          app-id: ${{ secrets.KATA_APP_ID }}
+          app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          killswitch: ${{ vars.KATA_KILLSWITCH }}
+          # discuss resumes a thread; otherwise one-shot facilitate.
           mode: ${{ inputs.discussion_id != '' && 'discuss' || 'facilitate' }}
           task-event: ${{ github.event_path }}
           agent-profiles: release-engineer,product-manager,security-engineer,staff-engineer,technical-writer,improvement-coach
           max-turns: "1500"
           timeout-minutes: "300"
+          callback-url: ${{ inputs.callback_url }}
+          correlation-id: ${{ inputs.correlation_id }}
           discussion-id: ${{ inputs.discussion_id }}
           resume-context: ${{ inputs.resume_context }}
-
-      # gemba-trace cost tolerates a missing trace, so this step needs no file
-      # guard.
-      - name: Report run cost
-        if: always()
-        shell: bash
-        env:
-          TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
-        run: gemba-trace cost "$TRACE_FILE" --markdown >> "$GITHUB_STEP_SUMMARY"
-
-      # Push agent memory back with a freshly minted token. The token from
-      # job start expires after an hour, and this run can take up to five.
-      - name: Push wiki changes
-        if: always()
-        uses: forwardimpact/gemba-wiki@ad0042953508240d061ecfb288ce6990247cbd9d # v1.0.2
-        with:
-          command: push
-          app-id: ${{ secrets.KATA_APP_ID }}
-          app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
-
-      # Deliver the facilitator's conclusion to an external caller (e.g. the
-      # MS Teams bridge or GitHub Discussions bridge) when workflow_dispatch
-      # names one. This step skips on issue/PR events, where inputs is null.
-      # It runs on both success and failure of the assess step, so callers
-      # always get a verdict. When the run produced no trace, this step POSTs
-      # a failure placeholder so the caller is never stranded.
-      - name: Deliver callback
-        if: github.event_name == 'workflow_dispatch' && always() && inputs.callback_url != ''
-        env:
-          CALLBACK_URL: ${{ inputs.callback_url }}
-          CORRELATION_ID: ${{ inputs.correlation_id }}
-          DISCUSSION_ID: ${{ inputs.discussion_id }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
-        run: |
-          set -euo pipefail
-          if [ -n "$TRACE_FILE" ] && [ -f "$TRACE_FILE" ]; then
-            echo "Trace file: $TRACE_FILE"
-            gemba-harness callback \
-              --trace-file="$TRACE_FILE" \
-              --callback-url="$CALLBACK_URL" \
-              --correlation-id="$CORRELATION_ID" \
-              --run-url="$RUN_URL" \
-              --discussion-id="$DISCUSSION_ID"
-          else
-            echo "::warning::No trace file found. This run POSTs a failure placeholder so the caller is not stranded"
-            curl -fsS -X POST "$CALLBACK_URL" \
-              -H 'Content-Type: application/json' \
-              -d "$(jq -n \
-                --arg cid "$CORRELATION_ID" \
-                --arg run "$RUN_URL" \
-                --arg did "$DISCUSSION_ID" \
-                '{correlation_id: $cid, kind: "terminal", verdict: "failed", summary: "Facilitator session did not produce a trace. See the run log.", run_url: $run, discussion_id: $did, replies: []}')"
-          fi
+          inbox-url: ${{ inputs.inbox_url }}
