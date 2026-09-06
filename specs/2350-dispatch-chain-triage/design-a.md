@@ -8,71 +8,76 @@ the removals.
 
 ```mermaid
 graph TD
-    KA["kata-agent<br/>killswitch → mint → triage → checkout → …"] -->|"one pinned binary"| TV["gemba-harness triage<br/>payload + self identity → verdict file"]
-    TV --> DT["dispatch-triage (libharness)<br/>classify · measureChain · measureBudget · decide · render"]
-    DT --> WD["libwatchdog<br/>activityRules · evaluate · createRequest"]
-    WD --> GH["GitHub REST<br/>timeline · reactions · activity probes"]
-    TV -->|"suppress"| END["step summary + trace stub<br/>later steps skipped · exit 0"]
+    KA["kata-agent<br/>killswitch · mint · stamp · triage · gate"] -->|"pinned binary, token"| TV["gemba-harness triage<br/>payload + identity → verdict file"]
+    TV --> DT["dispatch-triage (libharness)<br/>classify · measureChain · measureBudget · decideVerdict · render"]
+    DT --> TR["GitHub REST transport (libutil)<br/>timeline · reactions · activity probes"]
+    DT --> WD["libwatchdog<br/>activityRules · evaluate"]
+    TV -->|"suppressed"| END["step summary · callback · exit 0"]
     TV -->|"proceed / caution"| RUN["gemba-harness facilitate / discuss<br/>--triage-file"]
-    RUN --> MK["mark: one reaction<br/>comment or opened issue"]
-    RUN --> FT["facilitator<br/>Ask budget · Conclude: success · failure · stand_down"]
-    SETUP["kata-setup<br/>agent-watchdog.yml template"] --> WW["watchdog workflow<br/>32 · 2 h · */5"]
-    WW --> WD
+    RUN --> FT["lead<br/>askBudget · Conclude or Adjourn: stand_down"]
 ```
 
 ## Components
 
 | Component | Home | Role after this design |
 | --------- | ---- | ---------------------- |
-| Dispatch triage | `libraries/libharness/src/dispatch-triage.js` (new) | Pure functions plus two readers. `classifyActor` maps a login and an optional App id to `human`, `self`, or `bot`. `measureChain` folds a timeline into the chain record. `measureBudget` runs the watchdog rules at the budget. `decide` maps both records and the limits to a verdict with a reason. `renderContextBlock` writes the fenced block. `readArtifact` and `readActivity` fetch through the watchdog transport. |
-| Triage verb | `libraries/libharness/src/commands/triage.js` (new); `gemba-harness triage` | Reads the payload and the identity. Writes `{verdict, reason, chain, budget, context}` as JSON to `--out` and as step outputs. Exits zero on every verdict. |
+| Dispatch triage | `libraries/libharness/src/dispatch-triage.js` (new) | § Triage functions. |
+| Triage verb | `libraries/libharness/src/commands/triage.js` (new); command entry in `products/gemba/bin/gemba-harness.js`; `package.json` export | Reads the payload and the identity. Writes the verdict record as JSON to `--out` and as step outputs through `libwatchdog`'s exported CI helpers. |
+| GitHub REST transport | `libraries/libutil` (moved from `libwatchdog/src/request.js`) | One bearer-token `fetch` transport with retry. `libwatchdog` and the triage import it. `trace-github.js` keeps its own read path; that residual duplication is accepted here. |
 | Task-input resolver | `commands/task-input.js` | Returns the payload and the event name beside the task and the amendment. |
-| Task composer | `events/github.js` | Label and merge templates render `sender`. Gains the artifact accessor: repository, number, trigger id, trigger kind, actor login, actor App id. |
-| Facilitate and discuss commands | `commands/facilitate.js`, `commands/discuss.js` | Read `--triage-file` when given, else run the triage. Short-circuit on `suppress`. Mark. Append the block. Set the Ask budget. |
-| Orchestration context | `orchestration-toolkit.js` | `ctx.askBudget` bounds distinct addressees per session. `Conclude` accepts `stand_down`. |
-| Trace tooling | `trace-query.js`, `commands/trace.js` | The overview and cost verbs read the last orchestrator summary and print its verdict. |
-| `kata-agent` action | `products/kata/actions/kata-agent/` | New triage step and skip condition. Inputs `hop-cap`, `dispatch-budget`. Forwards the mint step's `app-slug` output and the `app-id` input. |
+| Task composer | `events/github.js` | Label templates render `sender`. Gains the artifact accessor: repository, default branch, number, trigger kind, trigger id and timestamp when present, actor login, actor App id. |
+| Facilitate and discuss commands | `commands/facilitate.js`, `commands/discuss.js` | Read `--triage-file`. Short-circuit on `suppressed`. Append the block. Set `ctx.askBudget`. |
+| Orchestration context and loop | `orchestration-toolkit.js`, `orchestration-loop.js` | `ctx.askBudget` bounds the distinct addressees of the lead's Asks; a broadcast counts every participant; the handler refuses the Ask that would exceed it. The facilitator's `Conclude` and the discuss `Adjourn` accept `stand_down`. The loop counts `stand_down` as a successful exit. The supervisor and judge tools are unchanged. |
+| Summary reader | `trace-collector.js` `orchestratorSummary` | The one reader of the last orchestrator summary. `callback.js`, the overview verb, and the cost verb use it. |
+| Callback verb | `commands/callback.js` | Gains `--triage-file`. Posts `verdict: "suppressed"` with the reason when no trace exists and the file does. |
+| `kata-agent` action | `products/kata/actions/kata-agent/` | § Placement. Inputs `hop-cap`, `dispatch-budget`, `gear-release`, `installer-sha256`. The `app-slug` input is removed. Git identity and triage identity both come from the mint output. |
 | `gemba-harness` action | `products/gemba/actions/gemba-harness/` | Inputs `triage-file`, `self-login`, `self-app-id`, `hop-cap`, `dispatch-budget`, forwarded as flags. |
-| Watchdog workflow and template | `.github/workflows/watchdog.yml`; `kata-setup` `references/workflow-watchdog.md` (new) | Schedule `*/5`. Threshold 32, window 2. `kata-setup` emits the template beside the four agent workflows. |
-| Prose homes | dispatch workflow, `kata-setup` template and skill, watchdog README and guide, coordinate-team guide | Name the triage, the budget, and the shared runner pool. |
+| Watchdog workflow and template | `.github/workflows/watchdog.yml` (spec 2330 part 05 creates it; this design creates it when it lands first); `kata-setup` `references/workflow-watchdog.md` (new) | Tick `*/5`. Threshold 32, window 2. `kata-setup` emits the template. |
+| Prose homes | dispatch workflow, `kata-setup` template and skill, watchdog README and guide, coordinate-team guide, `libraries/README.md`, `test/prompts.test.js` | Name the triage, the budget, and the shared runner pool. Drop "recursion guard". |
 
-## Step order inside `kata-agent`
+## Triage functions
 
-| # | Step | Condition | Change |
-| - | ---- | --------- | ------ |
-| 1 | Kata killswitch | always first | |
-| 2 | Mint installation token | | outputs `app-slug` |
-| 3 | Stamp installation token | | |
-| 4 | **Triage** | `task-event != ''` | new. Installs the pinned `gemba-harness` binary the way the watchdog action installs its own. Runs `gemba-harness triage`. Writes `verdict` and `triage-file` outputs. On `suppress`, appends the record to the step summary. |
-| 5 | Checkout | `verdict != 'suppress'` | condition |
-| 6 | `gemba-bootstrap` | same | condition |
-| 7 | Refresh wiki (pre-run) | same and `wiki == 'true'` | condition |
-| 8 | Assess and Act | same | passes `triage-file` |
-| 9 | Deliver callback | `always() && callback-url != ''` | posts the triage verdict when the run was suppressed |
-| 10 | Refresh and push wiki | `always() && wiki == 'true' && verdict != 'suppress'` | condition |
-| 11 | Report run cost | `always()` | tolerates the absent trace |
+| Function | Contract |
+| -------- | -------- |
+| `classifyActor(login, appId, self)` | `human`, `self`, or `bot`. `self` when the login normalizes to the slug or the App id matches. Normalization strips a `[bot]` suffix and an `app/` prefix. |
+| `readArtifact(request, artifact)` | Pages the timeline from the last page backwards until a human event or the page cap. Reads the trigger's reactions. |
+| `measureChain(events, trigger, self)` | § Chain record. |
+| `measureBudget(request, repo, defaultBranch, budget, windowHours)` | § Budget record. |
+| `decideVerdict(chain, budget, limits)` | § Verdict. |
+| `renderContextBlock(chain, budget, verdict)` | § Context block. |
+| `markTrigger(request, trigger)` | One `eyes` reaction. § Mark. |
 
-A suppressed run costs the killswitch, one mint, one binary download, and a few
-REST reads. It never checks out, bootstraps, or starts a model.
+## Placement
+
+The triage step sits after the mint and the stamp and before checkout. It
+installs the pinned `gemba-harness` binary through the same installer and pin
+inputs the watchdog action exposes. Bootstrap's CLI list omits `gemba-harness`,
+so one binary and one pin serve the whole job. Checkout, bootstrap, the wiki
+refresh, the harness step, and the wiki push gate on the verdict. The callback
+step runs regardless and passes the triage file. The cost step gates on the
+harness step, because the trace binary arrives with bootstrap. A suppressed run
+costs the killswitch, one mint, one binary download, and a few REST reads.
 
 ## Chain record
 
 | Field | Definition |
 | ----- | ---------- |
-| `actor` | `human`, `self`, or `bot`. `self` when the login normalizes to the App slug or the App id matches. Normalization strips a `[bot]` suffix and an `app/` prefix. |
-| `hops` | Self-authored utterances after the last human-authored event of any kind. The opening of a self-authored artifact is an utterance. `commented`, `reviewed`, and `merged` timeline events are utterances. `labeled` is not. A human `labeled`, `commented`, `reviewed`, `merged`, or `closed` event resets the count. |
-| `superseded` | True when a self-authored utterance newer than the trigger exists on the artifact. |
-| `stateChanged` | True when a label, commit, merge, or close landed after the previous self utterance. |
+| `actor` | Class of the trigger's author. `sender` on label, close, and dispatch events. |
+| `artifact` | False for `workflow_dispatch`. No read happens. |
+| `hops` | Self utterances after the last human event, counted from the tail. The opening of a self artifact is one. `commented`, `reviewed`, and `merged` count. `labeled` does not. A human `labeled`, `commented`, `reviewed`, `merged`, or `closed` resets. |
+| `floor` | True when the page cap stopped the walk before a human event. `hops` is then a lower bound. |
+| `superseded` | True for a self comment or review trigger when an utterance newer than the trigger's timestamp exists. Never true for a human trigger or for a label or merge trigger. |
 | `minutesSinceHuman` | Age of the last human event. Null when none exists. |
-| `alreadySeen` | True when the trigger carries a reaction by self. Comment and opened-issue triggers only. |
-| `readable` | False when the timeline or the reactions could not be read. |
+| `alreadySeen` | True when a self comment or self-opened issue trigger carries a reaction by self. |
+| `readable` | False when a read threw. |
 
 ## Budget record
 
-`measureBudget` calls the watchdog library's `evaluate(activityRules(budget))`
-with the watchdog's window. The record carries each counter's count, coverage,
-and breach flag. `readable` is false when a probe threw or a counter is
-uncovered.
+| Field | Definition |
+| ----- | ---------- |
+| `counters` | Each of the four watchdog counters: count, covered, breached. |
+| `breached` | Any counter at or above the budget. A full uncovered page counts as a breach, because the counted floor already exceeds the budget. |
+| `readable` | False when a probe threw. |
 
 ## Verdict
 
@@ -80,25 +85,29 @@ Rules apply in order. The first match wins.
 
 | Condition | Verdict | Reason |
 | --------- | ------- | ------ |
-| `alreadySeen` | `suppress` | `duplicate` |
-| `superseded` | `suppress` | `superseded` |
-| `actor` is `self` and chain or budget is unreadable | `suppress` | `unreadable` |
-| `actor` is `self` and `hops ≥ hopCap` | `suppress` | `hop_cap` |
-| `actor` is `self` and any counter breached the budget | `suppress` | `budget` |
-| `actor` is `self` or `bot` | `caution` | |
-| `actor` is `human` and something is unreadable | `proceed` | block carries the note |
-| `actor` is `human` | `proceed` | |
+| `artifact` is false | `proceed` | |
+| `actor` is `human` | `proceed` | `unreadable` note in the block when a read threw |
+| `actor` is `bot` | `caution` | |
+| `alreadySeen` | `suppressed` | `duplicate` |
+| `superseded` | `suppressed` | `superseded` |
+| `hops ≥ hopCap`, floor or exact | `suppressed` | `hop_cap` |
+| chain or budget unreadable, or `floor` under the cap | `suppressed` | `unreadable` |
+| budget `breached` | `suppressed` | `budget` |
+| otherwise | `caution` | |
 
 ## Defaults
 
+The command's flag defaults are the one home. The actions forward empty values.
+
 | Value | Default | Grounding |
 | ----- | ------- | --------- |
-| `hopCap` | 3 | Earliest bot-only handoff in the incident sat at hop 3. Human approval, release-engineer merge, and the recording run fit under it. |
-| `dispatchBudget` | 16 per counter | Half the latch threshold. Engaged at 14:56Z on the incident replay, 19 minutes before the first watchdog tick. Above the largest legitimate batch of 14 issues. |
-| Watchdog threshold | 32 per counter | Unchanged. Above every legitimate batch spec 2330 recorded, below every incident counter except commits. |
-| Watchdog window | 2 hours | Unchanged. |
-| Watchdog schedule | `*/5` | Ten minutes off the detection lag at the incident's rate: 17 issues, 70 comments, 90 runs. |
-| Ask budget on `caution` | 1 addressee | Every incident session asked all four participants. `proceed` stays unbounded. |
+| `--hop-cap` | 3 | Earliest bot-only handoff in the incident sat at hop 3. Human approval, release-engineer merge, and the recording run fit under it. |
+| `--dispatch-budget` | 24 per counter | Three quarters of the latch. 1.6 times the largest legitimate batch. Engaged at 15:01Z on the replay. |
+| `--dispatch-window-hours` | 2 | Matches the watchdog's window. |
+| Watchdog threshold, window | 32, 2 hours | Unchanged from spec 2330. |
+| Watchdog tick | `*/5` | Ten minutes off the detection lag at the incident's rate. |
+| `askBudget` on `caution` | 1 | Every incident session asked all four participants. `proceed` leaves it unbounded. |
+| Timeline page cap | 5 pages of 100 | Covers the hottest incident artifact. |
 
 ## Context block
 
@@ -108,92 +117,81 @@ Appended after the template task and before any amendment. Present on
 ```text
 <dispatch_context>
 actor: self (kata-agent-team[bot]) | hops: 2 of 3 | last human: none |
-repository activity in 2 h: issues 9/16, pulls 9/16, comments 15/16, commits 0/16
+repository activity in 2 h: issues 9/24, pulls 9/24, comments 15/24, commits 0/24
 Engage one participant only when the body hands new actionable work to a
-different named agent. Otherwise call Conclude with verdict stand_down.
+different named agent. Otherwise end with verdict stand_down.
 </dispatch_context>
 ```
 
-The rule travels with the numbers. The L0 trailer is unchanged.
-
 ## Suppressed run
 
-The triage step writes the record to the step summary. The harness never
-starts, so no trace exists. The callback step posts `verdict: "suppressed"`
-with the reason when a caller named a callback URL. When the facilitate or
-discuss command runs the triage itself and suppresses, it writes two
-orchestrator lines, `session_start` and a `summary` with `success: true`,
-`verdict: "suppressed"`, the reason, and both records, then exits zero.
+| Home | Content |
+| ---- | ------- |
+| Step summary | Verdict, reason, chain record, budget record. Written by the triage step. |
+| Callback payload | `verdict: "suppressed"`, the reason, `cost_usd: 0`. |
+| Trace | None on the action path. The standalone command writes `session_start` and a `summary` with `verdict: "suppressed"` and both records. |
 
 ## Mark
 
-On `proceed` and `caution` the command posts one `eyes` reaction on the trigger:
-the comment for a comment event, the issue for an opened event, nothing for a
-label, review, or merge event. The write precedes the runners. A failed write
-logs one line and does not stop the run.
+| Trigger | Target |
+| ------- | ------ |
+| Self comment | The comment |
+| Self-opened issue | The issue |
+| Human trigger, label, review, merge | None |
+
+The triage step writes the mark right after a `proceed` or `caution` verdict,
+so the duplicate test and the mark share one moment. A failed write logs one
+line and does not stop the run.
 
 ## Data flow
 
 ```mermaid
 sequenceDiagram
-    participant W as workflow
     participant A as kata-agent
     participant T as gemba-harness triage
     participant G as GitHub REST
     participant H as gemba-harness facilitate
-    participant F as facilitator
-    W->>A: task-event, secrets
-    A->>A: killswitch, mint (app-slug), stamp
-    A->>T: --task-event --self-login --self-app-id --hop-cap --dispatch-budget --out
-    T->>G: timeline, reactions, four activity probes
+    participant F as lead
+    A->>A: killswitch, mint (slug, token), stamp
+    A->>T: --task-event --self-login --self-app-id --out, GH_TOKEN
+    T->>G: timeline tail, reactions, four probes
     G-->>T: events, reactions, counts
+    T->>G: POST eyes reaction (proceed, caution)
     T-->>A: verdict, triage-file
-    alt suppress
-        A-->>W: step summary, later steps skipped, exit 0
+    alt suppressed
+        A-->>A: summary, callback, exit 0
     else proceed or caution
-        A->>A: checkout, bootstrap, wiki
-        A->>H: --triage-file
-        H->>G: POST eyes reaction
+        A->>H: checkout, bootstrap, --triage-file
         H->>F: task (+ dispatch_context), askBudget
-        F-->>H: Conclude(success | failure | stand_down)
+        F-->>H: Conclude or Adjourn (success | failure | stand_down)
     end
 ```
-
-## Interfaces
-
-| Surface | Addition |
-| ------- | -------- |
-| `gemba-harness triage` | `--task-event`, `--self-login`, `--self-app-id`, `--hop-cap`, `--dispatch-budget`, `--out`. Exits zero on every verdict. |
-| `gemba-harness facilitate` and `discuss` | `--triage-file`, plus the four triage flags for the standalone path. All apply only with `--task-event`. |
-| `gemba-harness` action | `triage-file`, `self-login`, `self-app-id`, `hop-cap`, `dispatch-budget`. |
-| `kata-agent` action | `hop-cap` default `"3"`, `dispatch-budget` default `"16"`. Identity derives from the mint output and the `app-id` input. No new secret. Issues write covers the reaction; the App already comments. |
-| `Conclude` | `verdict: "success" \| "failure" \| "stand_down"`. `stand_down` counts as a successful exit. |
-| Orchestration context | `askBudget`: the maximum number of distinct addressees. The Ask handler refuses the next addressee past the budget with a pointed message. |
-| Trace summary | `verdict: "suppressed"`, `reason`, `chain`, `budget`. |
-| `kata-setup` | Emits `agent-watchdog.yml` from a new reference, with the placeholders the other templates use. |
 
 ## Key decisions
 
 | Decision | Rejected alternative | Why |
 | -------- | -------------------- | --- |
 | Triage is a step before checkout, on one pinned binary. | Triage inside the harness command after bootstrap. | At the incident's rate, runs that only bootstrapped and stood down would still hold the runner pool. The watchdog action proves a pinned binary needs no bootstrap. |
-| The budget reuses the watchdog rules and transport. | A separate counter in `libharness`, or `GhClient` over the `gh` binary. | One set of probes, one window, one transport. The pre-checkout step has no `gh` and no repository. `libharness` gains one dependency on `libwatchdog`. |
-| The budget yields. The watchdog latches. | Let the triage step engage the latch. | Engaging needs a variables write. Every dispatch run would then hold the credential that halts the team. The budget needs a read scope only. |
-| Self-caused doubt suppresses. Human-caused doubt proceeds. | Fail open for all, or fail closed for all. | A flood produces rate-limit errors. Open for all lets it through. Closed for all stops humans on a transient error. Actor class comes from the payload and needs no read. |
-| The opening counts as a hop. | Count comments only. | An artifact the team filed with no human touch is already one self utterance deep. Counting it bounds triage-of-own-findings at the cap. |
+| The transport moves to `libutil`. | Import `libwatchdog`'s transport, or `GhClient` over the `gh` binary. | Two libraries share one transport and neither depends on the other for I/O. The pre-checkout step has no repository for `gh` to resolve. |
+| The budget reuses the watchdog rules and yields. | A separate counter, or engaging the latch from the triage. | One set of probes and one window. Engaging needs a variables write in every run, against the single-writer rule of the killswitch reference. |
+| Human triggers skip the chain and budget rules. | Fail closed for all, or supersede human triggers. | A flood produces rate-limit errors. A human signal must never be dropped by a stale queue. |
+| Artifact-less events proceed. | Classify the dispatching token. | A bridge dispatch under the App token would read as self and stand down every bridge run. |
+| The opening counts as a hop. | Count comments only. | A self artifact with no human touch is one utterance deep. |
 | Utterances count. Labels do not. | Count every self event, or group by time gap. | One run applies several labels. A time gap is a heuristic with no ground. |
-| Supersession is a verdict. | Let the facilitator read the tail. | With a deep queue the payload is hours stale. The run that the newest utterance queued sees the tail. Code knows this before any model. |
-| Ask budget of one on `caution`. | Prompt the facilitator to ask fewer. | The prompt already said to Ask each addressee. Every session asked four. A budget is a tool-surface fact. |
-| Watchdog threshold and window stay. Schedule tightens. | Lower the threshold, or add a runs counter. | 32 detects the incident within ten minutes of a five-minute tick. The comments counter has no legitimate baseline to lower against. A runs counter needs an Actions read scope. |
-| `kata-setup` emits the watchdog. | Leave rollout to each installation. | The reference consumer ran with no watchdog. A brake that ships as documentation is not installed. |
-| Suppressed exits zero. | Exit non-zero to stand out. | A suppressed run is the design working. The summary and the trace carry the record. |
+| Supersession is a verdict for self triggers. | Let the facilitator read the tail. | With a deep queue the payload is hours stale. The newer utterance's run sees the tail. |
+| Ask budget of one on `caution`. | Prompt the lead to ask fewer. | The template already said to Ask each addressee. Every session asked four. |
+| `stand_down` on the facilitator's Conclude and on Adjourn only. | Widen the shared Conclude schema. | The supervisor and judge verdicts feed benchmark grading. |
+| Watchdog threshold and window stay. Tick tightens. | Lower the threshold, or add a runs counter. | 32 detects the incident within ten minutes of a five-minute tick. Comments have no legitimate baseline. A runs counter needs an Actions read scope. |
+| `kata-setup` emits the watchdog. | Leave rollout to each installation. | The reference consumer ran with no watchdog. |
+| Suppressed exits zero. | Exit non-zero to stand out. | A suppressed run is the design working. The summary and the callback carry the record. |
 | The mark is a reaction. | A hidden comment or a label. | A reaction fires no dispatch event and needs no new permission. |
 
 ## Removals
 
 | Removed | Replaced by |
 | ------- | ----------- |
-| The stand-down sentence in the participant prompt | The rule in the context block, owned by the facilitator. |
-| "recursion guard" prose in the workflow, the template, and the `kata-setup` checklist | Prose that names the triage, the budget, and the watchdog. |
-| Artifact author as `AUTHOR` on label and merge tasks | The sender. |
+| The stand-down sentence in the facilitated, discuss, and supervised participant prompts | The rule in the context block, owned by the lead. |
+| "recursion guard" prose in the workflow, the template, the skill, the prompt tests, and the libraries catalog | Prose that names the triage, the budget, and the watchdog. |
+| The `app-slug` input on `kata-agent` | The mint output. |
+| `libwatchdog/src/request.js` | The `libutil` transport. |
 | Any `success` verdict that meant "nothing to do" | `stand_down`. |
