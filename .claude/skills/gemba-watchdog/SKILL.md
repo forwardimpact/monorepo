@@ -92,8 +92,8 @@ watchdog|issues=47/32|comments=38/32|2026-09-02T16:49:00.000Z
 - **Never write the latch variable yourself.** The watchdog is the only
   automatic writer.
 - **A human clears the latch by writing a falsy value** (`""`, `0`, `false`,
-  `no`, `off`). Deleting the variable is not clearing it, and it earns no
-  quiet window.
+  `no`, `off`). Deleting it resumes the team too, but forfeits the quiet
+  window, because the resume rule reads the record's own timestamp.
 - **Doubt stops the line.** A counter the command cannot read reports
   `unreadable`. A response that cannot cover the window reports `uncovered`.
   Both engage.

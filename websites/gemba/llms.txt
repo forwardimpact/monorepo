@@ -2,7 +2,7 @@
 
 > The agent-runtime platform. Stand up the environment, run agent sessions,
 > read the traces, keep the memory, measure the outcomes, and stop the team
-> when it runs away. Six commands and four CI actions run one loop.
+> when it runs away. Six commands and five CI actions run one loop.
 
 Gemba is the platform a team hires to run coding agents continuously. In Lean
 practice, gemba is the factory floor, the place where value gets made. This
@@ -23,11 +23,12 @@ tests and reports pass@k. `gemba-watchdog` counts repository activity over
 a window and engages an operator latch variable when a counter breaches its
 threshold.
 
-Four published composite actions run the same loop in CI. `gemba-bootstrap`
+Five published composite actions run the same loop in CI. `gemba-bootstrap`
 installs the pinned toolchain and the platform CLIs. `gemba-harness` runs an
 agent task and uploads the trace. `gemba-wiki` runs a memory command with a
 freshly minted token. `gemba-benchmark` runs benchmark families across
-machines and merges the reports. A workflow pins each action by SHA.
+machines and merges the reports. `gemba-watchdog` counts repository activity
+and engages the latch on a breach. A workflow pins each action by SHA.
 
 Install the skill pack with `apm install forwardimpact/gemba-skills`, then ask
 Claude to stand up the team. For the commands alone, run

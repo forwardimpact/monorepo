@@ -110,10 +110,11 @@ every latch reader resolves the effective value. Two rules make it skip:
 The command sets the latch. It never clears it.
 
 A human clears it by **writing a falsy value**: `""`, `0`, `false`, `no`, or
-`off`. Deleting the variable is not clearing it. A deleted variable leaves no
-timestamp, so it earns no quiet window and the next breach stops the team
-again. Clearing at organization scope earns no quiet window either, because
-the resume rule reads the repository record's own `updated_at`.
+`off`. Deleting the variable resumes the team too, because every reader treats
+an absent variable as falsy. What deletion forfeits is the quiet window: a
+deleted variable leaves no `updated_at`, so the next breach can stop the team
+again immediately. Clearing at organization scope forfeits it for the same
+reason, because the resume rule reads the repository record's own timestamp.
 
 ## Fail safe
 
