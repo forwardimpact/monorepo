@@ -55,15 +55,15 @@
     "forwardimpact-monorepo": "."
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.7",
-    "@playwright/test": "^1.62.1",
+    "@biomejs/biome": "2.5.14",
+    "@playwright/test": "^1.63.0",
     "acorn": "^8.18.0",
-    "eslint": "^10.8.1",
+    "eslint": "^10.11.0",
     "eslint-plugin-jsdoc": "^63.3.2",
-    "rumdl": "^0.2.53",
+    "rumdl": "^0.2.75",
     "semver": "^7.8.5",
     "serve": "^14.2.6",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.1"
   },
   "overrides": {
     "@anthropic-ai/sdk": "^0.91.1",
