@@ -105,7 +105,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
+      - uses: forwardimpact/gemba-bootstrap@60fc7428dd4755d6f49f9d4b4ad0b64ddb5a4b56 # v1.0.21
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team

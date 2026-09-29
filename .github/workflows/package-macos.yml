@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
+      - uses: forwardimpact/gemba-bootstrap@60fc7428dd4755d6f49f9d4b4ad0b64ddb5a4b56 # v1.0.21
 
       - uses: ./.github/actions/audit
 
