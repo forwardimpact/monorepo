@@ -10,7 +10,7 @@ serializes them.
 | -------------------- | --------------------------------------------------- |
 | `{{SHIFT_CRONS}}`    | Three `- cron:` lines from `schedules.md`           |
 | `{{AGENT_MATRIX}}`   | One `- { name: <agent> }` line per selected agent   |
-| `{{MODEL}}`          | `claude-opus-4-8[1m]`                               |
+| `{{MODEL}}`          | `claude-opus-5`                               |
 | `{{WIKI}}`           | `"true"` or `"false"`                               |
 | `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0` |
 
