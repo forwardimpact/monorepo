@@ -5,11 +5,11 @@ description: Run an agent-as-judge eval in CI and get a traceable verdict on whe
 
 You changed an agent profile, a tool allowlist, or a system prompt. Now you
 need to know whether things got better or worse. `gemba-harness supervise`
-runs a **judge agent** alongside a **target agent** on a shared orchestration
-loop. The judge sends `Ask` questions. The target replies with `Answer`. The
-judge calls `Conclude` with a verdict when it is satisfied. The exit code
-(`0` pass, `1` fail) drops into GitHub Actions like any other check. The
-NDJSON trace captures every turn, so you can inspect what happened with
+runs a **judge agent** next to a **target agent** on a shared orchestration
+loop. The judge sends `Ask` questions, the target replies with `Answer`, and
+the judge calls `Conclude` with a verdict when it is satisfied. GitHub Actions
+treats the exit code (`0` pass, `1` fail) like any other check, and the NDJSON
+trace captures every turn so that you can inspect what happened with
 `gemba-trace`.
 
 ## Prerequisites
@@ -22,7 +22,7 @@ NDJSON trace captures every turn, so you can inspect what happened with
 
 ## Write the task
 
-A task file is a plain markdown prompt. It says what the target agent should
+A task file is a plain markdown prompt that says what the target agent should
 do. Keep it specific and measurable.
 
 ```md
@@ -36,7 +36,7 @@ locales. Run the test suite and confirm it passes before finishing.
 ## Write the judge profile
 
 The judge is an agent profile at `.claude/agents/<name>.md`. The runtime
-appends an orchestration trailer that explains the available tools. Your
+appends an orchestration trailer that explains the available tools, so your
 profile only needs to define **what good looks like**.
 
 ```md
@@ -65,7 +65,7 @@ criterion fails. Include a one-paragraph summary of the gap.
 
 Give the judge read-only tools with `--supervisor-allowed-tools` (typically
 `Read,Grep,Bash`). A judge with `Edit` access can rewrite the target's work
-and mask failures.
+and hide failures.
 
 ## Run the eval locally
 
@@ -82,11 +82,11 @@ npx gemba-harness supervise \
 
 `--agent-cwd` should be a sandbox copy of your repository, because the target
 agent edits files there. When you omit it, `gemba-harness` creates a temporary
-directory. The judge stays in `--supervisor-cwd`. It inspects the target's
-work and does not write to it. `--max-turns` is the per-runner invocation
-budget (default `200`). A separate internal lead-turn cap bounds the
-orchestration loop between the judge and the agent. `--max-turns=0`
-removes the per-runner cap.
+directory. The judge stays in `--supervisor-cwd`, where it inspects the
+target's work without writing to it. `--max-turns` is the turn budget for
+each runner (default `200`). A separate internal cap on lead turns bounds the
+orchestration loop between the judge and the agent. `--max-turns=0` removes
+the cap on each runner.
 
 Exit code `0` means the judge concluded with `success: true`. Exit code `1`
 means the judge concluded with `success: false`, the run reached the turn
@@ -94,7 +94,7 @@ limit, or an error occurred.
 
 ## Run the eval in GitHub Actions
 
-A two-step workflow is enough. Run the eval. Then split and upload the trace.
+A two-step workflow is enough. Run the eval, then split and upload the trace.
 
 ```yaml
 # .github/workflows/eval.yml
@@ -149,18 +149,18 @@ jobs:
 ```
 
 `if: always()` on the split and upload steps preserves the trace even when the
-eval fails. That is when you most need it.
+eval fails, which is when you need it most.
 `split --mode=supervise --case=default` produces
 `trace--default--agent.agent.ndjson` and
-`trace--default--supervisor.supervisor.ndjson` alongside the original
+`trace--default--supervisor.supervisor.ndjson` next to the original
 `trace--default.raw.ndjson`.
 
 ## Read the results
 
 When an eval fails, download the artifact. Start with `overview` and
-`timeline` to orient. Then drill into the verdict. The download extracts the
-artifact's `.ndjson` members. Here that is the raw trace plus the two split
-lanes. Every verb reads them directly.
+`timeline` to get oriented, then drill into the verdict. The download
+extracts the artifact's `.ndjson` members. Here that is the raw trace plus
+the two split lanes, and every verb reads them directly.
 
 ```sh
 npx gemba-trace runs                              # find the failed run
@@ -171,13 +171,13 @@ npx gemba-trace tool trace--default--supervisor.supervisor.ndjson Conclude
 ```
 
 Cross-trace verbs (`overview`, `timeline`, …) take their file through `--file`
-and print text by default. `tool` pins a single trace, so it takes a
-positional. Add `--format json` to any verb for the machine-parseable shape.
-The download produces a `structured.json` only when the artifact carries a
+and print text by default. `tool` works on a single trace, so it takes a
+positional argument. Add `--format json` to any verb for the machine-parseable
+shape. The download produces a `structured.json` only when the artifact has a
 single `.ndjson` member. The verbs read multi-member bundles like this one
-as-is.
+as they are.
 
-The `Conclude` tool call carries the judge's verdict and summary. From there,
+The `Conclude` tool call holds the judge's verdict and summary. From there,
 follow the timeline backwards to find the turn where the agent went wrong.
 
 Run `npx gemba-trace --help` for the full command surface.
@@ -186,17 +186,18 @@ Run `npx gemba-trace --help` for the full command surface.
 
 A workflow that calls the reusable benchmark workflow
 (`forwardimpact/benchmark/.github/workflows/benchmark.yml`) mints `trace--*`
-artifacts on every shard. The caller adds no steps. It needs no manual split
-or upload like the harness-driven example above. Each cell preserves its
-traces under `runs/<taskId>/<runIndex>/`. The cell holds the raw combined
-trace (`trace--<case>.raw.ndjson`), the agent and supervisor lanes, and a
-judge lane on judged cells. The `<case>` value is `<taskId>-r<runIndex>`.
-Download and analyze the files with the same `runs` / `find` / `download`
-flow. See the [trace analysis guide](/docs/prove-changes/trace-analysis/).
+artifacts on every shard. The caller adds no steps, and it needs no manual
+split or upload step like the harness-driven example above. Each cell
+preserves its traces under `runs/<taskId>/<runIndex>/`. The cell holds the
+raw combined trace (`trace--<case>.raw.ndjson`), the agent and supervisor
+lanes, and a judge lane on judged cells. The `<case>` value is
+`<taskId>-r<runIndex>`. Download and analyze the files with the same `runs` /
+`find` / `download` flow. See the
+[trace analysis guide](/docs/prove-changes/trace-analysis/).
 
 ## Scale to a suite
 
-Each eval is a `task.md` plus a judge profile. Add a matrix to fan them out:
+Each eval is a `task.md` plus a judge profile. Add a matrix to run them all:
 
 ```yaml
 strategy:
@@ -208,20 +209,19 @@ strategy:
       - { task: add-rate-limiter, judge: ratelimit-judge }
 ```
 
-`fail-fast: false` makes sure every eval runs and produces a trace. The run
-does not stop at the first failure.
+`fail-fast: false` makes sure that every eval runs and produces a trace, so
+the run does not stop at the first failure.
 
 ## Tips
 
-- **`--max-turns=0`** removes the per-runner invocation cap. The orchestration
-  loop's internal lead-turn cap still applies. Use it for exploratory local
-  runs. Always set a real budget in CI.
-- **`--task-amend`** appends extra text to the task and does not edit the task
-  file. This helps you parameterize the same task across a matrix.
-- **The judge profile is a system prompt, not a contract.** It steers the
-  judge without binding it. Treat eval verdicts like a code review from a
-  strong but fallible reviewer. They give a useful signal and fall short of
-  ground truth.
+- **`--max-turns=0`** removes the turn cap on each runner. The orchestration
+  loop's internal cap on lead turns still applies. Use it for exploratory
+  local runs, and always set a real budget in CI.
+- **`--task-amend`** appends extra text to the task and leaves the task file
+  unchanged. This helps you parameterize the same task across a matrix.
+- **The judge profile is a system prompt.** It steers the judge but does not
+  bind it. Treat an eval verdict like a code review from a strong but fallible
+  reviewer. It gives a useful signal, but you cannot treat it as ground truth.
 
 ## What's next
 

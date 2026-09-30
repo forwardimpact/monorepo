@@ -1,64 +1,64 @@
 # Jidoka
 
-> Built-in quality for agent instructions. Eight layers each hold one job.
-> One command stops the line the moment a layer drifts, a job goes stale, or
-> an invariant breaks.
+> Built-in quality for agent instructions. Each of the eight layers holds one
+> job, and one command stops the line when a layer drifts, a job goes stale,
+> or an invariant breaks.
 
-Jidoka is an open-source standard for keeping humans and coding agents on one
-layered instruction architecture. The name is the Toyota principle of building
-quality into the process itself, so the line stops at the first defect and
-never passes one downstream. Instructions span eight layers, ascending from
-most general (the system prompt, every run) to most specific (a checklist at
-one pause point). Each layer owns a single job, no layer restates another, and
-every layer has a machine-checkable budget — so a defect always traces to
-exactly one of them, and the checks halt before it ships.
+Jidoka is an open-source standard that keeps humans and coding agents on one
+layered instruction architecture. The name comes from the Toyota practice of
+building quality into the process, so that the line stops at the first defect
+and never passes it downstream. Instructions span eight layers, from the most
+general (the system prompt, which loads on every run) to the most specific (a
+checklist at one pause point). Each layer owns a single job, no layer repeats
+another, and every layer has a budget that a check can measure. A defect
+therefore points to exactly one layer, and the checks fail before it ships.
 
-The `jidoka` command family is the andon cord. Three checks each own one
-class of defect, so every finding routes to exactly one fix. `jidoka
-instructions` gates every layer with a line cap and a word cap, and it fails a
-checklist block with too many items or an item that explains. `jidoka jtbd`
-validates every job entry against the schema and reports a generated block
-that no longer matches its manifest; `--fix` regenerates it. `jidoka
-invariants` discovers every `*.rules.mjs` module under `.jidoka/invariants/`
-and runs it through one engine. The engine ships with the CLI. The policy
-stays in the repository. A rule module names one claim, collects its subjects
-with kit helpers such as `grep`, `scan`, `scanAst`, and `restatementDrift`,
-and declares rules with an id, a message, and a hint. A finding names the
-file, the line, the rule id, and the fix. Every command accepts `--json` for
-machine-readable findings.
+The `jidoka` command family runs three checks. Each check owns one class of
+defect, so every finding maps to exactly one fix. `jidoka instructions` checks
+every layer against a line cap and a word cap. It also fails a checklist block
+with too many items and a checklist item that explains instead of confirms.
+`jidoka jtbd` validates every job entry against the schema and reports a
+generated block that no longer matches its manifest. Its `--fix` flag
+regenerates the block. `jidoka invariants` finds every `*.rules.mjs` module
+under `.jidoka/invariants/` and runs it through one engine. The engine ships
+with the CLI, and the policy stays in the repository. A rule module states one
+claim, collects its subjects with kit helpers such as `grep`, `scan`,
+`scanAst`, and `restatementDrift`, and declares rules with an id, a message,
+and a hint. A finding shows the file, the line number, the rule id, and the
+fix. Every command accepts `--json` for machine-readable findings.
 
-The standard draws on Jidoka (Toyota) for how quality holds, Jobs To Be Done
-(Christensen, Moesta) for what agents align to, and The Checklist Manifesto
-(Gawande) for how alignment holds under load.
+The standard draws on Jidoka (Toyota) for how quality holds, on Jobs To Be
+Done (Christensen, Moesta) for what agents align to, and on The Checklist
+Manifesto (Gawande) for how alignment holds under load.
 
-The lowest layer, verification, uses two checklist gates. Each is wrapped in
-a semantic tag — `<read_do_checklist>` for entry gates, `<do_confirm_checklist>`
-for exit gates — so every pause point in a repository is discoverable from
-anywhere with one `rg` search.
+The lowest layer, verification, uses two checklist gates. A
+`<read_do_checklist>` tag wraps an entry gate, and a `<do_confirm_checklist>`
+tag wraps an exit gate. One `rg` search for the two tags finds every pause
+point in a repository.
 
-Jidoka stands on its own: any well-structured repository can adopt it,
-whatever its directory shape. It defines the universal root files every
-adopting repository carries — CLAUDE.md, CONTRIBUTING.md, and JTBD.md — along
-with the Jobs To Be Done conventions. A repository's structure standard extends
-it; the Monorepo standard is one such extension, and the Kata Agent Team
-implements it as a daily loop.
+Jidoka does not depend on a directory shape, so any well-structured repository
+can adopt it. It defines the root files that every adopting repository has
+(CLAUDE.md, CONTRIBUTING.md, and JTBD.md) and the Jobs To Be Done conventions.
+A repository structure standard extends it. The Monorepo standard is one
+such extension, and the Kata Agent Team runs it as a daily loop.
 
-Install the skill pack via `apm install forwardimpact/jidoka-skills` and the
-CLI via `npm install --save-dev @forwardimpact/jidoka`, then ask Claude to set
-it up. Wire `npx jidoka` and `npx jidoka invariants` into your checks to stop
-the line at the first drifted layer. The bare command runs the layer and jobs
-checks. Only the second call runs the repository's own rule modules.
+Install the skill pack with `apm install forwardimpact/jidoka-skills` and the
+CLI with `npm install --save-dev @forwardimpact/jidoka`, then ask Claude to set
+it up. Add `npx jidoka` and `npx jidoka invariants` to your checks so the line
+stops at the first drifted layer. The bare command runs the layer check and
+the jobs check. Only the second call runs the repository's own rule modules.
 
-The documentation tree covers adoption, the layer architecture, and the checks.
+The documentation covers adoption, the layer architecture, and the checks.
 Getting Started takes a repository of unlayered prompt files to a check that
-stops the line on a deliberate breach. Put Your Instructions on One Layered
-Architecture covers what each layer owns, when it loads, and what budget holds
-it, then splits into authoring one layer, writing a checklist gate, and writing
-a jobs entry. Stop the Line on Instruction Drift covers the check wiring in a
-local script and in CI, how to read a finding, how to route each finding to the
-fix that owns it, and how to enforce a repository's own invariant rules. The
-layers sit inside a repository structure standard at https://www.monorepo.team/,
-and the Kata Agent Team at https://www.kata.team/ runs on them every day.
+stops the line on a planted defect. Put Your Instructions on One Layered
+Architecture covers what each layer owns, when it loads, and which budget
+applies to it. It then splits into three tasks: author one layer, write a
+checklist gate, and write a jobs entry. Stop the Line on Instruction Drift
+covers how to add the checks to a local script and to CI, how to read a
+finding, how to route each finding to the fix that owns it, and how to enforce
+a repository's own invariant rules. The layers fit inside a repository
+structure standard at https://www.monorepo.team/, and the Kata Agent Team at
+https://www.kata.team/ runs on them every day.
 
 ## Documentation
 

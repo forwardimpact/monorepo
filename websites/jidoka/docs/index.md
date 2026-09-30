@@ -1,14 +1,14 @@
 ---
 title: Documentation
-description: Guides for the Jidoka instruction standard. Adopt the standard, give every instruction file one owning layer, and stop the line the moment a layer drifts.
+description: Guides for the Jidoka instruction standard. Adopt the standard, give every instruction file one owning layer, and stop the line when a layer drifts.
 layout: product
 toc: false
 ---
 
-Jidoka builds quality into the instructions humans and agents share. You put
-every file on one layer, then let a check stop the line when a layer drifts.
-Each job below covers one part of that work. Start with the adoption job. Then
-pick the job you have in front of you now.
+Jidoka builds quality into the instructions that humans and agents share. You
+put every file on one layer, and a check then stops the line when a layer
+drifts. Each section below covers one part of that work. Start with the
+adoption guide, then choose the guide for the task you have now.
 
 ## Adopt the Standard (Teams Using Agents)
 
@@ -42,8 +42,8 @@ pick the job you have in front of you now.
 
 </div>
 
-Jidoka says nothing about your directory shape. For the repository structure
-these layers sit in, see
+Jidoka does not define your directory shape. For the repository structure that
+holds these layers, see
 [the Monorepo Structure Standard](https://www.monorepo.team/). For an agent team
 that runs on these layers every day, see
 [the Kata Agent Team](https://www.kata.team/).

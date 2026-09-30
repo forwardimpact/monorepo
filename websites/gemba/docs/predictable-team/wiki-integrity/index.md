@@ -1,20 +1,20 @@
 ---
 title: Audit and Auto-Fix the Wiki
-description: Keep the wiki valid against a declarative rule catalogue. Auto-fix what is safely fixable. Surface the rest for a human, so stale memory does not corrupt coordination.
+description: Keep the wiki valid against a declarative rule catalogue. Auto-fix what is safe to fix. Report the rest to a human, so that stale memory does not corrupt coordination.
 ---
 
 A wiki that drifts out of shape is no longer reliable memory. A summary grows
 past its budget, an entry heading loses its date, or an active claim outlives
 the work it described. `gemba-wiki` ships a declarative audit that catches
-these faults mechanically. It also ships an auto-fixer that resolves most of
-them. You do not have to read each file yourself.
+these faults mechanically, and an auto-fixer that resolves most of them. You
+do not have to read each file yourself.
 
-This guide shows how to check the wiki against the rule catalogue. It shows how
-to read what the audit reports. It also shows how to run the auto-fixer. The
-auto-fixer rotates over-budget logs, repairs prose with an agent, and flags
-what only a human should touch. See
-[Set Up Persistent Memory and Metrics](/docs/predictable-team/) for the broader
-memory workflow this fits into.
+This guide shows how to check the wiki against the rule catalogue, how to read
+what the audit reports, and how to run the auto-fixer. The auto-fixer rotates
+over-budget logs, repairs prose with an agent, and flags what only a human
+should touch. See
+[Set Up Persistent Memory and Metrics](/docs/predictable-team/) for the wider
+memory workflow this belongs to.
 
 ## Prerequisites
 
@@ -23,7 +23,7 @@ memory workflow this fits into.
 
 ## Run the audit
 
-The audit reads every file in the wiki. It checks each file against a fixed
+The audit reads every file in the wiki and checks each file against a fixed
 catalogue of rules. The catalogue covers line and word budgets, required
 headings and markers, decision blocks, storyboard structure, claims-table
 shape, and metric-row uniqueness.
@@ -39,7 +39,7 @@ wiki audit passed
 ```
 
 When a file breaks a rule, the audit reports each finding under the file it
-belongs to. It prints one row per finding:
+belongs to, with one row per finding:
 
 ```text
 wiki/release-engineer-2026-W23.md
@@ -49,15 +49,14 @@ wiki/release-engineer-2026-W23.md
 ✖ 1 problem (1 error, 0 warnings)
 ```
 
-Each row carries four columns: the line number, the severity, the message, and
-the rule id. The arrow line beneath it is the hint. The hint gives the concrete
-remediation. The trailer counts the problems found.
+Each row has four columns: the line number, the severity, the message, and the
+rule id. The arrow line under it is the hint, which gives the concrete fix.
+The last line counts the problems found.
 
-The filename grammar admits one weekly-log class per agent in your own roster.
+The filename grammar accepts one weekly-log class per agent in your own roster.
 The examples on this page use the agent name `release-engineer`. Your roster
-supplies your own names.
-[Kata](https://www.kata.team/) is the reference tenant for this platform, and it
-names its files after its own agent roles.
+supplies your own names. [Kata](https://www.kata.team/) is the reference
+tenant for this platform, and it names its files after its own agent roles.
 
 Two severities exist:
 
@@ -68,8 +67,8 @@ Two severities exist:
 
 Every finding has a stable rule id (`weekly-log.heading-grammar`,
 `summary.line-budget`, `expired-claim`, ...). Run the same audit in your
-pre-merge CI. A clean local run then becomes the standard that every change
-must meet.
+pre-merge CI, so that a clean local run becomes the standard every change must
+meet.
 
 ### JSON output
 
@@ -96,18 +95,18 @@ npx gemba-wiki audit --format json
 }
 ```
 
-`result` is `pass` or `fail`. Each finding carries its rule `id` and a `level`
-(`fail` or `warn`). It also carries the `path`, a `lineNo`, the `message`, and
-an optional `hint`. `lineNo` is `null` when the rule pins no line. `hint` is
-`null` when the rule offers none. `failures` carries the errors. `warnings`
-carries the soft signals. A clean wiki returns `"result": "pass"` with both
-arrays empty.
+`result` is `pass` or `fail`. Each finding has its rule `id`, a `level`
+(`fail` or `warn`), the `path`, a `lineNo`, the `message`, and an optional
+`hint`. `lineNo` is `null` when the rule pins no line, and `hint` is `null`
+when the rule offers none. `failures` holds the errors and `warnings` holds
+the soft signals. A clean wiki returns `"result": "pass"` with both arrays
+empty.
 
 ## Auto-fix findings
 
-Most findings are safely fixable without judgment. The `fix` command runs the
-audit and resolves what it can. It then re-audits. It repeats until the wiki is
-clean, or until only human-judgment findings remain.
+Most findings are safe to fix without judgment. The `fix` command runs the
+audit, resolves what it can, and then audits again. It repeats until the wiki
+is clean, or until only findings that need human judgment remain.
 
 ```sh
 npx gemba-wiki fix
@@ -127,16 +126,15 @@ fixed: wiki audit is clean
 
 The deterministic layer runs first because it never rewrites history. It only
 seals an over-budget log into a numbered part and opens a fresh one. The agent
-layer then handles the residual prose findings. `gemba-wiki` composes the
-`technical-writer` role for that work. It runs the role on a fast model. The
-audit gives the verdict each round. The agent's self-report does not decide
-the outcome.
+layer then handles the remaining prose findings. `gemba-wiki` composes the
+`technical-writer` role for that work and runs the role on a fast model. Each
+round ends with another audit. The audit result decides whether the fix is
+done, and the agent's own report has no part in that decision.
 
 ### What gets flagged for a human
 
-By design, `fix` never auto-fixes some findings. The safe action depends on
-judgment that a tool cannot supply. When `fix` cannot reach a clean state, it
-exits non-zero and names them:
+Some findings need judgment that a tool cannot supply, so `fix` never touches
+them. When `fix` cannot reach a clean state, it exits non-zero and lists them:
 
 ```text
 gemba-wiki fix: 1 finding(s) need human judgment (not auto-fixable):
@@ -146,14 +144,15 @@ wiki/retired-agent-2026-W20.md
 
 Two common cases:
 
-- **A filename outside the grammar.** If you rename or delete a file, you could
-  destroy memory. For that reason, `fix` reports it and leaves it in place.
-  Rename it to an admitted class by hand.
+- **A filename outside the grammar.** A rename or a delete could destroy
+  memory, so `fix` reports the file and leaves it in place. Rename it to an
+  admitted class yourself.
 - **A lone over-budget block with no split seam.** When a single dated entry or
   `###` block alone exceeds the budget, there is no seam to rotate at. Shorten
   the prose yourself.
 
-Run `fix`. Then run `audit` again to confirm the wiki is clean before you push.
+Run `fix`, then run `audit` again to confirm that the wiki is clean before you
+push.
 
 ## Verify
 

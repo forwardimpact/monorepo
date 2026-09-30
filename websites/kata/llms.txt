@@ -1,35 +1,35 @@
 # Kata Agent Team
 
-> An autonomous, continuously improving agent team organized as a daily
-> Plan-Do-Study-Act cycle.
+> An agent team that improves itself on a daily Plan-Do-Study-Act cycle.
 <!-- enum:published-skills:count -->
-> Nineteen skills, plain JavaScript,
+> It ships nineteen skills in plain JavaScript,
 <!-- /enum -->
-> zero infrastructure to maintain.
+> and you maintain no infrastructure.
 
 Kata is an open-source agent team for coding repositories. Eight agent
-personas — Staff Engineer, Release Engineer, Security Engineer, DevEx
-Engineer, Product Manager, Technical Writer, Archivist, and Improvement
-Coach — operate the daily Plan-Do-Study-Act cycle.
+personas run the daily Plan-Do-Study-Act cycle: Staff Engineer, Release
+Engineer, Security Engineer, DevEx Engineer, Product Manager, Technical
+Writer, Archivist, and Improvement Coach.
 <!-- enum:published-skills:count -->
-The team's work is carried by nineteen skills.
+Nineteen skills do the team's work.
 <!-- /enum -->
-The team runs on plain
-JavaScript with no databases, no queues, and no third-party dependencies;
-shared state lives as markdown in a Git repository.
+The team runs on plain JavaScript. It needs no database, no queue, and no
+third-party dependency. Shared state is a set of markdown files in a Git
+repository.
 
-Install via `apm install forwardimpact/kata-skills`, then ask Claude to set
-up the team.
+Install the pack with `apm install forwardimpact/kata-skills`, then ask
+Claude to set up the team.
 
-The documentation tree covers three jobs. Getting Started takes a repository
-with no automation to one completed shift. Run a Continuously Improving Agent
-Team covers the daily loop: the agent roster, the memory and coordination line,
-the storyboard and coaching session, and the routing of every Study finding.
-Take a Change from Spec to Shipped covers the spec, design, plan, implement,
-review, merge, and release arc, together with the approval gates and the trust
-boundary. Kata runs on the Gemba platform at https://www.gemba.team/, follows
-the Jidoka instruction architecture at https://www.jidoka.team/, and adopts the
-repository structure at https://www.monorepo.team/.
+The documentation covers three areas. Getting Started takes a repository with
+no automation to one completed shift. Run a Continuously Improving Agent Team
+covers the daily loop: the agent roster, the line between memory and
+coordination, the storyboard and coaching session, and the route for every
+Study finding. Take a Change from Spec to Shipped covers the spec, design,
+plan, implement, review, merge, and release sequence, together with the
+approval gates and the trust boundary. Kata runs on the Gemba platform at
+https://www.gemba.team/, follows the Jidoka instruction architecture at
+https://www.jidoka.team/, and uses the repository structure at
+https://www.monorepo.team/.
 
 ## Documentation
 

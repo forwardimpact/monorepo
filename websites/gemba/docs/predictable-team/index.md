@@ -4,15 +4,13 @@ description: Give your agent team persistent memory and real signal detection wi
 ---
 
 Your agents finish a session, and their findings disappear. The next session
-starts from scratch. It has no continuity and no accumulated evidence. It gives
-you no way to tell whether yesterday's change made anything better.
-`gemba-wiki` and `gemba-xmr` work together to solve this. The wiki gives agents
-durable shared memory. XmR charts turn that memory into a signal the team can
-trust.
+starts from scratch, with no continuity and no accumulated evidence, so you
+cannot tell whether yesterday's change made anything better. `gemba-wiki` and
+`gemba-xmr` work together to solve this. The wiki gives agents durable shared
+memory, and XmR charts turn that memory into a signal the team can trust.
 
-This guide walks through the full arc. You bootstrap the wiki. You record
-metrics and chart them. You then embed live charts into a storyboard that
-updates itself.
+This guide covers the full path. You bootstrap the wiki, record metrics and
+chart them, then embed live charts in a storyboard that updates itself.
 
 ## Prerequisites
 
@@ -41,12 +39,13 @@ This clones the repository's GitHub wiki into `wiki/`. The command derives the
 wiki URL from the repository's `origin` remote.
 
 `init` also pre-creates one `wiki/metrics/<skill>/` directory per skill whose
-directory name starts with `kata-`. That prefix is a shipped default. It names
-Kata, the platform's reference tenant, whose practice you can read at
-[kata.team](https://www.kata.team/). A skill with any other name loses nothing.
-`gemba-xmr record` creates the directory for it on the first write.
+directory name starts with `kata-`. That prefix is a shipped default that
+refers to Kata, the platform's reference tenant. You can read about its
+practice at [kata.team](https://www.kata.team/). A skill with any other name
+loses nothing, because `gemba-xmr record` creates the directory on the first
+write.
 
-The command is idempotent. A second run on an already-initialized wiki changes
+The command is idempotent, so a second run on an initialized wiki changes
 nothing. The command authenticates with ambient GitHub credentials.
 
 After initialization, the directory structure looks like this:
@@ -62,14 +61,14 @@ wiki/
     ...
 ```
 
-Each `metrics/<skill>/` directory is where that skill's observations accumulate
+Each `metrics/<skill>/` directory is where that skill's observations collect
 over time.
 
 ## Step 2: Set up agent summary files
 
-Each agent needs a summary file in `wiki/` with a message inbox marker so
-teammates can send memos. Name the file after the agent profile. Create one per
-agent:
+Each agent needs a summary file in `wiki/` with a message inbox marker so that
+teammates can send memos. Name the file after the agent profile, and create
+one per agent:
 
 ```markdown
 <!-- wiki/platform-engineer.md -->
@@ -84,9 +83,9 @@ agent:
 Last run: (none)
 ```
 
-The `<!-- memo:inbox -->` marker is invisible in rendered markdown.
-`gemba-wiki memo` still requires it. Without it, the memo command exits with
-code 2 and a diagnostic. Place the marker once. Do not remove it.
+The `<!-- memo:inbox -->` marker is invisible in rendered markdown, but
+`gemba-wiki memo` requires it. Without it, the memo command exits with code 2
+and a diagnostic. Place the marker once and do not remove it.
 
 ## Step 3: Record observations to CSV
 
@@ -98,15 +97,15 @@ the directory and the CSV header if they do not exist:
 npx gemba-xmr record --skill code-review --metric findings_count --value 3 --unit count --event-type kata-shift
 ```
 
-`--event-type` names the workflow that records the row (its filename without
+`--event-type` gives the workflow that records the row (its filename without
 `.yml`). Inside GitHub Actions you can omit it, because the value falls back to
 `$GITHUB_WORKFLOW_REF`. Local runs must pass it explicitly.
 
 The read commands filter on `event_type`, and they default to the `kata-shift`
-slice. That default names the reference tenant's shift workflow. Two rules
-follow from it. Record with `kata-shift` to follow this guide end to end. If you
-use your own workflow name, pass `--event-type <name>` to every read command.
-Expect `gemba-wiki refresh` to skip those rows, because refresh reads the
+slice. That default is the reference tenant's shift workflow. Record with
+`kata-shift` to follow this guide end to end. If you
+use your own workflow name, pass `--event-type <name>` to every read command,
+and expect `gemba-wiki refresh` to skip those rows, because refresh reads the
 default slice only.
 
 ```text
@@ -117,7 +116,7 @@ The one-line summary confirms that the command appended the row. It also shows
 the current sample size and the classification. With only one data point, the
 status is `insufficient_data`. XmR limits require at least 15 observations.
 
-The year in the path comes from the recorded date. The CSV lands at
+The year in the path comes from the recorded date. The CSV is written to
 `wiki/metrics/code-review/2026.csv` with the standard header:
 
 ```csv
@@ -141,8 +140,8 @@ npx gemba-xmr record \
 ```
 
 The `run` field links back to the CI run or the session that produced the
-observation. The `note` field captures what you learned. It durably records
-context that the numbers cannot convey.
+observation. The `note` field captures what you learned. It records context
+that the numbers alone cannot show.
 
 ### CSV schema
 
@@ -168,8 +167,8 @@ A zero exit code means the file matches the schema.
 ## Step 4: Analyze the metrics
 
 Once a metric has at least 15 observations, `gemba-xmr` computes natural process
-limits. It then applies Wheeler's three detection rules. The limits are
-meaningful only if each metric tracks a single process. See
+limits and applies Wheeler's three detection rules. The limits only mean
+something when each metric tracks a single process. See
 [One process per chart](/docs/predictable-team/xmr-analysis/#one-process-per-chart).
 Run the analysis:
 
@@ -215,9 +214,9 @@ Read `classification` first:
 | `chaos`        | mR Rule 1 activated. Variation is unstable. | Investigate the outsized moves before you trust any limits.   |
 | `insufficient` | Fewer than 15 points.                | Record more observations.                                           |
 
-The limits come from the data itself. You need no external targets. Do not set
-goals based on these limits. They describe what the process does. They do not
-describe what it should do.
+The limits come from the data itself, so you need no external targets. Do not
+set goals based on these limits. They describe what the process does, and not
+what it should do.
 
 For a deeper look at signal rules, chart anatomy, and how to respond to each
 classification, see
@@ -246,14 +245,14 @@ file exists yet. Add one marker pair per metric you want charted:
 <!-- /xmr -->
 ```
 
-Each XmR block is a marker pair. The opening comment names the metric and the
+Each XmR block is a marker pair. The opening comment gives the metric and the
 CSV path. The closing comment marks the end of the region that `refresh`
 replaces.
 
-The skeleton also carries obstacle and experiment sections, and `refresh` fills
-those from your issue tracker. The runtime renders them. It does not define
-them. An obstacle and an experiment take their meaning from the improvement
-method your team runs. One worked method is
+The skeleton also has obstacle and experiment sections, and `refresh` fills
+those from your issue tracker. The runtime renders those sections but does not
+define their meaning. An obstacle and an experiment take their meaning from the
+improvement method your team runs. One worked method is
 [the agent-team practice](https://www.kata.team/).
 
 Regenerate all charts in the storyboard:
@@ -270,7 +269,7 @@ npx gemba-wiki refresh wiki/storyboard-2026-M05.md
 ```
 
 After refresh, each block contains the fenced chart and a signal summary that
-names any fired rules:
+lists any fired rules:
 
 ````markdown
 <!-- xmr:findings_count:wiki/metrics/code-review/2026.csv -->
@@ -295,17 +294,17 @@ names any fired rules:
 <!-- /xmr -->
 ````
 
-When the metric has fewer than 15 points, the block carries an
+When the metric has fewer than 15 points, the block shows an
 "Insufficient data" line instead of the chart. The block lists fired rules by
 name (`xRule1`, `xRule2`, `xRule3`, `mrRule1`). A dash means none fired.
 
-The operation is idempotent. Two runs produce the same output. The command
+The operation is idempotent, so two runs produce the same output. The command
 leaves files without markers unchanged.
 
 ## Step 6: Sync the wiki
 
-The wiki is a separate git repository. Two commands keep it synchronized with
-the remote:
+The wiki is a separate git repository. Two commands keep it in sync with the
+remote:
 
 ```sh
 npx gemba-wiki pull
@@ -323,18 +322,18 @@ npx gemba-wiki push
 push: committed and pushed
 ```
 
-`push` is a no-op when no local changes exist. On conflicts, local state wins.
-The most recent session's observations take precedence. `pull` exits non-zero
-with a diagnostic when it detects a conflict.
+`push` does nothing when no local changes exist. On conflicts, local state
+wins, so the most recent session's observations take precedence. `pull` exits
+non-zero with a diagnostic when it detects a conflict.
 
 Both commands work well as hooks in your agent workflow. Run `pull` at session
-start to pick up changes from other agents. Run `push` at session end to
-persist your own.
+start to pick up changes from other agents, and run `push` at session end to
+save your own.
 
 ## Step 7: Send memos between agents
 
-When one agent discovers something another agent should see on its next run, a
-memo delivers the message:
+When one agent discovers something that another agent should see on its next
+run, a memo delivers the message:
 
 ```sh
 npx gemba-wiki memo --from qa-engineer --to platform-engineer --message "findings_count shifted after the new review rubric landed"
@@ -358,7 +357,7 @@ npx gemba-wiki memo --from qa-engineer --to all --message "storyboard refreshed 
 
 ## Verify
 
-Work through this checklist to confirm the full memory system works:
+Work through this checklist to confirm that the full memory system works:
 
 1. **Wiki exists.** The `wiki/` directory contains a `.git` subdirectory.
 
@@ -412,7 +411,7 @@ Work through this checklist to confirm the full memory system works:
    Expected: `push: committed and pushed` (or `nothing to push`) and
    `pull: up to date`.
 
-7. **Memos land.** A test memo appears in the target's inbox.
+7. **Memos arrive.** A test memo appears in the target's inbox.
 
    ```sh
    npx gemba-wiki memo --from test --to platform-engineer --message "verify memo delivery"

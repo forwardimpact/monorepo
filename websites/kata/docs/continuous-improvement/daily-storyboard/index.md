@@ -1,26 +1,27 @@
 ---
 title: Run the Daily Storyboard and Coaching Session
-description: Facilitate the team storyboard meeting and the one-on-one coaching session with the Toyota Kata five questions. Every experiment then starts from measured data instead of an impression.
+description: Run the team storyboard meeting and the one-on-one coaching session with the five Toyota Kata questions, so that every experiment starts from measured data instead of an impression.
 ---
 
-Your agents write a metrics row on every run. Nobody reads the rows. Findings
-settle into weekly logs, and the same obstacle comes back next month under a new
-name. A facilitated session closes that gap. The improvement coach asks the same
-questions every day. Each agent answers with numbers it measured minutes
-earlier.
+Your agents write a metrics row on every run, but no one reads the rows.
+Findings settle into weekly logs, and the same obstacle comes back next month
+under a new name. A facilitated session closes that gap. The improvement coach
+asks the same questions every day, and each agent answers with numbers it
+measured minutes earlier.
 
 This guide covers the two facilitated sessions. The team storyboard meeting
-keeps the whole roster pointed at one target condition. The one-on-one coaching
-session takes one agent deep into one run. Both sessions use the same five
-questions.
+keeps the whole roster focused on one target condition, and the one-on-one
+coaching session takes one agent through one run in depth. Both sessions use
+the same five questions.
 
 ## Prerequisites
 
-- The `improvement-coach` profile sits in your roster. See
+- The `improvement-coach` profile is in your roster. See
   [Choose and Scope Your Agent Roster](/docs/continuous-improvement/agent-roster/).
 - Your agents already share wiki memory, and at least one skill has appended
   rows to `wiki/metrics/{skill}/{YYYY}.csv`. A session with no rows produces
-  narrative, and narrative is the thing this protocol removes.
+  only descriptions, and this protocol exists to replace descriptions with
+  data.
 - The storyboard and coaching workflows exist in your repository. `kata-setup`
   writes `.github/workflows/agent-storyboard.yml` and
   `agent-coaching.yml` when you select the coach.
@@ -28,7 +29,7 @@ questions.
   [Set up persistent memory and metrics](https://www.gemba.team/docs/predictable-team/)
   before the first session.
 
-## Two sessions, one protocol
+## The two sessions share one protocol
 
 | | Team storyboard | One-on-one coaching |
 | --- | --- | --- |
@@ -38,11 +39,12 @@ questions.
 | Evidence source | Each participant's metrics CSV | That agent's most recent run trace |
 | Durable record | The monthly storyboard file | The coached agent's weekly log |
 
-Both sessions run on the harness message surface. The coach poses each question
-with `Ask`. Each participant replies with `Answer`. `Announce` carries team-wide
-context between questions, and `Conclude` closes the run with a summary. See
+Both sessions run on the harness message tools. The coach asks each question
+with `Ask`, and each participant replies with `Answer`. `Announce` sends
+team-wide context between questions, and `Conclude` closes the run with a
+summary. See
 [Coordinate an agent team](https://www.gemba.team/docs/coordinate-team/) for
-that surface.
+those tools.
 
 ## The five questions
 
@@ -51,43 +53,43 @@ that surface.
 2. **What is the actual condition now?** Measured counts and durations from live
    data, recorded to CSV before the answer.
 3. **What obstacles prevent us from reaching the target?** Each participant
-   names the obstacles inside its own domain.
+   lists the obstacles inside its own domain.
 4. **What is the next step, and what do you expect?** One experiment against one
    obstacle, plus the outcome the agent predicts.
 5. **When can we see what we learned?** The next meeting opens with that review.
 
-The one-on-one wording narrows every question to a single run. What were you
-trying to achieve. What actually happened. What obstacles prevented a better
-outcome. What will you do differently next run. When will you see the effect.
+The one-on-one wording narrows every question to a single run: what you tried
+to achieve, what happened, which obstacles prevented a better outcome, what you
+will do differently in the next run, and when you will see the effect.
 
 The participant answers question two from
-[its own trace](https://www.gemba.team/docs/prove-changes/trace-analysis/).
-Memory is never a source.
+[its own trace](https://www.gemba.team/docs/prove-changes/trace-analysis/),
+never from memory.
 
 ## The storyboard artifact
 
-The team meeting maintains one file per month, `wiki/storyboard-2026-M04.md`.
-It carries a Challenge, a Target Condition, a Current Condition, an Obstacles
-list, and an Experiments list.
+The team meeting maintains one file per month, such as
+`wiki/storyboard-2026-M04.md`. It contains a Challenge, a Target Condition, a
+Current Condition, an Obstacles list, and an Experiments list.
 
-- **Challenge** changes rarely. It shifts only when strategic direction shifts.
-- **Target Condition** is measurable and due at month end. It describes how the
-  system behaves differently. It is not a task list.
+- **Challenge** changes rarely, only when the strategic direction changes.
+- **Target Condition** is measurable and due at the end of the month. It
+  describes how the system will behave differently, and it is not a task list.
 - **Current Condition** holds numbers. Above the per-agent blocks, a Headlines
-  list names only the metrics whose status changed since the last meeting.
-- **Obstacles** and **Experiments** render from GitHub issue state.
+  list shows only the metrics whose status changed since the last meeting.
+- **Obstacles** and **Experiments** are rendered from GitHub issue state.
 
-Marker pairs own every generated block. An XmR block sits between
-`<!-- xmr:{metric}:{csv} -->` and `<!-- /xmr -->`. The obstacle and experiment
-lists sit between their own markers. A deterministic wiki refresh step
-regenerates all of them from CSV rows and issue state before the meeting. Never
-paste a chart or a list by hand. Prose outside the markers survives the refresh,
-so a one-line note that anchors a signal to an event is safe.
+Marker pairs surround every generated block. An XmR block is between
+`<!-- xmr:{metric}:{csv} -->` and `<!-- /xmr -->`, and the obstacle and
+experiment lists are between their own markers. A deterministic wiki refresh
+step regenerates all of them from CSV rows and issue state before the meeting.
+Never paste a chart or a list yourself. Prose outside the markers survives the
+refresh, so a one-line note that links a signal to an event is safe.
 
-The first meeting of the month is a **planning meeting**. The refresh creates
-the file skeleton, and a participant seeds one XmR block per metrics CSV. The
-team sets the Challenge, the Target Condition, and the first experiment. Every
-later meeting is a **review meeting**. It refreshes the Current Condition,
+The first meeting of the month is a **planning meeting**. In it, the refresh
+creates the file skeleton, a participant seeds one XmR block per metrics CSV,
+and the team sets the Challenge, the Target Condition, and the first experiment.
+Every later meeting is a **review meeting**. It refreshes the Current Condition,
 records the outcome of the last experiment, and plans the next one.
 
 ## Who writes, and who only collects
@@ -103,21 +105,21 @@ The coach runs no shell commands and writes no files. It cannot look up an issue
 it did not receive, so each participant reports its issue number back through
 `Answer`.
 
-Get this wrong and the failure is quiet. A coach that writes the Current
-Condition itself produces numbers with no CSV row behind them. The next meeting
-then debates the narrative instead of the data. A coach that files an obstacle
-issue on an agent's behalf leaves an issue nobody owns, and nobody closes it
-with a verdict.
+A coach that writes the Current Condition itself produces numbers with no CSV
+row behind them, and the next meeting then debates the description instead of
+the data. A coach that files an obstacle issue for an agent leaves an issue
+that no one owns, and no one closes it with a verdict. Neither mistake
+produces an error.
 
 ## Record obstacles and experiments as issues
 
 An obstacle is a measured gap between the current condition and the target
 condition. An experiment is the next small step against one obstacle. Both are
-GitHub issues in your repository. Only the label separates them.
+GitHub issues in your repository, and only the label separates them.
 
-An obstacle carries the `obstacle` label, a one-line description, and the
-dimension it blocks. An experiment carries the `experiment` label and an
-`agent:{name}` label that names its owner:
+An obstacle has the `obstacle` label, a one-line description, and the
+dimension it blocks. An experiment has the `experiment` label and an
+`agent:{name}` label that identifies its owner:
 
 ```text
 Obstacle: #NNN
@@ -128,14 +130,15 @@ Owner: staff-engineer
 **Execution plan:** path globs, only when the experiment ships code
 ```
 
-Write the expected outcome before the run. Name metrics that a single skill
-owns. Skills do not share runs, so a prediction that spans two skills cannot
-resolve in one cycle. Split it into one prediction per skill.
+Write the expected outcome before the run, and use metrics that a single skill
+owns. Skills do not share runs, so a prediction that spans two skills cannot be
+resolved in one cycle. Split it into one prediction per skill.
 
-Every experiment concludes with a verdict comment, then a close. `PASS` means
-the prediction held. `FAIL` means it did not, which is still a result. `VOID`
-means nobody could evaluate the run, so there is no learning either way. The
-closed issue is the permanent record. The storyboard lists age out on their own.
+Every experiment ends with a verdict comment and then a close. `PASS` means the
+prediction held. `FAIL` means it did not, and that is also a useful result.
+`VOID` means no one could evaluate the run, so there is no learning either way.
+The closed issue is the permanent record, and the storyboard lists age out on
+their own.
 
 ## Route each obstacle
 
@@ -149,17 +152,18 @@ route and logs it. An obstacle can take more than one route.
 | A blocker the agent owns alone, an unanalyzed trace, or a stalled experiment | Coaching |
 
 A Discussion belongs to the owning agent, and it ends in a spec, a wiki note, or
-a close. Coaching does not dispatch during the meeting. The obstacle issue
-stands, and the coach dispatches the session on its next assessment run:
+a close. Coaching is not dispatched during the meeting. The obstacle issue
+stays open, and the coach dispatches the session on its next assessment run:
 
 ```sh
 gh workflow run "Agent: Coaching" -f agent=staff-engineer
 ```
 
-Before any follow-on dispatch, read the coordinating thread's last comments.
-An announcement that a revision is already coming in the same run reserves that
-route. A second dispatch then creates duplicate intent. Two agents author the
-same change. One of them wastes a full cycle.
+Before any follow-up dispatch, read the last comments on the coordinating
+thread. If an announcement says that a revision is already coming in the same
+run, another agent already owns that route, so do not dispatch. A second
+dispatch creates duplicate work: two agents write the same change, and one of
+them wastes a full cycle.
 
 ## Verify
 
@@ -167,9 +171,9 @@ same change. One of them wastes a full cycle.
 - The Current Condition matches the CSV rows written during this session, and
   the session flags any metric with insufficient data.
 - Every obstacle and experiment has an issue number, reported by its owner.
-- Each closing comment names an owner and an artifact, or states the explicit
-  negative.
-- Each participant's weekly log carries the session type, the metrics, the
+- Each closing comment gives an owner and an artifact, or states clearly that
+  there is none.
+- Each participant's weekly log records the session type, the metrics, the
   obstacle addressed, and the experiment planned.
 - The session ends with a summary that lists the metrics, the obstacles, the
   experiments, and any obstacle handed to coaching.
