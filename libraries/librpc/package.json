@@ -55,7 +55,7 @@
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.22",
     "@forwardimpact/libutil": "^0.1.60",
-    "@grpc/grpc-js": "^1.14.4"
+    "@grpc/grpc-js": "^1.14.5"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
