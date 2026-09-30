@@ -1,13 +1,13 @@
 ---
 title: Documentation
-description: Guides for the Kata agent team. Set the team up, run the daily Plan-Do-Study-Act cycle, and carry one change from spec to shipped.
+description: Guides for the Kata agent team. Set the team up, run the daily Plan-Do-Study-Act cycle, and take one change from spec to shipped.
 layout: product
 toc: false
 ---
 
 Kata is a practice for a team of coding agents. The team works one cycle a day,
-and each job below covers one part of that cycle. Start with the setup job. Then
-pick the job you have in front of you now.
+and each section below covers one part of that cycle. Start with the setup
+guide. Then choose the guide for the task you have now.
 
 ## Set Up the Team (Teams Using Agents)
 
@@ -43,13 +43,14 @@ pick the job you have in front of you now.
 
 </div>
 
-Kata ships skills and agent profiles. It ships no command of its own. Three
-other standards carry the parts underneath it, and each one has its own site.
+Kata ships skills and agent profiles, but no command of its own. Three other
+standards supply the parts under it, and each one has its own site.
 
-- The runtime is [Gemba](https://www.gemba.team/docs/). Kata skills call the
-  `gemba-*` commands to run a session, read a trace, hold memory, and chart a
-  metric. Read every command surface there.
-- The instruction architecture is [Jidoka](https://www.jidoka.team/docs/). Use
-  it when you author or repair an agent profile, a skill file, or a checklist.
-- The repository shape is [Monorepo](https://www.monorepo.team/). It names the
-  root files and the directory tree an adopting repository carries.
+- [Gemba](https://www.gemba.team/docs/) is the runtime. Kata skills call the
+  `gemba-*` commands to run a session, read a trace, keep memory, and chart a
+  metric. The Gemba site documents every command.
+- [Jidoka](https://www.jidoka.team/docs/) is the instruction architecture. Use
+  it when you write or repair an agent profile, a skill file, or a checklist.
+- [Monorepo](https://www.monorepo.team/) is the repository structure. It
+  defines the root files and the directory tree that an adopting repository
+  uses.

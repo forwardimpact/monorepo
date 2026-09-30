@@ -5,7 +5,7 @@ description: "Install the Gemba skill pack and the gemba-* command family, run o
 
 Gemba is the agent-runtime platform. It runs one loop: stand up, run, see,
 remember, and measure. This page covers the first three steps. You start with
-nothing installed and you finish with one captured trace you can read.
+nothing installed, and you finish with one captured trace that you can read.
 
 ## Prerequisites
 
@@ -22,7 +22,7 @@ export ANTHROPIC_API_KEY=<your-anthropic-api-key>
 
 ## Install the skill pack
 
-The pack carries the seven platform skills. They teach a coding agent the
+The pack contains the seven platform skills. They teach a coding agent the
 command family and the published actions.
 
 ```sh
@@ -49,8 +49,8 @@ globally.
 
 ## Write the task
 
-A task is a plain markdown file. It states what the agent must do. Keep the
-first one small and checkable.
+A task is a plain markdown file that says what the agent must do. Keep the
+first one small and easy to check.
 
 ```md
 <!-- first-task.md -->
@@ -74,25 +74,27 @@ npx gemba-harness run \
   --output=trace.ndjson
 ```
 
-Readable text streams to your terminal while the raw NDJSON trace lands in
+Readable text streams to your terminal while the raw NDJSON trace goes to
 `trace.ndjson`. Each flag does one thing:
 
-- `--task-file` names the markdown task. `--task-text` takes the prompt inline
-  instead.
+- `--task-file` gives the markdown task file. `--task-text` takes the prompt
+  inline instead.
 - `--cwd` is the directory the agent works in. Keep it a scratch directory.
 - `--allowed-tools` is the tool allowlist. The default also allows `Bash`,
-  `Edit`, `Agent`, and `TodoWrite`, so this run is deliberately narrower.
+  `Edit`, `Agent`, and `TodoWrite`, so this run allows fewer tools than the
+  default.
 - `--max-turns` caps the agentic turns. The default is 50, and `0` removes the
   cap.
 - `--output` writes the trace to a file. Without the flag, the NDJSON goes to
   stdout.
 
-The command exits `0` when the session succeeded. It exits `1` when the session
+The command exits `0` when the session succeeded and `1` when the session
 errored. Add `--agent-model` to run a different Claude model.
 
 ## Read the trace
 
-`gemba-trace` queries the file `gemba-harness` wrote. Start with the overview:
+`gemba-trace` queries the file that `gemba-harness` wrote. Start with the
+overview:
 
 ```sh
 npx gemba-trace overview --file trace.ndjson
@@ -108,16 +110,17 @@ tools: [{"tool":"Write","count":2},{"tool":"Read","count":1}]
 taskPrompt: Create a file named greeting.js in the current directory.
 ```
 
-Every object value prints on one line. This sample omits some lines.
-`turnCount` counts the turns the trace holds. `resultEventTurns` counts the
-turns the model reported. Add `--format json` for the machine-readable shape.
+Every object value prints on one line, and this sample omits some lines.
+`turnCount` is the number of turns in the trace, and `resultEventTurns` is
+the number of turns the model reported. Add `--format json` for the
+machine-readable shape.
 
 ## Run the same loop in CI
 
 The
 [`forwardimpact/gemba-bootstrap`](https://github.com/forwardimpact/gemba-bootstrap)
 action installs the pinned toolchain and the platform CLIs on a GitHub Actions
-runner. Name the commands you need in its `clis` input. Pin the action to a
+runner. List the commands you need in its `clis` input. Pin the action to a
 full commit SHA. Read
 [Automate with GitHub Actions](/docs/prove-changes/run-benchmark/ci-workflow/)
 for a complete workflow.
@@ -128,14 +131,14 @@ Your first trace is good when all of the following hold.
 
 - **The session exited `0`.** Run `echo $?` straight after the harness command.
 - **The trace parses.** `npx gemba-trace count --file trace.ndjson` prints an
-  integer turn count above zero. The reader skips an unparseable line silently,
-  so a count well below the turns you expected is the signal that a line is
-  malformed.
-- **The overview reports success.** The `summary` line carries
+  integer turn count above zero. The reader skips an unparseable line without
+  a message, so a count far below the number of turns you expected means that
+  a line is malformed.
+- **The overview reports success.** The `summary` line contains
   `"result":"success"` and `"isError":false`.
-- **The agent stayed inside the allowlist.** The `tools` line names `Write` and
-  names nothing you left out of `--allowed-tools`.
-- **The work landed.** Your scratch directory holds `greeting.js` and
+- **The agent stayed inside the allowlist.** The `tools` line lists `Write`
+  and lists nothing you left out of `--allowed-tools`.
+- **The files exist.** Your scratch directory holds `greeting.js` and
   `greeting.test.js`.
 
 ## What's next

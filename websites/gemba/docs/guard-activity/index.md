@@ -2,16 +2,16 @@
 title: Guard an Agent Team's Activity
 description:
   Bound an agent team's output volume with a deterministic brake. Four counters
-  over one window engage an operator latch that only a human clears.
+  over one window set an operator latch that only a human clears.
 ---
 
 An agent team that answers repository events can feed itself. A run posts a
 comment, files an issue, or opens a pull request, and that output is itself an
-event that starts the next run. `gemba-watchdog` bounds the volume: it counts
-repository activity over a window and engages an operator latch when any
-counter crosses its threshold.
+event that starts the next run. `gemba-watchdog` bounds the volume. It counts
+repository activity over a window and sets an operator latch when any counter
+crosses its threshold.
 
-The command engages the latch. It never clears it. A human clears it.
+The command only sets the latch. A human clears it.
 
 ## Prerequisites
 
@@ -33,15 +33,15 @@ Each counter reads one signal against the same cutoff:
 | `issues` | Issues created, excluding pull requests |
 | `comments` | Issue and pull-request conversation comments created |
 
-Inline review comments are out. One review panel legitimately posts many, so
-counting them would stop the team on ordinary review activity.
+Inline review comments are not counted. One review panel posts many of them,
+so counting them would stop the team during normal review activity.
 
 ## The threshold and the window
 
-One number covers every counter. Pick a threshold that clears your largest
-legitimate batch: a full scheduled session, one weekly dependency run, one
-merge queue drain. Every repository has its own baselines, so the command
-ships no default.
+One number covers every counter. Pick a threshold that is higher than your
+largest normal batch, such as a full scheduled session, one weekly dependency
+run, or one merge queue drain. Every repository has its own baselines, so the
+command ships no default.
 
 The window is the run interval times the number of runs you accept missing. A
 15-minute schedule with a 2-hour window keeps a breach observable across seven
@@ -49,7 +49,7 @@ missed runs.
 
 ## `assess`
 
-`assess` measures. It reads the repository and writes nothing.
+`assess` only measures. It reads the repository and writes nothing.
 
 ```sh
 npx gemba-watchdog assess --threshold 32 --window-hours 2 \
@@ -67,22 +67,22 @@ npx gemba-watchdog assess --threshold 32 --window-hours 2 \
 Under GitHub Actions it appends a table of every count to
 `$GITHUB_STEP_SUMMARY` and writes two values to `$GITHUB_OUTPUT`:
 
-- `verdict` — `engage` when any counter breached, `quiet` otherwise
-- `reason` — the encoded reason, empty on a quiet run
+- `verdict`: `engage` when any counter breached, `quiet` otherwise
+- `reason`: the encoded reason, empty on a quiet run
 
-The reason names the writer, every breached counter with its count and
+The reason gives the writer, every breached counter with its count and
 threshold, and the time:
 
 ```text
 watchdog|issues=47/32|comments=38/32|2026-09-02T16:49:00.000Z
 ```
 
-`assess` exits 0 on every outcome, so a breach never reddens the measurement
-job.
+`assess` exits 0 on every outcome, so a breach never turns the measurement job
+red.
 
 ## `engage`
 
-`engage` writes. Run it only after `assess` reports a breach.
+`engage` writes the latch. Run it only after `assess` reports a breach.
 
 ```sh
 npx gemba-watchdog engage --variable MY_KILLSWITCH \
@@ -97,37 +97,40 @@ npx gemba-watchdog engage --variable MY_KILLSWITCH \
 | `--repo` | `owner/repo`. Falls back to `$GITHUB_REPOSITORY` |
 | `--dry-run` | Read both variable scopes and write nothing |
 
-It reads the repository variable first, then the organization listing, the way
-every latch reader resolves the effective value. Two rules make it skip:
+It reads the repository variable first, then the organization listing, in the
+same way that every latch reader resolves the effective value. Two rules make
+it skip:
 
 1. The effective value is already truthy. The team is already stopped.
 2. A human cleared the repository value inside the window. The burst that
-   caused the stop has not drained out of the counters yet, so the command
-   yields for one window and the team resumes.
+   caused the stop has not yet drained out of the counters, so the command
+   waits for one window and the team resumes.
 
 ## The latch contract
 
-The command sets the latch. It never clears it.
+The command sets the latch and never clears it.
 
 A human clears it by **writing a falsy value**: `""`, `0`, `false`, `no`, or
-`off`. Deleting the variable resumes the team too, because every reader treats
-an absent variable as falsy. What deletion forfeits is the quiet window: a
-deleted variable leaves no `updated_at`, so the next breach can stop the team
-again immediately. Clearing at organization scope forfeits it for the same
-reason, because the resume rule reads the repository record's own timestamp.
+`off`. Deleting the variable also resumes the team, because every reader
+treats an absent variable as falsy. However, deletion loses the quiet window. A
+deleted variable has no `updated_at`, so the next breach can stop the team
+again at once. Clearing at organization scope loses the quiet window for the
+same reason, because the resume rule reads the repository record's own
+timestamp.
 
 ## Fail safe
 
-Doubt stops the line. Two readings engage besides a count over the threshold:
+When the command cannot be sure, it stops the team. Two readings set the latch
+besides a count over the threshold:
 
-- **`unreadable`** — the counter could not be read. Retries with exponential
+- `unreadable`: the counter could not be read. Retries with exponential
   backoff absorb a transient failure first.
-- **`uncovered`** — the response cannot cover the whole window. A full page of
-  results held inside the window hides older items, so the count is a floor
-  rather than a total.
+- `uncovered`: the response cannot cover the whole window. A full page of
+  results held inside the window hides older items, so the count is only a
+  lower bound.
 
-An unnecessary stop costs idle agent time until a human clears it. A silent
-brake costs an unbounded spend.
+An unnecessary stop costs idle agent time until a human clears it, but a brake
+that fails to stop the team can cost an unbounded spend.
 
 ## CI wiring
 
@@ -189,11 +192,11 @@ jobs:
           app-private-key: ${{ secrets.MY_APP_PRIVATE_KEY }}
 ```
 
-Copy the shape, not the pin. Pin the action to a commit SHA you reviewed.
+Copy the workflow shape, but pin the action to a commit SHA that you reviewed.
 
-Give the workflow a name outside your agent workflows' own naming pattern, so
-the "every agent workflow gates on the latch" contract stays true. The
-watchdog must keep running after it engages.
+Give the workflow a name that does not match your agent workflows' own naming
+pattern, so that the rule "every agent workflow gates on the latch" stays
+true. The watchdog must keep running after it engages.
 
 ## Exit codes
 
@@ -203,5 +206,5 @@ watchdog must keep running after it engages.
 | 1 | `engage` wrote the latch, refused an empty reason, or could not read or write it |
 | 2 | A usage error: a missing or invalid option |
 
-An engaging run exits 1 on purpose. It stands out red in the run list, and the
-reason it wrote names the cause.
+An engaging run exits 1 so that it appears red in the run list, and the reason
+it wrote explains the cause.

@@ -1,6 +1,6 @@
 ---
 title: Gemba
-description: The agent-runtime platform. A factory floor for your agent team. Six commands in a terminal and five composite actions in CI run the same loop. Stand up, run, see, remember, measure, then stop.
+description: "The agent-runtime platform for your agent team. Six commands in a terminal and five composite actions in CI run the same loop: stand up, run, see, remember, measure, and stop."
 toc: false
 layout: home
 ---
@@ -31,7 +31,7 @@ layout: home
     <circle class="trace-dot trace-dot-live" data-step="stop" cx="53" cy="8" r="3" fill="url(#gemba-nib)" />
   </svg>
   <h1 class="hero-title">Give your agent team a factory floor</h1>
-  <p class="hero-subtitle">The agent-runtime platform. One command family for a terminal. One set of CI actions for every push. Both run the same loop.</p>
+  <p class="hero-subtitle">Gemba is the agent-runtime platform. A command family runs the loop in your terminal, and a set of CI actions runs the same loop on every push.</p>
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
@@ -42,9 +42,9 @@ layout: home
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Situation</div>
-      <h2 class="section-headline">Every team builds the same machines again.</h2>
-      <p class="section-body">A team that wants to run coding agents continuously writes a bootstrap script. Then it writes a session harness. Then it needs somewhere for traces to go and somewhere for memory to live. Then it needs a way to tell real improvement from noise.</p>
-      <p class="section-body">Gemba packages that work as one platform. In Lean practice, <em>gemba</em> is the factory floor. It is the place where value gets made, and it is the place you must stand to understand the work. This platform is that floor for your agent team. The commands are the machines on it.</p>
+      <h2 class="section-headline">Every team builds the same runtime again.</h2>
+      <p class="section-body">A team that wants to run coding agents continuously starts by writing a bootstrap script and a session harness. After that it needs a place for traces, a place for memory, and a way to tell real improvement from noise.</p>
+      <p class="section-body">Gemba packages that work as one platform. In Lean practice, <em>gemba</em> is the factory floor, the place where the work happens and where you go to understand it. This platform is that place for your agent team.</p>
     </div>
     <div class="stats-grid stagger">
       <div class="stat-card stagger-item">
@@ -59,8 +59,8 @@ layout: home
       </div>
       <div class="stat-card stagger-item">
         <div class="stat-number">0</div>
-        <div class="stat-label">Machines to build</div>
-        <div class="stat-detail">No bootstrap, no trace store, no chart code</div>
+        <div class="stat-label">Pieces to build yourself</div>
+        <div class="stat-detail">You write no bootstrap script, trace store, or chart code</div>
       </div>
     </div>
   </div>
@@ -86,9 +86,9 @@ layout: home
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Loop</div>
-      <h2 class="section-headline">Six steps. Every run leaves a record.</h2>
-      <p class="section-body">The loop runs stand up, then run, then see, then remember, then measure, then stop. Each step answers one question. Five steps ship as a command. The first ships as the bootstrap action and its installer.</p>
-      <p class="section-body">Two of the six steps come straight from factory practice. <em>See</em> is genchi genbutsu. You go to the actual place, and you look at the actual thing. For an agent session, the trace is that thing. <em>Measure</em> asks what Shewhart and Deming asked on the factory floor. Did the process shift, or is this ordinary variation? An XmR chart separates the two.</p>
+      <h2 class="section-headline">The loop has six steps, and every run leaves a record.</h2>
+      <p class="section-body">The loop goes from stand up to run, see, remember, measure, and stop. Each step answers one question. Five of the steps ship as commands, and the first ships as the bootstrap action and its installer.</p>
+      <p class="section-body">Two of the steps come from factory practice. <em>See</em> is genchi genbutsu: you go to the place where the work happened and look at the real thing, which for an agent session is the trace. <em>Measure</em> asks the question Shewhart and Deming asked on the factory floor: whether the process shifted or only varied as usual. An XmR chart separates the two.</p>
     </div>
     <div class="step-grid stagger">
       <div class="step-card stagger-item">
@@ -129,22 +129,22 @@ layout: home
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">Two Surfaces</div>
-      <h2 class="section-headline">What a team rehearses locally runs on every push.</h2>
-      <p class="section-body">Gemba ships the loop twice. The commands run in a terminal. Five published composite actions run the same steps in GitHub Actions. A workflow pins each action by SHA.</p>
+      <h2 class="section-headline">What you run in a terminal also runs on every push.</h2>
+      <p class="section-body">Gemba ships the loop in two forms. The commands run in a terminal, and five published composite actions run the same steps in GitHub Actions. A workflow pins each action to a commit SHA.</p>
     </div>
     <div class="surface-grid stagger">
       <div class="surface-card stagger-item">
         <div class="surface-kind">Your terminal</div>
         <div class="surface-name">The command family</div>
-        <p class="surface-desc">Install the six commands, or run any one of them through <code>npx</code>. A session, a trace, a memory write, and a control chart all happen where you already work. Nothing needs a server or a database.</p>
+        <p class="surface-desc">Install the six commands, or run any one of them through <code>npx</code>. You run a session, read a trace, write memory, and draw a control chart in the terminal you already use. None of it needs a server or a database.</p>
       </div>
       <div class="surface-card stagger-item">
         <div class="surface-kind">Your CI</div>
         <div class="surface-name">Five composite actions</div>
-        <p class="surface-desc"><code>gemba-bootstrap</code> stands the platform environment up. <code>gemba-harness</code> runs the session and uploads the trace. <code>gemba-wiki</code> writes memory with a freshly minted token. <code>gemba-benchmark</code> spreads benchmark families across machines and merges the reports. <code>gemba-watchdog</code> counts repository activity and engages an operator latch on a breach.</p>
+        <p class="surface-desc"><code>gemba-bootstrap</code> sets up the platform environment. <code>gemba-harness</code> runs the session and uploads the trace. <code>gemba-wiki</code> writes memory with a token it mints for the run. <code>gemba-benchmark</code> splits benchmark families across machines and merges the reports. <code>gemba-watchdog</code> counts repository activity and sets an operator latch when a counter breaches its threshold.</p>
       </div>
     </div>
-    <p class="closing-note reveal">Gemba adds no importable API of its own. It consumes published runtime libraries. When you need the components instead of the commands, import <code>@forwardimpact/libharness</code>, <code>@forwardimpact/libwiki</code>, <code>@forwardimpact/libxmr</code>, and <code>@forwardimpact/libwatchdog</code> directly. Read the <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#catalog">library catalog</a>.</p>
+    <p class="closing-note reveal">Gemba has no importable API of its own. It uses published runtime libraries. When you need the components instead of the commands, import <code>@forwardimpact/libharness</code>, <code>@forwardimpact/libwiki</code>, <code>@forwardimpact/libxmr</code>, and <code>@forwardimpact/libwatchdog</code> directly. The <a href="https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#catalog">library catalog</a> lists them.</p>
   </div>
 </div>
 
@@ -168,9 +168,9 @@ layout: home
   <div class="section-inner">
     <div class="reveal">
       <div class="section-label">The Reference Tenant</div>
-      <h2 class="section-headline">Kata runs on this platform. Daily.</h2>
-      <p class="section-body">Kata is an agent team that plans specs, ships features, studies its traces, and acts on findings. Its skills call five of the six commands. Its workflows pin four of the five actions any other team would pin. Kata proves the platform is generic. Read the practice at <a href="https://www.kata.team/">kata.team</a>.</p>
-      <p class="section-body">Two defaults still name that tenant. <code>gemba-wiki</code> creates a metrics directory only for a skill whose name starts with <code>kata-</code>. <code>gemba-xmr</code> uses <code>kata-shift</code> as its default shift type. Everything else in the platform is tenant-neutral.</p>
+      <h2 class="section-headline">Kata runs on this platform every day.</h2>
+      <p class="section-body">Kata is an agent team that plans specs, ships features, studies its traces, and acts on what it finds. Its skills call five of the six commands, and its workflows pin four of the five actions in the same way any other team would. Kata shows that the platform is not tied to one team. Read about the practice at <a href="https://www.kata.team/">kata.team</a>.</p>
+      <p class="section-body">Two defaults still refer to that tenant. <code>gemba-wiki</code> creates a metrics directory only for a skill whose name starts with <code>kata-</code>, and <code>gemba-xmr</code> uses <code>kata-shift</code> as its default shift type. Everything else in the platform does not depend on the tenant.</p>
     </div>
   </div>
 </div>
@@ -194,8 +194,8 @@ layout: home
 <div class="gemba-section">
   <div class="section-inner">
     <div class="reveal">
-      <h2 class="getting-started-label">Three lines to a captured trace.</h2>
-      <p class="getting-started-sub">Install the skill pack. Install the command family. Run one session.</p>
+      <h2 class="getting-started-label">Capture your first trace in three lines.</h2>
+      <p class="getting-started-sub">Install the skill pack and the command family, then run one session.</p>
     </div>
     <div class="terminal reveal">
       <div class="terminal-bar">
@@ -210,6 +210,6 @@ layout: home
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">gemba-harness run --task-file=task.md --output=trace.ndjson</span></div>
       </div>
     </div>
-    <p class="closing-note reveal">The <code>gemba-bootstrap</code> action does the same bring-up in CI. Its <code>fit-install.sh</code> installer does it on a workstation, and that installer ships in the shared <code>gear</code> release. Take the full path in <a href="/docs/getting-started/">Get started</a>, then read the <a href="/docs/">documentation</a>.</p>
+    <p class="closing-note reveal">The <code>gemba-bootstrap</code> action does the same setup in CI. Its <code>fit-install.sh</code> installer does it on a workstation, and that installer ships in the shared <code>gear</code> release. Follow the full path in <a href="/docs/getting-started/">Get started</a>, then read the <a href="/docs/">documentation</a>.</p>
   </div>
 </div>

@@ -3,18 +3,17 @@ title: Automate with GitHub Actions
 description: Run gemba-benchmark in CI with the forwardimpact/gemba-benchmark composite action. You get step summaries, artifact upload, and PR-triggered benchmarks.
 ---
 
-You have a task family that works locally. Now you want benchmarks to run
-automatically. They can run on pull requests that touch your skills, on a
-weekly schedule, or on demand. The `forwardimpact/gemba-benchmark` GitHub Action
-wraps the CLI. It adds step summaries and artifact upload. It also handles
-timeout control.
+You have a task family that works locally. Now you want benchmarks to run on
+their own: on pull requests that touch your skills, on a weekly schedule, or
+on demand. The `forwardimpact/gemba-benchmark` GitHub Action wraps the CLI and
+adds step summaries, artifact upload, and timeout control.
 
 ## Prerequisites
 
 - A task family (see [Run a Benchmark](/docs/prove-changes/run-benchmark/))
 - `ANTHROPIC_API_KEY` stored as a repository secret
 - The `forwardimpact/gemba-bootstrap` action in the same job. The benchmark
-  action runs the `gemba-benchmark` binary straight off `PATH`, and
+  action runs the `gemba-benchmark` binary straight from `PATH`, and
   `gemba-bootstrap` puts it there.
 
 ## Minimal Workflow
@@ -50,23 +49,23 @@ jobs:
 ```
 
 The action handles everything after the bootstrap step. It runs each task N
-times. It appends the pass@k report to the GitHub step summary. It uploads
+times, appends the pass@k report to the GitHub step summary, and uploads
 `results.jsonl` as a workflow artifact.
 
 ## What the Action Does
 
-1. **Install apm** — installs the `apm` package manager when the runner does
-   not carry it already. `gemba-bootstrap` normally installs it first, and this
+1. **Install apm**: installs the `apm` package manager when the runner does
+   not have it already. `gemba-bootstrap` normally installs it first, and this
    step then skips the download.
-2. **Resolve paths** — creates the run-output directory and picks the artifact
+2. **Resolve paths**: creates the run-output directory and picks the artifact
    name. A sharded run gets a shard-scoped name, so a matrix never collides on
    upload.
-3. **Run** — executes `gemba-benchmark run` with the provided inputs, under the
+3. **Run**: executes `gemba-benchmark run` with the provided inputs, under the
    `timeout-minutes` cap.
-4. **Report** — appends the text report to `GITHUB_STEP_SUMMARY` (when
+4. **Report**: appends the text report to `GITHUB_STEP_SUMMARY` (when
    `summary` is `"true"`). Set `summary-detail` to `"compact"` for a short
    status + pass@k summary instead of the full per-task detail.
-5. **Upload** — uploads `results.jsonl` as a workflow artifact (when
+5. **Upload**: uploads `results.jsonl` as a workflow artifact (when
    `upload-results` is `"true"`).
 
 ## Inputs
@@ -107,13 +106,13 @@ inputs that have no CLI equivalent:
 | --- | --- |
 | `results-path` | Absolute path to `results.jsonl` |
 
-Use `results-path` in downstream steps to consume or compare results
-programmatically.
+Use `results-path` in downstream steps to consume or compare results from a
+script.
 
 ## Task Secrets
 
-Tasks that declare `.env` or `.env.local` files resolve their variables
-from the runner environment. Add the required secrets alongside
+Tasks that declare `.env` or `.env.local` files resolve their variables from
+the runner environment. Add the required secrets next to
 `ANTHROPIC_API_KEY`:
 
 ```yaml
@@ -135,10 +134,10 @@ jobs:
           runs: "5"
 ```
 
-The harness reads the task's `.env.local` for var names. It resolves each name
-from `process.env`, where the GitHub secrets live. It then renders the file
-into the agent's working directory. You need no `prepare.sh`. You stage
-nothing by hand.
+The harness reads the task's `.env.local` for the variable names, resolves
+each name from `process.env` where the GitHub secrets live, and renders the
+file into the agent's working directory. You need no `prepare.sh`, and you
+stage nothing yourself.
 
 ## Scheduled Runs
 
@@ -159,13 +158,13 @@ Scheduled runs on `main` create a weekly baseline. Compare the latest
 Each run invokes Claude for the agent-under-test, for invariants, and for the
 judge. Control cost with:
 
-- **`runs`** — fewer runs means lower cost but weaker statistical signal.
+- **`runs`**: fewer runs means lower cost but a weaker statistical signal.
   Five runs is a reasonable floor for pass@k.
-- **`max-turns`** — caps agent turns per run. Tasks that finish fast rarely
+- **`max-turns`**: caps agent turns per run. Tasks that finish fast rarely
   need more than 25.
-- **`timeout-minutes`** — hard cancellation. The default is 60. Adjust it to
+- **`timeout-minutes`**: hard cancellation. The default is 60. Adjust it to
   the family size.
-- **PR path filters** — only run when relevant files change.
+- **PR path filters**: only run when relevant files change.
 
 ## Matrix Workflows
 
@@ -191,11 +190,11 @@ Use your own family paths and names.
 
 ## Scale One Family Across Machines
 
-A single machine has a CPU and a per-job time ceiling. One family can be too
-large to finish in one job. The run then hits the timeout. Fan it across
-machines with the bundled reusable workflow. A single `shard-total` input runs
-a deterministic, balanced subset of the cells on each machine. It merges the
-partial ledgers into one pass@k:
+A single machine has a CPU ceiling and a per-job time ceiling. One family can
+be too large to finish in one job, and the run then hits the timeout. Spread
+it across machines with the bundled reusable workflow. A single `shard-total`
+input runs a deterministic, balanced subset of the cells on each machine and
+merges the partial ledgers into one pass@k:
 
 ```yaml
 jobs:
@@ -212,15 +211,15 @@ jobs:
 The workflow runs three stages. A `prepare` job emits the shard list. Four
 parallel `shard` jobs each run their slice with in-process concurrency and
 upload a `benchmark-shard-<i>` partial ledger. A dependent `merge` job
-aggregates the combined report. The merge job carries **no agent scaffold**.
-It provisions only the report CLI, because `report --input` discovers and
-unions every shard's `results.jsonl` recursively. Effective parallelism is
-`shard-total` × the per-machine concurrency. If you leave `shard-total` unset,
-the whole family runs in one shard job. That is the identity case.
+aggregates the combined report. The merge job has **no agent scaffold**. It
+provisions only the report CLI, because `report --input` discovers and unions
+every shard's `results.jsonl` recursively. Effective parallelism is
+`shard-total` × the per-machine concurrency. If you leave `shard-total`
+unset, the whole family runs in one shard job.
 
-Each shard job emits a compact summary (status + pass@k). So a many-shard run
-stays quick to scan. The merge job emits the single full report over the
-combined ledger.
+Each shard job emits a compact summary (status + pass@k), which keeps a
+many-shard run quick to scan. The merge job emits the single full report over
+the combined ledger.
 
 ## Verify
 

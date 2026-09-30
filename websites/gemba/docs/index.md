@@ -1,14 +1,15 @@
 ---
 title: Documentation
-description: Guides for the Gemba agent-runtime platform. Stand up the environment, run agent sessions, read traces, keep memory, measure outcomes, and stop the team when it runs away.
+description: Guides for the Gemba agent-runtime platform. Stand up the environment, run agent sessions, read traces, keep memory, measure outcomes, and stop the team when it produces more than a human can read.
 layout: product
 toc: false
 ---
 
-The platform runs one loop. You stand up the environment, run sessions, see
-what happened, remember it, measure the outcome, and stop the team when it runs
-away. Each job below covers one part of that loop. Start with the first job.
-Then pick the job you have now.
+The platform runs one loop. You stand up the environment, run sessions, look at
+what happened, keep a record of it, measure the outcome, and stop the team when
+it produces more than a human can read. Each section below covers one part of
+that loop. Start with the first one, then choose the guide for the task you
+have now.
 
 ## Stand Up the Platform (Teams Using Agents)
 
@@ -66,12 +67,12 @@ Then pick the job you have now.
 
 </div>
 
-The platform ships commands and CI actions. It adds no importable API of its
+The platform ships commands and CI actions. It has no importable API of its
 own. When you want the components instead of the commands, import the runtime
-libraries directly. See the
+libraries directly. The
 [library catalog](https://github.com/forwardimpact/monorepo/blob/main/libraries/README.md#catalog)
-for that API surface.
+lists that API surface.
 
-[Kata](https://www.kata.team/) is the reference tenant. It runs this platform
-every day. The Kata site documents the agent-team practice that sits on top of
+[Kata](https://www.kata.team/) is the reference tenant, and it runs this
+platform every day. The Kata site documents the agent-team practice that uses
 the loop.

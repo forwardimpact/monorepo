@@ -4,10 +4,11 @@ description: Reproducible evidence that agent changes improved outcomes, from th
 ---
 
 You changed an agent profile, tightened a tool allowlist, or rewrote a system
-prompt. The question is whether the change helped. To answer that question you
-need a session that captures every turn. You also need an analysis method that
-connects observed behavior to actionable findings. This guide runs the eval with
-`gemba-harness`. It then hands off to `gemba-trace` so you can read the traces.
+prompt. Now you want to know whether the change helped. To answer that, you
+need a session that captures every turn, and an analysis method that connects
+what you observe to findings you can act on. This guide runs the eval with
+`gemba-harness`. It then hands off to `gemba-trace` so that you can read the
+traces.
 
 ## Prerequisites
 
@@ -36,9 +37,9 @@ on the Forward Impact site.
 ## 1. Write the eval task and profiles
 
 Write the task file and the agent profiles that exercise the change you want to
-evaluate. The task is a markdown prompt. The profiles live under
-`.claude/agents/`. The [Run an Eval](/docs/prove-changes/run-eval/) guide walks
-one judge profile line by line.
+evaluate. The task is a markdown prompt, and the profiles live under
+`.claude/agents/`. For a line-by-line walk through one judge profile, see the
+[Run an Eval](/docs/prove-changes/run-eval/) guide.
 
 A task that evaluates a refactored formatting utility:
 
@@ -78,8 +79,8 @@ include a one-paragraph summary of the gap.
 
 For facilitated sessions with multiple specialists, write a facilitator profile
 and one profile per participant. Each participant only needs to describe its
-specialism. The runtime appends the orchestration tools (`Ask`, `Answer`,
-`Announce`, `RollCall`, `Conclude`) automatically.
+specialism, because the runtime adds the orchestration tools (`Ask`, `Answer`,
+`Announce`, `RollCall`, `Conclude`) for you.
 
 ```md
 <!-- .claude/agents/release-facilitator.md -->
@@ -115,10 +116,10 @@ npx gemba-harness supervise \
   --output=trace--demo.raw.ndjson
 ```
 
-`--max-turns` is the per-runner invocation budget for both the judge and the
-agent. An internal lead-turn cap separately bounds the orchestration loop
-between the supervisor and the agent. `0` removes the per-runner cap. Exit code
-`0` means the judge concluded with `success: true`. Exit code `1` means it
+`--max-turns` is the turn budget for each runner, both the judge and the
+agent. A separate internal cap on lead turns bounds the orchestration loop
+between the supervisor and the agent. `0` removes the cap on each runner. Exit
+code `0` means the judge concluded with `success: true`. Exit code `1` means it
 concluded `success: false`, ran out of turns, or errored.
 
 For a **facilitated session** (one facilitator, N participants):
@@ -135,15 +136,15 @@ npx gemba-harness facilitate \
 ```
 
 Participants share `--agent-cwd` by default. If two participants might edit the
-same file, give each its own working directory. Or restrict tool allowlists so
-only one participant can write. `--max-turns` applies uniformly to the
-facilitator and to every participant. Always set a budget so a stuck
-participant cannot run the session indefinitely. The CLI default is `20`. Raise
-it for sessions that do real implementation work.
+same file, give each one its own working directory, or restrict the tool
+allowlists so that only one participant can write. `--max-turns` applies to
+the facilitator and to every participant in the same way. Always set a budget
+so that a stuck participant cannot run the session forever. The CLI
+default is `20`. Raise it for sessions that do real implementation work.
 
 For a **threaded discussion** (Chair + N participants, suspendable across a
 bridged channel), use `gemba-harness discuss`. It accepts the same lead and
-agent flags. It also accepts `--discussion-id` and `--resume-context`.
+agent flags, plus `--discussion-id` and `--resume-context`.
 `--discussion-id` is the stable thread identifier that traces carry.
 `--resume-context` is the JSON-serialized prior state for a resumed run. A
 bridge service relays the workflow callback when the conversation suspends and
@@ -151,17 +152,17 @@ re-enters. See
 [Bridge Channels](https://www.forwardimpact.team/docs/libraries/bridge-channels/)
 on the Forward Impact site for that surface.
 
-Every mode accepts the task as one of three inputs. Pass exactly one:
+Every mode accepts the task as one of three inputs, and you pass exactly one:
 `--task-file=<path>`, `--task-text="<inline>"`, or
 `--task-event=<path>` for a native GitHub event payload.
 Every agent in the session sees the `--task-file` content as the opening
-prompt. The facilitator profile steers how the session pursues the goal. The
-participants apply their specialisms.
+prompt. The facilitator profile steers how the session pursues the goal, and
+the participants apply their specialisms.
 
 ## 3. Verify the trace
 
-After the run, confirm the trace file exists and contains the expected structure
-before you invest time in analysis:
+After the run, confirm that the trace file exists and has the expected
+structure before you spend time on analysis:
 
 ```sh
 npx gemba-trace overview --file trace--demo.raw.ndjson
@@ -170,7 +171,7 @@ npx gemba-trace stats --file trace--demo.raw.ndjson
 ```
 
 `overview` reports metadata, turn count, and tool usage frequency. `timeline`
-prints one line per turn so you can see the shape of the session at a glance.
+prints one line per turn, so you can see the shape of the session quickly.
 `stats` breaks down token usage and cost. Cross-trace verbs take their files
 through `--file` (repeat it, or pass a quoted glob). They print text by
 default. Add `--format json` for the machine-parseable envelope.
@@ -189,15 +190,15 @@ get `trace--demo--agent.agent.ndjson` and
 `trace--demo--supervisor.supervisor.ndjson`. For `facilitate`, you get
 `trace--demo--facilitator.facilitator.ndjson` plus one
 `trace--demo--<participant>.agent.ndjson` per participant. `--case` defaults
-to `default`. Pass it to disambiguate matrix shards. Per-source traces are
-essential when participants disagreed. You can read each one's view
-independently.
+to `default`. Pass it to tell matrix shards apart. Per-source traces matter
+most when participants disagreed, because you can read each one's view on its
+own.
 
 ## 4. Analyze traces for findings
 
-The trace is qualitative data. The most useful analysis comes when you read the
-trace like a researcher. A checklist does not produce it. Drill into specific
-tools and message exchanges:
+The trace is qualitative data, and the most useful analysis comes when you
+read it closely, as a researcher would. A checklist alone does not find the
+patterns. Look at specific tools and message exchanges:
 
 ```sh
 npx gemba-trace tool trace--demo.raw.ndjson Conclude
@@ -208,13 +209,14 @@ npx gemba-trace search trace--demo.raw.ndjson 'error|fail' --context 1
 npx gemba-trace reasoning --file trace--demo.raw.ndjson
 ```
 
-`tool` and `search` pin a single trace, so they take the file as a positional.
-The cross-trace verbs (`filter`, `reasoning`, and the rest) take `--file`.
+`tool` and `search` work on a single trace, so they take the file as a
+positional argument. The cross-trace verbs (`filter`, `reasoning`, and the
+rest) take `--file`.
 
-The `Conclude` call carries the verdict. Start there when an eval fails. Then
+The `Conclude` call holds the verdict. Start there when an eval fails, then
 follow the timeline backwards. For facilitated sessions, walk `Announce`
-(broadcasts) and `Ask`/`Answer` (targeted exchanges) to see how the
-participants converged or where they diverged.
+(broadcasts) and `Ask`/`Answer` (targeted exchanges) to see where the
+participants agreed and where they differed.
 
 See the [Trace Analysis](/docs/prove-changes/trace-analysis/) guide
 for the full analysis method. That method covers grounded-theory coding,
