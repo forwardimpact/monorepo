@@ -26,6 +26,17 @@ The install writes skills under `.claude/skills/`. One skill bootstraps the
 architecture. The others author a layer, author jobs, author invariant rules,
 and run the maintenance loop. The checks ship as a separate package.
 
+## Install the CLI
+
+```sh
+npm install --save-dev @forwardimpact/jidoka
+```
+
+The package adds a `jidoka` binary to your local `node_modules/.bin`. So
+`npx jidoka` resolves it in every command below, and so does an `npm` script.
+A clean CI runner resolves it the same way from the lockfile. Nothing depends
+on a global install.
+
 ## Decide the jobs shape first
 
 The setup skill cannot decide this for you. Your repository's packaging
@@ -87,10 +98,10 @@ directory enforces nothing, so the starter gives your wiring something to prove.
 The bare command runs the layer and jobs checks. Each check also runs alone:
 
 ```sh
-npx @forwardimpact/jidoka              # layer caps and jobs
-npx @forwardimpact/jidoka instructions # layer length and checklist caps
-npx @forwardimpact/jidoka jtbd --fix   # regenerate stale jobs blocks
-npx @forwardimpact/jidoka invariants   # your own rule modules
+npx jidoka                # layer caps and jobs
+npx jidoka instructions   # layer length and checklist caps
+npx jidoka jtbd --fix     # regenerate stale jobs blocks
+npx jidoka invariants     # your own rule modules
 ```
 
 Call them from the command your contributors already run:
@@ -98,15 +109,16 @@ Call them from the command your contributors already run:
 ```json
 {
   "scripts": {
-    "check": "npx @forwardimpact/jidoka && npx @forwardimpact/jidoka invariants"
+    "check": "npx jidoka && npx jidoka invariants"
   }
 }
 ```
 
 Then call `npm run check` from your CI job. Confirm that `rg` resolves
-there too. A clean runner has nothing on its PATH. So a bare command that only
-a provisioned laptop resolves fails on the first pull request. Record the
-concrete invocation in `CONTRIBUTING.md`.
+there too. A clean runner has nothing on its PATH. So a `jidoka` that only a
+provisioned laptop resolves fails on the first pull request. The local install
+above is what makes `npx jidoka` resolve on that runner. Record the concrete
+invocation in `CONTRIBUTING.md`.
 
 ## Watch the line stop
 
@@ -127,7 +139,8 @@ again. A real defect now stops the line before it can merge.
   `CLAUDE.md` points at `JTBD.md` and the tagged checklists.
 - `.jidoka/invariants/` holds a rule module, and `CONTRIBUTING.md` names both
   that directory and the command that runs it.
-- The check passes from a clean checkout, with no `jidoka` on your PATH.
+- The check passes from a clean checkout, with no global `jidoka` on your
+  PATH.
 
 ## What's next
 

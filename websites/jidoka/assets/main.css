@@ -394,7 +394,8 @@
 }
 
 .foundation-card,
-.gate-card {
+.gate-card,
+.check-card {
   background: var(--bg-page);
   border: 1.5px solid var(--gray-200);
   border-radius: var(--radius-lg);
@@ -405,13 +406,15 @@
 }
 
 .foundation-card:hover,
-.gate-card:hover {
+.gate-card:hover,
+.check-card:hover {
   border-color: var(--ink-200);
   transform: translateY(-2px);
 }
 
 .foundation-source,
-.gate-kind {
+.gate-kind,
+.check-kind {
   font-family: var(--font-mono);
   font-size: var(--text-badge-size);
   color: var(--ink-400);
@@ -430,7 +433,8 @@
 }
 
 .foundation-desc,
-.gate-desc {
+.gate-desc,
+.check-desc {
   font-size: var(--text-body-size);
   color: var(--gray-400);
   line-height: 1.6;
@@ -446,6 +450,120 @@
   border: 1px solid var(--ink-100);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-sm);
+}
+
+/* ── The Andon Cord ────────────────────────────────────────────── */
+
+.check-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.check-cmd {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-h3-size);
+  font-weight: 600;
+  color: var(--gray-900);
+  background: transparent;
+  padding: 0;
+  margin-bottom: var(--space-3);
+}
+
+.check-desc code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--ink-600);
+  background: var(--ink-50);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+}
+
+.demo-headline {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-h2-size);
+  line-height: 1.2;
+  color: var(--gray-900);
+  letter-spacing: -0.01em;
+  margin: var(--space-16) 0 var(--space-3);
+}
+
+.demo-sub {
+  font-size: var(--text-body-size);
+  line-height: 1.6;
+  color: var(--gray-400);
+  max-width: 580px;
+  margin-bottom: var(--space-8);
+}
+
+.andon-demo {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.code-panel {
+  background: var(--bg-inverted);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow:
+    0 24px 80px rgba(6, 7, 12, 0.15),
+    0 8px 24px rgba(6, 7, 12, 0.1);
+}
+
+.code-panel pre {
+  margin: 0;
+  padding: var(--space-6);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--text-on-dark);
+  overflow-x: auto;
+}
+
+.code-panel pre code {
+  font-family: var(--font-mono);
+  font-size: inherit;
+  color: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+.code-comment {
+  color: var(--gray-400);
+}
+
+.code-string {
+  color: var(--ink-200);
+}
+
+.finding-level {
+  color: var(--ink-200);
+  font-weight: 600;
+}
+
+.finding-id {
+  color: var(--ink-400);
+}
+
+.finding-hint {
+  color: var(--gray-400);
+}
+
+.andon-caption {
+  font-size: var(--text-small-size);
+  line-height: 1.6;
+  color: var(--gray-400);
+  margin-top: var(--space-6);
+}
+
+.andon-caption a {
+  color: var(--ink-600);
 }
 
 /* ── Getting Started ───────────────────────────────────────────── */
@@ -537,6 +655,12 @@
   opacity: 1;
   transform: translateY(0);
   transition-delay: 800ms;
+}
+
+.terminal-lines.typing .terminal-line:nth-child(4) {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 1200ms;
 }
 
 .terminal-prompt {
@@ -869,7 +993,9 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .duo-grid {
+  .duo-grid,
+  .check-grid,
+  .andon-demo {
     grid-template-columns: 1fr;
   }
 

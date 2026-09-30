@@ -1,7 +1,8 @@
 # Jidoka
 
-> Built-in quality for agent instructions — eight layers, each with one job,
-> and checks that stop the line the moment a layer drifts.
+> Built-in quality for agent instructions. Eight layers each hold one job.
+> One command stops the line the moment a layer drifts, a job goes stale, or
+> an invariant breaks.
 
 Jidoka is an open-source standard for keeping humans and coding agents on one
 layered instruction architecture. The name is the Toyota principle of building
@@ -12,12 +13,23 @@ one pause point). Each layer owns a single job, no layer restates another, and
 every layer has a machine-checkable budget — so a defect always traces to
 exactly one of them, and the checks halt before it ships.
 
-It draws on three well-publicized ideas. Jidoka (Toyota) answers how quality
-holds: it is built into the process, not inspected in afterward. Jobs To Be
-Done (Christensen, Moesta) answers what agents align to: the progress each
-persona seeks, not a feature list. The Checklist Manifesto (Gawande) answers
-how alignment holds under load: structured instructions keep existing
-knowledge consistently applied.
+The `jidoka` command family is the andon cord. Three checks each own one
+class of defect, so every finding routes to exactly one fix. `jidoka
+instructions` gates every layer with a line cap and a word cap, and it fails a
+checklist block with too many items or an item that explains. `jidoka jtbd`
+validates every job entry against the schema and reports a generated block
+that no longer matches its manifest; `--fix` regenerates it. `jidoka
+invariants` discovers every `*.rules.mjs` module under `.jidoka/invariants/`
+and runs it through one engine. The engine ships with the CLI. The policy
+stays in the repository. A rule module names one claim, collects its subjects
+with kit helpers such as `grep`, `scan`, `scanAst`, and `restatementDrift`,
+and declares rules with an id, a message, and a hint. A finding names the
+file, the line, the rule id, and the fix. Every command accepts `--json` for
+machine-readable findings.
+
+The standard draws on Jidoka (Toyota) for how quality holds, Jobs To Be Done
+(Christensen, Moesta) for what agents align to, and The Checklist Manifesto
+(Gawande) for how alignment holds under load.
 
 The lowest layer, verification, uses two checklist gates. Each is wrapped in
 a semantic tag — `<read_do_checklist>` for entry gates, `<do_confirm_checklist>`
@@ -31,9 +43,11 @@ with the Jobs To Be Done conventions. A repository's structure standard extends
 it; the Monorepo standard is one such extension, and the Kata Agent Team
 implements it as a daily loop.
 
-Install via `apm install forwardimpact/jidoka-skills`, then ask Claude to set
-it up. Wire the installed `jidoka` binary (or `npx @forwardimpact/jidoka`)
-into your checks to stop the line at the first drifted layer.
+Install the skill pack via `apm install forwardimpact/jidoka-skills` and the
+CLI via `npm install --save-dev @forwardimpact/jidoka`, then ask Claude to set
+it up. Wire `npx jidoka` and `npx jidoka invariants` into your checks to stop
+the line at the first drifted layer. The bare command runs the layer and jobs
+checks. Only the second call runs the repository's own rule modules.
 
 The documentation tree covers adoption, the layer architecture, and the checks.
 Getting Started takes a repository of unlayered prompt files to a check that

@@ -1,6 +1,6 @@
 ---
 title: Jidoka Instruction Architecture
-description: Built-in quality for agent instructions. Eight layers each hold one job. Checks stop the line the moment a layer drifts. Grounded in Jidoka, Jobs To Be Done, and The Checklist Manifesto.
+description: Built-in quality for agent instructions. Eight layers each hold one job. One command stops the line the moment a layer drifts, a job goes stale, or an invariant breaks.
 toc: false
 layout: home
 ---
@@ -23,7 +23,7 @@ layout: home
     <circle class="layer-lamp" cx="50" cy="26" r="11" fill="url(#jidoka-lamp)" />
   </svg>
   <h1 class="hero-title">Build quality into agent instructions</h1>
-  <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers each hold a single job. Checks stop the line the moment a layer drifts.</p>
+  <p class="hero-subtitle">One instruction architecture for humans and agents. Eight layers each hold a single job. One command stops the line the moment a layer drifts, a job goes stale, or an invariant breaks.</p>
   <div class="scroll-hint">
     <span>Scroll</span>
     <div class="scroll-line"></div>
@@ -41,12 +41,12 @@ layout: home
       <div class="stat-card stagger-item">
         <div class="stat-number">8</div>
         <div class="stat-label">Layers</div>
-        <div class="stat-detail">Most general to most specific</div>
+        <div class="stat-detail">One job each. No layer restates another</div>
       </div>
       <div class="stat-card stagger-item">
-        <div class="stat-number">1</div>
-        <div class="stat-label">Job per layer</div>
-        <div class="stat-detail">No layer restates another</div>
+        <div class="stat-number">3</div>
+        <div class="stat-label">Checks</div>
+        <div class="stat-detail">One per class of defect</div>
       </div>
       <div class="stat-card stagger-item">
         <div class="stat-number">0</div>
@@ -138,25 +138,76 @@ layout: home
 <div class="jidoka-section jidoka-section-cool">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-label">The Foundations</div>
-      <h2 class="section-headline">What agents align to, and how alignment holds.</h2>
-      <p class="section-body">Three well-publicized ideas answer the halves of the problem. Together they explain why the layers have the shape they have. They also explain why the checks stop the line.</p>
+      <div class="section-label">The Andon Cord</div>
+      <h2 class="section-headline">One command. Three checks. The line stops at the first defect.</h2>
+      <p class="section-body">The <code>jidoka</code> command is the andon cord. Each check owns one class of defect, so every finding routes to exactly one fix. Run it in your check script and in CI. The build fails before a drifted layer reaches the next agent run.</p>
     </div>
-    <div class="duo-grid stagger">
-      <div class="foundation-card stagger-item">
-        <div class="foundation-source">Toyota</div>
-        <div class="foundation-name">Jidoka</div>
-        <p class="foundation-desc">How quality holds. The process builds in quality. Inspection afterward does not. The checks halt at the first defect. They never pass one downstream.</p>
+    <div class="check-grid stagger">
+      <div class="check-card stagger-item">
+        <div class="check-kind">Budgets</div>
+        <code class="check-cmd">jidoka instructions</code>
+        <p class="check-desc">A line cap and a word cap gate every layer. A checklist block with too many items fails. So does a checklist item that explains instead of confirms.</p>
       </div>
-      <div class="foundation-card stagger-item">
-        <div class="foundation-source">Christensen &amp; Moesta</div>
-        <div class="foundation-name">Jobs To Be Done</div>
-        <p class="foundation-desc">What agents align to. Every layer traces to the progress a persona seeks in a specific circumstance. No layer traces to a feature list.</p>
+      <div class="check-card stagger-item">
+        <div class="check-kind">Jobs</div>
+        <code class="check-cmd">jidoka jtbd</code>
+        <p class="check-desc">Every job entry must fit the schema. Every generated block must match the manifest that feeds it. <code>--fix</code> regenerates a stale block in place.</p>
       </div>
-      <div class="foundation-card stagger-item">
-        <div class="foundation-source">Atul Gawande</div>
-        <div class="foundation-name">The Checklist Manifesto</div>
-        <p class="foundation-desc">How alignment holds under load. Structured instructions keep humans and agents consistent in how they apply existing knowledge.</p>
+      <div class="check-card stagger-item">
+        <div class="check-kind">Your rules</div>
+        <code class="check-cmd">jidoka invariants</code>
+        <p class="check-desc">It discovers every <code>*.rules.mjs</code> module under <code>.jidoka/invariants/</code> and runs it through one engine. The engine ships with the CLI. The policy stays in your repository.</p>
+      </div>
+    </div>
+    <div class="reveal">
+      <h3 class="demo-headline">Your own rule. Twenty lines.</h3>
+      <p class="demo-sub">State one claim the code must satisfy. Collect the subjects. Declare the rule. The check then fails the build on the first file that breaks the claim.</p>
+    </div>
+    <div class="andon-demo reveal">
+      <div class="code-panel">
+        <div class="terminal-bar">
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+          <div class="terminal-dot"></div>
+          <div class="terminal-title">.jidoka/invariants/no-child-process.rules.mjs</div>
+        </div>
+        <pre><code><span class="code-comment">// Invariant: src/ never imports node:child_process.</span>
+<span class="code-comment">// Every subprocess call goes through the shared runner.</span>
+export default {
+  name: <span class="code-string">"no-child-process"</span>,
+  build: ({ grep }) =&gt; ({
+    subjects: {
+      <span class="code-string">"src-file"</span>: grep({
+        pattern: <span class="code-string">'from "node:child_process"'</span>,
+        globs: [<span class="code-string">"src/**/*.js"</span>],
+      }),
+    },
+  }),
+  rules: ({ failAll }) =&gt; [
+    failAll(<span class="code-string">"src-file"</span>, {
+      id: <span class="code-string">"no-child-process.import"</span>,
+      message: () =&gt; <span class="code-string">'imports "node:child_process"'</span>,
+      hint: <span class="code-string">"call the shared runner instead"</span>,
+    }),
+  ],
+};</code></pre>
+      </div>
+      <div class="andon-finding">
+        <div class="code-panel">
+          <div class="terminal-bar">
+            <div class="terminal-dot"></div>
+            <div class="terminal-dot"></div>
+            <div class="terminal-dot"></div>
+            <div class="terminal-title">Terminal</div>
+          </div>
+          <pre><code><span class="terminal-prompt">&#10095; </span>npx jidoka invariants
+src/deploy.js
+  1  <span class="finding-level">error</span>  imports "node:child_process"  <span class="finding-id">no-child-process.import</span>
+            <span class="finding-hint">→ call the shared runner instead</span>
+&nbsp;
+<span class="finding-level">✖ 1 problem</span> (1 error, 0 warnings)</code></pre>
+        </div>
+        <p class="andon-caption">The finding names the file, the line, the rule id, and the fix. Nobody searches the repository by hand. The <a href="/docs/stop-the-line/write-invariant-rules/">invariant rules guide</a> covers AST scans, value agreement across files, and a monotone deny-list for a migration.</p>
       </div>
     </div>
   </div>
@@ -202,8 +253,8 @@ layout: home
 <div class="jidoka-section jidoka-section-cool">
   <div class="section-inner">
     <div class="reveal">
-      <h2 class="getting-started-label">Adopt it in three lines.</h2>
-      <p class="getting-started-sub">Install the skill pack. Tell Claude to set it up.</p>
+      <h2 class="getting-started-label">Adopt it in four lines.</h2>
+      <p class="getting-started-sub">Install the skill pack and the CLI. Tell Claude to set it up. Run the checks.</p>
     </div>
     <div class="terminal reveal">
       <div class="terminal-bar">
@@ -213,11 +264,12 @@ layout: home
         <div class="terminal-title">Terminal</div>
       </div>
       <div class="terminal-lines">
-        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">cd my-repo/</span></div>
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">apm install forwardimpact/jidoka-skills</span></div>
+        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">npm install --save-dev @forwardimpact/jidoka</span></div>
         <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">echo </span><span class="terminal-string">"Set up Jidoka"</span><span class="terminal-cmd"> | claude</span></div>
+        <div class="terminal-line"><span class="terminal-prompt">&#10095; </span><span class="terminal-cmd">npx jidoka &amp;&amp; npx jidoka invariants</span></div>
       </div>
     </div>
-    <p class="closing-note reveal">Then wire the <code>jidoka</code> binary (or <code>npx @forwardimpact/jidoka</code>) into your checks, so the line stops at the first drifted layer. Read the full standard in the <a href="/docs/layered-instructions/">layered instruction architecture guide</a>.</p>
+    <p class="closing-note reveal">The bare command runs the layer and jobs checks. The second call runs your own rules. Wire both into your check script and your CI workflow with the <a href="/docs/stop-the-line/">stop the line guide</a>. Read the full standard in the <a href="/docs/layered-instructions/">layered instruction architecture guide</a>.</p>
   </div>
 </div>
