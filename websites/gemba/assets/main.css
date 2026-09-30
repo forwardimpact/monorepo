@@ -543,18 +543,6 @@ body:has(main.layout-home) .site-footer {
   padding: 2px var(--space-2);
 }
 
-/* The Stand up step ships as a composite action, not a command. The
-   badge says so, or a reader tries to install a name that has no bin. */
-.step-card .step-kind {
-  margin-left: var(--space-2);
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--gray-400);
-}
-
 /* ── The Two Surfaces ──────────────────────────────────────────── */
 
 /* Every step ships twice. One card holds the terminal and one holds

@@ -94,7 +94,7 @@ layout: home
       <div class="step-card stagger-item">
         <div class="step-name">Stand up</div>
         <p class="step-question">Is the environment ready and the toolchain pinned?</p>
-        <span class="step-command step-action">gemba-bootstrap<span class="step-kind">action</span></span>
+        <span class="step-command">gemba-bootstrap</span>
       </div>
       <div class="step-card stagger-item">
         <div class="step-name">Run</div>
