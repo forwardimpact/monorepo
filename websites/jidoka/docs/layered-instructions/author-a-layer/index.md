@@ -17,7 +17,7 @@ their own bounded task in
 
 ## Prerequisites
 
-- Node.js 22 or later, so `npx @forwardimpact/jidoka instructions` runs in your
+- Node.js 22 or later, so `npx jidoka instructions` runs in your
   repository.
 - The skill pack installed: `apm install forwardimpact/jidoka-skills`.
 - The layered architecture already in place. See
@@ -104,7 +104,7 @@ promises.
 Run the check:
 
 ```sh
-npx @forwardimpact/jidoka instructions
+npx jidoka instructions
 ```
 
 A breach names the file, the count, the cap, and the layer:
@@ -157,7 +157,7 @@ skill reference in the `references/` directory.
 
 You have reached the outcome of this guide when:
 
-- `npx @forwardimpact/jidoka instructions` reports no findings.
+- `npx jidoka instructions` reports no findings.
 - Each layer you edited delivers what its own job promises. It delivers nothing
   another layer owns.
 - Layers that name the same tool differ by voice. Neither repeats the other's

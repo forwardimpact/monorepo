@@ -14,7 +14,7 @@ place.
 
 - A procedure for each domain of work, so gates verify known steps.
 - The skill pack: `apm install forwardimpact/jidoka-skills`.
-- The check: `npx @forwardimpact/jidoka`.
+- The check: `npx jidoka`.
 
 ## Two gates, two moments
 
@@ -139,7 +139,7 @@ teaches contributors to treat every checklist as noise.
 ## Verify
 
 ```sh
-npx @forwardimpact/jidoka instructions
+npx jidoka instructions
 ```
 
 - The command reports no finding with an `L7.` rule identifier.

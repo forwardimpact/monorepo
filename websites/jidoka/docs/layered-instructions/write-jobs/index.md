@@ -17,7 +17,7 @@ names. So an entry naming a feature aims every layer below it at that feature.
 
 ```sh
 apm install forwardimpact/jidoka-skills
-npx @forwardimpact/jidoka jtbd
+npx jidoka jtbd
 ```
 
 ## 1. Choose where the jobs live
@@ -151,8 +151,8 @@ Run the check. In the generated shape it also reports any block that no longer
 matches its manifest.
 
 ```sh
-npx @forwardimpact/jidoka jtbd          # validate entries and check freshness
-npx @forwardimpact/jidoka jtbd --fix    # regenerate stale blocks in place
+npx jidoka jtbd          # validate entries and check freshness
+npx jidoka jtbd --fix    # regenerate stale blocks in place
 ```
 
 These are the failures a first entry hits.
@@ -182,7 +182,7 @@ enforces. See
 - [ ] `Pull` names a future state and lists no feature.
 - [ ] Each `Fired When` names at least one shift in the world.
 - [ ] Every job sits in a `<job>` tag whose opening line fits 74 characters.
-- [ ] `npx @forwardimpact/jidoka jtbd` exits zero with no findings.
+- [ ] `npx jidoka jtbd` exits zero with no findings.
 
 ## What's next
 

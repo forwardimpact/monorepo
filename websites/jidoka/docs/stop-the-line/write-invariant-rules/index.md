@@ -15,7 +15,8 @@ the build when somebody breaks it. It assumes you already run the checks.
 ## Prerequisites
 
 - Node.js 22+
-- `npx @forwardimpact/jidoka` runs in your repository
+- `@forwardimpact/jidoka` installed as a development dependency, so
+  `npx jidoka` runs in your repository
 - A `.jidoka/invariants/` directory
 - `apm install forwardimpact/jidoka-skills` to author the module with an agent
 
@@ -162,7 +163,7 @@ and its data land in one commit.
 Add a `seed` only when the invariant lands on existing violations:
 
 ```sh
-npx @forwardimpact/jidoka invariants --seed no-child-process \
+npx jidoka invariants --seed no-child-process \
   > .jidoka/invariants/no-child-process.deny.yml
 ```
 
@@ -172,7 +173,7 @@ one. A deny-list that grows is an invariant nobody intends to reach.
 ## Run it
 
 ```sh
-npx @forwardimpact/jidoka invariants   # add --json for machine output
+npx jidoka invariants   # add --json for machine output
 ```
 
 The engine loads modules in filename order. A malformed default export stops

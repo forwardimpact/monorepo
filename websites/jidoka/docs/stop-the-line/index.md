@@ -23,6 +23,8 @@ command catches, how to read a finding, and how to route it to the owning fix.
   root `CLAUDE.md`, `CONTRIBUTING.md`, and `JTBD.md` exist, and
   `.jidoka/invariants/` holds at least one rule module.
 - Node.js 22 or later, with `npx` on your path.
+- `@forwardimpact/jidoka` installed as a development dependency, so
+  `npx jidoka` resolves from the local install.
 - Write access to the repository's check script and its CI workflow.
 
 ## One command per class of defect
@@ -38,7 +40,7 @@ routes to a different fix.
 | `jidoka invariants` | every `*.rules.mjs` module under `.jidoka/invariants/` | whatever rule your repository declared for itself |
 
 Every command accepts `--json` for machine-readable findings. Run
-`npx @forwardimpact/jidoka <command> --help` before you script against it.
+`npx jidoka <command> --help` before you script against it.
 
 ### What `jidoka instructions` enforces
 
@@ -79,8 +81,8 @@ the prose files that publish them. The check compares the generated text against
 the manifest. It reports a mismatch as stale.
 
 ```sh
-npx @forwardimpact/jidoka jtbd          # report schema and stale blocks
-npx @forwardimpact/jidoka jtbd --fix    # regenerate the stale blocks in place
+npx jidoka jtbd          # report schema and stale blocks
+npx jidoka jtbd --fix    # regenerate the stale blocks in place
 ```
 
 Order matters. A schema finding stops regeneration for the catalog that holds
@@ -164,8 +166,8 @@ So a single bare call leaves the rules you wrote yourself unenforced, and
 everywhere you wire one:
 
 ```sh
-npx @forwardimpact/jidoka
-npx @forwardimpact/jidoka invariants
+npx jidoka
+npx jidoka invariants
 ```
 
 Keep them as separate calls rather than one combined script line. The log then
@@ -176,6 +178,12 @@ right fix without reading the whole output.
 
 Add the CLI as a development dependency of the repository. An `npm` script then
 resolves the bare `jidoka` name from the local install, with no global state.
+
+```sh
+npm install --save-dev @forwardimpact/jidoka
+```
+
+The manifest then carries the dependency and the scripts that call it:
 
 ```json
 {
@@ -289,7 +297,7 @@ known violations, and the module reads that list back, so the existing cases
 pass and new ones fail.
 
 ```sh
-npx @forwardimpact/jidoka invariants --seed <module-name>
+npx jidoka invariants --seed <module-name>
 ```
 
 Treat the list as monotone. Each migration commit removes entries. No commit
@@ -321,7 +329,7 @@ not found` error that names the location it expected.
 
 ## Verify
 
-- `npx @forwardimpact/jidoka` and `npx @forwardimpact/jidoka invariants` both
+- `npx jidoka` and `npx jidoka invariants` both
   report a clean pass from a fresh clone and a fresh install.
 - `npm run check` runs both commands, and `CONTRIBUTING.md` records that
   command.

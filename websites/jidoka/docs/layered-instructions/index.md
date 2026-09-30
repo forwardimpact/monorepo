@@ -22,7 +22,7 @@ the check:
 
 ```sh
 apm install forwardimpact/jidoka-skills
-npx @forwardimpact/jidoka instructions
+npx jidoka instructions
 ```
 
 ## Why one job per layer
@@ -333,7 +333,7 @@ and that overlap is the first thing to fix.
 Run the layer check from your repository root:
 
 ```sh
-npx @forwardimpact/jidoka instructions
+npx jidoka instructions
 ```
 
 A conformant repository prints one line:
@@ -363,13 +363,13 @@ Then confirm the jobs check as well. The bare command runs the layer check and
 the jobs check together:
 
 ```sh
-npx @forwardimpact/jidoka
+npx jidoka
 ```
 
 It does not run your own invariant modules, so wire a second call beside it:
 
 ```sh
-npx @forwardimpact/jidoka invariants
+npx jidoka invariants
 ```
 
 Wire both commands into your check task and your CI job. The line then stops on

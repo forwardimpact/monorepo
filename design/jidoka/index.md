@@ -250,6 +250,12 @@ brands, and the footer inverts to `--gray-900`.
 - **Layer cards.** `.layer-card` renders each of the eight layers as a
   tagged card (`L0`–`L7`) with a name and one job sentence. It carries no
   mark — the mark is the stack as a whole, not one bar per card.
+- **Check cards and the andon demo.** `.check-card` renders each of the
+  three `jidoka` checks with its command in mono type and one job sentence.
+  `.andon-demo` pairs a `.code-panel` that holds one twenty-line rule module
+  with a second panel that shows the finding it raises. Both panels reuse the
+  terminal's dark surface and title bar, so the cord and the lamp read as one
+  system.
 - **Footer (dark).** `--bg-inverted` behind `--text-on-dark`, secondary text
   `--gray-300`, dividers `--gray-700`. The word **Jidoka** in Space Grotesk
   700 beside the three-bar footer mark, lamp lit in `--ink-400`. Licenses in
