@@ -122,7 +122,7 @@ runs them in declaration order, one at a time. Write the storyboard and
 coaching workflows from `references/workflow-facilitate.md` only when you
 select `improvement-coach`. Use `forwardimpact/kata-agent` as the action and
 pin it to a SHA. Resolve `{{KATA_AGENT_REF}}` per
-[`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs).
+[`references/action-refs.md`](references/action-refs.md).
 
 Pair the pins with a `github-actions` Dependabot config. The pins then get
 bump PRs and do not rot. Write `.github/dependabot.yml` (or merge this

@@ -13,7 +13,7 @@ one-on-one.
 | `{{AGENT_LIST}}`      | selected agents except `improvement-coach`         |
 | `{{MODEL}}`           | `claude-opus-4-8[1m]`                              |
 | `{{WIKI}}`            | `"true"` or `"false"`                              |
-| `{{KATA_AGENT_REF}}`  | resolved per `workflow-shift.md`                   |
+| `{{KATA_AGENT_REF}}`  | resolved per `action-refs.md`                      |
 
 The templates below are **self-hosted**. For the **hosted** control plane (see
 [`SKILL.md`](../SKILL.md) `--hosted`), apply the delta under

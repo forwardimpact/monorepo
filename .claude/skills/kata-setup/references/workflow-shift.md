@@ -98,10 +98,3 @@ Change the self-hosted template in three ways (the **canonical** hosted recipe):
 
 `FIT_OIDC_URL` is the hosted OIDC service URL, a repository **variable** that is
 masked in logs. Hosted needs a `kata-agent` SHA that takes `installation-token`.
-
-## Resolving Action Refs
-
-Pin published actions to an immutable SHA. Never use the mutable `v1` tag. List
-tags with `gh api repos/forwardimpact/kata-agent/tags`. Pick the highest
-`vX.Y.Z`. Emit `<full-40-char-sha> # <tag>`. If resolution fails, stop and ask.
-Pair the pins with the `github-actions` Dependabot config (`SKILL.md` Step 2).
