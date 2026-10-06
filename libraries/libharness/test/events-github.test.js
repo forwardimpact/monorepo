@@ -112,7 +112,7 @@ describe("composeTaskFromGitHubEvent matches the composed task text", () => {
     );
     assert.strictEqual(
       task,
-      'PR "Wire up task-event" (#99) merged to main by @carol (type: User); opened by @bob. A human merge is an approval — record it per the approval-signals reference. May leave unreleased changes to cut. PR URL: https://github.com/acme/repo/pull/99.',
+      'PR "Wire up task-event" (#99) merged to main by @carol (type: User); opened by @bob. A human merge is an approval — record it per the team protocol. May leave unreleased changes to cut. PR URL: https://github.com/acme/repo/pull/99.',
     );
   });
 

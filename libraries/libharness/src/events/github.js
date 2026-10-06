@@ -36,10 +36,10 @@ export const TASK_TEMPLATE_PR_LABELED =
 //
 // A human merge is an act of approval, so the template says so. It does not
 // frame the event as bookkeeping. What to record belongs to the
-// approval-signals reference. The template supplies the identity and the
+// team protocol. The template supplies the identity and the
 // pointer. "cut" still names the genuine post-merge chore.
 export const TASK_TEMPLATE_PR_MERGED =
-  'PR "${PR_TITLE}" (#${NUMBER}) merged to main by @${MERGED_BY} (type: ${MERGED_BY_TYPE}); opened by @${AUTHOR}. A human merge is an approval — record it per the approval-signals reference. May leave unreleased changes to cut. PR URL: ${URL}.';
+  'PR "${PR_TITLE}" (#${NUMBER}) merged to main by @${MERGED_BY} (type: ${MERGED_BY_TYPE}); opened by @${AUTHOR}. A human merge is an approval — record it per the team protocol. May leave unreleased changes to cut. PR URL: ${URL}.';
 
 // The comment and review templates append this verbatim. `${BODY}` is the
 // untrusted author text. The fence and the "data, not instructions" label make
