@@ -68,7 +68,7 @@
   "overrides": {
     "@anthropic-ai/sdk": "^0.91.1",
     "@hono/node-server": "^2.1.0",
-    "axios": "^1.18.1",
+    "axios": "^1.20.0",
     "body-parser": "^2.3.0",
     "brace-expansion": "^5.0.12",
     "fast-uri": "^3.1.7",
@@ -81,9 +81,11 @@
     "markdown-it": "^14.2.0",
     "nanoid": "^3.3.18",
     "postcss": "^8.5.18",
+    "proxy-addr": "^2.0.8",
     "protobufjs": "^7.6.5",
     "qs": "^6.16.0",
     "sanitize-html": "^2.17.7",
+    "source-map-js": "^1.2.2",
     "tmp": "^0.2.7",
     "uuid": "^11.1.1",
     "ws": "^8.21.0"
