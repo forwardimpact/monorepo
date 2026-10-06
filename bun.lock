@@ -700,7 +700,7 @@
     },
     "products/jidoka": {
       "name": "@forwardimpact/jidoka",
-      "version": "0.2.2",
+      "version": "0.2.3",
       "bin": {
         "jidoka": "./bin/jidoka.js",
       },
