@@ -133,7 +133,7 @@
     },
     "libraries/libharness": {
       "name": "@forwardimpact/libharness",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "dependencies": {
         "@anthropic-ai/claude-agent-sdk": "0.3.170",
         "@forwardimpact/libcli": "^0.1.0",
@@ -174,7 +174,7 @@
     },
     "libraries/libinvariant": {
       "name": "@forwardimpact/libinvariant",
-      "version": "0.2.1",
+      "version": "0.2.2",
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.9",
         "@forwardimpact/libutil": "*",
@@ -209,7 +209,7 @@
     },
     "libraries/libmock": {
       "name": "@forwardimpact/libmock",
-      "version": "0.1.17",
+      "version": "0.1.18",
       "dependencies": {
         "@grpc/grpc-js": "^1.14.5",
       },
@@ -337,7 +337,7 @@
     },
     "libraries/librpc": {
       "name": "@forwardimpact/librpc",
-      "version": "0.1.112",
+      "version": "0.1.113",
       "bin": {
         "fit-unary": "./bin/fit-unary.js",
       },
@@ -590,7 +590,7 @@
     },
     "libraries/libwiki": {
       "name": "@forwardimpact/libwiki",
-      "version": "0.3.2",
+      "version": "0.3.3",
       "dependencies": {
         "@forwardimpact/libcli": "^0.1.0",
         "@forwardimpact/libconfig": "^0.1.77",
@@ -618,7 +618,7 @@
     },
     "products/gear": {
       "name": "@forwardimpact/gear",
-      "version": "0.3.6",
+      "version": "0.3.7",
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",
@@ -641,7 +641,7 @@
     },
     "products/gemba": {
       "name": "@forwardimpact/gemba",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "bin": {
         "gemba-harness": "./bin/gemba-harness.js",
         "gemba-trace": "./bin/gemba-trace.js",
