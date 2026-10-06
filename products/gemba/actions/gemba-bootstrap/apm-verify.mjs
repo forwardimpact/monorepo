@@ -1,7 +1,8 @@
 // Verify that every pack declared in apm.yml resolved and deployed.
 //
-// `apm install` exits 0 even when a declared pack fails to resolve, so its exit
-// code cannot gate the run. This script reconciles the packs declared under
+// The pinned `apm install` exits nonzero when a declared pack fails to resolve.
+// Older apm releases exited 0, so this script does not trust the exit code
+// alone. It is a second gate. It reconciles the packs declared under
 // apm.yml `dependencies.apm` against the post-install apm.lock.yaml (matched by
 // repo_url). It also reconciles them against the on-disk deployed files. It
 // exits nonzero on any gap (SC4).

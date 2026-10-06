@@ -52,7 +52,7 @@ runs:
         # The pinned default lives here and nowhere else. An empty value
         # arrives from a caller that omits the key and from a wrapper that
         # forwards its own empty input.
-        bun-version: ${{ inputs.bun-version != '' && inputs.bun-version || '1.3.11' }}
+        bun-version: ${{ inputs.bun-version != '' && inputs.bun-version || '1.4.2' }}
         no-cache: false
 
     - name: Configure git identity
@@ -101,7 +101,7 @@ runs:
 
     - name: Checkout wiki
       if: inputs.token != ''
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ${{ github.repository }}.wiki
         path: wiki
@@ -142,7 +142,7 @@ runs:
 
     - name: Restore environment cache
       id: env-cache
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ${{ steps.cache-paths.outputs.paths }}
         # The vN prefix is a manual cache-buster. Bump it (v2 → v3 → …) when the
@@ -184,7 +184,7 @@ runs:
     # never run. So no bare `apm install` auto-creates apm.yml.
     - name: Restore apm download cache
       if: hashFiles('apm.yml') != ''
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/.cache/apm
         key: apm-v1-${{ runner.os }}-${{ hashFiles('apm.lock.yaml') }}
