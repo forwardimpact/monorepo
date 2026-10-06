@@ -24,11 +24,19 @@ Implementation PRs stay outside this standard.
 ### 1. Approval pinned to a head SHA
 
 An approval signal certifies the specific head it was given on. It never
-certifies a bare phase.
-[`approval-signals.md`](../../../agents/x-approval-signals.md)
-§ Signal invalidation defines the pin source for each signal class. A signal
-whose pin you cannot establish transfers to no other head. It is valid only on
-a head that carries a fresh re-confirmation of the signal.
+certifies a bare phase. Each signal class has one pin source:
+
+| Signal class            | Pin source                                    | Origin |
+| ----------------------- | --------------------------------------------- | ------ |
+| `<phase>:approved` label | Head SHA at the label event                   | Human  |
+| APPROVED review         | The review's commit SHA                       | Human  |
+| Approval comment        | Head SHA when the comment was posted          | Human  |
+| In-session message      | Head SHA recorded with the STATUS write       | Human  |
+| `kata-plan` panel-clean | Head SHA on the PR-side panel record          | Agent  |
+
+A signal whose pin you cannot establish transfers to no other head. It is valid
+only on a head that carries a fresh re-confirmation of the signal. A void
+leaves STATUS as it is.
 
 ### 2. Content identity of the PR's touched paths vs the pinned head
 
@@ -82,9 +90,3 @@ can recompute the claim from the comment alone. A void notice is the same
 comment in the negative. It names the now-void signal, whether it is human- or
 agent-originated, and the re-approval awaited. The gate may hold a
 delta-producing rebase until re-approval is in hand, instead of an eager void.
-
-## Patch-id prohibition
-
-Patch-id equivalence alone never establishes a transfer. It is whitespace-blind.
-It certifies commit pairs. It does not certify head states. Point 2 alone
-establishes content identity.

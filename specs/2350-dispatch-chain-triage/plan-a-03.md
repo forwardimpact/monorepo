@@ -197,7 +197,7 @@ prints one row; `bunx jidoka instructions` and `bunx jidoka invariants` pass.
 ## Step 6: The setup skill
 
 Emit the watchdog, verify it, and drop the guard wording. The line budget is
-inclusive and the file sits one line under it; the edits net minus two lines
+inclusive and the file sits two lines under it; the edits net minus two lines
 after `rumdl fmt` reflows them.
 
 Modified: `.claude/skills/kata-setup/SKILL.md`
@@ -213,7 +213,7 @@ Modified: `.claude/skills/kata-setup/SKILL.md`
 | Step 5, two killswitch bullets | "Emergency stop: set `KATA_KILLSWITCH` truthy. Write a falsy value to resume; deleting it is not clearing it" and "The App holds `Variables` read & write (repo) and read-only (org), so a watchdog engages the killswitch, and no `Secrets` grant"                                                                                                                                                                                      | "Emergency stop: set `KATA_KILLSWITCH` truthy; write a falsy value to resume. The watchdog engages it through the App's `Variables` grant"                                                                                                                      | 4 → 2                           |
 
 Verify: `bun run check:fix` reflows the file; then `bunx jidoka instructions`
-passes and `wc -l` reports 197 lines, and
+passes and `wc -l` reports 196 lines, and
 `rg -n 'recursion guard|App slug' .claude/skills/kata-setup/SKILL.md` prints
 nothing.
 

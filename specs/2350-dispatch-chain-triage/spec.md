@@ -4,7 +4,7 @@
 `kata-agent` action under `products/kata/actions/`, on the `gemba-harness`
 command the Gemba product ships, on the `gemba-watchdog` action README, and on
 the `www.gemba.team` guides
-([work-definition.md § Product-aligned vs internal](../../.claude/agents/x-work-definition.md#product-aligned-vs-internal)).
+([team protocol § Classify Every Finding](../../.claude/agents/x-team-protocol.md#classify-every-finding)).
 The `libharness` task composer, the `kata-setup` skill, and the monorepo
 workflow are internal companions of those surfaces.
 

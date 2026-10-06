@@ -25,10 +25,24 @@ The PR takes the experiment path only when it has **no spec reference** and
 or any both-match → **blocked** fail-closed, and name the ambiguity. Never
 route such a PR silently.
 
+## Experiment rows
+
+A spec-less experiment whose plan ships code carries its own STATUS row with
+four cells: `exp:{issue}<TAB>{state}<TAB>{pin}<TAB>{plan-ref}`. The `plan-ref`
+is the `#NNN` that holds the execution plan.
+
+| State        | Meaning                                                          | Writer                                |
+| ------------ | ---------------------------------------------------------------- | ------------------------------------- |
+| `registered` | Registered with a code-shipping plan. No approval yet. Pin `-`.  | Owning agent                          |
+| `approved`   | A trusted human signal. Pin: the head SHA at signal time.        | `kata-dispatch` or the in-session agent |
+| `cancelled`  | Adjudicated FAIL or VOID, or retired. The pin stays if it was set. | Owning agent                          |
+
+Only a trusted human signal moves a row to `approved`. An agent verdict never
+does. A signal for an absent row waits until the owner registers the row.
+
 ## Approval read (replaces the Step 6 spec-row read)
 
-Read the `exp:{issue}` row in `wiki/STATUS.md` (four cells:
-`exp:{issue}<TAB>{state}<TAB>{pin}<TAB>{plan-ref}`).
+Read the `exp:{issue}` row in `wiki/STATUS.md`.
 
 | Row state                           | Gate verdict                                                                                      |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------- |
@@ -41,7 +55,7 @@ approved-and-pinned experiment PR. A rebase moves the head and invalidates the
 pin. If a rebase is truly unavoidable, the PR re-blocks until a fresh human
 signal covers the new head. The approval read consults only the STATUS row.
 PR-side labels, reviews, and comments feed the row through propagation
-(approval-signals.md). They never feed the gate predicate directly.
+(§ Experiment rows). They never feed the gate predicate directly.
 
 ## Diff-scope check (replaces the Step 9 spec check)
 

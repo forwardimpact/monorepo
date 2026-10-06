@@ -54,13 +54,7 @@ skill has two modes:
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`. Then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Find the last review date for each topic in the coverage map.
-
-> **Writing under `.claude/`:** If this run edits files under `.claude/skills/`,
-> follow [self-improvement.md](../../agents/x-self-improvement.md).
+Find the last review date for each topic in the coverage map.
 
 ### Step 1: Route by mode
 
@@ -152,9 +146,9 @@ in a page's prose stays with that page's own topic.
 
 Every review must produce both categories when applicable. Classify each finding
 with
-[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests)
-(mechanical fix vs structural spec). The agent profile defines branch naming,
-commit conventions, and independence rules.
+[team protocol § Classify Every Finding](../../agents/x-team-protocol.md#classify-every-finding)
+(mechanical fix vs structural spec). The agent profile defines the branch
+names.
 
 **Commit format:** `docs(website): {verb} {topic} documentation`
 
@@ -164,8 +158,7 @@ Verbs: `add` for new pages, `update` for changes, `fix` for corrections.
 
 Commits are not visible until you push them. After you commit on a branch, run
 `open-change` ([work-trackers.md](../../agents/x-work-trackers.md))
-with the title and body. Hold the PR body to
-[Citation integrity](../../agents/x-citation-integrity.md).
+with the title and body.
 
 Each branch gets its own PR. Fix and spec branches are independent. Push and PR
 each one separately. Wiki changes follow the wiki curation skill's publishing
@@ -189,13 +182,13 @@ Append to the current week's log (see agent profile for the file path):
 
 ## Coordination Channels
 
-This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/x-coordination-protocol.md)):
+This skill produces these non-wiki outputs (per the
+[team protocol](../../agents/x-team-protocol.md#channels)):
 
 - **PR comment** — Doc-impact callouts on code PRs that change behaviour
   documented in `websites/`.
 - **Discussion** — Doc gaps that reflect an unsettled product question rather
   than a writing task.
 
-If an inbound PR comment addressed to this agent is ambiguous, follow
-[coordination-protocol.md § Inbound: unclear addressed comments](../../agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).
+If an inbound PR comment addressed to this agent is ambiguous, ask one specific
+question.

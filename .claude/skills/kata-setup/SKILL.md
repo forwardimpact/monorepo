@@ -188,9 +188,8 @@ Setup is verified when the repository is green, not by files on disk:
 Summarize what you created and the next steps:
 
 - Customize agent profiles if you use the defaults
-- Select trust policy and review rigor in an optional `.kata/settings.json`.
-  Options: the `kata-release-merge` and `kata-review` settings references; read
-  mechanic: the shared kata-settings agent reference
+- Select trust policy and review rigor in an optional `.kata/settings.json`
+  with the `kata-settings` skill
 - Adjust schedules after you observe the first runs
 - Emergency stop: set `KATA_KILLSWITCH` truthy. Write a falsy value to resume;
   deleting it is not clearing it

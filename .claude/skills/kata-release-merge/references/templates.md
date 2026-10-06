@@ -48,8 +48,8 @@ verb to the PR's state at gate time:
 
 > Release merge (announcement backstop): PR #<pr-number>, `<title>`, is in
 > flight for this issue and reached the merge gate. No prior comment here
-> named the PR. The gate recorded an adherence miss per
-> coordination-protocol.md fix-in-flight markers.
+> named the PR. The gate recorded an adherence miss against the
+> announce-at-open rule.
 
 ## Re-ping Comments
 

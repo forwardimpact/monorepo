@@ -150,9 +150,8 @@ and a non-`main` branch gate it.
 
 Wiki holds **memory**: own state (summaries, logs, metrics). It is not a
 handoff channel. **Coordination** needs a named receiver and addressable
-artifact: Issue, PR/issue comment, Discussion, or `kata-dispatch`. See
-[memory-protocol](.claude/agents/x-memory-protocol.md) and
-[coordination-protocol](.claude/agents/x-coordination-protocol.md).
+artifact: Issue, PR/issue comment, Discussion, or `kata-dispatch`. See the
+[team protocol](.claude/agents/x-team-protocol.md).
 
 ## Domain Concepts
 

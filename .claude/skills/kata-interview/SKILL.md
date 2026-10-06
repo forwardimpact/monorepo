@@ -62,10 +62,7 @@ Do not tell the agent the key is pre-configured.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Prefer products you did not interview recently.
+Prefer products you did not interview recently.
 
 ### Step 1: Pick the Product
 
@@ -177,8 +174,7 @@ For each actionable finding, use your own `gh`. Extract it. Search for
 duplicates. Create a new issue, or comment on an issue that matches.
 Templates are in `../kata-product-issue/references/templates.md`. Name the
 JTBD job (`<user>: <goal>`) in the body. Add the finding to the report
-table with its issue number. Hold each body to
-[Citation integrity](../../agents/x-citation-integrity.md).
+table with its issue number.
 
 ### Step 9: Report
 

@@ -34,12 +34,10 @@ alongside the skill-specific rules below.
       implementation work happens in the worktree. Never work on the main
       working tree.
 - [ ] Claim before the first code write. Run the atomic `pull` → check →
-      `claim` → `push` per
-      [memory-protocol § Active Claims](../../agents/x-memory-protocol.md#active-claims).
+      `claim` → `push` per the [team protocol](../../agents/x-team-protocol.md).
 - [ ] Probe the remote of record: `git ls-remote origin "refs/heads/<branch>"`
       and `list` changes by head branch and by spec number, any state
-      ([work-trackers.md](../../agents/x-work-trackers.md);
-      [§ Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create)).
+      ([work-trackers.md](../../agents/x-work-trackers.md)).
 - [ ] Read the full spec and all plan files before you write any code.
 - [ ] Implement plan-a unless someone explicitly directs you to a different
       variant.
@@ -69,13 +67,7 @@ alongside the skill-specific rules below.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`. Then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Extract previously implemented specs and blockers.
-
-> **Writing under `.claude/`:** If the plan targets files there, follow
-> [self-improvement.md](../../agents/x-self-improvement.md).
+From memory, extract previously implemented specs and blockers.
 
 ### Step 1: Study the spec deeply
 
@@ -167,9 +159,7 @@ before you advance.
 Push commits only after the panel is clean. Re-run the READ-DO freshness probe
 before the `open-change`. Title the PR with the spec id:
 `feat(scope): ... (#NNN)`. After you open it, announce and route on the
-coordinating issue per
-[coordination-protocol § Claim → probe → create](../../agents/x-coordination-protocol.md#claim--probe--create).
-Hold the PR body to [Citation integrity](../../agents/x-citation-integrity.md).
+coordinating issue per the [team protocol](../../agents/x-team-protocol.md).
 
 ## Handling Problems
 

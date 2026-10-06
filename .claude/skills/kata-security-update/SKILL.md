@@ -57,10 +57,11 @@ Dependabot PR triage.
 Where the repository runs an activity watchdog, that surface is its workflow,
 its composite action home, its CLI bin, and its guardrail library. No agent
 writes the latch it engages
-([`killswitch.md`](../../agents/x-killswitch.md)). The `github-actions` scan
-covers the workflow root and the local actions directory, so it never reaches
-a published action's own pins. The root package-manager scan does reach the
-guardrail library. Guard the action by review and the library by triage.
+([team protocol](../../agents/x-team-protocol.md#guardrails)). The
+`github-actions` scan covers the workflow root and the local actions directory,
+so it never reaches a published action's own pins. The root package-manager scan
+does reach the guardrail library. Guard the action by review and the library by
+triage.
 
 When you evaluate the SHA-pinning check, verify the PR updates **all** workflow
 files that reference the action. See `references/sha-inventory.md` for how to
@@ -74,11 +75,8 @@ major tag lags the release Dependabot tracks through the `# v1` comment.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`. Then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Extract previous triage outcomes and packages that repeatedly fail
-Check 8.
+From memory, extract previous triage outcomes and packages that repeatedly
+fail Check 8.
 
 ### Step 1: List Open Dependabot PRs
 
@@ -128,8 +126,7 @@ that workspace under the policy minimum.
 
 Commit and push fix work **before** a long verification run. Never end the
 session with verification still in the background. It dies at turn end. The
-PR's CI is the verification of record. Hold every PR or comment body to
-[Citation integrity](../../agents/x-citation-integrity.md).
+PR's CI is the verification of record.
 
 Each disposition uses tracker operations from
 [work-trackers.md](../../agents/x-work-trackers.md).

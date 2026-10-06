@@ -1,7 +1,7 @@
 # Merge-Gate Trust Settings
 
 These keys select the merge gate's trust policy. The read mechanic lives in
-the shared [kata-settings reference](../../../agents/x-kata-settings.md).
+the [`kata-settings`](../../kata-settings/SKILL.md) skill.
 
 <setting key="trustSource" default="top-contributors">
 

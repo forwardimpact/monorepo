@@ -492,6 +492,6 @@ export const RULES = [
     check: () => ({}),
     message: (s) =>
       `${s.relPath} matches no class in the wiki filename grammar`,
-    hint: "rename to an admitted class, or extend the Wiki Filename Grammar section in memory-protocol.md and audit/grammar.js together (the single admission path)",
+    hint: "rename to an admitted class, or extend audit/grammar.js in a reviewed change (the single admission path)",
   },
 ];

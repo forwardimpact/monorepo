@@ -2,10 +2,9 @@ import path from "node:path";
 import { WEEKLY_LOG_NAME_RE, WEEKLY_LOG_PART_NAME_RE } from "../constants.js";
 
 // The wiki filename admission grammar. It is a pure classifier. It takes a
-// wiki-relative path and decides whether the filename grammar admits it. The
-// normative prose lives in memory-protocol.md's "Wiki Filename Grammar"
-// section. This module enforces that prose. One home per policy, so the two
-// cannot drift. The audit's `admission` scope is the only consumer.
+// wiki-relative path and decides whether the filename grammar admits it. This
+// module is the one home of the grammar. The audit's `admission` scope is the
+// only consumer.
 
 const NAMED_LEDGERS = new Set(["Home.md", "MEMORY.md", "STATUS.md"]);
 const STORYBOARD_RE = /^storyboard-\d{4}-M\d{2}\.md$/;

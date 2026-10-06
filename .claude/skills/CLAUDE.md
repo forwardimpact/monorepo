@@ -68,8 +68,8 @@ One template across every pack: descriptive Title Case H1, `## When to Use`,
 `## Checklists` near the top, `## Process` with `### Step N: Title` headings,
 `## Documentation` last where present. Use American spelling (`judgment`,
 `labeled`). `behaviour` stays, because it is the domain term. Point at shared
-protocols. Do not restate them. The Read Memory step and citation-integrity
-mentions are one-sentence pointers to the owning agent reference.
+protocols. Do not restate them. The team protocol
+(`.claude/agents/x-team-protocol.md`) owns boot, claims, and approval.
 `.jidoka/invariants/skill-template.rules.mjs` gates the mechanical subset
 in CI. On a false positive, narrow the rule there.
 

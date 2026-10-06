@@ -258,7 +258,7 @@ describe("kata-settings invariant", () => {
 `;
     const findings = await runOn({
       ...CLEAN_REFS,
-      ".claude/agents/x-kata-settings.md": fenced,
+      ".claude/skills/kata-settings/SKILL.md": fenced,
     });
     assert.deepEqual(findings, []);
   });

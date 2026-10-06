@@ -73,9 +73,9 @@ The mechanically checkable subset lives in `.jidoka/invariants/*.rules.mjs`.
 - [ ] If the run produced commits, I pushed the branch with
       `git push -u origin` and captured the PR URL in output. Exception:
       release engineer's direct-to-`main` CI fixes.
-- [ ] I routed outputs per `coordination-protocol.md`, wiki writes per
-      `memory-protocol.md`. Prefer `gemba-wiki` subcommands over hand-edits.
-      None of § Common mis-routings apply.
+- [ ] I routed outputs and wiki writes per the team protocol
+      (`.claude/agents/x-team-protocol.md`). Prefer `gemba-wiki` subcommands
+      over hand-edits.
 
 </do_confirm_checklist>
 

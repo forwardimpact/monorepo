@@ -115,8 +115,7 @@ A plan is approved when `wiki/STATUS.md` shows the spec row at `plan approved`.
 `staff-engineer` may approve a plan after a clean `kata-plan` panel review.
 Alternatively, the same human-driven signals that gate spec/design (label, PR
 comment, APPROVED review, in-session user message) also feed STATUS for plans.
-See [`approval-signals.md`](../../agents/x-approval-signals.md) and
-[`coordination-protocol.md` § Approval signal](../../agents/x-coordination-protocol.md#approval-signal).
+See [team protocol § Approval](../../agents/x-team-protocol.md#approval).
 
 **Post-panel coverage.** If commits land between the panel and the STATUS
 write, record a scoped panel re-read on the PR. You can also record a
@@ -136,14 +135,6 @@ STATUS until the plan meets the criteria.
 When multiple variants exist, note which you recommend (plan-a is the default).
 
 ## Process
-
-### Step 0: Read Memory
-
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Extract the specs you planned before and any deferred work from
-prior entries.
 
 ### Step 1: Find the design
 
@@ -177,9 +168,6 @@ The PR should not become visible to `kata-dispatch` until the panel is clean.
 ### Step 6: Open a plan PR
 
 The PR title carries the spec id: `plan(NNN): …`.
-
-Hold every published body to
-[citation integrity](../../agents/x-citation-integrity.md).
 
 ### Step 7: Write STATUS
 

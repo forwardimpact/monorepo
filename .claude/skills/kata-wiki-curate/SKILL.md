@@ -17,7 +17,7 @@ observations. MEMORY.md falls out of sync.
 ## Curation areas
 
 `gemba-wiki audit` is the spine. It mechanically enforces every contract rule
-the memory protocol defines (budgets, section order, decision blocks, MEMORY.md
+the wiki contract defines (budgets, section order, decision blocks, MEMORY.md
 structure, Active Claims schema, storyboard markers). The same rules gate CI. A
 file that does not match a summary or weekly-log shape stays unclassified by
 design. The audit does not flag it. Per-deliverable agent files then coexist
@@ -50,16 +50,9 @@ Re-verify the named artifact. Do not transcribe it verbatim.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Then read every file in `wiki/`: agent summaries
+Read every file in `wiki/`: agent summaries
 (`wiki/<agent>.md`), the current week's log for each
 (`wiki/<agent>-$(date +%G-W%V).md`), `wiki/MEMORY.md`, and `wiki/Home.md`.
-
-> **When you write under `.claude/`:** If this run edits files under
-> `.claude/agents/` or `.claude/skills/`, follow
-> [self-improvement.md](../../agents/x-self-improvement.md).
 
 ### Step 1: Contract audit
 
@@ -164,10 +157,6 @@ cycle.
   structure itself needs redesign.
 
 ### Publishing changes
-
-Hold wiki content to
-[Citation integrity](../../agents/x-citation-integrity.md)
-before you publish it.
 
 Other agents cannot see wiki changes until you push them. After you commit,
 push the wiki with `cd wiki && git push origin HEAD:master`. You can also let

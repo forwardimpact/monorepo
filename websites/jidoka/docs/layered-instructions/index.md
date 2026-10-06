@@ -206,7 +206,7 @@ picked it up. Move the steps into one skill and route both profiles to it.
 
 **Owning question:** what protocol do several agents share?
 
-The artifact is a file such as `.claude/agents/x-memory-protocol.md`, in the
+The artifact is a file such as `.claude/agents/x-team-protocol.md`, in the
 same directory as the profiles. Two conventions identify it. It has no `name` or
 `description` front matter, and its filename starts with `x-`. The prefix makes
 references easy to see in a listing and sorts them last. The `jidoka` checks

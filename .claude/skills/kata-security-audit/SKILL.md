@@ -80,15 +80,11 @@ declares.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`. Then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Find the last audit date per topic in the coverage map. Canonical
+Find the last audit date per topic in the coverage map. Canonical
 topic-rotation runs (audit topics under § Audit Areas) write only to the wiki.
 They never open a PR. Do **not** `gemba-wiki claim` for them. The claim contract
 applies only when a caller invokes this skill from `kata-security-update`, or
-when the run opens a PR (see
-[memory-protocol § Active Claims](../../agents/x-memory-protocol.md#active-claims)).
+when the run opens a PR.
 
 ### Step 1: Select Topic
 
@@ -132,13 +128,12 @@ paths and line numbers.
 
 Every audit must produce all applicable categories of output. Classify each
 finding with
-[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests)
+[team protocol § Classify Every Finding](../../agents/x-team-protocol.md#classify-every-finding)
 (mechanical fix vs structural spec vs unsettled Discussion). One
 security-specific rule applies. A cross-team policy question goes to a
 Discussion **before** any spec or fix that depends on the answer.
 
-The agent profile defines branch names, commit conventions, and independence
-rules.
+The agent profile defines the branch names.
 
 ## Memory: What to Record
 
@@ -157,11 +152,8 @@ Append to the current week's log (see agent profile for the file path):
 
 ## Coordination Channels
 
-This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/x-coordination-protocol.md)):
+This skill produces these non-wiki outputs (per the
+[team protocol](../../agents/x-team-protocol.md#channels)):
 
 - **Discussion** — Policy questions from the audit (e.g. "should we relax
   SHA-pinning for `actions/*`?") that need cross-team input before a spec.
-
-Hold every published body to
-[citation integrity](../../agents/x-citation-integrity.md).

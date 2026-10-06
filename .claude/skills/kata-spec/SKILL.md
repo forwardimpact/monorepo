@@ -92,7 +92,7 @@ the persona and job it serves from
   Cite evidence by entity or behaviour name. Do not cite a `file:line` pointer.
 - **State the classification.** The spec carries a one-line
   product-vs-internal classification per the shared rubric in
-  [work-definition.md § Product-aligned vs internal](../../agents/x-work-definition.md#product-aligned-vs-internal).
+  [team protocol § Classify Every Finding](../../agents/x-team-protocol.md#classify-every-finding).
 
 **Form follows content.** Prefer tables for lists with shared structure (files,
 criteria, alternatives). Prefer bullets for flat facts. Use prose only for the
@@ -108,9 +108,7 @@ signal is a `<phase>:approved` label, an APPROVED review, an approval comment
 on the PR, or a direct message in an interactive session. `kata-dispatch`
 validates trust and propagates PR-side signals into STATUS. An in-session agent
 writes STATUS when the user explicitly approves. See
-[`approval-signals.md`](../../agents/x-approval-signals.md)
-and
-[`coordination-protocol.md` § Approval signal](../../agents/x-coordination-protocol.md#approval-signal).
+[team protocol § Approval](../../agents/x-team-protocol.md#approval).
 
 Phase progression comes from `main`. Once the spec PR merges,
 `specs/NNN/spec.md` exists on `main`. The next phase may then begin. A STATUS
@@ -134,14 +132,6 @@ not gate the approval signal.
 If the criteria fall short, request changes in a PR comment.
 
 ## Process
-
-### Step 0: Read Memory
-
-Read `wiki/MEMORY.md`. Then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process.
-Extract the specs you wrote before and any deferred work from prior entries.
 
 ### Step 1: Claim the spec number
 
@@ -187,9 +177,6 @@ Under
 [lockstep co-execution](../kata-design/references/lockstep-co-execution.md), do
 **not** open a separate spec PR. The spec ships inside the single combined PR
 that you open at the design stage.
-
-Hold every published body to
-[citation integrity](../../agents/x-citation-integrity.md).
 
 ## Memory: What to Record
 

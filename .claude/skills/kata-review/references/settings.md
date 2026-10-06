@@ -1,8 +1,7 @@
 # Review Rigor Settings
 
 These keys select review rigor for every `kata-review` caller. The read
-mechanic lives in the shared
-[kata-settings reference](../../../agents/x-kata-settings.md).
+mechanic lives in the [`kata-settings`](../../kata-settings/SKILL.md) skill.
 
 <setting key="reviewPanel" default="standard">
 

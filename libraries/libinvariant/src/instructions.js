@@ -190,27 +190,7 @@ async function buildLayers(root, fs) {
         name: "agent reference",
         maxLines: 192,
         maxWords: 1280,
-        files: agentReferences.filter(
-          (p) => !p.endsWith("/agents/x-memory-protocol.md"),
-        ),
-      },
-      {
-        id: "L4",
-        name: "memory-protocol agent reference",
-        // Larger than the L4 default to absorb the two durable surfaces this
-        // one reference is the sole home for. The first is the boot-digest
-        // routing contract. It is a materialized agent-experiments surface with
-        // provenance fields and a last-successful-sync freshness bound, plus
-        // the verbatim standing-carries digest field. The second is the
-        // canonical Carry Surface section. It is a durable per-Assess
-        // obligation surface kept off the summary budget, beside the On-Boot
-        // Read Set it extends. Both are load-bearing memory-protocol concepts.
-        // This limit fits the current content. It is not open-ended.
-        maxLines: 216,
-        maxWords: 1588,
-        files: agentReferences.filter((p) =>
-          p.endsWith("/agents/x-memory-protocol.md"),
-        ),
+        files: agentReferences,
       },
       {
         id: "L5",
