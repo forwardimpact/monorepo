@@ -180,7 +180,7 @@ jobs:
 
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/gemba-wiki@36bcf725649bd89b1706ffb890d43e1356d7f406 # v1.0.3
+        uses: forwardimpact/gemba-wiki@2b203e667b9ecced406a2a8c86fb46353a7951d8 # v1.0.4
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}

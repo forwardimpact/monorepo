@@ -17,7 +17,7 @@ jobs:
   # This caller only picks the family and shard count. The filesystem
   # work-tracker is the reusable workflow's env contract.
   benchmark:
-    uses: forwardimpact/gemba-benchmark/.github/workflows/benchmark.yml@957c1160820c3ee33e0d9a5be82bb7ff3df5e4b9 # v1.0.10
+    uses: forwardimpact/gemba-benchmark/.github/workflows/benchmark.yml@e006c7c68cf59ba6a13921c293366407fa25475a # v1.0.13
     with:
       family: ./benchmarks/jidoka-skills
       runs: "5"
