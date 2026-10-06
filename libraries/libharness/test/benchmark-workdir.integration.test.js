@@ -58,8 +58,13 @@ setInterval(() => {}, 1000);
     await writeFile(join(taskRoot, "workdir", "listener.js"), listener);
     const preflight = `#!/bin/sh
 bun "$AGENT_CWD/listener.js" >/dev/null 2>&1 &
-# Give the listener a moment to bind before we exit.
-sleep 0.2
+# Wait until the service accepts connections. A fixed sleep races a slow start.
+i=0
+until curl -sf --max-time 1 "http://127.0.0.1:$PORT/" >/dev/null 2>&1; do
+  i=$((i + 1))
+  [ "$i" -ge 50 ] && exit 1
+  sleep 0.1
+done
 exit 0
 `;
     await writeFile(join(taskRoot, "hooks", "preflight.sh"), preflight);
