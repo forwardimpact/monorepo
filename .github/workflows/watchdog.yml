@@ -42,7 +42,7 @@ jobs:
       reason: ${{ steps.assess.outputs.reason }}
     steps:
       - id: assess
-        uses: forwardimpact/gemba-watchdog@21c6268a8326e9ba52e82ac463b30d8995610fd3 # v1
+        uses: forwardimpact/gemba-watchdog@437b84d56a5036d618ce35bcfbda4d03103d66e2 # v1.0.1
         with:
           mode: assess
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
@@ -68,7 +68,7 @@ jobs:
     permissions: {}
     steps:
       - id: engage
-        uses: forwardimpact/gemba-watchdog@21c6268a8326e9ba52e82ac463b30d8995610fd3 # v1
+        uses: forwardimpact/gemba-watchdog@437b84d56a5036d618ce35bcfbda4d03103d66e2 # v1.0.1
         with:
           mode: engage
           variable: ${{ env.WATCHDOG_VARIABLE }}
