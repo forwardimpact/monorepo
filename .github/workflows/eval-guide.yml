@@ -105,7 +105,7 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.ci-app.outputs.token }}
 
-      - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
+      - uses: forwardimpact/gemba-bootstrap@da20c935595233035b3bd2db67308bbabf8544c6 # v1.0.22
         with:
           token: ${{ steps.ci-app.outputs.token }}
           app-slug: kata-agent-team
@@ -162,7 +162,7 @@ jobs:
         run: echo "dir=$(mktemp -d)" >> "$GITHUB_OUTPUT"
 
       - name: Run eval
-        uses: forwardimpact/gemba-harness@f1943c61188049a86436913af157852b70331813 # v1.0.4
+        uses: forwardimpact/gemba-harness@0c18c5b39df9e5abf608c74191f810c68c066dc6 # v1.0.7
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GH_TOKEN: ${{ steps.ci-app.outputs.token }}
@@ -180,7 +180,7 @@ jobs:
 
       - name: Push wiki changes
         if: always()
-        uses: forwardimpact/gemba-wiki@ad0042953508240d061ecfb288ce6990247cbd9d # v1.0.2
+        uses: forwardimpact/gemba-wiki@36bcf725649bd89b1706ffb890d43e1356d7f406 # v1.0.3
         with:
           command: push
           app-id: ${{ secrets.KATA_APP_ID }}

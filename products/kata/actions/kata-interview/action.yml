@@ -112,12 +112,12 @@ runs:
 
     - name: Generate installation token
       id: ci-app
-      uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3
+      uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
       with:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
 
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
         token: ${{ steps.ci-app.outputs.token }}
@@ -126,7 +126,7 @@ runs:
     # fit-terrain now also provides the generic substrate bring-up, so this
     # step does NOT install fit-map. A consumer's FI substrate command runs it
     # with bunx as its own documented exception.
-    - uses: forwardimpact/gemba-bootstrap@8ab3c3244f3d0b9fc220e664f094836b26f860a8 # v1.0.20
+    - uses: forwardimpact/gemba-bootstrap@da20c935595233035b3bd2db67308bbabf8544c6 # v1.0.22
       with:
         token: ${{ steps.ci-app.outputs.token }}
         app-slug: ${{ inputs.app-slug }}
@@ -181,7 +181,7 @@ runs:
 
     - name: Run interview
       id: interview
-      uses: forwardimpact/gemba-harness@8570a09c2eab3a82879535c039bdf89bfab76c9e # v1.0.5
+      uses: forwardimpact/gemba-harness@0c18c5b39df9e5abf608c74191f810c68c066dc6 # v1.0.7
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
