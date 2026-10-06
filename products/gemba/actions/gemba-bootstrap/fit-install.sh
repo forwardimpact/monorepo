@@ -352,24 +352,25 @@ brew_install_gear() {
 # the URL. It hands everything to install_tool.
 
 resolve_apm() {
-  local version="0.12.4"
+  # The Linux builds need glibc 2.38 or later (Ubuntu 24.04 and up).
+  local version="0.33.0"
   local target sha256 binary_path="apm" strip=1
 
   case "$OS-$ARCH" in
     linux-x86_64)
       target="${OS}-${ARCH}"
-      sha256="a9be6afb9f33f63598d11a7de1029722fd2601aa2ecaebfe82f4903e12a23a52" ;;
+      sha256="e6374402c74318f7c8bef97a90d8572d049fdab0dc3871492c6b0647ae9e881f" ;;
     linux-aarch64)
       # apm names its arm64 asset apm-linux-arm64 instead of the uname -m
       # "aarch64" value.
       target="linux-arm64"
-      sha256="4b64ff40b2b70ae3c97eb64a608cadcb06c4713cd878708c9685a12394278ca0" ;;
+      sha256="ac40dd0efd1af35a56847beedde96854530d2f54851e026728da017d3af827f8" ;;
     darwin-x86_64)
       target="${OS}-${ARCH}"
-      sha256="c76ef17fa3250f87131ee09d1c8e166fce535dc2d7cea6e44fc1c5d0e3df0bac" ;;
+      sha256="a192f5915b44dac0f7aed9574a98e34e7cda96607760999e4601d1fde773c4f9" ;;
     darwin-arm64)
       target="${OS}-${ARCH}"
-      sha256="1354eb636a2b84f03938a3bd8890175298f57650e6d8507f2d084d3c66c10fd0" ;;
+      sha256="312002dca9e1410557bc0da414b7d9bc8438c905c6573e81c06370fde9910857" ;;
     *) echo "::error::apm: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
   esac
 
@@ -378,22 +379,22 @@ resolve_apm() {
 }
 
 resolve_just() {
-  local version="1.50.0"
+  local version="1.58.0"
   local target sha256 binary_path="just" strip=0
 
   case "$OS-$ARCH" in
     linux-x86_64)
       target="x86_64-unknown-linux-musl"
-      sha256="27e011cd6328fadd632e59233d2cf5f18460b8a8c4269acd324c1a8669f34db0" ;;
+      sha256="4a5cc2f53e6f0f8c59092a6cc38291eb729d46a7dd95d3ae582008881b84931d" ;;
     linux-aarch64)
       target="aarch64-unknown-linux-musl"
-      sha256="3beb4967ce05883cf09ac12d6d128166eb4c6d0b03eff74b61018a6880655d7d" ;;
+      sha256="748237128c4c40cbdabc65e841d05ceba13cc23a91eaba395495894c1d9764df" ;;
     darwin-x86_64)
       target="x86_64-apple-darwin"
-      sha256="e4fa28fe63381ca32fad101e86d4a1da7cd2d34d1b080985a37ec9dc951922fe" ;;
+      sha256="9a09cfef66aaa79da58203970103a0684307716caaabd3e9844cacc4dc0f4023" ;;
     darwin-arm64)
       target="aarch64-apple-darwin"
-      sha256="891262207663bff1aa422dbe799a76deae4064eaa445f14eb28aef7a388222cd" ;;
+      sha256="50ae3e996c974a0bf32ea7d10f495070df33f1b43e0616b2769e3d4821ed8f48" ;;
     *) echo "::error::just: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
   esac
 
@@ -402,22 +403,22 @@ resolve_just() {
 }
 
 resolve_gh() {
-  local version="2.63.2"
+  local version="2.102.0"
   local target sha256 binary_path="bin/gh" strip=1
 
   case "$OS-$ARCH" in
     linux-x86_64)
       target="${OS}_amd64"
-      sha256="912fdb1ca29cb005fb746fc5d2b787a289078923a29d0f9ec19a0b00272ded00" ;;
+      sha256="bb766f710eef8ede859c18578c72c327597cd4c8a85b06001b1f3843c6019386" ;;
     linux-aarch64)
       target="${OS}_arm64"
-      sha256="0f31e2a8549c64b5c1679f0b99ce5e0dac7c91da9e86f6246adb8805b0f0b4bb" ;;
+      sha256="7862c86c72f43df3a2d93ddde6f473285b4e2af61b494849846827e513ef6484" ;;
     darwin-x86_64)
       target="macOS_amd64"
-      sha256="a5f80b98819d753449224288fd089405b19cabd128c1cbc92922fd6d44e5ee5b" ;;
+      sha256="b245f24eb2bf5f75b426b4c26da3651a107f8d5b6f4fddfbfccc5679041378b3" ;;
     darwin-arm64)
       target="macOS_arm64"
-      sha256="0a53c536c8cc7d1c72c75ff836b018bb7f4351dd1c1c87711da4adf6b36824ee" ;;
+      sha256="da922c20d1792e5b2cbf375593d7a658acf034c12c84e007e71c76ef959c337e" ;;
     *) echo "::error::gh: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
   esac
 
@@ -428,22 +429,22 @@ resolve_gh() {
 }
 
 resolve_rg() {
-  local version="15.1.0"
+  local version="15.2.0"
   local target sha256 binary_path="rg" strip=1
 
   case "$OS-$ARCH" in
     linux-x86_64)
       target="x86_64-unknown-linux-musl"
-      sha256="1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599" ;;
+      sha256="33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c" ;;
     linux-aarch64)
       target="aarch64-unknown-linux-gnu"
-      sha256="2b661c6ef508e902f388e9098d9c4c5aca72c87b55922d94abdba830b4dc885e" ;;
+      sha256="a740b91c82eaf9914cfedd353572f2791cbe0162c84101ee0951058f4dcbc90d" ;;
     darwin-x86_64)
       target="x86_64-apple-darwin"
-      sha256="64811cb24e77cac3057d6c40b63ac9becf9082eedd54ca411b475b755d334882" ;;
+      sha256="af7825fcc69a2afc7a7aea55fc9af90e26421d8f20fe59df32e233c0b8a231c1" ;;
     darwin-arm64)
       target="aarch64-apple-darwin"
-      sha256="378e973289176ca0c6054054ee7f631a065874a352bf43f0fa60ef079b6ba715" ;;
+      sha256="3750b2e93f37e0c692657da574d7019a101c0084da05a790c83fd335bad973e4" ;;
     *) echo "::error::rg: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
   esac
 

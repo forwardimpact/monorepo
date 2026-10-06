@@ -49,8 +49,9 @@ verify step reconciles every pack declared under `apm.yml` `dependencies.apm`
 against the resolved `apm.lock.yaml` entries and the deployed files. A declared
 pack that did not resolve **fails the run**. A recorded file that is missing
 also **fails the run**. The run does not continue with a partial environment.
-`apm install` itself exits `0` on an unresolvable pack, so its exit code cannot
-gate this.
+The pinned `apm` exits nonzero on an unresolvable pack, so the install step
+fails first. The verify step is a second gate for the gaps the exit code
+misses.
 
 With **no root `apm.yml`**, all three provisioning steps skip. The action runs
 no `apm install`. It creates no `apm.yml`. It behaves exactly as it does
@@ -64,7 +65,7 @@ monorepo) takes this branch.
 | `token`       | No       | `""`       | GitHub token with read access to the wiki. When you provide it, the action checks the wiki out into `./wiki`. The caller must push it back. See [`forwardimpact/gemba-wiki@v1`](https://github.com/forwardimpact/gemba-wiki). |
 | `app-slug`    | No       | `""`       | GitHub App slug for the git identity (e.g. `kata-agent-team`).                          |
 | `app-id`      | No       | `""`       | GitHub App ID for the git identity email.                                                |
-| `bun-version` | No       | `""`       | Bun version to install. Empty installs 1.3.11.                                           |
+| `bun-version` | No       | `""`       | Bun version to install. Empty installs 1.4.2.                                            |
 | `clis`        | No       | `""`       | Space-separated `fit-*`/`gemba-*` CLIs to install as pinned, SHA-verified pre-compiled binaries on `PATH` (e.g. `gemba-wiki gemba-harness gemba-trace`). An empty value installs only the external tools. |
 
 ## Caching
