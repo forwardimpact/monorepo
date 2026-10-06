@@ -25,7 +25,7 @@ finding unclassified.
 
 ## What each Study stream produces
 
-Study runs four streams. Each one reads a different body of evidence, stops at
+Study runs three streams. Each one reads a different body of evidence, stops at
 cited findings, and repairs nothing in the same step.
 
 | Stream                    | Skills                                                | What a run reads                                      | The finding it produces                            |
@@ -33,7 +33,6 @@ cited findings, and repairs nothing in the same step.
 | Repository audit          | `kata-security-audit`, `kata-devex-audit`             | One topic or area per run, picked from a coverage map  | A defect or a debt cluster, cited by file and line |
 | External feedback triage  | `kata-product-issue`                                  | The open issues your users filed                      | One classification and one action per issue        |
 | Documentation review      | `kata-documentation`                                  | One documentation topic, checked against source code  | An inaccuracy, a stale page, or a missing page     |
-| Grounded-theory synthesis | `kata-synthesize-backlog`, `kata-synthesize-autonomy` | The whole open backlog, or the whole change history    | One proposition, with the item numbers that support it |
 
 Two housekeeping skills run beside them. `kata-wiki-curate` repairs memory in
 place. `kata-archive` retires artifacts that are past their retention window,

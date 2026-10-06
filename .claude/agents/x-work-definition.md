@@ -124,6 +124,6 @@ place. This boundary makes the work addressable. It also keeps `fix/` and
   abstract operation, per tracker.
 - [`issue-lifecycle.md`](../skills/kata-session/references/issue-lifecycle.md)
   — the operation recipes for obstacle and experiment issues.
-- `kata-synthesize-backlog` (corpus mapping) and `kata-session`
+- `kata-session`
   [team-storyboard](../skills/kata-session/references/team-storyboard.md)
-  Q3 routing are **specializations** that build on this rubric.
+  Q3 routing is a **specialization** that builds on this rubric.

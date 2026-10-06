@@ -2,7 +2,7 @@
 
 > An agent team that improves itself on a daily Plan-Do-Study-Act cycle.
 <!-- enum:published-skills:count -->
-> It ships nineteen skills in plain JavaScript,
+> It ships seventeen skills in plain JavaScript,
 <!-- /enum -->
 > and you maintain no infrastructure.
 
@@ -11,7 +11,7 @@ personas run the daily Plan-Do-Study-Act cycle: Staff Engineer, Release
 Engineer, Security Engineer, DevEx Engineer, Product Manager, Technical
 Writer, Archivist, and Improvement Coach.
 <!-- enum:published-skills:count -->
-Nineteen skills do the team's work.
+Seventeen skills do the team's work.
 <!-- /enum -->
 The team runs on plain JavaScript. It needs no database, no queue, and no
 third-party dependency. Shared state is a set of markdown files in a Git
