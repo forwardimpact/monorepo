@@ -123,7 +123,7 @@ approved`. **Human-only**: agents never originate `design approved`. They only
 propagate a signal a trusted human already expressed (label, APPROVED review,
 approval comment, or in-session message). `kata-dispatch` or the active agent
 writes that signal to STATUS. See
-[`approval-signals.md`](../../agents/x-approval-signals.md).
+[team protocol § Approval](../../agents/x-team-protocol.md#approval).
 
 ## Reviewing a Design
 
@@ -136,14 +136,6 @@ findings. The release engineer reads `wiki/STATUS.md` to gate merge. If
 criteria fall short, request changes in a PR comment.
 
 ## Process
-
-### Step 0: Read Memory
-
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process.
-Extract specs previously designed and any deferred work from prior entries.
 
 ### Step 1: Find the spec
 
@@ -185,9 +177,6 @@ The PR title carries the spec id: `design(NNN): …`. Do not apply the
 actions. See § Approval. Under
 [lockstep co-execution](references/lockstep-co-execution.md) this single
 `design(NNN)` PR also carries `spec.md`. Do not open a separate spec PR.
-
-Hold every published body to
-[citation integrity](../../agents/x-citation-integrity.md).
 
 ## Memory: What to Record
 

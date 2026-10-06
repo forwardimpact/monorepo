@@ -131,7 +131,7 @@ graph LR
 - **Act** — Mechanical findings become **pushed fix PRs**. Structural findings
   become `spec.md` documents on **pushed spec branches**. Classify each finding
   per
-  [work-definition.md § Classification tests](.claude/agents/x-work-definition.md#classification-tests).
+  [team protocol § Classify Every Finding](.claude/agents/x-team-protocol.md#classify-every-finding).
   A local commit is not a PR. The URL is the only valid completion signal.
   `fix/` and `spec/` branches never mix.
 
@@ -152,7 +152,7 @@ the agent writes a spec. The agent does not attempt the fix.
 | **improvement-coach** | Study          | Facilitate storyboard meetings and 1-on-1 coaching sessions             |
 
 Each agent selects work through
-[on-boot routing](.claude/agents/x-memory-protocol.md#on-boot-routing):
+the [team protocol run loop](.claude/agents/x-team-protocol.md#run-loop):
 owned priorities → active claims → storyboard deliverables → domain checks →
 cross-cutting fallback.
 
@@ -226,13 +226,12 @@ for utilities).
 | `kata-interview`          | Study   | JTBD switching interviews                     |
 | `kata-documentation`      | Study   | One topic deep per run                        |
 | `kata-wiki-curate`        | Study   | Agent memory hygiene                          |
-| `kata-synthesize-backlog` | Study   | Consolidate overlapping issues/PRs into one spec |
 | `kata-archive`            | Study   | Retire stale time-bounded artifacts safely    |
 | `kata-devex-audit`        | Study   | Deep-dive codebase-health review, one area/run |
-| `kata-synthesize-autonomy`| Study   | Autonomy-vs-approval grounded theory analysis |
 | `kata-spec`               | Act     | Write specs capturing WHAT/WHY                |
 | `kata-review`             | Utility | Grade a single artifact (leaf, no sub-agents) |
 | `kata-session`            | Utility | Toyota Kata coaching protocol for sessions    |
+| `kata-settings`           | Utility | Configure `.kata/settings.json` policy options |
 | `kata-setup`              | Utility | Interactive Kata Agent Team setup             |
 
 <!-- /enum -->
@@ -265,14 +264,14 @@ read and write the same wiki files.
   per-agent deliverables. It also tracks experiments.
 - **Metrics** (`metrics/{skill}/{YYYY}.csv`) — per-skill run metrics.
 
-[memory-protocol.md](.claude/agents/x-memory-protocol.md) defines the canonical
-read-summary, append-log, update-summary cadence. Read
-contract: `Read wiki/MEMORY.md` + `Bash: gemba-wiki boot --agent <self>`.
+The [team protocol](.claude/agents/x-team-protocol.md#run-loop) defines the run
+loop: boot, pick, claim, act, and close. The `gemba-wiki` skill documents each
+memory command.
 
 ## Coordination
 
-[coordination-protocol.md](.claude/agents/x-coordination-protocol.md) governs
-four channels:
+The [team protocol](.claude/agents/x-team-protocol.md#channels) routes each
+output to a channel. Four channels carry coordination:
 
 | Channel               | Use for                                          | Lifetime                              | Mechanism                    |
 | --------------------- | ------------------------------------------------ | ------------------------------------- | ---------------------------- |
@@ -316,9 +315,9 @@ owning table in the kata-release-merge settings reference marks the default.
 The gate trusts `kata-agent-team` PRs by identity.
 
 The optional `.kata/settings.json` file selects among policy options the
-skills define (phase 1: trust source and review rigor). Each vocabulary lives
-in the owning skill's settings reference. An absent file selects the marked
-defaults, which reproduce current behavior.
+skills define: trust source and review rigor. Each vocabulary lives in the
+owning skill's settings reference. An absent file selects the marked defaults.
+The `kata-settings` skill holds the file contract and guides setup.
 
 **Retention PRs** preserve this boundary. The archivist opens a
 `retention(specs)` PR to remove terminal spec directories. The archivist never
@@ -350,7 +349,7 @@ gate merges only what STATUS already authorized. `staff-engineer` may approve
 plans after a `kata-plan` review. The product manager may originate a
 retention-PR approval. `kata-release-merge` reads that approval at the gate
 rather than from a STATUS row. See
-[approval-signals.md](.claude/agents/x-approval-signals.md).
+[team protocol § Approval](.claude/agents/x-team-protocol.md#approval).
 
 ## Metrics
 

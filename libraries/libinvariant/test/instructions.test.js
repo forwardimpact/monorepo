@@ -106,47 +106,24 @@ describe("checkInstructions", () => {
     assert.match(f.message, /agent profile/);
   });
 
-  test("admits memory-protocol.md above the default L4 cap", async () => {
-    // 200 lines exceeds the 192-line default agent-reference cap but stays
-    // under the memory-protocol override (216). This proves the per-file
-    // budget applies to this one reference.
+  test("flags an agent reference above the L4 cap", async () => {
     const oversize = "line\n".repeat(200);
     const findings = await checkInstructions({
       root: ROOT,
       runtime: runtimeWith({
-        [`${ROOT}/.claude/agents/x-memory-protocol.md`]: oversize,
+        [`${ROOT}/.claude/agents/x-team-protocol.md`]: oversize,
       }),
     });
     const f = findings.find(
       (x) =>
         x.id === "instructions.line-budget" &&
-        x.path.endsWith("memory-protocol.md"),
-    );
-    assert.equal(
-      f,
-      undefined,
-      `expected no line-budget finding under the override, got: ${JSON.stringify(findings)}`,
-    );
-  });
-
-  test("flags memory-protocol.md above its override cap", async () => {
-    const oversize = "line\n".repeat(220);
-    const findings = await checkInstructions({
-      root: ROOT,
-      runtime: runtimeWith({
-        [`${ROOT}/.claude/agents/x-memory-protocol.md`]: oversize,
-      }),
-    });
-    const f = findings.find(
-      (x) =>
-        x.id === "instructions.line-budget" &&
-        x.path.endsWith("memory-protocol.md"),
+        x.path.endsWith("x-team-protocol.md"),
     );
     assert.ok(
       f,
-      `expected a line-budget finding above the override, got: ${JSON.stringify(findings)}`,
+      `expected an L4 reference line-budget finding, got: ${JSON.stringify(findings)}`,
     );
-    assert.match(f.message, /memory-protocol agent reference/);
+    assert.match(f.message, /agent reference/);
   });
 
   test("admits kata-release-merge SKILL.md above the default L5 cap", async () => {

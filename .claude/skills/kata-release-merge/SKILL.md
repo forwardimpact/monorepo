@@ -52,10 +52,8 @@ passes every gate merges in Step 11.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`. Then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Extract PRs blocked in previous runs with consecutive-block counts.
+From memory, extract PRs blocked in previous runs with consecutive-block
+counts.
 
 ### Step 1: List Open PRs
 
@@ -170,8 +168,7 @@ STATUS and head timestamps is not coverage evidence. When commits land after
 the last clean review round, fail closed. Mark the PR **blocked**
 (`review coverage unverifiable at head`) until a scoped delta review or a
 reviewed-SHA-plus-head record covers the gap. Labels and APPROVED reviews feed
-STATUS through `kata-dispatch`. Do not consult them here. See
-[`approval-signals.md`](../../agents/x-approval-signals.md).
+STATUS through `kata-dispatch`. Do not consult them here.
 
 **Experiment PRs** (no spec id, one experiment-labeled issue with a named
 owner) take the experiment path instead of the spec-row read. That path has a
@@ -194,18 +191,17 @@ the spec-row read. Pass only when a `product-manager` APPROVED review exists
 re-blocks the PR until a fresh PM review covers the new head. Retention PRs sit
 outside [`references/review-transfer.md`](references/review-transfer.md), whose
 § Applicability restricts it to spec/design/plan phase PRs. So the gate applies
-this rule directly. See
-[`approval-signals.md`](../../agents/x-approval-signals.md).
+this rule directly.
 
 **Settings diffs.** A diff that touches `.kata/`, or, where the repository
 runs an activity watchdog, that watchdog's surface (its workflow, its
 composite action home, its CLI bin, and its guardrail library), is a
 trust-policy change. It merges only on a trusted human's explicit signal on
 that change, pinned to the approved head, per the existing approval-signal
-classes ([`approval-signals.md`](../../agents/x-approval-signals.md)). No
+classes ([`review-transfer.md`](references/review-transfer.md)). No
 agent-originated approval qualifies, whatever the PR's type or phase. The
 watchdog is the team's brake, and no agent writes the latch it engages
-([`killswitch.md`](../../agents/x-killswitch.md)).
+([team protocol](../../agents/x-team-protocol.md#guardrails)).
 
 ### Step 7: Open Comment Gate
 
@@ -248,7 +244,7 @@ present, mark the PR **blocked** (`awaiting classification label`). This gate
 has no fast-path exemption. A `.md`/`.mdx` PR skips the Step 6 approval gate.
 It does not skip this gate. Docs PRs are completed work in the denominator, and
 they must carry the label per
-[work-definition.md § Product-aligned vs internal](../../agents/x-work-definition.md#product-aligned-vs-internal).
+[team protocol § Classify Every Finding](../../agents/x-team-protocol.md#classify-every-finding).
 A `retention` PR carries `internal`. This gate applies to it like any other
 class.
 
@@ -289,11 +285,7 @@ Append to the current week's log:
 
 ## Coordination Channels
 
-Outputs, per
-[coordination-protocol.md](../../agents/x-coordination-protocol.md): use a
-**PR comment** for trust rationale, gate failures, and merge decisions. Use a
+Outputs, per the [team protocol](../../agents/x-team-protocol.md#channels): use
+a **PR comment** for trust rationale, gate failures, and merge decisions. Use a
 **PR thread escalation** for cross-agent requests addressed by name. For
-ambiguous inbound comments, follow
-[coordination-protocol.md § Inbound: unclear addressed comments](../../agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).
-Hold every PR comment to
-[Citation integrity](../../agents/x-citation-integrity.md).
+ambiguous inbound comments, ask one specific question.

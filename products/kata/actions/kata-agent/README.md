@@ -4,9 +4,7 @@ Run a complete Kata agent workflow in a single step. The action handles GitHub
 App authentication, repository checkout, environment bootstrap, agent execution
 through [gemba-harness](https://www.npmjs.com/package/@forwardimpact/gemba),
 and wiki-memory sync. It refreshes the storyboard from live issue/CSV state
-before the run and after it. It then pushes the storyboard back. The action also
-stamps the installation token it mints, and the agent reads the stamp as
-`KATA_GH_TOKEN_STAMP`.
+before the run and after it. It then pushes the storyboard back.
 
 ## Usage
 

@@ -122,7 +122,7 @@ runs them in declaration order, one at a time. Write the storyboard and
 coaching workflows from `references/workflow-facilitate.md` only when you
 select `improvement-coach`. Use `forwardimpact/kata-agent` as the action and
 pin it to a SHA. Resolve `{{KATA_AGENT_REF}}` per
-[`workflow-shift.md` § Resolving action refs](references/workflow-shift.md#resolving-action-refs).
+[`references/action-refs.md`](references/action-refs.md).
 
 Pair the pins with a `github-actions` Dependabot config. The pins then get
 bump PRs and do not rot. Write `.github/dependabot.yml` (or merge this
@@ -188,9 +188,8 @@ Setup is verified when the repository is green, not by files on disk:
 Summarize what you created and the next steps:
 
 - Customize agent profiles if you use the defaults
-- Select trust policy and review rigor in an optional `.kata/settings.json`.
-  Options: the `kata-release-merge` and `kata-review` settings references; read
-  mechanic: the shared kata-settings agent reference
+- Select trust policy and review rigor in an optional `.kata/settings.json`
+  with the `kata-settings` skill
 - Adjust schedules after you observe the first runs
 - Emergency stop: set `KATA_KILLSWITCH` truthy. Write a falsy value to resume;
   deleting it is not clearing it

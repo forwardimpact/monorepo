@@ -81,7 +81,7 @@ skill only for the full Participant Protocol below.
       reported through `Answer`.
 - [ ] Metrics reported through `Answer` match the CSV rows just written.
 - [ ] Q3 obstacle meets its definition (see
-      [work-definition.md](../../agents/x-work-definition.md#classification-tests))
+      [team protocol](../../agents/x-team-protocol.md#classify-every-finding))
       and is recorded as a labeled issue. `#NNN` reported back.
 - [ ] Q4 experiment recorded as a labeled issue (`experiment` + `agent:{self}`)
       with its expected outcome and `#NNN` reported back.
@@ -106,7 +106,7 @@ These questions structure every coaching interaction. The coach asks through
 5. **When can we see what we learned?** The next meeting opens with a review of
    what we learned.
 
-[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests)
+[team protocol § Classify Every Finding](../../agents/x-team-protocol.md#classify-every-finding)
 defines what an obstacle and an experiment *are*. Mode-specific question wording
 (team vs. 1-on-1) lives in the overlays.
 
@@ -145,8 +145,7 @@ defines what an obstacle and an experiment *are*. Mode-specific question wording
    `gh` itself. Triggers and worked example:
    [`team-storyboard.md`](references/team-storyboard.md#q3-obstacle-routing).
    - **Discussion** — shared-artifact change (metric, rule, boundary, policy) or
-     same question in ≥2 agents' Q3 answers. The owning agent opens an RFC per
-     [coordination-protocol.md](../../agents/x-coordination-protocol.md).
+     same question in ≥2 agents' Q3 answers. The owning agent opens an RFC.
    - **Coaching** — participant-scoped blocker / unanalyzed trace / stalled
      experiment. Do not dispatch it here. The obstacle issue stands. The coach
      dispatches the coaching workflow in its Assess run.
@@ -184,9 +183,6 @@ briefing.
    experiment (scoped to one or two daily cycles) and its expected outcome. Then
    create an experiment issue (`experiment` + `agent:{self}`) per
    [`issue-lifecycle.md`](references/issue-lifecycle.md) and report its `#NNN`.
-
-Hold participant writes to
-[Citation integrity](../../agents/x-citation-integrity.md).
 
 ## Memory: What to Record
 

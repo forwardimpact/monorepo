@@ -46,9 +46,6 @@ npx gemba-wiki boot --agent staff-engineer [--format markdown]
 | `--format` | `json` (default) or `markdown` |
 | `--wiki-root` | Override wiki root |
 
-Contract:
-[Memory Protocol § CLI Contract Map](https://github.com/forwardimpact/monorepo/blob/main/.claude/agents/x-memory-protocol.md#cli-contract-map)
-
 ### `log decision | note | done` — Weekly-log append
 
 `decision` must open each weekly-log entry. `log` rotates the file

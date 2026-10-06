@@ -2,7 +2,7 @@
 // `.kata/settings.json` key vocabulary. It validates the settings file
 // when one exists, and checks every `<setting>` options block
 // in the skill and agent references against the vocabulary. The prose
-// grammar lives in .claude/agents/x-kata-settings.md; the owning tables in
+// grammar lives in .claude/skills/kata-settings/SKILL.md; the owning tables in
 // .claude/skills/kata-release-merge/references/settings.md and
 // .claude/skills/kata-review/references/settings.md. Consumer repositories
 // are governed by the read mechanic's degradation rules; this invariant is
@@ -238,7 +238,7 @@ export default {
       when: (s) => s.kind === "block" && s.tagError,
       check: (s) => ({ detail: s.tagError }),
       message: (_s, item) => item.detail,
-      hint: "a <setting> opening tag carries exactly key and default on one line and pairs with </setting> (x-kata-settings.md)",
+      hint: "a <setting> opening tag carries exactly key and default on one line and pairs with </setting> (kata-settings skill)",
     },
     {
       id: "kata-settings.block-key-drift",

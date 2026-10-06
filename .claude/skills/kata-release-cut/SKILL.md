@@ -54,11 +54,8 @@ its class performs the full sweep.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Extract the prior release outcomes and any packages that had publish
-failures.
+From memory, extract the prior release outcomes and any packages that had
+publish failures.
 
 ### Step 1: Pre-Flight — Verify Main Branch CI
 
@@ -133,9 +130,6 @@ and the publish status. [`procedure.md`](references/procedure.md) holds the
 format.
 
 ## Memory: What to Record
-
-Hold every published body to
-[citation integrity](../../agents/x-citation-integrity.md).
 
 Append to the current week's log (see agent profile for the file path):
 

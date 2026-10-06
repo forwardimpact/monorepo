@@ -7,7 +7,7 @@
 // different directories. A path that is right in one place can dangle in the
 // other, and nothing at read time reports it. Three shapes have already gone
 // out that way: a repo-root path that resolves from neither location
-// (`.claude/agents/x-memory-protocol.md`), a depth error that resolves here
+// (`.claude/agents/x-team-protocol.md`), a depth error that resolves here
 // and escapes the pack root (`../../../JTBD.md`), and a link to a profile,
 // which stages under a different name (`<stem>.agent.md`).
 //

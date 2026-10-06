@@ -47,15 +47,15 @@ workflow's artifacts.
 
 ## Classification
 
-[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests)
+[team protocol § Classify Every Finding](../../agents/x-team-protocol.md#classify-every-finding)
 defines the mechanical-vs-structural-vs-unsettled-vs-out-of-scope tests once.
 This table maps those work-types to the triage-specific action and labels.
 Product alignment (the **Product-aligned** row) is this skill's own criterion.
 See § Product Vision Alignment below.
 
 Triage also assigns each issue's product-vs-internal value from the shared
-rubric in
-[work-definition.md § Product-aligned vs internal](../../agents/x-work-definition.md#product-aligned-vs-internal).
+rubric in the
+[team protocol](../../agents/x-team-protocol.md#classify-every-finding).
 The spec or fix that follows carries the `product` or `internal` label that
 matches. The § Product Vision Alignment judgment decides whether an issue is
 in scope. The axis value itself comes from the rubric. No private definition
@@ -65,7 +65,7 @@ sets it.
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | **Mechanical fix/bug**   | Fix PR (direct git ops, no spec)                                                                                    |
 | **Product-aligned**      | Write a spec with the `kata-spec` skill                                                                             |
-| **Cross-product policy** | Open Discussion (per [coordination-protocol.md](../../agents/x-coordination-protocol.md)), then label `triaged` |
+| **Cross-product policy** | Open Discussion, then label `triaged` |
 | **Out of scope**         | Comment + label `triaged`/`wontfix`                                                                                 |
 
 ## Product Vision Alignment
@@ -76,14 +76,6 @@ issue serves. An issue is product-aligned if it describes a job one of the
 project's products should fulfil for its personas.
 
 ## Process
-
-### Step 0: Read Memory
-
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
-The digest's `owned_priorities`, `claims`, and `storyboard_items` seed this
-Process. Extract the issues you processed before and recurring themes from
-prior entries.
 
 ### Step 1: List Open Issues
 
@@ -127,15 +119,12 @@ Append to the current week's log (see agent profile for the file path):
 
 ## Coordination Channels
 
-This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/x-coordination-protocol.md)):
+This skill produces these non-wiki outputs (per the
+[team protocol](../../agents/x-team-protocol.md#channels)):
 
 - **Issue comment** — Triage classification, clarification requests, "not now"
   closures with rationale.
 - **Discussion** — Cross-product policy questions that triage surfaces.
 
-Hold every published body to
-[citation integrity](../../agents/x-citation-integrity.md).
-
-If an inbound issue comment for this agent is ambiguous, follow
-[coordination-protocol.md § Inbound: unclear addressed comments](../../agents/x-coordination-protocol.md#inbound-unclear-addressed-comments).
+If an inbound issue comment for this agent is ambiguous, ask one specific
+question.

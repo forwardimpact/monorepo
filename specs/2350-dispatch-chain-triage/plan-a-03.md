@@ -85,6 +85,7 @@ Verify: `bunx fit-doc build --src=websites/gemba --out=dist` passes.
 Give every installation the brake.
 
 Created: `.claude/skills/kata-setup/references/workflow-watchdog.md`
+Modified: `.claude/skills/kata-setup/references/action-refs.md`
 
 ````markdown
 # Workflow Template: Activity Watchdog
@@ -106,7 +107,7 @@ its token mint, so the run is red and nothing is written.
 
 | Placeholder              | Resolve with                                                                                                                                 |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `{{GEMBA_WATCHDOG_REF}}` | `gh api repos/forwardimpact/gemba-watchdog/tags`, per [`workflow-shift.md` § Resolving action refs](workflow-shift.md#resolving-action-refs) |
+| `{{GEMBA_WATCHDOG_REF}}` | Per [`action-refs.md`](action-refs.md) |
 | `{{DEFAULT_BRANCH}}`     | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name`                                                                             |
 
 ## Template
@@ -184,15 +185,19 @@ The block above is reflowed by this repository's formatter. Copy the `dry-run`
 description's line breaks from `.github/workflows/watchdog.yml`, not from the
 block.
 
+In `action-refs.md`, add one row to the placeholder table:
+`{{GEMBA_WATCHDOG_REF}}` resolves from `forwardimpact/gemba-watchdog`.
+
 Verify: `diff` between the template's YAML and `.github/workflows/watchdog.yml`
 shows comment lines and the three placeholder lines (two `uses:` and the
-`default-branch`) only; `bunx jidoka instructions` and `bunx jidoka invariants`
-pass.
+`default-branch`) only;
+`rg -n GEMBA_WATCHDOG_REF .claude/skills/kata-setup/references/action-refs.md`
+prints one row; `bunx jidoka instructions` and `bunx jidoka invariants` pass.
 
 ## Step 6: The setup skill
 
 Emit the watchdog, verify it, and drop the guard wording. The line budget is
-inclusive and the file sits one line under it; the edits net minus two lines
+inclusive and the file sits two lines under it; the edits net minus two lines
 after `rumdl fmt` reflows them.
 
 Modified: `.claude/skills/kata-setup/SKILL.md`
@@ -208,7 +213,7 @@ Modified: `.claude/skills/kata-setup/SKILL.md`
 | Step 5, two killswitch bullets | "Emergency stop: set `KATA_KILLSWITCH` truthy. Write a falsy value to resume; deleting it is not clearing it" and "The App holds `Variables` read & write (repo) and read-only (org), so a watchdog engages the killswitch, and no `Secrets` grant"                                                                                                                                                                                      | "Emergency stop: set `KATA_KILLSWITCH` truthy; write a falsy value to resume. The watchdog engages it through the App's `Variables` grant"                                                                                                                      | 4 → 2                           |
 
 Verify: `bun run check:fix` reflows the file; then `bunx jidoka instructions`
-passes and `wc -l` reports 197 lines, and
+passes and `wc -l` reports 196 lines, and
 `rg -n 'recursion guard|App slug' .claude/skills/kata-setup/SKILL.md` prints
 nothing.
 

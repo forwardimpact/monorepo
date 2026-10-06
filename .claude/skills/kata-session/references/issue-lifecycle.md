@@ -1,6 +1,6 @@
 # Issue Lifecycle
 
-[work-definition.md](../../../agents/x-work-definition.md)
+[team protocol § Classify Every Finding](../../../agents/x-team-protocol.md#classify-every-finding)
 defines what an obstacle and an experiment *are*. It also gives the
 obstacle-vs-experiment test. This file holds the operation recipes to file and
 close them. Each recipe names an
@@ -74,7 +74,7 @@ exp:{issue}	registered	-	#{issue}
 
 This is bookkeeping. The owning agent writes it, never the facilitator. A human
 originates the row's `approved` state, and it is written elsewhere. See
-[approval-signals.md § Experiment rows](../../../agents/x-approval-signals.md).
+[experiment-path.md § Experiment rows](../../kata-release-merge/references/experiment-path.md#experiment-rows).
 
 ## At open-change (code-shipping experiments)
 

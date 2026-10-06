@@ -1,6 +1,6 @@
 name: Kata Agent
 description: >
-  Run a Kata agent workflow. The action generates and stamps an installation
+  Run a Kata agent workflow. The action generates an installation
   token, checks out the repository, bootstraps the environment, runs the agent
   with gemba-harness from text, a file, or a GitHub event, and delivers the
   run's conclusion to a callback URL when the caller names one.
@@ -177,27 +177,6 @@ runs:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
 
-    # Pair the mint time with the identity of the job execution that issued the
-    # token, in one stamp. The stamp is a step output rather than a GITHUB_ENV
-    # write, because GITHUB_ENV is job-wide and would leak past the action
-    # boundary. It rides the same step env as GH_TOKEN below, so no carried or
-    # resumed session state can pair a token with another token's stamp.
-    # create-github-app-token exports no expiry, so `exp` derives from the ~1h
-    # (3600s) installation-token TTL. This step captures `mint` one step AFTER
-    # the mint, so `mint` trails the true mint by the inter-step latency. The
-    # 120s margin keeps `exp` a conservative UNDER-estimate: the accounting must
-    # never report a dead token as alive. Run id plus run attempt make "issuing
-    # job execution ≠ current ⇒ presumed revoked" a local comparison. A re-run
-    # attempt shares GITHUB_RUN_ID and revokes attempt 1's token. The
-    # auth-anomaly playbook consumes the stamp.
-    - name: Stamp installation token
-      id: stamp
-      shell: bash
-      run: |
-        set -euo pipefail
-        mint=$(date +%s)
-        echo "value=mint=${mint};exp=$((mint + 3600 - 120));run=${GITHUB_RUN_ID};attempt=${GITHUB_RUN_ATTEMPT}" >> "$GITHUB_OUTPUT"
-
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         fetch-depth: 0
@@ -239,10 +218,6 @@ runs:
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
-        # Token freshness stamp, paired with GH_TOKEN on this step env. See the
-        # "Stamp installation token" step above for why, and
-        # .claude/agents/x-auth-anomaly.md for what reads it.
-        KATA_GH_TOKEN_STAMP: ${{ steps.stamp.outputs.value }}
         CALLBACK_URL: ${{ inputs.callback-url }}
         CORRELATION_ID: ${{ inputs.correlation-id }}
         INBOX_URL: ${{ inputs.inbox-url }}

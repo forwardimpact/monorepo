@@ -5,7 +5,7 @@ it. The product-manager facilitates and routes to the best-suited agent. File
 name: `agent-dispatch.yml`. Replace `{{AGENT_LIST}}` (all agents except
 product-manager and improvement-coach), `{{MODEL}}`, `{{WIKI}}`, and
 `{{KATA_AGENT_REF}}`. Resolve the ref at generation time. See
-[`workflow-shift.md` § Resolving action refs](workflow-shift.md#resolving-action-refs).
+[`action-refs.md`](action-refs.md).
 
 The workflow does **no prompt assembly**. It hands the runner's native event
 payload to the action (`task-event: ${{ github.event_path }}`). The action

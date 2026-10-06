@@ -5,7 +5,7 @@
 `gemba-watchdog` CLI help examples, on the `www.gemba.team` guard-activity
 guide, on the published `kata-setup` skill in the `kata-skills` pack, and on the
 `www.kata.team` getting-started page
-([work-definition.md § Product-aligned vs internal](../../.claude/agents/x-work-definition.md#product-aligned-vs-internal)).
+([team protocol § Classify Every Finding](../../.claude/agents/x-team-protocol.md#classify-every-finding)).
 The monorepo's own watchdog workflow and `KATA.md` are internal companions of
 those surfaces.
 

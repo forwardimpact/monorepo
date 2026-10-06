@@ -40,9 +40,9 @@ vs. expected). Update Obstacles. Plan the next experiment.
    `μ`, and any fired-rule `signals` through `Answer`. The facilitator relays
    these and runs no analysis itself. Participants flag any metric whose status
    changed since the last meeting.
-3. **What obstacles prevent us from reaching the target?** Participants
-   identify obstacles from their domain.
-   [work-definition.md § Classification tests](../../../agents/x-work-definition.md#classification-tests)
+3. **What obstacles prevent us from reaching the target?** Participants identify
+   obstacles from their domain. The
+   [team protocol](../../../agents/x-team-protocol.md#classify-every-finding)
    defines what an obstacle *is* and gives the obstacle-vs-experiment test.
 4. **What is the next step? What do you expect?** For the obstacle they address
    now, participants propose their next experiment and its expected outcome,
@@ -87,7 +87,7 @@ record.
 
 Per SKILL.md Step 7, the facilitator picks a route per obstacle (parallel
 allowed) and logs it. Trigger criteria live in
-[work-definition.md § Classification tests](../../../agents/x-work-definition.md#classification-tests).
+[team protocol § Classify Every Finding](../../../agents/x-team-protocol.md#classify-every-finding).
 The owning agent takes Discussion. The coach's Assess run takes Coaching:
 
 | Trigger                                                                          | Route      |

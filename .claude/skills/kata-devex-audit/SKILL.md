@@ -65,8 +65,6 @@ declares.
 
 ### Step 0: Read Memory
 
-Read `wiki/MEMORY.md`, then run `gemba-wiki boot --agent <self>` per
-[memory-protocol § On-Boot Read Set](../../agents/x-memory-protocol.md#on-boot-read-set).
 Find the last audit date per area in the coverage map. Canonical area-rotation
 runs write only to the wiki and never open a PR. Do **not** `gemba-wiki claim`
 for them. The claim contract applies only when this skill opens a PR.
@@ -101,10 +99,10 @@ paths and line numbers.
 ### Step 3: Act on Findings
 
 Classify each finding with
-[work-definition.md § Classification tests](../../agents/x-work-definition.md#classification-tests).
+[team protocol § Classify Every Finding](../../agents/x-team-protocol.md#classify-every-finding).
 A **mechanical cleanup** changes no behavior and lands on a `fix/` PR. A
 **structural refactor** routes to a `spec/` branch. The agent profile defines
-branch names, commit conventions, and independence rules.
+the branch names.
 
 ## Memory: What to Record
 
@@ -122,12 +120,9 @@ Append to the current week's log:
 
 ## Coordination Channels
 
-This skill produces these non-wiki outputs (per
-[coordination-protocol.md](../../agents/x-coordination-protocol.md)):
+This skill produces these non-wiki outputs (per the
+[team protocol](../../agents/x-team-protocol.md#channels)):
 
 - **Discussion** — a cross-team consistency question surfaced from the audit
   (e.g. "should the whole tree adopt one naming idiom?") that needs input
   before a spec or fix.
-
-Hold every published body to
-[citation integrity](../../agents/x-citation-integrity.md).

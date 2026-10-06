@@ -34,7 +34,7 @@ other still drafts.
 
 The row skips the `spec approved` state. `design approved` subsumes it, because
 one human signal approves both stages. See
-[`approval-signals.md`](../../../agents/x-approval-signals.md).
+[team protocol § Approval](../../../agents/x-team-protocol.md#approval).
 
 ```text
 spec draft → design draft → design approved

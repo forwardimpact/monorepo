@@ -11,9 +11,9 @@ the issue during that window sees an unfixed defect. That run implements the
 defect again. The result is duplicate work, then merge-gate conflict triage,
 then a superseded close. The announce-at-open duty belongs to the run that
 implements the fix
-([coordination-protocol.md](../../../agents/x-coordination-protocol.md),
-fix-in-flight markers). This step is the backstop. It guarantees the record
-exists before any merge, and it does not depend on author adherence.
+([team protocol § Channels](../../../agents/x-team-protocol.md#channels)). This
+step is the backstop. It guarantees the record exists before any merge, and it
+does not depend on author adherence.
 
 **Self-heal, never block**: a missing announcement is mechanical. A block would
 cost a full dispatch cycle (gate fails → author's next run announces →
@@ -54,8 +54,8 @@ the number, title, and state
 A second PR that references the same issue is a potential duplicate. Comment on
 the issue and name both PRs. Assess which route stands before you merge either
 one. The Step 7 comment gate applies. `--state all` is load-bearing at the gate
-for the same reason it is load-bearing in
-[coordination-protocol § Claim → probe → create](../../../agents/x-coordination-protocol.md#claim--probe--create).
+for the same reason it is load-bearing in the
+[team protocol](../../../agents/x-team-protocol.md#run-loop) probe.
 A just-merged sibling settles which route stands. An open-only search cannot
 see it.
 
