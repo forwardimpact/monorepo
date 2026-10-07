@@ -45,7 +45,8 @@ storyboard, coaching, and watchdog workflows, and `.github/dependabot.yml`. All
 six agents run each shift. The shifts follow the timezone of your recent
 commits, or UTC when there are none. Every workflow pins its published action
 to a full commit SHA, and Dependabot updates those pins. With a mutable tag,
-the action could change without a commit in your repository.
+the action could change without a commit in your repository. The watchdog
+engages `KATA_KILLSWITCH` when the team's activity crosses a threshold.
 
 After the repository checks pass, the skill shows one parameter sheet: a table
 per file with each value, where it lives, and why it is the default. Ask for

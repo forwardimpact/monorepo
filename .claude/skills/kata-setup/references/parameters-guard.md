@@ -34,4 +34,5 @@ key".
 | `KATA_KILLSWITCH` | `read:`                                  | `variable · KATA_KILLSWITCH` | A setup write would silence the watchdog |
 | `FIT_OIDC_URL`    | `read:` hosted only                      | `variable · FIT_OIDC_URL`    | The hosted token mint endpoint           |
 
-The `KATA_KILLSWITCH` Value is `absent`, or the value and its timestamp.
+The `KATA_KILLSWITCH` Value is `absent`, or the value and its timestamp, for
+each scope that Step 3 reads.

@@ -35,7 +35,7 @@ the same five questions.
 | --- | --- | --- |
 | Trigger | Daily cron, after the night shift | Manual dispatch |
 | Session mode | `discuss` | `facilitate` |
-| Participants | Every selected agent except the coach | One agent |
+| Participants | Every roster agent except the coach | One agent |
 | Evidence source | Each participant's metrics CSV | That agent's most recent run trace |
 | Durable record | The monthly storyboard file | The coached agent's weekly log |
 

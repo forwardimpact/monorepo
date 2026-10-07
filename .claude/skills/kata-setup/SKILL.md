@@ -88,13 +88,13 @@ no remote yet, list each missing credential in the report and continue.
 
 ### Step 2: Generate the Default Configuration
 
-Seed a working copy from the Default column of
-`references/parameters-agents.md` and `references/parameters-guard.md`. On an
-existing installation, overwrite the copy with the values its files carry.
-Resolve every placeholder from the copy, and each action ref per
+Seed a working copy from the Default column of `references/parameters-agents.md`
+and `references/parameters-guard.md`. On an existing installation, overwrite the
+copy with the values its files carry. Resolve every placeholder from the copy,
+and each action ref per
 [`references/action-refs.md`](references/action-refs.md). Write each file the
-repository lacks. Merge an existing `dependabot.yml` as `dependabot.md` says.
-Change no other existing file before Step 5.
+repository lacks. Merge an existing `dependabot.yml` as
+`references/dependabot.md` says. Change no other existing file before Step 5.
 
 | File                                                       | Template                 | Written when                   |
 | ---------------------------------------------------------- | ------------------------ | ------------------------------ |
@@ -131,8 +131,8 @@ Setup is verified when the repository is green:
 
 - Every generated workflow parses as YAML.
 - Run the repository's checks on a clean checkout. Never leave or ignore red CI.
-- `gh secret list` — confirm the secrets and the named profiles resolve at run
-  time.
+- `gh secret list` — confirm the secrets, and the named profiles in the
+  repository or the pinned packs.
 - `gh variable list`, plus `--org <owner>` for an organization — read
   `KATA_KILLSWITCH` at both scopes and, in hosted mode, `FIT_OIDC_URL`.
 
@@ -182,5 +182,6 @@ Summarize what you created and the next steps:
   (`gh run list --workflow Watchdog --event schedule`) and the counts on their
   summaries. Then change the window or the threshold on the sheet
 - Emergency stop: set `KATA_KILLSWITCH` truthy; write a falsy value to resume.
-  A self-hosted watchdog engages it through the App's `Variables` grant
+  A self-hosted watchdog engages it through the App's `Variables` grant. A
+  hosted watchdog run turns red on a breach, and the operator sets it
 - Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm
