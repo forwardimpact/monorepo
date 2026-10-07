@@ -78,7 +78,8 @@ Order the list as a chain: the persona that opens work first, the persona that
 reviews in the middle, and the persona that ships last. Each agent then works
 on the output that the previous agent produced in the same shift.
 
-Do not start with a full roster. Start with one producer, one reviewer, and one
+`kata-setup` writes a full roster by default. For a first week, ask it for a
+shorter one. Start with one producer, one reviewer, and one
 shipper, and run that for a week. Add a Study persona when the team produces
 enough output to read back.
 

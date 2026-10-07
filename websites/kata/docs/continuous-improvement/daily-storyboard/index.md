@@ -23,8 +23,8 @@ the same five questions.
   only descriptions, and this protocol exists to replace descriptions with
   data.
 - The storyboard and coaching workflows exist in your repository. `kata-setup`
-  writes `.github/workflows/agent-storyboard.yml` and
-  `agent-coaching.yml` when you select the coach.
+  writes them when `improvement-coach` is on the roster, which its default
+  roster includes.
 - The wiki and metric commands come from the Gemba runtime. Read
   [Set up persistent memory and metrics](https://www.gemba.team/docs/predictable-team/)
   before the first session.

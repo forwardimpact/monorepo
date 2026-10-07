@@ -1,6 +1,6 @@
 ---
 title: "Getting Started: Your First Kata Shift"
-description: "Install the Kata skill pack, generate the shift workflow, and run one scheduled shift. Then read the memory, traces, and pull requests it leaves behind."
+description: "Install the Kata skill pack, generate the default workflows, and run one scheduled shift. Then read the memory, traces, and pull requests it leaves behind."
 ---
 
 Kata is an agent team that works on your repository in a daily
@@ -35,35 +35,39 @@ The install writes agent profiles under `.claude/agents/` and skills under
 echo "Set up the Kata Team" | claude
 ```
 
-The `kata-setup` skill runs as a conversation. It starts with no roster and no
-schedule, so think about each decision before you answer. For the first run,
-accept the offered model and the pack's own agent profiles.
+The `kata-setup` skill first settles the control plane. With your own GitHub
+App, it confirms the App and its three secrets. With the hosted control plane,
+it confirms the `FIT_OIDC_URL` variable and the API key. It asks nothing else
+before it writes files.
 
-| Decision      | What it decides                             | A good first answer     |
-| ------------- | ------------------------------------------- | ----------------------- |
-| Control plane | Who owns the App the agents act as          | Self-hosted, your own   |
-| Roster        | Which agent profiles run each shift         | A short set, see below  |
-| Timezone      | When the night, day, and swing shifts start | Your working timezone   |
-| Wiki          | Whether agents share persistent memory      | Yes                     |
+It then writes a complete default configuration: the shift, dispatch,
+storyboard, coaching, and watchdog workflows, and `.github/dependabot.yml`. All
+six agents run each shift. The shifts follow the timezone of your recent
+commits, or UTC when there are none. Every workflow pins its published action
+to a full commit SHA, and Dependabot updates those pins. With a mutable tag,
+the action could change without a commit in your repository.
 
-The skill writes `.github/workflows/agent-shift.yml`, which holds the whole
-roster as one matrix. It also writes `.github/workflows/watchdog.yml`, which
-engages `KATA_KILLSWITCH` when the team's activity crosses a threshold. The
-storyboard, coaching, and dispatch workflows appear only when you select the
-matching option. Every workflow pins its published action to a full commit
-SHA, and a generated `.github/dependabot.yml` updates those pins. With a mutable
-tag, the action could change without a commit in your repository.
+After the repository checks pass, the skill shows one parameter sheet: a table
+per file with each value, where it lives, and why it is the default. Ask for
+any change, such as a shorter roster or another timezone. The skill applies
+it, verifies again, and shows the sheet again. Accept the sheet when it is
+right. Run the skill again later to add a missing workflow or to change a
+value.
+
+The skill never writes `KATA_KILLSWITCH`. The watchdog reads a falsy value
+written at setup as a human clear, and it would then stay silent for its first
+window.
 
 ### Register the GitHub App
 
 The agents act as a GitHub App, so you do not need to rotate a long-lived
 personal token. Register the App on the organization that owns the repository.
 Grant it read and write access to Contents, Pull requests, Issues, Discussions,
-Workflows, and Variables, plus read-only access to Metadata and to organization
-Variables. The watchdog needs Variables write access to engage the killswitch.
-Install it. Then add the repository secrets `KATA_APP_ID`,
-`KATA_APP_PRIVATE_KEY`, and `ANTHROPIC_API_KEY`. Before the first run, confirm
-that each secret exists with `gh secret list`.
+Workflows, and Variables, plus read-only access to Metadata. At organization
+scope, grant read-only access to Variables. The watchdog needs Variables write
+access to engage the killswitch. Install it. Then add the repository secrets
+`KATA_APP_ID`, `KATA_APP_PRIVATE_KEY`, and `ANTHROPIC_API_KEY`. Before the first
+run, confirm that each secret exists with `gh secret list`.
 
 A hosted control plane replaces the App. The workflows then get a short-lived
 token at run time, and the setup needs a `FIT_OIDC_URL` repository variable
@@ -71,10 +75,11 @@ instead of a private key.
 
 ## Pick a first roster
 
-The matrix runs one agent at a time, so the number of agents sets both the
-shift duration and the cost. Start with the product manager, which triages the
-open backlog, and the technical writer, which reviews docs and curates memory.
-Both produce a readable result on a repository that has no approved work yet.
+The default roster runs all six agents, one at a time, so the roster sets both
+the shift duration and the cost. For a first shift, ask the skill for a shorter
+roster: the product manager, which triages the open backlog, and the technical
+writer, which reviews docs and curates memory. Both produce a readable result on
+a repository that has no approved work yet.
 
 Leave the engineering agent out of the first shift. It implements work from the
 approval record in `wiki/STATUS.md`, and a repository with no approved row
@@ -129,8 +134,8 @@ repository variable to any value other than empty, `0`, `false`, `no`, or
   reports tokens and cost.
 - **Memory reached the wiki.** A weekly log file exists for each agent that ran,
   and it records the decision that agent made.
-- **The roster and the pins match your choices.** The matrix lists only the
-  profiles you confirmed, and every `uses:` line has a full commit SHA.
+- **The sheet matches your files.** The matrix lists the roster on the sheet
+  you accepted, and every `uses:` line has a full commit SHA.
 
 ## What's next
 
