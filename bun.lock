@@ -618,7 +618,7 @@
     },
     "products/gear": {
       "name": "@forwardimpact/gear",
-      "version": "0.3.7",
+      "version": "0.3.8",
       "dependencies": {
         "@forwardimpact/libcodegen": "^0.1.49",
         "@forwardimpact/libdoc": "^0.2.24",
@@ -641,7 +641,7 @@
     },
     "products/gemba": {
       "name": "@forwardimpact/gemba",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "bin": {
         "gemba-harness": "./bin/gemba-harness.js",
         "gemba-trace": "./bin/gemba-trace.js",
@@ -981,7 +981,7 @@
     },
     "services/mcp": {
       "name": "@forwardimpact/svcmcp",
-      "version": "0.1.22",
+      "version": "0.1.23",
       "bin": {
         "fit-svcmcp": "./server.js",
       },
@@ -998,7 +998,7 @@
         "@forwardimpact/libutil": "^0.1.85",
         "@forwardimpact/svcmap": "^0.1.0",
         "@hono/node-server": "^2.1.0",
-        "@modelcontextprotocol/sdk": "^1.31.0",
+        "@modelcontextprotocol/sdk": "^1.32.1",
       },
       "devDependencies": {
         "@forwardimpact/libmock": "^0.1.0",
