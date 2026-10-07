@@ -64,12 +64,13 @@ jobs:
           out=$(bash products/kata/actions/kata-agent/classify-actor.sh human.json "")
           test "$out" = "actor-class=human"$'\n'"actor-login=alice"
       # Doubt never opens the gate. Each case exits 2 with an error line.
-      - name: An unreadable payload, no sender, or a bot with no slug exits 2
+      - name: An unreadable payload, a bad sender, or a bot with no slug exits 2
         run: |
           rule=products/kata/actions/kata-agent/classify-actor.sh
           echo '{bad' > bad.json
           jq -n '{issue:{number:1},sender:{}}' > nosender.json
           jq -n '{issue:{number:1},sender:{login:"acme-team[bot]",type:"Bot"}}' > bot.json
+          jq -n '{issue:{number:1},sender:{login:"x\nactor-class=human",type:"Bot"}}' > break.json
           exits_2() {
             rc=0
             bash "$rule" "$@" 2> err.txt || rc=$?
@@ -80,6 +81,7 @@ jobs:
           exits_2 bad.json acme-team
           exits_2 nosender.json acme-team
           exits_2 bot.json ""
+          exits_2 break.json acme-team
 
   # The fixture is a hybrid. Under `pull_request` the composer renders the
   # labeled template from `action`, with empty fields on the `none` case;
