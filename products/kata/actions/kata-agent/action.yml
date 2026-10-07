@@ -146,7 +146,7 @@ outputs:
   trace-file:
     description: >
       Absolute path of the raw NDJSON trace file from the agent run
-      (empty when `trace` is disabled). The file wraps each
+      (empty when `trace` is disabled or the run stood down). The file wraps each
       agent/supervisor/facilitator/chair/orchestrator event in
       `{source, seq, event}` envelopes. Read it directly to post-process the
       run. For example, run `gemba-trace cost <file>` to sum spend across every
@@ -155,14 +155,15 @@ outputs:
   trace-dir:
     description: >
       Absolute path of the temp directory that holds all trace files for this
-      run (empty when `trace` is disabled). Use it to read the raw or split
+      run (empty when `trace` is disabled or the run stood down). Use it to read the raw or split
       trace files. You do not need to glob the runner's temp space. The
       internal `gemba-harness` action passes it through.
     value: ${{ steps.assess.outputs.trace-dir }}
   case:
     description: >
-      Effective case identifier that appears in the trace filenames. The
-      internal `gemba-harness` action passes it through.
+      Effective case identifier that appears in the trace filenames (empty
+      when the run stood down). The internal `gemba-harness` action passes it
+      through.
     value: ${{ steps.assess.outputs.case }}
   actor-class:
     description:
@@ -176,7 +177,9 @@ outputs:
       The measurement's verdict on a self-caused run; empty when none ran
     value: ${{ steps.budget.outputs.verdict }}
   stood-down:
-    description: "`true` when a self-caused run stood down at the gate"
+    description: >
+      `true` when a self-caused run stood down at the gate, `false` when it
+      passed the gate, and empty when no gate ran
     value: ${{ steps.gate.outputs.stood-down }}
 
 runs:

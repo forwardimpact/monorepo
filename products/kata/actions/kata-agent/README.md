@@ -148,11 +148,11 @@ the run's conclusion.
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | `trace-file`       | Absolute path of the raw NDJSON trace file. Empty when `trace` is off or the run stood down                            |
 | `trace-dir`        | Absolute path of the directory that holds every trace file of the run. Empty when `trace` is off or the run stood down |
-| `case`             | The effective case identifier in the trace filenames                                                                   |
+| `case`             | The effective case identifier in the trace filenames. Empty when the run stood down                                    |
 | `actor-class`      | `human`, `self`, or `bot`. Empty when the run has no artifact event                                                    |
 | `actor-login`      | The acting account's login as the payload spells it                                                                    |
 | `dispatch-verdict` | The measurement's verdict on a self-caused run. Empty when no measurement ran                                          |
-| `stood-down`       | `true` when a self-caused run stood down at the gate                                                                   |
+| `stood-down`       | `true` when a self-caused run stood down, `false` when it passed the gate, and empty when no gate ran                  |
 
 ## Event mode
 
@@ -222,7 +222,10 @@ names an issue or a pull request. A manual or bridge dispatch skips it. Only a
 `self` actor reaches the measurement.
 
 A self-caused run over budget stands down. It writes one summary line with the
-raw verdict. It skips every later step except the callback, and it exits zero.
+raw verdict. It skips checkout, the bootstrap, the wiki steps, the harness, and
+the cost report, and it exits zero. The callback step is not gated, because an
+artifact event carries no callback URL. Do not pass `callback-url` on an
+artifact event: a stood-down run has no `gemba-harness` to deliver it.
 It costs the killswitch step, one mint, one binary download, and four REST
 reads. A measurement that never ran stands the run down the same way, and the
 summary line reads `unmeasured`.
