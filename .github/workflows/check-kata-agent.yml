@@ -1,12 +1,12 @@
 name: "Check: Kata Agent"
 
-# Exercises the dispatch gate of the kata-agent action. The classify job runs
-# the actor rule against seven senders and its error paths, and needs no
-# secret. The gate job runs the action from this checkout under the
-# repository's App, so its `if:` admits same-repository, non-Dependabot pull
-# requests and manual dispatch.
-# Two of its three cases reach the harness step for a few read-only turns. No
-# job passes `killswitch`, because this repository's variable may be engaged.
+# Exercises the dispatch gate of the kata-agent action. The two classify jobs
+# run the actor rule against seven senders, a payload with no artifact, and
+# the rule's error paths. They need no secret. The gate job runs the action
+# from this checkout under the repository's App, so its `if:` admits
+# same-repository, non-Dependabot pull requests and manual dispatch. Two of
+# its three cases reach the harness step for a few read-only turns. No job
+# passes `killswitch`, because this repository's variable may be engaged.
 on:
   pull_request:
     branches: [main]
@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   classify:
-    name: "Classify ${{ matrix.login }}"
+    name: "Classify ${{ matrix.login }} (${{ matrix.type }})"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -48,23 +48,38 @@ jobs:
           jq -n --arg l "$LOGIN" --arg t "$TYPE" '{issue:{number:1},sender:{login:$l,type:$t}}' > event.json
           out=$(bash products/kata/actions/kata-agent/classify-actor.sh event.json acme-team)
           test "$out" = "actor-class=${EXPECTED}"$'\n'"actor-login=${LOGIN}"
+
+  classify-edges:
+    name: "Classify: no artifact and doubt"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: A payload with no artifact yields no class
-        if: strategy.job-index == 0
         run: |
           jq -n '{sender:{login:"alice",type:"User"}}' > none.json
           test -z "$(bash products/kata/actions/kata-agent/classify-actor.sh none.json acme-team)"
-      # Doubt never opens the gate: each case fails the step instead.
-      - name: An unreadable payload, an empty slug, or no sender fails
-        if: strategy.job-index == 0
+      - name: A human sender needs no slug
+        run: |
+          jq -n '{issue:{number:1},sender:{login:"alice",type:"User"}}' > human.json
+          out=$(bash products/kata/actions/kata-agent/classify-actor.sh human.json "")
+          test "$out" = "actor-class=human"$'\n'"actor-login=alice"
+      # Doubt never opens the gate. Each case exits 2 with an error line.
+      - name: An unreadable payload, no sender, or a bot with no slug exits 2
         run: |
           rule=products/kata/actions/kata-agent/classify-actor.sh
           echo '{bad' > bad.json
-          jq -n '{issue:{number:1},sender:{login:"alice",type:"User"}}' > ok.json
           jq -n '{issue:{number:1},sender:{}}' > nosender.json
-          if bash "$rule" missing.json acme-team; then exit 1; fi
-          if bash "$rule" bad.json acme-team; then exit 1; fi
-          if bash "$rule" ok.json ""; then exit 1; fi
-          if bash "$rule" nosender.json acme-team; then exit 1; fi
+          jq -n '{issue:{number:1},sender:{login:"acme-team[bot]",type:"Bot"}}' > bot.json
+          exits_2() {
+            rc=0
+            bash "$rule" "$@" 2> err.txt || rc=$?
+            test "$rc" = 2
+            grep -q '^::error::' err.txt
+          }
+          exits_2 missing.json acme-team
+          exits_2 bad.json acme-team
+          exits_2 nosender.json acme-team
+          exits_2 bot.json ""
 
   # The fixture is a hybrid. Under `pull_request` the composer renders the
   # labeled template from `action`, with empty fields on the `none` case;

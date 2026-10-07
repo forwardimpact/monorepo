@@ -155,9 +155,9 @@ outputs:
   trace-dir:
     description: >
       Absolute path of the temp directory that holds all trace files for this
-      run (empty when `trace` is disabled or the run stood down). Use it to read the raw or split
-      trace files. You do not need to glob the runner's temp space. The
-      internal `gemba-harness` action passes it through.
+      run (empty when `trace` is disabled or the run stood down). Use it to
+      read the raw or split trace files. You do not need to glob the runner's
+      temp space. The internal `gemba-harness` action passes it through.
     value: ${{ steps.assess.outputs.trace-dir }}
   case:
     description: >
@@ -170,7 +170,9 @@ outputs:
       "`human`, `self`, or `bot`; empty when the run has no artifact event"
     value: ${{ steps.actor.outputs.actor-class }}
   actor-login:
-    description: The acting account's login as the payload spells it
+    description: >
+      The acting account's login as the payload spells it; empty when the run
+      has no artifact event
     value: ${{ steps.actor.outputs.actor-login }}
   dispatch-verdict:
     description:
@@ -209,6 +211,8 @@ runs:
     # Three steps before checkout; the README describes them. The measurement
     # step continues on error so a self-caused run whose measurement never ran
     # stands down green, with the summary line, instead of reddening the run.
+    # The classify step fails red when it cannot read the payload or the
+    # sender, or when a non-User sender meets an empty slug.
     - name: Classify the actor
       id: actor
       if: inputs.task-event != ''
