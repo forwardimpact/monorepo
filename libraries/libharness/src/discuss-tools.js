@@ -23,6 +23,7 @@ import {
   ADJOURN_DESC,
   baseTools,
   concludeSession,
+  DISCUSS_VERDICTS,
   orchestrationServer,
   RECESS_DESC,
   requestForCommentTool,
@@ -36,7 +37,6 @@ export const DISCUSS_AGENT_SYSTEM_PROMPT =
   "Each question arrives as `[ask#N] <name>: <text>` in your inbox.\n" +
   "Quote N as askId on your `Answer` to route the reply correctly.\n" +
   "The system posts your `Answer` to the discussion thread as a separate reply.\n" +
-  "The task can already contain a completed response with no new human input after it. In that case, `Answer` that no further action is needed.\n" +
   "Do not redo completed work.";
 
 const RESUME_TRIGGER_SCHEMA = z.discriminatedUnion("kind", [
@@ -94,7 +94,7 @@ export function createDiscussLeadToolServer(ctx) {
       "Adjourn",
       ADJOURN_DESC,
       {
-        verdict: z.enum(["adjourned", "failed"]),
+        verdict: z.enum(DISCUSS_VERDICTS),
         summary: z.string(),
         outcome: z.string().optional(),
       },

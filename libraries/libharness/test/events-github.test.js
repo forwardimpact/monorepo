@@ -14,6 +14,8 @@ import {
   TASK_TEMPLATE_ISSUE_COMMENT_ON_PR,
   TASK_TEMPLATE_REVIEW_SUBMITTED,
 } from "@forwardimpact/libharness";
+import { ACTOR_LINE_STAND_DOWN } from "../src/events/github.js";
+import { STAND_DOWN } from "../src/orchestration-toolkit.js";
 
 const FIXTURES = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -64,9 +66,11 @@ describe("TASK_TEMPLATE_* constants carry the documented placeholders", () => {
     assert.ok(TASK_TEMPLATE_REVIEW_SUBMITTED.includes("${REVIEW_STATE}"));
   });
 
-  test("labeled templates reference ${LABEL}", () => {
+  test("labeled templates reference ${LABEL} and ${SENDER}", () => {
     assert.ok(TASK_TEMPLATE_ISSUE_LABELED.includes("${LABEL}"));
     assert.ok(TASK_TEMPLATE_PR_LABELED.includes("${LABEL}"));
+    assert.ok(TASK_TEMPLATE_ISSUE_LABELED.includes("${SENDER}"));
+    assert.ok(TASK_TEMPLATE_PR_LABELED.includes("${SENDER}"));
   });
 });
 
@@ -90,7 +94,7 @@ describe("composeTaskFromGitHubEvent matches the composed task text", () => {
     );
     assert.strictEqual(
       task,
-      'Label "agent:staff-engineer" was added to issue "Investigate flaky CI" (#42). Issue URL: https://github.com/acme/repo/issues/42.',
+      'Label "agent:staff-engineer" was added to issue "Investigate flaky CI" (#42) by @carol. Issue URL: https://github.com/acme/repo/issues/42.',
     );
   });
 
@@ -101,7 +105,7 @@ describe("composeTaskFromGitHubEvent matches the composed task text", () => {
     );
     assert.strictEqual(
       task,
-      'Label "spec:approved" was added to PR "Wire up task-event" (#99). PR URL: https://github.com/acme/repo/pull/99.',
+      'Label "spec:approved" was added to PR "Wire up task-event" (#99) by @carol. PR URL: https://github.com/acme/repo/pull/99.',
     );
   });
 
@@ -126,6 +130,13 @@ describe("composeTaskFromGitHubEvent matches the composed task text", () => {
     // task text.
     assert.match(task, /merged to main by @carol/);
     assert.match(task, /opened by @bob/);
+  });
+
+  test("a label payload without sender renders 'unknown' instead of a bare @", () => {
+    const payload = loadFixture("issues-labeled.json");
+    delete payload.sender;
+    const { task } = composeTaskFromGitHubEvent(payload, "issues");
+    assert.match(task, /\(#42\) by @unknown\. Issue URL/);
   });
 
   test("a merge payload without merged_by renders 'unknown' instead of a bare @", () => {
@@ -230,6 +241,101 @@ describe("composeTaskFromGitHubEvent matches the composed task text", () => {
     const { task, amend } = composeTaskFromGitHubEvent(payload, "issues");
     assert.ok(task.startsWith('New issue: "Investigate flaky CI"'));
     assert.strictEqual(amend, "Focus on the CI flake.");
+  });
+});
+
+// Every fixture with the event name it arrives under.
+const EVENT_FIXTURES = [
+  ["issues-opened.json", "issues"],
+  ["issues-labeled.json", "issues"],
+  ["pr-labeled.json", "pull_request_target"],
+  ["pr-merged.json", "pull_request_target"],
+  ["issue-comment-on-issue.json", "issue_comment"],
+  ["issue-comment-on-pr.json", "issue_comment"],
+  ["review-submitted.json", "pull_request_review"],
+];
+
+describe("composeTaskFromGitHubEvent renders the actor line it is handed", () => {
+  for (const [fixture, eventName] of EVENT_FIXTURES) {
+    const template = composeTaskFromGitHubEvent(
+      loadFixture(fixture),
+      eventName,
+    ).task;
+
+    test(`${fixture}: a self actor carries the stand-down sentence`, () => {
+      const { task } = composeTaskFromGitHubEvent(
+        loadFixture(fixture),
+        eventName,
+        { actorClass: "self", actorLogin: "acme-team[bot]" },
+      );
+      assert.ok(
+        task.startsWith("Caused by: self (@acme-team[bot]). Engage nobody"),
+      );
+      assert.ok(task.includes("Otherwise end with verdict stand_down."));
+      assert.ok(task.endsWith(`\n\n${template}`));
+    });
+
+    test(`${fixture}: a bot actor carries the stand-down sentence`, () => {
+      const { task } = composeTaskFromGitHubEvent(
+        loadFixture(fixture),
+        eventName,
+        { actorClass: "bot", actorLogin: "dependabot[bot]" },
+      );
+      assert.ok(
+        task.startsWith("Caused by: bot (@dependabot[bot]). Engage nobody"),
+      );
+      assert.ok(task.endsWith(`\n\n${template}`));
+    });
+
+    test(`${fixture}: a human actor carries the bare line`, () => {
+      const { task } = composeTaskFromGitHubEvent(
+        loadFixture(fixture),
+        eventName,
+        { actorClass: "human", actorLogin: "alice" },
+      );
+      assert.strictEqual(task, `Caused by: human (@alice).\n\n${template}`);
+      assert.ok(!task.includes("stand_down"));
+    });
+
+    test(`${fixture}: no actor renders no line`, () => {
+      const { task } = composeTaskFromGitHubEvent(
+        loadFixture(fixture),
+        eventName,
+      );
+      assert.ok(!task.includes("Caused by:"));
+    });
+  }
+
+  test("an empty actor class renders no line", () => {
+    const { task } = composeTaskFromGitHubEvent(
+      loadFixture("issues-opened.json"),
+      "issues",
+      { actorClass: "", actorLogin: "" },
+    );
+    assert.ok(task.startsWith("New issue:"));
+  });
+
+  test("an actor class with no login renders @unknown instead of a bare @", () => {
+    const { task } = composeTaskFromGitHubEvent(
+      loadFixture("issues-opened.json"),
+      "issues",
+      { actorClass: "self" },
+    );
+    assert.ok(task.startsWith("Caused by: self (@unknown). Engage nobody"));
+  });
+
+  test("the stand-down sentence names the terminal verdict constant", () => {
+    assert.ok(ACTOR_LINE_STAND_DOWN.includes(`verdict ${STAND_DOWN}.`));
+  });
+
+  test("workflow_dispatch with an actor still returns an empty task", () => {
+    const { task, amend } = composeTaskFromGitHubEvent(
+      { inputs: { prompt: "Do the thing." } },
+      "workflow_dispatch",
+      { actorClass: "self", actorLogin: "acme-team[bot]" },
+    );
+    assert.strictEqual(task, "");
+    assert.strictEqual(amend, "Do the thing.");
   });
 });
 

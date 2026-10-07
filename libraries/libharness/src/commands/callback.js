@@ -6,8 +6,9 @@ import { sumTraceCost } from "../cost.js";
  * the discusser collected. This function skips malformed lines.
  *
  * The runner is verdict-agnostic. It passes through whatever the trace
- * carries, verbatim ("success"/"failure" from supervise/facilitate;
- * canonical "adjourned"/"recessed"/"failed" from discuss). The bridge
+ * carries, verbatim: "success"/"failure" from supervise and facilitate,
+ * "stand_down" from facilitate, and the canonical
+ * "adjourned"/"recessed"/"failed"/"stand_down" from discuss. The bridge
  * layer maps to its channel semantics.
  *
  * @param {string} content - Raw NDJSON trace content.

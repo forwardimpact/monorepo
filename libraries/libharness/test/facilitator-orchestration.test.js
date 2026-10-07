@@ -54,6 +54,40 @@ describe("Facilitator - core orchestration", () => {
     assert.strictEqual(agentStarted, false);
   });
 
+  test("a stand_down Conclude counts as a successful exit", async () => {
+    const { ctx, messageBus } = seedCtx(["facilitator", "agent-1"]);
+    const concludeHandler = createConcludeHandler(ctx);
+
+    const facilitatorRunner = createMockRunner(
+      [{ text: "Self-caused, nothing new" }],
+      [[concludeMsg("No new work", "stand_down")]],
+      { toolDispatcher: { Conclude: (input) => concludeHandler(input) } },
+    );
+    const agentRunner = createMockRunner([{ text: "Never" }]);
+
+    const output = new PassThrough();
+    const facilitator = new Facilitator({
+      facilitatorRunner,
+      agents: [{ name: "agent-1", role: "worker", runner: agentRunner }],
+      messageBus,
+      output,
+      ctx,
+      redactor: noop(),
+    });
+
+    const result = await facilitator.run("Self-caused task");
+    assert.strictEqual(result.success, true);
+
+    const summary = collectLines(output)
+      .map((l) => JSON.parse(l))
+      .findLast(
+        (l) => l.source === "orchestrator" && l.event?.type === "summary",
+      );
+    assert.ok(summary);
+    assert.strictEqual(summary.event.success, true);
+    assert.strictEqual(summary.event.verdict, "stand_down");
+  });
+
   test("lazy start: agents only start when they receive a message", async () => {
     const { ctx, messageBus } = seedCtx(["facilitator", "agent-1", "agent-2"]);
     const concludeHandler = createConcludeHandler(ctx);

@@ -45,7 +45,16 @@ runs:
         TARBALL=$(npm pack --workspace="$NPM_NAME" --pack-destination="$PACK_DIR" | tail -n 1)
         cd "$PACK_DIR"
         npm init -y
-        npm install "$TARBALL" --force
+        # A dependency that the same release published minutes earlier can
+        # return 404 while the registry propagates it. The lag can last about
+        # 10 minutes. Retry on a bounded delay so that lag does not fail the
+        # publish (release hazard (e)).
+        for attempt in 1 2 3 4 5 6; do
+          npm install "$TARBALL" --force --prefer-online && break
+          [ "$attempt" -lt 6 ] || exit 1
+          echo "::warning::npm install failed on attempt $attempt of 6. The next attempt starts in 120s"
+          sleep 120
+        done
         # Execute the main entry point (skip for bin-only or subpath-only packages).
         # require.resolve only proves the path exists. import() executes the
         # module graph and catches tarballs that omit transitive sources

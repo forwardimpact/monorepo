@@ -118,15 +118,21 @@ describe("JIDOKA L0 — leads state the delegation constraint", () => {
   }
 });
 
-describe("JIDOKA L0 — agents name Answer and carry the recursion guard", () => {
+describe("JIDOKA L0 — agents name Answer and do not redo completed work", () => {
   for (const [name, prompt] of AGENT_PROMPTS) {
     test(`${name} names Answer`, () => {
       assert.ok(prompt.includes("Answer"));
     });
-    test(`${name} carries the recursion guard`, () => {
+    test(`${name} does not redo completed work`, () => {
       assert.ok(
         prompt.includes("Do not redo completed work"),
-        `${name} must carry the recursion guard`,
+        `${name} must not redo completed work`,
+      );
+    });
+    test(`${name} leaves stand-down to the lead`, () => {
+      assert.ok(
+        !prompt.includes("no further action"),
+        `${name} must not carry the stand-down sentence; the lead owns it`,
       );
     });
   }

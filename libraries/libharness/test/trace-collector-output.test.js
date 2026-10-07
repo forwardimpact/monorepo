@@ -38,7 +38,7 @@ describe("TraceCollector", () => {
       const collector = collectFixture();
       const trace = collector.toJSON();
 
-      assert.strictEqual(trace.version, "1.2.0");
+      assert.strictEqual(trace.version, "1.3.0");
       assert.strictEqual(trace.metadata.sessionId, "abc-123");
       assert.strictEqual(trace.metadata.model, "claude-opus-4-6");
       assert.strictEqual(trace.metadata.claudeCodeVersion, "2.1.87");
@@ -63,11 +63,37 @@ describe("TraceCollector", () => {
       const collector = new TraceCollector();
       const trace = collector.toJSON();
 
-      assert.strictEqual(trace.version, "1.2.0");
+      assert.strictEqual(trace.version, "1.3.0");
       assert.strictEqual(trace.metadata.sessionId, null);
       assert.strictEqual(trace.initEvent, null);
       assert.strictEqual(trace.turns.length, 0);
       assert.strictEqual(trace.summary.result, "unknown");
+    });
+
+    test("carries the last orchestrator summary as orchestrator", () => {
+      const collector = collectFixture();
+      collector.addLine(
+        JSON.stringify({
+          source: "orchestrator",
+          seq: 99,
+          event: {
+            type: "summary",
+            success: true,
+            verdict: "stand_down",
+            turns: 1,
+            summary: "Self-caused event with no new work.",
+          },
+        }),
+      );
+
+      const trace = collector.toJSON();
+      assert.strictEqual(trace.orchestrator.verdict, "stand_down");
+      assert.strictEqual(trace.orchestrator.turns, 1);
+    });
+
+    test("a run-mode trace carries no orchestrator key", () => {
+      const trace = collectFixture().toJSON();
+      assert.ok(!("orchestrator" in trace));
     });
   });
 

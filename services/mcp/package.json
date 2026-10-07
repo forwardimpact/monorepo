@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/svcmcp",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "Unified MCP server — agents reach backend services as tools without per-service integration.",
   "keywords": [
     "mcp",
@@ -52,7 +52,7 @@
     "@forwardimpact/libutil": "^0.1.85",
     "@forwardimpact/svcmap": "^0.1.0",
     "@hono/node-server": "^2.1.0",
-    "@modelcontextprotocol/sdk": "^1.30.0"
+    "@modelcontextprotocol/sdk": "^1.32.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"

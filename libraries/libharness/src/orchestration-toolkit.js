@@ -268,15 +268,45 @@ const ANNOUNCE_DESC = "Broadcast a message with no reply expected.";
 
 const ROLLCALL_DESC = "List all participants in the session.";
 
-// Terminal-tool descriptions. Each one ends the run. Group them so the
-// contrast is visible: Conclude (success/failure), Adjourn (settled in
-// thread), Recess (paused for out-of-session input). Each description
-// leads with the cost.
-const CONCLUDE_DESC =
-  "End the session. Provide a verdict ('success' or 'failure') and a summary.";
+// Terminal verdicts. The facilitator's Conclude and the discuss lead's Adjourn
+// carry a third verdict, `stand_down`, for a run the task asked the lead to
+// stand down on. The supervisor and judge keep two verdicts, because their
+// verdicts feed benchmark grading.
+export const STAND_DOWN = "stand_down";
+export const FACILITATOR_VERDICTS = ["success", "failure", STAND_DOWN];
+export const BINARY_VERDICTS = ["success", "failure"];
+export const DISCUSS_VERDICTS = ["adjourned", "failed", STAND_DOWN];
 
-const ADJOURN_DESC =
-  "End the discussion. Provide a verdict ('adjourned' or 'failed') and a summary. Cancels any unanswered Asks.";
+// Terminal-tool descriptions. Each one ends the run. Group them so the
+// contrast is visible: Conclude (success/failure, and stand_down for the
+// facilitator), Adjourn (settled in thread), Recess (paused for out-of-session
+// input). Each description leads with the cost.
+function quoteVerdicts(verdicts) {
+  const quoted = verdicts.map((v) => `'${v}'`);
+  if (quoted.length <= 2) return quoted.join(" or ");
+  return `${quoted.slice(0, -1).join(", ")}, or ${quoted.at(-1)}`;
+}
+
+function terminalDesc(lead, verdicts, tail = "") {
+  const parts = [
+    `${lead} Provide a verdict (${quoteVerdicts(verdicts)}) and a summary.`,
+  ];
+  if (verdicts.includes(STAND_DOWN)) {
+    parts.push(
+      "`stand_down` ends a run the task asked you to stand down on and counts as a successful exit.",
+    );
+  }
+  if (tail) parts.push(tail);
+  return parts.join(" ");
+}
+
+const concludeDesc = (verdicts) => terminalDesc("End the session.", verdicts);
+
+const ADJOURN_DESC = terminalDesc(
+  "End the discussion.",
+  DISCUSS_VERDICTS,
+  "Cancels any unanswered Asks.",
+);
 
 const RECESS_DESC =
   "End the run. Schedule an out-of-session re-dispatch. Cancels any unanswered Asks. Use only when you wait on an external reply or duration. Do not use to wait on in-flight Asks.";
@@ -331,12 +361,15 @@ function baseTools(ctx, { from, defaultTo, broadcast }) {
   ];
 }
 
-/** Conclude tool — shared by facilitator + supervisor. */
-function concludeTool(ctx) {
+/**
+ * Conclude tool — shared by facilitator, supervisor, and judge. The caller
+ * passes the verdict list: `FACILITATOR_VERDICTS` or `BINARY_VERDICTS`.
+ */
+function concludeTool(ctx, verdicts) {
   return tool(
     "Conclude",
-    CONCLUDE_DESC,
-    { verdict: z.enum(["success", "failure"]), summary: z.string() },
+    concludeDesc(verdicts),
+    { verdict: z.enum(verdicts), summary: z.string() },
     createConcludeHandler(ctx),
   );
 }
@@ -408,7 +441,7 @@ export function createSupervisorToolServer(ctx) {
       defaultTo: "agent",
       broadcast: false,
     }),
-    concludeTool(ctx),
+    concludeTool(ctx, BINARY_VERDICTS),
   ]);
 }
 
@@ -432,7 +465,7 @@ export function createFacilitatorToolServer(ctx) {
       defaultTo: undefined,
       broadcast: true,
     }),
-    concludeTool(ctx),
+    concludeTool(ctx, FACILITATOR_VERDICTS),
   ]);
 }
 
@@ -453,7 +486,7 @@ export function createFacilitatedAgentToolServer(
  * with no peer participants.
  */
 export function createJudgeToolServer(ctx) {
-  return orchestrationServer([concludeTool(ctx)]);
+  return orchestrationServer([concludeTool(ctx, BINARY_VERDICTS)]);
 }
 
 // --- RequestForComment (agent-level coordination tool) ---

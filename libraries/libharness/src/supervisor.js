@@ -49,7 +49,6 @@ export const AGENT_SYSTEM_PROMPT =
   "A supervisor directs your work.\n" +
   "Each question arrives as `[ask#N] supervisor: <text>` in your inbox.\n" +
   "Quote N as askId on your `Answer` to route the reply correctly.\n" +
-  "If the task already contains a completed response with no new human input after it, `Answer` that no further action is needed.\n" +
   "Do not redo completed work.";
 
 /**
