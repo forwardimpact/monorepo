@@ -122,6 +122,33 @@ describe("resolveTaskContent dispatch", () => {
     assert.strictEqual(amend, "");
   });
 
+  test("--task-event with the actor variables opens with the actor line", () => {
+    const { task } = resolveTaskContent(
+      { "task-event": EVENT_FIXTURE },
+      makeRuntime({
+        env: {
+          GITHUB_EVENT_NAME: "issues",
+          KATA_ACTOR_CLASS: "self",
+          KATA_ACTOR_LOGIN: "acme-team[bot]",
+        },
+        files: { [EVENT_FIXTURE]: ISSUES_OPENED },
+      }),
+    );
+    assert.ok(task.startsWith("Caused by: self (@acme-team[bot])."));
+    assert.ok(task.includes('\n\nNew issue: "Investigate flaky CI" (#42)'));
+  });
+
+  test("--task-event without the actor variables opens with the template", () => {
+    const { task } = resolveTaskContent(
+      { "task-event": EVENT_FIXTURE },
+      makeRuntime({
+        env: { GITHUB_EVENT_NAME: "issues" },
+        files: { [EVENT_FIXTURE]: ISSUES_OPENED },
+      }),
+    );
+    assert.ok(task.startsWith("New issue:"));
+  });
+
   test("--task-event without GITHUB_EVENT_NAME throws", () => {
     assert.throws(
       () =>

@@ -6,5 +6,6 @@
     "html_url": "https://github.com/acme/repo/issues/42",
     "user": { "login": "alice", "type": "User" }
   },
-  "label": { "name": "agent:staff-engineer" }
+  "label": { "name": "agent:staff-engineer" },
+  "sender": { "login": "carol", "type": "User" }
 }

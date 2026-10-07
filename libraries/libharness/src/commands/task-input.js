@@ -12,7 +12,8 @@ import { composeTaskFromGitHubEvent } from "../events/github.js";
  * @param {object} values - Parsed option values from cli.parse()
  * @param {import("@forwardimpact/libutil/runtime").Runtime} runtime - Ambient
  *   collaborators. `fsSync.readFileSync` loads `--task-file`/`--task-event`.
- *   `proc.env` resolves `GITHUB_EVENT_NAME`.
+ *   `proc.env` resolves `GITHUB_EVENT_NAME`, and `KATA_ACTOR_CLASS` and
+ *   `KATA_ACTOR_LOGIN`, which the action sets from its classify step.
  * @returns {{ task: string, amend: string | undefined }}
  */
 export function resolveTaskContent(values, runtime) {
@@ -49,6 +50,11 @@ export function resolveTaskContent(values, runtime) {
     throw new Error("--task-event requires GITHUB_EVENT_NAME to be set");
   }
   const payload = JSON.parse(runtime.fsSync.readFileSync(taskEvent, "utf8"));
-  const composed = composeTaskFromGitHubEvent(payload, eventName);
+  const { KATA_ACTOR_CLASS: actorClass, KATA_ACTOR_LOGIN: actorLogin } =
+    runtime.proc.env;
+  const composed = composeTaskFromGitHubEvent(payload, eventName, {
+    actorClass,
+    actorLogin,
+  });
   return { task: composed.task, amend: amendFlag ?? composed.amend };
 }

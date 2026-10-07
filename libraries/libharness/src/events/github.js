@@ -20,14 +20,24 @@
  * find the literal placeholders with `grep`.
  */
 
+// The actor line. The action classifies the acting account before checkout
+// and hands the class and login over as environment. The composer renders
+// what it is handed and classifies nothing. A self or bot actor carries the
+// stand-down rule, which the lead alone reads.
+export const ACTOR_LINE = "Caused by: ${ACTOR_CLASS} (@${ACTOR_LOGIN}).";
+
+export const ACTOR_LINE_STAND_DOWN =
+  ACTOR_LINE +
+  " Engage nobody unless the body hands new actionable work to a named agent. Otherwise end with verdict stand_down.";
+
 export const TASK_TEMPLATE_ISSUE_OPENED =
   'New issue: "${ISSUE_TITLE}" (#${NUMBER}) by @${AUTHOR} (type: ${AUTHOR_TYPE}). Issue URL: ${URL}.';
 
 export const TASK_TEMPLATE_ISSUE_LABELED =
-  'Label "${LABEL}" was added to issue "${ISSUE_TITLE}" (#${NUMBER}). Issue URL: ${URL}.';
+  'Label "${LABEL}" was added to issue "${ISSUE_TITLE}" (#${NUMBER}) by @${SENDER}. Issue URL: ${URL}.';
 
 export const TASK_TEMPLATE_PR_LABELED =
-  'Label "${LABEL}" was added to PR "${PR_TITLE}" (#${NUMBER}). PR URL: ${URL}.';
+  'Label "${LABEL}" was added to PR "${PR_TITLE}" (#${NUMBER}) by @${SENDER}. PR URL: ${URL}.';
 
 // `${MERGED_BY}` is distinct from `${AUTHOR}`. The common-field fallback
 // resolves AUTHOR to whoever *opened* the PR. A human who merges an
@@ -105,6 +115,9 @@ function extractCommonFields(payload) {
     // Review-event only. The webhook sends lowercase. The code upper-cases it
     // to match the enum the approval rules name.
     REVIEW_STATE: (payload.review?.state ?? "unknown").toUpperCase(),
+    // The acting account on every trigger class. The label templates name it.
+    // The fallback is "unknown" for the same reason as MERGED_BY.
+    SENDER: payload.sender?.login ?? "unknown",
     // `render` substitutes this last (object order). A later pass then never
     // re-expands untrusted body text that holds a literal "${URL}" or similar.
     BODY: body.trim() === "" ? "(no body)" : body,
@@ -146,12 +159,19 @@ function pickTemplate(payload, eventName) {
  * Throws on an unknown (event_name, action) pair so a typo does not silently
  * ship a misleading prompt.
  *
+ * When `actor.actorClass` is a non-empty string, the task opens with the
+ * actor line and a blank line. A `self` or `bot` class adds the stand-down
+ * sentence. Any other class renders the bare line. An absent class renders no
+ * line, so a local `--task-event` run composes the template alone.
+ *
  * @param {object} payload - Native event payload (the shape mirrors the
  *   `$GITHUB_EVENT_PATH` JSON that the runner writes).
  * @param {string} eventName - Value of `$GITHUB_EVENT_NAME` for the run.
+ * @param {{ actorClass?: string, actorLogin?: string }} [actor] - The class
+ *   and login the action classified before checkout.
  * @returns {{ task: string, amend: string }}
  */
-export function composeTaskFromGitHubEvent(payload, eventName) {
+export function composeTaskFromGitHubEvent(payload, eventName, actor = {}) {
   if (!eventName) {
     throw new Error("composeTaskFromGitHubEvent: eventName is required");
   }
@@ -173,5 +193,19 @@ export function composeTaskFromGitHubEvent(payload, eventName) {
       `composeTaskFromGitHubEvent: no template for event_name="${eventName}" action="${payload.action}"`,
     );
   }
-  return { task: render(template, extractCommonFields(payload)), amend };
+  const task = render(template, extractCommonFields(payload));
+  return { task: prependActorLine(task, actor), amend };
+}
+
+function prependActorLine(task, { actorClass, actorLogin } = {}) {
+  if (typeof actorClass !== "string" || actorClass === "") return task;
+  const line =
+    actorClass === "self" || actorClass === "bot"
+      ? ACTOR_LINE_STAND_DOWN
+      : ACTOR_LINE;
+  const rendered = render(line, {
+    ACTOR_CLASS: actorClass,
+    ACTOR_LOGIN: actorLogin,
+  });
+  return `${rendered}\n\n${task}`;
 }
