@@ -29,7 +29,7 @@ Libraries used: none.
 | Regeneration fans out                   | The design regenerates the files whose rows changed. A zone change touches the shift and storyboard crons. A roster change touches the shift, dispatch, and storyboard files. Each regenerated file that existed shows its diff.                                                            |
 | Timezone sample and bot rule            | The latest 100 default-branch commits whose author name does not end in `[bot]`. Web-UI merges keep the author's own offset, so they vote. `+0000` votes drop when any other offset remains, because agent commits carry `+0000`. A tie goes to the zone listed first. UTC is listed last.   |
 | Zone read back                          | The sheet reads the zone as the `schedules.md` block whose three crons `agent-shift.yml` carries, or `custom`.                                                                                                                                                                            |
-| Files follow the roster                 | Dispatch needs `product-manager` on the roster. Storyboard and coaching need `improvement-coach`. A roster change writes each file the new roster needs and deletes none. |
+| Files follow the roster                 | Dispatch needs `product-manager` on the roster. Storyboard and coaching need `improvement-coach`. A roster change writes each file the new roster needs and asks before it deletes a file whose lead it drops. |
 | The hosted watchdog delta               | Delete the engage job, the `inputs:` block, and `WATCHDOG_VARIABLE`. Append one step to `assess` that fails the run on an `engage` verdict.                                                                                                                                                |
 | One quoting form for the default branch | The monorepo workflow quotes `"main"` in its three places. The template quotes the placeholder, and the guide fills it with `main`. The copies then differ only in placeholder lines and the guide's `MY_` names.                                                                          |
 | The guide's replay rows                 | Part 01 deletes the two spec 2350 calibration rows that replay 32 over 2 hours, so the retired literals leave the guide. The gate rows stay.                                                                                                                                              |
@@ -54,18 +54,20 @@ Deviations from the design, with reasons:
   own sheet shows them, and its watchdog template keeps the triggers literal.
   They stay literals, shown as `template` rows. The loop answers a change to one
 with its Home, so the sheet shows rows the loop does not change, which narrows
-spec item 12. The dispatch trigger classes were an operator choice before this
-spec. Step 5 diffs each file against its render and asks before a regeneration
-overwrites a hand edit; when the operator declines, the edit stays.
+spec item 12. A change can still name a whole file, which regenerates it from
+its template, so an outdated file has a path to the current shape. Step 5 diffs
+each file against its render and asks before a regeneration overwrites a hand
+edit; when the operator declines, the edit stays. The plan pull request asks the
+approver to acknowledge this narrowing.
 - **One form of the sizing rule.** The design words the rule as "the longest
   gap between the ticks your repository actually receives". Event ticks shorten
   the gap between all runs, so every home says "the longest gap between the
   scheduled runs" the repository receives.
 - **The watchdog checklist item.** The design's new DO-CONFIRM item checks
   that the watchdog carries the defaults. The sheet item already checks every
-  value against its file, and Step 4's fresh-sheet check covers the defaults. An
-operator change makes "carries the defaults" false by design. So the watchdog
-item checks the triggers, the absent gate, and the hosted variant.
+  value against its file, and Step 4's fresh-sheet check covers the defaults.
+  An operator change makes "carries the defaults" false by design. So the
+  watchdog item checks the triggers, the absent gate, and the hosted variant.
 
 Out of scope, by decision: the `libwatchdog` README composes rules with
 `activityRules(32)` as an API example, not a sizing default, and the spec does
@@ -102,7 +104,7 @@ findings, go to issues (part 01 step 8).
   | Part | Owns                                                                                                                                                                                                                                                                       |
   | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
   | 01   | `.github/workflows/watchdog.yml`, `products/gemba/actions/gemba-watchdog/README.md`, `products/gemba/bin/gemba-watchdog.js`, `websites/gemba/docs/guard-activity/index.md`, `.claude/skills/gemba-watchdog/SKILL.md`, the watchdog paragraph of `KATA.md`, the YAML and hosted delta of `workflow-watchdog.md` |
-  | 02   | `.claude/skills/kata-setup/` except the template's YAML and hosted delta, `websites/kata/docs/getting-started/index.md`, `websites/kata/docs/continuous-improvement/daily-storyboard/index.md`, and the two setup lines of `KATA.md`                                  |
+  | 02   | `.claude/skills/kata-setup/` except the template's YAML and hosted delta, `websites/kata/docs/getting-started/index.md`, `websites/kata/docs/continuous-improvement/daily-storyboard/index.md`, `websites/kata/docs/continuous-improvement/agent-roster/index.md`, and the setup line and skills-table row of `KATA.md` |
   | 03   | Nothing of its own. The routine cut owns its `version` fields and tags                                                                                                                                                                                                    |
 
 - **Verify before each merge.** `bun run check`, `bun run test`, and
@@ -121,7 +123,7 @@ findings, go to issues (part 01 step 8).
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Spec 2350 part 03 can merge with wording that differs from its plan, and parts 01 and 02 edit that text.                                                   | Part 02 replaces `SKILL.md` whole. Part 01 replaces the guide's threshold section whole and matches the one dispatch-gate sentence by meaning. Before either starts, diff the merged files against plan 2350-a part 03. |
 | Every comment queues a watchdog run, and each new event cancels the waiting one, so a busy day fills the run list with cancelled watchdog runs.             | The spec accepts it. Do not filter the run list in any check by conclusion `cancelled`.                                                                                                                           |
-| `SKILL.md` lands at 1,275 of 1,280 words, and `parameters-agents.md` at 746 of 768. Matching the wording spec 2350 merges can breach the cap. | Adapt by meaning inside the same sentences. The coaching table is the next text to move, into `parameters-guard.md`. |
+| `SKILL.md` lands at 1,262 of 1,280 words, and `parameters-agents.md` at 746 of 768. The next default or rule breaches a cap. | The next change to either file starts by moving text to a reference, such as the timezone rule into `schedules.md`. |
 | `monorepo-setup` runs `kata-setup` before the remote exists. | The new skill generates with no remote and lists the missing credentials. The part 02 issue hands the stale prompts and the order to their owner. |
 | A repository whose recent history holds only agent commits, or only UTC humans, gives no non-zero offset, so the timezone falls back to UTC. | The sheet names the zone and its source, and one change fixes it. Rehearsal R1 shows the UTC path.                                                                                                                 |
 | The three workflow copies (the monorepo file, the template, the guide) can drift after this spec, because only these plan steps diff them.                 | Part 01 states the diff. A standing invariant is new scope, so the implementer files it as a follow-up issue with the part 01 pull request.                                                                       |

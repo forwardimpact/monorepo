@@ -187,7 +187,6 @@ Modified: `.claude/skills/kata-setup/references/workflow-watchdog.md`,
 | `workflow-watchdog.md` | Everything above `## Template (Self-Hosted)` | The intro below. The `## Placeholders` table leaves. The YAML and the hosted delta stay as part 01 wrote them. |
 | `workflow-shift.md`      | Intro, `## Placeholders`, and the paragraph after it | Replace with: "One workflow (`agent-shift.yml`) runs the whole roster. The matrix is the roster, and `max-parallel: 1` serializes it. Resolve every placeholder from [`parameters-agents.md`](parameters-agents.md), and `{{KATA_AGENT_REF}}` per [`action-refs.md`](action-refs.md). `{{AGENT_MATRIX}}` is one `- { name: <agent> }` line per roster agent, and `{{SHIFT_CRONS}}` is three `- cron:` lines from `schedules.md`. `kata-agent` runs the killswitch gate first and reports cost last. Emit the self-hosted or hosted block per the control-plane step in `SKILL.md`." |
 | `workflow-dispatch.md`   | Intro, first paragraph                          | Replace the sentences from "Replace `{{AGENT_LIST}}`" to the `action-refs.md` link with: "Resolve every placeholder from [`parameters-agents.md`](parameters-agents.md), and `{{KATA_AGENT_REF}}` per [`action-refs.md`](action-refs.md)."                                                                                                                                                                       |
-| `workflow-dispatch.md` | After the YAML notes | Add: "Discussion replies arrive through the App webhook, so deploy the ghbridge service before you point the webhook URL at it. Its [README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md) carries prerequisites, configuration, and the tunnel/webhook setup." |
 | `workflow-dispatch.md` | YAML, the turn and time inputs | The comment becomes `# Facilitator sessions outlast the action's own turn and time defaults.` The two inputs become `max-turns: "{{DISPATCH_MAX_TURNS}}"` and `timeout-minutes: "{{DISPATCH_TIMEOUT_MINUTES}}"`.                                                                                                                                                                                                                     |
 | `workflow-facilitate.md` | Intro | "Generate them only when you select `improvement-coach`." becomes "The generate step in `SKILL.md` says when to write them." |
 | `workflow-facilitate.md` | `## Placeholders` and the paragraph after it     | Replace with the facilitate text below. |
@@ -374,17 +373,16 @@ Change no other existing file before Step 5.
 | `.github/workflows/watchdog.yml`                           | `workflow-watchdog.md`   | always                         |
 | `.github/dependabot.yml`                                   | `dependabot.md`          | always                         |
 
-Emit the block that matches the control plane: `## Template (Self-Hosted)` or
-`## Template (Hosted)`. `workflow-shift.md` carries both blocks. The other
-workflow templates carry a self-hosted block and a hosted delta.
+Emit the self-hosted templates, or apply each template's
+`## Template (Hosted)` section in hosted mode.
 
 **Timezone.** Read the author offsets of the latest 100 default-branch commits
 whose author name does not end in `[bot]`:
 `git log <default-branch> --format='%an|%ad' --date=format:%z | grep -v '\[bot\]|' | head -n 100`.
-Drop the `+0000` offsets when any other offset remains, because agent commits
-carry `+0000`. Take the most common offset. Pick the `references/schedules.md`
-zone whose summer or winter offset is nearest. A tie goes to the zone listed
-first. With no such commit, use UTC.
+Drop `+0000` when any other offset remains, because agent commits carry it. Take
+the most common offset. Pick the `references/schedules.md` zone whose summer or
+winter offset is nearest. A tie goes to the zone listed first. With no such
+commit, use UTC.
 
 **Killswitch.** Every agent workflow passes
 `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which fails the run on
@@ -394,29 +392,27 @@ because it must keep running after it engages. Never write `KATA_KILLSWITCH`.
 The watchdog reads a falsy value written inside its window as a human clear,
 and it then stays silent for one window.
 
-`references/workflow-dispatch.md` covers the ghbridge service that discussion
-replies need.
+Discussion replies need the ghbridge service in `references/github-app.md`.
 
 ### Step 3: Verify
 
 Setup is verified when the repository is green:
 
-- Validate every generated workflow parses as YAML.
+- Every generated workflow parses as YAML.
 - Run the repository's checks on a clean checkout. Never leave or ignore red CI.
 - `gh secret list` — confirm the secrets and the named profiles resolve at run
   time.
-- `gh variable list`, and `gh variable list --org <owner>` when the owner is
-  an organization — read `KATA_KILLSWITCH` at both scopes and, in hosted mode,
-  `FIT_OIDC_URL`.
+- `gh variable list`, plus `--org <owner>` for an organization — read
+  `KATA_KILLSWITCH` at both scopes and, in hosted mode, `FIT_OIDC_URL`.
 
 ### Step 4: Show the Parameter Sheet
 
-Read every generated file and the repository variables. Render one table per
-file, plus one for variables, in the row order of the parameter references. The
-columns are Parameter, Value, Home, and Why. Take each Value from the file or
-variable its Home names. Take Why from the parameter references. Show each shift
-start in local time and UTC. On a fresh setup, name the commit offset the zone
-came from.
+Read every file the sheet covers and the variables. Render one table per file,
+plus one for variables, in the row order of the parameter references, with the
+columns Parameter, Value, Home, and Why. Take each Value from the file
+or variable its Home names. Take Why from the parameter references. Show each
+shift start in local time and UTC. On a fresh setup, name the commit offset the
+zone came from.
 
 On a fresh setup, check the sheet before you show it. Each fixed default's Value
 equals its Default cell. The crons match the zone's block. The pins match the
@@ -429,16 +425,18 @@ Then ask one question: "Do you want to change anything on this sheet?"
 Apply each named change to the working copy. Regenerate only the files whose
 rows changed, from their templates and the working copy. A zone change
 regenerates the shift and storyboard files. A roster change regenerates the
-shift, dispatch, and storyboard files, and writes each file the new roster
-needs. When it drops a file's lead, ask whether to delete that file. Before you
-overwrite a file that exists, diff it against a render of its read-back values.
-Show every line that differs in either direction, and ask. When the operator
-declines, keep the file and drop the change. Show each regenerated file's diff,
-rerun Step 3, and show the sheet again.
+shift, dispatch, and storyboard files and writes each file the new roster
+needs. When it drops a file's lead, ask whether to delete that file.
+
+Before you overwrite a file that exists, diff it against a render of its
+read-back values. When any line differs, show it and ask. A no keeps that file
+and leaves the change out of it. Show each regenerated file's diff, then rerun
+Steps 3 and 4.
 
 A `template` row is the template's own shape. Answer a change to it with its
-Home. The operator edits that file by hand. A change that names no row gets the
-sheet again. End the loop when the operator accepts the sheet.
+Home, which the operator edits by hand. A change can name a whole file, which
+regenerates it from its template under the same diff rule. A change that
+names no row gets the sheet again. End the loop when the operator accepts.
 
 ### Step 6: Report
 
@@ -463,8 +461,8 @@ items "Ask which agents to enable", "Confirm the timezone", and the SHA-pin
 item, and the DO-CONFIRM items on the timezone and the confirmed profiles
 leave with the replacement.
 
-Verify: `bunx jidoka instructions` passes with the body at about 178 lines and
-1,275 words (caps 192 and 1,280); READ-DO holds three items and DO-CONFIRM
+Verify: `bunx jidoka instructions` passes with the body at about 177 lines and
+1,262 words (caps 192 and 1,280); READ-DO holds three items and DO-CONFIRM
 eight; `bunx jidoka invariants` passes `skill-genericity`, `skill-template`,
 `skill-ref-placeholder`, `model-defaults`, and `byok-boundary`;
 `rg -n 'Europe/Paris|claude-opus|weekly|Which agents|recursion guard' .claude/skills/kata-setup/SKILL.md`
@@ -516,7 +514,7 @@ Verify: `bunx fit-doc build --src=websites/kata --out=dist` passes, and
 `rg -n -i 'good first answer|when you select' websites/kata/docs/getting-started/index.md`
 prints nothing.
 
-## Step 7: The daily-storyboard page and the setup lines of `KATA.md`
+## Step 7: The daily-storyboard and agent-roster pages, and the setup lines of `KATA.md`
 
 Say what setup writes. Drop "interactive", because the clean break removes the
 interview those two `KATA.md` lines describe.
@@ -526,9 +524,8 @@ Modified: `websites/kata/docs/continuous-improvement/daily-storyboard/index.md`,
 (two setup lines; part 01 owns its watchdog paragraph)
 
 The prerequisite bullet that names `kata-setup` becomes: "The storyboard and
-coaching workflows exist in your repository. `kata-setup` writes them, with the
-shift, dispatch, and watchdog workflows and `dependabot.yml`, when
-`improvement-coach` is on the roster."
+coaching workflows exist in your repository. `kata-setup` writes them when
+`improvement-coach` is on the roster, which its default roster includes."
 
 In `websites/kata/docs/continuous-improvement/agent-roster/index.md`, "Do not
 start with a full roster." becomes "`kata-setup` writes a full roster by
@@ -589,9 +586,9 @@ repository after R4.
 
 | Run | Start state                                                               | Operator input                                                                                                      | Evidence                                                                                                                                                                                                                                                                                                                                                  |
 | --- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | The empty clone | Self-hosted; the App and secrets exist. Then "threshold 64". Then "zone Europe/Paris". Then "drop technical-writer from the roster". Then accept. | Before generation the transcript holds only Step 1 questions. The first write holds the five workflows and `dependabot.yml`. The zone is UTC, because no commit exists. The default branch comes from the local `HEAD` with no question. `gh variable list` shows no `KATA_KILLSWITCH`. Each sheet Value equals its file and key. Round one regenerates only `watchdog.yml`, and its diff shows one line. Round two regenerates the shift and storyboard files with the Paris crons. Round three regenerates the shift, dispatch, and storyboard files, and no file is deleted. |
-| R2  | R1's end state; hand-edit `max-turns` in `agent-dispatch.yml` to `900`    | Run the skill; accept.                                                                                              | The sheet's turn-cap row reads `900`. |
-| R3  | A fresh clone with the four agent workflows written from `main`'s pre-2360 templates, `max-turns` set to `900`, and no `watchdog.yml` or `dependabot.yml` | Run the skill; accept. | The run writes `watchdog.yml` at `48` and `8` and `dependabot.yml`. It leaves the four agent workflows byte-unchanged, so `900` and the roster stay. It shows the sheet. |
+| R1  | The empty clone | Self-hosted; the App and secrets exist. Then "threshold 64". Then "zone Europe/Paris". Then "drop improvement-coach from the roster", and answer yes to each delete question. Then accept. | Before generation the transcript holds only Step 1 questions. The first write holds the five workflows and `dependabot.yml`. The zone is UTC, because no commit exists. The default branch comes from the local `HEAD` with no question. `gh variable list` shows no `KATA_KILLSWITCH`. Each sheet Value equals its file and key. Round one regenerates only `watchdog.yml`, and its diff shows one line. Round two regenerates the shift and storyboard files with the Paris crons. Round three regenerates the shift and dispatch files, asks once for each of the storyboard and coaching files, and deletes them. |
+| R2  | R1's end state; hand-edit `max-turns` in `agent-dispatch.yml` to `900` and delete its `pull_request_review` trigger | Run the skill. Then "wiki false", and decline the question for `agent-dispatch.yml`. Then accept. | The first sheet's turn-cap row reads `900`. The wiki change asks for `agent-dispatch.yml` only and shows the two hand edits. After the decline, `agent-dispatch.yml` is byte-unchanged and the other files read `wiki: "false"`. |
+| R3  | A fresh clone with the four agent workflows written from `main`'s pre-2360 templates, `max-turns` set to `900`, and no `watchdog.yml` or `dependabot.yml` | Run the skill; accept. | The run writes `watchdog.yml` at `48` and `8` and `dependabot.yml`. It leaves the four agent workflows byte-unchanged. The sheet's turn-cap row reads `900`. |
 | R4  | All of `.github/` deleted; `FIT_OIDC_URL` variable set to a dummy URL      | Hosted; the API key exists. Then accept.                                                                            | `watchdog.yml` has no `engage` job, no App input, and the fail step. The sheet's Engage row reads "unavailable: the engage job needs the App key".                                                                                                                                                                                                       |
 
 Verify: post the four transcripts on the pull request as one comment with a
