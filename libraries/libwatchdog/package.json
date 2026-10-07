@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libwatchdog",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Guardrail engine for agent teams — count repository activity over a window, compare it against thresholds, and engage an operator latch when the activity breaches them.",
   "keywords": [
     "guardrail",
