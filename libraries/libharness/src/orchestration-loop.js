@@ -23,6 +23,7 @@ import {
   cancelPendingAsks,
   pendingAsksOwedBy,
   remindOwedAsks,
+  STAND_DOWN,
 } from "./orchestration-toolkit.js";
 import { formatMessages } from "./orchestrator-helpers.js";
 
@@ -131,7 +132,11 @@ export class OrchestrationLoop {
     await Promise.allSettled([...agentPromises, pollerPromise].filter(Boolean));
     if (firstError) throw firstError;
 
-    const success = this.ctx.concluded && this.ctx.verdict === "success";
+    // A stand-down is the lead doing what the task asked, so it counts as a
+    // successful exit.
+    const success =
+      this.ctx.concluded &&
+      (this.ctx.verdict === "success" || this.ctx.verdict === STAND_DOWN);
     this.emitSummary({
       success,
       verdict: this.ctx.verdict,

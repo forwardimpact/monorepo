@@ -246,7 +246,7 @@ export class TraceCollector {
    */
   toJSON() {
     return {
-      version: "1.2.0",
+      version: "1.3.0",
       metadata: this.metadata ?? {
         timestamp: this.now(),
         sessionId: null,
@@ -256,6 +256,11 @@ export class TraceCollector {
         permissionMode: null,
       },
       initEvent: this.initEvent ?? null,
+      // The last orchestrator summary, when the trace carries one. A run-mode
+      // trace and a split lane carry no orchestrator source and omit it.
+      ...(this.orchestratorSummary && {
+        orchestrator: this.orchestratorSummary,
+      }),
       turns: this.turns,
       summary: this.result ?? {
         result: "unknown",
@@ -303,8 +308,8 @@ export class TraceCollector {
 
   /**
    * Format the trailing result summary line. With an orchestrator summary
-   * (supervised / facilitated mode), the headline word is the supervisor's
-   * verdict ("success" / "failure"). It is not the SDK's per-runner
+   * (supervised / facilitated mode), the headline word is the lead's verdict
+   * ("success", "failure", or "stand_down"). It is not the SDK's per-runner
    * subtype. The footer then aligns with the CI exit code. Turn, cost, and
    * duration figures are the accumulated totals across every result event
    * in the trace. They are not the last event's figures.

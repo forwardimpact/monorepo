@@ -6,5 +6,6 @@
     "html_url": "https://github.com/acme/repo/pull/99",
     "user": { "login": "bob", "type": "Bot" }
   },
-  "label": { "name": "spec:approved" }
+  "label": { "name": "spec:approved" },
+  "sender": { "login": "carol", "type": "User" }
 }

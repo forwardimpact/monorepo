@@ -25,6 +25,7 @@ import { createMessageBus } from "./message-bus.js";
 import {
   advisorTool,
   createOrchestrationContext,
+  STAND_DOWN,
 } from "./orchestration-toolkit.js";
 import {
   createAdvisor,
@@ -132,7 +133,7 @@ export class Discusser {
     await this.loop.run(task);
 
     const verdict = this.ctx.verdict ?? "failed";
-    const success = verdict === "adjourned";
+    const success = verdict === "adjourned" || verdict === STAND_DOWN;
     this.#emitDiscussSummary({
       success,
       verdict,

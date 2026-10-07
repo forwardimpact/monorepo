@@ -169,6 +169,43 @@ describe("Discusser orchestration", () => {
     assert.strictEqual(last.event.replies.length, 2);
     assert.strictEqual(last.event.discussion_id, "GD_kw_xyz");
   });
+
+  test("the Discusser reports a stand_down verdict as success=true", async () => {
+    const output = new PassThrough();
+    const getLines = readLines(output);
+    const redactor = createNoopRedactor();
+    const ctx = augmentContextForDiscuss(
+      createOrchestrationContext(),
+      "GD_kw_xyz",
+    );
+    ctx.verdict = "stand_down";
+    ctx.summary = "Self-caused event with no new work";
+
+    const loop = fakeLoop({
+      output,
+      verdict: "stand_down",
+      summary: ctx.summary,
+      turns: 1,
+      redactor,
+    });
+    const discusser = new Discusser({
+      loop,
+      ctx,
+      output,
+      discussionId: "GD_kw_xyz",
+      redactor,
+    });
+
+    const result = await discusser.run("ping");
+
+    assert.strictEqual(result.success, true);
+    assert.strictEqual(result.verdict, "stand_down");
+
+    const lines = getLines();
+    const last = JSON.parse(lines[lines.length - 1]);
+    assert.strictEqual(last.event.type, "summary");
+    assert.strictEqual(last.event.verdict, "stand_down");
+  });
 });
 
 describe("Discusser - summary shape", () => {

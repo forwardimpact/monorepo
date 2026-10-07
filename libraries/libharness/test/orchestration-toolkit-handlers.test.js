@@ -2,15 +2,19 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 
 import {
+  BINARY_VERDICTS,
   concludeSession,
   createAnnounceHandler,
   createConcludeHandler,
   createFacilitatedAgentToolServer,
   createFacilitatorToolServer,
+  createJudgeToolServer,
   createOrchestrationContext,
   createRollCallHandler,
   createSupervisedAgentToolServer,
   createSupervisorToolServer,
+  FACILITATOR_VERDICTS,
+  STAND_DOWN,
 } from "../src/orchestration-toolkit.js";
 import { stubBus } from "./orchestration-toolkit-helpers.js";
 
@@ -26,6 +30,24 @@ describe("OrchestrationToolkit - simple handlers", () => {
     assert.strictEqual(ctx.verdict, "success");
     assert.strictEqual(ctx.summary, "All done");
     assert.ok(result.content[0].text.includes("concluded"));
+  });
+
+  test("Conclude accepts stand_down and records it as the verdict", async () => {
+    const ctx = createOrchestrationContext();
+    ctx.messageBus = stubBus();
+    await createConcludeHandler(ctx)({
+      verdict: "stand_down",
+      summary: "Self-caused event with no new work",
+    });
+    assert.strictEqual(ctx.concluded, true);
+    assert.strictEqual(ctx.verdict, "stand_down");
+  });
+
+  test("only the facilitator's verdict list carries stand_down", () => {
+    assert.strictEqual(STAND_DOWN, "stand_down");
+    assert.ok(FACILITATOR_VERDICTS.includes(STAND_DOWN));
+    assert.ok(!BINARY_VERDICTS.includes(STAND_DOWN));
+    assert.deepStrictEqual(BINARY_VERDICTS, ["success", "failure"]);
   });
 
   test("concludeSession cancels every pending Ask with a synthetic null answer (defensive cleanup)", () => {
@@ -106,6 +128,52 @@ describe("OrchestrationToolkit - simple handlers", () => {
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.length, 2);
     assert.strictEqual(parsed[0].name, "facilitator");
+  });
+});
+
+/**
+ * Read one registered tool from an SDK MCP server. The SDK keeps the tool
+ * table on its McpServer instance; the test reads it to pin the wiring.
+ */
+function registeredTool(server, name) {
+  return server.instance._registeredTools[name];
+}
+
+const BINARY_CONCLUDE_DESC =
+  "End the session. Provide a verdict ('success' or 'failure') and a summary.";
+
+describe("OrchestrationToolkit - Conclude verdicts per role", () => {
+  test("the facilitator's Conclude offers stand_down", () => {
+    const ctx = createOrchestrationContext();
+    ctx.messageBus = stubBus();
+    const conclude = registeredTool(
+      createFacilitatorToolServer(ctx),
+      "Conclude",
+    );
+    assert.deepStrictEqual(
+      conclude.inputSchema.shape.verdict.options,
+      FACILITATOR_VERDICTS,
+    );
+    assert.ok(conclude.description.includes("'stand_down'"));
+  });
+
+  test("the supervisor and judge Conclude keep two verdicts and the old description", () => {
+    const ctx = createOrchestrationContext();
+    ctx.participants = [
+      { name: "supervisor", role: "supervisor" },
+      { name: "agent", role: "agent" },
+    ];
+    for (const server of [
+      createSupervisorToolServer(ctx),
+      createJudgeToolServer(ctx),
+    ]) {
+      const conclude = registeredTool(server, "Conclude");
+      assert.deepStrictEqual(
+        conclude.inputSchema.shape.verdict.options,
+        BINARY_VERDICTS,
+      );
+      assert.strictEqual(conclude.description, BINARY_CONCLUDE_DESC);
+    }
   });
 });
 
