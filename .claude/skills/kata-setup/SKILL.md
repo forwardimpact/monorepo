@@ -141,7 +141,7 @@ facilitate references carry a self-hosted block plus a hosted delta, which
 `workflow-facilitate.md` heads `## Hosted Variant`. On hosted setup, remind the
 operator: "Set the `FIT_OIDC_URL` repository variable to your
 hosted OIDC URL before the first workflow run." The hosted blocks carry no
-`KATA_APP_PRIVATE_KEY`.
+`KATA_APP_PRIVATE_KEY`. The watchdog template has one block for both modes.
 
 The matrix in `agent-shift.yml` carries one line per selected agent, in
 producer → reviewer → shipper order (`references/schedules.md`). Generate the
@@ -192,5 +192,6 @@ Summarize what you created and the next steps:
   with the `kata-settings` skill
 - Adjust schedules after you observe the first runs
 - Emergency stop: set `KATA_KILLSWITCH` truthy; write a falsy value to resume.
-  The watchdog engages it through the App's `Variables` grant
+  A self-hosted watchdog engages it through the App's `Variables` grant. A
+  hosted watchdog run turns red on a breach, and the operator sets it
 - Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm

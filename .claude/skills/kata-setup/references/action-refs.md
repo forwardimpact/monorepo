@@ -6,9 +6,9 @@ time.
 
 ## Placeholders
 
-| Placeholder          | Action repository          |
-| -------------------- | -------------------------- |
-| `{{KATA_AGENT_REF}}` | `forwardimpact/kata-agent` |
+| Placeholder              | Action repository              |
+| ------------------------ | ------------------------------ |
+| `{{KATA_AGENT_REF}}`     | `forwardimpact/kata-agent`     |
 | `{{GEMBA_WATCHDOG_REF}}` | `forwardimpact/gemba-watchdog` |
 
 ## Steps

@@ -20,9 +20,9 @@ on:
 
 permissions: {}
 
-# The threshold, the window, and the variable name each appear exactly once.
-# Both jobs read them from here, including the `vars` lookup below, which
-# indexes with the same env value rather than repeating the name.
+# The threshold and the window each appear exactly once. Both jobs read them
+# from here. The variable name appears here and once more as the `vars`
+# literal in the assess job, for the reason that step gives.
 env:
   WATCHDOG_THRESHOLD: "32"
   WATCHDOG_WINDOW_HOURS: "2"

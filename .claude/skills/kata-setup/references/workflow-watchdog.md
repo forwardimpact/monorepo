@@ -10,15 +10,17 @@ The name stays outside the `Agent:` family. The watchdog must keep running after
 it engages the variable, so it never gates on it. The threshold and the window
 appear once, in `env`. The variable name appears in `env` and once more as the
 `vars` literal, because a dynamic index that fails to resolve reads as a cleared
-latch. In hosted mode the engage job holds no App key. On a breach it fails at
-its token mint, so the run is red and nothing is written.
+latch. `default-branch` stays a literal, because the schedule event's payload
+is not documented to carry the repository's default branch. In hosted mode the
+engage job holds no App key. On a breach it fails at its token mint, so the run
+is red and nothing is written.
 
 ## Placeholders
 
-| Placeholder | Resolve with |
-| --- | --- |
-| `{{GEMBA_WATCHDOG_REF}}` | Per [`action-refs.md`](action-refs.md) |
-| `{{DEFAULT_BRANCH}}` | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` |
+| Placeholder              | Resolve with                                                     |
+| ------------------------ | ---------------------------------------------------------------- |
+| `{{GEMBA_WATCHDOG_REF}}` | Per [`action-refs.md`](action-refs.md)                           |
+| `{{DEFAULT_BRANCH}}`     | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` |
 
 ## Template
 
