@@ -131,6 +131,20 @@ describe("gemba-trace cost reports the terminal verdict", () => {
     assert.match(out, /^Verdict: `stand_down`$/m);
   });
 
+  test("a summary with no verdict yields a null verdict, as overview does", async () => {
+    // A lead that never called Conclude leaves ctx.verdict null, so the
+    // summary event carries no verdict key.
+    const unconcluded = {
+      source: "orchestrator",
+      seq: 2,
+      event: { type: "summary", success: false, turns: 3 },
+    };
+    const json = JSON.parse(await cost({}, [...COMBINED, unconcluded]));
+    assert.strictEqual(json.verdict, null);
+    const markdown = await cost({ markdown: true }, [...COMBINED, unconcluded]);
+    assert.ok(!markdown.includes("Verdict:"));
+  });
+
   test("a trace with no summary yields a null verdict and no line", async () => {
     const json = JSON.parse(await cost({}, COMBINED));
     assert.strictEqual(json.verdict, null);

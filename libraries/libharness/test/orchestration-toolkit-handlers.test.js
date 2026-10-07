@@ -8,6 +8,7 @@ import {
   createConcludeHandler,
   createFacilitatedAgentToolServer,
   createFacilitatorToolServer,
+  createJudgeToolServer,
   createOrchestrationContext,
   createRollCallHandler,
   createSupervisedAgentToolServer,
@@ -127,6 +128,52 @@ describe("OrchestrationToolkit - simple handlers", () => {
     const parsed = JSON.parse(result.content[0].text);
     assert.strictEqual(parsed.length, 2);
     assert.strictEqual(parsed[0].name, "facilitator");
+  });
+});
+
+/**
+ * Read one registered tool from an SDK MCP server. The SDK keeps the tool
+ * table on its McpServer instance; the test reads it to pin the wiring.
+ */
+function registeredTool(server, name) {
+  return server.instance._registeredTools[name];
+}
+
+const BINARY_CONCLUDE_DESC =
+  "End the session. Provide a verdict ('success' or 'failure') and a summary.";
+
+describe("OrchestrationToolkit - Conclude verdicts per role", () => {
+  test("the facilitator's Conclude offers stand_down", () => {
+    const ctx = createOrchestrationContext();
+    ctx.messageBus = stubBus();
+    const conclude = registeredTool(
+      createFacilitatorToolServer(ctx),
+      "Conclude",
+    );
+    assert.deepStrictEqual(
+      conclude.inputSchema.shape.verdict.options,
+      FACILITATOR_VERDICTS,
+    );
+    assert.ok(conclude.description.includes("'stand_down'"));
+  });
+
+  test("the supervisor and judge Conclude keep two verdicts and the old description", () => {
+    const ctx = createOrchestrationContext();
+    ctx.participants = [
+      { name: "supervisor", role: "supervisor" },
+      { name: "agent", role: "agent" },
+    ];
+    for (const server of [
+      createSupervisorToolServer(ctx),
+      createJudgeToolServer(ctx),
+    ]) {
+      const conclude = registeredTool(server, "Conclude");
+      assert.deepStrictEqual(
+        conclude.inputSchema.shape.verdict.options,
+        BINARY_VERDICTS,
+      );
+      assert.strictEqual(conclude.description, BINARY_CONCLUDE_DESC);
+    }
   });
 });
 

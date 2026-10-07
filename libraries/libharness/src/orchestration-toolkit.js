@@ -287,9 +287,9 @@ function quoteVerdicts(verdicts) {
   return `${quoted.slice(0, -1).join(", ")}, or ${quoted.at(-1)}`;
 }
 
-function terminalDesc(verb, verdicts, tail = "") {
+function terminalDesc(lead, verdicts, tail = "") {
   const parts = [
-    `${verb} Provide a verdict (${quoteVerdicts(verdicts)}) and a summary.`,
+    `${lead} Provide a verdict (${quoteVerdicts(verdicts)}) and a summary.`,
   ];
   if (verdicts.includes(STAND_DOWN)) {
     parts.push(
@@ -300,7 +300,7 @@ function terminalDesc(verb, verdicts, tail = "") {
   return parts.join(" ");
 }
 
-const CONCLUDE_DESC = (verdicts) => terminalDesc("End the session.", verdicts);
+const concludeDesc = (verdicts) => terminalDesc("End the session.", verdicts);
 
 const ADJOURN_DESC = terminalDesc(
   "End the discussion.",
@@ -368,7 +368,7 @@ function baseTools(ctx, { from, defaultTo, broadcast }) {
 function concludeTool(ctx, verdicts) {
   return tool(
     "Conclude",
-    CONCLUDE_DESC(verdicts),
+    concludeDesc(verdicts),
     { verdict: z.enum(verdicts), summary: z.string() },
     createConcludeHandler(ctx),
   );

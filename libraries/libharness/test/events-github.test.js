@@ -14,6 +14,8 @@ import {
   TASK_TEMPLATE_ISSUE_COMMENT_ON_PR,
   TASK_TEMPLATE_REVIEW_SUBMITTED,
 } from "@forwardimpact/libharness";
+import { ACTOR_LINE_STAND_DOWN } from "../src/events/github.js";
+import { STAND_DOWN } from "../src/orchestration-toolkit.js";
 
 const FIXTURES = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -311,6 +313,19 @@ describe("composeTaskFromGitHubEvent renders the actor line it is handed", () =>
       { actorClass: "", actorLogin: "" },
     );
     assert.ok(task.startsWith("New issue:"));
+  });
+
+  test("an actor class with no login renders @unknown instead of a bare @", () => {
+    const { task } = composeTaskFromGitHubEvent(
+      loadFixture("issues-opened.json"),
+      "issues",
+      { actorClass: "self" },
+    );
+    assert.ok(task.startsWith("Caused by: self (@unknown). Engage nobody"));
+  });
+
+  test("the stand-down sentence names the terminal verdict constant", () => {
+    assert.ok(ACTOR_LINE_STAND_DOWN.includes(`verdict ${STAND_DOWN}.`));
   });
 
   test("workflow_dispatch with an actor still returns an empty task", () => {

@@ -2,7 +2,6 @@ import { join, dirname, basename } from "node:path";
 import { isoTimestamp } from "@forwardimpact/libutil";
 import { createTraceCollector, sumTraceCost } from "@forwardimpact/libharness";
 import { createTraceQuery } from "../trace-query.js";
-import { readTraceSummary } from "../trace-summary.js";
 import { createTraceGitHub } from "../trace-github.js";
 import { splitTrace } from "../trace-split.js";
 import { stripSignatures } from "../signature-filter.js";
@@ -382,7 +381,8 @@ export async function runStatsCommand(ctx) {
  * supervised, facilitated, or discuss session already interleaves all
  * participants, so one file yields the whole run's spend. The default output
  * is `{totalCostUsd, bySource, verdict}` JSON. `verdict` is the lead's
- * terminal verdict, or null when the trace carries no orchestrator summary. `--markdown` emits a GitHub-flavored
+ * terminal verdict, or null when the trace carries no orchestrator summary
+ * or the summary carries no verdict. `--markdown` emits a GitHub-flavored
  * block to redirect into `$GITHUB_STEP_SUMMARY`.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
@@ -407,8 +407,8 @@ export async function runCostCommand(ctx) {
 /**
  * Render a cost summary as a GitHub-flavored markdown block for a CI step
  * summary. The block holds a headline total and a per-participant table. The
- * table lists the highest cost first. A verdict line follows the headline
- * when the trace carries a verdict.
+ * table lists the highest cost first. A verdict line follows the
+ * participant sentence when the trace carries a verdict.
  * @param {{totalCostUsd: number, bySource: Record<string, number>, verdict: string|null}} cost
  * @returns {string}
  */
@@ -559,7 +559,9 @@ export async function runSplitCommand(ctx) {
  * trace (from `gemba-trace download`) carries its total in
  * `summary.totalCostUsd` but no per-source split. `sumTraceCost` sums raw
  * NDJSON. The verdict comes from the structured document's `orchestrator`
- * field, or from the last orchestrator summary in NDJSON.
+ * field. For NDJSON it comes from the collector's capture of the last
+ * orchestrator summary, the same reader the overview verb uses, so the two
+ * verbs report one verdict for one trace.
  * @param {string} content - Raw file content (structured JSON or NDJSON).
  * @returns {{totalCostUsd: number, bySource: Record<string, number>, verdict: string|null}}
  */
@@ -576,10 +578,20 @@ function computeTraceCost(content) {
   } catch {
     // Not a single JSON object. Treat it as NDJSON below.
   }
-  return {
-    ...sumTraceCost(content.split("\n")),
-    verdict: readTraceSummary(content)?.verdict ?? null,
-  };
+  const lines = content.split("\n");
+  return { ...sumTraceCost(lines), verdict: lastOrchestratorVerdict(lines) };
+}
+
+/**
+ * Read the verdict of the last orchestrator summary in NDJSON through the
+ * trace collector. A summary with no verdict reads as null.
+ * @param {string[]} lines - Raw NDJSON lines.
+ * @returns {string|null}
+ */
+function lastOrchestratorVerdict(lines) {
+  const collector = createTraceCollector();
+  for (const line of lines) collector.addLine(line);
+  return collector.orchestratorSummary?.verdict ?? null;
 }
 
 /**

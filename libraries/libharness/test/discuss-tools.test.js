@@ -4,6 +4,7 @@ import assert from "node:assert";
 import {
   createRecessHandler,
   createAdjournHandler,
+  createDiscussLeadToolServer,
 } from "../src/discuss-tools.js";
 import { createRequestForCommentHandler } from "../src/orchestration-toolkit.js";
 import { augmentContextForDiscuss } from "../src/discusser.js";
@@ -108,6 +109,18 @@ describe("DiscussTools handlers", () => {
     });
     assert.strictEqual(ctx.concluded, true);
     assert.strictEqual(ctx.verdict, "stand_down");
+  });
+
+  test("the discuss lead's Adjourn offers the discuss verdicts", () => {
+    const ctx = makeCtx();
+    ctx.messageBus = { answer: () => {} };
+    const adjourn =
+      createDiscussLeadToolServer(ctx).instance._registeredTools.Adjourn;
+    assert.deepStrictEqual(
+      adjourn.inputSchema.shape.verdict.options,
+      DISCUSS_VERDICTS,
+    );
+    assert.ok(adjourn.description.includes("Cancels any unanswered Asks."));
   });
 
   test("the discuss verdict list carries stand_down", () => {

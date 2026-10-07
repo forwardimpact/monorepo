@@ -203,9 +203,11 @@ function prependActorLine(task, { actorClass, actorLogin } = {}) {
     actorClass === "self" || actorClass === "bot"
       ? ACTOR_LINE_STAND_DOWN
       : ACTOR_LINE;
+  // "unknown" for the same reason as MERGED_BY: a bare "@" reads as a real
+  // account.
   const rendered = render(line, {
     ACTOR_CLASS: actorClass,
-    ACTOR_LOGIN: actorLogin,
+    ACTOR_LOGIN: actorLogin || "unknown",
   });
   return `${rendered}\n\n${task}`;
 }
