@@ -71,6 +71,7 @@
     "axios": "^1.20.0",
     "body-parser": "^2.3.0",
     "brace-expansion": "^5.0.12",
+    "compression": "^1.8.2",
     "fast-uri": "^3.1.8",
     "fast-xml-builder": "^1.1.7",
     "form-data": "^4.0.6",
