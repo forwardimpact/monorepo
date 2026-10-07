@@ -307,7 +307,7 @@ brake that a human clears. → **libwatchdog**
 **Little Hire:** Help me count one activity signal over a window and engage a
 latch when it crosses a threshold. → **libwatchdog**
 
-**Competes With:** a prose recursion guard inside an agent task; a spend cap on
+**Competes With:** a stand-down sentence inside an agent task; a spend cap on
 the LLM platform; a human who notices the sprawl.
 
 </job>
