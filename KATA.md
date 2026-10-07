@@ -197,14 +197,17 @@ quiet window below.
 
 This repository also runs a watchdog that engages the variable automatically.
 `.github/workflows/watchdog.yml` counts default-branch commits, pull requests
-created, issues created, and conversation comments created over a fixed window,
-on a fixed schedule. Any counter that reaches the threshold engages the
-variable, and so does a counter the watchdog cannot read or cannot cover. It
-skips two cases: the variable is already truthy, or a human cleared it inside
-the window and the burst has not drained yet. The workflow carries the
-schedule, the window, and the threshold. The watchdog only sets the variable.
-It never clears the variable. It does not gate on the variable either, because
-it must keep running after it engages.
+created, issues created, and conversation comments created over an 8-hour
+window. It runs on a five-minute schedule, and it also ticks when an issue
+opens, a conversation comment lands, a pull request opens, or `main` receives a
+push. GitHub delivers scheduled runs hours late under load, so the window covers
+the longest gap between the scheduled runs this repository receives. Any counter
+that reaches 48 engages the variable, and so does a counter the watchdog cannot
+read or cannot cover. It skips two cases: the variable is already truthy, or a
+human cleared it inside the window and the burst has not drained yet. A human
+who clears it gets 8 quiet hours. The watchdog only sets the variable. It never
+clears the variable. It does not gate on the variable either, because it must
+keep running after it engages.
 
 ## Skills
 
