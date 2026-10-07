@@ -53,8 +53,8 @@ on:
 permissions:
   contents: write
 
-# Coalesce simultaneous events on the same target so the recursion guard sees
-# a stable thread. Triage flows fire `opened` plus several `labeled` events
+# Coalesce simultaneous events on the same target so one facilitator sees a
+# stable thread. Triage flows fire `opened` plus several `labeled` events
 # within ~1s. Without this group, each event spawns an independent facilitator
 # → independent agent → independent PR.
 #
@@ -70,9 +70,10 @@ concurrency:
 jobs:
   kata:
     # This workflow allows bot-authored content so it can serve as an
-    # agent-to-agent coordination channel. The task text contains a recursion
-    # guard. The guard stops the facilitator when the latest activity is
-    # already a participant agent's response.
+    # agent-to-agent coordination channel. kata-agent classifies the actor,
+    # stands a self-caused run down before checkout when the repository is
+    # over its dispatch budget, and opens the task with the actor's class; its
+    # README carries the gate.
     #
     # Label scope: `labeled` fires once per label, and the product-manager bot
     # applies several labels in rapid succession on triage. Only react to
@@ -93,8 +94,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # kata-agent owns the whole lifecycle: killswitch first, token mint and
-      # stamp, checkout, bootstrap, wiki refresh, the run, callback, wiki push,
-      # cost last.
+      # stamp, gate, checkout, bootstrap, wiki refresh, the run, callback, wiki
+      # push, cost last.
       #
       # This workflow assembles no prompt. libharness composes the task from
       # the runner's native event JSON, which the runner also identifies
@@ -103,7 +104,7 @@ jobs:
       #
       # On issue and PR events `inputs` is null, so every bridge input is empty
       # and the action's callback step skips.
-      - uses: forwardimpact/kata-agent@8021f43b8ad73fe3582dd91e59e60c7db3f2ef81 # v1.0.12
+      - uses: forwardimpact/kata-agent@614ec06672ba4b36d18050ac0580b53a5f5bc21a # v1.0.14
         with:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
