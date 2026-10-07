@@ -38,23 +38,50 @@ so counting them would stop the team during normal review activity.
 
 ## The threshold and the window
 
-One number covers every counter. Pick a threshold that is higher than your
-largest normal batch, such as a full scheduled session, one weekly dependency
-run, or one merge queue drain. Every repository has its own baselines, so the
-command ships no default.
+One number covers every counter. Pick a threshold above the legitimate work one
+window holds, such as two scheduled shifts, one weekly dependency run, or one
+merge queue drain. Every repository has its own baselines, so the command ships
+no default.
 
-The window is the tick interval times the number of ticks you accept missing. A
-five-minute schedule with a 2-hour window holds 24 ticks. The watchdog queues on
-the same runner pool as the runs it measures, so a flood that holds the pool
-delays the tick that would stop it. The dispatch gate below acts in-band, at the
-start of each self-caused run and before its checkout.
+Size the window to the longest gap between the scheduled runs your repository
+receives. GitHub delays scheduled runs under load, and it can drop them, so the
+cron interval is only the shortest possible gap. Before you pick a window, read
+the gaps between the runs of any scheduled workflow in the repository:
+`gh run list --workflow <name> --event schedule`.
+
+The Forward Impact repository is the worked example. Its watchdog ran 35
+scheduled times over six days:
+
+| Delivered gap between ticks, 34 gaps | Hours |
+| ------------------------------------ | ----- |
+| Shortest | 2.1 |
+| Median | 4.0 |
+| 90th percentile | 5.4 |
+| Longest | 5.7 |
+
+Every gap was longer than 2 hours, so a 2-hour window never saw a burst that
+crossed the threshold and drained inside one gap. An 8-hour window is 1.4 times
+the longest gap. On three of the four counters, the busiest legitimate work one
+window holds is about 27 items, so a threshold of 48 keeps 1.8 times headroom.
+The comments counter has no baseline yet.
+
+The watchdog also ticks on the four counters' own events: an issue opens, a
+conversation comment lands, a pull request opens, or the default branch
+receives a push. A tick then lands when activity happens, which is the only time
+a breach can exist. The schedule stays as the fallback. It covers activity made
+with the runner's own token, which starts no workflow, and it records the latch
+value on a quiet repository.
+
+The watchdog queues on the same runner pool as the runs it measures, so a flood
+that holds the pool delays the tick that would stop it. The dispatch gate below
+acts in-band, at the start of each self-caused run and before its checkout.
 
 ## `assess`
 
 `assess` only measures. It reads the repository and writes nothing.
 
 ```sh
-npx gemba-watchdog assess --threshold 32 --window-hours 2 \
+npx gemba-watchdog assess --threshold 48 --window-hours 8 \
   --default-branch main
 ```
 
@@ -76,7 +103,7 @@ The reason gives the writer, every breached counter with its count and
 threshold, and the time:
 
 ```text
-watchdog|issues=47/32|comments=38/32|2026-09-02T16:49:00.000Z
+watchdog|issues=51/48|comments=63/48|2026-01-15T09:30:00.000Z
 ```
 
 `assess` exits 0 on every outcome, so a breach never turns the measurement job
@@ -88,7 +115,7 @@ red.
 
 ```sh
 npx gemba-watchdog engage --variable MY_KILLSWITCH \
-  --reason "$REASON" --window-hours 2
+  --reason "$REASON" --window-hours 8
 ```
 
 | Option | Role |
@@ -147,9 +174,9 @@ same four counters over the action's `dispatch-window-hours` against its
 checkout. The run writes one summary line, exits zero, and sets no latch. A
 measurement that the run cannot complete also stands the run down. The budget
 releases itself as the window slides. Human and bot actors never enter the gate,
-and neither do runs with no artifact. The action's inputs are the one
-configuration home of the two numbers. Their defaults set a budget below the
-latch threshold over the watchdog's window.
+and neither do runs with no artifact. The action's inputs are the one home of
+the two numbers. The gate's window is shorter than the watchdog's, so the gate
+bounds a burst rate and the latch bounds sustained volume.
 
 Each row replays one incident's recovered event timestamps against the rule it
 names. Escaped counts artifacts created before the rule engaged plus a 45-minute
@@ -158,8 +185,6 @@ tail for sessions already in flight.
 | Rule | Engages | Escaped: issues, PRs, comments |
 | ---- | ------- | ------------------------------ |
 | Nothing | never | 416, 142, about 2,300 |
-| Watchdog, 32 per counter, 2 h, 15-minute tick | 15:15Z tick | 111, 36, 444 |
-| Watchdog, 32 per counter, 2 h, 5-minute tick | 15:05Z tick | 95, 34, 380 |
 | Gate, budget 24 per counter, 2 h, at run start | 15:01Z | 95, 34, 370 |
 
 The task the lead receives opens with the actor's class and login. A
@@ -173,6 +198,12 @@ line and the verdict.
 Measurement and engagement run as separate jobs. Measurement is read-only and
 mints no privileged token, so a quiet run never touches the write credential.
 
+One tick runs and one waits. A new event replaces the waiting tick, and it can
+replace a waiting manual dry run too, so dispatch that again. The pull-request
+tick uses `pull_request_target`: it runs the default branch's workflow file with
+that branch's secrets and checks nothing out. A `pull_request` trigger would run
+a branch's own copy of the file.
+
 ```yaml
 name: "Watchdog"
 
@@ -180,17 +211,39 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
+    inputs:
+      dry-run:
+        description: >-
+          Rehearse the engage job without writing. It reaches the engage job
+          only when the assess job reports a breach, so on a quiet repository
+          a dispatch exercises the counters alone.
+        required: false
+        type: boolean
+        default: false
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened]
+    branches: ["main"]
+  push:
+    branches: ["main"]
 
-permissions:
-  contents: read
+permissions: {}
+
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
 
 env:
-  WATCHDOG_THRESHOLD: "32"
-  WATCHDOG_WINDOW_HOURS: "2"
-  WATCHDOG_VARIABLE: MY_KILLSWITCH
+  WATCHDOG_THRESHOLD: "48"
+  WATCHDOG_WINDOW_HOURS: "8"
+  WATCHDOG_VARIABLE: "MY_KILLSWITCH"
 
 jobs:
   assess:
+    name: Measure
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -207,28 +260,33 @@ jobs:
           mode: assess
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          killswitch-value: ${{ vars[env.WATCHDOG_VARIABLE] }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          killswitch-value: ${{ vars.MY_KILLSWITCH }}
+          default-branch: "main"
+          token: ${{ github.token }}
 
   engage:
+    name: Engage
     needs: assess
     if: needs.assess.outputs.verdict == 'engage'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions: {}
     steps:
-      - uses: forwardimpact/gemba-watchdog@v1
+      - id: engage
+        uses: forwardimpact/gemba-watchdog@v1
         with:
           mode: engage
-          threshold: ${{ env.WATCHDOG_THRESHOLD }}
-          window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
           variable: ${{ env.WATCHDOG_VARIABLE }}
+          window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
+          threshold: ${{ env.WATCHDOG_THRESHOLD }}
           reason: ${{ needs.assess.outputs.reason }}
+          dry-run: ${{ inputs.dry-run || 'false' }}
           app-id: ${{ secrets.MY_APP_ID }}
           app-private-key: ${{ secrets.MY_APP_PRIVATE_KEY }}
 ```
 
-Copy the workflow shape, but pin the action to a commit SHA that you reviewed.
+Copy the workflow shape, but pin the action to a commit SHA that you reviewed,
+and write your default branch in its three places.
 
 Give the workflow a name that does not match your agent workflows' own naming
 pattern, so that the rule "every agent workflow gates on the latch" stays
