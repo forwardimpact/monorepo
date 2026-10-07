@@ -3,7 +3,9 @@
 The watchdog counts default-branch commits, pull requests created, issues
 created, and conversation comments created over one window. It engages
 `KATA_KILLSWITCH` when any count reaches the threshold. File name:
-`watchdog.yml`.
+`watchdog.yml`. Resolve every placeholder from
+[`parameters-guard.md`](parameters-guard.md), and `{{GEMBA_WATCHDOG_REF}}` per
+[`action-refs.md`](action-refs.md).
 
 It ticks on a schedule and on the four counters' own events, because GitHub
 delivers scheduled runs late under load. One tick runs and one waits. The name
@@ -11,16 +13,6 @@ stays outside the `Agent:` family, and the workflow never gates on the variable
 it writes. The self-hosted block names the variable twice, in `env` and as the
 `vars` literal, because a dynamic index that fails to resolve reads as a cleared
 latch.
-
-## Placeholders
-
-| Placeholder                 | Resolve with                                                      |
-| --------------------------- | ----------------------------------------------------------------- |
-| `{{WATCHDOG_CRON}}`         | `*/5 * * * *`                                                     |
-| `{{WATCHDOG_THRESHOLD}}`    | `48`                                                              |
-| `{{WATCHDOG_WINDOW_HOURS}}` | `8`                                                               |
-| `{{DEFAULT_BRANCH}}`        | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` |
-| `{{GEMBA_WATCHDOG_REF}}`    | Per [`action-refs.md`](action-refs.md)                            |
 
 ## Template (Self-Hosted)
 
