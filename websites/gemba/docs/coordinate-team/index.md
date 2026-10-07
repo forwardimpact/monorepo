@@ -120,8 +120,9 @@ in the trace.
 A session ends explicitly. The end tool depends on the mode:
 
 - **`Conclude`** ends a `supervise` or `facilitate` session with a `verdict`
-  (`success`, `failure`, or `stand_down`) and a summary. Only the lead can use
-  it. The `supervise` lead has no `stand_down` verdict.
+  and a summary. Only the lead can use it. A `supervise` lead picks `success`
+  or `failure`. A `facilitate` lead picks `success`, `failure`, or
+  `stand_down`.
 - **`Adjourn`** ends a `discuss` session with a verdict (`adjourned`, `failed`,
   or `stand_down`), a summary, and an optional outcome.
 - **`Recess`** suspends a `discuss` session with a resumption trigger. It does
@@ -136,12 +137,12 @@ verdict. It is `0` when the lead ended with `success`, `adjourned`, or
 `stand_down` means that the task asked for nothing. A `--task-event` task opens
 with an actor line when the caller sets `KATA_ACTOR_CLASS` and
 `KATA_ACTOR_LOGIN` in the environment: `Caused by: human (@alice).` A `self` or
-`bot` class adds one sentence. It asks the lead to engage nobody unless the body
-hands new actionable work to a named agent, and to end with `stand_down`
-otherwise. The caller classifies the actor, and `gemba-harness` renders the
-class it receives. Only the lead reads the rule. Participants carry no
-stand-down sentence. `gemba-trace overview` and `gemba-trace cost` report the
-verdict apart from `success` and `failure`.
+`bot` class adds a stand-down instruction to the line. It asks the lead to
+engage nobody unless the body hands new actionable work to a named agent, and to
+end with `stand_down` otherwise. The caller classifies the actor, and
+`gemba-harness` renders the class it receives. Only the lead reads the rule.
+Participants carry no stand-down sentence. `gemba-trace overview` and
+`gemba-trace cost` report the verdict apart from `success` and `failure`.
 
 ## Tool surface by role
 
@@ -218,7 +219,8 @@ npx gemba-harness facilitate \
   --output=trace--review.ndjson
 ```
 
-The `--task-file` content is the opening prompt every participant sees. The
+The `--task-file` content is the opening prompt of the facilitator.
+Participants see only the messages that the facilitator sends them. The
 facilitator profile steers how the team pursues the goal, and each participant
 applies its own specialism. Pass the task as exactly one of
 `--task-file=<path>`, `--task-text="<inline>"`, or `--task-event=<path>` (a

@@ -137,18 +137,19 @@ that fails to stop the team can cost an unbounded spend.
 ## The dispatch gate
 
 The [`kata-agent`](https://github.com/forwardimpact/kata-agent) action checks
-every run that an artifact event starts. After it mints its token, it
-classifies the acting account as `human`, `self`, or `bot`. The account is
-`self` when `sender.login` equals the App slug that the mint yielded, after the
-action strips a `[bot]` suffix or an `app/` prefix. A `self` run measures the
+every run that an artifact event starts. After it mints its token, it classifies
+the acting account as `human`, `self`, or `bot`. The account is `self` when
+`sender.login` equals the App slug that the mint yielded, after the action
+strips a `[bot]` suffix or an `app/` prefix. Otherwise the account is `human`
+when its type is `User`, and `bot` for any other type. A `self` run measures the
 same four counters over the action's `dispatch-window-hours` against its
 `dispatch-budget`. A counter at or above the budget stands the run down before
 checkout. The run writes one summary line, exits zero, and sets no latch. A
 measurement that the run cannot complete also stands the run down. The budget
-releases itself as the window slides. Human and bot actors never enter the
-gate, and neither do runs with no artifact. The action's inputs are the one
-home of the two numbers. Their defaults set a budget below the latch threshold
-over the watchdog's window.
+releases itself as the window slides. Human and bot actors never enter the gate,
+and neither do runs with no artifact. The action's inputs are the one
+configuration home of the two numbers. Their defaults set a budget below the
+latch threshold over the watchdog's window.
 
 Each row replays one incident's recovered event timestamps against the rule it
 names. Escaped counts artifacts created before the rule engaged plus a 45-minute
