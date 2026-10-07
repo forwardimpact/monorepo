@@ -279,7 +279,7 @@ runs:
     # calls refresh makes.
     - name: Refresh wiki (pre-run)
       if: inputs.wiki == 'true' && steps.gate.outputs.stood-down != 'true'
-      uses: forwardimpact/gemba-wiki@v1
+      uses: forwardimpact/gemba-wiki@2b203e667b9ecced406a2a8c86fb46353a7951d8 # v1.0.4
       with:
         command: refresh
         app-id: ${{ inputs.app-id }}
@@ -359,7 +359,7 @@ runs:
     # timed out. This matches the push below.
     - name: Refresh wiki (post-run)
       if: always() && inputs.wiki == 'true' && steps.gate.outputs.stood-down != 'true'
-      uses: forwardimpact/gemba-wiki@v1
+      uses: forwardimpact/gemba-wiki@2b203e667b9ecced406a2a8c86fb46353a7951d8 # v1.0.4
       with:
         command: refresh
         app-id: ${{ inputs.app-id }}
@@ -371,7 +371,7 @@ runs:
     # memory is durable whether the agent step succeeded, failed, or timed out.
     - name: Push wiki changes
       if: always() && inputs.wiki == 'true' && steps.gate.outputs.stood-down != 'true'
-      uses: forwardimpact/gemba-wiki@v1
+      uses: forwardimpact/gemba-wiki@2b203e667b9ecced406a2a8c86fb46353a7951d8 # v1.0.4
       with:
         command: push
         app-id: ${{ inputs.app-id }}

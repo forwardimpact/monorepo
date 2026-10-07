@@ -22,17 +22,54 @@ describe("push/pull commands (real git)", () => {
     seedBareRepo(bare);
   });
 
-  function harnessFor(wikiDir, parent) {
+  function harnessFor(wikiDir, parent, options = {}) {
     const harness = makeRuntime({ cwd: parent });
+    const gitClient = new GitClient({ runtime: harness.runtime });
     const wikiSync = new WikiSync({
       runtime: harness.runtime,
-      gitClient: new GitClient({ runtime: harness.runtime }),
+      gitClient,
       wikiDir,
       parentDir: parent,
       resolveToken: () => null,
     });
-    return { harness, ctx: ctxFor({ runtime: harness.runtime, wikiSync }) };
+    return {
+      harness,
+      ctx: ctxFor({
+        runtime: harness.runtime,
+        wikiSync,
+        gitClient,
+        options: { "wiki-root": wikiDir, ...options },
+      }),
+    };
   }
+
+  test("push --paths refuses a pathspec that matches nothing", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "push-nomatch");
+    git(wikiDir, "checkout", "master");
+    writeFileSync(join(wikiDir, "new.md"), "content");
+    const { ctx } = harnessFor(wikiDir, parent, { paths: ["nope.md"] });
+    const result = await runPushCommand(ctx);
+    assert.equal(result.ok, false);
+    assert.equal(result.code, 2);
+    assert.match(result.error, /"nope.md" matches nothing/);
+    assert.match(git(wikiDir, "status", "--porcelain"), /new\.md/);
+    assert.ok(
+      !git(wikiDir, "log", "-1", "--oneline").includes(
+        "wiki: update from session",
+      ),
+    );
+  });
+
+  test("push --paths lands a declared untracked file", async () => {
+    const { parent, wikiDir } = cloneRepo(bare, "push-declared");
+    git(wikiDir, "checkout", "master");
+    writeFileSync(join(wikiDir, "new.md"), "content");
+    const { harness, ctx } = harnessFor(wikiDir, parent, { paths: ["new.md"] });
+    const result = await runPushCommand(ctx);
+    assert.equal(result.ok, true);
+    assert.match(harness.stdout, /push: committed and pushed/);
+    assert.equal(git(wikiDir, "diff", "origin/master"), "");
+  });
 
   test("push with no local changes writes 'nothing to push'", async () => {
     const { parent, wikiDir } = cloneRepo(bare, "push-noop");

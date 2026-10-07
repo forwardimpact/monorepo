@@ -90,6 +90,10 @@ This operator escape seals the current file even when it is under the cap.
 npx gemba-wiki audit [--format json]
 ```
 
+The last text line reports what the audit checked, one subject count per rule
+scope. The JSON output carries the same counts under `checked`. A run that
+checked no rows and a run that checked every row read differently.
+
 ### `fix` — Auto-fix audit findings
 
 ```sh
@@ -146,6 +150,10 @@ runs `push`).
 npx gemba-wiki push
 npx gemba-wiki pull
 ```
+
+`push --paths=<pathspec>` (repeatable) scopes the commit to the paths you
+name. A pathspec that matches no tracked path and no pending change is a
+usage error, so a mistyped path never reports a landed push.
 
 ### Exit codes
 

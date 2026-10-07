@@ -58,6 +58,20 @@ describe("gemba-wiki audit CLI (in-process)", () => {
     [`${WIKI_ROOT}/staff-engineer.md`]: `# Staff Engineer — Summary\n\n**Last run**: nothing.\n\n## Message Inbox\n\n<!-- memo:inbox -->\n\n${Array(600).fill("x").join("\n")}\n`,
   };
 
+  test("reports the subjects it checked, in text and in JSON", () => {
+    const text = run(cleanWiki(), {});
+    assert.match(text.harness.stdout, /^✓ wiki audit passed\n/);
+    assert.match(
+      text.harness.stdout,
+      /\nchecked: summary \d+, .*status-row \d+/,
+    );
+    const json = run(cleanWiki(), { format: "json" });
+    const parsed = JSON.parse(json.harness.stdout);
+    assert.equal(parsed.checked.memory, 1);
+    assert.equal(parsed.checked.storyboard, 1);
+    assert.equal(typeof parsed.checked["status-row"], "number");
+  });
+
   test("clean wiki: JSON shape and exit 0", () => {
     const { harness, result } = run(cleanWiki(), { format: "json" });
     assert.equal(result.ok, true);
