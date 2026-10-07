@@ -121,6 +121,6 @@ self-hosted template in three ways:
            env:
              REASON: ${{ steps.assess.outputs.reason }}
            run: |
-             echo "::error::Breach: $REASON. Engage needs the App key, so set KATA_KILLSWITCH by hand."
+             echo "::error::Breach: $REASON. Engage needs the App key, so set KATA_KILLSWITCH by hand. Ticks stay red until the counts drain."
              exit 1
    ```

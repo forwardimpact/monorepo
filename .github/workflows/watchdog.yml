@@ -26,8 +26,9 @@ on:
     types: [opened]
   issue_comment:
     types: [created]
-  # The base context: the default branch's workflow file and secrets, and no
-  # checkout. `pull_request` would run a branch's own copy of this file.
+  # The base context: the default branch's workflow file, the repository's
+  # secrets, and no checkout. `pull_request` would run a branch's own copy of
+  # this file.
   pull_request_target:
     types: [opened]
     branches: ["main"]

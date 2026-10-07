@@ -52,14 +52,14 @@ the gaps between the runs of any scheduled workflow in the repository:
 The Forward Impact repository is the worked example. Its watchdog ran 35
 scheduled times over six days:
 
-| Delivered gap between ticks, 34 gaps | Hours |
-| ------------------------------------ | ----- |
+| Delivered gap between scheduled runs, 34 gaps | Hours |
+| --------------------------------------------- | ----- |
 | Shortest | 2.1 |
 | Median | 4.0 |
 | 90th percentile | 5.4 |
 | Longest | 5.7 |
 
-Every gap was longer than 2 hours, so a 2-hour window never saw a burst that
+Every gap was longer than 2 hours, so a 2-hour window could not see a burst that
 crossed the threshold and drained inside one gap. An 8-hour window is 1.4 times
 the longest gap. On three of the four counters, the busiest legitimate work one
 window holds is about 27 items, so a threshold of 48 keeps 1.8 times headroom.
@@ -199,10 +199,13 @@ Measurement and engagement run as separate jobs. Measurement is read-only and
 mints no privileged token, so a quiet run never touches the write credential.
 
 One tick runs and one waits. A new event replaces the waiting tick, and it can
-replace a waiting manual dry run too, so dispatch that again. The pull-request
-tick uses `pull_request_target`: it runs the default branch's workflow file with
-that branch's secrets and checks nothing out. A `pull_request` trigger would run
-a branch's own copy of the file.
+replace a waiting manual dry run too, so dispatch the dry run again. The
+pull-request tick uses `pull_request_target`: it runs the default branch's
+workflow file with the repository's secrets and checks nothing out. A
+`pull_request` trigger would run a branch's own copy of the file. An outside
+user's issue, comment, or fork pull request can also start a tick. The workflow
+reads nothing from the event, so that tick only counts, and a flood of such
+events stops the team, which is the safe direction.
 
 ```yaml
 name: "Watchdog"
@@ -285,8 +288,10 @@ jobs:
           app-private-key: ${{ secrets.MY_APP_PRIVATE_KEY }}
 ```
 
-Copy the workflow shape, but pin the action to a commit SHA that you reviewed,
-and write your default branch in its three places.
+Copy the workflow shape, but pin the action to a commit SHA that you reviewed.
+Write your default branch in its three places. Write your latch variable's name
+in its two places, `env` and the `vars` literal. A dynamic `vars[...]` index
+that fails to resolve reads as a cleared latch, so the literal stays.
 
 Give the workflow a name that does not match your agent workflows' own naming
 pattern, so that the rule "every agent workflow gates on the latch" stays

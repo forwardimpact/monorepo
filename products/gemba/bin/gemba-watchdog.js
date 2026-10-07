@@ -36,7 +36,7 @@ const definition = {
         "window-hours": {
           type: "string",
           description:
-            "Window the counters cover, in hours. Size it to the longest gap between the scheduled runs",
+            "Window the counters cover, in hours. Size it to the longest gap between the scheduled runs the repository receives",
         },
         "killswitch-value": {
           type: "string",
