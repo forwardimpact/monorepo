@@ -1,7 +1,9 @@
 name: Kata Agent
 description: >
   Run a Kata agent workflow. The action generates an installation
-  token, checks out the repository, bootstraps the environment, runs the agent
+  token. On an artifact event it classifies the acting account and stands a
+  self-caused run down when the repository is over its dispatch budget. It
+  then checks out the repository, bootstraps the environment, runs the agent
   with gemba-harness from text, a file, or a GitHub event, and delivers the
   run's conclusion to a callback URL when the caller names one.
 
@@ -16,10 +18,6 @@ inputs:
   anthropic-api-key:
     description: Anthropic API key for the Claude Agent SDK
     required: true
-  app-slug:
-    description: GitHub App slug for git identity
-    required: false
-    default: "kata-agent-team"
   # --- Agent configuration ---
   mode:
     description: Execution mode (run, supervise, facilitate, discuss)
@@ -130,6 +128,19 @@ inputs:
       kata-* workflow at once.
     required: false
     default: ""
+  # --- Dispatch gate ---
+  # The one home of the budget and the window. No workflow, template, or CLI
+  # flag carries these values.
+  dispatch-budget:
+    description: >
+      Per-counter budget a self-caused run measures against before checkout. A
+      counter at or above it stands the run down.
+    required: false
+    default: "24"
+  dispatch-window-hours:
+    description: The window the gate's four counters cover, in hours.
+    required: false
+    default: "2"
 
 outputs:
   trace-file:
@@ -153,6 +164,20 @@ outputs:
       Effective case identifier that appears in the trace filenames. The
       internal `gemba-harness` action passes it through.
     value: ${{ steps.assess.outputs.case }}
+  actor-class:
+    description:
+      "`human`, `self`, or `bot`; empty when the run has no artifact event"
+    value: ${{ steps.actor.outputs.actor-class }}
+  actor-login:
+    description: The acting account's login as the payload spells it
+    value: ${{ steps.actor.outputs.actor-login }}
+  dispatch-verdict:
+    description:
+      The measurement's verdict on a self-caused run; empty when none ran
+    value: ${{ steps.budget.outputs.verdict }}
+  stood-down:
+    description: "`true` when a self-caused run stood down at the gate"
+    value: ${{ steps.gate.outputs.stood-down }}
 
 runs:
   using: composite
@@ -177,7 +202,49 @@ runs:
         app-id: ${{ inputs.app-id }}
         private-key: ${{ inputs.app-private-key }}
 
+    # --- The dispatch gate ---
+    # Three steps before checkout; the README describes them. The measurement
+    # step continues on error so a self-caused run whose measurement never ran
+    # stands down green, with the summary line, instead of reddening the run.
+    - name: Classify the actor
+      id: actor
+      if: inputs.task-event != ''
+      shell: bash
+      env:
+        TASK_EVENT: ${{ inputs.task-event }}
+        APP_SLUG: ${{ steps.ci-app.outputs.app-slug }}
+      run: |
+        bash "$GITHUB_ACTION_PATH/classify-actor.sh" "$TASK_EVENT" "$APP_SLUG" >> "$GITHUB_OUTPUT"
+
+    # This pin moves by hand. Dependabot does not scan this directory.
+    - name: Measure the dispatch budget
+      id: budget
+      if: steps.actor.outputs.actor-class == 'self'
+      continue-on-error: true
+      uses: forwardimpact/gemba-watchdog@437b84d56a5036d618ce35bcfbda4d03103d66e2 # v1.0.1
+      with:
+        mode: assess
+        threshold: ${{ inputs.dispatch-budget }}
+        window-hours: ${{ inputs.dispatch-window-hours }}
+        token: ${{ steps.ci-app.outputs.token }}
+
+    - name: Stand down on a breach
+      id: gate
+      if: steps.actor.outputs.actor-class == 'self'
+      shell: bash
+      env:
+        VERDICT: ${{ steps.budget.outputs.verdict }}
+      run: |
+        set -euo pipefail
+        if [ "$VERDICT" = "quiet" ]; then
+          echo "stood-down=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "stood down: self-caused run, verdict ${VERDICT:-unmeasured}" >> "$GITHUB_STEP_SUMMARY"
+          echo "stood-down=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      if: steps.gate.outputs.stood-down != 'true'
       with:
         fetch-depth: 0
         token: ${{ steps.ci-app.outputs.token }}
@@ -187,9 +254,10 @@ runs:
     # empty to skip wiki sync. forwardimpact/gemba-wiki below pushes the wiki back
     # after the agent run.
     - uses: forwardimpact/gemba-bootstrap@da20c935595233035b3bd2db67308bbabf8544c6 # v1.0.22
+      if: steps.gate.outputs.stood-down != 'true'
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
-        app-slug: ${{ inputs.app-slug }}
+        app-slug: ${{ steps.ci-app.outputs.app-slug }}
         app-id: ${{ inputs.app-id }}
         # An empty value reaches the bootstrap, which resolves its own pinned
         # default. The version literal keeps one home.
@@ -205,7 +273,7 @@ runs:
     # stale markdown. gemba-wiki mints a fresh token for the `gh issue list`
     # calls refresh makes.
     - name: Refresh wiki (pre-run)
-      if: inputs.wiki == 'true'
+      if: inputs.wiki == 'true' && steps.gate.outputs.stood-down != 'true'
       uses: forwardimpact/gemba-wiki@v1
       with:
         command: refresh
@@ -214,10 +282,15 @@ runs:
 
     - name: Assess and Act
       id: assess
+      if: steps.gate.outputs.stood-down != 'true'
       uses: forwardimpact/gemba-harness@0c18c5b39df9e5abf608c74191f810c68c066dc6 # v1.0.7
       env:
         ANTHROPIC_API_KEY: ${{ inputs.anthropic-api-key }}
         GH_TOKEN: ${{ steps.ci-app.outputs.token }}
+        # The actor class and login the classify step derived. The composer
+        # renders them as the task's first line and classifies nothing.
+        KATA_ACTOR_CLASS: ${{ steps.actor.outputs.actor-class }}
+        KATA_ACTOR_LOGIN: ${{ steps.actor.outputs.actor-login }}
         CALLBACK_URL: ${{ inputs.callback-url }}
         CORRELATION_ID: ${{ inputs.correlation-id }}
         INBOX_URL: ${{ inputs.inbox-url }}
@@ -280,7 +353,7 @@ runs:
     # always() so the storyboard reflects the run even if the agent failed or
     # timed out. This matches the push below.
     - name: Refresh wiki (post-run)
-      if: always() && inputs.wiki == 'true'
+      if: always() && inputs.wiki == 'true' && steps.gate.outputs.stood-down != 'true'
       uses: forwardimpact/gemba-wiki@v1
       with:
         command: refresh
@@ -292,7 +365,7 @@ runs:
     # cleanup-time push unauthenticated. This step runs under always() so
     # memory is durable whether the agent step succeeded, failed, or timed out.
     - name: Push wiki changes
-      if: always() && inputs.wiki == 'true'
+      if: always() && inputs.wiki == 'true' && steps.gate.outputs.stood-down != 'true'
       uses: forwardimpact/gemba-wiki@v1
       with:
         command: push
@@ -304,7 +377,7 @@ runs:
     # gemba-trace cost tolerates a missing trace, because the run may fail
     # before it produces one. So this step needs no file guard.
     - name: Report run cost
-      if: always()
+      if: always() && steps.gate.outputs.stood-down != 'true'
       shell: bash
       env:
         TRACE_FILE: ${{ steps.assess.outputs.trace-file }}
