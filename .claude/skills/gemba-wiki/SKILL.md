@@ -147,6 +147,10 @@ npx gemba-wiki push
 npx gemba-wiki pull
 ```
 
+`push --paths=<pathspec>` (repeatable) scopes the commit to the paths you
+name. A pathspec that matches no tracked path and no pending change is a
+usage error, so a mistyped path never reports a landed push.
+
 ### Exit codes
 
 | Code | Meaning |

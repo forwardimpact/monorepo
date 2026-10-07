@@ -5,6 +5,7 @@ const GIT_METHODS = [
   "init",
   "fetch",
   "status",
+  "lsFiles",
   "rebase",
   "rebaseAbort",
   "mergeOursStrategy",
