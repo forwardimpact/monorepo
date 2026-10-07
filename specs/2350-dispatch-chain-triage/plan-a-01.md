@@ -153,6 +153,14 @@ passes after step 7.
 
 ## Step 6: One NDJSON scanner for the cost and callback verbs
 
+**As shipped (#2172):** this step did not ship as written. `readTraceSummary`
+reads a missing verdict as `"failed"`. With that reader, `cost` reported
+`failed` and `overview` reported null for the same trace when the run had no
+`Conclude`. The cost verb reads the NDJSON verdict through the trace collector
+instead, the one reader design-a.md names. `trace-summary.js` does not exist,
+and `callback.js` changed only in its docstring. The `computeTraceCost` shape
+and the `Verdict:` line ship as written below.
+
 Move the callback command's scanner into its own module and read the verdict
 through it in the cost verb.
 
