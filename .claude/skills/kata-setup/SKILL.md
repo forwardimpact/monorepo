@@ -1,24 +1,24 @@
 ---
 name: kata-setup
 description: >
-  Set up the Kata Agent Team in your repository. This skill guides GitHub App
-  creation, secret configuration, and agent selection. It generates the workflow
-  files. Use it to set up a new Kata installation. Use it to add agents to an
+  Set up the Kata Agent Team in your repository. This skill settles the GitHub
+  App or hosted control plane and the secrets. It then generates a complete
+  default configuration and shows its parameters on one sheet. Use it to set up
+  a new Kata installation. Use it to add agents or change parameters on an
   existing installation.
 ---
 
 # Set Up the Kata Agent Team
 
-This interactive skill configures the
-[Kata Agent Team](https://www.kata.team/) in your repository. It generates
-GitHub Actions workflow files for scheduled agents, facilitated sessions, and
-event-driven responses.
+This skill configures the [Kata Agent Team](https://www.kata.team/) in your
+repository. It settles the control plane, writes a complete default
+configuration, verifies it, and shows one parameter sheet.
 
 ## When to Use
 
 - Set up Kata for the first time in a new repository
-- Add new agents to an existing Kata installation
-- Reconfigure schedules, models, or agent profiles
+- Add agents, or a missing workflow, to an existing Kata installation
+- Change schedules, models, the roster, or the watchdog numbers
 
 ## Prerequisites
 
@@ -30,14 +30,10 @@ event-driven responses.
 
 ## Checklists
 
-<read_do_checklist goal="Gather all configuration before generating files">
+<read_do_checklist goal="Settle the prerequisites before generating files">
 
-- [ ] Ask which agents to enable. Do not assume all six.
-- [ ] Confirm the timezone before you generate the schedules.
-- [ ] Confirm the secrets are configured before you write the workflows.
-- [ ] Use fully-qualified, SHA-pinned action references
-      (`forwardimpact/kata-agent@<full-sha> # vX.Y.Z`). Do not use local paths
-      or mutable tags.
+- [ ] Settle the control plane and its credentials first. Ask no other
+      question before generation.
 - [ ] Use npm/npx in all generated content. Never use bun/bunx/just.
 - [ ] Read
       [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md).
@@ -50,148 +46,141 @@ event-driven responses.
 - [ ] Every generated workflow file uses the published action. No file uses a
       local path.
 - [ ] Action refs are SHA-pinned to a release-tag commit
-      (`@<full-sha> # <tag>`). A `github-actions` Dependabot entry exists in the
-      consuming repo.
-- [ ] Cron schedules match the user's requested timezone.
+      (`@<full-sha> # <tag>`), never a mutable tag. A `github-actions`
+      Dependabot entry exists in the consuming repo.
 - [ ] Secret reference names match the names you configured.
-- [ ] Agent profiles match the names the user confirmed.
-- [ ] `agent-shift.yml` lists every selected agent in the matrix. It serializes
+- [ ] `agent-shift.yml` lists every roster agent in the matrix. It serializes
       them with `max-parallel: 1`.
 - [ ] The dispatch workflow does no prompt assembly. It passes
       `task-event: ${{ github.event_path }}`. The action names the actor in the
       task and runs the dispatch gate before checkout.
-- [ ] Every agent workflow passes `killswitch: ${{ vars.KATA_KILLSWITCH }}`.
-      `watchdog.yml` does not, and it carries the template's threshold, window,
-      and tick.
+- [ ] Every generated agent workflow gates on the killswitch. The watchdog does
+      not, by design. Setup wrote no value to `KATA_KILLSWITCH`.
+- [ ] `watchdog.yml` carries the four event triggers and gates on nothing. A
+      hosted `watchdog.yml` has no engage job.
+- [ ] Every Value cell on the accepted sheet equals the file and key its Home
+      names.
 
 </do_confirm_checklist>
 
 ## Process
 
-### Step 1: Gather Configuration
+### Step 1: Settle the Control Plane
 
-Ask these questions. Skip any question the task prompt already answers.
+Ask only these questions before you write a file. Skip any question the task
+prompt already answers.
 
-1. **GitHub App** — "Do you have a GitHub App for your agents, or should I help
-   you create one?" If you create one, walk through `references/github-app.md`.
-
-2. **Secrets** — "Have you configured these repository secrets?"
-   - `KATA_APP_ID` — GitHub App ID
-   - `KATA_APP_PRIVATE_KEY` — GitHub App private key (PEM)
-   - `ANTHROPIC_API_KEY` — Anthropic API key
-
-3. **Agents** — "Which agents do you want to run?" Present:
-   - **product-manager** — Triage issues and PRs, merge fixes, run evaluations
-   - **engineering agent** — Spec, design, plan, and implement features (default
-     profile: `staff-engineer`)
-   - **security-engineer** — Patch dependencies, harden supply chain
-   - **release-engineer** — Keep branches merge-ready, cut releases
-   - **technical-writer** — Review docs, curate wiki, fix staleness
-   - **improvement-coach** — Facilitate storyboard and coaching sessions
-
-   Default: all six. Let the user pick a subset.
-
-4. **Timezone** — "What timezone do your agents work in?" Default:
-   Europe/Paris. Use `references/schedules.md` for cron expressions.
-
-5. **Wiki** — "Do you want agents to share persistent memory through a GitHub
-   wiki?" Default: yes. If no, set `wiki: "false"` in generated workflows.
-
-6. **Model** — "Which Claude model?" Default: `claude-opus-4-8[1m]`.
-
-7. **Agent profiles** — "Do you have custom agent profiles, or should I use the
-   defaults from kata-skills?" If you use the defaults, confirm that
-   the `kata-skills` and `gemba-skills` packs are installed.
-
-8. **Control plane** — "Do you use the Forward Impact-hosted control plane, or
+1. **Control plane** — "Do you use the Forward Impact-hosted control plane, or
    do you self-host your own GitHub App?" Default: self-hosted. See
    [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for
-   the trust model of each path. In **hosted** mode the workflows mint a
-   short-lived installation token from the hosted OIDC service at run time. So
-   the team does **not** configure `KATA_APP_ID` / `KATA_APP_PRIVATE_KEY`.
-   Question 2 then needs only `ANTHROPIC_API_KEY`. Instead, set the
-   `FIT_OIDC_URL` repository **variable** to the hosted OIDC URL before the
-   first workflow run.
+   the trust model of each path.
+2. **Self-hosted** — "Do you have a GitHub App for your agents, or should I help
+   you create one?" If you create one, walk through `references/github-app.md`.
+   Then confirm with `gh secret list` that `KATA_APP_ID`,
+   `KATA_APP_PRIVATE_KEY`, and `ANTHROPIC_API_KEY` exist.
+3. **Hosted** — The workflows mint a short-lived installation token from the
+   hosted OIDC service at run time, so the team configures no App secrets.
+   Confirm the `ANTHROPIC_API_KEY` secret, and the `FIT_OIDC_URL` repository
+   **variable** with `gh variable list`.
 
-### Step 2: Generate Workflow Files
+When a credential is missing, help the operator add it. When the repository has
+no remote yet, list each missing credential in the report and continue.
 
-Write the scheduled roster to a single `.github/workflows/agent-shift.yml`
-with `references/workflow-shift.md`. The matrix holds all selected agents. It
-runs them in declaration order, one at a time. Write the storyboard and
-coaching workflows from `references/workflow-facilitate.md` only when you
-select `improvement-coach`. Use `forwardimpact/kata-agent` as the action and
-pin it to a SHA. Resolve `{{KATA_AGENT_REF}}` per
-[`references/action-refs.md`](references/action-refs.md).
+### Step 2: Generate the Default Configuration
 
-Pair the pins with a `github-actions` Dependabot config. The pins then get
-bump PRs and do not rot. Write `.github/dependabot.yml` (or merge this
-entry into an existing one):
+Seed a working copy from the Default column of
+`references/parameters-agents.md` and `references/parameters-guard.md`. On an
+existing installation, overwrite the copy with the values its files carry.
+Resolve every placeholder from the copy, and each action ref per
+[`references/action-refs.md`](references/action-refs.md). Write each file the
+repository lacks. Merge an existing `dependabot.yml` as `dependabot.md` says.
+Change no other existing file before Step 5.
 
-    version: 2
-    updates:
-      - package-ecosystem: "github-actions"
-        directory: "/"
-        schedule:
-          interval: "weekly"
+| File                                                       | Template                 | Written when                   |
+| ---------------------------------------------------------- | ------------------------ | ------------------------------ |
+| `.github/workflows/agent-shift.yml`                        | `workflow-shift.md`      | always                         |
+| `.github/workflows/agent-dispatch.yml`                     | `workflow-dispatch.md`   | `product-manager` on roster    |
+| `.github/workflows/agent-storyboard.yml`, `agent-coaching.yml` | `workflow-facilitate.md` | `improvement-coach` on roster |
+| `.github/workflows/watchdog.yml`                           | `workflow-watchdog.md`   | always                         |
+| `.github/dependabot.yml`                                   | `dependabot.md`          | always                         |
 
-Emit the variant that matches question 8's mode: the **`## Template
-(Self-Hosted)`** block (the default) or the **`## Template (Hosted)`**
-block. `workflow-shift.md` carries both under those names. The dispatch and
-facilitate references carry a self-hosted block plus a hosted delta, which
-`workflow-facilitate.md` heads `## Hosted Variant`. On hosted setup, remind the
-operator: "Set the `FIT_OIDC_URL` repository variable to your
-hosted OIDC URL before the first workflow run." The hosted blocks carry no
-`KATA_APP_PRIVATE_KEY`. The watchdog template has one block for both modes.
+Emit the self-hosted templates, or apply each template's
+`## Template (Hosted)` section in hosted mode.
 
-The matrix in `agent-shift.yml` carries one line per selected agent, in
-producer → reviewer → shipper order (`references/schedules.md`). Generate the
-storyboard and coaching workflows only for `improvement-coach`.
+**Timezone.** Read the author offsets of the latest 100 default-branch commits
+whose author name does not end in `[bot]`:
+`git log <default-branch> --format='%an|%ad' --date=format:%z | grep -v '\[bot\]|' | head -n 100`.
+Drop `+0000` when any other offset remains, because agent commits carry it. Take
+the most common offset. Pick the `references/schedules.md` zone whose summer or
+winter offset is nearest. A tie goes to the zone listed first. With no such
+commit, use UTC.
 
-Every agent workflow passes `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the
-action, which fails the run on a truthy value (anything other than empty, `0`,
-`false`, `no`, or `off`) before any token mint, checkout, or agent work. The
-switch starts unset.
+**Killswitch.** Every agent workflow passes
+`killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which fails the run on
+a truthy value (anything other than empty, `0`, `false`, `no`, or `off`) before
+any token mint, checkout, or agent work. The watchdog does not gate on it,
+because it must keep running after it engages. Never write `KATA_KILLSWITCH`.
+The watchdog reads a falsy value written inside its window as a human clear,
+and it then stays silent for one window.
 
-Write `.github/workflows/watchdog.yml` from `references/workflow-watchdog.md` in
-both modes. The reference states what it does and how hosted mode differs.
+Discussion replies need the ghbridge service in `references/github-app.md`.
 
-### Step 3: Generate agent-dispatch
+### Step 3: Verify
 
-If you select `product-manager`, ask: "Do you want agents to respond to PR
-comments, issue comments, and discussions?" If yes, generate
-`agent-dispatch.yml` from `references/workflow-dispatch.md`. Emit
-`## Template (Self-Hosted)`. In hosted mode (question 8), apply the
-`## Template (Hosted)` delta it points at. Hosted dispatch needs a `kata-agent`
-release that declares `installation-token`. The workflow does no prompt
-assembly. It passes the event payload through `task-event`. The action composes
-the task.
+Setup is verified when the repository is green:
 
-For discussion replies, deploy the ghbridge service before pointing the App
-webhook URL at it. PR, issue, and review events reach `agent-dispatch`
-directly. Discussion events arrive through the App webhook and need a live
-ghbridge instance. Its
-[README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
-carries prerequisites, configuration, and the tunnel/webhook setup.
-
-### Step 4: Verify
-
-Setup is verified when the repository is green, not by files on disk:
-
-- Validate every generated workflow parses as YAML.
+- Every generated workflow parses as YAML.
 - Run the repository's checks on a clean checkout. Never leave or ignore red CI.
 - `gh secret list` — confirm the secrets and the named profiles resolve at run
-  time (committed, or installed from the pinned packs).
-- Suggest a first run: `gh workflow run "Agent: Shift"`.
+  time.
+- `gh variable list`, plus `--org <owner>` for an organization — read
+  `KATA_KILLSWITCH` at both scopes and, in hosted mode, `FIT_OIDC_URL`.
 
-### Step 5: Report
+### Step 4: Show the Parameter Sheet
+
+Read every file the sheet covers and the variables. Render one table per file,
+plus one for variables, in the row order of the parameter references, with the
+columns Parameter, Value, Home, and Why. Take each Value from the file
+or variable its Home names. Take Why from the parameter references. Show each
+shift start in local time and UTC. On a fresh setup, name the commit offset the
+zone came from.
+
+On a fresh setup, check the sheet before you show it. Each fixed default's Value
+equals its Default cell. The crons match the zone's block. The pins match the
+resolved tags. The variables match the repository.
+
+Then ask one question: "Do you want to change anything on this sheet?"
+
+### Step 5: Apply Changes
+
+Apply each named change to the working copy. Regenerate only the files whose
+rows changed, from their templates and the working copy. A zone change
+regenerates the shift and storyboard files. A roster change regenerates the
+shift, dispatch, and storyboard files and writes each file the new roster
+needs. When it drops a file's lead, ask whether to delete that file.
+
+Before you overwrite a file that exists, diff it against a render of its
+read-back values. When any line differs, show it and ask. A no keeps that file
+and leaves the change out of it. Show each regenerated file's diff, then rerun
+Steps 3 and 4.
+
+A `template` row is the template's own shape. Answer a change to it with its
+Home, which the operator edits by hand. A change can name a whole file, which
+regenerates it from its template under the same diff rule. A change that
+names no row gets the sheet again. End the loop when the operator accepts.
+
+### Step 6: Report
 
 Summarize what you created and the next steps:
 
+- Add each missing credential that Step 1 listed
 - Customize agent profiles if you use the defaults
 - Select trust policy and review rigor in an optional `.kata/settings.json`
   with the `kata-settings` skill
-- Adjust schedules after you observe the first runs
+- Start the first shift: `gh workflow run "Agent: Shift"`
+- Read the gaps between scheduled watchdog runs
+  (`gh run list --workflow Watchdog --event schedule`) and the counts on their
+  summaries. Then change the window or the threshold on the sheet
 - Emergency stop: set `KATA_KILLSWITCH` truthy; write a falsy value to resume.
-  A self-hosted watchdog engages it through the App's `Variables` grant. A
-  hosted watchdog run turns red on a breach, and the operator sets it
+  A self-hosted watchdog engages it through the App's `Variables` grant
 - Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm

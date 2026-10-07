@@ -1,25 +1,13 @@
 # Workflow Template: Agent Shift
 
 One workflow (`agent-shift.yml`) runs the whole roster. The matrix is the
-roster. Edit one matrix line to add or remove an agent. `max-parallel: 1`
-serializes them.
-
-## Placeholders
-
-| Placeholder          | Example                                             |
-| -------------------- | --------------------------------------------------- |
-| `{{SHIFT_CRONS}}`    | Three `- cron:` lines from `schedules.md`           |
-| `{{AGENT_MATRIX}}`   | One `- { name: <agent> }` line per selected agent   |
-| `{{MODEL}}`          | `claude-opus-4-8[1m]`                               |
-| `{{WIKI}}`           | `"true"` or `"false"`                               |
-| `{{KATA_AGENT_REF}}` | `b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0` |
-
-List `{{AGENT_MATRIX}}` in producer → reviewer → shipper order.
-`{{SHIFT_CRONS}}` are shift-start times. Set `wiki: "false"` to skip the sync.
-Omit `agent-model:` for the default. `kata-agent` runs the killswitch gate first
-and reports cost last. These workflows pass
-`killswitch: ${{ vars.KATA_KILLSWITCH }}`. Emit the self-hosted (default) or
-hosted block per `--hosted` (`SKILL.md`).
+roster, and `max-parallel: 1` serializes it. Resolve every placeholder from
+[`parameters-agents.md`](parameters-agents.md), and `{{KATA_AGENT_REF}}` per
+[`action-refs.md`](action-refs.md). `{{AGENT_MATRIX}}` is one
+`- { name: <agent> }` line per roster agent, and `{{SHIFT_CRONS}}` is three
+`- cron:` lines from `schedules.md`. `kata-agent` runs the killswitch gate first
+and reports cost last. Emit the self-hosted or hosted block per the
+control-plane step in `SKILL.md`.
 
 ## Template (Self-Hosted)
 
