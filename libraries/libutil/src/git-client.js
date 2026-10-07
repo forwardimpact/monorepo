@@ -105,6 +105,19 @@ export class GitClient {
     return this.#runRaw(args, { cwd });
   }
 
+  /**
+   * List the tracked paths that match `paths`, one per line. An empty result
+   * means that no tracked path matches.
+   * @param {string[]} paths - Pathspecs to match. {@link assertSafePaths}
+   *   rejects `:`-prefixed entries.
+   * @param {object} [options]
+   * @param {string} [options.cwd]
+   */
+  async lsFiles(paths, { cwd } = {}) {
+    assertSafePaths(paths);
+    return this.#runRaw(["ls-files", "--", ...paths], { cwd });
+  }
+
   /** Rebase the current branch onto `upstream`, optionally with a merge strategy. */
   async rebase(upstream, { cwd, strategy, autostash = false } = {}) {
     const args = ["rebase"];

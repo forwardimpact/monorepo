@@ -16,13 +16,24 @@ import { resolveWikiRoot } from "../util/wiki-dir.js";
  * in the output. They never gate the push.
  */
 export async function runPushCommand(ctx) {
-  const { runtime, wikiSync } = ctx.deps;
+  const { runtime, wikiSync, gitClient } = ctx.deps;
   await wikiSync.inheritIdentity();
 
   // A caller that knows its narrower write-set passes `--paths` (repeatable).
   // The bare session-close invocation passes none. It lands the session's own
   // dirty set under per-session checkout isolation.
   const paths = ctx.options?.paths?.length ? ctx.options.paths : undefined;
+  if (paths) {
+    const wikiDir = resolveWikiRoot(runtime, ctx.options);
+    const unmatched = await unmatchedPaths(gitClient, wikiDir, paths);
+    if (unmatched.length > 0) {
+      return {
+        ok: false,
+        code: 2,
+        error: `push: --paths "${unmatched[0]}" matches nothing in the wiki tree`,
+      };
+    }
+  }
 
   let result;
   try {
@@ -52,6 +63,21 @@ export async function runPushCommand(ctx) {
     runtime.proc.stdout.write(renderDetections(result.detections));
   }
   return { ok: true };
+}
+
+// A declared pathspec must match a tracked path or a pending change (an
+// untracked file, a modification, or a deletion). One that matches neither
+// names nothing the push could land. A pathspec-scoped status reads such a
+// path as clean, so the push would report success over an empty write-set.
+async function unmatchedPaths(gitClient, wikiDir, paths) {
+  const unmatched = [];
+  for (const p of paths) {
+    const tracked = (await gitClient.lsFiles([p], { cwd: wikiDir })).stdout;
+    const pending = (await gitClient.status({ cwd: wikiDir, paths: [p] }))
+      .stdout;
+    if (tracked.trim() === "" && pending.trim() === "") unmatched.push(p);
+  }
+  return unmatched;
 }
 
 /**
