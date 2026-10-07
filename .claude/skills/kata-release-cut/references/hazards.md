@@ -16,8 +16,11 @@ recovery. The longer mechanics for (d) and (h) follow below.
 - **(d) Publish-credential expiry** — the publish fails after the credential
   expires, and only in the run. Preflight it before any tag op (below).
 - **(e) Smoke-test propagation lag** — the smoke test sees a stale registry
-  view. Treat the first failure as lag. Run it again after a delay before you
-  classify the publish as failed.
+  view. A dependency tarball from the same release returns 404. The smoke
+  actions retry the install for about 10 minutes. A failure after those
+  retries is not lag. The `bun-linux-arm64` binary legs install gear CLIs from
+  npm and do not retry. When they fail with `no install channel succeeded`,
+  run `gh run rerun --failed` after a delay.
 - **(f) JSDoc persists after the auto-fix** — JSDoc-only failures remain after
   `check:fix`. Run the existing JSDoc auto-fix separately.
 - **(g) Wiki audit budget overage** — a wiki surface breaches a line/word
