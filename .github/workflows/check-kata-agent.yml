@@ -1,9 +1,10 @@
 name: "Check: Kata Agent"
 
 # Exercises the dispatch gate of the kata-agent action. The classify job runs
-# the actor rule against six senders and needs no secret. The gate job runs
-# the action from this checkout under the repository's App, so its `if:`
-# admits same-repository, non-Dependabot pull requests and manual dispatch.
+# the actor rule against seven senders and its error paths, and needs no
+# secret. The gate job runs the action from this checkout under the
+# repository's App, so its `if:` admits same-repository, non-Dependabot pull
+# requests and manual dispatch.
 # Two of its three cases reach the harness step for a few read-only turns. No
 # job passes `killswitch`, because this repository's variable may be engaged.
 on:
@@ -35,6 +36,7 @@ jobs:
           - { login: "alice", type: User, expected: human }
           - { login: "dependabot[bot]", type: Bot, expected: bot }
           - { login: "github-actions[bot]", type: Bot, expected: bot }
+          - { login: "acme-team", type: User, expected: human }
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Classify a sender on an artifact event
@@ -51,6 +53,18 @@ jobs:
         run: |
           jq -n '{sender:{login:"alice",type:"User"}}' > none.json
           test -z "$(bash products/kata/actions/kata-agent/classify-actor.sh none.json acme-team)"
+      # Doubt never opens the gate: each case fails the step instead.
+      - name: An unreadable payload, an empty slug, or no sender fails
+        if: strategy.job-index == 0
+        run: |
+          rule=products/kata/actions/kata-agent/classify-actor.sh
+          echo '{bad' > bad.json
+          jq -n '{issue:{number:1},sender:{login:"alice",type:"User"}}' > ok.json
+          jq -n '{issue:{number:1},sender:{}}' > nosender.json
+          if bash "$rule" missing.json acme-team; then exit 1; fi
+          if bash "$rule" bad.json acme-team; then exit 1; fi
+          if bash "$rule" ok.json ""; then exit 1; fi
+          if bash "$rule" nosender.json acme-team; then exit 1; fi
 
   # The fixture is a hybrid. Under `pull_request` the composer renders the
   # labeled template from `action`, with empty fields on the `none` case;
@@ -136,6 +150,8 @@ jobs:
           dispatch-window-hours: "8760"
       - name: The outputs match the case
         env:
+          CASE: ${{ matrix.case }}
+          OUTCOME: ${{ steps.agent.outcome }}
           EXPECT_CLASS: ${{ matrix.expect_class }}
           EXPECT_VERDICT: ${{ matrix.expect_verdict }}
           EXPECT_STOOD_DOWN: ${{ matrix.expect_stood_down }}
@@ -148,6 +164,9 @@ jobs:
           test "$VERDICT" = "$EXPECT_VERDICT"
           test "$STOOD_DOWN" = "$EXPECT_STOOD_DOWN"
           if [ "$EXPECT_STOOD_DOWN" = true ]; then test -z "$TRACE_FILE"; else test -n "$TRACE_FILE"; fi
+          # A stood-down run exits zero. The other cases may end red on a
+          # short session, which is not under test.
+          if [ "$CASE" = self ]; then test "$OUTCOME" = success; fi
       # The caller's checkout is shallow; the action's is `fetch-depth: 0`.
       # The bootstrap is the only step that installs gemba-harness.
       - name: Stood down before checkout and bootstrap
