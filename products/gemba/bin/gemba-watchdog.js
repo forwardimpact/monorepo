@@ -30,11 +30,13 @@ const definition = {
         },
         threshold: {
           type: "string",
-          description: "Breach threshold, one number for every counter",
+          description:
+            "Breach threshold, one number for every counter. Size it to one window's legitimate work",
         },
         "window-hours": {
           type: "string",
-          description: "Window the counters cover, in hours",
+          description:
+            "Window the counters cover, in hours. Size it to the longest gap between the scheduled runs the repository receives",
         },
         "killswitch-value": {
           type: "string",
@@ -62,7 +64,8 @@ const definition = {
         },
         "window-hours": {
           type: "string",
-          description: "Window the resume rule measures, in hours",
+          description:
+            "Window the resume rule measures, in hours. Use the assess window",
         },
         "dry-run": {
           type: "boolean",
@@ -86,10 +89,10 @@ const definition = {
     },
   },
   examples: [
-    "gemba-watchdog assess --threshold 32 --window-hours 2 --default-branch main",
-    "gemba-watchdog assess --threshold 32 --window-hours 2 --default-branch main --format json",
-    'gemba-watchdog engage --variable MY_KILLSWITCH --reason "$REASON" --window-hours 2',
-    "gemba-watchdog engage --variable MY_KILLSWITCH --reason watchdog --window-hours 2 --dry-run",
+    "gemba-watchdog assess --threshold 48 --window-hours 8 --default-branch main",
+    "gemba-watchdog assess --threshold 48 --window-hours 8 --default-branch main --format json",
+    'gemba-watchdog engage --variable MY_KILLSWITCH --reason "$REASON" --window-hours 8',
+    "gemba-watchdog engage --variable MY_KILLSWITCH --reason watchdog --window-hours 8 --dry-run",
   ],
   documentation: [
     {

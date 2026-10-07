@@ -2,34 +2,34 @@
 
 The watchdog counts default-branch commits, pull requests created, issues
 created, and conversation comments created over one window. It engages
-`KATA_KILLSWITCH` when any count reaches the threshold. Generate it for every
-installation. File name: `watchdog.yml`. Replace `{{GEMBA_WATCHDOG_REF}}` and
-`{{DEFAULT_BRANCH}}` at generation time.
+`KATA_KILLSWITCH` when any count reaches the threshold. File name:
+`watchdog.yml`.
 
-The name stays outside the `Agent:` family. The watchdog must keep running after
-it engages the variable, so it never gates on it. The threshold and the window
-appear once, in `env`. The variable name appears in `env` and once more as the
+It ticks on a schedule and on the four counters' own events, because GitHub
+delivers scheduled runs late under load. One tick runs and one waits. The name
+stays outside the `Agent:` family, and the workflow never gates on the variable
+it writes. The self-hosted block names the variable twice, in `env` and as the
 `vars` literal, because a dynamic index that fails to resolve reads as a cleared
-latch. `default-branch` stays a literal, because the schedule event's payload
-is not documented to carry the repository's default branch. In hosted mode the
-engage job holds no App key. On a breach it fails at its token mint, so the run
-is red and nothing is written.
+latch.
 
 ## Placeholders
 
-| Placeholder              | Resolve with                                                     |
-| ------------------------ | ---------------------------------------------------------------- |
-| `{{GEMBA_WATCHDOG_REF}}` | Per [`action-refs.md`](action-refs.md)                           |
-| `{{DEFAULT_BRANCH}}`     | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` |
+| Placeholder                 | Resolve with                                                      |
+| --------------------------- | ----------------------------------------------------------------- |
+| `{{WATCHDOG_CRON}}`         | `*/5 * * * *`                                                     |
+| `{{WATCHDOG_THRESHOLD}}`    | `48`                                                              |
+| `{{WATCHDOG_WINDOW_HOURS}}` | `8`                                                               |
+| `{{DEFAULT_BRANCH}}`        | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` |
+| `{{GEMBA_WATCHDOG_REF}}`    | Per [`action-refs.md`](action-refs.md)                            |
 
-## Template
+## Template (Self-Hosted)
 
 ```yaml
 name: "Watchdog"
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "{{WATCHDOG_CRON}}"
   workflow_dispatch:
     inputs:
       dry-run:
@@ -40,12 +40,25 @@ on:
         required: false
         type: boolean
         default: false
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened]
+    branches: ["{{DEFAULT_BRANCH}}"]
+  push:
+    branches: ["{{DEFAULT_BRANCH}}"]
 
 permissions: {}
 
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+
 env:
-  WATCHDOG_THRESHOLD: "32"
-  WATCHDOG_WINDOW_HOURS: "2"
+  WATCHDOG_THRESHOLD: "{{WATCHDOG_THRESHOLD}}"
+  WATCHDOG_WINDOW_HOURS: "{{WATCHDOG_WINDOW_HOURS}}"
   WATCHDOG_VARIABLE: "KATA_KILLSWITCH"
 
 jobs:
@@ -91,3 +104,23 @@ jobs:
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
 ```
+
+## Template (Hosted)
+
+A hosted installation holds no App key, so it cannot engage. Change the
+self-hosted template in three ways:
+
+1. Delete the `engage` job.
+2. Delete the `inputs:` block under `workflow_dispatch:`, so the trigger stays
+   bare, and the `WATCHDOG_VARIABLE` line under `env:`.
+3. Append this step to the `assess` job, so a breach turns the run red:
+
+   ```yaml
+         - name: Fail on a breach
+           if: steps.assess.outputs.verdict == 'engage'
+           env:
+             REASON: ${{ steps.assess.outputs.reason }}
+           run: |
+             echo "::error::Breach: $REASON. Engage needs the App key, so set KATA_KILLSWITCH by hand. Ticks stay red until the counts drain."
+             exit 1
+   ```
