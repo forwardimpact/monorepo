@@ -16,6 +16,7 @@
     "tokenUsage": null,
     "modelUsage": null
   },
+  "verdict": null,
   "turnCount": 15,
   "resultEventTurns": 7,
   "turnPopulations": {

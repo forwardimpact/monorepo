@@ -2,6 +2,7 @@ import { join, dirname, basename } from "node:path";
 import { isoTimestamp } from "@forwardimpact/libutil";
 import { createTraceCollector, sumTraceCost } from "@forwardimpact/libharness";
 import { createTraceQuery } from "../trace-query.js";
+import { readTraceSummary } from "../trace-summary.js";
 import { createTraceGitHub } from "../trace-github.js";
 import { splitTrace } from "../trace-split.js";
 import { stripSignatures } from "../signature-filter.js";
@@ -380,7 +381,8 @@ export async function runStatsCommand(ctx) {
  * trace. It attributes the cost per source. The combined trace from a
  * supervised, facilitated, or discuss session already interleaves all
  * participants, so one file yields the whole run's spend. The default output
- * is `{totalCostUsd, bySource}` JSON. `--markdown` emits a GitHub-flavored
+ * is `{totalCostUsd, bySource, verdict}` JSON. `verdict` is the lead's
+ * terminal verdict, or null when the trace carries no orchestrator summary. `--markdown` emits a GitHub-flavored
  * block to redirect into `$GITHUB_STEP_SUMMARY`.
  *
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
@@ -405,8 +407,9 @@ export async function runCostCommand(ctx) {
 /**
  * Render a cost summary as a GitHub-flavored markdown block for a CI step
  * summary. The block holds a headline total and a per-participant table. The
- * table lists the highest cost first.
- * @param {{totalCostUsd: number, bySource: Record<string, number>}} cost
+ * table lists the highest cost first. A verdict line follows the headline
+ * when the trace carries a verdict.
+ * @param {{totalCostUsd: number, bySource: Record<string, number>, verdict: string|null}} cost
  * @returns {string}
  */
 function renderCostMarkdown(cost) {
@@ -415,6 +418,7 @@ function renderCostMarkdown(cost) {
     "",
     "This total covers every participant (agent, supervisor, judge, named profiles).",
   ];
+  if (cost.verdict) lines.push("", `Verdict: \`${cost.verdict}\``);
   const sources = Object.entries(cost.bySource).sort((a, b) => b[1] - a[1]);
   if (sources.length > 0) {
     lines.push("", "| Participant | Cost (USD) |", "| --- | --- |");
@@ -554,20 +558,28 @@ export async function runSplitCommand(ctx) {
  * Compute total + per-source cost from raw file content. A structured JSON
  * trace (from `gemba-trace download`) carries its total in
  * `summary.totalCostUsd` but no per-source split. `sumTraceCost` sums raw
- * NDJSON.
+ * NDJSON. The verdict comes from the structured document's `orchestrator`
+ * field, or from the last orchestrator summary in NDJSON.
  * @param {string} content - Raw file content (structured JSON or NDJSON).
- * @returns {{totalCostUsd: number, bySource: Record<string, number>}}
+ * @returns {{totalCostUsd: number, bySource: Record<string, number>, verdict: string|null}}
  */
 function computeTraceCost(content) {
   try {
     const parsed = JSON.parse(content);
     if (parsed && typeof parsed.summary?.totalCostUsd === "number") {
-      return { totalCostUsd: parsed.summary.totalCostUsd, bySource: {} };
+      return {
+        totalCostUsd: parsed.summary.totalCostUsd,
+        bySource: {},
+        verdict: parsed.orchestrator?.verdict ?? null,
+      };
     }
   } catch {
     // Not a single JSON object. Treat it as NDJSON below.
   }
-  return sumTraceCost(content.split("\n"));
+  return {
+    ...sumTraceCost(content.split("\n")),
+    verdict: readTraceSummary(content)?.verdict ?? null,
+  };
 }
 
 /**

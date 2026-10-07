@@ -24,11 +24,13 @@ export class TraceQuery {
     this.metadata = trace.metadata ?? {};
     this.turns = trace.turns ?? [];
     this.summary = trace.summary ?? {};
+    this.orchestrator = trace.orchestrator ?? null;
   }
 
   /**
-   * High-level overview: metadata, summary, turn count, tool frequency,
-   * and the first user message text (taskPrompt) when present.
+   * High-level overview: metadata, summary, the orchestrator verdict (null
+   * when the trace carries no orchestrator summary), turn count, tool
+   * frequency, and the first user message text (taskPrompt) when present.
    * @returns {object}
    */
   overview() {
@@ -42,6 +44,7 @@ export class TraceQuery {
     return {
       metadata: this.metadata,
       summary: this.summary,
+      verdict: this.orchestrator?.verdict ?? null,
       turnCount: this.turns.length,
       resultEventTurns: this.summary.numTurns ?? null,
       turnPopulations: {

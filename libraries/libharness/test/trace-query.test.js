@@ -18,6 +18,19 @@ describe("TraceQuery", () => {
       assert.strictEqual(ov.tools[0].tool, "Bash");
       assert.strictEqual(ov.tools[0].count, 2);
     });
+
+    test("verdict is null when the trace carries no orchestrator summary", () => {
+      const ov = new TraceQuery(buildTrace()).overview();
+      assert.strictEqual(ov.verdict, null);
+    });
+
+    test("verdict reads the orchestrator summary", () => {
+      const ov = new TraceQuery({
+        ...buildTrace(),
+        orchestrator: { verdict: "stand_down" },
+      }).overview();
+      assert.strictEqual(ov.verdict, "stand_down");
+    });
   });
 
   describe("count", () => {
