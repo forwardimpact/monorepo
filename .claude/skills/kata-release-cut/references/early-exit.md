@@ -53,13 +53,14 @@ pending publish-failure retries, and pending publish-workflow verifications.
 Every standing obligation must be empty, re-cited as blocked with its
 reference, or verifiable-in-run and resolved to verified success. A pending
 publish-workflow verification is verifiable-in-run. Resolve it with
-`gh run list` before you exit. Success clears it. A failure or a
+`gh run list --branch <tag>` before you exit. Success clears it. A failure or a
 still-in-progress run is due. Any due (unblocked) obligation defeats the exit.
 
 ## Condition 4 — Main CI green
 
-The Pre-Flight checklist passed. Re-cite it in the verdict record so the
-record stands alone.
+The Pre-Flight checklist passed on the tip SHA that it recorded. That SHA
+must equal `range_to`. Re-cite both in the verdict record so the record stands
+alone.
 
 ## Re-anchor bound
 
