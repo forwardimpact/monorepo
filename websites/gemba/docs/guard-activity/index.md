@@ -43,9 +43,11 @@ largest normal batch, such as a full scheduled session, one weekly dependency
 run, or one merge queue drain. Every repository has its own baselines, so the
 command ships no default.
 
-The window is the run interval times the number of runs you accept missing. A
-15-minute schedule with a 2-hour window keeps a breach observable across seven
-missed runs.
+The window is the tick interval times the number of ticks you accept missing. A
+five-minute schedule with a 2-hour window holds 24 ticks. The watchdog queues on
+the same runner pool as the runs it measures, so a flood that holds the pool
+delays the tick that would stop it. The dispatch gate below acts in-band, at the
+start of each self-caused run and before its checkout.
 
 ## `assess`
 
@@ -132,6 +134,40 @@ besides a count over the threshold:
 An unnecessary stop costs idle agent time until a human clears it, but a brake
 that fails to stop the team can cost an unbounded spend.
 
+## The dispatch gate
+
+The [`kata-agent`](https://github.com/forwardimpact/kata-agent) action checks
+every run that an artifact event starts. After it mints its token, it classifies
+the acting account as `human`, `self`, or `bot`. The account is `self` when
+`sender.login` equals the App slug that the mint yielded, after the action
+strips a `[bot]` suffix or an `app/` prefix. Otherwise the account is `human`
+when its type is `User`, and `bot` for any other type. A `self` run measures the
+same four counters over the action's `dispatch-window-hours` against its
+`dispatch-budget`. A counter at or above the budget stands the run down before
+checkout. The run writes one summary line, exits zero, and sets no latch. A
+measurement that the run cannot complete also stands the run down. The budget
+releases itself as the window slides. Human and bot actors never enter the gate,
+and neither do runs with no artifact. The action's inputs are the one
+configuration home of the two numbers. Their defaults set a budget below the
+latch threshold over the watchdog's window.
+
+Each row replays one incident's recovered event timestamps against the rule it
+names. Escaped counts artifacts created before the rule engaged plus a 45-minute
+tail for sessions already in flight.
+
+| Rule | Engages | Escaped: issues, PRs, comments |
+| ---- | ------- | ------------------------------ |
+| Nothing | never | 416, 142, about 2,300 |
+| Watchdog, 32 per counter, 2 h, 15-minute tick | 15:15Z tick | 111, 36, 444 |
+| Watchdog, 32 per counter, 2 h, 5-minute tick | 15:05Z tick | 95, 34, 380 |
+| Gate, budget 24 per counter, 2 h, at run start | 15:01Z | 95, 34, 370 |
+
+The task the lead receives opens with the actor's class and login. A
+self-caused or bot-caused task asks the lead to stand down when the body hands
+no new work.
+[Coordinate an Agent Team](/docs/coordinate-team/#end-the-session) carries the
+line and the verdict.
+
 ## CI wiring
 
 Measurement and engagement run as separate jobs. Measurement is read-only and
@@ -142,7 +178,7 @@ name: "Watchdog"
 
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:

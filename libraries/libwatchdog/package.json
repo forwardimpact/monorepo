@@ -24,7 +24,7 @@
       "trigger": "An agent event chain creates artifacts faster than a human can read them, and no deterministic brake bounds the volume.",
       "bigHire": "bound an agent team's output volume with a deterministic brake that a human clears.",
       "littleHire": "count one activity signal over a window and engage a latch when it crosses a threshold.",
-      "competesWith": "a prose recursion guard inside an agent task; a spend cap on the LLM platform; a human who notices the sprawl"
+      "competesWith": "a stand-down sentence inside an agent task; a spend cap on the LLM platform; a human who notices the sprawl"
     }
   ],
   "type": "module",

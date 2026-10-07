@@ -1,9 +1,32 @@
+# Workflow Template: Activity Watchdog
+
+The watchdog counts default-branch commits, pull requests created, issues
+created, and conversation comments created over one window. It engages
+`KATA_KILLSWITCH` when any count reaches the threshold. Generate it for every
+installation. File name: `watchdog.yml`. Replace `{{GEMBA_WATCHDOG_REF}}` and
+`{{DEFAULT_BRANCH}}` at generation time.
+
+The name stays outside the `Agent:` family. The watchdog must keep running after
+it engages the variable, so it never gates on it. The threshold and the window
+appear once, in `env`. The variable name appears in `env` and once more as the
+`vars` literal, because a dynamic index that fails to resolve reads as a cleared
+latch. `default-branch` stays a literal, because the schedule event's payload
+is not documented to carry the repository's default branch. In hosted mode the
+engage job holds no App key. On a breach it fails at its token mint, so the run
+is red and nothing is written.
+
+## Placeholders
+
+| Placeholder              | Resolve with                                                     |
+| ------------------------ | ---------------------------------------------------------------- |
+| `{{GEMBA_WATCHDOG_REF}}` | Per [`action-refs.md`](action-refs.md)                           |
+| `{{DEFAULT_BRANCH}}`     | `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` |
+
+## Template
+
+```yaml
 name: "Watchdog"
 
-# Repository CI, not a Kata surface. This workflow runs no agent, so it does
-# not gate on KATA_KILLSWITCH. It must keep running after it engages the
-# variable, and its name stays outside the kata-* glob so the "every kata-*
-# workflow gates on the killswitch" contract stays true as written.
 on:
   schedule:
     - cron: "*/5 * * * *"
@@ -20,9 +43,6 @@ on:
 
 permissions: {}
 
-# The threshold and the window each appear exactly once. Both jobs read them
-# from here. The variable name appears here and once more as the `vars`
-# literal in the assess job, for the reason that step gives.
 env:
   WATCHDOG_THRESHOLD: "32"
   WATCHDOG_WINDOW_HOURS: "2"
@@ -42,21 +62,13 @@ jobs:
       reason: ${{ steps.assess.outputs.reason }}
     steps:
       - id: assess
-        uses: forwardimpact/gemba-watchdog@437b84d56a5036d618ce35bcfbda4d03103d66e2 # v1.0.1
+        uses: forwardimpact/gemba-watchdog@{{GEMBA_WATCHDOG_REF}}
         with:
           mode: assess
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          # The literal, not `vars[env.WATCHDOG_VARIABLE]`: a dynamic index
-          # that fails to resolve yields an empty string, which the summary
-          # renders as a cleared latch. The name's second occurrence buys a
-          # containment control that cannot go quietly wrong.
           killswitch-value: ${{ vars.KATA_KILLSWITCH }}
-          # A literal, not `github.event.repository.default_branch`: the
-          # schedule event's payload is not documented to carry one, and a
-          # workflow_dispatch rehearsal always does, so a dispatch could
-          # never detect the empty case before the schedule hit it.
-          default-branch: main
+          default-branch: "{{DEFAULT_BRANCH}}"
           token: ${{ github.token }}
 
   engage:
@@ -68,16 +80,14 @@ jobs:
     permissions: {}
     steps:
       - id: engage
-        uses: forwardimpact/gemba-watchdog@437b84d56a5036d618ce35bcfbda4d03103d66e2 # v1.0.1
+        uses: forwardimpact/gemba-watchdog@{{GEMBA_WATCHDOG_REF}}
         with:
           mode: engage
           variable: ${{ env.WATCHDOG_VARIABLE }}
           window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          # Declared required on the action. The engage step consumes none of
-          # it, and it costs no second copy: the value comes from the one env
-          # home above.
           threshold: ${{ env.WATCHDOG_THRESHOLD }}
           reason: ${{ needs.assess.outputs.reason }}
           dry-run: ${{ inputs.dry-run || 'false' }}
           app-id: ${{ secrets.KATA_APP_ID }}
           app-private-key: ${{ secrets.KATA_APP_PRIVATE_KEY }}
+```

@@ -59,11 +59,15 @@ npx gemba-trace overview --file /tmp/trace-24497273755/trace--default--agent.age
 ```json
 {
   "summary": { "result": "success", "totalCostUsd": 0.42, "numTurns": 18 },
+  "verdict": null,
   "turnCount": 34,
   "tools": [{ "tool": "Bash", "count": 12 }, { "tool": "Read", "count": 8 }],
   "taskPrompt": "Refactor src/utils/format.js so that formatDate and formatCurrency share..."
 }
 ```
+
+`verdict` carries the lead's terminal verdict on the combined trace of a
+coordinated run. A split lane and a single-agent run read `null`.
 
 The `timeline` command shows the shape of the session in a few lines. It
 prints one line per assistant turn, with the tools used and the token counts:

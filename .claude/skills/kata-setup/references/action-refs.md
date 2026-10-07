@@ -6,16 +6,18 @@ time.
 
 ## Placeholders
 
-| Placeholder          | Action repository          |
-| -------------------- | -------------------------- |
-| `{{KATA_AGENT_REF}}` | `forwardimpact/kata-agent` |
+| Placeholder              | Action repository              |
+| ------------------------ | ------------------------------ |
+| `{{KATA_AGENT_REF}}`     | `forwardimpact/kata-agent`     |
+| `{{GEMBA_WATCHDOG_REF}}` | `forwardimpact/gemba-watchdog` |
 
 ## Steps
 
-1. List the release tags of the action repository, highest version last:
+1. List the release tags of the placeholder's action repository, highest
+   version last:
 
    ```sh
-   gh api repos/forwardimpact/kata-agent/tags --paginate \
+   gh api repos/<action-repository>/tags --paginate \
      --jq '.[] | "\(.commit.sha) \(.name)"' \
      | grep -E ' v[0-9]+\.[0-9]+\.[0-9]+$' | sort -k2 -V
    ```

@@ -9,12 +9,13 @@ product-manager and improvement-coach), `{{MODEL}}`, `{{WIKI}}`, and
 
 The workflow does **no prompt assembly**. It hands the runner's native event
 payload to the action (`task-event: ${{ github.event_path }}`). The action
-composes the task from context, routing, and the recursion guard. So untrusted
-fields never hit a shell. `kata-agent` runs the killswitch first, reports cost
-last, pushes the wiki when `wiki` is `"true"`, and POSTs the run's conclusion
-to `callback-url` when a caller names one. The action enables `trace` by
-default. Leave it enabled on a bridge path, because the callback reads the
-trace to build its payload.
+composes the task from the payload, opens it with the actor's class and login,
+and stands a self-caused run down when the repository is over its dispatch
+budget. Untrusted fields never hit a shell. `kata-agent` runs the killswitch
+first, reports cost last, pushes the wiki when `wiki` is `"true"`, and POSTs the
+run's conclusion to `callback-url` when a caller names one. The action enables
+`trace` by default. Leave it enabled on a bridge path, because the callback
+reads the trace to build its payload.
 
 ## Template (Self-Hosted)
 
@@ -64,7 +65,7 @@ on:
 permissions:
   contents: write
 
-# Coalesce simultaneous events on one target so the recursion guard sees a
+# Coalesce simultaneous events on one target so one facilitator sees a
 # stable thread. `cancel-in-progress: false` is load-bearing. Runs last 30+
 # minutes, and a new label or comment mid-run must not cancel that work.
 concurrency:

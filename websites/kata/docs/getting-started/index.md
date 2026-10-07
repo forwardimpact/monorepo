@@ -47,21 +47,23 @@ accept the offered model and the pack's own agent profiles.
 | Wiki          | Whether agents share persistent memory      | Yes                     |
 
 The skill writes `.github/workflows/agent-shift.yml`, which holds the whole
-roster as one matrix. The storyboard, coaching, and dispatch workflows appear
-only when you select the matching option. Every workflow pins its published
-action to a full commit SHA, and a generated `.github/dependabot.yml` updates
-those pins. With a mutable tag, the action could change without a commit in
-your repository.
+roster as one matrix. It also writes `.github/workflows/watchdog.yml`, which
+engages `KATA_KILLSWITCH` when the team's activity crosses a threshold. The
+storyboard, coaching, and dispatch workflows appear only when you select the
+matching option. Every workflow pins its published action to a full commit
+SHA, and a generated `.github/dependabot.yml` updates those pins. With a mutable
+tag, the action could change without a commit in your repository.
 
 ### Register the GitHub App
 
 The agents act as a GitHub App, so you do not need to rotate a long-lived
 personal token. Register the App on the organization that owns the repository.
 Grant it read and write access to Contents, Pull requests, Issues, Discussions,
-and Workflows, plus read-only access to Metadata. Install it. Then add the
-repository secrets `KATA_APP_ID`, `KATA_APP_PRIVATE_KEY`, and
-`ANTHROPIC_API_KEY`. Before the first run, confirm that each secret exists with
-`gh secret list`.
+Workflows, and Variables, plus read-only access to Metadata and to organization
+Variables. The watchdog needs Variables write access to engage the killswitch.
+Install it. Then add the repository secrets `KATA_APP_ID`,
+`KATA_APP_PRIVATE_KEY`, and `ANTHROPIC_API_KEY`. Before the first run, confirm
+that each secret exists with `gh secret list`.
 
 A hosted control plane replaces the App. The workflows then get a short-lived
 token at run time, and the setup needs a `FIT_OIDC_URL` repository variable
