@@ -4,6 +4,11 @@ name: "Watchdog"
 # not gate on KATA_KILLSWITCH. It must keep running after it engages the
 # variable, and its name stays outside the kata-* glob so the "every kata-*
 # workflow gates on the killswitch" contract stays true as written.
+#
+# GitHub delivers scheduled runs hours late under load, so the schedule is the
+# fallback clock. The four counters' own events start a tick when activity
+# happens. The schedule covers activity made with the runner's own token, which
+# starts no workflow, and it records the latch value on a quiet repository.
 on:
   schedule:
     - cron: "*/5 * * * *"
@@ -17,15 +22,32 @@ on:
         required: false
         type: boolean
         default: false
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+  # The base context: the default branch's workflow file and secrets, and no
+  # checkout. `pull_request` would run a branch's own copy of this file.
+  pull_request_target:
+    types: [opened]
+    branches: ["main"]
+  push:
+    branches: ["main"]
 
 permissions: {}
 
-# The threshold and the window each appear exactly once. Both jobs read them
-# from here. The variable name appears here and once more as the `vars`
-# literal in the assess job, for the reason that step gives.
+# One tick runs and one waits. A new event replaces the waiting tick. The
+# running tick is never cancelled, so an engage write always completes.
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+
+# The threshold and the window each appear once, and both jobs read them from
+# here. The variable name appears here and once more as the `vars` literal in
+# the assess job.
 env:
-  WATCHDOG_THRESHOLD: "32"
-  WATCHDOG_WINDOW_HOURS: "2"
+  WATCHDOG_THRESHOLD: "48"
+  WATCHDOG_WINDOW_HOURS: "8"
   WATCHDOG_VARIABLE: "KATA_KILLSWITCH"
 
 jobs:
@@ -56,7 +78,7 @@ jobs:
           # schedule event's payload is not documented to carry one, and a
           # workflow_dispatch rehearsal always does, so a dispatch could
           # never detect the empty case before the schedule hit it.
-          default-branch: main
+          default-branch: "main"
           token: ${{ github.token }}
 
   engage:
