@@ -6,7 +6,7 @@ name: "Watchdog"
 # workflow gates on the killswitch" contract stays true as written.
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       dry-run:
