@@ -120,16 +120,28 @@ in the trace.
 A session ends explicitly. The end tool depends on the mode:
 
 - **`Conclude`** ends a `supervise` or `facilitate` session with a `verdict`
-  (`success` or `failure`) and a summary. Only the lead can use it.
-- **`Adjourn`** ends a `discuss` session with a verdict (`adjourned` or
-  `failed`), a summary, and an optional outcome.
+  (`success`, `failure`, or `stand_down`) and a summary. Only the lead can use
+  it. The `supervise` lead has no `stand_down` verdict.
+- **`Adjourn`** ends a `discuss` session with a verdict (`adjourned`, `failed`,
+  or `stand_down`), a summary, and an optional outcome.
 - **`Recess`** suspends a `discuss` session with a resumption trigger. It does
   not end the session, so a bridge can re-enter later.
 
 Each of these tools cancels in-flight `Ask`s. Askers then see why their question
 gets no answer, and they do not hang. The loop writes a terminal `summary`
 event with the verdict and the turn count. The process exit code follows the
-verdict: `0` when the lead concluded with success, and `1` otherwise.
+verdict. It is `0` when the lead ended with `success`, `adjourned`, or
+`stand_down`, and `1` otherwise.
+
+`stand_down` means that the task asked for nothing. A `--task-event` task opens
+with an actor line when the caller sets `KATA_ACTOR_CLASS` and
+`KATA_ACTOR_LOGIN` in the environment: `Caused by: human (@alice).` A `self` or
+`bot` class adds one sentence. It asks the lead to engage nobody unless the body
+hands new actionable work to a named agent, and to end with `stand_down`
+otherwise. The caller classifies the actor, and `gemba-harness` renders the
+class it receives. Only the lead reads the rule. Participants carry no
+stand-down sentence. `gemba-trace overview` and `gemba-trace cost` report the
+verdict apart from `success` and `failure`.
 
 ## Tool surface by role
 
@@ -210,7 +222,8 @@ The `--task-file` content is the opening prompt every participant sees. The
 facilitator profile steers how the team pursues the goal, and each participant
 applies its own specialism. Pass the task as exactly one of
 `--task-file=<path>`, `--task-text="<inline>"`, or `--task-event=<path>` (a
-native GitHub event payload).
+native GitHub event payload). A `--task-event` task can open with an actor line,
+which [End the session](/docs/coordinate-team/#end-the-session) describes.
 
 The profile names above are examples, and you choose your own. The
 [Kata agent team](https://www.kata.team/) is the reference tenant for this
