@@ -45,8 +45,16 @@ runs:
         cd "$PACK_DIR"
         npm init -y
         # --force downgrades EBADPLATFORM to a warning so the resolution
-        # assertions run even for platform-restricted sources.
-        npm install ./*.tgz --force
+        # assertions run even for platform-restricted sources. A dependency
+        # that the same release published minutes earlier can return 404
+        # while the registry propagates it. Retry on a bounded delay so that
+        # lag does not fail the publish (release hazard (e)).
+        for attempt in 1 2 3 4 5 6; do
+          npm install ./*.tgz --force --prefer-online && break
+          [ "$attempt" -lt 6 ] || exit 1
+          echo "::warning::npm install failed on attempt $attempt of 6. The next attempt starts in 120s"
+          sleep 120
+        done
         for L in $LAUNCHER_DIRS; do
           CLI=$(basename "$L")
           if [ -z "$SKIP_BANNER" ]; then
