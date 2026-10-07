@@ -87,9 +87,11 @@ create a branch:
 ## Approval
 
 `wiki/STATUS.md` is the approval record. It wraps tab-separated rows in a
-fenced block: `{id}\t{phase}\t{status}`. Phases are `spec`, `design`, and
-`plan`. Statuses are `draft`, `approved`, `implemented` (plan only), and
-`cancelled`. Replace a row in place.
+fenced block: `{id}\t{phase}\t{status}`. The id is `NNNN`, or `NNNN/NN` for a
+plan-part sub-row. Phases are `spec`, `design`, and `plan`. Statuses are
+`draft`, `approved`, `implemented` (plan only), and `cancelled`. Replace only
+the row that carries your id, in place. Never rewrite another id's row or the
+block.
 
 - Only a trusted human originates `spec approved` and `design approved`. An
   agent propagates a trusted human's signal: an approval label, an APPROVED

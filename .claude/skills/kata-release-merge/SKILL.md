@@ -158,9 +158,10 @@ delta-producing move. This step's own mechanical fixes count as such a move.
 **Docs fast-path**: A `docs`-typed PR whose changed files are all `.md`/`.mdx`
 passes on trust (Step 2) alone. Skip the STATUS check below.
 
-Read `wiki/STATUS.md` for the PR's spec id. The pattern
-`grep -P "^${spec_id}(/[a-z0-9-]+)?\t"` matches the master `NNNN` row and any
-`NNNN/<unit>` sub-rows. Pass when the row shows the classified phase at
+Read the fenced row block of `wiki/STATUS.md` for the PR's spec id. Rows
+outside the fence are not rows. The pattern
+`grep -P "^${spec_id}(/\d{2})?\t"` over that block matches the master `NNNN`
+row and any `NNNN/NN` plan-part sub-rows. Pass when the row shows the classified phase at
 `approved`, or at `implemented` for the terminal plan row. The master row
 reaches `plan implemented` only after every sub-row does. An absent, `draft`,
 or `cancelled` row → **blocked** (`awaiting approval signal`). The order of the
