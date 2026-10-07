@@ -211,8 +211,6 @@ runs:
     # Three steps before checkout; the README describes them. The measurement
     # step continues on error so a self-caused run whose measurement never ran
     # stands down green, with the summary line, instead of reddening the run.
-    # The classify step fails red when it cannot read the payload or the
-    # sender, or when a non-User sender meets an empty slug.
     - name: Classify the actor
       id: actor
       if: inputs.task-event != ''
