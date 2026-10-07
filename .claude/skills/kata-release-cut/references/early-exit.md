@@ -50,11 +50,12 @@ channel.
 
 The standing obligations are the first-release backlog, held or deferred cuts,
 pending publish-failure retries, and pending publish-workflow verifications.
-Every standing obligation must be empty, re-cited as blocked with its
-reference, or verifiable-in-run and resolved to verified success. A pending
+Every standing obligation must be empty, re-cited as blocked with its reference,
+or verifiable-in-run and resolved to verified success. A pending
 publish-workflow verification is verifiable-in-run. Resolve it with
-`gh run list --branch <tag>` before you exit. Success clears it. A failure or a
-still-in-progress run is due. Any due (unblocked) obligation defeats the exit.
+`gh run list --branch <prefix>@v<version>` before you exit. Success clears it. A
+failure or a still-in-progress run is due. Any due (unblocked) obligation
+defeats the exit.
 
 ## Condition 4 — Main CI green
 
