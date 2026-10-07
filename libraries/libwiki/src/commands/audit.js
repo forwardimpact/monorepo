@@ -14,7 +14,7 @@ import { resolveProjectRoot } from "../util/wiki-dir.js";
  * `runAuditCommand` emits the findings. `runCurateCommand` routes them to an
  * issue. Both share this function, so the two cannot drift.
  * @param {import("@forwardimpact/libcli").InvocationContext} ctx
- * @returns {{ findings: object[], projectRoot: string }}
+ * @returns {{ findings: object[], checked: Record<string, number>, projectRoot: string }}
  */
 export function auditWiki(ctx) {
   const { runtime } = ctx.deps;
@@ -29,23 +29,47 @@ export function auditWiki(ctx) {
     fs: runtime.fsSync,
     subprocess: runtime.subprocess,
   });
-  return { findings: runRules(RULES, auditCtx, { resolveScope }), projectRoot };
+  return {
+    findings: runRules(RULES, auditCtx, { resolveScope }),
+    checked: countChecked(auditCtx),
+    projectRoot,
+  };
 }
 
-/** Run the wiki audit and emit findings. Use --format json for JSON. */
+// Count the subjects each rule scope resolved. A run that checked nothing and
+// a run that checked every row and found no problem both report no findings.
+// The counts tell the two apart.
+function countChecked(auditCtx) {
+  const checked = {};
+  for (const scope of new Set(RULES.map((r) => r.scope))) {
+    checked[scope] = resolveScope(scope, auditCtx).length;
+  }
+  return checked;
+}
+
+function renderChecked(checked) {
+  const parts = Object.entries(checked).map(([scope, n]) => `${scope} ${n}`);
+  return `checked: ${parts.join(", ")}\n`;
+}
+
+/** Run the wiki audit and emit findings plus the per-scope subject counts. Use --format json for JSON. */
 export function runAuditCommand(ctx) {
   const { runtime } = ctx.deps;
   const options = ctx.options;
-  const { findings, projectRoot } = auditWiki(ctx);
+  const { findings, checked, projectRoot } = auditWiki(ctx);
 
-  runtime.proc.stdout.write(
-    options.format === "json"
-      ? emitFindingsJson(findings)
-      : emitFindingsText(findings, {
-          cwd: projectRoot,
-          passMessage: "wiki audit passed",
-        }),
-  );
+  if (options.format === "json") {
+    const doc = JSON.parse(emitFindingsJson(findings));
+    doc.checked = checked;
+    runtime.proc.stdout.write(`${JSON.stringify(doc, null, 2)}\n`);
+  } else {
+    runtime.proc.stdout.write(
+      emitFindingsText(findings, {
+        cwd: projectRoot,
+        passMessage: "wiki audit passed",
+      }) + renderChecked(checked),
+    );
+  }
 
   if (findings.some((f) => f.level === "fail")) return { ok: false, code: 1 };
   return { ok: true };
