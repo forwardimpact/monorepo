@@ -21,13 +21,13 @@ The command engages the latch. **It never clears it.** A human clears it.
 **Measure the current activity:**
 
 - Report the four counts and the verdict —
-  `npx gemba-watchdog assess --threshold 32 --window-hours 2 --default-branch main`
+  `npx gemba-watchdog assess --threshold 48 --window-hours 8 --default-branch main`
 - Get the verdict as JSON — add `--format json`
 
 **Engage the latch after a breach:**
 
 - Write the latch —
-  `npx gemba-watchdog engage --variable MY_KILLSWITCH --reason "$REASON" --window-hours 2`
+  `npx gemba-watchdog engage --variable MY_KILLSWITCH --reason "$REASON" --window-hours 8`
 - Read both scopes and write nothing — add `--dry-run`
 
 Use this for _"is the team creating work faster than a human can read it?"_.
@@ -82,7 +82,7 @@ The written value names the writer, every breached counter with its count and
 threshold, and the time:
 
 ```text
-watchdog|issues=47/32|comments=38/32|2026-09-02T16:49:00.000Z
+watchdog|issues=51/48|comments=63/48|2026-01-15T09:30:00.000Z
 ```
 
 `unreadable` and `uncovered` breaches lead the line.
@@ -97,8 +97,12 @@ watchdog|issues=47/32|comments=38/32|2026-09-02T16:49:00.000Z
 - **Doubt stops the line.** A counter the command cannot read reports
   `unreadable`. A response that cannot cover the window reports `uncovered`.
   Both engage.
-- **Pick the threshold from your own baselines.** It must clear the largest
-  legitimate batch the repository produces. The command ships no default.
+- **Size the window to the longest gap between the scheduled runs the
+  repository receives.** GitHub delays scheduled runs under load, so add
+  margin.
+- **Size the threshold to one window's legitimate work.** It must clear the
+  largest legitimate output one window holds. The command ships no default for
+  either number.
 - **Keep the workflow outside the family your latch gates.** The watchdog must
   keep running after it engages, so it never gates on the variable it writes.
 

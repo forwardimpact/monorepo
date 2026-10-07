@@ -24,7 +24,7 @@ quiet window that follows a clear.
 
 It runs no agent and it checks no repository out.
 
-The counters, the threshold and window, the latch contract, the clearing rule,
+The counters, the worked sizing example, the latch contract, the clearing rule,
 and the exit codes are documented once, in
 [Guard an Agent Team's Activity](https://www.gemba.team/docs/guard-activity/index.md).
 This README covers what is specific to the action.
@@ -36,7 +36,7 @@ This README covers what is specific to the action.
   the installer has no release asset to use and the action fails closed rather
   than resolving the CLI another way.
 - For `assess`: a token with read access to contents, issues, and pull
-  requests. `secrets.GITHUB_TOKEN` with the job permissions below is enough.
+  requests. `github.token` with read access to those three is enough.
 - For `engage`: a GitHub App with `Variables: read & write` at repository scope
   and `Variables: read-only` at organization scope.
 - A repository Actions variable the App may write.
@@ -44,68 +44,14 @@ This README covers what is specific to the action.
 ## Usage
 
 Measurement and engagement are separate jobs, so the write credential never
-appears on a quiet run.
+appears on a quiet run. The workflow ticks on a schedule and on the four
+counted events, with one tick running and one waiting. The CI wiring section of
+[Guard an Agent Team's Activity](https://www.gemba.team/docs/guard-activity/index.md)
+carries the workflow to copy.
 
-```yaml
-name: "Watchdog"
-
-on:
-  schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-env:
-  WATCHDOG_THRESHOLD: "32"
-  WATCHDOG_WINDOW_HOURS: "2"
-  WATCHDOG_VARIABLE: MY_KILLSWITCH
-
-jobs:
-  assess:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      issues: read
-      pull-requests: read
-    outputs:
-      verdict: ${{ steps.assess.outputs.verdict }}
-      reason: ${{ steps.assess.outputs.reason }}
-    steps:
-      - id: assess
-        uses: forwardimpact/gemba-watchdog@v1
-        with:
-          mode: assess
-          threshold: ${{ env.WATCHDOG_THRESHOLD }}
-          window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          # The run summary reports the latch's current value only when the
-          # caller wires it. A dynamic `vars[...]` index is not available in
-          # every context; use `vars.MY_KILLSWITCH` if it does not evaluate.
-          killswitch-value: ${{ vars[env.WATCHDOG_VARIABLE] }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-  engage:
-    needs: assess
-    if: needs.assess.outputs.verdict == 'engage'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions: {}
-    steps:
-      - uses: forwardimpact/gemba-watchdog@v1
-        with:
-          mode: engage
-          # Declared required on the action. The engage step consumes none of
-          # it, and it costs no second copy of the number: the value comes
-          # from the one env home above.
-          threshold: ${{ env.WATCHDOG_THRESHOLD }}
-          window-hours: ${{ env.WATCHDOG_WINDOW_HOURS }}
-          variable: ${{ env.WATCHDOG_VARIABLE }}
-          reason: ${{ needs.assess.outputs.reason }}
-          app-id: ${{ secrets.MY_APP_ID }}
-          app-private-key: ${{ secrets.MY_APP_PRIVATE_KEY }}
-```
+Size the window to the longest gap between the scheduled runs your repository
+receives, because GitHub delivers them late under load. Size the threshold to
+one window's legitimate work. The guide works through both with real figures.
 
 Give the workflow a name outside the family your latch gates. The watchdog must
 keep running after it engages, so it never gates on the variable it writes.
@@ -198,7 +144,7 @@ App's own grant is what bounds it. Three controls stand against that, and
    watchdog's own surface: its workflow, its composite action home, its CLI
    bin, and its guardrail library.
 3. Every run records the latch's current value on its run summary, so an
-   unexplained clear is visible within one interval. That control needs the
+   unexplained clear is visible at the next tick. That control needs the
    caller to wire `killswitch-value`.
 
 The residual is deliberate and stated: this brake is robust against an agent
@@ -215,8 +161,8 @@ chain that is not trying to defeat it, and not against one that is.
 A failure **before** the CLI runs — a download error, a stale
 `installer-sha256`, or a channel other than the pinned release — fails the step
 and engages nothing. That is a red run with the brake absent rather than a
-stop, and it is the accepted cost of pinning a released binary. A scheduled
-caller sees it every interval.
+stop, and it is the accepted cost of pinning a released binary. A caller
+sees it on every tick.
 
 ## License
 
