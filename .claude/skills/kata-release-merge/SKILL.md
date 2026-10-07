@@ -158,18 +158,18 @@ delta-producing move. This step's own mechanical fixes count as such a move.
 **Docs fast-path**: A `docs`-typed PR whose changed files are all `.md`/`.mdx`
 passes on trust (Step 2) alone. Skip the STATUS check below.
 
-Read the fenced row block of `wiki/STATUS.md` for the PR's spec id. Rows
-outside the fence are not rows. The pattern
-`grep -P "^${spec_id}(/\d{2})?\t"` over that block matches the master `NNNN`
-row and any `NNNN/NN` plan-part sub-rows. Pass when the row shows the classified phase at
-`approved`, or at `implemented` for the terminal plan row. The master row
-reaches `plan implemented` only after every sub-row does. An absent, `draft`,
-or `cancelled` row → **blocked** (`awaiting approval signal`). The order of the
-STATUS and head timestamps is not coverage evidence. When commits land after
-the last clean review round, fail closed. Mark the PR **blocked**
-(`review coverage unverifiable at head`) until a scoped delta review or a
-reviewed-SHA-plus-head record covers the gap. Labels and APPROVED reviews feed
-STATUS through `kata-dispatch`. Do not consult them here.
+Read the fenced row block of `wiki/STATUS.md` for the PR's spec id. Rows outside
+the fence are not rows. The pattern `grep -P "^${spec_id}(/\d{2})?\t"` over that
+block matches the master `NNNN` row and any `NNNN/NN` plan-part sub-rows. Pass
+when the row shows the classified phase at `approved`, or at `implemented` for
+the terminal plan row. The master row reaches `plan implemented` only after
+every sub-row does. An absent, `draft`, or `cancelled` row → **blocked**
+(`awaiting approval signal`). The order of the STATUS and head timestamps is not
+coverage evidence. When commits land after the last clean review round, fail
+closed. Mark the PR **blocked** (`review coverage unverifiable at head`) until a
+scoped delta review or a reviewed-SHA-plus-head record covers the gap. Labels
+and APPROVED reviews feed STATUS through `kata-dispatch`. Do not consult them
+here.
 
 **Experiment PRs** (no spec id, one experiment-labeled issue with a named
 owner) take the experiment path instead of the spec-row read. That path has a
