@@ -52,7 +52,7 @@
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.33",
     "@forwardimpact/libutil": "^0.1.0",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
