@@ -2,6 +2,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert";
 
 import {
+  BINARY_VERDICTS,
   concludeSession,
   createAnnounceHandler,
   createConcludeHandler,
@@ -11,6 +12,8 @@ import {
   createRollCallHandler,
   createSupervisedAgentToolServer,
   createSupervisorToolServer,
+  FACILITATOR_VERDICTS,
+  STAND_DOWN,
 } from "../src/orchestration-toolkit.js";
 import { stubBus } from "./orchestration-toolkit-helpers.js";
 
@@ -26,6 +29,24 @@ describe("OrchestrationToolkit - simple handlers", () => {
     assert.strictEqual(ctx.verdict, "success");
     assert.strictEqual(ctx.summary, "All done");
     assert.ok(result.content[0].text.includes("concluded"));
+  });
+
+  test("Conclude accepts stand_down and records it as the verdict", async () => {
+    const ctx = createOrchestrationContext();
+    ctx.messageBus = stubBus();
+    await createConcludeHandler(ctx)({
+      verdict: "stand_down",
+      summary: "Self-caused event with no new work",
+    });
+    assert.strictEqual(ctx.concluded, true);
+    assert.strictEqual(ctx.verdict, "stand_down");
+  });
+
+  test("only the facilitator's verdict list carries stand_down", () => {
+    assert.strictEqual(STAND_DOWN, "stand_down");
+    assert.ok(FACILITATOR_VERDICTS.includes(STAND_DOWN));
+    assert.ok(!BINARY_VERDICTS.includes(STAND_DOWN));
+    assert.deepStrictEqual(BINARY_VERDICTS, ["success", "failure"]);
   });
 
   test("concludeSession cancels every pending Ask with a synthetic null answer (defensive cleanup)", () => {
