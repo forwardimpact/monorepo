@@ -3,7 +3,7 @@ import assert from "node:assert";
 
 import { createMockFs } from "@forwardimpact/libmock";
 
-import { runCostCommand } from "../src/commands/trace.js";
+import { loadTrace, runCostCommand } from "../src/commands/trace.js";
 
 const FILE = "/traces/trace--demo.raw.ndjson";
 
@@ -143,6 +143,25 @@ describe("gemba-trace cost reports the terminal verdict", () => {
     assert.strictEqual(json.verdict, null);
     const markdown = await cost({ markdown: true }, [...COMBINED, unconcluded]);
     assert.ok(!markdown.includes("Verdict:"));
+  });
+
+  test("cost and overview report one verdict for one NDJSON trace", async () => {
+    const unconcluded = {
+      source: "orchestrator",
+      seq: 2,
+      event: { type: "summary", success: false, turns: 3 },
+    };
+    for (const summary of [STAND_DOWN_SUMMARY, unconcluded]) {
+      const records = [...COMBINED, summary];
+      const body = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
+      const runtime = {
+        fsSync: createMockFs({ [FILE]: body }),
+        clock: { now: () => 0 },
+      };
+      const overview = loadTrace(runtime, FILE).overview();
+      const costVerdict = JSON.parse(await cost({}, records)).verdict;
+      assert.strictEqual(costVerdict, overview.verdict);
+    }
   });
 
   test("a trace with no summary yields a null verdict and no line", async () => {
