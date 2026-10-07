@@ -27,9 +27,11 @@ its class performs the full sweep.
 <read_do_checklist goal="Load release policy and confirm CI green">
 
 - [ ] Read **CONTRIBUTING.md § Releasing**. It may override the skill defaults.
-- [ ] Run
-      `gh run list --branch main --limit 5 --json name,conclusion,headBranch`.
-- [ ] Confirm all recent workflows show `conclusion: success`.
+- [ ] Run `gh run list --branch main --event push --commit <sha>` with
+      `--json name,status,conclusion`. `<sha>` is the `main` tip.
+- [ ] Confirm each run shows `conclusion: success`. Wait for runs in progress.
+      Skip the activity watchdog, where one exists. Its concurrency group
+      cancels runs by design, so its conclusion says nothing about `main`.
 - [ ] Repair trivial failures (format, lint, lock file) with the repository's
       auto-fix command on `main`. Commit and push the repairs.
 - [ ] Confirm CI is green after the repairs. **Stop if failures persist.**

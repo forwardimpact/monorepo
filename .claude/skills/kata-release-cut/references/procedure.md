@@ -19,11 +19,13 @@ git commit -m "chore(<pkg>): bump to <version>"
 git tag <prefix>@v<version>            # one tag per package
 git push origin main                   # commit first
 git push origin <prefix>@v<version>    # then each tag — never --tags
-gh run list --limit 10 --json name,conclusion,headBranch,event
+gh run list --event push --branch <prefix>@v<version> \
+  --json name,status,conclusion
 ```
 
-For multiple packages, commit all the bumps. Then tag each package. On a
-publish failure, run `gh run view <run-id> --log-failed`.
+For multiple packages, commit all the bumps. Then tag each package. Read the
+publish runs per tag. Runs that events start on `main` cannot then push them out
+of the list. On a publish failure, run `gh run view <run-id> --log-failed`.
 
 ## Summary table format (Step 8)
 
