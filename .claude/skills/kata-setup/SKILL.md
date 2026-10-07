@@ -58,11 +58,11 @@ event-driven responses.
 - [ ] `agent-shift.yml` lists every selected agent in the matrix. It serializes
       them with `max-parallel: 1`.
 - [ ] The dispatch workflow does no prompt assembly. It passes
-      `task-event: ${{ github.event_path }}`. The action composes the task,
-      including the recursion guard.
-- [ ] Every generated workflow gates on the killswitch. Each passes
-      `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which runs the
-      gate as its first internal step.
+      `task-event: ${{ github.event_path }}`. The action names the actor in the
+      task and runs the dispatch gate before checkout.
+- [ ] Every agent workflow passes `killswitch: ${{ vars.KATA_KILLSWITCH }}`.
+      `watchdog.yml` does not, and it carries the template's threshold, window,
+      and tick.
 
 </do_confirm_checklist>
 
@@ -74,7 +74,6 @@ Ask these questions. Skip any question the task prompt already answers.
 
 1. **GitHub App** — "Do you have a GitHub App for your agents, or should I help
    you create one?" If you create one, walk through `references/github-app.md`.
-   If the App exists, ask for the App slug.
 
 2. **Secrets** — "Have you configured these repository secrets?"
    - `KATA_APP_ID` — GitHub App ID
@@ -137,23 +136,24 @@ entry into an existing one):
 
 Emit the variant that matches question 8's mode: the **`## Template
 (Self-Hosted)`** block (the default) or the **`## Template (Hosted)`**
-block. `workflow-shift.md` carries both under those names. The other two
-references carry a self-hosted block plus a hosted delta, which
+block. `workflow-shift.md` carries both under those names. The dispatch and
+facilitate references carry a self-hosted block plus a hosted delta, which
 `workflow-facilitate.md` heads `## Hosted Variant`. On hosted setup, remind the
 operator: "Set the `FIT_OIDC_URL` repository variable to your
 hosted OIDC URL before the first workflow run." The hosted blocks carry no
-`KATA_APP_PRIVATE_KEY`.
+`KATA_APP_PRIVATE_KEY`. The watchdog template has one block for both modes.
 
 The matrix in `agent-shift.yml` carries one line per selected agent, in
 producer → reviewer → shipper order (`references/schedules.md`). Generate the
 storyboard and coaching workflows only for `improvement-coach`.
 
-Every template gates on the `KATA_KILLSWITCH` repository (or org) Actions
-variable. The run fails on a truthy value: anything other than empty, `0`,
-`false`, `no`, or `off`. Every generated workflow passes
-`killswitch: ${{ vars.KATA_KILLSWITCH }}` to the action, which gates as its
-first internal step, before any token mint, checkout, or agent work. The switch
-starts unset, so it has no effect until an operator sets it.
+Every agent workflow passes `killswitch: ${{ vars.KATA_KILLSWITCH }}` to the
+action, which fails the run on a truthy value (anything other than empty, `0`,
+`false`, `no`, or `off`) before any token mint, checkout, or agent work. The
+switch starts unset.
+
+Write `.github/workflows/watchdog.yml` from `references/workflow-watchdog.md` in
+both modes. The reference states what it does and how hosted mode differs.
 
 ### Step 3: Generate agent-dispatch
 
@@ -191,8 +191,7 @@ Summarize what you created and the next steps:
 - Select trust policy and review rigor in an optional `.kata/settings.json`
   with the `kata-settings` skill
 - Adjust schedules after you observe the first runs
-- Emergency stop: set `KATA_KILLSWITCH` truthy. Write a falsy value to resume;
-  deleting it is not clearing it
-- The App holds `Variables` read & write (repo) and read-only (org), so a
-  watchdog engages the killswitch, and no `Secrets` grant
+- Emergency stop: set `KATA_KILLSWITCH` truthy; write a falsy value to resume.
+  A self-hosted watchdog engages it through the App's `Variables` grant. A
+  hosted watchdog run turns red on a breach, and the operator sets it
 - Read the [Kata Agent Team](https://www.kata.team/) site for the PDSA rhythm

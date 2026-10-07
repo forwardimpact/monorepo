@@ -580,7 +580,7 @@
     },
     "libraries/libwatchdog": {
       "name": "@forwardimpact/libwatchdog",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "dependencies": {
         "@forwardimpact/libutil": "^0.1.100",
       },
