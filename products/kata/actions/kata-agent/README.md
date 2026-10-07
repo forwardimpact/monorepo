@@ -4,7 +4,10 @@ Run a complete Kata agent workflow in a single step. The action handles GitHub
 App authentication, repository checkout, environment bootstrap, agent execution
 through [gemba-harness](https://www.npmjs.com/package/@forwardimpact/gemba),
 and wiki-memory sync. It refreshes the storyboard from live issue/CSV state
-before the run and after it. It then pushes the storyboard back.
+before the run and after it. It then pushes the storyboard back. On an artifact
+event it classifies the acting account before checkout. It stands a
+self-caused run down when the repository is over its dispatch budget, and it
+names the actor in the task.
 
 ## Usage
 
@@ -50,12 +53,13 @@ jobs:
 
 ### Authentication
 
-| Input               | Required | Default           | Description                      |
-| ------------------- | -------- | ----------------- | -------------------------------- |
-| `app-id`            | Yes      | —                 | GitHub App ID                    |
-| `app-private-key`   | Yes      | —                 | GitHub App private key           |
-| `anthropic-api-key` | Yes      | —                 | Anthropic API key                |
-| `app-slug`          | No       | `kata-agent-team` | GitHub App slug for git identity |
+| Input               | Required | Default | Description            |
+| ------------------- | -------- | ------- | ---------------------- |
+| `app-id`            | Yes      | —       | GitHub App ID          |
+| `app-private-key`   | Yes      | —       | GitHub App private key |
+| `anthropic-api-key` | Yes      | —       | Anthropic API key      |
+
+The git identity takes the App slug from the token mint.
 
 ### Agent Configuration
 
@@ -131,6 +135,25 @@ the run's conclusion.
 
 \*Supply exactly one of `task-text`, `task-file`, or `task-event`.
 
+### Dispatch gate
+
+| Input                   | Required | Default | Description                                                           |
+| ----------------------- | -------- | ------- | --------------------------------------------------------------------- |
+| `dispatch-budget`       | No       | `24`    | Per-counter budget a self-caused run measures against before checkout |
+| `dispatch-window-hours` | No       | `2`     | The window the four counters cover, in hours                          |
+
+## Outputs
+
+| Output             | Description                                                                                                            |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `trace-file`       | Absolute path of the raw NDJSON trace file. Empty when `trace` is off or the run stood down                            |
+| `trace-dir`        | Absolute path of the directory that holds every trace file of the run. Empty when `trace` is off or the run stood down |
+| `case`             | The effective case identifier in the trace filenames                                                                   |
+| `actor-class`      | `human`, `self`, or `bot`. Empty when the run has no artifact event                                                    |
+| `actor-login`      | The acting account's login as the payload spells it                                                                    |
+| `dispatch-verdict` | The measurement's verdict on a self-caused run. Empty when no measurement ran                                          |
+| `stood-down`       | `true` when a self-caused run stood down at the gate                                                                   |
+
 ## Event mode
 
 Pass `task-event` to run the agent straight from a GitHub event. The CLI
@@ -189,3 +212,24 @@ jobs:
 Both `facilitate` and `discuss` need `agent-profiles`, so name the participants
 on the step. On an issue or pull request event `inputs` is null, every bridge
 value resolves empty, and the callback step skips.
+
+### The dispatch gate
+
+The action runs its steps in this order: the killswitch, the token mint, the
+actor classification, the budget measurement, the verdict, and then checkout
+and the rest. The classification runs only on a `task-event` payload that
+names an issue or a pull request. A manual or bridge dispatch skips it. Only a
+`self` actor reaches the measurement.
+
+A self-caused run over budget stands down. It writes one summary line with the
+raw verdict. It skips every later step except the callback, and it exits zero.
+It costs the killswitch step, one mint, one binary download, and four REST
+reads. A measurement that never ran stands the run down the same way, and the
+summary line reads `unmeasured`.
+
+The nested `gemba-watchdog` pin moves by hand, because Dependabot does not scan
+the action's own directory.
+[Guard an Agent Team's Activity](https://www.gemba.team/docs/guard-activity/#the-dispatch-gate)
+documents the classification rule and the calibration.
+[Coordinate an Agent Team](https://www.gemba.team/docs/coordinate-team/#end-the-session)
+documents the actor line and the `stand_down` verdict.
