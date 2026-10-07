@@ -4,6 +4,13 @@ This file records all notable changes to `@forwardimpact/libwiki`.
 
 ## Unreleased
 
+### `audit` reports what it checked
+
+The text output ends with a `checked:` line that lists one subject count per
+rule scope, and the JSON output carries the same counts under `checked`. A
+run that checked no rows no longer reads like a run that checked every row
+and found no problem.
+
 ### Bin moved to `@forwardimpact/gemba` (breaking)
 
 The `fit-wiki` CLI entry point moved to the `@forwardimpact/gemba` product

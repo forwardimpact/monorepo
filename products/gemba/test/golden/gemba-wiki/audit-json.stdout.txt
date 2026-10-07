@@ -1,5 +1,19 @@
 {
   "result": "pass",
   "failures": [],
-  "warnings": []
+  "warnings": [],
+  "checked": {
+    "summary": 0,
+    "weekly-log-main": 0,
+    "weekly-log-part": 0,
+    "carry-surface": 0,
+    "memory": 1,
+    "priority-row": 0,
+    "claims-row": 0,
+    "storyboard": 1,
+    "metrics-csv": 0,
+    "status-row": 0,
+    "conflict-scan": 3,
+    "admission": 0
+  }
 }
