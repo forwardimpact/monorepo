@@ -202,10 +202,11 @@ One tick runs and one waits. A new event replaces the waiting tick, and it can
 replace a waiting manual dry run too, so dispatch the dry run again. The
 pull-request tick uses `pull_request_target`: it runs the default branch's
 workflow file with the repository's secrets and checks nothing out. A
-`pull_request` trigger would run a branch's own copy of the file. An outside
-user's issue, comment, or fork pull request can also start a tick. The workflow
-reads nothing from the event, so that tick only counts, and a flood of such
-events stops the team, which is the safe direction.
+`pull_request` trigger would run a branch's own copy of the file.
+
+An outside user's issue, comment, or fork pull request can also start a tick.
+The workflow reads nothing from the event. The event cannot change what the
+tick measures. A flood of such events can engage the latch and stop the team.
 
 ```yaml
 name: "Watchdog"
@@ -289,9 +290,11 @@ jobs:
 ```
 
 Copy the workflow shape, but pin the action to a commit SHA that you reviewed.
-Write your default branch in its three places. Write your latch variable's name
-in its two places, `env` and the `vars` literal. A dynamic `vars[...]` index
-that fails to resolve reads as a cleared latch, so the literal stays.
+Write your default branch in its three places. Keep `default-branch` a literal,
+because the schedule event's payload is not documented to carry the default
+branch. Write your latch variable's name in its two places, `env` and the `vars`
+literal. A dynamic `vars[...]` index that fails to resolve shows a cleared latch
+in the run summary. Keep the literal.
 
 Give the workflow a name that does not match your agent workflows' own naming
 pattern, so that the rule "every agent workflow gates on the latch" stays

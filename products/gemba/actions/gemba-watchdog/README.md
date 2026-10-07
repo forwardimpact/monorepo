@@ -36,7 +36,7 @@ This README covers what is specific to the action.
   the installer has no release asset to use and the action fails closed rather
   than resolving the CLI another way.
 - For `assess`: a token with read access to contents, issues, and pull
-  requests. `secrets.GITHUB_TOKEN` with read access to those three is enough.
+  requests. `github.token` with read access to those three is enough.
 - For `engage`: a GitHub App with `Variables: read & write` at repository scope
   and `Variables: read-only` at organization scope.
 - A repository Actions variable the App may write.
