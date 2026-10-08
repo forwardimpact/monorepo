@@ -73,7 +73,9 @@ Verify: `gh api repos/forwardimpact/kata-agent/tags` lists the tag, and
 
 Modified: `.github/workflows/kata-dispatch.yml`,
 `.github/workflows/kata-shift.yml`, `.github/workflows/kata-storyboard.yml`,
-`.github/workflows/kata-coaching.yml`
+`.github/workflows/kata-coaching.yml`. When spec 2370 has landed first, the four
+files are `agent-*.yml` with `Agent:` display names, and the tier repins those
+instead.
 
 1. In all four files, set the `forwardimpact/kata-agent@` SHA to tier 3's tag
    commit and the comment to the tag.

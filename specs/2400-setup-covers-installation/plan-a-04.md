@@ -278,7 +278,9 @@ create the first page, titled `Home`; the `kata-setup` skill then turns the
 feature on when it is off, clones the wiki, and creates the ledgers and one
 summary per agent; the skill stops once when the page is missing and says so.
 Keep the link to the Gemba wiki guide and the sentence on what a skipped wiki
-costs. 2390's update commands stay where they are.
+costs. 2390's § Keep the installation current stays. Its sentence at the end of
+§ Initialize shared memory, which runs the update prompt once to create the
+ledger, goes, because setup's scaffold now creates it on a fresh installation.
 
 Verify: `rg -l 'npx gemba-wiki init' websites/kata` prints nothing (S17).
 
