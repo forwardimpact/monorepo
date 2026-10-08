@@ -11,7 +11,8 @@
       "Edit(.claude/skills/**)",
       "Edit(.claude/rules/**)",
       "Edit(products/*/templates/.claude/agents/**)",
-      "Edit(products/*/templates/.claude/skills/**)"
+      "Edit(products/*/templates/.claude/skills/**)",
+      "Bash(gh workflow run release-tag.yml:*)"
     ]
   },
   "hooks": {
