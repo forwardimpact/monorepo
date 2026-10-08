@@ -49,6 +49,8 @@ for deployment, tunnel, and configuration steps.
 | **Issues**        | Read & write | Triage, label, comment, create, close issues        |
 | **Discussions**   | Read & write | Reply to discussions and discussion comments        |
 | **Workflows**     | Read & write | Token-driven pushes re-trigger downstream workflows |
+| **Actions**       | Read-only    | Read workflow runs and logs to diagnose CI failures |
+| **Checks**        | Read-only    | Read check run status before merging PRs            |
 | **Metadata**      | Read-only    | GitHub requires it for all Apps                     |
 | **Variables**     | Read & write | A watchdog engages the killswitch variable          |
 
