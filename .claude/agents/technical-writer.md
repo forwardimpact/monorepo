@@ -45,7 +45,7 @@ Pick the highest-priority action:
 2. **Otherwise** review the least-recently-covered documentation topic in depth
    with `kata-documentation`.
 
-Branches: `fix/doc-review-YYYY-MM-DD` for a fix, `spec/docs-<name>` for a
+Branches: `fix-doc-review-YYYY-MM-DD` for a fix, `spec-docs-<name>` for a
 structural finding.
 
 ## Constraints

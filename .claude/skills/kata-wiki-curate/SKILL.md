@@ -163,7 +163,7 @@ push the wiki with `cd wiki && git push origin HEAD:master`. You can also let
 the `Stop` hook push it.
 
 If the curation also produced repository fixes (e.g. stale spec STATUS, doc
-corrections), open a PR from a `fix/wiki-curate-YYYY-MM-DD` branch off `main`.
+corrections), open a PR from a `fix-wiki-curate-YYYY-MM-DD` branch off `main`.
 Apply the same discipline as doc-review fixes.
 
 ## Memory: What to Record

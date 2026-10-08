@@ -69,7 +69,7 @@ the live repo. The shapes are canonical. Pass the flags each call site needs.
 | `comment` | `gh issue comment <n> --body "<b>"` / `gh pr comment <n> --body "<b>"` | append to the item's `## Comments` |
 | `label` | `gh issue edit <n> --add-label "<l>"` / `gh label <…>` | edit the `labels` front-matter |
 | `link` | name the related `#<n>` in the body (github renders a bidirectional cross-reference) | edit the `links` front-matter |
-| `open-change` | `git switch -c <branch>` + `git push -u origin <branch>` + `gh pr create --title "<t>" --body "<b>"` | write `changes/{id}.md`. The remote-git steps are no-ops |
+| `open-change` | `git switch -c <branch>` + `git push -u origin <branch>` + `gh pr create --title "<t>" --body "<b>"`. `<branch>` uses dashes, never `/` | write `changes/{id}.md`. The remote-git steps are no-ops |
 | `update-change` | `git push --force-with-lease origin <branch>` | re-write `changes/{id}.md`. The push is a no-op |
 | `gate` | `gh pr review <n> --approve`, or a trusted `<phase>:approved` label / approval comment read by `kata-dispatch` | set the `approval` field |
 | `merge-change` | `gh pr merge <n> --merge --delete-branch` (or `--squash --auto`) | set `state: merged` |

@@ -43,7 +43,7 @@ Pick the highest-priority action:
    `kata-review` for maintainability, consistency, and debt.
 2. **Otherwise** audit the least-recently-covered area with `kata-devex-audit`.
 
-Branches: `fix/devex-audit-YYYY-MM-DD` for a cleanup, `spec/devex-<name>` for a
+Branches: `fix-devex-audit-YYYY-MM-DD` for a cleanup, `spec-devex-<name>` for a
 refactor.
 
 ## Constraints

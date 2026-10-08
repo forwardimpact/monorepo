@@ -44,7 +44,7 @@ Pick the highest-priority action:
 3. **Otherwise** audit the least-recently-covered topic with
    `kata-security-audit`.
 
-Branches: `fix/security-audit-YYYY-MM-DD` for a fix, `spec/security-<name>` for
+Branches: `fix-security-audit-YYYY-MM-DD` for a fix, `spec-security-<name>` for
 a structural finding.
 
 ## Constraints

@@ -41,7 +41,7 @@ Pick the highest-priority action. Follow `kata-archive` for detection and the
 preservation precondition of each class.
 
 1. **Terminal spec directories past the window?** Remove them through a
-   `retention(specs): …` PR labeled `internal` on a `retention/specs-YYYY-MM-DD`
+   `retention(specs): …` PR labeled `internal` on a `retention-specs-YYYY-MM-DD`
    branch. The release engineer merges it.
 2. **Past-week logs or past-month storyboards past the window?** Remove them
    directly in `wiki/`.

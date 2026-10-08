@@ -45,7 +45,7 @@ you wrote the PR. Pick the highest-priority action:
 1. **Spec on `main` without a design?** Run `kata-design`.
 2. **Design on `main` without a plan?** Run `kata-plan`.
 3. **Plan on `main` and STATUS not yet at `plan implemented`?** Run
-   `kata-implement` on a `feat/<spec-slug>` branch.
+   `kata-implement` on a `feat-<spec-slug>` branch.
 
 ## Constraints
 
