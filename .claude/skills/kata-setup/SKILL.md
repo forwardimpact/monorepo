@@ -96,13 +96,13 @@ and each action ref per
 repository lacks. Merge an existing `dependabot.yml` as
 `references/dependabot.md` says. Change no other existing file before Step 5.
 
-| File                                                       | Template                 | Written when                   |
-| ---------------------------------------------------------- | ------------------------ | ------------------------------ |
-| `.github/workflows/agent-shift.yml`                        | `workflow-shift.md`      | always                         |
-| `.github/workflows/agent-dispatch.yml`                     | `workflow-dispatch.md`   | `product-manager` on roster    |
+| File                                                           | Template                 | Written when                  |
+| -------------------------------------------------------------- | ------------------------ | ----------------------------- |
+| `.github/workflows/agent-shift.yml`                            | `workflow-shift.md`      | always                        |
+| `.github/workflows/agent-dispatch.yml`                         | `workflow-dispatch.md`   | `product-manager` on roster   |
 | `.github/workflows/agent-storyboard.yml`, `agent-coaching.yml` | `workflow-facilitate.md` | `improvement-coach` on roster |
-| `.github/workflows/watchdog.yml`                           | `workflow-watchdog.md`   | always                         |
-| `.github/dependabot.yml`                                   | `dependabot.md`          | always                         |
+| `.github/workflows/watchdog.yml`                               | `workflow-watchdog.md`   | always                        |
+| `.github/dependabot.yml`                                       | `dependabot.md`          | always                        |
 
 Emit the self-hosted templates, or apply each template's
 `## Template (Hosted)` section in hosted mode.
