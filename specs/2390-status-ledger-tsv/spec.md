@@ -84,7 +84,7 @@ own change is the procedure's first entry.
 5. **Clean break.** The markdown ledger is removed. There is no fallback read
    and no dual period. An absent ledger is an absent row to the gate, which
    blocks. A writer never creates the ledger: a writer that finds none stops
-   and names the scaffold or the update procedure. Only the scaffold and the
+   and names the update procedure. Only the scaffold and the
    first changelog entry create the file.
 6. **A deliberate removal is declared.** A wiki file removal goes through the
    publish command, which records the intent so the conservation guard lets the
@@ -130,15 +130,17 @@ own change is the procedure's first entry.
     points at the rule, because a library change can move a convention too.
     The rule is a shared policy, and the human approval of this spec is its
     decision record.
-11. **The first entry is Part A.** Detect: the markdown ledger exists. Do:
-    every fenced row whose id the rows-only ledger lacks is appended to it, and
-    an id present in both keeps the rows-only row, which is the newer write,
-    and is reported. Empty lines are dropped. For a sub-row whose part is not
-    two digits, the procedure asks whether to renumber the part or cancel the
-    row, and writes the renumbered id or the cancelled status. The markdown
-    ledger is removed through the publish command. The wiki's index and memory
-    pages name the new file, whichever spelling they used for the old one. The
-    wiki is published.
+11. **The first entry is Part A.** Detect: the markdown ledger exists, or the
+    wiki clone exists with no rows-only ledger. Do: the rows-only ledger is
+    created when absent, and every fenced row whose id the rows-only ledger
+    lacks is appended to it, and an id present in both keeps the rows-only row,
+    which is the newer write, and is reported. Empty lines are dropped. For a
+    sub-row whose part is not two digits, the procedure asks for a two-digit
+    part and whether to cancel the row, and writes the renumbered id with the
+    chosen status, so a cancelled row keeps an id the audit accepts. The
+    markdown ledger is removed through the publish command. The wiki's index and
+    memory pages name the new file, whichever spelling they used for the old
+    one. The wiki is published.
 12. **The page.** The `www.kata.team` getting-started page documents the two
     commands as the way to keep an installation current, in the page's own
     invocation style, and states the pack manager version that carries
@@ -206,7 +208,7 @@ ledger for the gate.
 | S4  | The library admits the new ledger and forgets the old.                  | `gemba-wiki audit` on a wiki whose root holds `STATUS.tsv` reports no `admission` finding for it, and `rg -n 'STATUS\.md' libraries/libwiki --glob '!CHANGELOG.md'` returns no match.                                                                                                                                            |
 | S5  | No instruction or page names the old file.                              | `rg -n 'STATUS\.md' .claude KATA.md websites references/CLAUDE.md scripts libraries/CLAUDE.md --glob '!**/kata-setup/references/*changelog*'` returns no match.                                                                                                                                                                 |
 | S6  | The gate's copy of the fragment cannot drift from the export.           | The repository's invariant check passes, and it fails on a scratch copy of the repository whose gate pattern in `kata-release-merge` Step 6 is edited.                                                                                                                                                                           |
-| S7  | A writer never creates the ledger.                                      | On a wiki with no ledger, the `kata-spec` claim step writes nothing, stops, and names the scaffold or the update procedure. The transcript is attached to the second merge's pull request.                                                                                                                                       |
+| S7  | A writer never creates the ledger.                                      | On a wiki with no ledger, the `kata-spec` claim step writes nothing, stops, and names the update procedure. The transcript is attached to the second merge's pull request.                                                                                                                                       |
 | S8  | An absent ledger blocks the gate.                                       | `rg -n 'absent' .claude/skills/kata-release-merge/SKILL.md` matches in Step 6, in a sentence that maps a missing file to an absent row.                                                                                                                                                                                           |
 | S9  | The experiment row is unchanged.                                        | `gemba-wiki audit` on a ledger that holds `exp:1351\tapproved\t<40-hex>\t#1351` reports no finding, and the experiment path reads that row from the new file.                                                                                                                                                                    |
 | S10 | The update procedure converts an installation.                          | On a rehearsal installation set up from the previous pack, with rows in its markdown ledger and one row already in a rows-only ledger, `apm update` and the update prompt regenerate the generated files, show the sheet, and leave `wiki/STATUS.tsv` with the old rows the new ledger lacked and no `wiki/STATUS.md`. The transcript is attached to the second merge's pull request. |
