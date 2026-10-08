@@ -27,13 +27,18 @@ its class performs the full sweep.
 <read_do_checklist goal="Load release policy and confirm CI green">
 
 - [ ] Read **CONTRIBUTING.md § Releasing**. It may override the skill defaults.
-- [ ] Run
-      `gh run list --branch main --limit 5 --json name,conclusion,headBranch`.
-- [ ] Confirm all recent workflows show `conclusion: success`.
+- [ ] Fetch `main`. Record the `origin/main` SHA as the tip SHA.
+- [ ] Judge only the workflows that build or test `main`. Skip a workflow
+      that measures something else, such as an activity watchdog.
+- [ ] Read the newest push run of each judged workflow (Step 1). Wait until
+      each run is `completed`. Then read again until the result is stable.
+- [ ] Confirm each of these runs shows `conclusion: success`. If no judged run
+      is on the tip SHA, stop. CI has not judged the tip.
 - [ ] Repair trivial failures (format, lint, lock file) with the repository's
       auto-fix command on `main`. Commit and push the repairs.
-- [ ] Confirm CI is green after the repairs. **Stop if failures persist.**
-      Never release from a broken `main`.
+- [ ] Confirm CI is green after the repairs. Read the runs again for the new
+      tip SHA. **Stop if failures persist.** Never release from a broken
+      `main`.
 
 </read_do_checklist>
 
@@ -60,7 +65,13 @@ publish failures.
 ### Step 1: Pre-Flight — Verify Main Branch CI
 
 Run the READ-DO checklist above before you continue. Tag prefix mapping:
-[`references/procedure.md`](references/procedure.md).
+[`references/procedure.md`](references/procedure.md). List the workflows with
+`gh workflow list`. This command reads the newest push run of one workflow:
+
+```sh
+gh run list --workflow <workflow> --branch main --event push --limit 1 \
+  --json workflowName,headSha,status,conclusion
+```
 
 ### Step 2: Classify — Sweep or Early Exit
 
@@ -81,7 +92,8 @@ in doubt, record `SWEEP-REQUIRED` and sweep:
    path. Test each commit against the packer's own publish list.
 3. **Standing set re-cited.** Every standing obligation is empty, re-cited
    as blocked, or resolved in-run to verified success.
-4. **Main CI green.** Pre-Flight passed. The verdict record re-cites it.
+4. **Main CI green.** Pre-Flight passed. The tip SHA it recorded equals
+   `range_to`. The verdict record re-cites both.
 
 The full conditions, doubt rules, and re-anchor bound are normative in
 [references/early-exit.md](references/early-exit.md). Worked invocations live
@@ -119,9 +131,10 @@ Commit all the bumps (`git commit`). Then tag each package
 
 Push the commit (`git push origin main`). Then push each tag one at a time
 (`git push origin <prefix>@v<version>`). Never use `--tags`. Verify that the
-publish workflows triggered (`gh run list`). On a failure, run
-`gh run view <id> --log-failed`. Verify and re-cite any publish-class issue
-(done = a live artifact) per [`procedure.md`](references/procedure.md).
+publish workflows triggered (`gh run list --branch <prefix>@v<version>`). On a
+failure, run `gh run view <id> --log-failed`. Verify and re-cite any
+publish-class issue (done = a live artifact) per
+[`procedure.md`](references/procedure.md).
 
 ### Step 8: Summary
 
