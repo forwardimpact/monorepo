@@ -2,9 +2,8 @@
 
 This workflow responds to issue and PR events, and to a bridge that dispatches
 it. The product-manager facilitates and routes to the best-suited agent. File
-name: `agent-dispatch.yml`. Replace `{{AGENT_LIST}}` (all agents except
-product-manager and improvement-coach), `{{MODEL}}`, `{{WIKI}}`, and
-`{{KATA_AGENT_REF}}`. Resolve the ref at generation time. See
+name: `agent-dispatch.yml`. Resolve every placeholder from
+[`parameters-agents.md`](parameters-agents.md), and `{{KATA_AGENT_REF}}` per
 [`action-refs.md`](action-refs.md).
 
 The workflow does **no prompt assembly**. It hands the runner's native event
@@ -99,10 +98,9 @@ jobs:
           agent-model: "{{MODEL}}"
           lead-model: "{{MODEL}}"
           wiki: "{{WIKI}}"
-          # Facilitator sessions outlast the action's 200-turn / 45-minute
-          # defaults. Raise both, as the shift template does.
-          max-turns: "1500"
-          timeout-minutes: "300"
+          # Facilitator sessions outlast the action's own turn and time defaults.
+          max-turns: "{{DISPATCH_MAX_TURNS}}"
+          timeout-minutes: "{{DISPATCH_TIMEOUT_MINUTES}}"
           callback-url: ${{ inputs.callback_url }}
           correlation-id: ${{ inputs.correlation_id }}
           discussion-id: ${{ inputs.discussion_id }}

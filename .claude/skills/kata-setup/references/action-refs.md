@@ -26,12 +26,13 @@ time.
 3. Emit `<full-40-char-sha> # <tag>` in place of the placeholder:
 
    ```yaml
-   - uses: forwardimpact/kata-agent@b4a5b262f3d7acaee2da63f8b2a09bcf4730d804 # v1.0.0
+   - uses: forwardimpact/<action>@<full-40-char-sha> # vX.Y.Z
    ```
 
 If resolution fails, stop and ask the operator.
 
 ## Keep Pins Current
 
-Pair the pins with the `github-actions` Dependabot config (`SKILL.md` Step 2).
-Dependabot then opens bump PRs, so the pins do not rot.
+Pair the pins with the `github-actions` Dependabot config
+([`dependabot.md`](dependabot.md)). Dependabot then opens bump PRs, so the pins
+do not rot.

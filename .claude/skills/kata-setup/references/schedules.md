@@ -1,25 +1,15 @@
 # Schedule Templates
 
-One `agent-shift.yml` runs the whole roster each shift, in declaration order.
-`max-parallel: 1` serializes them. Order the matrix as a producer → reviewer →
-shipper chain so each agent acts on the previous one's output:
-
-1. **product-manager** — triages a fresh backlog
-2. **engineering agent** — implements from the backlog (default profile:
-   `staff-engineer`)
-3. **security-engineer** — reviews code
-4. **technical-writer** — reviews docs
-5. **release-engineer** — ships what passed review
-6. **improvement-coach** — assesses team improvement
-
-Because the matrix serializes the roster, the schedule is **three shift-start
-crons** (night, day, swing). The schedule does not stagger each agent. The
-storyboard runs once daily, after the night shift finishes.
+One `agent-shift.yml` runs the whole roster each shift, so the schedule is
+three shift-start crons (night, day, swing). The schedule does not stagger
+each agent. The storyboard runs once daily, after the night shift finishes. The
+roster and its order live in [`parameters-agents.md`](parameters-agents.md).
 
 ## `{{SHIFT_CRONS}}` by Timezone
 
 All crons are UTC. Local times use the tighter summer offset. Shifts start at
-roughly 03:00 (night), 12:00 (day), and 20:00 (swing) local.
+roughly 03:00 (night), 12:00 (day), and 20:00 (swing) local. The `SKILL.md`
+timezone rule picks a block by offset. UTC is the fallback.
 
 ### Europe/Paris (CEST UTC+2 / CET UTC+1)
 
@@ -70,3 +60,13 @@ Storyboard: `0 23 * * *` (08:00 local).
 ```
 
 Storyboard: `0 22 * * *` (08:00 local).
+
+### UTC (UTC+0)
+
+```yaml
+    - cron: "0 3 * * *"   # 03:00 night
+    - cron: "0 12 * * *"  # 12:00 day
+    - cron: "0 20 * * *"  # 20:00 swing
+```
+
+Storyboard: `0 8 * * *` (08:00 local).

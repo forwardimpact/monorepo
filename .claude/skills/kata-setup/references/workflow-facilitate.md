@@ -1,23 +1,15 @@
 # Workflow Templates: Facilitated Sessions
 
-`improvement-coach` leads two facilitated session types. Generate them only
-when you select `improvement-coach`. Storyboard uses `mode: "discuss"` for a
+`improvement-coach` leads two facilitated session types. The generate step
+in `SKILL.md` says when to write them. Storyboard uses `mode: "discuss"` for a
 multi-agent team meeting. Coaching uses `mode: "facilitate"` for a focused
 one-on-one.
 
-## Placeholders
-
-| Placeholder           | Example                                            |
-| --------------------- | -------------------------------------------------- |
-| `{{STORYBOARD_CRON}}` | `0 6 * * *` (from `schedules.md`)                  |
-| `{{AGENT_LIST}}`      | selected agents except `improvement-coach`         |
-| `{{MODEL}}`           | `claude-opus-4-8[1m]`                              |
-| `{{WIKI}}`            | `"true"` or `"false"`                              |
-| `{{KATA_AGENT_REF}}`  | resolved per `action-refs.md`                      |
-
-The templates below are **self-hosted**. For the **hosted** control plane (see
-[`SKILL.md`](../SKILL.md) `--hosted`), apply the delta under
-[§ Hosted variant](#hosted-variant). The hosted variant uses no
+Resolve every placeholder from [`parameters-agents.md`](parameters-agents.md),
+and `{{KATA_AGENT_REF}}` per [`action-refs.md`](action-refs.md). The templates
+below are **self-hosted**. For the **hosted** control plane (the control-plane
+step in `SKILL.md`), apply the delta under
+[§ Template (Hosted)](#template-hosted). The hosted variant uses no
 `KATA_APP_PRIVATE_KEY`.
 
 ## Storyboard Template
@@ -79,19 +71,16 @@ with these changes:
 - `mode: "facilitate"`, `agent-profiles: "${{ inputs.agent }}"`, and
   `task-text: Facilitate a one-on-one Kata coaching session with "${{ inputs.agent }}".`
 
-## Hosted Variant
+## Template (Hosted)
 
 Both are `kata-agent` workflows, so the hosted delta is identical to
-[`workflow-shift.md` § Template (hosted)](workflow-shift.md). Add
-`id-token: write` to `permissions`. Insert the OIDC mint step as the first
+[`workflow-shift.md` § Template (Hosted)](workflow-shift.md#template-hosted).
+Add `id-token: write` to `permissions`. Insert the OIDC mint step as the first
 step. Replace `app-id` / `app-private-key` with
 `installation-token: ${{ steps.mint.outputs.token }}`.
 
 ## Notes
 
-- The storyboard `{{AGENT_LIST}}` excludes `improvement-coach`. It facilitates
-  the session. It does not participate.
-- The storyboard cron runs after the night shift finishes. See `schedules.md`.
 - You trigger coaching manually. The storyboard also triggers it when an agent
   needs focus.
 - **Hosted variants** require the `FIT_OIDC_URL` repository variable.

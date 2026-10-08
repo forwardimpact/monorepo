@@ -63,7 +63,7 @@ Eight composite actions are co-located in the monorepo (under
 
 Publish, pin, and release mechanics live in
 [`.github/CLAUDE.md`](.github/CLAUDE.md). Run `kata-setup` to generate
-workflows interactively.
+the default workflows and review their parameters.
 
 ## Simplicity
 
@@ -235,7 +235,7 @@ for utilities).
 | `kata-review`             | Utility | Grade a single artifact (leaf, no sub-agents) |
 | `kata-session`            | Utility | Toyota Kata coaching protocol for sessions    |
 | `kata-settings`           | Utility | Configure `.kata/settings.json` policy options |
-| `kata-setup`              | Utility | Interactive Kata Agent Team setup             |
+| `kata-setup`              | Utility | Defaults-first Kata Agent Team setup          |
 
 <!-- /enum -->
 
