@@ -7,7 +7,7 @@ backport fixes to older major versions.
 
 ## Reporting a Vulnerability
 
-Email **hi.security@senzilla.io** with:
+Email **<hi.security@senzilla.io>** with:
 
 - A description of the vulnerability
 - Reproduction steps

@@ -19,7 +19,7 @@ Extract every way a source refers to each entity.
 | Source has               | Note has                 | Match if                  |
 | ------------------------ | ------------------------ | ------------------------- |
 | First name "Sarah"       | Full name "Sarah Chen"   | Same organization context |
-| Email "sarah@acme.com"   | Email field              | Exact match               |
+| Email `sarah@acme.com`   | Email field              | Exact match               |
 | Email domain "@acme.com" | Organization "Acme Corp" | Domain matches org        |
 | Any variant              | Aliases field            | Listed in aliases         |
 
