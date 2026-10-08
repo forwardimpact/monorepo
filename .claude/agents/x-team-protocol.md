@@ -43,14 +43,16 @@ create a branch:
 
 | Class          | Test                                                                                                  | Route                                    |
 | -------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| **Mechanical** | The fix is one verifiable diff. It needs no design decision, adds no component or contract, and stays in your scope. | `fix/` branch through `open-change`      |
-| **Structural** | It needs a design decision, changes a component or contract, or exceeds your scope.                   | `spec/` branch through `kata-spec`       |
+| **Mechanical** | The fix is one verifiable diff. It needs no design decision, adds no component or contract, and stays in your scope. | `fix-` branch through `open-change`      |
+| **Structural** | It needs a design decision, changes a component or contract, or exceeds your scope.                   | `spec-` branch through `kata-spec`       |
 | **Unsettled**  | The answer is open, two or more agents raised it, or it changes a shared metric, rule, or policy.     | Discussion first                         |
 | **Obstacle**   | A measured gap between the current and the target condition. Data grounds it.                         | `obstacle` issue (`kata-session`)        |
 | **Experiment** | The next small, testable step against one obstacle. It records its expected outcome before the run.   | `experiment` issue (`kata-session`)      |
 | **Out of scope** | Off the product vision, a duplicate, unclear, or already done.                                       | Comment and label `triaged` or `wontfix` |
 
-- `fix/` and `spec/` work never share a change. One finding can need several
+- Branch names use dashes, never `/`: `fix-<topic>`, not `fix/<topic>`. This
+  holds in every repository you branch in.
+- `fix-` and `spec-` work never share a change. One finding can need several
   routes at once, such as a fix and a Discussion.
 - The finder is not the doer. When a finding exceeds your scope, write a spec
   or file an issue. Do not fix it in place.
@@ -69,7 +71,7 @@ create a branch:
 | Open question or policy debate                  | `create-discussion` / `comment-discussion` |
 | Reply about one change or one issue             | `comment`                                  |
 | Obstacle or experiment state                    | `create-issue` + `label`                   |
-| Mechanical fix or structural finding            | `open-change` (`fix/` or `spec/`)          |
+| Mechanical fix or structural finding            | `open-change` (`fix-` or `spec-`)          |
 
 - Address another agent by name in plain text: "Hello Product Manager, …".
   Agents have no accounts, so never `@`-mention one. Send a cross-agent note
@@ -107,6 +109,6 @@ fenced block: `{id}\t{phase}\t{status}`. Phases are `spec`, `design`, and
 
 - **Killswitch.** Never write the killswitch variable. When the team is
   stopped, report the stop and wait. Only a human clears it.
-- **Trust.** Never open a `fix/` or `spec/` change for an untrusted author.
+- **Trust.** Never open a `fix-` or `spec-` change for an untrusted author.
 - **`.claude/**` writes.** When the harness blocks a write there, pipe the
   content through `gemba-selfedit <path>` on a branch other than `main`.

@@ -58,4 +58,4 @@ Run `kata-interview` only when a supervisor asks for it.
   ([JTBD.md](https://github.com/forwardimpact/monorepo/blob/main/JTBD.md)).
 - Spec quality is your gate. Never originate `spec approved` or
   `design approved`.
-- Never change code on another author's PR branch. Use your own `fix/` branch.
+- Never change code on another author's PR branch. Use your own `fix-` branch.
