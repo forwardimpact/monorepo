@@ -3,7 +3,7 @@ import { yearMonth } from "@forwardimpact/libutil";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { createScriptConfig } from "@forwardimpact/libconfig";
 import { scanMarkers } from "../marker-scanner.js";
-import { renderBlock, BlockRenderError } from "../block-renderer.js";
+import { renderBlock } from "../block-renderer.js";
 import {
   renderIssueList,
   renderAgentExperiments,
@@ -62,7 +62,9 @@ async function renderForBlock(block, lines, projectRoot, ghContext, runtime) {
     return renderBlock({
       metric: block.metric,
       csvPath: block.csvPath,
+      eventType: block.eventType,
       priorReadAnchor: block.priorReadAnchor,
+      tokenErrors: block.tokenErrors,
       projectRoot,
       fs: runtime.fsSync,
     });
@@ -204,26 +206,21 @@ export async function runRefreshCommand(ctx) {
   const lines = text.split("\n");
   let spliced = false;
 
+  // A rendered xmr block always splices: every XmR render failure comes back
+  // as notice lines inside the block, so the board shows the state of its
+  // sources. A corrupt CSV still fails the refresh.
   for (let i = blocks.length - 1; i >= 0; i--) {
     const block = blocks[i];
-    try {
-      const rendered = await renderForBlock(
-        block,
-        lines,
-        projectRoot,
-        ghContext,
-        runtime,
-      );
-      if (!rendered) continue;
-      spliceBlock(lines, block, rendered);
-      spliced = true;
-    } catch (err) {
-      if (!(err instanceof BlockRenderError)) throw err;
-      logger.error(
-        "refresh",
-        `refresh-error ${storyboardPath}:${block.openLine + 1} ${err.message}`,
-      );
-    }
+    const rendered = await renderForBlock(
+      block,
+      lines,
+      projectRoot,
+      ghContext,
+      runtime,
+    );
+    if (!rendered) continue;
+    spliceBlock(lines, block, rendered);
+    spliced = true;
   }
 
   if (spliced) runtime.fsSync.writeFileSync(storyboardPath, lines.join("\n"));

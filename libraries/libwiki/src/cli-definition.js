@@ -265,6 +265,11 @@ export function createDefinition() {
             type: "string",
             description: "owner/repo slug (default: origin remote)",
           },
+          "event-type": {
+            type: "string",
+            description:
+              "Forwarded to `gemba-xmr record --event-type` (default: record's own rule)",
+          },
           ...wikiRootOpt,
         },
       },

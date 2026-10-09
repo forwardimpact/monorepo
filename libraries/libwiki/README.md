@@ -120,11 +120,22 @@ starts a fresh main file.
 npx gemba-wiki refresh [storyboard-path]
 ```
 
-`refresh` re-renders `<!-- xmr:metric:csv-path -->` and
+`refresh` re-renders
+`<!-- xmr:metric:csv-path [event_type=<slice>] [prior=<YYYY-MM-DD>] -->` and
 `<!-- obstacles:open[:Nd] -->` marker blocks inside a storyboard from the CSV
 and GitHub state behind them. Default path: `wiki/storyboard-YYYY-MMM.md` for
 the current month. It also sweeps every expired row from
 `MEMORY.md ## Active Claims` as part of the same deterministic refresh.
+
+An XmR marker's tokens are the `key=value` words right after the CSV path, in
+any order. The first word without `=` starts free text. `event_type=<slice>`
+names the slice the block reads (`*` for all rows). A marker with no
+`event_type` follows the read rule against its file: the file's sole value is
+read, and a file with several values needs the token. `prior=<YYYY-MM-DD>` is
+the prior-read anchor. Every render failure is a notice inside the block that
+names its cause: an unknown, repeated, or unusable token, a file the wiki
+cannot read, a slice the read cannot resolve, or a metric with no rows in the
+resolved slice. A conflict-marker CSV still fails the refresh.
 
 ### `init` / `push` / `pull` — wiki working tree
 
@@ -137,6 +148,18 @@ npx gemba-wiki pull
 `init` clones the wiki repo if it is missing. It scaffolds Active Claims in
 `MEMORY.md`. It creates `wiki/metrics/<skill>/` directories. `push` and
 `pull` are thin wrappers over `git` that handle conflicts.
+
+### `product-mix` — record the product-vs-internal mix
+
+```sh
+npx gemba-wiki product-mix [--since YYYY-MM-DD] [--until YYYY-MM-DD] [--event-type <slice>]
+```
+
+`product-mix` counts the merged PRs in the window by their `product` and
+`internal` labels and appends one `product_share` row through
+`gemba-xmr record`. The row's slice is the caller's `--event-type`. Without
+one, `record`'s own rule applies: the host workflow, else `interactive`. A
+`record` failure fails the command with `record`'s message.
 
 ## Programmatic API
 
@@ -158,6 +181,9 @@ import {
   existing summaries. The call is idempotent.
 - `runAudit(rules, ctx)` — pure audit engine: `(rules, ctx) → findings[]`.
 - `RULES` — the audit rule catalogue (one literal per rule).
+- `renderBlock({ metric, csvPath, projectRoot, fs, eventType, priorReadAnchor, tokenErrors })`
+  — render one storyboard XmR block. It returns chart lines, or notice lines for
+  every render failure except a corrupt CSV, which throws `CSVIntegrityError`.
 
 ## Documentation
 

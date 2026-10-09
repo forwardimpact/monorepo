@@ -40,6 +40,99 @@ describe("scanMarkers", () => {
     assert.equal(pairs[0].priorReadAnchor, "2026-06-04");
   });
 
+  // The marker token grammar: `key=value` words right after the
+  // CSV path, in any order. The first word without `=` starts the notice.
+  describe("xmr marker tokens", () => {
+    const scanOne = (open) =>
+      scanMarkers([open, "body", "<!-- /xmr -->"].join("\n"))[0];
+
+    test("event_type=x parses onto the block", () => {
+      const pair = scanOne("<!-- xmr:m:a.csv event_type=nightly-review -->");
+      assert.equal(pair.eventType, "nightly-review");
+      assert.equal(pair.priorReadAnchor, null);
+      assert.deepEqual(pair.tokenErrors, []);
+    });
+
+    test("a block without tokens carries null fields and no errors", () => {
+      const pair = scanOne("<!-- xmr:m:a.csv -->");
+      assert.equal(pair.eventType, null);
+      assert.equal(pair.priorReadAnchor, null);
+      assert.deepEqual(pair.tokenErrors, []);
+    });
+
+    test("prior= and event_type= parse in either order", () => {
+      for (const run of [
+        "prior=2026-06-04 event_type=x",
+        "event_type=x prior=2026-06-04",
+      ]) {
+        const pair = scanOne(`<!-- xmr:m:a.csv ${run} Do not edit. -->`);
+        assert.equal(pair.eventType, "x");
+        assert.equal(pair.priorReadAnchor, "2026-06-04");
+        assert.deepEqual(pair.tokenErrors, []);
+      }
+    });
+
+    test("an unknown key lands in tokenErrors as unknown", () => {
+      const pair = scanOne("<!-- xmr:m:a.csv slice=x -->");
+      assert.deepEqual(pair.tokenErrors, [
+        { key: "slice", value: "x", reason: "unknown" },
+      ]);
+      assert.equal(pair.eventType, null);
+    });
+
+    test("an unusable prior and a bare event_type= are unusable", () => {
+      const pair = scanOne("<!-- xmr:m:a.csv prior=20260604 event_type= -->");
+      assert.deepEqual(pair.tokenErrors, [
+        { key: "prior", value: "20260604", reason: "unusable" },
+        { key: "event_type", value: "", reason: "unusable" },
+      ]);
+      assert.equal(pair.priorReadAnchor, null);
+      assert.equal(pair.eventType, null);
+    });
+
+    test("a second event_type= is repeated and the first wins", () => {
+      const pair = scanOne("<!-- xmr:m:a.csv event_type=a event_type=b -->");
+      assert.equal(pair.eventType, "a");
+      assert.deepEqual(pair.tokenErrors, [
+        { key: "event_type", value: "b", reason: "repeated" },
+      ]);
+    });
+
+    test("a prototype name is an unknown key, not a hit", () => {
+      const pair = scanOne("<!-- xmr:m:a.csv constructor=x -->");
+      assert.deepEqual(pair.tokenErrors, [
+        { key: "constructor", value: "x", reason: "unknown" },
+      ]);
+    });
+
+    test("a k=v word after free text is not a token", () => {
+      const pair = scanOne("<!-- xmr:m:a.csv Do not edit event_type=x -->");
+      assert.equal(pair.eventType, null);
+      assert.deepEqual(pair.tokenErrors, []);
+    });
+
+    test("a token run followed by the notice text keeps the notice", () => {
+      const pair = scanOne(
+        "<!-- xmr:m:wiki/metrics/x/2026.csv event_type=x Do not edit. Auto-generated. -->",
+      );
+      assert.equal(pair.csvPath, "wiki/metrics/x/2026.csv");
+      assert.equal(pair.eventType, "x");
+    });
+
+    // The one shape the grammar cannot notice: a `>` inside a value ends the
+    // comment early, so the line is not an open marker at all. The scanner
+    // reports no block, and the audit's balance rule reports the unpaired
+    // close.
+    test("a > inside a value is not an open marker", () => {
+      const pairs = scanMarkers(
+        ["<!-- xmr:m:a.csv event_type=a>b -->", "body", "<!-- /xmr -->"].join(
+          "\n",
+        ),
+      );
+      assert.deepEqual(pairs, []);
+    });
+  });
+
   test("finds two marker pairs separated by prose", () => {
     const text = [
       "<!-- xmr:alpha:a.csv -->",

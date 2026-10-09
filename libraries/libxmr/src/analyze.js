@@ -1,13 +1,25 @@
-import { DEFAULT_SHIFT_TYPE, MIN_POINTS } from "./constants.js";
-import { parseCSV } from "./csv.js";
+import { MIN_POINTS } from "./constants.js";
+import { normalizeSlice } from "./csv.js";
 import { computeXmR } from "./stats.js";
 import { detectSignals, hasAnySignal, stampProvenance } from "./signals.js";
 import { classify } from "./classify.js";
 import { round1, round2 } from "./format.js";
 
+// The slice is the caller's. The library holds no default. An absent or
+// blank `eventType` is a programming error at the seam, so the call throws
+// before any row is read.
+function assertSlice(eventType, fn) {
+  const slice = normalizeSlice(eventType);
+  if (slice === "") {
+    throw new TypeError(
+      `${fn} requires options.eventType: a slice name or "*"`,
+    );
+  }
+  return slice;
+}
+
 // Apply the event-type slice and the optional route-decision partitions.
-// Each filter is inert unless the caller passes its option. A plain
-// analyze returns the same series as before.
+// The route filters are inert unless the caller passes them.
 function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
   let selected = rows;
   if (eventType !== "*") {
@@ -24,7 +36,19 @@ function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
   return selected;
 }
 
-// Analyze a Kata-metrics CSV. Group rows by metric. Sort each group by
+function groupByMetric(rows) {
+  const groups = Object.create(null); // keyed by a CSV cell, as tallySlices is
+  for (const row of rows) {
+    if (!groups[row.metric]) groups[row.metric] = [];
+    groups[row.metric].push(row);
+  }
+  for (const group of Object.values(groups)) {
+    group.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  return groups;
+}
+
+// Analyze parsed Kata-metrics rows. Group rows by metric. Sort each group by
 // date. Compute Wheeler/Vacanti statistics and signals for groups with at
 // least MIN_POINTS observations. Stamp a classification on each group.
 //
@@ -34,38 +58,26 @@ function selectRows(rows, { eventType, route, routesEligibleIncludes }) {
 //   - stats: full-precision numeric stats (consumers round at display time)
 //   - signals: keyed-by-rule signal records
 //   - values, dates: ordered series that the chart renderer reads
-// The eventType default lives here. The command layer does not hold it.
-// Single-argument callers such as libwiki's block renderer inherit the
-// shift-work slice without a code change. Pass "*" to disable the filter.
+// The slice is the caller's. The library holds no default. `"*"` means every
+// row. A caller that reads a file and wants the slice resolved from it calls
+// `analyzeSlice` (slice.js), which parses once, tallies, resolves, and then
+// calls this function.
 // When `priorReadAnchor` (a YYYY-MM-DD date) exact-matches a metric's slot
 // date, each fired signal record gains a `provenance` value relative to that
 // slot. A non-corresponding anchor (backfill, correction, beyond series end)
 // and no anchor both leave records untouched.
-/** Group rows by metric, restricted to one event_type (default kata-shift, or "*" for all rows). Partition by route-decision context on request. Compute XmR statistics and signals. Classify each metric's process behavior. Stamp per-signal provenance when the caller gives a corresponding `priorReadAnchor` date. */
+/** Group parsed rows by metric, restricted to the required `eventType` slice (a value, or "*" for all rows). Partition by route-decision context on request. Compute XmR statistics and signals. Classify each metric's process behavior. Stamp per-signal provenance when the caller gives a corresponding `priorReadAnchor` date. */
 export function analyze(
-  csvText,
-  {
-    eventType = DEFAULT_SHIFT_TYPE,
-    priorReadAnchor,
-    route,
-    routesEligibleIncludes,
-  } = {},
+  rows,
+  { eventType, priorReadAnchor, route, routesEligibleIncludes } = {},
 ) {
-  const rows = selectRows(parseCSV(csvText), {
-    eventType,
-    route,
-    routesEligibleIncludes,
-  });
-
-  const groups = {};
-  for (const row of rows) {
-    if (!groups[row.metric]) groups[row.metric] = [];
-    groups[row.metric].push(row);
-  }
+  const slice = assertSlice(eventType, "analyze");
+  const groups = groupByMetric(
+    selectRows(rows, { eventType: slice, route, routesEligibleIncludes }),
+  );
 
   const metrics = [];
   for (const [name, group] of Object.entries(groups)) {
-    group.sort((a, b) => a.date.localeCompare(b.date));
     const dates = group.map((r) => r.date);
     const values = group.map((r) => r.value);
     const unit = group[0].unit;
@@ -113,6 +125,19 @@ export function analyze(
   }
 
   return { metrics };
+}
+
+/** List the distinct metrics among parsed rows in the required `eventType` slice (a value, or "*" for all rows), each with its unit, point count, and date range. */
+export function listMetrics(rows, { eventType } = {}) {
+  const slice = assertSlice(eventType, "listMetrics");
+  const groups = groupByMetric(selectRows(rows, { eventType: slice }));
+  return Object.entries(groups).map(([name, group]) => ({
+    metric: name,
+    unit: group[0].unit,
+    n: group.length,
+    from: group[0].date,
+    to: group[group.length - 1].date,
+  }));
 }
 
 // Round a stats object to display precision. Consumers that need exact

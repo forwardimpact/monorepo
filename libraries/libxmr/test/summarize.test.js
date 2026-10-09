@@ -226,27 +226,33 @@ describe("chart command", () => {
 });
 
 describe("commands name the event_type slice", () => {
-  function mixedCSV() {
+  // Twenty rows per slice, so every slice clears MIN_POINTS. The slice list
+  // is the one thing that varies: two names make a mixed file, one name
+  // makes a single-slice file the flag-free read can resolve.
+  function twentyRowCSV(slices = ["kata-shift", "kata-dispatch"]) {
     const header = "date,metric,value,unit,run,note,event_type";
     const rows = [];
     for (let i = 0; i < 20; i++) {
       const day = String((i % 28) + 1).padStart(2, "0");
-      rows.push(`2026-01-${day},m,${10 + (i % 2)},count,,,kata-shift`);
-      rows.push(`2026-01-${day},m,${1 + (i % 2)},count,,,kata-dispatch`);
+      slices.forEach((slice, k) => {
+        const base = k === 0 ? 10 : 1;
+        rows.push(`2026-01-${day},m,${base + (i % 2)},count,,,${slice}`);
+      });
     }
     return [header, ...rows].join("\n");
   }
 
-  test("summarize defaults to the kata-shift slice and names it", () => {
-    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
-      const { stdout } = runSummarize(csvPath, fsSync);
+  test("summarize resolves the sole slice and names it", () => {
+    withTempCSV(twentyRowCSV(["kata-shift"]), (csvPath, fsSync) => {
+      const { result, stdout } = runSummarize(csvPath, fsSync);
+      assert.ok(result.ok, JSON.stringify(result));
       assert.match(stdout, /event_type: kata-shift/);
       assert.match(stdout, /\| m \| 20 \|/);
     });
   });
 
   test("summarize --event-type kata-dispatch reports the dispatch slice", () => {
-    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+    withTempCSV(twentyRowCSV(), (csvPath, fsSync) => {
       const { stdout } = runSummarize(csvPath, fsSync, {
         "event-type": "kata-dispatch",
       });
@@ -256,30 +262,31 @@ describe("commands name the event_type slice", () => {
   });
 
   test('summarize --event-type "*" reports all rows and names the slice', () => {
-    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+    withTempCSV(twentyRowCSV(), (csvPath, fsSync) => {
       const { stdout } = runSummarize(csvPath, fsSync, { "event-type": "*" });
       assert.match(stdout, /event_type: \* \(all rows\)/);
       assert.match(stdout, /\| m \| 40 \|/);
     });
   });
 
-  test("summarize json carries a top-level event_type field", () => {
-    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+  test("summarize json carries the inferred event_type", () => {
+    withTempCSV(twentyRowCSV(["kata-shift"]), (csvPath, fsSync) => {
       const { stdout } = runSummarize(csvPath, fsSync, { format: "json" });
       const parsed = JSON.parse(stdout);
       assert.strictEqual(parsed.event_type, "kata-shift");
     });
   });
 
-  test("chart names the slice above the chart body", () => {
-    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
-      const { stdout } = runChart(csvPath, fsSync, { metric: "m" });
+  test("chart names the inferred slice above the chart body", () => {
+    withTempCSV(twentyRowCSV(["kata-shift"]), (csvPath, fsSync) => {
+      const { result, stdout } = runChart(csvPath, fsSync, { metric: "m" });
+      assert.ok(result.ok, JSON.stringify(result));
       assert.match(stdout, /^# event_type: kata-shift\n\n/);
     });
   });
 
   test("chart --event-type kata-dispatch charts the dispatch slice", () => {
-    withTempCSV(mixedCSV(), (csvPath, fsSync) => {
+    withTempCSV(twentyRowCSV(), (csvPath, fsSync) => {
       const { stdout } = runChart(csvPath, fsSync, {
         metric: "m",
         "event-type": "kata-dispatch",

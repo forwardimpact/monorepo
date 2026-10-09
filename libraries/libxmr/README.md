@@ -17,6 +17,7 @@ npx gemba-xmr record --skill kata-product-issue --metric issues_triaged --value 
 
 ```js
 import {
+  analyzeSlice,
   analyze,
   renderChart,
   computeXmR,
@@ -28,21 +29,32 @@ import {
 
 ```text
 date,metric,value,unit,run,note,event_type
-2026-01-01,latency,124,ms,,,kata-shift
-2026-01-02,latency,131,ms,,,kata-shift
+2026-01-01,latency,124,ms,,,nightly-review
+2026-01-02,latency,131,ms,,,nightly-review
 ```
 
 `date` is ISO 8601. `value` is numeric. `metric`, `unit`, and `event_type` are
 required. `run` and `note` are optional. `libxmr` computes limits only when a
 metric has at least 15 points.
 
-`event_type` names the kind of work a row records. The value is the machine
-name of the workflow that recorded it (its filename without `.yml`). `record`
-takes the value from `--event-type`. If that flag is absent, `record` parses
-`$GITHUB_WORKFLOW_REF`. It rejects the row when neither resolves. The read
-commands (`analyze`, `chart`, `summarize`, `list`) default to the `kata-shift`
-slice. They name the active slice in their output. They accept
-`--event-type <name>`, or `--event-type '*'` for all rows.
+`event_type` names the stream a row belongs to. Its default is the machine
+name of the workflow that recorded it (its filename without `.yml`), because a
+workflow is a stream. `record` takes the value from `--event-type`. If that
+flag is absent, `record` parses `$GITHUB_WORKFLOW_REF`. If neither resolves,
+`record` writes the reserved value `interactive`. That value is not a workflow
+filename, and no workflow file may take the name.
+
+The read commands (`analyze`, `chart`, `summarize`, `list`) read one slice and
+name it in their output. The slice is the caller's `--event-type <name>`, or
+`--event-type '*'` for all rows. Without the flag, the read resolves the slice
+from the file: a file whose rows carry exactly one value reads that value, a
+header-only file is an empty report, and a file with several values, or only
+empty values, is a failed read that lists the values present with their row
+counts. A named slice that matches no row of a non-empty file fails the same
+way. A value is compared after surrounding whitespace is removed, and an
+empty value is not a slice. The same rule serves the library: `analyze` and
+`listMetrics` take parsed rows and a required `eventType`, and `analyzeSlice`
+and `listSliceMetrics` parse once, resolve the slice, and compute.
 
 ### Route-decision grammar in `note`
 
@@ -61,7 +73,7 @@ route_taken=<id>; routes_eligible=[<id>,<id>,...];
 Quote the `note` so the embedded comma does not split the column:
 
 ```text
-2026-06-20,implementations_shipped,3,count,,"route_taken=2; routes_eligible=[2,3];",kata-shift,local
+2026-06-20,implementations_shipped,3,count,,"route_taken=2; routes_eligible=[2,3];",nightly-review,local
 ```
 
 `analyze` partitions on these tokens. `--route <id>` keeps rows whose
@@ -120,7 +132,7 @@ Then every fired record also carries `provenance`:
 - `new-point` — at least one slot that participates postdates the anchor.
 
 ```sh
-npx gemba-xmr analyze corrections.csv --prior-read 2026-06-04
+npx gemba-xmr analyze corrections.csv --event-type nightly-review --prior-read 2026-06-04
 ```
 
 The value records anchor-relative **data membership**. It does not record

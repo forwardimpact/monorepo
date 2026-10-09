@@ -6,11 +6,11 @@ import {
   formatBullet,
 } from "@forwardimpact/libcli";
 
-import { analyze, roundStats } from "../analyze.js";
+import { roundStats } from "../analyze.js";
 import { renderChart } from "../chart.js";
-import { fmt1, round1 } from "../format.js";
-import { resolveSlice } from "./slice.js";
-import { withIntegrityGuard } from "./guard.js";
+import { fmt1, round1, sliceLabel } from "../format.js";
+import { analyzeSlice } from "../slice.js";
+import { withReadGuard } from "./guard.js";
 
 /** Read a CSV and filter to a single metric on request. In text mode, print a full report with the chart, the stats table, and the signals. In JSON mode, print a stamped object with the source path and the generation date. */
 export function runAnalyzeCommand(ctx) {
@@ -37,11 +37,10 @@ export function runAnalyzeCommand(ctx) {
     };
   }
 
-  const { eventType, label } = resolveSlice(values["event-type"]);
   const text = fsSync.readFileSync(csvPath, "utf-8");
-  const guarded = withIntegrityGuard(csvPath, () =>
-    analyze(text, {
-      eventType,
+  const guarded = withReadGuard(csvPath, () =>
+    analyzeSlice(text, {
+      eventType: values["event-type"],
       priorReadAnchor: values["prior-read"],
       route: values.route,
       routesEligibleIncludes: values["routes-eligible-includes"],
@@ -51,8 +50,7 @@ export function runAnalyzeCommand(ctx) {
   const report = guarded.value;
   report.source = csvPath;
   report.generated = isoDate(clock.now());
-  report.eventType = eventType;
-  report.eventTypeLabel = label;
+  report.eventTypeLabel = sliceLabel(report.eventType);
 
   if (values.metric) {
     report.metrics = report.metrics.filter((m) => m.metric === values.metric);

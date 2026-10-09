@@ -96,16 +96,41 @@ export const CARRY_SURFACE_NAME_RE = /^(.+)-carries\.md$/;
 export const CARRY_SURFACE_H1_RE = /^# (.+) — Carries$/;
 export const CARRY_CLEARANCE_MARKER_RE = /\*\*Carry-clearance:\*\*/;
 
-// Storyboard marker syntax. An open or close marker tolerates optional trailing
-// text after the tag (typically an inline "Do not edit. Generated from gemba-wiki
-// refresh." notice). One home so the marker scanner (marker-scanner.js) and the
+// One ISO date matcher inside the package: the marker scanner checks a
+// `prior=` value with it, and the audit rules check claim dates with it.
+export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+// Storyboard XmR marker: `<!-- xmr:<metric>:<csv> [key=value]... [free text] -->`.
+// Tokens are the `key=value` words that directly follow the CSV path, in any
+// order. The first word without `=` begins free text (typically "Do not
+// edit. Auto-generated."). A value may be empty, so a bare `key=` reaches
+// the scanner as an unusable value. Capture groups: 1 metric, 2 csvPath,
+// 3 the token run. One home so the scanner (marker-scanner.js) and the
 // audit's balance check (audit/rules.js) cannot drift on the syntax.
-// Capture groups: 1 metric, 2 csvPath, 3 optional prior-read anchor date. The
-// `prior=YYYY-MM-DD` token sits before the trailing-text group, so the scanner
-// still tolerates the "Do not edit" notice and the notice does not swallow the
-// anchor.
 export const XMR_OPEN_RE =
-  /^<!--\s*xmr:([^:\s]+):(\S+)(?:\s+prior=(\d{4}-\d{2}-\d{2}))?(?:\s+[^>]*?)?\s*-->\s*$/;
+  /^<!--\s*xmr:([^:\s]+):(\S+)((?:\s+[^\s=>]+=[^\s>]*)*)(?:\s+[^>]*?)?\s*-->\s*$/;
+// The keys the renderer honours, each with the block field it sets, the
+// check its value must pass, and the placeholder a notice shows for it. One
+// map, so a key added here gets all three in the same edit, and the
+// renderer's known-token notice derives from it. The reasons are the one
+// vocabulary the scanner writes and the renderer reads.
+export const XMR_TOKENS = Object.freeze({
+  event_type: {
+    field: "eventType",
+    placeholder: "<slice>",
+    valid: (value) => value !== "",
+  },
+  prior: {
+    field: "priorReadAnchor",
+    placeholder: "<YYYY-MM-DD>",
+    valid: (value) => ISO_DATE_RE.test(value),
+  },
+});
+export const XMR_TOKEN_REASONS = Object.freeze({
+  unknown: "unknown",
+  repeated: "repeated",
+  unusable: "unusable",
+});
 export const XMR_CLOSE_RE = /^<!--\s*\/xmr(?:\s+[^>]*?)?\s*-->\s*$/;
 export const ISSUE_OPEN_RE =
   /^<!--\s*(obstacles|experiments):(open|closed)(?::(\d+d))?(?:\s+[^>]*?)?\s*-->\s*$/;

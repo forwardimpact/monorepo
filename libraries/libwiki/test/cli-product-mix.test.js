@@ -21,9 +21,9 @@ function prsPayload(...specs) {
   );
 }
 
-function runWith(stdout, { options, gitClient, clock } = {}) {
+function runWith(stdout, { options, gitClient, clock, npx } = {}) {
   const subprocess = createMockSubprocess({
-    responses: { gh: { stdout }, npx: { stdout: "" } },
+    responses: { gh: { stdout }, npx: npx ?? { stdout: "" } },
   });
   const runtime = createTestRuntime({
     subprocess,
@@ -124,5 +124,37 @@ describe("gemba-wiki product-mix", () => {
     );
     assert.ok(ghCall.args.includes("--repo"));
     assert.ok(ghCall.args.includes("owner/repo"));
+  });
+
+  // One writer rule: the slice is the caller's, else record's own rule. The
+  // command carries no literal.
+  test("--event-type is forwarded to record", async () => {
+    const { subprocess, run } = runWith(prsPayload("product"), {
+      options: { ...WINDOW, repo: "owner/repo", "event-type": "probe" },
+    });
+    await run;
+    const recordCall = subprocess.calls.find((c) => c.cmd === "npx");
+    assert.equal(
+      recordCall.args[recordCall.args.indexOf("--event-type") + 1],
+      "probe",
+    );
+  });
+
+  test("with no flag, record receives no --event-type", async () => {
+    const { subprocess, run } = runWith(prsPayload("product"));
+    await run;
+    const recordCall = subprocess.calls.find((c) => c.cmd === "npx");
+    assert.ok(!recordCall.args.includes("--event-type"));
+  });
+
+  test("a record failure fails product-mix with record's message", async () => {
+    const { run } = runWith(prsPayload("product"), {
+      npx: { exitCode: 2, stderr: "gemba-xmr: error: x\n" },
+    });
+    assert.deepEqual(await run, {
+      ok: false,
+      code: 2,
+      error: "gemba-xmr: error: x",
+    });
   });
 });

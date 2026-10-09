@@ -77,9 +77,12 @@ function countByLabel(prs) {
  * row. Counts PRs merged in `[since, until]` by their `product` / `internal`
  * label. Appends `product_share = round(product / (product + internal) * 100)`
  * to `wiki/metrics/product-mix/<YYYY>.csv` through the `gemba-xmr record`
- * write path. The result is deterministic. A second run over the same merged
- * PRs yields the same value. A window with no labeled merged PRs emits no row
- * (it avoids a 0/0 ratio).
+ * write path. The row's slice is the caller's `--event-type`; without one,
+ * `record`'s own rule applies (the host workflow, else `interactive`). A
+ * `record` failure is a `product-mix` failure with `record`'s message. The
+ * result is deterministic. A second run over the same merged PRs yields the
+ * same value. A window with no labeled merged PRs emits no row (it avoids a
+ * 0/0 ratio).
  */
 export async function runProductMixCommand(ctx) {
   const { runtime, gitClient } = ctx.deps;
@@ -134,16 +137,24 @@ export async function runProductMixCommand(ctx) {
     run,
     "--note",
     `product=${product} internal=${internal} unlabeled=${unlabeled} window=${since}..${until}`,
-    "--event-type",
-    "kata-shift",
   ];
   if (options["wiki-root"]) {
     recordArgs.push("--wiki-root", options["wiki-root"]);
   }
+  if (options["event-type"]) {
+    recordArgs.push("--event-type", options["event-type"]);
+  }
 
   const recordResult = await runtime.subprocess.run("npx", recordArgs, { cwd });
   if (recordResult.exitCode !== 0) {
-    logger.warn("product-mix", "gemba-xmr record failed");
+    // The child's stderr passes through as it is; the gemba-wiki envelope adds
+    // its own prefix, so the operator reads both bins' names.
+    const message = recordResult.stderr.trim();
+    return {
+      ok: false,
+      code: recordResult.exitCode,
+      error: message || "gemba-xmr record failed",
+    };
   }
   return { ok: true };
 }

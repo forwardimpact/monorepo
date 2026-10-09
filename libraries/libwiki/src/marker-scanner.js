@@ -5,7 +5,38 @@ import {
   ISSUE_OPEN_RE,
   XMR_CLOSE_RE,
   XMR_OPEN_RE,
+  XMR_TOKEN_REASONS,
+  XMR_TOKENS,
 } from "./constants.js";
+
+// `run` is group 3 of XMR_OPEN_RE: every word holds a non-empty key, then
+// `=`, then a possibly empty value (which may itself hold `=`). A known key
+// is `seen` once judged, usable or not, so its second occurrence is
+// `repeated`; an unknown key is reported each time it appears.
+function parseXmrTokens(run) {
+  const out = { eventType: null, priorReadAnchor: null, tokenErrors: [] };
+  const seen = new Set();
+  for (const token of run.split(/\s+/).filter(Boolean)) {
+    const at = token.indexOf("="); // never -1 or 0 under the regex
+    const key = token.slice(0, at);
+    const value = token.slice(at + 1);
+    // hasOwn, so a prototype name such as `constructor=x` is an unknown key.
+    if (!Object.hasOwn(XMR_TOKENS, key)) {
+      out.tokenErrors.push({ key, value, reason: XMR_TOKEN_REASONS.unknown });
+      continue;
+    }
+    const { field, valid } = XMR_TOKENS[key];
+    if (seen.has(key)) {
+      out.tokenErrors.push({ key, value, reason: XMR_TOKEN_REASONS.repeated });
+    } else if (!valid(value)) {
+      out.tokenErrors.push({ key, value, reason: XMR_TOKEN_REASONS.unusable });
+    } else {
+      out[field] = value;
+    }
+    seen.add(key);
+  }
+  return out;
+}
 
 function openLabel(open) {
   if (open.kind === "xmr") return open.metric;
@@ -24,7 +55,7 @@ function tryOpen(line, i) {
       kind: "xmr",
       metric: xmrMatch[1],
       csvPath: xmrMatch[2],
-      priorReadAnchor: xmrMatch[3] || null,
+      ...parseXmrTokens(xmrMatch[3]),
       openLine: i,
     };
   }
@@ -50,7 +81,9 @@ function closePair(open, i) {
       kind: "xmr",
       metric: open.metric,
       csvPath: open.csvPath,
+      eventType: open.eventType,
       priorReadAnchor: open.priorReadAnchor,
+      tokenErrors: open.tokenErrors,
       openLine: open.openLine,
       closeLine: i,
     };
@@ -84,9 +117,11 @@ function matchClose(line, open) {
 
 /**
  * Scan text for paired marker blocks (xmr or issue-list). Returns positions and
- * metadata. The scanner reports dangling open markers through the injected
- * `warn` callback (default: discard). It does not write to the process
- * directly.
+ * metadata. An xmr block carries `eventType` and `priorReadAnchor` (each a
+ * value or null) from its marker tokens, and `tokenErrors`
+ * (`[{ key, value, reason }]`) for every token the renderer cannot honour.
+ * The scanner reports dangling open markers through the injected `warn`
+ * callback (default: discard). It does not write to the process directly.
  * @param {string} text - The storyboard text to scan.
  * @param {{warn?: (message: string) => void}} [options]
  * @returns {Array<object>} The paired marker blocks.

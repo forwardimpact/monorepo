@@ -25,7 +25,6 @@ export const PRIORITY_INDEX_HEADING_RE = new RegExp(
 const ACTIVE_CLAIMS_HEADING_RE = new RegExp(`^${ACTIVE_CLAIMS_HEADING}$`, "m");
 export const PRIORITY_SEPARATOR_RE =
   /^\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/m;
-export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 // -- Check builders: subject (+ ctx) → null | finding | finding[] --
 
