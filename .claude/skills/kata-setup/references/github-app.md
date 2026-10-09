@@ -26,7 +26,7 @@ path.
 3. Enable the webhook. **Webhook URL** = `${GHBRIDGE_PUBLIC_URL}/api/webhook`.
    **Webhook secret** = a random 32-byte hex string (also set as
    `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET` on the ghbridge process). The ghbridge
-   service serves Discussion events. Other events still reach GitHub Actions
+   service serves Discussion events. Other events reach GitHub Actions
    through their own triggers. They need no webhook URL.
 4. Under **Permissions**, set the repository and organization permissions
    below.
@@ -34,7 +34,7 @@ path.
 6. Set "Where can this GitHub App be installed?" to "Only on this account."
 7. Click **Create GitHub App**.
 
-Deploy the ghbridge service before you point the App webhook URL at it. The
+Deploy the ghbridge service before pointing the App webhook URL at it. The
 bridge must be reachable at `${GHBRIDGE_PUBLIC_URL}/api/webhook` when GitHub
 starts to deliver events. See
 [ghbridge README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
