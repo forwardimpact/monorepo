@@ -1,6 +1,10 @@
 import path from "node:path";
 import { Writable } from "node:stream";
-import { emitFindingsText, runRules } from "@forwardimpact/libutil";
+import {
+  AGENT_PROFILES_DIR,
+  emitFindingsText,
+  runRules,
+} from "@forwardimpact/libutil";
 import {
   createAgentRunner,
   composeProfilePrompt,
@@ -232,7 +236,7 @@ async function buildFixRunner(ctx, projectRoot, runtime) {
     allowedTools: ["Read", "Glob", "Write", "Edit"],
     settingSources: ["project"],
     systemPrompt: composeProfilePrompt("technical-writer", {
-      profilesDir: path.resolve(projectRoot, ".claude/agents"),
+      profilesDir: path.resolve(projectRoot, AGENT_PROFILES_DIR),
       runtime,
     }),
     redactor: createRedactor({ runtime }),
@@ -291,7 +295,13 @@ export async function runFixCommand(ctx) {
   const audit = () =>
     runRules(
       RULES,
-      buildContext({ wikiRoot, today, fs, subprocess: runtime.subprocess }),
+      buildContext({
+        wikiRoot,
+        today,
+        fs,
+        subprocess: runtime.subprocess,
+        projectRoot,
+      }),
       { resolveScope },
     );
   // The agent only ever gets prose-judgment (`agent`-class) findings. The

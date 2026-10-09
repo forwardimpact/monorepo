@@ -155,6 +155,26 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     assert.ok(created.includes("<!-- experiments:closed"));
   });
 
+  test("a created skeleton carries one section per installed profile", async () => {
+    const dir = createProject();
+    const agentsDir = join(dir, ".claude", "agents");
+    mkdirSync(agentsDir, { recursive: true });
+    for (const agent of ["staff-engineer", "technical-writer"]) {
+      writeFileSync(
+        join(agentsDir, `${agent}.md`),
+        `---\nname: ${agent}\ndescription: The ${agent}.\n---\n`,
+      );
+    }
+    writeFileSync(join(agentsDir, "x-team-protocol.md"), "# Protocol\n");
+    const created = readFileSync(
+      await refreshCreates(dir, "storyboard.md"),
+      "utf-8",
+    );
+    assert.match(created, /^### staff-engineer$/m);
+    assert.match(created, /^### technical-writer$/m);
+    assert.doesNotMatch(created, /x-team-protocol/);
+  });
+
   test("missing storyboard defaults to the current-month path", async () => {
     const dir = createProject();
     await refreshCreates(dir, undefined);

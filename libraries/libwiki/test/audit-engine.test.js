@@ -5,7 +5,8 @@ import { runRules } from "@forwardimpact/libutil";
 import { RULES } from "../src/audit/rules.js";
 import { buildContext, resolveScope } from "../src/audit/scopes.js";
 
-const WIKI = "/wiki";
+const PROJECT = "/project";
+const WIKI = `${PROJECT}/wiki`;
 const STORYBOARD_AGENTS = [
   "product-manager",
   "release-engineer",
@@ -32,26 +33,43 @@ function storyboard(yyyy, mm) {
   ].join("\n");
 }
 
-// The clean-wiki seed holds MEMORY.md and the storyboard for `today`'s
-// month. `extra` overlays it. buildContext reads these through runtime.fsSync.
+// One profile per storyboard agent under the project's agents directory, so
+// the roster the context derives matches the sections the seeded board has.
+function profiles(agents = STORYBOARD_AGENTS) {
+  return Object.fromEntries(
+    agents.map((a) => [
+      `${PROJECT}/.claude/agents/${a}.md`,
+      `---\nname: ${a}\ndescription: The ${a}.\n---\n`,
+    ]),
+  );
+}
+
+// The clean-wiki seed holds the profiles, MEMORY.md, and the storyboard for
+// `today`'s month. `extra` overlays it. buildContext reads these through
+// runtime.fsSync.
 function cleanSeed(today = "2026-05-24", extra = {}) {
   const d = new Date(today);
   const yyyy = d.getUTCFullYear();
   const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
   return {
+    ...profiles(),
     [`${WIKI}/MEMORY.md`]: MEMORY_NONE,
     [`${WIKI}/storyboard-${yyyy}-M${mm}.md`]: storyboard(yyyy, mm),
     ...extra,
   };
 }
 
-function audit(seed, today = "2026-05-24") {
-  const ctx = buildContext({
+function context(seed, today = "2026-05-24") {
+  return buildContext({
     wikiRoot: WIKI,
     today,
     fs: createMockFs(seed),
+    projectRoot: PROJECT,
   });
-  return runRules(RULES, ctx, { resolveScope });
+}
+
+function audit(seed, today = "2026-05-24") {
+  return runRules(RULES, context(seed, today), { resolveScope });
 }
 
 const idsOf = (findings) => findings.map((f) => f.id);
@@ -316,8 +334,9 @@ describe("runRules", () => {
     assert.ok(idsOf(audit(seed)).includes("storyboard.current-month-exists"));
   });
 
-  test("a storyboard without an agent H3: one finding per missing agent", () => {
+  test("a storyboard without an agent H3: one finding per missing profile", () => {
     const seed = {
+      ...profiles(),
       [`${WIKI}/MEMORY.md`]: MEMORY_NONE,
       [`${WIKI}/storyboard-2026-M05.md`]: [
         "# Storyboard — 2026-05",
@@ -330,7 +349,37 @@ describe("runRules", () => {
     const missing = audit(seed).filter(
       (f) => f.id === "storyboard.agent-h3-required",
     );
-    assert.equal(missing.length, 4); // 5 agents required, 1 present
+    assert.equal(missing.length, 4); // 5 profiles required, 1 present
+  });
+
+  test("a board that lacks one profile's H3 yields one finding", () => {
+    const seed = cleanSeed("2026-05-24", {
+      ...profiles([...STORYBOARD_AGENTS, "improvement-coach"]),
+    });
+    const missing = audit(seed).filter(
+      (f) => f.id === "storyboard.agent-h3-required",
+    );
+    assert.equal(missing.length, 1);
+    assert.match(missing[0].message, /'### improvement-coach'/);
+  });
+
+  test("a reference file under the agents directory adds no requirement", () => {
+    const seed = cleanSeed("2026-05-24", {
+      [`${PROJECT}/.claude/agents/x-team-protocol.md`]: "# Protocol\n",
+    });
+    const ids = idsOf(audit(seed));
+    assert.ok(!ids.includes("storyboard.agent-h3-required"));
+    assert.deepEqual(context(seed).roster, STORYBOARD_AGENTS);
+  });
+
+  test("no profiles directory: no section required and an empty roster", () => {
+    const seed = {
+      [`${WIKI}/MEMORY.md`]: MEMORY_NONE,
+      [`${WIKI}/storyboard-2026-M05.md`]: "# Storyboard — 2026-05\n",
+    };
+    const ids = idsOf(audit(seed));
+    assert.ok(!ids.includes("storyboard.agent-h3-required"));
+    assert.deepEqual(context(seed).roster, []);
   });
 
   test("storyboard markers: the audit detects dangling-open", () => {

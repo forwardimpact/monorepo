@@ -11,6 +11,7 @@ import {
   parseRepoSlug,
 } from "../issue-list-renderer.js";
 import { parseClaims, filterExpired, removeClaim } from "../active-claims.js";
+import { listProjectAgents } from "../agent-roster.js";
 import { renderStoryboardSkeleton } from "../storyboard-skeleton.js";
 import { currentDayIso } from "../util/clock.js";
 import { resolveProjectRoot, resolveWikiRoot } from "../util/wiki-dir.js";
@@ -107,11 +108,11 @@ function readStoryboardOrNull(runtime, storyboardPath) {
 // not exist. Refresh is the deterministic "freshen the wiki" step and runs
 // before the session (kata-agent pre-run). Creation here guarantees the file
 // is on disk before participants look for it, and no lead needs a write tool.
-// The skeleton carries the section structure and the generic issue-list
-// markers. The render pass below fills them, and participants seed metric
-// blocks.
-function createStoryboardSkeleton(runtime, storyboardPath, logger) {
-  const skeleton = renderStoryboardSkeleton(currentDayIso(runtime));
+// The skeleton carries the section structure, one section per roster
+// profile, and the generic issue-list markers. The render pass below fills the
+// markers, and participants seed metric blocks.
+function createStoryboardSkeleton(runtime, storyboardPath, logger, roster) {
+  const skeleton = renderStoryboardSkeleton(currentDayIso(runtime), roster);
   runtime.fsSync.mkdirSync(path.dirname(storyboardPath), { recursive: true });
   runtime.fsSync.writeFileSync(storyboardPath, skeleton);
   logger.info("refresh", `created storyboard at ${storyboardPath}`);
@@ -162,7 +163,16 @@ export async function runRefreshCommand(ctx) {
   const existing = readStoryboardOrNull(runtime, storyboardPath);
   const created = existing === null;
   const text = created
-    ? createStoryboardSkeleton(runtime, storyboardPath, logger)
+    ? createStoryboardSkeleton(
+        runtime,
+        storyboardPath,
+        logger,
+        listProjectAgents(
+          { projectRoot, wikiRoot: path.dirname(storyboardPath) },
+          runtime.fsSync,
+          { warn: (message) => logger.warn("refresh", message) },
+        ).map((a) => a.agent),
+      )
     : existing;
   const blocks = scanMarkers(text, {
     warn: (message) => logger.warn("refresh", message),

@@ -27,16 +27,6 @@ export const PRIORITY_SEPARATOR_RE =
   /^\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|\s*---\s*\|/m;
 export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-// improvement-coach is the storyboard facilitator and carries no domain
-// metrics. Only the five domain agents need their own H3.
-const STORYBOARD_DOMAIN_AGENTS = [
-  "product-manager",
-  "release-engineer",
-  "security-engineer",
-  "staff-engineer",
-  "technical-writer",
-];
-
 // -- Check builders: subject (+ ctx) → null | finding | finding[] --
 
 export const matches = (pattern) => (s) => (pattern.test(s.text) ? null : {});
@@ -213,10 +203,15 @@ export const carryEntryHasClearance = (s) => {
   return offenders.length === 0 ? null : offenders;
 };
 
-export const AGENT_H3_REQUIREMENTS = STORYBOARD_DOMAIN_AGENTS.map((agent) => ({
-  label: agent,
-  pattern: new RegExp(`^### ${agent}(\\s|$|—|-)`),
-}));
+// Every profile on the roster the context carries gets an H3. An empty roster
+// requires nothing.
+export const agentH3Required = (s, ctx) =>
+  allRequiredLines(
+    ctx.roster.map((agent) => ({
+      label: agent,
+      pattern: new RegExp(`^### ${agent}(\\s|$|—|-)`),
+    })),
+  )(s);
 
 // -- Metrics CSV duplicate rows --
 
