@@ -11,8 +11,9 @@ import { createTestRuntime } from "@forwardimpact/libmock";
 // renderer must still produce the snapshots captured in golden/gemba-wiki/.
 // The committed `*.txt` came from the bin with the version normalised to
 // `X.Y.Z`. An in-process render with that version reproduces them without a
-// process spawn. `scripts/capture-cli-golden.mjs --verify` runs the same cases
-// against the real spawned bin in the release-merge gate.
+// process spawn. The real-bin replays are the gate:
+// golden-functional.integration.test.js spawns `gemba-wiki` over a fixture
+// wiki, and golden-xmr.integration.test.js spawns `gemba-xmr` over its cases.
 const GOLDEN_DIR = fileURLToPath(
   new URL("./golden/gemba-wiki", import.meta.url),
 );

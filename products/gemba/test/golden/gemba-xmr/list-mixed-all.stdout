@@ -1,0 +1,7 @@
+Metrics — test/golden/gemba-xmr/mixed.csv
+event_type: * (all rows)
+
+Metric         Unit   Points  From        To        
+────────────────────────────────────────────────────
+stable_metric  count  2       2026-01-01  2026-01-02
+other_metric   count  2       2026-01-01  2026-01-02

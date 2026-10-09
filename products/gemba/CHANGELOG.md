@@ -4,6 +4,22 @@ All notable changes to `@forwardimpact/gemba` are recorded here.
 
 ## Unreleased
 
+### gemba-xmr and gemba-wiki resolve their slice (breaking)
+
+A read (`analyze`, `chart`, `list`, `summarize`) with no `--event-type` reads
+the file's sole `event_type` value. When the file holds several values, or only
+empty values, or when the named slice matches no row of a non-empty file, the
+command exits 2 and lists the values present with their row counts. There is no
+built-in default slice. `record` outside a workflow writes the reserved value
+`interactive` instead of refusing the row. `validate` rejects a row whose field
+count is outside 7 to 8. `gemba-wiki refresh` honours `event_type=<slice>` on an
+XmR marker and renders every XmR failure as a notice inside the block, so a
+board always shows the state of its sources. `gemba-wiki product-mix` takes
+`--event-type` and fails when `record` fails. The `gemba-xmr` help examples name
+a slice on every read and use a neutral workflow name. Two goldens cover the
+ambiguous and the `*` read over a mixed file, and a real-bin replay test gates
+every `gemba-xmr` golden case.
+
 ### New product: the Gemba agent-runtime platform (0.1.0)
 
 Gemba packages the agent-runtime substrate as one product. The product holds

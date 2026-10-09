@@ -14,6 +14,16 @@ import { runRecordCommand } from "@forwardimpact/libxmr/commands/record.js";
 
 const runtime = createDefaultRuntime();
 
+// One option object for the four read commands, so the rule reads the same
+// on each: the slice is the caller's, else the file's sole value.
+const readEventTypeOpt = {
+  "event-type": {
+    type: "string",
+    description:
+      "Slice to read: an event_type value, or '*' for all rows. Without it, the file's sole value is read; a file with several values needs the flag",
+  },
+};
+
 const definition = {
   name: "gemba-xmr",
   description: "Wheeler/Vacanti XmR control charts for time-series CSV metrics",
@@ -30,11 +40,7 @@ const definition = {
           short: "m",
           description: "Filter to a single metric by name",
         },
-        "event-type": {
-          type: "string",
-          description:
-            "Filter rows by event_type machine name. Use '*' for all rows",
-        },
+        ...readEventTypeOpt,
         "prior-read": {
           type: "string",
           description:
@@ -65,11 +71,7 @@ const definition = {
           description:
             "Metric name (optional when the CSV carries exactly one metric)",
         },
-        "event-type": {
-          type: "string",
-          description:
-            "Filter rows by event_type machine name. Use '*' for all rows",
-        },
+        ...readEventTypeOpt,
       },
       handler: runChartCommand,
     },
@@ -79,11 +81,7 @@ const definition = {
       argsUsage: "<csv-path>",
       description: "List metrics with counts and date ranges",
       options: {
-        "event-type": {
-          type: "string",
-          description:
-            "Filter rows by event_type machine name. Use '*' for all rows",
-        },
+        ...readEventTypeOpt,
       },
       handler: runListCommand,
     },
@@ -106,11 +104,7 @@ const definition = {
           short: "m",
           description: "Filter to a single metric by name",
         },
-        "event-type": {
-          type: "string",
-          description:
-            "Filter rows by event_type machine name. Use '*' for all rows",
-        },
+        ...readEventTypeOpt,
       },
       handler: runSummarizeCommand,
     },
@@ -157,7 +151,7 @@ const definition = {
         "event-type": {
           type: "string",
           description:
-            "Workflow machine name. Falls back to $GITHUB_WORKFLOW_REF basename",
+            "Stream the row belongs to (default: the host workflow's filename from $GITHUB_WORKFLOW_REF, else the reserved value interactive)",
         },
         date: {
           type: "string",
@@ -190,18 +184,17 @@ const definition = {
     },
   },
   examples: [
-    "gemba-xmr analyze wiki/metrics/kata-security-audit/2026.csv",
-    "gemba-xmr analyze wiki/metrics/kata-security-audit/2026.csv --metric findings_count",
-    "gemba-xmr analyze wiki/metrics/kata-security-audit/2026.csv --format json",
-    "gemba-xmr chart wiki/metrics/kata-security-audit/2026.csv --metric findings_count",
-    "gemba-xmr chart wiki/metrics/kata-security-audit/2026.csv --metric findings_count --ascii",
-    "gemba-xmr list wiki/metrics/kata-security-audit/2026.csv",
-    "gemba-xmr validate wiki/metrics/kata-security-audit/2026.csv",
-    "gemba-xmr summarize wiki/metrics/kata-security-audit/2026.csv",
-    "gemba-xmr summarize wiki/metrics/kata-security-audit/2026.csv --format json",
-    "gemba-xmr record --skill kata-product-issue --metric issues_triaged --value 3",
-    "gemba-xmr analyze wiki/metrics/staff-engineer/2026.csv --event-type kata-shift",
-    "gemba-xmr record --skill kata-spec --metric specs_drafted --value 1 --event-type kata-dispatch",
+    "gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review",
+    "gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count",
+    "gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type '*' --format json",
+    "gemba-xmr chart wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count",
+    "gemba-xmr chart wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count --ascii",
+    "gemba-xmr list wiki/metrics/code-review/2026.csv --event-type '*'",
+    "gemba-xmr validate wiki/metrics/code-review/2026.csv",
+    "gemba-xmr summarize wiki/metrics/code-review/2026.csv --event-type nightly-review",
+    "gemba-xmr summarize wiki/metrics/code-review/2026.csv --event-type nightly-review --format json",
+    "gemba-xmr record --skill code-review --metric findings_count --value 3",
+    "gemba-xmr record --skill code-review --metric findings_count --value 3 --event-type nightly-review",
   ],
   documentation: [
     {

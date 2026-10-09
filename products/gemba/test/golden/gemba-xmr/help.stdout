@@ -1,4 +1,4 @@
-gemba-xmr 0.1.0 — Wheeler/Vacanti XmR control charts for time-series CSV metrics
+gemba-xmr X.Y.Z — Wheeler/Vacanti XmR control charts for time-series CSV metrics
 
 Usage: gemba-xmr <command> [options]
 
@@ -18,18 +18,17 @@ Options:
   --json             Render the --help output itself as JSON (separate from --format)
 
 Examples:
-  gemba-xmr analyze wiki/metrics/kata-security-audit/2026.csv
-  gemba-xmr analyze wiki/metrics/kata-security-audit/2026.csv --metric findings_count
-  gemba-xmr analyze wiki/metrics/kata-security-audit/2026.csv --format json
-  gemba-xmr chart wiki/metrics/kata-security-audit/2026.csv --metric findings_count
-  gemba-xmr chart wiki/metrics/kata-security-audit/2026.csv --metric findings_count --ascii
-  gemba-xmr list wiki/metrics/kata-security-audit/2026.csv
-  gemba-xmr validate wiki/metrics/kata-security-audit/2026.csv
-  gemba-xmr summarize wiki/metrics/kata-security-audit/2026.csv
-  gemba-xmr summarize wiki/metrics/kata-security-audit/2026.csv --format json
-  gemba-xmr record --skill kata-product-issue --metric issues_triaged --value 3
-  gemba-xmr analyze wiki/metrics/staff-engineer/2026.csv --event-type kata-shift
-  gemba-xmr record --skill kata-spec --metric specs_drafted --value 1 --event-type kata-dispatch
+  gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review
+  gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count
+  gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type '*' --format json
+  gemba-xmr chart wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count
+  gemba-xmr chart wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count --ascii
+  gemba-xmr list wiki/metrics/code-review/2026.csv --event-type '*'
+  gemba-xmr validate wiki/metrics/code-review/2026.csv
+  gemba-xmr summarize wiki/metrics/code-review/2026.csv --event-type nightly-review
+  gemba-xmr summarize wiki/metrics/code-review/2026.csv --event-type nightly-review --format json
+  gemba-xmr record --skill code-review --metric findings_count --value 3
+  gemba-xmr record --skill code-review --metric findings_count --value 3 --event-type nightly-review
 
 Documentation:
   Operate a Predictable Agent Team
