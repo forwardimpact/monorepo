@@ -99,7 +99,7 @@
     "@forwardimpact/libresource": "^0.1.98",
     "@forwardimpact/libstorage": "^0.1.61",
     "microdata-rdf-streaming-parser": "^3.0.0",
-    "n3": "^2.13.5"
+    "n3": "^2.13.8"
   },
   "engines": {
     "bun": ">=1.2.0",
