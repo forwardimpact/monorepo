@@ -5,18 +5,16 @@ short-lived installation tokens. You rotate no long-lived PATs.
 
 ## Hosted Alternative
 
-Teams that use the Forward Impact-hosted control plane **skip this entire
-page**. Do not register and self-host an App. Install the Forward Impact-owned
-App from its public install URL. The hosted OIDC service mints repo-scoped
-installation tokens at workflow run time from a GitHub Actions OIDC identity.
-So the consuming repository configures no `KATA_APP_ID` /
-`KATA_APP_PRIVATE_KEY` secret. Set only the `FIT_OIDC_URL` repository variable
-and the `ANTHROPIC_API_KEY` secret. See
+Teams on the Forward Impact-hosted control plane **skip this page**. Instead of
+self-hosting an App, install the Forward Impact-owned App from its public
+install URL. The hosted OIDC service mints repo-scoped installation tokens at
+run time from a GitHub Actions OIDC identity, so the repository needs no
+`KATA_APP_ID` / `KATA_APP_PRIVATE_KEY` secret. Set only the `FIT_OIDC_URL`
+repository variable and the `ANTHROPIC_API_KEY` secret. See
 [TRUST.md](https://github.com/forwardimpact/monorepo/blob/main/TRUST.md) for the
 hosted trust model and
 [OIDC service README](https://github.com/forwardimpact/monorepo/blob/main/services/oidc/README.md)
-for the exchange contract. The rest of this page is the **self-hosted**
-path.
+for the exchange contract. The rest of this page is the **self-hosted** path.
 
 ## Register the App
 
@@ -25,16 +23,15 @@ path.
 2. Name it (e.g., `kata-agent-team`). The slug becomes the git commit author.
 3. Enable the webhook. **Webhook URL** = `${GHBRIDGE_PUBLIC_URL}/api/webhook`.
    **Webhook secret** = a random 32-byte hex string (also set as
-   `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET` on the ghbridge process). The ghbridge
-   service serves Discussion events. Other events still reach GitHub Actions
-   through their own triggers. They need no webhook URL.
-4. Under **Permissions**, set the repository and organization permissions
-   below.
-5. Under **Subscribe to events**, check the events listed below.
+   `SERVICE_GHBRIDGE_APP_WEBHOOK_SECRET` on the ghbridge process). ghbridge
+   serves Discussion events; other events reach GitHub Actions through their own
+   triggers and need no webhook URL.
+4. Under **Permissions**, set the permissions below.
+5. Under **Subscribe to events**, check the events below.
 6. Set "Where can this GitHub App be installed?" to "Only on this account."
 7. Click **Create GitHub App**.
 
-Deploy the ghbridge service before you point the App webhook URL at it. The
+Deploy the ghbridge service before pointing the App webhook URL at it. The
 bridge must be reachable at `${GHBRIDGE_PUBLIC_URL}/api/webhook` when GitHub
 starts to deliver events. See
 [ghbridge README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
@@ -49,28 +46,29 @@ for deployment, tunnel, and configuration steps.
 | **Issues**        | Read & write | Triage, label, comment, create, close issues        |
 | **Discussions**   | Read & write | Reply to discussions and discussion comments        |
 | **Workflows**     | Read & write | Token-driven pushes re-trigger downstream workflows |
+| **Actions**       | Read-only    | Read workflow runs and logs to diagnose CI failures |
+| **Checks**        | Read-only    | Read check run status before merging PRs            |
 | **Metadata**      | Read-only    | GitHub requires it for all Apps                     |
 | **Variables**     | Read & write | A watchdog engages the killswitch variable          |
 
 ## Organization Permissions
 
-| Permission    | Access    | Why                                          |
-| ------------- | --------- | -------------------------------------------- |
-| **Variables** | Read-only | Resolves the effective killswitch value      |
+| Permission    | Access    | Why                                     |
+| ------------- | --------- | --------------------------------------- |
+| **Variables** | Read-only | Resolves the effective killswitch value |
 
 The App holds no **Secrets** permission at either scope, so the credential that
-halts the team can never reach a secret. The killswitch is an Actions variable
-everywhere, which is what makes that scoping possible. Without the organization
-grant, that read returns 403 and every engage run exits 1 without writing.
+halts the team can never reach a secret. That works because the killswitch is an
+Actions variable everywhere. Without the organization grant, that read returns
+403 and every engage run exits 1 without writing.
 
 ## Event Subscriptions
 
-Subscribe to the events below. Two channels deliver them, and each fires on its
-own events.
+Subscribe to the events below. Two separate channels deliver them.
 
 ### App Webhook (served by ghbridge)
 
-Discussion events reach `agent-dispatch` only through the App webhook URL you
+Discussion events reach `agent-dispatch` only through the App webhook URL
 configured above:
 
 - **Discussion** -- someone creates, edits, or closes a discussion
@@ -79,8 +77,7 @@ configured above:
 ### GitHub Actions Triggers (no webhook URL needed)
 
 PR and issue events reach `agent-dispatch` through workflow triggers in
-`.github/workflows/agent-dispatch.yml`. GitHub does not consult the App webhook
-URL for these:
+`.github/workflows/agent-dispatch.yml`. They bypass the App webhook URL:
 
 - **Issues** -- new issues and routing/approval labels
 - **Issue comment** -- triggers on PR and issue comments
@@ -90,24 +87,23 @@ URL for these:
 
 ## Webhook Events
 
-The App webhook URL receives the two Discussion subscriptions above. The
-ghbridge service verifies the `X-Hub-Signature-256` header against the shared
-secret. It persists thread state. It dispatches `agent-dispatch` through
-`workflow_dispatch`. See
+The App webhook URL receives the two Discussion subscriptions above. ghbridge
+verifies the `X-Hub-Signature-256` header against the shared secret, persists
+thread state, and dispatches `agent-dispatch` through `workflow_dispatch`. See
 [ghbridge README](https://github.com/forwardimpact/monorepo/blob/main/services/ghbridge/README.md)
-for the full request/response shape, callback verdicts (`adjourned`,
-`recessed`, `failed`), and resume-trigger contract.
+for the full request/response shape, callback verdicts (`adjourned`, `recessed`,
+`failed`), and resume-trigger contract.
 
 ## Install the App
 
 1. From the App's settings page, click **Install App**.
-2. Select the repository (or repositories) where Kata will run.
+2. Select each repository where Kata will run.
 3. Grant the requested permissions.
 
 ## Configure Secrets
 
-After you install the App, note the **App ID** (visible on the App's General
-page). Generate a **private key** (PEM file).
+After installing, note the **App ID** (on the App's General page) and generate a
+**private key** (PEM file).
 
 Add three repository secrets (**Settings > Secrets and variables > Actions**):
 
