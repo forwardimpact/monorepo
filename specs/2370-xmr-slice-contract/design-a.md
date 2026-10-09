@@ -40,16 +40,16 @@ graph TD
 | Component                     | Home                                                                     | Role after this design                                                                                                                                                                                                       |
 | ----------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `parseCSV`, `parseLine`       | `libxmr` CSV module                                                      | Normalise the `event_type` cell once: strip a trailing carriage return from the line and surrounding whitespace from the value. Every later component reads the normalised value. `validateCSV` splits lines through the same path. |
-| `tallySlices`                 | `libxmr` slice module (library core)                                     | Returns `{ counts, empty }`: each value with its row count, and the count of rows with an empty value kept apart, so no sentinel key sits beside real values.                                                                |
-| `resolveReadSlice`            | `libxmr` slice module                                                    | Applies spec § Slice resolution to the explicit value and the tally. Returns the resolved value, `*` for a header-only file with no explicit value, or throws `SliceResolutionError`. Neither it nor `tallySlices` is a package-root export; the composed functions and the error class are. |
+| `tallySlices`                 | `libxmr` slice module (library core)                                     | Returns `{ counts, empty, total }`: each value with its row count, the count of rows with an empty value kept apart (so no sentinel key sits beside real values), and the row total, which tells a header-only file from an all-empty one.                                                                |
+| `resolveReadSlice`            | `libxmr` slice module                                                    | Applies spec § Slice resolution to the explicit value and the tally. Returns the resolved value, `*` for a header-only file with no explicit value, or throws `SliceResolutionError`. Neither it nor `tallySlices` is a package-root export; the composed functions, `formatTally`, and the error class are. |
 | `SliceResolutionError`        | `libxmr` slice module (package-root export)                              | Carries the tally and the explicit value. No remedy text.                                                                                                                                                                    |
 | `analyzeSlice`, `listSliceMetrics` | `libxmr` (package-root exports)                                     | Parse once, tally, resolve, compute. `analyzeSlice` forwards the partition options (`priorReadAnchor`, `route`, `routesEligibleIncludes`); `listSliceMetrics` takes the slice only. Both return the resolved slice and the tally with their result. The four read commands, `record`'s summary, and `renderBlock` call only these. |
-| `analyze`, `listMetrics`      | `libxmr`                                                                 | Take parsed rows and one options object with a required `eventType` (a value or `*`). An absent slice throws a `TypeError`. The commands print `*` as `* (all rows)` through one formatter in the commands module. |
+| `analyze`, `listMetrics`      | `libxmr`                                                                 | Take parsed rows and one options object with a required `eventType` (a value or `*`). An absent slice throws a `TypeError`. The commands and the block renderer print `*` as `* (all rows)` through one formatter, `sliceLabel`, a package-root export of `libxmr`. |
 | `withReadGuard`               | `libxmr` commands (renames `withIntegrityGuard`)                         | Maps `CSVIntegrityError` and `SliceResolutionError` to the exit-2 envelope. The prefix names the class: `cannot parse CSV` or `cannot resolve slice for`. The slice message lists the tally and names `--event-type <name>` or `'*'`. |
 | `validateCSV`                 | `libxmr` CSV module                                                      | Rejects a row with fewer than seven or more than eight fields under either header form.                                                                                                                                      |
 | `record`                      | `libxmr` record command                                                  | Resolves the write value as flag, else host workflow filename, else the reserved `interactive`.                                                                                                                              |
 | XmR marker grammar            | `libwiki` constants (one home for the scanner and the audit)             | `<!-- xmr:<metric>:<csv> [key=value]... [notice text] -->`. Tokens are the `key=value` words that directly follow the CSV path; the first word without `=` starts the notice text. Known keys: `event_type`, `prior`. A known key with a value the renderer cannot use renders a notice, as an unknown key does. |
-| `scanMarkers`                 | `libwiki`                                                                | Parses known keys into the block and validates their values (`prior` is a date). Records an unknown key or an unusable value on the block.                                                                                  |
+| `scanMarkers`                 | `libwiki`                                                                | Parses known keys into the block and validates their values (`prior` is a date). Records an unknown key, a repeated key, or an unusable value on the block as `tokenErrors`.                                                                                  |
 | `renderBlock`                 | `libwiki`                                                                | Calls `analyzeSlice` with the marker's slice. Returns chart lines, or notice lines that name the cause: unknown token, missing file, metric with no rows in the slice (with the tally), or slice resolution (with the tally and the token to add). `CSVIntegrityError` propagates. |
 | `product-mix`                 | `libwiki`                                                                | Gains `--event-type`, forwarded to `record` when given. A non-zero `record` exit becomes a non-zero `product-mix` exit with `record`'s message. The no-labeled-PR and failed-query exits are unchanged.                        |
 | Marker-grammar homes          | `gemba-wiki` skill § Marker contract, `libwiki` README (also the `renderBlock` contract), wiki-operations page, predictable-team guide, Kata daily-storyboard page, kata-session storyboard template and team-storyboard reference | Show the `key=value` grammar with both keys.                                                                       |
@@ -69,7 +69,7 @@ sequenceDiagram
     participant B as renderBlock
     participant X as libxmr
     R->>S: storyboard text
-    S-->>R: blocks (metric, csvPath, eventType?, prior?, unknownKeys)
+    S-->>R: blocks (metric, csvPath, eventType?, prior?, tokenErrors)
     loop each xmr block
         R->>B: block
         alt unknown token or missing file
@@ -139,7 +139,7 @@ sequenceDiagram
 | `kata-dispatch` as the dispatch workflow's name in the published skills, the agent profile and reference, the root CLAUDE.md, and `design/kata`, and `Kata: Dispatch` in the trace-discovery reference | The pack, root CLAUDE.md, `design/kata`              |
 | The trace reader's comments that name `kata-shift.yml`, `Kata: Shift`, and `Kata: Dispatch`                             | `libharness`                                                    |
 | The warn-and-succeed path after a `record` failure                                                                      | `libwiki` `product-mix`                                         |
-| The `kata-shift`, `kata-dispatch`, and `kata-coaching` cells in this wiki's metrics rows                                | This wiki, in the merging session                               |
+| The `kata-shift`, `kata-dispatch`, and `kata-coaching` cells in this wiki's metrics rows                                | This wiki, in an operator session right after the rename merges |
 
 ## Contracts outside the components
 
@@ -157,8 +157,9 @@ sequenceDiagram
   and a library from different sides of the change.
 - The rename is the last part. The bridge services release and redeploy with
   it; between the two, a bridge dispatch into this repository finds no
-  workflow. The wiki rewrite happens in the merging session. The plan carries
-  the steps.
+  workflow. The wiki rewrite happens in an operator session right after the
+  rename merges: the spec forbids an old-name host, and a hosted session's
+  token cannot write the killswitch variable. The plan carries the steps.
 - A renamed workflow is a new workflow to GitHub Actions. The old entries keep
   their run history. The trace tooling's default name pattern matches both
   display names. No required status check names an agent workflow.
@@ -167,8 +168,8 @@ sequenceDiagram
   suffix is live), the storyboard template (128 of 128 lines; the token sits
   on the marker line), the team-storyboard reference (767 of 768 words; its
   marker gains the token and Q2 is rewritten word-neutrally), the `gemba-xmr`
-  skill (27 words of headroom; the `--event-type` row and the quick-start
-  example merge into one statement of the rule and the reservation), the
+  skill (27 words of headroom; the `--event-type` row and the `event_type`
+  bullet each become one tight statement of the rule and the reservation), the
   release-merge templates reference (768 of 768 words; one token for one
   token), the kata-session skill (45 words of headroom for the flag and the
   participant sentence), the root CLAUDE.md (893 of 896) and the work-trackers
