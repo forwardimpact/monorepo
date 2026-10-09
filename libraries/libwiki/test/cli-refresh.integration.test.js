@@ -9,7 +9,7 @@ import { GitClient } from "@forwardimpact/libutil/git-client";
 import { createMockSubprocess } from "@forwardimpact/libmock";
 
 import { runRefreshCommand } from "../src/commands/refresh.js";
-import { makeRuntime, ctxFor } from "./helpers.js";
+import { makeRuntime, ctxFor, profileText } from "./helpers.js";
 
 const HEADER = "date,metric,value,unit,run,note,event_type";
 const FIXED_NOW = Date.UTC(2026, 4, 15);
@@ -160,10 +160,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     const agentsDir = join(dir, ".claude", "agents");
     mkdirSync(agentsDir, { recursive: true });
     for (const agent of ["staff-engineer", "technical-writer"]) {
-      writeFileSync(
-        join(agentsDir, `${agent}.md`),
-        `---\nname: ${agent}\ndescription: The ${agent}.\n---\n`,
-      );
+      writeFileSync(join(agentsDir, `${agent}.md`), profileText(agent));
     }
     writeFileSync(join(agentsDir, "x-team-protocol.md"), "# Protocol\n");
     const created = readFileSync(

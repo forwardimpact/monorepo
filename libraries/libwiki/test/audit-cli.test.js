@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
 
 import { runAuditCommand } from "../src/commands/audit.js";
-import { makeRuntime, ctxFor } from "./helpers.js";
+import { makeRuntime, ctxFor, profileText } from "./helpers.js";
 
 const PROJECT_ROOT = "/project";
 const WIKI_ROOT = `${PROJECT_ROOT}/wiki`;
@@ -79,7 +79,7 @@ describe("gemba-wiki audit CLI (in-process)", () => {
     const seed = Object.fromEntries(
       STORYBOARD_AGENTS.map((a) => [
         `${PROJECT_ROOT}/.claude/agents/${a}.md`,
-        `---\nname: ${a}\ndescription: The ${a}.\n---\n`,
+        profileText(a),
       ]),
     );
     const { harness, result } = run(cleanWiki(seed), { format: "json" });

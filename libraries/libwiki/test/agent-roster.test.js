@@ -3,11 +3,9 @@ import assert from "node:assert/strict";
 import { join } from "node:path";
 import { createMockFs } from "@forwardimpact/libmock";
 import { listAgents, listProjectAgents } from "../src/agent-roster.js";
+import { profileText as profile } from "./helpers.js";
 
 const AGENTS_DIR = "/repo/agents";
-
-const profile = (name) =>
-  `---\nname: ${name}\ndescription: The ${name}.\n---\n# ${name}\n`;
 
 describe("listAgents", () => {
   test("discovers profiles and derives summary paths", () => {
@@ -25,6 +23,29 @@ describe("listAgents", () => {
       result.find((r) => r.agent === "staff-engineer").summaryPath,
       join("wiki", "staff-engineer.md"),
     );
+  });
+
+  test("the roster is in file-name order whatever order readdir returns", () => {
+    const fs = createMockFs({
+      [`${AGENTS_DIR}/technical-writer.md`]: profile("technical-writer"),
+      [`${AGENTS_DIR}/archivist.md`]: profile("archivist"),
+      [`${AGENTS_DIR}/staff-engineer.md`]: profile("staff-engineer"),
+    });
+    const reversed = {
+      ...fs,
+      readdirSync: (dir) => fs.readdirSync(dir).reverse(),
+    };
+
+    const keys = listAgents(
+      { agentsDir: AGENTS_DIR, wikiRoot: "wiki" },
+      reversed,
+    ).map((r) => r.agent);
+
+    assert.deepStrictEqual(keys, [
+      "archivist",
+      "staff-engineer",
+      "technical-writer",
+    ]);
   });
 
   test("a reference file without frontmatter is not on the roster", () => {

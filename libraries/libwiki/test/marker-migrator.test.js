@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
 import { insertMarkers } from "../src/marker-migrator.js";
 import { MEMO_INBOX_MARKER } from "../src/constants.js";
+import { profileText } from "./helpers.js";
 
 const AGENTS_DIR = "/repo/agents";
 const WIKI_ROOT = "/repo/wiki";
@@ -13,8 +14,7 @@ describe("insertMarkers", () => {
   function setup(agents) {
     const seed = {};
     for (const [name, content] of Object.entries(agents)) {
-      seed[`${AGENTS_DIR}/${name}.md`] =
-        `---\nname: ${name}\ndescription: The ${name}.\n---\n`;
+      seed[`${AGENTS_DIR}/${name}.md`] = profileText(name);
       seed[`${WIKI_ROOT}/${name}.md`] = content;
     }
     return createMockFs(seed);

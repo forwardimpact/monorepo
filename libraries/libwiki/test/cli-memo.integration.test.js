@@ -11,10 +11,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { MEMO_INBOX_MARKER } from "../src/constants.js";
 import { runMemoCommand } from "../src/commands/memo.js";
-import { makeRuntime, ctxFor } from "./helpers.js";
-
-const profile = (name) =>
-  `---\nname: ${name}\ndescription: The ${name}.\n---\n# ${name}\n`;
+import { makeRuntime, ctxFor, profileText as profile } from "./helpers.js";
 
 describe("gemba-wiki memo CLI (in-process)", () => {
   let dir;

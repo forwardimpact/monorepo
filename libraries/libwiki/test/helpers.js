@@ -156,13 +156,23 @@ export function seedCleanWiki(wikiRoot) {
   writeFileSync(join(wikiRoot, "storyboard-2026-M05.md"), liveStoryboard());
 }
 
+/**
+ * The frontmatter that makes a file an agent profile (`name` and
+ * `description`), so every fixture profile passes `isAgentProfile`.
+ * @param {string} name - The roster key the profile declares.
+ * @returns {string}
+ */
+export function profileText(name) {
+  return `---\nname: ${name}\ndescription: The ${name}.\n---\n`;
+}
+
 /** Write a minimal technical-writer profile so composeProfilePrompt can read it. */
 export function seedAgentProfile(projectRoot) {
   const agentsDir = join(projectRoot, ".claude", "agents");
   mkdirSync(agentsDir, { recursive: true });
   writeFileSync(
     join(agentsDir, "technical-writer.md"),
-    "---\nname: technical-writer\ndescription: The technical writer.\n---\nYou are the technical writer.\n",
+    profileText("technical-writer") + "You are the technical writer.\n",
   );
 }
 
