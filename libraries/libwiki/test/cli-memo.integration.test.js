@@ -13,6 +13,9 @@ import { MEMO_INBOX_MARKER } from "../src/constants.js";
 import { runMemoCommand } from "../src/commands/memo.js";
 import { makeRuntime, ctxFor } from "./helpers.js";
 
+const profile = (name) =>
+  `---\nname: ${name}\ndescription: The ${name}.\n---\n# ${name}\n`;
+
 describe("gemba-wiki memo CLI (in-process)", () => {
   let dir;
   let agentsDir;
@@ -26,8 +29,14 @@ describe("gemba-wiki memo CLI (in-process)", () => {
     mkdirSync(wikiRoot);
     writeFileSync(join(dir, "package.json"), '{"name":"root"}');
 
-    writeFileSync(join(agentsDir, "staff-engineer.md"), "# SE");
-    writeFileSync(join(agentsDir, "product-manager.md"), "# PM");
+    writeFileSync(
+      join(agentsDir, "staff-engineer.md"),
+      profile("staff-engineer"),
+    );
+    writeFileSync(
+      join(agentsDir, "product-manager.md"),
+      profile("product-manager"),
+    );
 
     writeFileSync(
       join(wikiRoot, "staff-engineer.md"),
@@ -60,7 +69,10 @@ describe("gemba-wiki memo CLI (in-process)", () => {
   });
 
   test("broadcast writes to every agent except the sender", () => {
-    writeFileSync(join(agentsDir, "technical-writer.md"), "# TW");
+    writeFileSync(
+      join(agentsDir, "technical-writer.md"),
+      profile("technical-writer"),
+    );
     writeFileSync(
       join(wikiRoot, "technical-writer.md"),
       `# TW\n\n## Message Inbox\n\n${MEMO_INBOX_MARKER}\n`,
@@ -72,6 +84,38 @@ describe("gemba-wiki memo CLI (in-process)", () => {
     assert.ok(se.includes("check baselines"));
     assert.ok(pm.includes("check baselines"));
     assert.ok(!tw.includes("check baselines"), "sender's own inbox skipped");
+  });
+
+  test("broadcast skips a reference file under the agents directory", () => {
+    writeFileSync(
+      join(agentsDir, "x-team-protocol.md"),
+      "# Team Protocol\n\nBoot first.\n",
+    );
+    writeFileSync(
+      join(wikiRoot, "x-team-protocol.md"),
+      `# Protocol\n\n## Message Inbox\n\n${MEMO_INBOX_MARKER}\n`,
+    );
+    const { harness } = run({
+      from: "technical-writer",
+      to: "all",
+      message: "check baselines",
+    });
+    assert.equal((harness.stdout.match(/^wrote /gm) || []).length, 2);
+    const ref = readFileSync(join(wikiRoot, "x-team-protocol.md"), "utf-8");
+    assert.ok(!ref.includes("check baselines"), "reference receives nothing");
+  });
+
+  test("broadcast on an empty agents directory warns and exits 0", () => {
+    rmSync(agentsDir, { recursive: true, force: true });
+    mkdirSync(agentsDir, { recursive: true });
+    const { harness, result } = run({
+      from: "technical-writer",
+      to: "all",
+      message: "nobody home",
+    });
+    assert.equal(result.ok, true);
+    assert.match(harness.stderr, /no agent profiles under /);
+    assert.doesNotMatch(harness.stdout, /wrote/);
   });
 
   test("missing-marker exits 2", () => {

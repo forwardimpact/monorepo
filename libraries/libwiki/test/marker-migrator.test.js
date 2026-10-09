@@ -13,7 +13,8 @@ describe("insertMarkers", () => {
   function setup(agents) {
     const seed = {};
     for (const [name, content] of Object.entries(agents)) {
-      seed[`${AGENTS_DIR}/${name}.md`] = "# " + name;
+      seed[`${AGENTS_DIR}/${name}.md`] =
+        `---\nname: ${name}\ndescription: The ${name}.\n---\n`;
       seed[`${WIKI_ROOT}/${name}.md`] = content;
     }
     return createMockFs(seed);

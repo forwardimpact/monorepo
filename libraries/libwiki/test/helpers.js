@@ -162,7 +162,7 @@ export function seedAgentProfile(projectRoot) {
   mkdirSync(agentsDir, { recursive: true });
   writeFileSync(
     join(agentsDir, "technical-writer.md"),
-    "---\nname: technical-writer\n---\nYou are the technical writer.\n",
+    "---\nname: technical-writer\ndescription: The technical writer.\n---\nYou are the technical writer.\n",
   );
 }
 

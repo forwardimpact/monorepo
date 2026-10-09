@@ -1,7 +1,8 @@
 import path from "node:path";
+import { AGENT_PROFILES_DIR } from "@forwardimpact/libutil";
 import { createLogger } from "@forwardimpact/libtelemetry";
 import { writeMemo } from "../memo-writer.js";
-import { listAgents } from "../agent-roster.js";
+import { listProjectAgents } from "../agent-roster.js";
 import { BROADCAST_TARGET } from "../constants.js";
 import { currentDayIso } from "../util/clock.js";
 import { requireAgentFlag } from "../util/agent-flag.js";
@@ -53,9 +54,18 @@ function writeSingleTarget(
 
 function writeBroadcast(
   runtime,
-  { agentsDir, wikiRoot, sender, message, today },
+  { projectRoot, wikiRoot, sender, message, today },
 ) {
-  const agents = listAgents({ agentsDir, wikiRoot }, runtime.fsSync);
+  const warn = (m) => createLogger("wiki", runtime).warn("memo", m);
+  const agents = listProjectAgents({ projectRoot, wikiRoot }, runtime.fsSync, {
+    warn,
+  });
+  if (agents.length === 0) {
+    warn(
+      `no agent profiles under ${path.join(projectRoot, AGENT_PROFILES_DIR)}`,
+    );
+    return { ok: true };
+  }
   for (const { agent, summaryPath } of agents) {
     if (agent === sender) continue;
     const result = writeAndCheck(runtime, summaryPath, sender, message, today);
@@ -89,12 +99,11 @@ export function runMemoCommand(ctx) {
 
   const projectRoot = resolveProjectRoot(runtime);
   const wikiRoot = options["wiki-root"] || path.join(projectRoot, "wiki");
-  const agentsDir = path.join(projectRoot, ".claude", "agents");
   const today = currentDayIso(runtime);
 
   if (options.to === BROADCAST_TARGET) {
     return writeBroadcast(runtime, {
-      agentsDir,
+      projectRoot,
       wikiRoot,
       sender,
       message: options.message,
