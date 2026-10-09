@@ -43,7 +43,7 @@
   "dependencies": {
     "@forwardimpact/libcli": "^0.1.9",
     "@forwardimpact/libutil": "*",
-    "acorn": "^8.18.0",
+    "acorn": "^8.19.0",
     "prettier": "^3.9.9",
     "yaml": "^2.9.1"
   },
