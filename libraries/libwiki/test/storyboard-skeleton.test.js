@@ -48,6 +48,46 @@ describe("renderStoryboardSkeleton", () => {
     }
   });
 
+  test("renders one H3 per roster entry, in roster order, under Current Condition", () => {
+    const text = renderStoryboardSkeleton("2026-07-04", [
+      "staff-engineer",
+      "improvement-coach",
+      "technical-writer",
+    ]);
+    const h3s = text.split("\n").filter((l) => l.startsWith("### "));
+    assert.deepEqual(h3s, [
+      "### Headlines",
+      "### staff-engineer",
+      "### improvement-coach",
+      "### technical-writer",
+      "### Active",
+      "### Concluded (last 7 days)",
+      "### Active",
+      "### Concluded (last 7 days)",
+    ]);
+    const current = text.indexOf("## Current Condition");
+    const obstacles = text.indexOf("## Obstacles");
+    for (const agent of ["staff-engineer", "technical-writer"]) {
+      const at = text.indexOf(`### ${agent}`);
+      assert.ok(
+        at > current && at < obstacles,
+        `${agent} under Current Condition`,
+      );
+    }
+  });
+
+  test("an empty roster renders no agent section", () => {
+    const text = renderStoryboardSkeleton("2026-07-04");
+    assert.doesNotMatch(text, /^### (?!Headlines|Active|Concluded)/m);
+    assert.equal(text, renderStoryboardSkeleton("2026-07-04", []));
+  });
+
+  test("the placeholders name no agent", () => {
+    const text = renderStoryboardSkeleton("2026-07-04");
+    assert.doesNotMatch(text, /product-manager/);
+    assert.match(text, /^> \[Set in the planning meeting\.\]$/m);
+  });
+
   test("emits four balanced, scannable issue-list markers and no xmr blocks", () => {
     const blocks = scanMarkers(renderStoryboardSkeleton("2026-07-04"), {
       warn: (m) => assert.fail(`dangling marker: ${m}`),

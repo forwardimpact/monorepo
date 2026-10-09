@@ -4,6 +4,13 @@ This file records all notable changes to `@forwardimpact/libharness`'s CLIs.
 
 ## Unreleased
 
+### The profiles directory default comes from `libutil`
+
+Every default profiles directory (`judge`, `run`, the supervisor, the
+facilitator, the discusser, and the benchmark runner) resolves from
+`AGENT_PROFILES_DIR` in `@forwardimpact/libutil`. The library no longer spells
+`.claude/agents` itself.
+
 ### Bins moved to `@forwardimpact/gemba` (breaking)
 
 The four CLI entry points (`fit-harness`, `fit-trace`, `fit-benchmark`,

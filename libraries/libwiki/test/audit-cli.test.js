@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
 
 import { runAuditCommand } from "../src/commands/audit.js";
-import { makeRuntime, ctxFor } from "./helpers.js";
+import { makeRuntime, ctxFor, profileText } from "./helpers.js";
 
 const PROJECT_ROOT = "/project";
 const WIKI_ROOT = `${PROJECT_ROOT}/wiki`;
@@ -70,6 +70,22 @@ describe("gemba-wiki audit CLI (in-process)", () => {
     assert.equal(parsed.checked.memory, 1);
     assert.equal(parsed.checked.storyboard, 1);
     assert.equal(typeof parsed.checked["status-row"], "number");
+    // No profiles directory under the project root: the roster is empty.
+    assert.match(text.harness.stdout, /storyboard-sections 0\n$/);
+    assert.equal(parsed.checked["storyboard-sections"], 0);
+  });
+
+  test("counts the sections the installed profiles require", () => {
+    const seed = Object.fromEntries(
+      STORYBOARD_AGENTS.map((a) => [
+        `${PROJECT_ROOT}/.claude/agents/${a}.md`,
+        profileText(a),
+      ]),
+    );
+    const { harness, result } = run(cleanWiki(seed), { format: "json" });
+    assert.equal(result.ok, true);
+    const parsed = JSON.parse(harness.stdout);
+    assert.equal(parsed.checked["storyboard-sections"], 5);
   });
 
   test("clean wiki: JSON shape and exit 0", () => {

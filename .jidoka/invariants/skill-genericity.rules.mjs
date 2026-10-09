@@ -39,11 +39,10 @@
 // reference prefix. It turns a naming slip into a CI failure.
 
 import { basename } from "node:path";
-
-// A `.claude/agents/*.md` file is a profile when it carries both `name` and
-// `description` frontmatter. Claude Code's agent loader applies the same test.
-const isProfile = (text) =>
-  /^name:[ \t]*\S/m.test(text) && /^description:[ \t]*\S/m.test(text);
+import {
+  isAgentProfile,
+  AGENT_PROFILES_DIR,
+} from "../../libraries/libutil/src/agent-profile.js";
 
 const PATTERNS = [
   // --- Group 1: internal-only tooling ---
@@ -154,13 +153,13 @@ export default {
       subjects: {
         "skill-match": grep({
           patterns: PATTERNS,
-          paths: [".claude/skills/", ".claude/agents/"],
-          globs: [".claude/skills/kata-*/**", ".claude/agents/x-*.md"],
+          paths: [".claude/skills/", `${AGENT_PROFILES_DIR}/`],
+          globs: [".claude/skills/kata-*/**", `${AGENT_PROFILES_DIR}/x-*.md`],
           caseSensitive: true,
           dedupe: (m) => `${m.raw}|${m.reason}`,
         }),
         "agent-naming": scan({
-          dirs: [".claude/agents"],
+          dirs: [AGENT_PROFILES_DIR],
           match: (n) => n.endsWith(".md"),
           read: true,
         }),
@@ -178,9 +177,9 @@ export default {
     // two booleans are equal exactly when they disagree with the convention.
     failAll("agent-naming", {
       id: "agents.naming-convention",
-      when: (s) => isProfile(s.text) === basename(s.path).startsWith("x-"),
+      when: (s) => isAgentProfile(s.text) === basename(s.path).startsWith("x-"),
       message: (s) =>
-        isProfile(s.text)
+        isAgentProfile(s.text)
           ? `${s.rel} carries name+description frontmatter (a profile) but is named x-* — profiles must not use the x- reference prefix`
           : `${s.rel} has no agent frontmatter (a reference) but is not named x-* — agent references must carry the x- prefix`,
       hint: "the x- filename prefix and the frontmatter classifier must agree (JIDOKA.md § L4). Every x-*.md has no agent frontmatter. Every profile has name+description and is not named x-*",

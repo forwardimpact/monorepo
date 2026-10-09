@@ -185,3 +185,8 @@ export { parseJsonBody } from "./http.js";
 export { waitFor } from "./wait.js";
 export { emitFindingsText, emitFindingsJson } from "./findings.js";
 export { runRules } from "./rules.js";
+export {
+  AGENT_PROFILES_DIR,
+  frontmatterField,
+  isAgentProfile,
+} from "./agent-profile.js";

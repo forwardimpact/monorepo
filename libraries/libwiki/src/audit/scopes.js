@@ -1,6 +1,7 @@
 import path from "node:path";
 import { yearMonth } from "@forwardimpact/libutil";
 import { parseClaims } from "../active-claims.js";
+import { listProjectAgents } from "../agent-roster.js";
 import { countLines, countWords } from "../budget.js";
 import { parseStatusRowId } from "../status.js";
 import {
@@ -344,11 +345,14 @@ function buildAdmission(wikiRoot, fs, subprocess) {
 
 /**
  * Build the audit context. It classifies and loads every wiki file once.
- * @param {{wikiRoot: string, today: string, fs: object, subprocess: object}} options
+ * @param {{wikiRoot: string, today: string, fs: object, subprocess?: object, projectRoot?: string}} options
  *   `fs` is the sync filesystem surface (`runtime.fsSync`). `subprocess` is
  *   `runtime.subprocess` (its `runSync` backs the admission scope's git read).
+ *   `projectRoot` locates the agent profiles. The `roster` the context carries
+ *   is their keys, and it is empty when the caller passes no root. The callers
+ *   that read `.subjects` only pass none.
  */
-export function buildContext({ wikiRoot, today, fs, subprocess }) {
+export function buildContext({ wikiRoot, today, fs, subprocess, projectRoot }) {
   const subjects = {
     summary: [],
     "weekly-log-main": [],
@@ -367,6 +371,9 @@ export function buildContext({ wikiRoot, today, fs, subprocess }) {
     wikiRoot,
     today,
     subjects,
+    roster: projectRoot
+      ? listProjectAgents({ projectRoot, wikiRoot }, fs).map((a) => a.agent)
+      : [],
     memory: loadMemory(path.join(wikiRoot, "MEMORY.md"), fs),
     status: readOptional(path.join(wikiRoot, "STATUS.md"), fs),
     storyboard: loadStoryboard(wikiRoot, today, fs),

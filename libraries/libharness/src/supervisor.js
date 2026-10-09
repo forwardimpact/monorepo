@@ -17,6 +17,7 @@
 
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
+import { AGENT_PROFILES_DIR } from "@forwardimpact/libutil";
 import { createAgentRunner } from "./agent-runner.js";
 import { composeSystemPrompt } from "./profile-prompt.js";
 import { createMessageBus } from "./message-bus.js";
@@ -165,7 +166,7 @@ export function createSupervisor({
   if (!redactor) throw new Error("redactor is required");
   if (!runtime) throw new Error("runtime is required");
   const resolvedProfilesDir =
-    profilesDir ?? resolve(supervisorCwd, ".claude/agents");
+    profilesDir ?? resolve(supervisorCwd, AGENT_PROFILES_DIR);
 
   const ctx = createOrchestrationContext();
   const messageBus = createMessageBus({

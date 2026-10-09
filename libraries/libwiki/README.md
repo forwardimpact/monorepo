@@ -148,8 +148,12 @@ import {
 
 - `writeMemo({ summaryPath, sender, message, today })` — append a memo
   bullet after the `<!-- memo:inbox -->` marker.
-- `listAgents({ agentsDir, wikiRoot })` — discover agents from
-  `.claude/agents/*.md` and derive wiki summary paths.
+- `listAgents({ agentsDir, wikiRoot }, fs, { warn })` — list the agent
+  profiles (frontmatter `name` and `description`) in file-name order and
+  derive wiki summary paths. A reference file is not on the roster, a
+  `<stem>.agent.md` keys as `<stem>`, and an absent directory is empty.
+  `listProjectAgents({ projectRoot, wikiRoot }, fs, { warn })` joins the
+  runtime profiles directory under the project root.
 - `insertMarkers({ agentsDir, wikiRoot })` — insert the memo marker into
   existing summaries. The call is idempotent.
 - `runAudit(rules, ctx)` — pure audit engine: `(rules, ctx) → findings[]`.

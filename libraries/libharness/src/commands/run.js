@@ -1,6 +1,6 @@
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
-import { isoTimestamp } from "@forwardimpact/libutil";
+import { AGENT_PROFILES_DIR, isoTimestamp } from "@forwardimpact/libutil";
 import { createSdkMcpServer } from "@anthropic-ai/claude-agent-sdk";
 import { createAgentRunner } from "../agent-runner.js";
 import {
@@ -126,7 +126,7 @@ export async function wireRunSession({
   let systemPrompt;
   if (opts.agentProfile) {
     systemPrompt = composeProfilePrompt(opts.agentProfile, {
-      profilesDir: resolve(opts.cwd, ".claude/agents"),
+      profilesDir: resolve(opts.cwd, AGENT_PROFILES_DIR),
       runtime,
       ...(opts.advisorModel && {
         amend: advisorGuidance(opts.advisorMaxUses),

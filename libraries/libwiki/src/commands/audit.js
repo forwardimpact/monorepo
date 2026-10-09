@@ -28,6 +28,7 @@ export function auditWiki(ctx) {
     today,
     fs: runtime.fsSync,
     subprocess: runtime.subprocess,
+    projectRoot,
   });
   return {
     findings: runRules(RULES, auditCtx, { resolveScope }),
@@ -44,6 +45,8 @@ function countChecked(auditCtx) {
   for (const scope of new Set(RULES.map((r) => r.scope))) {
     checked[scope] = resolveScope(scope, auditCtx).length;
   }
+  // The sections the roster requires on the board, one per profile.
+  checked["storyboard-sections"] = auditCtx.roster.length;
   return checked;
 }
 

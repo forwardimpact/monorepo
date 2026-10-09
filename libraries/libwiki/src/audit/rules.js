@@ -20,10 +20,11 @@ import {
   XMR_CLOSE_RE,
   XMR_OPEN_RE,
 } from "../constants.js";
+import { AGENT_PROFILES_DIR } from "@forwardimpact/libutil";
 import { CONFLICT_MARKER_RULE } from "./conflict-markers-rule.js";
 import { PRIORITY_HEADER_RE, WEEKLY_LOG_H1_RE } from "./scopes.js";
 import {
-  AGENT_H3_REQUIREMENTS,
+  agentH3Required,
   allRequiredLines,
   carryAgentMismatch,
   carryEntryHasClearance,
@@ -274,7 +275,7 @@ export const RULES = [
     severity: "fail",
     check: exists,
     message: () => "MEMORY.md not found",
-    hint: "run `bunx gemba-wiki init` to scaffold the canonical sections",
+    hint: "run gemba-wiki scaffold to create it",
   },
   {
     id: "memory.line-budget",
@@ -383,16 +384,16 @@ export const RULES = [
     severity: "fail",
     check: exists,
     message: (s) => `Current-month storyboard (${s.yearMonth}) not found`,
-    hint: "create it from `.claude/skills/kata-session/references/storyboard-template.md`",
+    hint: "run gemba-wiki refresh to create it",
   },
   {
     id: "storyboard.agent-h3-required",
     scope: "storyboard",
     severity: "fail",
     when: storyboardExists,
-    check: allRequiredLines(AGENT_H3_REQUIREMENTS),
+    check: agentH3Required,
     message: (_s, r) => `Missing '### ${r.label}' H3`,
-    hint: "every domain agent gets an H3 under '## Current Condition'",
+    hint: `every profile under ${AGENT_PROFILES_DIR}/ gets an H3 under '## Current Condition'; gemba-wiki refresh seeds them on a new board`,
   },
   {
     id: "storyboard.line-budget",

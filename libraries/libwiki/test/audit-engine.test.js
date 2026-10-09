@@ -316,23 +316,6 @@ describe("runRules", () => {
     assert.ok(idsOf(audit(seed)).includes("storyboard.current-month-exists"));
   });
 
-  test("a storyboard without an agent H3: one finding per missing agent", () => {
-    const seed = {
-      [`${WIKI}/MEMORY.md`]: MEMORY_NONE,
-      [`${WIKI}/storyboard-2026-M05.md`]: [
-        "# Storyboard — 2026-05",
-        "",
-        "### product-manager",
-        "- item",
-        "",
-      ].join("\n"),
-    };
-    const missing = audit(seed).filter(
-      (f) => f.id === "storyboard.agent-h3-required",
-    );
-    assert.equal(missing.length, 4); // 5 agents required, 1 present
-  });
-
   test("storyboard markers: the audit detects dangling-open", () => {
     const seed = cleanSeed("2026-05-24", {
       [`${WIKI}/storyboard-2026-M05.md`]: [
@@ -475,5 +458,7 @@ describe("runRules", () => {
   // audit-engine-conflict-markers.test.js (split to keep each file under the
   // line cap). The metrics-csv.duplicate-row family lives in the sibling
   // audit-engine-metrics.test.js. The admission-scope family lives in
-  // audit-engine-admission.test.js (same split rationale).
+  // audit-engine-admission.test.js (same split rationale). The
+  // storyboard.agent-h3-required family, which needs a profiles directory
+  // and a project root, lives in audit-engine-roster.test.js.
 });
