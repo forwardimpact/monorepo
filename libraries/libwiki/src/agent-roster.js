@@ -12,6 +12,7 @@ import { BROADCAST_TARGET } from "./constants.js";
  * `description` frontmatter). A reference file under the directory is not. The
  * key is the file stem with a trailing `.agent` removed, so a pack-installed
  * `<stem>.agent.md` keys as `<stem>`. An absent directory is an empty roster.
+ * The roster is in file-name order, so the sections it seeds are stable.
  * @param {{agentsDir: string, wikiRoot: string}} dirs
  * @param {object} fs - Sync filesystem surface (`runtime.fsSync`).
  * @param {{warn?: function(string): void}} [hooks] - `warn` fires once per
@@ -22,7 +23,7 @@ export function listAgents({ agentsDir, wikiRoot }, fs, { warn } = {}) {
   if (!fs.existsSync(agentsDir)) return [];
   const agents = [];
 
-  for (const entry of fs.readdirSync(agentsDir)) {
+  for (const entry of [...fs.readdirSync(agentsDir)].sort()) {
     if (!entry.endsWith(".md")) continue;
     const fullPath = path.join(agentsDir, entry);
     if (!fs.statSync(fullPath).isFile()) continue;

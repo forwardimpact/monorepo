@@ -20,6 +20,7 @@ import {
   XMR_CLOSE_RE,
   XMR_OPEN_RE,
 } from "../constants.js";
+import { AGENT_PROFILES_DIR } from "@forwardimpact/libutil";
 import { CONFLICT_MARKER_RULE } from "./conflict-markers-rule.js";
 import { PRIORITY_HEADER_RE, WEEKLY_LOG_H1_RE } from "./scopes.js";
 import {
@@ -392,7 +393,7 @@ export const RULES = [
     when: storyboardExists,
     check: agentH3Required,
     message: (_s, r) => `Missing '### ${r.label}' H3`,
-    hint: "every profile under .claude/agents/ gets an H3 under '## Current Condition'; gemba-wiki refresh seeds them on a new board",
+    hint: `every profile under ${AGENT_PROFILES_DIR}/ gets an H3 under '## Current Condition'; gemba-wiki refresh seeds them on a new board`,
   },
   {
     id: "storyboard.line-budget",

@@ -97,7 +97,7 @@ async function partitionAgents(root, claudeDirs, fs) {
     );
     for (const path of files) {
       const text = await readText(root, path, fs);
-      (text && isAgentProfile(text) ? profiles : references).push(path);
+      (isAgentProfile(text) ? profiles : references).push(path);
     }
   }
   return { profiles, references };

@@ -4,7 +4,9 @@
  * reference, `libinvariant` partitions the layers by it, `libwiki` builds
  * its roster from it, and the repository invariants scan the directory it
  * names. Claude Code's agent loader applies the same test: a markdown file
- * whose frontmatter carries `name` and `description` loads as an agent.
+ * whose frontmatter carries `name` and `description` loads as an agent. The
+ * test reads frontmatter and not a directory marker, because a pack install
+ * flattens the agents directory and keeps only the files.
  */
 
 /** The directory the runtime loads agent profiles from, relative to the project root. */

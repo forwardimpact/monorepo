@@ -1,5 +1,5 @@
 export { writeMemo } from "./memo-writer.js";
-export { listAgents } from "./agent-roster.js";
+export { listAgents, listProjectAgents } from "./agent-roster.js";
 export { insertMarkers } from "./marker-migrator.js";
 export {
   MEMO_INBOX_MARKER,

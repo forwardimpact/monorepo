@@ -110,8 +110,19 @@ function readStoryboardOrNull(runtime, storyboardPath) {
 // is on disk before participants look for it, and no lead needs a write tool.
 // The skeleton carries the section structure, one section per roster
 // profile, and the generic issue-list markers. The render pass below fills the
-// markers, and participants seed metric blocks.
-function createStoryboardSkeleton(runtime, storyboardPath, logger, roster) {
+// markers, and participants seed metric blocks. The roster is read here, once,
+// because only a new board needs its sections.
+function createStoryboardSkeleton(
+  runtime,
+  storyboardPath,
+  logger,
+  projectRoot,
+) {
+  const roster = listProjectAgents(
+    { projectRoot, wikiRoot: path.dirname(storyboardPath) },
+    runtime.fsSync,
+    { warn: (message) => logger.warn("refresh", message) },
+  ).map((a) => a.agent);
   const skeleton = renderStoryboardSkeleton(currentDayIso(runtime), roster);
   runtime.fsSync.mkdirSync(path.dirname(storyboardPath), { recursive: true });
   runtime.fsSync.writeFileSync(storyboardPath, skeleton);
@@ -163,16 +174,7 @@ export async function runRefreshCommand(ctx) {
   const existing = readStoryboardOrNull(runtime, storyboardPath);
   const created = existing === null;
   const text = created
-    ? createStoryboardSkeleton(
-        runtime,
-        storyboardPath,
-        logger,
-        listProjectAgents(
-          { projectRoot, wikiRoot: path.dirname(storyboardPath) },
-          runtime.fsSync,
-          { warn: (message) => logger.warn("refresh", message) },
-        ).map((a) => a.agent),
-      )
+    ? createStoryboardSkeleton(runtime, storyboardPath, logger, projectRoot)
     : existing;
   const blocks = scanMarkers(text, {
     warn: (message) => logger.warn("refresh", message),
