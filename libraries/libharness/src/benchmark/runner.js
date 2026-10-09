@@ -20,6 +20,7 @@
  */
 
 import { join, relative, resolve as resolvePath } from "node:path";
+import { AGENT_PROFILES_DIR } from "@forwardimpact/libutil";
 
 import { DEFAULT_ENV_ALLOWLIST, createRedactor } from "../redaction.js";
 import { createSupervisor } from "../supervisor.js";
@@ -546,7 +547,7 @@ export class BenchmarkRunner {
     if (this.profiles.agent) {
       const profilePath = resolvePath(
         workdir.cwd,
-        ".claude/agents",
+        AGENT_PROFILES_DIR,
         `${this.profiles.agent}.md`,
       );
       agentProfile = await fs.readFile(profilePath, "utf8").catch(() => "");

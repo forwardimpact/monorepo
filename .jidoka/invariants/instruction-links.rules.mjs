@@ -18,16 +18,15 @@
 // Out of scope: `assets/` trees. Those files are copied into a target
 // repository, so their links resolve where the agent writes them, not here.
 
+import { isAgentProfile } from "../../libraries/libutil/src/agent-profile.js";
+
 const SOURCES = [".claude", "products/outpost/templates/.claude"];
 const DIRS = SOURCES.flatMap((root) => [`${root}/agents`, `${root}/skills`]);
 const SKIP = ["assets", "node_modules"];
 
-// Claude Code's agent loader reads a file with both `name` and `description`
-// frontmatter as a profile. `fit-pack` applies the same test, and renames a
-// profile to `<stem>.agent.md`. Everything else in `agents/` is a reference
+// `fit-pack` applies the same profile test as the runtime loader, and renames
+// a profile to `<stem>.agent.md`. Everything else in `agents/` is a reference
 // and keeps its name.
-const isProfile = (text) =>
-  /^name:[ \t]*\S/m.test(text) && /^description:[ \t]*\S/m.test(text);
 
 // Blank fenced blocks and inline code spans, and keep every newline, so a
 // documented example never counts as a link and line numbers stay true. A
@@ -108,7 +107,7 @@ function packRel(rel, text) {
   const agent = parts.below.match(/^agents\/([^/]+)\.md$/);
   if (agent) {
     const stem = agent[1];
-    return isProfile(text)
+    return isAgentProfile(text)
       ? `.apm/agents/${stem}.agent.md`
       : `.apm/agents/${stem}.md`;
   }
@@ -153,7 +152,7 @@ function collectProfiles(files) {
   const profiles = new Map();
   for (const { rel, text } of files) {
     if (/(^|\/)agents\/[^/]+\.md$/.test(rel)) {
-      profiles.set(rel, isProfile(text));
+      profiles.set(rel, isAgentProfile(text));
     }
   }
   return profiles;

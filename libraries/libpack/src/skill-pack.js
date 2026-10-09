@@ -1,4 +1,5 @@
 import { basename, join, posix } from "path";
+import { frontmatterField, isAgentProfile } from "@forwardimpact/libutil";
 
 import { APM_AGENTS_DIR, APM_SKILLS_DIR, apmAgentFilename } from "./layout.js";
 import { collectFiles } from "./util.js";
@@ -199,7 +200,7 @@ export class SkillPackPublisher {
     const references = new Map();
     for (const file of files) {
       const content = await readFile(join(srcDir, file), "utf-8");
-      (isProfile(content) ? profiles : references).set(file, content);
+      (isAgentProfile(content) ? profiles : references).set(file, content);
     }
     return { profiles, references };
   }
@@ -352,19 +353,6 @@ export function injectFrontmatter(content, version) {
 }
 
 /**
- * A `.claude/agents/*.md` file is a **profile** when it carries both `name`
- * and `description` frontmatter. Claude Code's agent loader applies the same
- * test to decide what loads as an agent. Every other file is a **reference**.
- * @param {string} content
- * @returns {boolean}
- */
-function isProfile(content) {
-  return (
-    /^name:[ \t]*\S/m.test(content) && /^description:[ \t]*\S/m.test(content)
-  );
-}
-
-/**
  * Extract the targets of every link in `content`.
  *
  * Cover three shapes. Inline links (`[text](target)`, with an optional
@@ -460,12 +448,6 @@ export function referenceClosure(roots, references) {
     }
   }
   return cited;
-}
-
-/** Read a single-line frontmatter field value (first match), or "". */
-function frontmatterField(content, key) {
-  const match = content.match(new RegExp(`^${key}:\\s*(.*)$`, "m"));
-  return match ? match[1].trim() : "";
 }
 
 /**

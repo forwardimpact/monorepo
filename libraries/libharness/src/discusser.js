@@ -15,6 +15,7 @@
 
 import { Writable } from "node:stream";
 import { resolve } from "node:path";
+import { AGENT_PROFILES_DIR } from "@forwardimpact/libutil";
 
 import { createAgentRunner } from "./agent-runner.js";
 import { InboxPoller } from "./inbox-poller.js";
@@ -248,7 +249,7 @@ export function createDiscusser({
   if (!runtime) throw new Error("runtime is required");
   const resolvedLeadCwd = resolve(leadCwd ?? ".");
   const resolvedProfilesDir =
-    profilesDir ?? resolve(resolvedLeadCwd, ".claude/agents");
+    profilesDir ?? resolve(resolvedLeadCwd, AGENT_PROFILES_DIR);
   const resolvedConfigs = agentConfigs ?? [];
 
   const ctx = augmentContextForDiscuss(

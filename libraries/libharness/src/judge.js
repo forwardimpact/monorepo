@@ -14,6 +14,7 @@
  */
 
 import { resolve } from "node:path";
+import { AGENT_PROFILES_DIR } from "@forwardimpact/libutil";
 import { Writable } from "node:stream";
 
 import { createAgentRunner } from "./agent-runner.js";
@@ -146,7 +147,7 @@ export class Judge {
  * supervisor and facilitator pattern.
  *
  * @param {object} deps
- * @param {string} deps.cwd - Judge working directory. Defaults to the directory whose `.claude/agents` holds `judgeProfile`.
+ * @param {string} deps.cwd - Judge working directory. Defaults to the directory whose `AGENT_PROFILES_DIR` holds `judgeProfile`.
  * @param {function} deps.query - SDK query function (injected so tests can replace it).
  * @param {import("stream").Writable} deps.output - Trace output stream.
  * @param {import("./redaction.js").Redactor} deps.redactor
@@ -154,7 +155,7 @@ export class Judge {
  * @param {number} [deps.maxTurns] - Default 5. The judge should act in turn 1. The other turns leave headroom for tool inspection.
  * @param {string[]} [deps.allowedTools] - Default `["Read","Glob","Grep","Bash"]` for read-only inspection.
  * @param {string} [deps.judgeProfile] - Profile name. `composeSystemPrompt` resolves it into the system prompt.
- * @param {string} [deps.profilesDir] - Defaults to `<cwd>/.claude/agents`.
+ * @param {string} [deps.profilesDir] - Defaults to `<cwd>/AGENT_PROFILES_DIR`.
  * @param {string} [deps.taskAmend]
  * @returns {Judge}
  */
@@ -177,7 +178,7 @@ export function createJudge({
   if (!redactor) throw new Error("redactor is required");
   if (!runtime) throw new Error("runtime is required");
 
-  const resolvedProfilesDir = profilesDir ?? resolve(cwd, ".claude/agents");
+  const resolvedProfilesDir = profilesDir ?? resolve(cwd, AGENT_PROFILES_DIR);
   const systemPrompt = composeSystemPrompt({
     role: "agent",
     profile: judgeProfile,

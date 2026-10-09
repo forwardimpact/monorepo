@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { runRules } from "@forwardimpact/libutil";
+import { isAgentProfile, runRules } from "@forwardimpact/libutil";
 
 const SKIP_DIRS = new Set([
   ".cache",
@@ -80,13 +80,6 @@ async function findByName(root, name, kind, fs) {
   return out;
 }
 
-// A `.claude/agents/*.md` file is a profile when it carries both `name` and
-// `description` frontmatter. Otherwise it is a reference. Claude Code's agent
-// loader applies the same test to decide what loads as an agent. This replaces
-// the old references-subdirectory marker, which APM flattens away.
-const isProfile = (text) =>
-  /^name:[ \t]*\S/m.test(text) && /^description:[ \t]*\S/m.test(text);
-
 /**
  * Partition the flat `agents/*.md` listing into profiles (L3) and references
  * (L4) by frontmatter. This reads each file once and shares the read between
@@ -104,7 +97,7 @@ async function partitionAgents(root, claudeDirs, fs) {
     );
     for (const path of files) {
       const text = await readText(root, path, fs);
-      (text && isProfile(text) ? profiles : references).push(path);
+      (text && isAgentProfile(text) ? profiles : references).push(path);
     }
   }
   return { profiles, references };

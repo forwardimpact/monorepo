@@ -8,6 +8,8 @@
 // are governed by the read mechanic's degradation rules; this invariant is
 // this repository's stop-the-line gate.
 
+import { AGENT_PROFILES_DIR } from "../../libraries/libutil/src/agent-profile.js";
+
 export const VOCABULARY = {
   trustSource: {
     kind: "select",
@@ -173,7 +175,7 @@ export default {
     }
 
     const blocks = scan({
-      dirs: [".claude/skills", ".claude/agents"],
+      dirs: [".claude/skills", AGENT_PROFILES_DIR],
       match: (n) => n.endsWith(".md"),
       read: true,
     }).flatMap(({ path, text }) =>
