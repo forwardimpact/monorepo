@@ -113,7 +113,7 @@ npx gemba-wiki refresh wiki/storyboard-2026-M05.md
 The command scans the file for marker pairs like this:
 
 ```markdown
-<!-- xmr:findings:wiki/metrics/spec-review/2026.csv -->
+<!-- xmr:findings:wiki/metrics/spec-review/2026.csv event_type=nightly-review -->
 (chart content regenerated here)
 <!-- /xmr -->
 ```
@@ -123,6 +123,14 @@ CSV. It adds a `**Signals:**` line that lists any fired rules (`xRule1`,
 `mrRule1`, ...). When the metric has fewer than 15 points, the block shows an
 "Insufficient data" line instead. The command leaves files without markers
 unchanged. The operation is idempotent, so two runs produce the same output.
+
+The full marker grammar is
+`<!-- xmr:<metric>:<csv> [event_type=<slice>] [prior=<YYYY-MM-DD>] [free text] -->`.
+Tokens are `key=value` words directly after the CSV path, in any order. The
+first word without `=` begins free text. A marker with no `event_type` follows
+the read rule against its file: a file with one value reads that value, and a
+file with several values needs the token. Every render failure renders as a
+notice inside the block. The notice names the cause and the token to add.
 
 `refresh` also sweeps expired rows from the `## Active Claims` table in
 `MEMORY.md` in the same pass. A stale claim then no longer gives a false signal
@@ -160,18 +168,29 @@ To analyze a specific window, pass the bounds:
 npx gemba-wiki product-mix --since 2026-06-01 --until 2026-06-27
 ```
 
+To name the stream the row belongs to, pass the slice:
+
+```sh
+npx gemba-wiki product-mix --event-type <slice>
+```
+
+The row's slice is the flag's value. Without the flag, `record`'s own rule
+applies: the host workflow's filename, else `interactive`. A `record` failure
+fails the command with `record`'s message.
+
 The command is deterministic, so two runs over the same merged PRs produce the
 same value. A window with no labeled merged PRs records no row, which avoids a
 meaningless zero-over-zero ratio. The recorded row goes through the same
 analysis path as every other metric. To turn it into a control chart, read
 [Chart a Metric and Check Variation](/docs/predictable-team/xmr-analysis/).
 
-| Flag      | Required | Description                                              |
-| --------- | -------- | ------------------------------------------------------- |
-| `--since` | No       | Window start ISO date (default: `--until` minus 7 days).|
-| `--until` | No       | Window end ISO date (default: today).                   |
-| `--run`   | No       | Run id recorded on the metric row (default: `gh-live`). |
-| `--repo`  | No       | `owner/repo` slug (default: the `origin` remote).       |
+| Flag           | Required | Description                                              |
+| -------------- | -------- | -------------------------------------------------------- |
+| `--since`      | No       | Window start ISO date (default: `--until` minus 7 days). |
+| `--until`      | No       | Window end ISO date (default: today).                    |
+| `--run`        | No       | Run id recorded on the metric row (default: `gh-live`).  |
+| `--repo`       | No       | `owner/repo` slug (default: the `origin` remote).        |
+| `--event-type` | No       | The row's slice (default: `record`'s own rule).          |
 
 ## Syncing wiki state
 

@@ -47,7 +47,7 @@ short `_Note:_` cross-reference when a signal must anchor to an event._
 
 #### {metric_name}
 
-<!-- xmr:{metric_name}:wiki/metrics/{skill}/{YYYY}.csv Do not edit. Auto-generated. -->
+<!-- xmr:{metric_name}:wiki/metrics/{skill}/{YYYY}.csv event_type={slice} Do not edit. Auto-generated. -->
 
 ```text
 {14-line Wheeler/Vacanti X+mR chart. The chart labels μ, UPL, LPL, ±1.5σ

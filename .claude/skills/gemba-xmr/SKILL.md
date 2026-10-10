@@ -22,7 +22,8 @@ three-rule formulation, which Vacanti adopted for agile flow metrics.
 
 **Decide whether a change is signal or noise:**
 
-- Analyze a metric — `npx gemba-xmr analyze observations.csv --metric <name>`
+- Analyze a metric —
+  `npx gemba-xmr analyze observations.csv --event-type <slice> --metric <name>`
 - View the 14-line chart —
   `npx gemba-xmr chart observations.csv --metric <name>`
 - Record a new observation — `npx gemba-xmr record`
@@ -51,8 +52,9 @@ date,metric,value,unit,run,note,event_type
 - `unit` — free text (`count`, `days`, `pct`, ...)
 - `run` — optional URL or run id
 - `note` — annotate when a signal appears, with what you discovered
-- `event_type` — the filename of the workflow that recorded the row, without
-  `.yml`. Reads default to the `kata-shift` slice
+- `event_type` — the stream a row belongs to: the host workflow's filename
+  without `.yml`, else the reserved `interactive` (no workflow file may take
+  that name)
 
 Validate before you analyze: `npx gemba-xmr validate observations.csv`
 
@@ -78,7 +80,7 @@ npx gemba-xmr <command> <csv-path> [options]
 | Flag                     | Purpose                                                                                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `--metric <name>` / `-m` | Filter to a single metric. Optional on `chart` when the CSV has exactly one metric. Required otherwise. Filters `analyze` and `summarize` when you give it.               |
-| `--event-type <name>`    | Restrict read commands to one `event_type` slice (default: `kata-shift`; `'*'` for all rows). On `record`, sets the row's value. Without the flag, `record` falls back to `$GITHUB_WORKFLOW_REF`. |
+| `--event-type <name>`    | On a read, the slice to report; `'*'` reads all rows. Without it, a sole value is read, and several values fail and list them; a name no row carries fails the same way. On `record`, the row's stream. |
 | `--format <text\|json>`  | Output format (default: text). `chart` is text-only.                                                                                                                     |
 | `--ascii`                | Substitute ASCII glyphs for Unicode in the chart                                                                                                                         |
 | `--help` / `-h`          | Show help (`--json` formats help itself as JSON)                                                                                                                         |
@@ -167,7 +169,7 @@ schema and a worked example.
 
 ```sh
 npx gemba-xmr validate observations.csv
-npx gemba-xmr analyze observations.csv --metric open_vulnerabilities
+npx gemba-xmr analyze observations.csv --event-type nightly-review --metric open_vulnerabilities
 npx gemba-xmr summarize observations.csv               # paste into a status page
 ```
 

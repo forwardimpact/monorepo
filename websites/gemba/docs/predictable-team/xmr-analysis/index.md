@@ -29,9 +29,9 @@ observation:
 
 ```csv
 date,metric,value,unit,run,note,event_type,host_run
-2026-01-06,cycle_time,4.2,days,,,kata-shift,local
-2026-01-07,cycle_time,3.8,days,,,kata-shift,local
-2026-01-08,cycle_time,5.1,days,,first Monday spike,kata-shift,local
+2026-01-06,cycle_time,4.2,days,,,nightly-review,local
+2026-01-07,cycle_time,3.8,days,,,nightly-review,local
+2026-01-08,cycle_time,5.1,days,,first Monday spike,nightly-review,local
 ```
 
 | Field        | Required | Notes                                                                |
@@ -42,7 +42,7 @@ date,metric,value,unit,run,note,event_type,host_run
 | `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). `validate` rejects an empty `unit`. |
 | `run`        | no       | URL or identifier of the run that produced this observation.         |
 | `note`       | no       | Free text. Use it to record what you discovered when a signal fires. |
-| `event_type` | yes      | The workflow that recorded the row. Use its filename without `.yml`. |
+| `event_type` | yes      | The stream the row belongs to: the host workflow's filename without `.yml`, else the reserved `interactive`. |
 | `host_run`   | no       | The CI run that produced the row. `record` writes `local` when no run id is available. |
 
 The earlier seven-column header, without `host_run`, is also still valid, so
@@ -56,11 +56,20 @@ and each command shows the active slice in its output. Pass
 `--event-type <name>` for a different slice, or `--event-type '*'` to see the
 unfiltered series.
 
-The built-in default slice is `kata-shift`. That name is the shift workflow of
-[Kata](https://www.kata.team/), the reference tenant for this platform. Your own
-CSV has your own workflow names, so pass `--event-type <name>` on every read
-command, or the default slice returns no rows. The example rows above use
-the default slice, so the commands below need no flag.
+`record` takes `event_type` from `--event-type`. Without the flag, it takes
+the host workflow's filename (without `.yml`) from `$GITHUB_WORKFLOW_REF`.
+Without either, it writes the reserved value `interactive`. No workflow file
+may take that name.
+
+A read takes its slice from `--event-type`. Without the flag, a file with one
+value reads that value. A file with several values fails, and the error lists
+each value with its row count. `--event-type '*'` reads every row. A named
+slice that matches no row of a non-empty file fails the same way. Every read
+names the slice it reports.
+
+The sample file holds one value, so `chart`, `list`, and `summarize` below omit
+the flag. The `analyze` examples name it, because the examples teach the
+vocabulary.
 
 Validate the file before analysis:
 
@@ -117,13 +126,13 @@ The `analyze` command combines the chart with limits, signals, and a
 classification:
 
 ```sh
-npx gemba-xmr analyze observations.csv --metric cycle_time
+npx gemba-xmr analyze observations.csv --event-type nightly-review --metric cycle_time
 ```
 
 For structured output that agents and scripts can parse:
 
 ```sh
-npx gemba-xmr analyze observations.csv --metric cycle_time --format json
+npx gemba-xmr analyze observations.csv --event-type nightly-review --metric cycle_time --format json
 ```
 
 The JSON report for each metric contains:
@@ -193,7 +202,7 @@ then reads:
 
 ```csv
 date,metric,value,unit,run,note,event_type,host_run
-2026-06-20,implementations_shipped,3,count,,"route_taken=2; routes_eligible=[2,3];",kata-shift,local
+2026-06-20,implementations_shipped,3,count,,"route_taken=2; routes_eligible=[2,3];",nightly-review,local
 ```
 
 Any free text follows the trailing semicolon:
@@ -210,7 +219,8 @@ They partition any row that uses the grammar.
 Two `analyze` options read the grammar:
 
 ```sh
-npx gemba-xmr analyze observations.csv --metric implementations_shipped --route 2
+npx gemba-xmr analyze observations.csv --event-type nightly-review \
+  --metric implementations_shipped --route 2
 ```
 
 `--route 2` keeps only rows whose `route_taken` is `2`. The command then
@@ -218,8 +228,8 @@ computes the chart, limits, and signals over that subset alone. A path with its
 own process behavior gets its own baseline.
 
 ```sh
-npx gemba-xmr analyze observations.csv --metric implementations_shipped \
-  --routes-eligible-includes 4
+npx gemba-xmr analyze observations.csv --event-type nightly-review \
+  --metric implementations_shipped --routes-eligible-includes 4
 ```
 
 `--routes-eligible-includes 4` keeps rows whose `routes_eligible` set contains

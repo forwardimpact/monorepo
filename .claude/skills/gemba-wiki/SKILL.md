@@ -168,12 +168,12 @@ usage error, so a mistyped path never reports a landed push.
 `refresh` recognizes these marker families in storyboards:
 
 - `<!-- memo:inbox -->` — anchors `gemba-wiki memo` writes
-- `<!-- xmr:metric:csv-path --> ... <!-- /xmr -->` — XmR chart blocks
+- `<!-- xmr:metric:csv [event_type=<slice>] [prior=<YYYY-MM-DD>] -->` …
+  `<!-- /xmr -->` — XmR chart blocks; a render failure is an in-block notice
 - `<!-- obstacles:open|closed --> ... <!-- /obstacles -->` — issue lists
 - `<!-- experiments:open|closed --> ... <!-- /experiments -->` — issue lists
 
-Closed-state markers default to a 7-day window. A `:30d` suffix is reserved
-for future windows.
+Closed-state markers default to a 7-day window; a `:Nd` suffix sets another.
 
 ## Programmatic API
 

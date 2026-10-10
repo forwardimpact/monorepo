@@ -170,7 +170,7 @@ layout: home
       <div class="section-label">The Reference Tenant</div>
       <h2 class="section-headline">Kata runs on this platform every day.</h2>
       <p class="section-body">Kata is an agent team that plans specs, ships features, studies its traces, and acts on what it finds. Its skills call five of the six commands, and its workflows pin four of the five actions in the same way any other team would. Kata shows that the platform is not tied to one team. Read about the practice at <a href="https://www.kata.team/">kata.team</a>.</p>
-      <p class="section-body">Two defaults still refer to that tenant. <code>gemba-wiki</code> creates a metrics directory only for a skill whose name starts with <code>kata-</code>, and <code>gemba-xmr</code> uses <code>kata-shift</code> as its default shift type. Everything else in the platform does not depend on the tenant.</p>
+      <p class="section-body">One default still refers to that tenant. <code>gemba-wiki</code> creates a metrics directory only for a skill whose name starts with <code>kata-</code>. Everything else in the platform does not depend on the tenant.</p>
     </div>
   </div>
 </div>
