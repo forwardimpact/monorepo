@@ -166,10 +166,10 @@ something when each metric tracks a single process. See
 [One process per chart](/docs/predictable-team/xmr-analysis/#one-process-per-chart).
 
 A read takes its slice from `--event-type`, and `'*'` reads every row. Without
-the flag, a file with one value reads that value, and a file with several
-values fails with a list of the values. Every read names the slice it reports.
-[Prepare the CSV](/docs/predictable-team/xmr-analysis/#prepare-the-csv) gives
-the full rule. Run the analysis:
+the flag, a file with one `event_type` value reads that value, and a file with
+several values fails with a list of the values. Every read names the slice it
+reports. [Prepare the CSV](/docs/predictable-team/xmr-analysis/#prepare-the-csv)
+gives the full rule. Run the analysis:
 
 ```sh
 npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count

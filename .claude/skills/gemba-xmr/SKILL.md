@@ -80,7 +80,7 @@ npx gemba-xmr <command> <csv-path> [options]
 | Flag                     | Purpose                                                                                                                                                                  |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `--metric <name>` / `-m` | Filter to a single metric. Optional on `chart` when the CSV has exactly one metric. Required otherwise. Filters `analyze` and `summarize` when you give it.               |
-| `--event-type <slice>`   | On a read, the slice to report; `'*'` reads all rows. Without the flag, a one-value file reads that value; several values, or a name no row of a non-empty file carries, fail with a tally. On `record`, the row's stream. |
+| `--event-type <slice>`   | On a read, the slice to report; `'*'` reads all rows. Without the flag, a one-value file reads that value, and several values fail with a tally. A name no row of a non-empty file carries fails too. On `record`, the row's stream. |
 | `--format <text\|json>`  | Output format (default: text). `chart` is text-only.                                                                                                                     |
 | `--ascii`                | Substitute ASCII glyphs for Unicode in the chart                                                                                                                         |
 | `--help` / `-h`          | Show help (`--json` formats help itself as JSON)                                                                                                                         |

@@ -128,10 +128,12 @@ The full marker grammar is
 `<!-- xmr:<metric>:<csv> [event_type=<slice>] [prior=<YYYY-MM-DD>] [free text] -->`.
 Tokens are `key=value` words directly after the CSV path, in any order. The
 first word without `=` begins free text. `event_type` names the slice the block
-reads, and `'*'` reads every row. A marker with no `event_type` follows the read
-rule against its file: a file with one value reads that value, and a file with
-several values needs the token. `prior` is the metric's series-end date at the
-prior read. With it, each signal shows whether a new point fired it or the
+reads, and `event_type=*` reads every row. A marker with no `event_type` follows
+the read rule against its file: a file with one `event_type` value reads that
+value, and a file with several values needs the token
+([the read rule](/docs/predictable-team/xmr-analysis/#prepare-the-csv)). `prior`
+is the metric's series-end date at the prior read. When the date matches one of
+the metric's dates, each signal shows whether a new point fired it or the
 recomputed limits revealed it.
 
 When a block cannot render, `refresh` writes a notice inside the block that

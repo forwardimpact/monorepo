@@ -64,9 +64,9 @@ error lists each value with its row count. `--event-type '*'` reads every row.
 A named slice that matches no row of a non-empty file fails the same way. Every
 read names the slice it reports.
 
-The sample file holds one value, so `chart`, `list`, and `summarize` below omit
-the flag. The `analyze` examples name the slice, so they also work on a file
-with several streams.
+The sample file holds one `event_type` value, so `chart`, `list`, and
+`summarize` below omit the flag. The `analyze` examples name the slice, so they
+also work on a file with several streams.
 
 Validate the file before analysis:
 
