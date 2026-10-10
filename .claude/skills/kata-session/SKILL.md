@@ -42,7 +42,7 @@ skill only for the full Participant Protocol below.
       Participants run `gemba-xmr analyze`. The facilitator does not.
 - [ ] Team runs: `gemba-wiki refresh` creates the storyboard and renders all
       blocks before the meeting. A participant seeds any missing
-      `<!-- xmr:... -->` marker from
+      `<!-- xmr:... event_type=<slice> -->` marker from
       [`storyboard-template.md`](references/storyboard-template.md), never the
       facilitator.
 
@@ -168,8 +168,11 @@ briefing.
 2. **Record metrics to CSV and analyze them.** Before you answer, append one row
    per metric to `wiki/metrics/{skill}/{YYYY}.csv` per the skill's
    `references/metrics.md`. Create the directory and header if needed. Then run
-   `gemba-xmr analyze <csv> --format json`. The CSV is authoritative. Your
-   `Answer` summarizes it.
+   `gemba-xmr analyze <csv> --event-type <slice> --format json`. The CSV is
+   authoritative. Your `Answer` summarizes it. Name the slice the board
+   measures, by default the installation's shift workflow. To check the rows
+   this session wrote, name the session's own workflow. A file with one kind of
+   work may take `*`.
 3. **Answer with measured data.** Report numbers through
    `Answer(askId=N, message=…)`. Quote the `askId` from the `[ask#N]` header.
    Reference the CSV rows. Include each metric's XmR `status`, `μ`, and any

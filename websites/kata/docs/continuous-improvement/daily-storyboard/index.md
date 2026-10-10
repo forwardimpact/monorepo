@@ -80,11 +80,14 @@ Current Condition, an Obstacles list, and an Experiments list.
 - **Obstacles** and **Experiments** are rendered from GitHub issue state.
 
 Marker pairs surround every generated block. An XmR block is between
-`<!-- xmr:{metric}:{csv} -->` and `<!-- /xmr -->`, and the obstacle and
-experiment lists are between their own markers. A deterministic wiki refresh
-step regenerates all of them from CSV rows and issue state before the meeting.
-Never paste a chart or a list yourself. Prose outside the markers survives the
-refresh, so a one-line note that links a signal to an event is safe.
+`<!-- xmr:{metric}:{csv} [event_type={slice}] [prior={YYYY-MM-DD}] -->` and
+`<!-- /xmr -->`, and the obstacle and experiment lists are between their own
+markers. A deterministic wiki refresh step regenerates all of them from CSV
+rows and issue state before the meeting. A block over a file with several
+streams names its slice in the `event_type` token, or the refresh renders a
+notice in the block. Never paste a chart or a list yourself. Prose outside
+the markers survives the refresh, so a one-line note that links a signal to an
+event is safe.
 
 The first meeting of the month is a **planning meeting**. In it, the refresh
 creates the file skeleton, a participant seeds one XmR block per metrics CSV,
