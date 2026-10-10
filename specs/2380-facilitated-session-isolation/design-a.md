@@ -2,7 +2,8 @@
 
 Spec 2380 gives every facilitated-session participant its own workspace. This
 design fixes which component creates the workspaces, what each holds, how the
-participant wikis publish, and what the two actions pass.
+participant wikis publish, and what the two actions pass. The alternative
+is [design-b.md](design-b.md).
 
 ## Component map
 
