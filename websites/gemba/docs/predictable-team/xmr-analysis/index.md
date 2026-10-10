@@ -51,10 +51,7 @@ an existing file keeps working.
 `event_type` keeps different kinds of work out of the same baseline. If you
 record a 30-second boot-and-yield check and a 20-minute end-to-end run against
 one metric, the pair pulls μ toward the cheaper shape and flags every real run
-as an outlier. For that reason the read commands analyze one slice at a time,
-and each command shows the active slice in its output. Pass
-`--event-type <name>` for a different slice, or `--event-type '*'` to see the
-unfiltered series.
+as an outlier. For that reason each read command analyzes one slice at a time.
 
 `record` takes `event_type` from `--event-type`. Without the flag, it takes
 the host workflow's filename (without `.yml`) from `$GITHUB_WORKFLOW_REF`.
@@ -62,14 +59,14 @@ Without either, it writes the reserved value `interactive`. No workflow file
 may take that name.
 
 A read takes its slice from `--event-type`. Without the flag, a file with one
-value reads that value. A file with several values fails, and the error lists
-each value with its row count. `--event-type '*'` reads every row. A named
-slice that matches no row of a non-empty file fails the same way. Every read
-names the slice it reports.
+value reads that value. On a file with several values, the read fails, and the
+error lists each value with its row count. `--event-type '*'` reads every row.
+A named slice that matches no row of a non-empty file fails the same way. Every
+read names the slice it reports.
 
 The sample file holds one value, so `chart`, `list`, and `summarize` below omit
-the flag. The `analyze` examples name it, because the examples teach the
-vocabulary.
+the flag. The `analyze` examples name the slice, so they also work on a file
+with several streams.
 
 Validate the file before analysis:
 
@@ -89,9 +86,11 @@ npx gemba-xmr chart observations.csv --metric cycle_time
 
 When the CSV contains exactly one metric, `--metric` is optional.
 
-The output is a 14-line X+mR chart:
+The output names the slice, then draws a 14-line X+mR chart:
 
 ```text
+# event_type: nightly-review
+
  UPL 10.9 ┬                       ●
           │
 +1.5σ 8.2 │                    ·           ·
@@ -238,7 +237,7 @@ behaves across every observation where path 4 was available.
 
 Both options combine with `--event-type` and `--metric`, and each one has no
 effect when you omit it. A plain `analyze` with neither option charts the
-whole series as before. A narrow partition often
+whole slice. A narrow partition often
 falls under the 15-point floor and reports `insufficient`. Keep recording
 until each path has enough observations.
 
@@ -250,7 +249,7 @@ and quotes the field for you:
 
 ```sh
 npx gemba-xmr record --skill kata-implement --metric implementations_shipped \
-  --value 2 --route 2 --routes-eligible 2,3
+  --value 2 --event-type nightly-review --route 2 --routes-eligible 2,3
 ```
 
 The command appends a row whose `note` is

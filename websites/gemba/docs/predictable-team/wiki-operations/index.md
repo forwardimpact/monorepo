@@ -127,10 +127,19 @@ unchanged. The operation is idempotent, so two runs produce the same output.
 The full marker grammar is
 `<!-- xmr:<metric>:<csv> [event_type=<slice>] [prior=<YYYY-MM-DD>] [free text] -->`.
 Tokens are `key=value` words directly after the CSV path, in any order. The
-first word without `=` begins free text. A marker with no `event_type` follows
-the read rule against its file: a file with one value reads that value, and a
-file with several values needs the token. Every render failure renders as a
-notice inside the block. The notice names the cause and the token to add.
+first word without `=` begins free text. `event_type` names the slice the block
+reads, and `'*'` reads every row. A marker with no `event_type` follows the read
+rule against its file: a file with one value reads that value, and a file with
+several values needs the token. `prior` is the metric's series-end date at the
+prior read. With it, each signal shows whether a new point fired it or the
+recomputed limits revealed it.
+
+When a block cannot render, `refresh` writes a notice inside the block that
+names the cause: an unknown, repeated, or unusable token, a file the wiki
+cannot read, a slice the read cannot resolve, or a metric with no rows in the
+slice. A token notice lists the known tokens, and a slice notice names the
+`event_type` token to set. A CSV that holds merge-conflict markers fails the
+whole refresh.
 
 `refresh` also sweeps expired rows from the `## Active Claims` table in
 `MEMORY.md` in the same pass. A stale claim then no longer gives a false signal
@@ -168,13 +177,13 @@ To analyze a specific window, pass the bounds:
 npx gemba-wiki product-mix --since 2026-06-01 --until 2026-06-27
 ```
 
-To name the stream the row belongs to, pass the slice:
+To name the stream the row belongs to, pass `--event-type`:
 
 ```sh
 npx gemba-wiki product-mix --event-type <slice>
 ```
 
-The row's slice is the flag's value. Without the flag, `record`'s own rule
+The row's stream is the flag's value. Without the flag, `record`'s own rule
 applies: the host workflow's filename, else `interactive`. A `record` failure
 fails the command with `record`'s message.
 
@@ -190,7 +199,7 @@ analysis path as every other metric. To turn it into a control chart, read
 | `--until`      | No       | Window end ISO date (default: today).                    |
 | `--run`        | No       | Run id recorded on the metric row (default: `gh-live`).  |
 | `--repo`       | No       | `owner/repo` slug (default: the `origin` remote).        |
-| `--event-type` | No       | The row's slice (default: `record`'s own rule).          |
+| `--event-type` | No       | The row's stream (default: `record`'s own rule).         |
 
 ## Syncing wiki state
 

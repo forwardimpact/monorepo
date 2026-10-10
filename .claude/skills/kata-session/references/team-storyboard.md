@@ -36,10 +36,10 @@ vs. expected). Update Obstacles. Plan the next experiment.
    product-manager to write it into the storyboard.
 2. **What is the actual condition now?** Each participant follows the
    Participant Protocol: measure with live data, record to CSV, run
-   `gemba-xmr analyze` with its slice on its own CSV, then report each metric's
+   `gemba-xmr analyze` on its own CSV and slice, then report each metric's
    `status`, `μ`, and any fired-rule `signals` through `Answer`. The facilitator
    relays these and analyzes nothing. Participants flag each metric whose status
-   changed since last meeting.
+   changed since the last meeting.
 3. **What obstacles prevent us from reaching the target?** Participants identify
    obstacles from their domain. The
    [team protocol](../../../agents/x-team-protocol.md#classify-every-finding)

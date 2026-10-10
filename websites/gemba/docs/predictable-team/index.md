@@ -102,12 +102,6 @@ npx gemba-xmr record --skill code-review --metric findings_count --value 3 --uni
 (without `.yml`) from `$GITHUB_WORKFLOW_REF`. Without either, it writes the
 reserved value `interactive`. No workflow file may take that name.
 
-A read takes its slice from `--event-type`. Without the flag, a file with one
-value reads that value. A file with several values fails, and the error lists
-each value with its row count. `--event-type '*'` reads every row. A named
-slice that matches no row of a non-empty file fails the same way. Every read
-names the slice it reports.
-
 ```text
 metric=findings_count n=1 status=insufficient_data latest=3
 ```
@@ -170,7 +164,12 @@ Once a metric has at least 15 observations, `gemba-xmr` computes natural process
 limits and applies Wheeler's three detection rules. The limits only mean
 something when each metric tracks a single process. See
 [One process per chart](/docs/predictable-team/xmr-analysis/#one-process-per-chart).
-Run the analysis:
+
+A read takes its slice from `--event-type`, and `'*'` reads every row. Without
+the flag, a file with one value reads that value, and a file with several
+values fails with a list of the values. Every read names the slice it reports.
+[Prepare the CSV](/docs/predictable-team/xmr-analysis/#prepare-the-csv) gives
+the full rule. Run the analysis:
 
 ```sh
 npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count
@@ -247,12 +246,12 @@ file exists yet. Add one marker pair per metric you want charted:
 
 Each XmR block is a marker pair. The opening comment gives the metric and the
 CSV path. The closing comment marks the end of the region that `refresh`
-replaces. The full grammar is
+replaces. The opening comment takes optional `key=value` tokens after the CSV
+path:
 `<!-- xmr:<metric>:<csv> [event_type=<slice>] [prior=<YYYY-MM-DD>] [free text] -->`.
-Tokens are `key=value` words directly after the CSV path, in any order. The
-first word without `=` begins free text. A marker with no `event_type` follows
-the read rule against its file. Every render failure renders as a notice inside
-the block. The notice names the cause and the token to add.
+A block over a file with several streams needs `event_type`.
+[Refreshing storyboard charts](/docs/predictable-team/wiki-operations/#refreshing-storyboard-charts)
+gives the full grammar and the notices `refresh` writes.
 
 The skeleton also has obstacle and experiment sections, and `refresh` fills
 those from your issue tracker. The runtime renders those sections but does not

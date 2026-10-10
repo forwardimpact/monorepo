@@ -169,7 +169,7 @@ usage error, so a mistyped path never reports a landed push.
 
 - `<!-- memo:inbox -->` — anchors `gemba-wiki memo` writes
 - `<!-- xmr:metric:csv [event_type=<slice>] [prior=<YYYY-MM-DD>] -->` …
-  `<!-- /xmr -->` — XmR chart blocks; a render failure is an in-block notice
+  `<!-- /xmr -->` — XmR chart blocks; a bad token or slice renders a notice
 - `<!-- obstacles:open|closed --> ... <!-- /obstacles -->` — issue lists
 - `<!-- experiments:open|closed --> ... <!-- /experiments -->` — issue lists
 

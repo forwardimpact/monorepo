@@ -170,9 +170,9 @@ briefing.
    `references/metrics.md`. Create the directory and header if needed. Then run
    `gemba-xmr analyze <csv> --event-type <slice> --format json`. The CSV is
    authoritative. Your `Answer` summarizes it. Name the slice the board
-   measures, by default the installation's shift workflow; rows this session
-   wrote carry the session's own workflow, and a file with one kind of work may
-   take `*`.
+   measures, by default the installation's shift workflow. To check the rows
+   this session wrote, name the session's own workflow. A file with one kind of
+   work may take `*`.
 3. **Answer with measured data.** Report numbers through
    `Answer(askId=N, message=…)`. Quote the `askId` from the `[ask#N]` header.
    Reference the CSV rows. Include each metric's XmR `status`, `μ`, and any
