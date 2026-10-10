@@ -129,6 +129,7 @@ Consequences on upgrade:
 | This monorepo's session hooks | P4: a workspace of this repository is ready before the participant's first command. |
 | `kata-setup` | Only the repository configuration a downstream installation needs for P3 to P5 and P8. |
 | kata-session skill and dispatch-discipline reference | P10. |
+| `kata-implement` and `monorepo-setup` skills | Only the mechanics a design needs inside a workspace. The worktree mandate is unchanged. |
 | `gemba-harness` skill and its CLI reference, `gemba-harness` action README, `kata-agent` action README, the Gemba coordinate-team and prove-changes pages, the `gemba-wiki` skill's push and pull section, the `libwiki` and `libharness` READMEs, the Gemba wiki-operations page | P7, P9, P10. |
 
 ### Excluded
