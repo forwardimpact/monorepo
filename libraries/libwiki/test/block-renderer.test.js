@@ -1,44 +1,41 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { createMockFs } from "@forwardimpact/libmock";
-import { renderBlock, BlockRenderError } from "../src/block-renderer.js";
-import { analyze, renderChart, CSVIntegrityError } from "@forwardimpact/libxmr";
+import { CSVIntegrityError } from "@forwardimpact/libxmr";
+import { renderBlock } from "../src/block-renderer.js";
+import {
+  METRICS_HEADER,
+  chartTextFor,
+  makeMetricsCSV,
+  metricsRows,
+  twoSliceCSV,
+} from "./helpers.js";
 
-const HEADER = "date,metric,value,unit,run,note,event_type";
 const ROOT = "/project";
-
-function makeCSV(metric, values) {
-  const rows = values.map(
-    (v, i) =>
-      `2026-01-${String(i + 1).padStart(2, "0")},${metric},${v},count,,,kata-shift`,
-  );
-  return [HEADER, ...rows].join("\n");
-}
+const FIFTEEN = Array(15).fill(10);
+const TWO_SLICE_CSV = twoSliceCSV("a", "b");
 
 // Seed the CSV in an in-memory fs at `${ROOT}/test.csv`. renderBlock reads it
 // through the injected sync surface (join(projectRoot, csvPath)).
-function csvFs(csv) {
-  return createMockFs({ [`${ROOT}/test.csv`]: csv });
+function render(csv, overrides = {}) {
+  return renderBlock({
+    metric: "findings",
+    csvPath: "test.csv",
+    projectRoot: ROOT,
+    fs: createMockFs({ [`${ROOT}/test.csv`]: csv }),
+    ...overrides,
+  });
 }
+
+const fenced = (lines) => lines.slice(1, lines.indexOf("```", 1)).join("\n");
 
 describe("renderBlock", () => {
   test("a predictable metric renders fenced chart code and Signals", () => {
-    const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10];
-
-    const lines = renderBlock({
-      metric: "findings",
-      csvPath: "test.csv",
-      projectRoot: ROOT,
-      fs: csvFs(makeCSV("findings", values)),
-    });
+    const csv = makeMetricsCSV("findings", FIFTEEN);
+    const lines = render(csv);
 
     assert.equal(lines[0], "```");
-
-    const report = analyze(makeCSV("findings", values));
-    const m = report.metrics[0];
-    const expectedChart = renderChart(m.values, m.stats, m.signals);
-    const chartContent = lines.slice(1, lines.indexOf("```", 1)).join("\n");
-    assert.equal(chartContent, expectedChart);
+    assert.equal(fenced(lines), chartTextFor(csv, "*", "findings"));
 
     const lastLine = lines[lines.length - 1];
     assert.ok(lastLine.startsWith("**Signals:**"));
@@ -46,57 +43,35 @@ describe("renderBlock", () => {
   });
 
   test("signals_present metric lists fired rules", () => {
-    const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 50];
-
-    const lines = renderBlock({
+    const values = [...Array(14).fill(10), 50];
+    const lines = render(makeMetricsCSV("outlier", values), {
       metric: "outlier",
-      csvPath: "test.csv",
-      projectRoot: ROOT,
-      fs: csvFs(makeCSV("outlier", values)),
     });
-
     const signalLine = lines[lines.length - 1];
     assert.ok(signalLine.includes("xRule1") || signalLine.includes("mrRule1"));
   });
 
   test("insufficient_data metric shows the insufficient message", () => {
-    const values = [10, 20, 30, 40, 50];
-
-    const lines = renderBlock({
+    const lines = render(makeMetricsCSV("few", [10, 20, 30, 40, 50]), {
       metric: "few",
-      csvPath: "test.csv",
-      projectRoot: ROOT,
-      fs: csvFs(makeCSV("few", values)),
     });
-
     assert.equal(lines[0], "```");
-    const chartLine = lines[1];
-    assert.ok(chartLine.includes("Insufficient data"));
-    assert.ok(chartLine.includes("5 points"));
+    assert.ok(lines[1].includes("Insufficient data"));
+    assert.ok(lines[1].includes("5 points"));
   });
 
   // Fail-visible contract (#1702): a conflict-marker CSV must abort the
   // render. It must not produce a chart from duplicated or junk rows.
   test("propagates CSVIntegrityError from a conflict-marker CSV", () => {
     const corrupted = [
-      HEADER,
+      METRICS_HEADER,
       "<<<<<<< Updated upstream",
       "2026-06-12,findings,10,count,,,kata-shift",
       "=======",
       "2026-06-12,findings,9,count,,,kata-shift",
       ">>>>>>> Stashed changes",
     ].join("\n");
-
-    assert.throws(
-      () =>
-        renderBlock({
-          metric: "findings",
-          csvPath: "test.csv",
-          projectRoot: ROOT,
-          fs: csvFs(corrupted),
-        }),
-      CSVIntegrityError,
-    );
+    assert.throws(() => render(corrupted), CSVIntegrityError);
   });
 
   test("surfaces recomputation-revealed vs new-point provenance with a prior-read anchor", () => {
@@ -108,22 +83,15 @@ describe("renderBlock", () => {
       0, 0, 0, 0, 0, 0, 0,
     ];
     // Month-rolling dates: index i -> 2026-MM-DD, day=(i%28)+1, month=floor(i/28)+1.
-    const header = "date,metric,value,unit,run,note,event_type";
     const rows = values.map((v, i) => {
       const day = String((i % 28) + 1).padStart(2, "0");
       const month = String(Math.floor(i / 28) + 1).padStart(2, "0");
       return `2026-${month}-${day},corrections,${v},count,,,kata-shift`;
     });
-    const csv = [header, ...rows].join("\n");
-
-    const lines = renderBlock({
+    const lines = render([METRICS_HEADER, ...rows].join("\n"), {
       metric: "corrections",
-      csvPath: "test.csv",
-      projectRoot: ROOT,
-      fs: csvFs(csv),
       priorReadAnchor: "2026-01-12",
     });
-
     const signalLine = lines[lines.length - 1];
     // X Rule 1 fires only on the pre-anchor cluster. It is purely
     // recomputation-revealed.
@@ -136,27 +104,134 @@ describe("renderBlock", () => {
   });
 
   test("renders bare rule names when the caller supplies no prior-read anchor", () => {
-    const values = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 50];
-    const lines = renderBlock({
-      metric: "outlier",
-      csvPath: "test.csv",
-      projectRoot: ROOT,
-      fs: csvFs(makeCSV("outlier", values)),
-    });
-    const signalLine = lines[lines.length - 1];
-    assert.ok(!signalLine.includes("("));
+    const lines = render(
+      makeMetricsCSV("outlier", [...Array(14).fill(10), 50]),
+      {
+        metric: "outlier",
+      },
+    );
+    assert.ok(!lines[lines.length - 1].includes("("));
   });
 
-  test("throws BlockRenderError for a missing metric", () => {
-    assert.throws(
-      () =>
-        renderBlock({
-          metric: "nonexistent",
-          csvPath: "test.csv",
-          projectRoot: ROOT,
-          fs: csvFs(makeCSV("exists", [10, 20, 30])),
-        }),
-      BlockRenderError,
+  test("a metric absent from the slice renders a notice with the tally", () => {
+    const lines = render(makeMetricsCSV("exists", [10, 20, 30]), {
+      metric: "nonexistent",
+    });
+    assert.deepEqual(lines, [
+      "> **XmR block not rendered.** No rows for metric `nonexistent` in slice `kata-shift`.",
+      "> Values present: kata-shift (3 rows).",
+    ]);
+  });
+});
+
+// The marker's slice: a marker names its slice with `event_type=`, a marker
+// without one follows the read rule against its file, and every render
+// failure is a notice inside the block.
+describe("renderBlock slice resolution", () => {
+  test("a marker slice over a two-slice file renders that slice's chart", () => {
+    const lines = render(TWO_SLICE_CSV, {
+      metric: "b",
+      eventType: "weekly-audit",
+    });
+    assert.equal(
+      fenced(lines),
+      chartTextFor(TWO_SLICE_CSV, "weekly-audit", "b"),
+    );
+  });
+
+  test("no slice over a one-slice file renders the chart", () => {
+    const csv = makeMetricsCSV("findings", FIFTEEN, "nightly-review");
+    assert.equal(
+      fenced(render(csv)),
+      chartTextFor(csv, "nightly-review", "findings"),
+    );
+  });
+
+  test("no slice over a two-slice file renders the notice with both values and the token", () => {
+    const lines = render(TWO_SLICE_CSV, { metric: "a" });
+    assert.deepEqual(lines, [
+      "> **XmR block not rendered.** Slice not resolved: several event_type values: nightly-review (15 rows), weekly-audit (15 rows).",
+      "> Set `event_type=<slice>` on the marker, or `event_type=*` for all rows.",
+    ]);
+  });
+
+  test("a named slice absent from the file renders the notice", () => {
+    const lines = render(TWO_SLICE_CSV, { metric: "a", eventType: "nope" });
+    assert.match(
+      lines[0],
+      /Slice not resolved: no rows with event_type "nope"/,
+    );
+    assert.match(
+      lines[0],
+      /nightly-review \(15 rows\), weekly-audit \(15 rows\)/,
+    );
+  });
+
+  test("a missing file renders a notice", () => {
+    const lines = renderBlock({
+      metric: "findings",
+      csvPath: "nope.csv",
+      projectRoot: ROOT,
+      fs: createMockFs({}),
+    });
+    assert.deepEqual(lines, [
+      "> **XmR block not rendered.** Could not read `nope.csv`.",
+      "> The marker names a file this wiki cannot read.",
+    ]);
+  });
+
+  test("a file whose rows all carry an empty value renders a notice", () => {
+    const lines = render(
+      [METRICS_HEADER, ...metricsRows("findings", [1, 2], "")].join("\n"),
+    );
+    assert.equal(
+      lines[0],
+      "> **XmR block not rendered.** Slice not resolved: every row has an empty event_type (2 rows).",
+    );
+  });
+
+  test("a header-only file renders the no-rows notice", () => {
+    const lines = render(METRICS_HEADER);
+    assert.deepEqual(lines, [
+      "> **XmR block not rendered.** No rows for metric `findings` in slice `* (all rows)`.",
+      "> The file holds no rows.",
+    ]);
+  });
+
+  test("an unknown token renders a notice before any read", () => {
+    const lines = renderBlock({
+      metric: "findings",
+      csvPath: "nope.csv",
+      projectRoot: ROOT,
+      fs: createMockFs({}),
+      tokenErrors: [{ key: "slice", value: "x", reason: "unknown" }],
+    });
+    assert.deepEqual(lines, [
+      "> **XmR block not rendered.** Unknown marker token `slice=x`.",
+      "> Known tokens: `event_type=<slice>`, `prior=<YYYY-MM-DD>`.",
+    ]);
+  });
+
+  test("an unusable prior renders a notice", () => {
+    const lines = render(makeMetricsCSV("findings", FIFTEEN), {
+      tokenErrors: [{ key: "prior", value: "20260604", reason: "unusable" }],
+    });
+    assert.equal(
+      lines[0],
+      "> **XmR block not rendered.** Unusable value for `prior=20260604`.",
+    );
+  });
+
+  test("two token errors at once put both causes on the line", () => {
+    const lines = render(makeMetricsCSV("findings", FIFTEEN), {
+      tokenErrors: [
+        { key: "slice", value: "x", reason: "unknown" },
+        { key: "event_type", value: "b", reason: "repeated" },
+      ],
+    });
+    assert.equal(
+      lines[0],
+      "> **XmR block not rendered.** Unknown marker token `slice=x`. Repeated marker token `event_type`.",
     );
   });
 });

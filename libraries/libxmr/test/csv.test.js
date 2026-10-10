@@ -5,11 +5,10 @@ import {
   parseCSV,
   parseLine,
   validateCSV,
-  listMetrics,
+  normalizeSlice,
   CSVIntegrityError,
 } from "../src/csv.js";
-
-const HEADER_LINE = "date,metric,value,unit,run,note,event_type";
+import { HEADER_LINE } from "./helpers.js";
 
 describe("conflict-marker guard", () => {
   // This corruption shape comes from the field. Both conflict branches
@@ -63,10 +62,6 @@ describe("conflict-marker guard", () => {
         return true;
       },
     );
-  });
-
-  test("listMetrics throws on a corrupted CSV", () => {
-    assert.throws(() => listMetrics(MERGE_CONFLICT, "*"), CSVIntegrityError);
   });
 
   test("parseCSV rejects a bare separator line alone", () => {
@@ -156,6 +151,30 @@ describe("parseLine", () => {
     const row = parseLine("2026-01-01,bugs,abc,count,,");
     assert.strictEqual(Number.isNaN(row.value), true);
     assert.strictEqual(row.raw.fields[2], "abc");
+  });
+
+  test("strips one trailing carriage return before the split", () => {
+    const row = parseLine("2026-01-01,bugs,3,count,,,kata-shift,124\r");
+    assert.strictEqual(row.eventType, "kata-shift");
+    assert.strictEqual(row.hostRun, "124");
+    assert.strictEqual(row.raw.fields.length, 8);
+  });
+
+  test("normalises the event_type cell by trimming surrounding whitespace", () => {
+    const row = parseLine("2026-01-01,bugs,3,count,,, x ");
+    assert.strictEqual(row.eventType, "x");
+  });
+});
+
+describe("normalizeSlice", () => {
+  test("trims a padded string", () => {
+    assert.strictEqual(normalizeSlice("  kata-shift \r"), "kata-shift");
+  });
+
+  test('returns "" for a non-string', () => {
+    assert.strictEqual(normalizeSlice(undefined), "");
+    assert.strictEqual(normalizeSlice(null), "");
+    assert.strictEqual(normalizeSlice(3), "");
   });
 });
 
@@ -249,7 +268,7 @@ describe("validateCSV", () => {
     assert.strictEqual(err.message, "missing event_type");
   });
 
-  test("rejects a six-field row without the event_type column", () => {
+  test("rejects a six-field row with both the missing event_type and the field count", () => {
     const csv = [
       "date,metric,value,unit,run,note,event_type",
       "2026-01-01,bugs,3,count,https://example.com,",
@@ -257,37 +276,37 @@ describe("validateCSV", () => {
     const result = validateCSV(csv);
     assert.strictEqual(result.valid, false);
     assert.ok(result.errors.find((e) => e.field === "event_type"));
-  });
-});
-
-describe("listMetrics", () => {
-  const inventoryCsv = [
-    "date,metric,value,unit,run,note,event_type",
-    "2026-01-01,a,1,count,r,,kata-shift",
-    "2026-01-02,a,2,count,r,,kata-shift",
-    "2026-01-01,b,5,days,r,,kata-dispatch",
-  ].join("\n");
-
-  test("returns the metric inventory for the default kata-shift slice", () => {
-    const metrics = listMetrics(inventoryCsv);
-
-    assert.strictEqual(metrics.length, 1);
-    assert.strictEqual(metrics[0].metric, "a");
-    assert.strictEqual(metrics[0].n, 2);
-    assert.strictEqual(metrics[0].from, "2026-01-01");
-    assert.strictEqual(metrics[0].to, "2026-01-02");
+    const count = result.errors.find((e) => e.field === "row");
+    assert.ok(count);
+    assert.match(count.message, /field count 6/);
   });
 
-  test("filters to one event_type when the caller supplies one", () => {
-    const metrics = listMetrics(inventoryCsv, "kata-dispatch");
-    assert.strictEqual(metrics.length, 1);
-    assert.strictEqual(metrics[0].metric, "b");
+  // The shifted-row fixture: an unquoted comma in `note`
+  // pushes every later field one slot right, so the row parses with nine
+  // fields and `validate` must say so.
+  test("rejects a row whose field count is outside the schema range", () => {
+    const csv = [
+      "date,metric,value,unit,run,note,event_type,host_run",
+      "2026-01-02,widgets,2,count,,note with a comma, which shifts everything,kata-shift,124",
+    ].join("\n");
+    const result = validateCSV(csv);
+    assert.strictEqual(result.valid, false);
+    const err = result.errors.find((e) => e.field === "row");
+    assert.ok(err);
+    assert.strictEqual(err.line, 2);
+    assert.match(err.message, /7 to 8/);
+    assert.match(err.message, /field count 9/);
   });
 
-  test('treats "*" as no filter', () => {
-    const metrics = listMetrics(inventoryCsv, "*");
-    assert.strictEqual(metrics.length, 2);
-    assert.strictEqual(metrics[1].unit, "days");
+  test("accepts seven-field and eight-field rows under the legacy header", () => {
+    const csv = [
+      "date,metric,value,unit,run,note,event_type",
+      "2026-01-01,bugs,3,count,,,kata-shift",
+      "2026-01-02,bugs,4,count,,,kata-shift,27401632821",
+    ].join("\n");
+    const result = validateCSV(csv);
+    assert.strictEqual(result.valid, true);
+    assert.strictEqual(result.rows, 2);
   });
 });
 

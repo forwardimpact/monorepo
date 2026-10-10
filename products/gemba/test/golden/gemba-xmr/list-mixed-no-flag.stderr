@@ -1,0 +1,1 @@
+gemba-xmr: error: cannot resolve slice for "test/golden/gemba-xmr/mixed.csv": several event_type values: nightly-review (2 rows), weekly-audit (2 rows). Pass --event-type <name> or --event-type '*'

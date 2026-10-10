@@ -1,10 +1,13 @@
 import { CSVIntegrityError } from "../csv.js";
+import { SliceResolutionError } from "../slice.js";
 
-// CSVIntegrityError carries the line number and the content. The command
-// layer owns the file path, so the envelope prepends it. Any other error
-// is a bug. It propagates.
-/** Run a CSV-parsing thunk. On CSVIntegrityError, return a CLI error envelope that names the file. Otherwise return `{ok: true, value}`. */
-export function withIntegrityGuard(csvPath, fn) {
+// The commands' read seam. It covers the two error classes a read can raise
+// at the seam: a CSV the parser refuses (conflict markers) and a slice the
+// resolver cannot settle. Each carries what the library knows; the command
+// layer owns the file path and the flag, so the envelope adds both. Any
+// other error is a bug. It propagates.
+/** Run a read thunk. On CSVIntegrityError or SliceResolutionError, return a CLI error envelope that names the file. Otherwise return `{ok: true, value}`. */
+export function withReadGuard(csvPath, fn) {
   try {
     return { ok: true, value: fn() };
   } catch (err) {
@@ -13,6 +16,13 @@ export function withIntegrityGuard(csvPath, fn) {
         ok: false,
         code: 2,
         error: `cannot parse CSV "${csvPath}": ${err.message}`,
+      };
+    }
+    if (err instanceof SliceResolutionError) {
+      return {
+        ok: false,
+        code: 2,
+        error: `cannot resolve slice for "${csvPath}": ${err.message}. Pass --event-type <name> or --event-type '*'`,
       };
     }
     throw err;

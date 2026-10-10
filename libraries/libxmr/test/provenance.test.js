@@ -1,7 +1,7 @@
 import { test, describe } from "node:test";
 import assert from "node:assert";
 
-import { analyze } from "../src/analyze.js";
+import { analyzeAll } from "./helpers.js";
 
 // Reproduce the #1692 shape. The shape is a moderate-variance era with a high
 // cluster early (slots 6/7/8 = 9/8/9). A long favorable zero-run follows
@@ -41,7 +41,7 @@ function allRecords(signals) {
 describe("per-signal recomputation-revealed provenance", () => {
   test("an adverse pre-anchor signal carries recomputation-revealed (criterion 1)", () => {
     const csv = makeCSV("summary_corrections", SHAPE_1692);
-    const m = analyze(csv, { priorReadAnchor: ANCHOR_SLOT_12 }).metrics[0];
+    const m = analyzeAll(csv, { priorReadAnchor: ANCHOR_SLOT_12 }).metrics[0];
 
     // X-Rule 1 fires on the early cluster (slots 6/7/8). They are all
     // pre-anchor.
@@ -54,7 +54,7 @@ describe("per-signal recomputation-revealed provenance", () => {
 
   test("a favorable post-anchor signal carries new-point, and one report holds both values (criterion 2)", () => {
     const csv = makeCSV("summary_corrections", SHAPE_1692);
-    const m = analyze(csv, { priorReadAnchor: ANCHOR_SLOT_12 }).metrics[0];
+    const m = analyzeAll(csv, { priorReadAnchor: ANCHOR_SLOT_12 }).metrics[0];
 
     const values = new Set(allRecords(m.signals).map((r) => r.provenance));
     assert.ok(values.has("recomputation-revealed"));
@@ -68,7 +68,7 @@ describe("per-signal recomputation-revealed provenance", () => {
 
   test("without an anchor, records carry no provenance key (criterion 3)", () => {
     const csv = makeCSV("summary_corrections", SHAPE_1692);
-    const m = analyze(csv).metrics[0];
+    const m = analyzeAll(csv).metrics[0];
     for (const rec of allRecords(m.signals)) {
       assert.ok(!("provenance" in rec));
     }
@@ -76,10 +76,10 @@ describe("per-signal recomputation-revealed provenance", () => {
 
   test("a non-corresponding anchor yields no provenance and leaves the report unchanged (criterion 3)", () => {
     const csv = makeCSV("summary_corrections", SHAPE_1692);
-    const baseline = analyze(csv).metrics[0];
+    const baseline = analyzeAll(csv).metrics[0];
     // The date lies beyond the series end. No slot matches. So the anchor is
     // non-corresponding (spec § Scope: backfill, correction, or beyond end).
-    const m = analyze(csv, { priorReadAnchor: "2026-12-31" }).metrics[0];
+    const m = analyzeAll(csv, { priorReadAnchor: "2026-12-31" }).metrics[0];
     for (const rec of allRecords(m.signals)) {
       assert.ok(!("provenance" in rec));
     }

@@ -22,10 +22,13 @@ export const COLUMNS = [
 // The 7-column header that came before the trailing `host_run` column.
 // Legacy current-year files that carry this header stay valid.
 export const LEGACY_HEADER = "date,metric,value,unit,run,note,event_type";
-export const EVENT_TYPE_COLUMN = "event_type";
-// Default read slice. This constant couples to the workflow filename
-// `.github/workflows/kata-shift.yml`. If somebody renames that file,
-// update this constant. Also search `wiki/metrics/` for the old name.
-export const DEFAULT_SHIFT_TYPE = "kata-shift";
+// A row holds the seven legacy columns or the eight current ones. The range
+// derives from the two headers, so the column count has one home.
+export const MIN_FIELDS = LEGACY_HEADER.split(",").length;
+export const MAX_FIELDS = HEADER.split(",").length;
+// The reserved off-workflow value. `record` writes it when the caller names
+// no slice and no host workflow exists. It is not a workflow filename, and
+// no workflow file may take the name.
+export const INTERACTIVE_EVENT_TYPE = "interactive";
 
 export const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;

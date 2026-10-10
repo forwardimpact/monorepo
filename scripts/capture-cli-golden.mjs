@@ -56,15 +56,23 @@ function applyTransforms(text, transform = []) {
   return out;
 }
 
-/** Run one case and return normalised `{ stdout, stderr, exitCode }`. */
-function runCase(execPath, c) {
+/**
+ * Run one case and return normalised `{ stdout, stderr, exitCode }`. `cwd`
+ * is the child's working directory (default: the caller's), so a replay test
+ * that starts at the repository root can run a case whose args carry
+ * package-relative paths. A failed spawn (a missing `node`) throws, so the
+ * replay names the cause instead of reporting a byte diff.
+ */
+function runCase(execPath, c, { cwd } = {}) {
   const isJs = execPath.endsWith(".js") || execPath.endsWith(".mjs");
   const cmd = isJs ? "node" : execPath;
   const args = isJs ? [execPath, ...c.args] : c.args;
   const result = spawnSync(cmd, args, {
+    cwd,
     encoding: "utf8",
     env: { ...process.env, ...(c.env ?? {}) },
   });
+  if (result.error) throw result.error;
   return {
     stdout: applyTransforms(result.stdout ?? "", c.transform),
     stderr: applyTransforms(result.stderr ?? "", c.transform),

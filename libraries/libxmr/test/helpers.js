@@ -8,6 +8,8 @@ import {
   createDefaultSubprocess,
 } from "@forwardimpact/libutil";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { analyze } from "../src/analyze.js";
+import { parseCSV } from "../src/csv.js";
 
 /**
  * Build a runtime for in-process command tests. The runtime holds a `proc`
@@ -103,4 +105,28 @@ export function ctxFor({ runtime, options = {}, args = {} }) {
 /** Create a temporary directory and return its path. */
 export function makeTempDir(prefix = "xmr-test-") {
   return mkdtempSync(join(tmpdir(), prefix));
+}
+
+/** The legacy seven-column header line. */
+export const HEADER_LINE = "date,metric,value,unit,run,note,event_type";
+
+/** A legacy-header fixture with two slices: `dispatch_only` under `kata-dispatch`, `shift_only` under `kata-shift`. */
+export const MIXED_CSV = [
+  HEADER_LINE,
+  "2026-01-01,dispatch_only,1,count,,,kata-dispatch",
+  "2026-01-02,dispatch_only,2,count,,,kata-dispatch",
+  "2026-01-01,shift_only,100,count,,,kata-shift",
+  "2026-01-02,shift_only,101,count,,,kata-shift",
+].join("\n");
+
+/** A legacy-header fixture with one slice: two `shift_only` rows under `kata-shift`. */
+export const SINGLE_CSV = [
+  HEADER_LINE,
+  "2026-01-01,shift_only,100,count,,,kata-shift",
+  "2026-01-02,shift_only,101,count,,,kata-shift",
+].join("\n");
+
+/** Analyze every row of a CSV text. The slice is `"*"`, so a case that tests statistics or provenance reads the whole fixture. */
+export function analyzeAll(csvText, options = {}) {
+  return analyze(parseCSV(csvText), { eventType: "*", ...options });
 }

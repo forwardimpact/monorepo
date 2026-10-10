@@ -1,0 +1,5 @@
+date,metric,value,unit,run,note,event_type,host_run
+2026-01-01,stable_metric,10,count,,,nightly-review,local
+2026-01-02,stable_metric,11,count,,,nightly-review,local
+2026-01-01,other_metric,5,count,,,weekly-audit,local
+2026-01-02,other_metric,6,count,,,weekly-audit,local

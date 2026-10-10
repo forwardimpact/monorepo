@@ -1,8 +1,8 @@
 import { formatHeader, formatTable } from "@forwardimpact/libcli";
 
-import { listMetrics } from "../csv.js";
-import { resolveSlice } from "./slice.js";
-import { withIntegrityGuard } from "./guard.js";
+import { sliceLabel } from "../format.js";
+import { listSliceMetrics } from "../slice.js";
+import { withReadGuard } from "./guard.js";
 
 /** Run the list command: read a CSV and display all metrics with their point counts and date ranges. */
 export function runListCommand(ctx) {
@@ -25,13 +25,13 @@ export function runListCommand(ctx) {
     };
   }
 
-  const { eventType, label } = resolveSlice(values["event-type"]);
   const text = fsSync.readFileSync(csvPath, "utf-8");
-  const guarded = withIntegrityGuard(csvPath, () =>
-    listMetrics(text, eventType),
+  const guarded = withReadGuard(csvPath, () =>
+    listSliceMetrics(text, { eventType: values["event-type"] }),
   );
   if (!guarded.ok) return guarded;
-  const metrics = guarded.value;
+  const { metrics, eventType } = guarded.value;
+  const label = sliceLabel(eventType);
 
   if (values.format === "json") {
     proc.stdout.write(

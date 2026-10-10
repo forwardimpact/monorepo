@@ -1,10 +1,4 @@
-export {
-  parseCSV,
-  parseLine,
-  validateCSV,
-  listMetrics,
-  CSVIntegrityError,
-} from "./csv.js";
+export { parseCSV, parseLine, validateCSV, CSVIntegrityError } from "./csv.js";
 export { computeXmR } from "./stats.js";
 export {
   detectSignals,
@@ -16,8 +10,14 @@ export {
 } from "./signals.js";
 export { renderChart } from "./chart.js";
 export { classify } from "./classify.js";
-export { analyze, roundStats } from "./analyze.js";
-export { fmt1, round1, round2 } from "./format.js";
+export { analyze, listMetrics, roundStats } from "./analyze.js";
+export {
+  analyzeSlice,
+  listSliceMetrics,
+  formatTally,
+  SliceResolutionError,
+} from "./slice.js";
+export { fmt1, round1, round2, sliceLabel } from "./format.js";
 export {
   ROUTES,
   ROUTE_NONE,
@@ -35,6 +35,4 @@ export {
   MIN_POINTS,
   HEADER,
   COLUMNS,
-  EVENT_TYPE_COLUMN,
-  DEFAULT_SHIFT_TYPE,
 } from "./constants.js";

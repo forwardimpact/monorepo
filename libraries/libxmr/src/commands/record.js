@@ -1,7 +1,8 @@
 import path from "node:path";
 import { isoDate } from "@forwardimpact/libutil";
-import { analyze } from "../analyze.js";
-import { HEADER } from "../constants.js";
+import { HEADER, INTERACTIVE_EVENT_TYPE } from "../constants.js";
+import { normalizeSlice } from "../csv.js";
+import { analyzeSlice } from "../slice.js";
 import {
   formatRouteContext,
   isKnownRoute,
@@ -37,17 +38,13 @@ function parseRecordOptions(values, runtime) {
     };
   }
 
+  // The stream the row belongs to: the flag, else the host workflow's
+  // filename, else the reserved off-workflow value. A row is never refused
+  // for a missing slice.
   const eventType =
-    values["event-type"] || workflowName(runtime.proc.env.GITHUB_WORKFLOW_REF);
-  if (!eventType) {
-    return {
-      error: {
-        ok: false,
-        code: 2,
-        error: "record requires --event-type <name> or $GITHUB_WORKFLOW_REF",
-      },
-    };
-  }
+    normalizeSlice(values["event-type"]) ||
+    workflowName(runtime.proc.env.GITHUB_WORKFLOW_REF) ||
+    INTERACTIVE_EVENT_TYPE;
 
   const noteResult = buildNote(values);
   if (noteResult.error) return { error: noteResult.error };
@@ -107,7 +104,7 @@ function buildNote(values) {
 }
 
 // $GITHUB_WORKFLOW_REF looks like
-// `owner/repo/.github/workflows/kata-shift.yml@refs/heads/main`. The
+// `owner/repo/.github/workflows/nightly-review.yml@refs/heads/main`. The
 // workflow's machine name is the filename without its extension.
 function workflowName(ref) {
   if (!ref) return "";
@@ -119,7 +116,7 @@ function printSummary(csvPath, metric, eventType, runtime) {
   const { fsSync, proc } = runtime;
   try {
     const text = fsSync.readFileSync(csvPath, "utf-8");
-    const report = analyze(text, { eventType });
+    const report = analyzeSlice(text, { eventType });
     const m = report.metrics.find((r) => r.metric === metric);
 
     if (m) {

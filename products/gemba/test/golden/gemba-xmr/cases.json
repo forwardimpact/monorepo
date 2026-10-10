@@ -4,7 +4,8 @@
     "args": ["--help"],
     "exitCode": 0,
     "stdoutFile": "help.stdout",
-    "stderrFile": "help.stderr"
+    "stderrFile": "help.stderr",
+    "transform": [{ "pattern": "\\d+\\.\\d+\\.\\d+", "replacement": "X.Y.Z" }]
   },
   {
     "name": "list text",
@@ -19,6 +20,20 @@
     "exitCode": 0,
     "stdoutFile": "list-json.stdout",
     "stderrFile": "list-json.stderr"
+  },
+  {
+    "name": "list mixed no flag",
+    "args": ["list", "test/golden/gemba-xmr/mixed.csv"],
+    "exitCode": 2,
+    "stdoutFile": "list-mixed-no-flag.stdout",
+    "stderrFile": "list-mixed-no-flag.stderr"
+  },
+  {
+    "name": "list mixed all",
+    "args": ["list", "test/golden/gemba-xmr/mixed.csv", "--event-type", "*"],
+    "exitCode": 0,
+    "stdoutFile": "list-mixed-all.stdout",
+    "stderrFile": "list-mixed-all.stderr"
   },
   {
     "name": "validate valid",

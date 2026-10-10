@@ -1,45 +1,23 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, readFileSync, mkdirSync } from "node:fs";
+import { writeFileSync, readFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { tmpdir } from "node:os";
-import { execFileSync } from "node:child_process";
 import { yearMonth } from "@forwardimpact/libutil";
-import { GitClient } from "@forwardimpact/libutil/git-client";
 import { createMockSubprocess } from "@forwardimpact/libmock";
 
-import { runRefreshCommand } from "../src/commands/refresh.js";
-import { makeRuntime, ctxFor, profileText } from "./helpers.js";
+import {
+  profileText,
+  makeMetricsCSV,
+  createRefreshProject,
+  runRefresh,
+} from "./helpers.js";
 
-const HEADER = "date,metric,value,unit,run,note,event_type";
+// The XmR notice family (every render failure as a notice inside the block)
+// lives in the sibling cli-refresh-xmr-notices.integration.test.js.
 const FIXED_NOW = Date.UTC(2026, 4, 15);
 
-function makeCSV(metric, values) {
-  const rows = values.map(
-    (v, i) =>
-      `2026-01-${String(i + 1).padStart(2, "0")},${metric},${v},count,,,kata-shift`,
-  );
-  return [HEADER, ...rows].join("\n");
-}
-
-function createProject() {
-  const dir = mkdtempSync(join(tmpdir(), "refresh-"));
-  writeFileSync(join(dir, "package.json"), '{"name":"root"}');
-  execFileSync("git", ["init", dir], { stdio: "pipe" });
-  return dir;
-}
-
 async function refresh(cwd, storyboardPath) {
-  const harness = makeRuntime({ cwd, now: FIXED_NOW });
-  const gitClient = new GitClient({ runtime: harness.runtime });
-  await runRefreshCommand(
-    ctxFor({
-      runtime: harness.runtime,
-      gitClient,
-      options: {},
-      args: storyboardPath ? { "storyboard-path": storyboardPath } : {},
-    }),
-  );
+  const { harness } = await runRefresh(cwd, { storyboardPath, now: FIXED_NOW });
   return harness;
 }
 
@@ -50,16 +28,7 @@ async function refreshCreates(cwd, storyboardPath) {
   const subprocess = createMockSubprocess({
     responses: { gh: { stdout: "[]", exitCode: 0 } },
   });
-  const harness = makeRuntime({ cwd, now: FIXED_NOW, subprocess });
-  const gitClient = new GitClient({ runtime: harness.runtime });
-  await runRefreshCommand(
-    ctxFor({
-      runtime: harness.runtime,
-      gitClient,
-      options: {},
-      args: storyboardPath ? { "storyboard-path": storyboardPath } : {},
-    }),
-  );
+  await runRefresh(cwd, { storyboardPath, now: FIXED_NOW, subprocess });
   return storyboardPath
     ? join(cwd, storyboardPath)
     : join(cwd, "wiki", `storyboard-${yearMonth(FIXED_NOW)}.md`);
@@ -67,7 +36,7 @@ async function refreshCreates(cwd, storyboardPath) {
 
 describe("gemba-wiki refresh CLI (in-process)", () => {
   test("no markers — file unchanged", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const storyboard = join(dir, "storyboard.md");
     const original = "# Storyboard\n\nSome prose.\n";
     writeFileSync(storyboard, original);
@@ -76,12 +45,12 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   test("one marker — block regenerated with chart", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
     writeFileSync(
       join(csvDir, "2026.csv"),
-      makeCSV("findings", Array(15).fill(10)),
+      makeMetricsCSV("findings", Array(15).fill(10)),
     );
     const storyboard = join(dir, "storyboard.md");
     writeFileSync(
@@ -103,12 +72,12 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   test("idempotent — second refresh produces the same output", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
     writeFileSync(
       join(csvDir, "2026.csv"),
-      makeCSV("findings", Array(15).fill(10)),
+      makeMetricsCSV("findings", Array(15).fill(10)),
     );
     const storyboard = join(dir, "storyboard.md");
     writeFileSync(
@@ -126,23 +95,25 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
     assert.equal(after1, after2);
   });
 
-  test("missing CSV — block unchanged, exit 0", async () => {
-    const dir = createProject();
+  test("missing CSV — block carries a notice, exit 0", async () => {
+    const dir = createRefreshProject();
     const storyboard = join(dir, "storyboard.md");
     writeFileSync(
       storyboard,
       [
         "<!-- xmr:metric:nonexistent.csv -->",
-        "preserved content",
+        "old content",
         "<!-- /xmr -->",
       ].join("\n"),
     );
     await refresh(dir, "storyboard.md");
-    assert.ok(readFileSync(storyboard, "utf-8").includes("preserved content"));
+    const after = readFileSync(storyboard, "utf-8");
+    assert.ok(after.includes("**XmR block not rendered.** Could not read"));
+    assert.ok(!after.includes("old content"));
   });
 
   test("missing storyboard file — creates a skeleton, exit 0", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     // The test writes no storyboard. Refresh creates it from the skeleton.
     const created = readFileSync(
       await refreshCreates(dir, "storyboard.md"),
@@ -156,7 +127,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   test("a created skeleton carries one section per installed profile", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const agentsDir = join(dir, ".claude", "agents");
     mkdirSync(agentsDir, { recursive: true });
     for (const agent of ["staff-engineer", "technical-writer"]) {
@@ -173,7 +144,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   test("missing storyboard defaults to the current-month path", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     await refreshCreates(dir, undefined);
     const defaultPath = join(
       dir,
@@ -184,7 +155,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   test("clears expired MEMORY.md claims even with no storyboard", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const wikiDir = join(dir, "wiki");
     mkdirSync(wikiDir, { recursive: true });
     // FIXED_NOW is 2026-05-15. The first row is past its expiry. The second
@@ -208,12 +179,12 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   test("working-directory independence", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
     writeFileSync(
       join(csvDir, "2026.csv"),
-      makeCSV("metric", Array(15).fill(5)),
+      makeMetricsCSV("metric", Array(15).fill(5)),
     );
     const storyboard = join(dir, "storyboard.md");
     writeFileSync(
@@ -233,12 +204,12 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   });
 
   test("defaults to the current-month storyboard when no path is given", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const csvDir = join(dir, "wiki", "metrics", "kata-spec");
     mkdirSync(csvDir, { recursive: true });
     writeFileSync(
       join(csvDir, "2026.csv"),
-      makeCSV("metric", Array(15).fill(7)),
+      makeMetricsCSV("metric", Array(15).fill(7)),
     );
     const defaultPath = join(
       dir,
@@ -264,16 +235,11 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   // pins the last-successful-sync stamp. `gh` is { stdout, exitCode }.
   async function refreshGh(dir, storyboardPath, nowMs, gh) {
     const subprocess = createMockSubprocess({ responses: { gh } });
-    const harness = makeRuntime({ cwd: dir, now: nowMs, subprocess });
-    const gitClient = new GitClient({ runtime: harness.runtime });
-    await runRefreshCommand(
-      ctxFor({
-        runtime: harness.runtime,
-        gitClient,
-        options: {},
-        args: { "storyboard-path": storyboardPath },
-      }),
-    );
+    const { harness } = await runRefresh(dir, {
+      storyboardPath,
+      now: nowMs,
+      subprocess,
+    });
     return harness;
   }
 
@@ -287,7 +253,7 @@ describe("gemba-wiki refresh CLI (in-process)", () => {
   }
 
   test("agent-experiments: keep-previous on failure, stamp frozen, drop on de-label", async () => {
-    const dir = createProject();
+    const dir = createRefreshProject();
     const storyboard = join(dir, "storyboard.md");
     writeFileSync(
       storyboard,

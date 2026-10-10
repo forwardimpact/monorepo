@@ -1,9 +1,10 @@
 import {
   COLUMNS,
-  DEFAULT_SHIFT_TYPE,
   HEADER,
   ISO_DATE_RE,
   LEGACY_HEADER,
+  MAX_FIELDS,
+  MIN_FIELDS,
 } from "./constants.js";
 import {
   CONVENTION_START,
@@ -42,16 +43,24 @@ function assertNoConflictMarkers(text) {
   }
 }
 
+/** The one normalisation of a slice value: the trimmed string, or "" for no value. */
+export function normalizeSlice(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
 // Parse one CSV line into a row object. The parser is quote-aware. It does
 // NOT support the `""` escape inside quoted fields. Kata-metrics CSVs use
 // the `note` field for free text, and the schema does not require embedded
-// quotes.
-/** Parse a single CSV line into a row object with date, metric, value, unit, run, note, event_type, and host_run fields. */
+// quotes. The `event_type` cell is normalised here, once: the line loses one
+// trailing carriage return before the split, and the cell loses its
+// surrounding whitespace. Every later reader sees the normalised value.
+/** Parse a single CSV line into a row object with date, metric, value, unit, run, note, event_type (normalised), and host_run fields. */
 export function parseLine(line) {
+  const text = line.endsWith("\r") ? line.slice(0, -1) : line;
   const fields = [];
   let current = "";
   let inQuotes = false;
-  for (const char of line) {
+  for (const char of text) {
     if (char === '"') {
       inQuotes = !inQuotes;
       continue;
@@ -75,7 +84,7 @@ export function parseLine(line) {
     unit: fields[3] || "",
     run: fields[4] || "",
     note,
-    eventType: fields[6] || "",
+    eventType: normalizeSlice(fields[6]),
     hostRun: fields[7] || "",
     routeTaken,
     routesEligible,
@@ -126,6 +135,14 @@ export function validateCSV(text) {
 }
 
 function validateRow(row, lineNumber, errors) {
+  const count = row.raw.fields.length;
+  if (count < MIN_FIELDS || count > MAX_FIELDS) {
+    errors.push({
+      line: lineNumber,
+      field: "row",
+      message: `field count ${count} is outside the schema range ${MIN_FIELDS} to ${MAX_FIELDS}`,
+    });
+  }
   if (!row.date || !ISO_DATE_RE.test(row.date)) {
     errors.push({
       line: lineNumber,
@@ -150,7 +167,7 @@ function validateRow(row, lineNumber, errors) {
   if (!row.unit) {
     errors.push({ line: lineNumber, field: "unit", message: "missing unit" });
   }
-  if (row.eventType.trim() === "") {
+  if (row.eventType === "") {
     errors.push({
       line: lineNumber,
       field: "event_type",
@@ -199,29 +216,4 @@ function headerMismatchMessage(got) {
     `got [${gotCols.join(",")}]; ` +
     `extra=[${extra.join(",")}] missing=[${missing.join(",")}]`
   );
-}
-
-/** List distinct metrics in a CSV with their unit, point count, and date range. Restrict the list to one event_type (default kata-shift). Pass "*" to disable the filter. */
-export function listMetrics(csvText, eventType = DEFAULT_SHIFT_TYPE) {
-  let rows = parseCSV(csvText);
-  if (eventType !== "*") {
-    rows = rows.filter((row) => row.eventType === eventType);
-  }
-
-  const groups = {};
-  for (const row of rows) {
-    if (!groups[row.metric]) groups[row.metric] = [];
-    groups[row.metric].push(row);
-  }
-
-  return Object.entries(groups).map(([name, group]) => {
-    group.sort((a, b) => a.date.localeCompare(b.date));
-    return {
-      metric: name,
-      unit: group[0].unit,
-      n: group.length,
-      from: group[0].date,
-      to: group[group.length - 1].date,
-    };
-  });
 }

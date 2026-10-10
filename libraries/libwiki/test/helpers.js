@@ -7,8 +7,15 @@ import { execFileSync } from "node:child_process";
 import {
   createDefaultClock,
   createDefaultSubprocess,
+  runRules,
 } from "@forwardimpact/libutil";
 import { createDefaultRuntime } from "@forwardimpact/libutil/runtime";
+import { GitClient } from "@forwardimpact/libutil/git-client";
+import { createMockFs } from "@forwardimpact/libmock";
+import { analyzeSlice, renderChart } from "@forwardimpact/libxmr";
+import { RULES } from "../src/audit/rules.js";
+import { buildContext, resolveScope } from "../src/audit/scopes.js";
+import { runRefreshCommand } from "../src/commands/refresh.js";
 
 /**
  * Build a real-filesystem `runtime` for in-process command tests. It carries a
@@ -140,19 +147,125 @@ export function liveStoryboard(yyyymm = "2026-05") {
   ].join("\n");
 }
 
+export const METRICS_HEADER = "date,metric,value,unit,run,note,event_type";
+
+/** Legacy-header metrics rows for one metric: one row per value, dated 2026-01-01 onward, every row under `slice`. */
+export function metricsRows(metric, values, slice = "kata-shift") {
+  return values.map(
+    (v, i) =>
+      `2026-01-${String(i + 1).padStart(2, "0")},${metric},${v},count,,,${slice}`,
+  );
+}
+
+/** A legacy-header metrics CSV with one metric, every row under `slice`. */
+export function makeMetricsCSV(metric, values, slice = "kata-shift") {
+  return [METRICS_HEADER, ...metricsRows(metric, values, slice)].join("\n");
+}
+
+/** A two-slice metrics CSV: fifteen 10s for `metricA` under nightly-review, then fifteen 20s for `metricB` under weekly-audit. */
+export function twoSliceCSV(metricA, metricB) {
+  return [
+    METRICS_HEADER,
+    ...metricsRows(metricA, Array(15).fill(10), "nightly-review"),
+    ...metricsRows(metricB, Array(15).fill(20), "weekly-audit"),
+  ].join("\n");
+}
+
+/** The chart text libxmr renders for `metric` in the `eventType` slice of `csv`. A renderer test compares its block against this. */
+export function chartTextFor(csv, eventType, metric) {
+  const m = analyzeSlice(csv, { eventType }).metrics.find(
+    (x) => x.metric === metric,
+  );
+  return renderChart(m.values, m.stats, m.signals);
+}
+
+export const AUDIT_WIKI = "/wiki";
+
+export const MEMORY_NONE = [
+  "## Cross-Cutting Priorities",
+  "",
+  "| Item | Agents | Owner | Status | Added |",
+  "| --- | --- | --- | --- | --- |",
+  "| *None* | — | — | — | — |",
+  "",
+].join("\n");
+
+/** A bare storyboard for `yyyy-mm` with one empty H3 per domain agent. */
+export function storyboardSkeleton(yyyy, mm) {
+  return [
+    `# Storyboard — ${yyyy}-${mm}`,
+    "",
+    ...STORYBOARD_AGENTS.map((a) => `### ${a}`),
+    "",
+  ].join("\n");
+}
+
+/**
+ * The clean-wiki seed for an audit test: MEMORY.md and the storyboard for
+ * `today`'s month under AUDIT_WIKI. `extra` overlays it. buildContext reads
+ * these through runtime.fsSync.
+ */
+export function cleanSeed(today = "2026-05-24", extra = {}) {
+  const d = new Date(today);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return {
+    [`${AUDIT_WIKI}/MEMORY.md`]: MEMORY_NONE,
+    [`${AUDIT_WIKI}/storyboard-${yyyy}-M${mm}.md`]: storyboardSkeleton(
+      yyyy,
+      mm,
+    ),
+    ...extra,
+  };
+}
+
+/** Run every audit rule over an in-memory wiki seed and return the findings. */
+export function auditWiki(seed, today = "2026-05-24") {
+  const ctx = buildContext({
+    wikiRoot: AUDIT_WIKI,
+    today,
+    fs: createMockFs(seed),
+  });
+  return runRules(RULES, ctx, { resolveScope });
+}
+
+/** The rule ids of a findings list. */
+export const findingIds = (findings) => findings.map((f) => f.id);
+
+/** Create a throwaway project root (package.json + git init) for a refresh test. */
+export function createRefreshProject() {
+  const dir = mkdtempSync(join(tmpdir(), "refresh-"));
+  writeFileSync(join(dir, "package.json"), '{"name":"root"}');
+  execFileSync("git", ["init", dir], { stdio: "pipe" });
+  return dir;
+}
+
+/**
+ * Run `gemba-wiki refresh` in-process from `cwd`. `storyboardPath` is the
+ * optional positional. `now` pins the clock, `subprocess` stubs `gh`, and
+ * `options` are the parsed flags. Returns the captured harness and the
+ * command's result.
+ */
+export async function runRefresh(
+  cwd,
+  { storyboardPath, now, subprocess, options = {} } = {},
+) {
+  const harness = makeRuntime({ cwd, now, subprocess });
+  const gitClient = new GitClient({ runtime: harness.runtime });
+  const result = await runRefreshCommand(
+    ctxFor({
+      runtime: harness.runtime,
+      gitClient,
+      options,
+      args: storyboardPath ? { "storyboard-path": storyboardPath } : {},
+    }),
+  );
+  return { harness, result };
+}
+
 /** Seed a wiki root with an audit-clean MEMORY.md and current-month storyboard. */
 export function seedCleanWiki(wikiRoot) {
-  writeFileSync(
-    join(wikiRoot, "MEMORY.md"),
-    [
-      "## Cross-Cutting Priorities",
-      "",
-      "| Item | Agents | Owner | Status | Added |",
-      "| --- | --- | --- | --- | --- |",
-      "| *None* | — | — | — | — |",
-      "",
-    ].join("\n"),
-  );
+  writeFileSync(join(wikiRoot, "MEMORY.md"), MEMORY_NONE);
   writeFileSync(join(wikiRoot, "storyboard-2026-M05.md"), liveStoryboard());
 }
 

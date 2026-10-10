@@ -198,17 +198,45 @@ describe("gemba-xmr record", () => {
     assert.ok(lines[1].endsWith(",kata-local,local"));
   });
 
-  test("returns code 2 when neither --event-type nor $GITHUB_WORKFLOW_REF is set", () => {
-    const { result } = run({
+  // An off-workflow row has an honest value. It is never refused.
+  test("writes the reserved value when neither --event-type nor $GITHUB_WORKFLOW_REF is set", () => {
+    const { result, fs } = run({
       skill: "kata-test",
       metric: "test_count",
       value: "2",
+      date: "2026-05-02",
       "wiki-root": WIKI_ROOT,
     });
 
-    assert.equal(result.ok, false);
-    assert.equal(result.code, 2);
-    assert.match(result.error, /event-type|GITHUB_WORKFLOW_REF/);
+    assert.ok(result.ok, JSON.stringify(result));
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    const fields = lines[1].split(",");
+    assert.equal(fields[6], "interactive");
+    assert.equal(fields[7], "local");
+  });
+
+  test("a blank --event-type is no choice", () => {
+    const { fs } = run(
+      {
+        skill: "kata-test",
+        metric: "test_count",
+        value: "2",
+        date: "2026-05-02",
+        "event-type": "  ",
+        "wiki-root": WIKI_ROOT,
+      },
+      {
+        env: {
+          GITHUB_WORKFLOW_REF:
+            "owner/repo/.github/workflows/nightly-review.yml@refs/heads/main",
+        },
+      },
+    );
+
+    const csvPath = join(WIKI_ROOT, "metrics", "kata-test", "2026.csv");
+    const lines = fs.readFileSync(csvPath, "utf-8").trim().split("\n");
+    assert.ok(lines[1].endsWith(",nightly-review,local"));
   });
 
   test("returns an error envelope when neither --skill nor the env var is set", () => {

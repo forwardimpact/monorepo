@@ -16,3 +16,8 @@ export function round1(n) {
 export function round2(n) {
   return Math.round(n * 100) / 100;
 }
+
+/** The human form of a slice for text output. */
+export function sliceLabel(eventType) {
+  return eventType === "*" ? "* (all rows)" : eventType;
+}

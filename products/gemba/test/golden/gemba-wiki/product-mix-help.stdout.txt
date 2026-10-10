@@ -3,11 +3,12 @@ gemba-wiki product-mix — Emit the product-vs-internal mix of merged PRs as a `
 Usage: gemba-wiki product-mix [options]
 
 Options:
-  --until=<string>      Window end ISO date (default: today)
-  --since=<string>      Window start ISO date (default: until − 7 days)
-  --run=<string>        Run id recorded on the metric row (default: gh-live)
-  --repo=<string>       owner/repo slug (default: origin remote)
-  --wiki-root=<string>  Override wiki root directory (default: wiki)
+  --until=<string>       Window end ISO date (default: today)
+  --since=<string>       Window start ISO date (default: until − 7 days)
+  --run=<string>         Run id recorded on the metric row (default: gh-live)
+  --repo=<string>        owner/repo slug (default: origin remote)
+  --event-type=<string>  Forwarded to `gemba-xmr record --event-type` (default: record's own rule)
+  --wiki-root=<string>   Override wiki root directory (default: wiki)
 
 Global options:
   --help, -h  Show this help

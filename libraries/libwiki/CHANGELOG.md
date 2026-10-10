@@ -4,6 +4,27 @@ This file records all notable changes to `@forwardimpact/libwiki`.
 
 ## Unreleased
 
+### Storyboard markers name their slice (breaking)
+
+The XmR marker grammar is
+`<!-- xmr:<metric>:<csv> [key=value]... [free text] -->`.
+
+- Tokens are the `key=value` words right after the CSV path, in any order.
+  The known keys are `event_type` and `prior`.
+- `scanMarkers` parses both onto the block. It records an unknown, repeated,
+  or unusable token on `tokenErrors`.
+- `renderBlock` takes `eventType` and `tokenErrors`. It reads the marker's
+  slice, or the file's sole value. It returns notice lines inside the block
+  for every render failure: a bad token, a missing file, a slice it cannot
+  resolve, or a metric with no rows in the slice.
+- `BlockRenderError` is removed. `refresh` splices every rendered block. A
+  conflict-marker CSV still fails the refresh.
+- `product-mix` takes `--event-type` and forwards it to `gemba-xmr record`.
+  Without it, `record`'s own rule applies. The pinned `kata-shift` literal is
+  gone. A `record` failure now fails `product-mix` with `record`'s exit code
+  and message.
+- `ISO_DATE_RE` moved to `constants.js`.
+
 ### The roster is the installed profiles
 
 `listAgents` reads each file under the agents directory and keeps the
