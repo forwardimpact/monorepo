@@ -49,8 +49,7 @@ reason codes.
 | `push` | Nine of fifteen refusal strings fail the imperative audit. The residue-conflict text tells the operator to pop another agent's stash. | #2063, #2059 |
 | `push` | Eight specs patched the publish path in June: 1750, 1780, 1890, 1900, 1920, 1960, 1970, and 2030. One release-engineer run needed five rebases to land a one-line fix. | The specs; `release-engineer-2026-W24-part10` |
 | `log` | A typo in `--agent` creates a log for an agent that does not exist. | bionova-apps-v2#497 |
-| `claim` | An agent invented a `--ttl` option. Two agents held the same target. On 2026-10-11 the claims ledger holds 44 rows, all expired, with targets in more than ten syntaxes. Four specs carry two claims each under two ids, three of them held by one |  |
-| agent. | #1490, #1539, the claims ledger |  |
+| `claim` | An agent invented a `--ttl` option. Two agents held the same target. On 2026-10-11 the claims ledger holds 44 rows, all expired, with targets in more than ten syntaxes. At least four specs carry two claims each under two ids, most of them held by one agent. | #1490, #1539, the claims ledger |
 | `inbox` | Ack and drop destroy mail, and no action writes to the weekly log. | bionova-apps-v2#259 |
 | `gemba-trace` | An analyst fell back to raw grep for seven of ten gaps, and two studies took about 45 calls and 15 script wrappers. Specs 0570 and 1220 answered with seven more subcommands. In July the trace options still used three names for one trace file. | #408, #996, the devex-engineer log of week 29 |
 | `gemba-xmr record` | No row carried the route context the metric needed, so spec 1590 added two more options. | #1467, spec 1590 |
@@ -64,8 +63,9 @@ place in a prose file, reading a trace, mapping a run's outcome to a metric,
 and spotting another agent's claim on the same work. Five of the agent's
 judgments have no incident behind them: the `memo` recipient, the `push`
 commit body, the `log` field split, the `inbox` disposition, and the
-`jidoka fix` move, because cuts cleared most of the cited breaches. They come
-from this spec's product decision that every call runs the agent.
+`jidoka fix` move. Cuts cleared most of the cited breaches, so a move cleared
+none of them. These five come from this spec's product decision that every
+call runs the agent.
 
 ### One command already works the other way
 
@@ -99,8 +99,9 @@ judgment call, and deterministic checks decide whether the work stands.
    | --- | --- | --- |
    | A usage error | All nine | Usage error |
    | An agent name that a non-empty roster lacks | `log`, `inbox`, `memo`, `claim` | Usage error |
-   | No wiki tree | The six `gemba-wiki` commands | `noop` |
-   | An empty roster | `memo` | Usage error |
+   | No wiki tree | `push` and `gemba-wiki fix` | `noop` |
+   | No wiki tree | `log`, `inbox`, `memo`, and `claim` | `failed` |
+   | An empty roster | `memo` | `noop`, as spec 2400 decides |
    | Another agent's unexpired claim on the same id in the local ledger | `claim` | `blocked` |
    | The wiki is mid-merge, mid-rebase, or on a detached head | `push`, `claim` | `needs-human` |
    | The wiki history is unrelated to its remote | `push`, `claim` | `blocked` |
@@ -108,11 +109,12 @@ judgment call, and deterministic checks decide whether the work stands.
    | Another publish holds the wiki clone | `push`, `claim` | `failed` |
    | The task or a given trace holds a secret that no override covers | All nine | `blocked` |
 
-   A refusal before the agent starts writes nothing. The commands that stay
-   beside these nine do other jobs: `rotate` seals a weekly log on demand, and
-   the kept `gemba-trace` commands feed pipelines. The libraries' exported
-   writers stay available to code that computes its own values, such as
-   `product-mix`. The skills teach only the commands.
+   The failures of § A10 can also end a call before the agent starts. A refusal
+   before the agent starts writes nothing. The commands that stay beside these
+   nine do other jobs: `rotate` seals a weekly log on demand, and the kept
+   `gemba-trace` commands feed pipelines. The libraries' exported writers stay
+   available to code that computes its own values, such as `product-mix`. The
+   skills teach only the commands.
 3. **The gates decide.** Deterministic checks accept or refuse each proposal
    and each edit. A proposal that gives no answer for an item fails the
    completeness gate. `unresolved` is an answer where § B allows it. No gate
@@ -153,8 +155,9 @@ judgment call, and deterministic checks decide whether the work stands.
    | `needs-human` | The work needs a person: an unresolved item, proposals that still failed a gate after the command's retries, a line both sides changed, findings a fix left, an overlap only the agent saw, a local claim that a peer's claim displaced, or a wiki state a person must settle (mid-merge, a budget breach, a conservation refusal, or conflict markers). | 4 |
    | `blocked` | A rule refuses the work until the state it reads changes: a secret, another agent's claim on the same id, or unrelated history. | 5 |
 
-   A usage error keeps exit code 2, and an unexpected error keeps exit code 1.
-   `push --stop-hook` (§ A13) maps these codes to the hook's own codes.
+   A usage error keeps exit code 2 and prints no result object. An unexpected
+   error keeps exit code 1. `push --stop-hook` (§ A13) maps these codes to the
+   hook's own codes.
 8. **Text by default, a result object on request.** `--format json` (a new
    option on the six `gemba-wiki` commands, the global option on `gemba-trace`
    and `gemba-xmr`) and the global `--json` on `jidoka` print one object with
@@ -181,31 +184,35 @@ judgment call, and deterministic checks decide whether the work stands.
 12. **One behaviour.** All nine commands apply the limits of their kind, the
     same scans, the same isolation, and the same result contract.
     `gemba-wiki fix` takes them on.
-13. **The Stop hook.** `gemba-wiki push --stop-hook` runs the Stop-hook rule,
-    so every installation runs the same rule. It blocks the stop once on
+13. **The Stop hook.** `gemba-wiki push --stop-hook` runs the Stop-hook rule, so
+    every installation runs the same rule. It blocks the stop once on
     `needs-human` and `blocked`, so the session agent reads `next`. It does not
-    block again when the stop is already a retry from the hook. On `failed`,
-    and on `needs-human` or `blocked` during a retry, it exits with a code that
-    Claude Code shows to the person and that does not block the stop. It exits
-    0 on `done` and `noop`. Run by hand, it does not wait for hook input.
+    block again when the stop is already a retry from the hook. On every other
+    result that is not `done` or `noop`, a usage error and an unexpected error
+    included, it exits with a code that Claude Code shows to the person and that
+    does not block the stop. It exits 0 on `done` and `noop`. Every
+    installation's hook gives it at least 120 seconds. Run by hand, it does not
+    wait for hook input.
 14. **Safe interruption.** A `push` or `claim` that its host stops at any point
-    leaves no merge or rebase in progress. The remote stays at its old tip or
-    moves to the new commit. Every `gemba-wiki` command, in scope or not, first
-    brings an interrupted publish's working tree in line. It skips this while a
-    live publish holds the clone.
+    leaves no merge or rebase in progress, before any later command runs. The
+    remote stays at its old tip or moves to the new commit. Every `gemba-wiki`
+    command, in scope or not, first brings an interrupted publish's working tree
+    in line. It skips this while a live publish holds the clone.
 15. **One publish at a time.** A push or claim that meets another publish in
     flight in the same wiki clone ends in `failed` at once and writes nothing. A
     push's uncommitted work waits for the next push. A `release` that meets one
-    exits 1. A publish holds the clone for at most 110 seconds, and a publish
-    whose holder has gone does not hold it. Every publish checks the claim rows
-    it carries against the remote tip it fetches.
+    exits 1, and a `pull` that meets one exits 1 and changes nothing. A publish
+    holds the clone for at most 110 seconds, and a publish whose holder has gone
+    does not hold it. Every publish checks the claim rows it carries against the
+    remote tip it fetches.
 16. **Removed forms name their replacement.** A call of a removed subcommand or
     option ends in a usage error whose message names the new form. A removed
     subcommand counts as one only as the first argument after the command name.
     So `gemba-wiki log done --agent <a>` is a usage error, and
     `gemba-wiki log --agent <a> done` logs the word as text. These messages stay
-    for two releases of each CLI after the instructions move. A host that still
-    sets the removed `FIT_WIKI_SCANNER_ABSENT_OK` gets no effect from it.
+    for two releases of each CLI after the instructions move, and a follow-up
+    issue that the staff engineer owns removes them. A host that still sets the
+    removed `FIT_WIKI_SCANNER_ABSENT_OK` gets no effect from it.
 
 ### B: The commands
 
@@ -213,9 +220,9 @@ judgment call, and deterministic checks decide whether the work stands.
 | --- | --- | --- | --- |
 | `gemba-wiki push` | The commit body. The subject stays the command's. On a conflict that git cannot merge by its own rules, the order of both sides' insertions at one place in each conflicted prose file. | The body passes the secret scan, and no other gate reads it. A base line that one side changed keeps that change. A base line that both sides changed differently stops the call in `needs-human`. Insertions from both sides at one place both stay. No merged line is absent from all three versions. No conflict marker. A conflicting row in a named ledger stops the call in `needs-human`, as spec 2390 decides. The secret scan, the ancestry guard, the conservation guard, and the budget gate. | The commit, the files, and each merged file. |
 | `gemba-wiki log --agent <name> "<text>"` | The entry type (decision, note, or done), and the split of the text into fields. | Each field is a span of the caller's text. A note's heading is the text before its first colon, else `Note`. The entry passes the weekly-log rules. | The entry as written. |
-| `gemba-wiki inbox --agent <name> ["<instruction>"]` | One disposition per memo: ack, promote with an owner, drop, keep, or unresolved. It reads the agent's summary, priorities, and claims, and the caller's instruction when given. | Each memo gets one disposition. A promoted memo's owner is on the roster, and the memo appears in the priorities. The weekly log records every disposition with its reason. A kept or unresolved memo stays in the inbox. | Each memo with its disposition and reason. |
+| `gemba-wiki inbox --agent <name> ["<instruction>"]` | One disposition per memo: ack, promote with an owner, drop, keep, or unresolved. It reads the agent's summary, priorities, and claims, and the caller's instruction when given. | Each memo gets one disposition. A promoted memo's owner is on the roster, and the memo appears in the priorities. The weekly log records every disposition with its reason. The log line also holds the memo's text. A kept or unresolved memo stays in the inbox. | Each memo with its disposition and reason. |
 | `gemba-wiki memo --from <name> "<message>"` | The recipients, when the message does not open with names: the agents whose profile descriptions match its topic. | At least one recipient. Each recipient is on the roster. The sender is never a recipient. A message that opens with names, or with `all` or `everyone`, goes to exactly those agents, or to every agent but the sender. | The recipients. |
-| `gemba-wiki claim --agent <name> "<text>"` | Whether another agent's unexpired claim with the same branch or pull request covers the same work. | Another agent's unexpired claim on the same id refuses the call, on the local claims and again on each fetched remote tip. A refusal on the tip drops the local row. An overlap the agent confirms ends the call in `needs-human`. | The claim row, or the overlapping claim and its holder. |
+| `gemba-wiki claim --agent <name> "<text>"` | Whether another agent's unexpired claim with the same base id, branch, or pull request covers the same work. A base id is the id without its `-<activity>` suffix. A shared default branch or an empty branch makes no candidate. | Another agent's unexpired claim on the same id refuses the call, on the local claims and again on each fetched remote tip. A refusal on the tip drops the local row. An overlap the agent confirms ends the call in `needs-human`. | The claim row, or the overlapping claim and its holder. |
 | `gemba-trace ask --file <trace>… "<question>"` | The answer. It reads the given traces and nothing else. | The answer holds at least one citation. Each citation names a turn that exists and quotes text that the turn holds. Each number in the answer appears in a tool result of the same run. | The answer and its citations. |
 | `gemba-xmr record --skill <skill> "<text>"` | The metric, the value, the route and the eligible routes, and the note. | The metric is declared in the skill's metrics reference, present in its file, or named in the text as written. The value appears in the text, and the note is a span of it. Each route id is one that the text names by id or label. The unit comes from the metrics reference, else from the metric's earlier rows, else `count`. The row passes the file schema and the route-decision check. | The row as appended and its one-line XmR summary. |
 | `jidoka fix` | Moves text to clear the findings of `jidoka instructions`. | The agent edits instruction layers only. Each fixed finding is gone, and no new finding appears. Every relative link outside code in an edited file resolves. Every removed sentence appears, after the edit, in a file that the layer it left links to. Every added sentence appeared in an instruction layer before the edit, except a link to the place that the moved text went to. | Each finding fixed, each move, and each finding left. |
@@ -272,8 +279,8 @@ the runtime.
 | The `gemba-xmr record` options `--metric`, `--value`, `--unit`, `--note`, `--route`, and `--routes-eligible` | The free-text argument and the metrics reference. A new metric with no reference and no earlier rows records unit `count`. |
 | The private round loop of `gemba-wiki fix`, its exits that skip the agent, its use of the technical-writer profile, its text-only result, and its rewording fixes | The shared behaviour of § A12 and the result contract. A rewording goes to a person. |
 | Every exit code of the nine commands that § A7 does not keep, and the offline "saved locally" success of `claim` | § A7 |
-| `product-mix`'s call to the `record` command | A direct row write that runs no model |
-| The writers that the `gemba-wiki` skill's Programmatic API section teaches: `appendEntry`, `writeMemo`, `appendClaim`, `removeClaim`, and `WikiSync` | The commands. The section keeps only the readers. |
+| `product-mix`'s call to the `record` command | A direct row write that runs no model, through the row writer that the `libxmr` README documents |
+| The writers that the `gemba-wiki` skill's Programmatic API section teaches: `appendEntry`, `writeMemo`, `appendClaim`, `removeClaim`, and `WikiSync` | The commands. The section keeps the readers and `rotateIfOverBudget`. |
 | The `FIT_WIKI_SCANNER_ABSENT_OK` override | A scanner on every host that runs these commands |
 
 ## Scope
@@ -284,6 +291,8 @@ In scope:
 - The shared behaviour, the result contract, the secret scan of agent input,
   the limits, and the publish lock.
 - `release`'s target input and its new exits. `product-mix`'s row write.
+- An audited override, or a removal, of the one known scanner finding in this
+  repository's wiki before the repins.
 - The `gemba-trace` subcommand set and the `gemba-xmr record` input.
 - `jidoka fix`, and an install of the `jidoka` checks without the agent
   runtime.
@@ -299,11 +308,13 @@ In scope:
 - The `gemba-wiki`, `gemba-trace`, `gemba-xmr`, `gemba-harness`,
   `jidoka-audit`, and `jidoka-layer` skills, and the gemba and jidoka pages
   that describe these commands and the override.
-- This repository's Stop hook, the Stop-hook command in the `kata-setup` hooks
-  reference that spec 2400 writes, and two entries in the `kata-setup`
-  changelog of spec 2390. One entry adds the credential input to an
-  installation's action steps. The other moves its packs and actions
-  together.
+- This repository's Stop hook, the Stop-hook command and its timeout in the
+  `kata-setup` hooks reference that spec 2400 writes, and two entries in the
+  `kata-setup` changelog of spec 2390. One entry adds the credential input to
+  an installation's action steps and names the credential that its local
+  sessions need. The other moves its packs and actions together, and it
+  replaces an installation's `gemba-wiki push` Stop hook with
+  `gemba-wiki push --stop-hook` and its timeout.
 
 Out of scope:
 
@@ -332,10 +343,14 @@ skills, the agent profiles, the protocol, and the pages move. A caller can
 still meet an instruction older than its CLI. In this repository `bunx` and
 `npx` resolve to the workspace package, and elsewhere `npx` resolves to the
 newest published package. § A16 covers that window: an agent that follows an
-old instruction gets a usage error that names the new form, and its next call
-succeeds. An installation on the old action majors keeps its pinned binaries
-until the two changelog entries move its packs, actions, and credential
-together.
+old instruction gets a usage error that names the new form, and on a host with
+a credential and a scanner its next call succeeds. An installation on the old
+action majors keeps its pinned binaries until the two changelog entries move
+its packs, actions, credential, and Stop hook together. An installation whose
+Stop hook calls `npx gemba-wiki push` gets the new CLI when it publishes, as
+`forwardimpact/bionova-apps` does today. Until it holds a credential, each of
+its pushes ends in `failed`, Claude Code shows the `next` that names the
+credential, and its memory waits in the local clone.
 
 The change has a price, weighed here against the three jobs.
 
@@ -346,8 +361,12 @@ The change has a price, weighed here against the three jobs.
 - **Latency.** Claude Code fires the Stop hook each time a session agent ends a
   turn, so an interactive session waits for one push run per turn. S46 bounds
   the common empty push to 20 seconds and 1 US cent. A push with work ends
-  within 110 seconds. A session of 50 turns can wait more than ten minutes in
-  all for empty pushes, and pay up to 50 US cents for them.
+  within 110 seconds. A session of 50 turns can wait up to about 17 minutes in
+  all for empty pushes, and pay up to 50 US cents for them. A state that waits
+  for a person, such as a budget breach, costs two push runs and one forced
+  agent turn on each turn until a person acts. Harness sessions load the
+  project settings, so every CI turn and every facilitated participant's turn
+  also pays one push run.
 - **Outages.** A model outage ends every `push`, `claim`, `log`, `memo`,
   `inbox`, `record`, and fix call in `failed`, and no command can answer a
   question about a trace. A `claim` with no network now fails where it saved
@@ -362,14 +381,17 @@ The change has a price, weighed here against the three jobs.
   citation and number gates and S23 bound the answer.
 - **Metric recording.** A script that records a computed value with
   `gemba-xmr record --metric --value` today must put the value in the text and
-  needs a credential, or it calls the library writer as `product-mix` does.
+  needs a credential, or it calls the `libxmr` row writer as `product-mix`
+does.
   `scripts/exp-1738-gate-runtime.mjs` is one such caller.
 - **Fix coverage.** `gemba-wiki fix` no longer rewords or writes a pointer line
   in place of trimmed text. `jidoka fix` only moves text, so a breach that
   needs a cut, which most of the cited trim work was, still goes to a person.
-- **A known finding.** This repository's wiki already holds one scanner
-  finding in a sealed log. A fix run that reads that file ends in `blocked`
-  until an operator removes the text or overrides the finding.
+- **False positives.** This repository's wiki already holds one scanner
+  finding, a hit on ordinary log prose, which the change clears before the
+  repins. A false positive in a caller's own `log`, `memo`, or `claim` text
+  ends the call in `blocked`, and rewording the text is the only remedy. A
+  trace with such a hit cannot be asked about, and S59 bounds that share.
 - **Prerequisites.** The secret scanner becomes a prerequisite on every host
   that runs the nine commands, and a host that runs the gear binaries needs the
   agent runtime on its path. Each of these and the credential is a setup step
@@ -407,14 +429,15 @@ output and their install (S48, S53), and `jidoka fix` keeps the layers.
 
 "A test" means a test under `bun run test` with a scripted agent. Criteria
 marked *live* need a model credential, and they run in the plan's acceptance
-step. Criteria marked *post-merge* run after the instructions move.
+step. Criteria marked *post-merge* run after the instructions move. Time
+limits in tests run on an injected clock.
 
 | # | Claim | Verification |
 | --- | --- | --- |
 | S1 | The removed subcommands and options are gone. | The `--help` output of `gemba-wiki log`, `inbox`, `memo`, `claim`, and `release`, of `gemba-xmr record`, and of `gemba-trace` names no subcommand or option that § C removes. |
 | S2 | `gemba-trace` offers `ask` and the seven kept commands only. | `gemba-trace --help --json` lists exactly `ask`, `runs`, `find`, `download`, `split`, `cost`, `assert`, and `by-discussion`. |
-| S3 | No caller names a removed form. *Post-merge.* | `rg --no-ignore -U` over `.claude`, `.github`, `scripts`, `websites`, `benchmarks`, the root documents, `justfile`, and `package.json` finds no removed subcommand or option after its command, across line breaks, outside `specs/` and the changelogs. The `gemba-trace`, `gemba-xmr`, and `gemba-wiki` skills and their references name no removed subcommand or option in an example or a table. `scripts` names no removed `record` option at all. In `libraries` and `products`, the same search matches only the § A16 messages, their tests, and the changelogs. No file names `FIT_WIKI_SCANNER_ABSENT_OK` outside `specs/` and the changelogs. |
-| S4 | Every call that reaches the job runs the agent. | On a host with the scanner and no model credential, in a temporary repository with a clean wiki and a reachable remote, a recorded trace, a skill with a metrics reference, and a planted instruction finding, each of the nine commands with its JSON switch prints `outcome` `failed` and a `reason` that names the credential. |
+| S3 | No caller names a removed form. *Post-merge.* | `rg --no-ignore -U -g '!.claude/worktrees' -g '!specs' -g '!**/CHANGELOG.md'` for each removed subcommand and option after its command, and for `FIT_WIKI_SCANNER_ABSENT_OK`, over the repository finds only the § A16 messages, their tests, and the S36 test, and the `gemba-trace` skill names no removed subcommand. |
+| S4 | Every call that reaches the job runs the agent. | On a host with the scanner and no model credential, in a temporary repository with a roster, a clean wiki, a reachable remote, a recorded trace, a skill with a metrics reference, and a planted instruction finding, each of the nine commands with its JSON switch prints `outcome` `failed` and a `reason` that names the credential. |
 | S5 | The result object has one shape. | For each of the nine commands, the JSON switch prints one object with exactly the keys `command`, `outcome`, `reason`, `facts`, `pending`, and `next`. |
 | S6 | Each outcome keeps its exit code. | Tests reach every outcome that each command's § B row and § A2 and § A7 allow, and assert the code in § A7. |
 | S7 | A removed form names its replacement. | For each removed subcommand and option, a call exits 2 with a message that names the new form. `gemba-wiki log done --agent <a>` exits 2, and `gemba-wiki log --agent <a> done` is taken as free text. |
@@ -423,20 +446,20 @@ step. Criteria marked *post-merge* run after the instructions move.
 | S10 | `push` stops on a line both sides changed. | A test where both sides edit one base line differently ends in `needs-human` with the line in `pending`. |
 | S11 | `push` leaves the clone in line with the remote. | After a test push that merges a peer's change, `git status` in the wiki clone shows no change, and a second push ends in `noop`. |
 | S12 | `log` writes only the caller's words. | A test whose agent writes a rationale that the text does not hold, in every round, ends in `needs-human` and writes nothing. |
-| S13 | `inbox` leaves no memo untracked. | After a test of `gemba-wiki inbox --agent <a>` on an inbox of three memos, each memo has a weekly-log line with its disposition and reason. |
+| S13 | `inbox` leaves no memo untracked. | After a test of `gemba-wiki inbox --agent <a>` on an inbox of three memos, each memo has a weekly-log line with its disposition, its reason, and its text. |
 | S14 | The curator can act on one memo. | A test of `gemba-wiki inbox --agent <a> "promote the memo about <topic>, keep the rest"` promotes one memo, keeps the others, and ends in `done`. |
 | S15 | `memo` writes only to roster members. | Tests whose agent, in every round, names an unknown recipient, the sender, or nobody end in `needs-human` and write no file. |
-| S16 | Opening names fix the recipients. | Tests show that `"Hello <Title Case of b>, <Title Case of c>: …"` and `"Hi <b> and <c>: …"` go to `b` and `c`. `"Everyone: …"` goes to every agent but the sender. `"<Title Case of b> shipped it: …"` goes by its topic. An agent that adds `d` to a message with opening names, in every round, ends the call in `needs-human`. |
+| S16 | Opening names fix the recipients. | Tests show that `"Hello <Title Case of b>, <Title Case of c>: …"` and `"Hi <b> and <c>: …"` go to `b` and `c`, that `"Everyone: …"` goes to every agent but the sender, that `"<Title Case of b> shipped it: …"` goes by topic, and that an agent that adds `d` to a named message ends the call in `needs-human`. |
 | S17 | `claim` refuses the same id. | With another agent's unexpired claim on `spec-<n>`, a test of `claim --agent <b> "Spec <n>"` ends in `blocked`, and `facts` names the holder. |
 | S18 | An overlap the agent confirms goes to a person. | With another agent's unexpired claim whose row carries pull request `#<n>`, a test of `claim --agent <b> "spec <m> PR #<n>"` whose agent confirms the overlap ends in `needs-human` and writes no row. |
 | S19 | Claim text parses one way. | Tests show that `"Spec 2410 review on branch feat-x for 3 days"` yields id `spec-2410-review`, branch `feat-x`, and three days, that `"spec 2410 part 1"` yields `spec-2410/01`, that `"PR #12 merge"` yields `pr-12-merge`, and that `"#12"`, `"for 9 days"`, and `"on branch x"` exit 2. |
 | S20 | `claim` and `release` round-trip. | After a test of `claim --agent <a> "Spec <n> part 1"`, `release --agent <a> "spec <n> part 1"` removes the row. |
-| S21 | Claims from one branch do not collide. | A test where two agents claim different work from `main` lands both rows. |
-| S22 | A local claim is checked when a push carries it. | A test where `claim` writes a row locally and fails to publish, and a peer then publishes the same id, ends the next `push` in `needs-human`. The rest of that push lands, the row is dropped, and the claim is in `pending`. |
+| S21 | Claims from one branch do not collide. | A test where two agents claim different work from `main` lands both rows, and the scripted agent receives no candidate. |
+| S22 | A local claim is checked when a push carries it. | A test where `claim` writes a row locally and fails to publish, and a peer then publishes the same id, ends the next `push` in `needs-human` with the rest landed, the row dropped, and the claim in `pending`. |
 | S23 | `ask` answers trace questions correctly. *Live.* | On two recorded traces, five runs of `gemba-trace ask` each ask six questions: the turn count, the error count, the call count of one tool, the text of one turn, the run cost, and which trace has more turns. Every answer of every run matches the value from the trace files or the kept `cost` command, and a cost matches to the cent. |
 | S24 | `ask` answers only with checked citations and numbers. | Tests whose agent, in every round, gives no citation, cites a turn that does not hold the quote, or states a number that no tool result holds, end in `needs-human`. |
 | S25 | `record` invents nothing. | Tests whose agent, in every round, returns a value absent from the text, an unknown metric, a note that is no span of the text, or a route the text does not name, append no row and end in `needs-human`. |
-| S26 | `record` writes a valid row. *Live.* | `gemba-xmr record --skill <s> "<text>"` appends a row that `gemba-xmr validate` accepts. |
+| S26 | `record` writes the row the text means. *Live.* | `gemba-xmr record --skill <s> "<text that holds two numbers>"` appends a row with the metric and value that the text names, and `gemba-xmr validate` accepts it. |
 | S27 | `product-mix` still records its row. | `gemba-wiki product-mix` with no model credential appends its row, and `gemba-xmr validate` accepts it. |
 | S28 | `jidoka fix` moves text and loses none. *Live.* | On a planted over-cap skill, `jidoka fix` then `jidoka instructions` both exit 0, each removed sentence is in a file that its source layer links to, and every relative link outside code in the edited files resolves. |
 | S29 | A fix keeps its good work. | A test with two findings in two files, where the agent fixes one and its edit for the other drops a sentence from every file, keeps the first fix, restores the second file, and ends in `needs-human`. |
@@ -450,25 +473,28 @@ step. Criteria marked *post-merge* run after the instructions move.
 | S37 | The agent loads no host hooks, settings, skills, memory, or servers. *Live.* | In a repository whose project settings carry a Stop hook that writes a marker file, a project skill, a project memory file, and a project MCP server, `gemba-wiki push` leaves no marker, and the run's trace lists none of the others. |
 | S38 | The output hides the agent's own run. | The default and JSON outputs of each command name no model or cost of the run, and `--verbose` writes both, and the trace path, to stderr. |
 | S39 | A mid-merge tree no longer reports success. | On a wiki with a merge in progress and no publish lock, `gemba-wiki push` exits 4. |
-| S40 | A run that hits a time limit fails cleanly. | A test of `push` whose agent never answers ends in `failed` within 60 seconds, and the local commit stays, and tests of `ask` and `jidoka fix` end in `failed` within 120 and 180 seconds. |
-| S41 | An interrupted publish leaves a clean wiki. | A test that kills `push` at each git write of the publish, then runs `gemba-wiki boot`, leaves no merge or rebase in progress and the remote at its old tip or the new commit. `git status` then shows only the session's own work. |
-| S42 | Two publishes in one clone do not collide. | A test that starts a second `push` while one is in flight ends with the first landed and the second in `failed`. A `release` in the same test exits 1. A test with a lock left by a killed push lands the next push. |
-| S43 | The Stop hook blocks once and hides no failure. | With a stubbed `push`, `gemba-wiki push --stop-hook` exits 2 on stub exits 4 and 5, and exits 1 on them when the hook's retry flag is set. It exits 1 on stub exit 3 and 0 on stub exit 0. It returns at once when stdin is a terminal. `.claude/settings.json` calls it with a timeout of at least 120 seconds. |
-| S44 | No `next` sentence is unsafe. | A test over every `next` sentence finds none that holds `stash`, `reset`, `--force`, or `--remove`, because a person decides those steps. |
+| S40 | A run that hits a time limit fails cleanly. | Tests whose agent never answers end `push` in `failed` when its 60 agent seconds run out, with the local commit kept, and end `ask` and `jidoka fix` in `failed` at 120 and 180 seconds. |
+| S41 | An interrupted publish leaves a clean wiki. | A test that kills `push` at each git write of the publish finds no merge or rebase in progress and the remote at its old tip or the new commit, and after `gemba-wiki boot` `git status` shows only the session's own work. |
+| S42 | Two publishes in one clone do not collide. | A test that starts a second `push`, a `release`, and a `pull` while one push is in flight lands the first and ends the others in `failed`, exit 1, and exit 1, and a test with a lock left by a killed push lands the next push. |
+| S43 | The Stop hook blocks once and hides no failure. | With a stubbed `push`, `gemba-wiki push --stop-hook` exits 2 on stub exits 4 and 5, exits 1 on them under the retry flag and on stub exits 1, 2, and 3, exits 0 on stub exit 0, returns at once when stdin is a terminal, and `.claude/settings.json` gives it a timeout of at least 120 seconds. |
+| S44 | No `next` sentence is unsafe. | A test over every `next` sentence finds none that holds `stash`, `reset`, `--force`, `--remove`, `clone`, or `abort`. |
 | S45 | A push run stays cheap. *Live.* | The cost that `gemba-wiki push --verbose` reports for a one-file push is below 5 US cents. |
-| S46 | An empty push stays quick and cheap. *Live.* | `gemba-wiki push --verbose` with nothing outgoing ends within 20 seconds and reports an agent time below 15 seconds and a cost below 1 US cent. |
+| S46 | An empty push stays quick and cheap. *Live.* | Five runs of `gemba-wiki push --verbose` with nothing outgoing each end within 20 seconds and report an agent time below 15 seconds and a cost below 1 US cent. |
 | S47 | The roster rule refuses an unknown agent. | `gemba-wiki log --agent <not-on-roster> "<text>"` exits 2 and writes nothing. |
 | S48 | The checks stay as they are. | `jidoka instructions`, `jidoka invariants`, and `jidoka jtbd` give the same output on a fixed fixture repository before and after the change. |
 | S49 | The action push holds a credential. *Post-merge.* | `rg -B2 -A8 'gemba-wiki' products/*/actions .github/workflows` shows an `anthropic-api-key` input on every step that runs an agent-backed `gemba-wiki` command, and `products/gemba/actions/gemba-wiki/action.yml` declares that input. |
-| S50 | The setup changelog moves installations. *Post-merge.* | `rg -n 'anthropic-api-key' .claude/skills/kata-setup/references/changelog.md` finds the credential entry, the same file holds the pack-and-action entry, and `rg -n 'push --stop-hook' .claude/skills/kata-setup/references` finds the hooks line. |
-| S51 | The CLIs ship before the instructions move. *Post-merge.* | At the merge commit that moves the skills, `git merge-base --is-ancestor` passes for the gear release tag, and every pin of the four actions in `.github/workflows` and `products/*/actions` names its new major. |
+| S50 | The setup changelog moves installations. *Post-merge.* | `.claude/skills/kata-setup/references/changelog.md` holds the credential entry and the pack-and-action entry, and `rg -n -A3 'push --stop-hook' .claude/skills/kata-setup/references` shows the hooks line with a timeout of at least 120 seconds. |
+| S51 | The CLIs ship before the instructions move. *Post-merge.* | For the first `gear@`, `gemba@`, `jidoka@`, and `libwiki@` tags that contain the first merge, `git merge-base --is-ancestor` against the merge that moves the skills passes, and every pin of the four actions in `.github/workflows` and `products/*/actions` names its new major. |
 | S52 | The instruction layers stay within their caps. *Post-merge.* | `jidoka` passes. |
 | S53 | The checks install without the agent runtime. | A fresh `npm install` of the packed `jidoka` tarball holds no `@anthropic-ai/claude-agent-sdk` package. `jidoka fix` there ends in `failed` with a reason that names the runtime. |
-| S54 | The push holds up in use. *Post-merge.* | Over the first 20 scheduled Kata agent workflow runs after the repins, the wiki push step ends in `done` or `noop` in at least 19. |
+| S54 | The push holds up in use. *Post-merge.* | Over the first 20 scheduled Kata agent workflow runs after the repins, `gh run view --log` shows the wiki push step ending in `done` or `noop` in at least 19. |
 | S55 | Every call runs the agent. | With a scripted agent, a test of each of the nine commands on an input with nothing to judge records at least one agent query. |
 | S56 | The skills teach no writer that a command replaces. *Post-merge.* | `rg -n 'appendEntry\|writeMemo\|appendClaim\|removeClaim\|WikiSync' .claude/skills` returns nothing. |
 | S57 | `record` picks a unit it can name. | A test of `record` for a metric with no reference and no rows appends unit `count`, and a test for a metric with earlier rows reuses their unit. |
 | S58 | The proposers route and dispose as asked. *Live.* | On this repository's roster, `gemba-wiki memo --from <a> "<message about a failed release>"` names `release-engineer` among its recipients. `gemba-wiki inbox --agent <a> "promote the memo about <topic>"` on three planted memos promotes that memo only. |
+| S59 | Most traces can be asked about. *Live.* | Of the last 50 Kata agent workflow traces, `gemba-trace ask` refuses at most two for a scanner finding. |
+| S60 | `release` reports a removal that did not publish. | A test whose remote cannot be reached ends `release` in exit 1 with the removal still in the local ledger. |
+| S61 | A missing wiki fails a write. | With no wiki tree, tests of `log`, `inbox`, `memo`, and `claim` end in `failed` with a reason that names the wiki, and `push` ends in `noop`. |
 
 ## Relation to open specs and issues
 
