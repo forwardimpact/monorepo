@@ -33,7 +33,8 @@ gemba-xmr record --skill kata-implement --metric implementations_shipped \
 The CLI writes the route context as a machine-readable prefix on the row's
 note (`route_taken=<id>; routes_eligible=[<ids>];`). The CLI rejects a missing
 or unknown route. A downstream reader partitions the population with
-`gemba-xmr analyze … --route <id>` or `--routes-eligible-includes <id>`.
+`gemba-xmr analyze … --event-type <slice> --route <id>` or
+`--routes-eligible-includes <id>`.
 
 The route set is closed. A new route is a deliberate change. A check compares
 the id → route table above with the recorder's source declaration. The two

@@ -16,14 +16,14 @@ per-section word budgets. Write the state. Omit the history.
 **Planning meeting** — first meeting of the month or no storyboard exists.
 `gemba-wiki refresh` creates the monthly file (section skeleton +
 `obstacles`/`experiments` markers) before the meeting. It omits the per-metric
-XmR blocks. For every
-`wiki/metrics/{skill}/{YYYY}.csv`, a participant seeds one `#### {metric_name}`
-block under `### {skill}` with its `<!-- xmr:{metric}:{csv} -->` /
-`<!-- /xmr -->` pair. It also seeds a `#### product_share` block under
-`### product-manager` from `wiki/metrics/product-mix/{YYYY}.csv`. The next
-refresh renders them. Then lead the team through the Challenge, Target Condition
-(measurable, by month end), Current Condition from metrics CSVs, initial
-Obstacles, and the first Experiment.
+XmR blocks. For every `wiki/metrics/{skill}/{YYYY}.csv`, a participant seeds one
+`#### {metric_name}` block under `### {skill}` with its
+`<!-- xmr:{metric}:{csv} event_type={slice} -->` / `<!-- /xmr -->` pair. It also
+seeds a `#### product_share` block under `### product-manager` from
+`wiki/metrics/product-mix/{YYYY}.csv`. The next refresh renders them. Then lead
+the team through the Challenge, Target Condition (measurable, by month end),
+Current Condition from metrics CSVs, initial Obstacles, and the first
+Experiment.
 
 **Review meeting** — all other team meetings. Walk through the five questions.
 Update Current Condition with fresh metrics. Record experiment outcomes (actual
@@ -36,9 +36,9 @@ vs. expected). Update Obstacles. Plan the next experiment.
    product-manager to write it into the storyboard.
 2. **What is the actual condition now?** Each participant follows the
    Participant Protocol: measure with live data, record to CSV, run
-   `gemba-xmr analyze` on its own CSV, then report each metric's `status`,
-   `μ`, and any fired-rule `signals` through `Answer`. The facilitator relays
-   these and runs no analysis itself. Participants flag any metric whose status
+   `gemba-xmr analyze` on its own CSV and slice, then report each metric's
+   `status`, `μ`, and any fired-rule `signals` through `Answer`. The facilitator
+   relays these and analyzes nothing. Participants flag each metric whose status
    changed since the last meeting.
 3. **What obstacles prevent us from reaching the target?** Participants identify
    obstacles from their domain. The

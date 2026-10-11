@@ -94,19 +94,13 @@ skill. The `gemba-xmr record` command handles the file lifecycle. It creates
 the directory and the CSV header if they do not exist:
 
 ```sh
-npx gemba-xmr record --skill code-review --metric findings_count --value 3 --unit count --event-type kata-shift
+npx gemba-xmr record --skill code-review --metric findings_count --value 3 --unit count --event-type nightly-review
 ```
 
-`--event-type` gives the workflow that records the row (its filename without
-`.yml`). Inside GitHub Actions you can omit it, because the value falls back to
-`$GITHUB_WORKFLOW_REF`. Local runs must pass it explicitly.
-
-The read commands filter on `event_type`, and they default to the `kata-shift`
-slice. That default is the reference tenant's shift workflow. Record with
-`kata-shift` to follow this guide end to end. If you
-use your own workflow name, pass `--event-type <name>` to every read command,
-and expect `gemba-wiki refresh` to skip those rows, because refresh reads the
-default slice only.
+`event_type` names the stream a row belongs to. `record` takes it from
+`--event-type`. Without the flag, it takes the host workflow's filename
+(without `.yml`) from `$GITHUB_WORKFLOW_REF`. Without either, it writes the
+reserved value `interactive`. No workflow file may take that name.
 
 ```text
 metric=findings_count n=1 status=insufficient_data latest=3
@@ -121,7 +115,7 @@ The year in the path comes from the recorded date. The CSV is written to
 
 ```csv
 date,metric,value,unit,run,note,event_type,host_run
-2026-05-04,findings_count,3,count,,,kata-shift,local
+2026-05-04,findings_count,3,count,,,nightly-review,local
 ```
 
 ### Record with full context
@@ -134,7 +128,7 @@ npx gemba-xmr record \
   --metric findings_count \
   --value 5 \
   --unit count \
-  --event-type kata-shift \
+  --event-type nightly-review \
   --run "https://github.com/org/repo/actions/runs/12345" \
   --note "new dependency audit rule"
 ```
@@ -153,7 +147,7 @@ that the numbers alone cannot show.
 | `unit`       | yes      | Free text (`count`, `days`, `pct`, ...). `validate` rejects an empty unit. |
 | `run`        | no       | URL or identifier of the run that produced this observation.       |
 | `note`       | no       | Free text. Record what you discovered when a signal appears.       |
-| `event_type` | yes      | The workflow that recorded the row (its filename without `.yml`).  |
+| `event_type` | yes      | The stream the row belongs to: the host workflow's filename without `.yml`, else the reserved `interactive`. |
 | `host_run`   | no       | The CI run that produced the row. `record` writes `local` when no run id is available. |
 
 Validate the file at any time:
@@ -170,24 +164,29 @@ Once a metric has at least 15 observations, `gemba-xmr` computes natural process
 limits and applies Wheeler's three detection rules. The limits only mean
 something when each metric tracks a single process. See
 [One process per chart](/docs/predictable-team/xmr-analysis/#one-process-per-chart).
-Run the analysis:
+
+A read takes its slice from `--event-type`, and `'*'` reads every row. Without
+the flag, a file with one `event_type` value reads that value, and a file with
+several values fails with a list of the values. Every read names the slice it
+reports. [Prepare the CSV](/docs/predictable-team/xmr-analysis/#prepare-the-csv)
+gives the full rule. Run the analysis:
 
 ```sh
-npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --metric findings_count
+npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count
 ```
 
 The output includes the 14-line XmR chart, the computed limits, and a
 classification. For structured output that scripts and agents can parse:
 
 ```sh
-npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --metric findings_count --format json
+npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review --metric findings_count --format json
 ```
 
 ```json
 {
   "source": "wiki/metrics/code-review/2026.csv",
   "generated": "2026-05-04",
-  "event_type": "kata-shift",
+  "event_type": "nightly-review",
   "metrics": [
     {
       "metric": "findings_count",
@@ -236,18 +235,23 @@ file exists yet. Add one marker pair per metric you want charted:
 
 ### findings_count (code-review)
 
-<!-- xmr:findings_count:wiki/metrics/code-review/2026.csv -->
+<!-- xmr:findings_count:wiki/metrics/code-review/2026.csv event_type=nightly-review -->
 <!-- /xmr -->
 
 ### cycle_time (delivery)
 
-<!-- xmr:cycle_time:wiki/metrics/delivery/2026.csv -->
+<!-- xmr:cycle_time:wiki/metrics/delivery/2026.csv event_type=nightly-review -->
 <!-- /xmr -->
 ```
 
 Each XmR block is a marker pair. The opening comment gives the metric and the
 CSV path. The closing comment marks the end of the region that `refresh`
-replaces.
+replaces. The opening comment takes optional `key=value` tokens after the CSV
+path:
+`<!-- xmr:<metric>:<csv> [event_type=<slice>] [prior=<YYYY-MM-DD>] [free text] -->`.
+A block over a file with several streams needs `event_type`.
+[Refreshing storyboard charts](/docs/predictable-team/wiki-operations/#refreshing-storyboard-charts)
+gives the full grammar and the notices `refresh` writes.
 
 The skeleton also has obstacle and experiment sections, and `refresh` fills
 those from your issue tracker. The runtime renders those sections but does not
@@ -272,7 +276,7 @@ After refresh, each block contains the fenced chart and a signal summary that
 lists any fired rules:
 
 ````markdown
-<!-- xmr:findings_count:wiki/metrics/code-review/2026.csv -->
+<!-- xmr:findings_count:wiki/metrics/code-review/2026.csv event_type=nightly-review -->
 ```
  UPL 12.5 ┬
           │                                         ·
@@ -389,7 +393,7 @@ Work through this checklist to confirm that the full memory system works:
    `insufficient`.
 
    ```sh
-   npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --format json
+   npx gemba-xmr analyze wiki/metrics/code-review/2026.csv --event-type nightly-review --format json
    ```
 
    Expected: `"classification"` is `"stable"`, `"signals"`, or `"chaos"`.
