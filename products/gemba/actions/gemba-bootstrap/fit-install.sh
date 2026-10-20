@@ -491,22 +491,22 @@ resolve_claude() {
   # path (no brew) on both platforms. The tarball is the npm platform package
   # (top-level `package/`, so strip=1). Its sole exported binary is
   # `package/claude`.
-  local version="0.3.170"
+  local version="0.3.292"
   local pkg sha256 binary_path="claude" strip=1
 
   case "$OS-$ARCH" in
     linux-x86_64)
       pkg="linux-x64"
-      sha256="0a20346fa0bb6a1afc8c1d1bd214ddb12c6bcca3e926cd50c6a0830dd57f2112" ;;
+      sha256="9425be1621e54d19b9ccc61d213cc6982a2d13a9ede67b97ef1682dc53560590" ;;
     linux-aarch64)
       pkg="linux-arm64"
-      sha256="0b286e784c35d690f419464ce1a8ee3187f548105aaa42e2b4f5e2f4ecd2d535" ;;
+      sha256="6211b61ea4715ae84efbc1293cf0a7c1a0c2bf3b433458cec65d0e7f54253cd1" ;;
     darwin-x86_64)
       pkg="darwin-x64"
-      sha256="c04d595043630fcc1ae4a1c51115b5e24bd2d80cc9f4de66a1ef6192f21e2171" ;;
+      sha256="83aa5f0e52fed4f1198256a713dd2464e6b38728ca5f5e043a37b76a80a54929" ;;
     darwin-arm64)
       pkg="darwin-arm64"
-      sha256="c8e19615c13f639743b766d15365e51518ab16e7716b68fdcd81a3cf4e1651a2" ;;
+      sha256="352dff1e4a493c3285bdfd49165b65132278d0d25eed3935989c257439c1fa5d" ;;
     *) echo "::error::claude: unsupported platform $OS-$ARCH" >&2; exit 1 ;;
   esac
 
