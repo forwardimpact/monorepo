@@ -1,6 +1,6 @@
 {
   "name": "@forwardimpact/libharness",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Autonomous agent team harness — coordinate a lead and participant agents in one async session, with eval, benchmark, and trace tooling to prove the changes worked.",
   "keywords": [
     "orchestration",
@@ -67,7 +67,7 @@
     "@forwardimpact/libconfig": "^0.1.0",
     "@forwardimpact/libpreflight": "^0.1.0",
     "@forwardimpact/libtelemetry": "^0.1.22",
-    "@forwardimpact/libutil": "^0.1.0",
+    "@forwardimpact/libutil": "^0.1.103",
     "jmespath": "^0.16.0",
     "minimatch": "^10.2.6",
     "zod": "^4.6.5"
