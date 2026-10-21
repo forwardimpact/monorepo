@@ -226,7 +226,7 @@ runs:
       id: budget
       if: steps.actor.outputs.actor-class == 'self'
       continue-on-error: true
-      uses: forwardimpact/gemba-watchdog@437b84d56a5036d618ce35bcfbda4d03103d66e2 # v1.0.1
+      uses: forwardimpact/gemba-watchdog@1e11172c1c0e5c11c03dcd2079d146d491a050e2 # v1.0.3
       with:
         mode: assess
         threshold: ${{ inputs.dispatch-budget }}
@@ -258,7 +258,7 @@ runs:
     # ./scripts/bootstrap.sh. The `token:` input gates wiki checkout. Leave it
     # empty to skip wiki sync. forwardimpact/gemba-wiki below pushes the wiki back
     # after the agent run.
-    - uses: forwardimpact/gemba-bootstrap@3b4863a37e22bb88a4df719b78ef96a56f1fbe35 # v1.0.23
+    - uses: forwardimpact/gemba-bootstrap@3fe38c4f4c1cf8fb495e2a6c81b423a0781411d6 # v1.0.24
       if: steps.gate.outputs.stood-down != 'true'
       with:
         token: ${{ inputs.wiki == 'true' && steps.ci-app.outputs.token || '' }}
