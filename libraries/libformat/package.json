@@ -40,9 +40,9 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "marked": "^18.0.14",
+    "marked": "^18.1.1",
     "marked-terminal": "^7.3.0",
-    "sanitize-html": "^2.18.0"
+    "sanitize-html": "^2.18.1"
   },
   "devDependencies": {
     "@forwardimpact/libmock": "^0.1.0"
