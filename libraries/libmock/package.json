@@ -33,7 +33,7 @@
     "test": "bun test test/*.test.js"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.14.5"
+    "@grpc/grpc-js": "^1.14.6"
   },
   "peerDependencies": {
     "@forwardimpact/libtype": "*"
